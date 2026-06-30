@@ -13,12 +13,21 @@ namespace Koralytics.Infrastructure.EntitiesConfigurations
     {
         public void Configure(EntityTypeBuilder<TournamentFixture> entity)
         {
-            entity.HasKey(x => x.Id);
+            entity.ToTable("TournamentFixtures", t => t.HasCheckConstraint(
+            "CK_TournamentFixture_RoundOrGroup",
+            "([RoundId] IS NOT NULL AND [GroupId] IS NULL) OR ([GroupId] IS NOT NULL AND [RoundId] IS NULL)"
+            ));
 
-            entity.HasOne(x => x.Tournament)
-                  .WithMany()
-                  .HasForeignKey(x => x.TournamentId)
-                  .OnDelete(DeleteBehavior.Restrict);
+            entity.HasKey(tf => tf.Id);
+
+            entity.Property(tf => tf.LegNumber)
+                   .IsRequired()
+                   .HasDefaultValue(1);
+
+            entity.ToTable(t => t.HasCheckConstraint(
+                "CK_TournamentFixture_LegNumber",
+                "[LegNumber] IN (1, 2)"
+            ));
 
             entity.HasOne(x => x.Group)
                   .WithMany()
@@ -44,6 +53,9 @@ namespace Koralytics.Infrastructure.EntitiesConfigurations
                   .WithMany()
                   .HasForeignKey(x => x.WinnerTeamId)
                   .OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(tf => tf.RoundId);
+            entity.HasIndex(tf => tf.GroupId);
+            entity.HasIndex(tf => new { tf.HomeTeamId, tf.AwayTeamId });
         }
     }
 }

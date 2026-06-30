@@ -98,7 +98,11 @@ namespace Koralytics.Domain.Enums
         Goal = 1,
         YellowCard = 2,
         RedCard = 3,
-        Substitution = 4
+        Substitution = 4,
+        OwnGoal = 5,
+        PenaltyScored = 6,
+        PenaltyMissed = 7,
+        CleanSheet = 8
     }
     public enum PreferredFoot
     {

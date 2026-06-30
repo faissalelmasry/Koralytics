@@ -10,9 +10,6 @@ namespace Koralytics.Domain.Entities.Tournamet
 {
     public class TournamentFixture:BaseEntity
     {
-        public int TournamentId { get; set; }
-        public Tournament Tournament { get; set; }
-
         public int? GroupId { get; set; }
         public TournamentGroup? Group { get; set; }
 
@@ -32,8 +29,6 @@ namespace Koralytics.Domain.Entities.Tournamet
         public TournamentTeam? WinnerTeam { get; set; }
 
         public int? LegNumber { get; set; }
-
-        public DateTime? MatchDate { get; set; }
 
         public MatchStatus Status { get; set; }
     }
