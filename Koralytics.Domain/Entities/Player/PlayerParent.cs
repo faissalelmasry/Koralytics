@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Koralytics.Domain.Entities.Coach
+namespace Koralytics.Domain.Entities.Player
 {
-    public class Coach
+    public class PlayerParent
     {
     }
 }

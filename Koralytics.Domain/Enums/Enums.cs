@@ -119,5 +119,11 @@ namespace Koralytics.Domain.Enums
         AgeGroup = 3,
         Role = 4
     }
+    public enum TempAccessStatus
+    {
+        Active = 1,
+        Revoked = 2,
+        Expired = 3
+    }
 
 }
