@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Koralytics.Domain.Entities.Tournamet
+namespace Koralytics.Infrastructure.EntitiesConfigurations
 {
-    public class TounamentGroup
+    public class TournamentGroupConfiguration
     {
     }
 }
