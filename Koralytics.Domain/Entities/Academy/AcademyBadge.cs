@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using Koralytics.Domain.Enums;
 namespace Koralytics.Domain.Entities.Academy
 {
     public class AcademyBadge:BaseEntity
