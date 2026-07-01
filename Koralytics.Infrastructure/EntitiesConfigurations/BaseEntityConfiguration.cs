@@ -19,6 +19,10 @@ namespace Koralytics.Infrastructure.EntitiesConfigurations
 
             builder.Property(x => x.Id)
                    .UseIdentityColumn();
+            builder.HasOne(x => x.CreatedByUser)
+            .WithMany()
+            .HasForeignKey(x => x.CreatedById)
+            .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

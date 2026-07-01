@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Koralytics.Infrastructure.EntitiesConfigurations
 {
-    internal class AuditableEntityConfiguration<TEntity>
+    public class AuditableEntityConfiguration<TEntity>
         : IEntityTypeConfiguration<TEntity>
     where TEntity : AuditableEntity
     {
@@ -18,10 +18,6 @@ namespace Koralytics.Infrastructure.EntitiesConfigurations
             builder.HasOne(x => x.UpdatedByUser)
             .WithMany()
             .HasForeignKey(x => x.UpdatedById)
-            .OnDelete(DeleteBehavior.Restrict);
-            builder.HasOne(x => x.CreatedByUser)
-            .WithMany()
-            .HasForeignKey(x => x.CreatedById)
             .OnDelete(DeleteBehavior.Restrict);
         }
     }
