@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,7 +12,6 @@ namespace Koralytics.Domain.Models.BaseModels
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
         public int? UpdatedById { get; set; }
         public User? UpdatedByUser { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public int? CreatedById { get; set; }
         public User? CreatedByUser { get; set; }
 
