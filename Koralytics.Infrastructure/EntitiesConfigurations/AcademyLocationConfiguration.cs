@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Koralytics.Domain.Entities.Academy;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,7 +9,14 @@ using System.Threading.Tasks;
 
 namespace Koralytics.Infrastructure.EntitiesConfigurations
 {
-    internal class AcademyLocationConfiguration
+    public class AcademyLocationConfiguration : IEntityTypeConfiguration<AcademyLocation>
     {
+        public void Configure(EntityTypeBuilder<AcademyLocation> builder)
+        {
+            builder.HasOne<Academy>()
+                .WithMany(a => a.AcademyLocations) 
+                .HasForeignKey(x => x.AcademyId)
+                .OnDelete(DeleteBehavior.Cascade);
+        }
     }
 }

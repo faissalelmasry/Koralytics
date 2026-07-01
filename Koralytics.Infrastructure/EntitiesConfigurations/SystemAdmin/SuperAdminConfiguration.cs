@@ -1,12 +1,21 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Koralytics.Domain.Entities.SystemAdmin;
 
 namespace Koralytics.Infrastructure.EntitiesConfigurations.SystemAdmin
 {
-    internal class SuperAdminConfiguration
+    public class SystemAdminConfiguration : IEntityTypeConfiguration<SystemAdminUser>
     {
+        public void Configure(EntityTypeBuilder<SystemAdminUser> builder)
+        {
+            // Map the UserId to act as the primary key if it bypasses BaseEntity standard
+            builder.HasKey(x => x.UserId);
+            builder.Ignore(x => x.Id);
+        }
     }
 }

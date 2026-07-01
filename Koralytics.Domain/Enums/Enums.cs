@@ -129,5 +129,18 @@ namespace Koralytics.Domain.Enums
         Revoked = 2,
         Expired = 3
     }
+    public enum RoleAuditAction
+    {
+        Assigned = 1,
+        Removed = 2,
+        Modified = 3
+    }
+
+    public enum AcademyBadgeType
+    {
+        Verified = 1,
+        TopPerformer = 2,
+        Premium = 3
+    }
 
 }

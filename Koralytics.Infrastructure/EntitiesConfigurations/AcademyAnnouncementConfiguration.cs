@@ -9,14 +9,17 @@ using System.Threading.Tasks;
 
 namespace Koralytics.Infrastructure.EntitiesConfigurations
 {
-    public class AcademyBadgeConfiguration : IEntityTypeConfiguration<AcademyBadge>
+    public class AcademyAnnouncementConfiguration : IEntityTypeConfiguration<AcademyAnnouncement>
     {
-        public void Configure(EntityTypeBuilder<AcademyBadge> builder)
+        public void Configure(EntityTypeBuilder<AcademyAnnouncement> builder)
         {
-            builder.HasOne<Academy>()
+            builder.HasOne<Koralytics.Domain.Entities.Academy.Academy>()
                 .WithMany()
                 .HasForeignKey(x => x.AcademyId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasIndex(x => x.AcademyId);
         }
     }
-}
+
+ }
