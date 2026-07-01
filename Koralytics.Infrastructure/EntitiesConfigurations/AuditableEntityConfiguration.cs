@@ -15,10 +15,6 @@ namespace Koralytics.Infrastructure.EntitiesConfigurations
                 .HasForeignKey(x => x.UpdatedById)
                 .OnDelete(DeleteBehavior.Restrict);
             
-            builder.HasOne(x => x.CreatedByUser)
-                .WithMany()
-                .HasForeignKey(x => x.CreatedById)
-                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }
