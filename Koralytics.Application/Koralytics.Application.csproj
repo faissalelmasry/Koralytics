@@ -22,8 +22,8 @@
     <Folder Include="Interfaces\ISpeceficRepositories\" />
     <Folder Include="Interfaces\IExternalServices\" />
     <Folder Include="Mappings\" />
-    <Folder Include="Validators\" />
     <Folder Include="Services\" />
+    <Folder Include="Validators\" />
   </ItemGroup>
 
 </Project>
