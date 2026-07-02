@@ -1,3 +1,4 @@
+using Koralytics.API.Middlewares;
 using Koralytics.Application.Interfaces;
 using Koralytics.Domain.Entities;
 using Koralytics.Domain.Entities.Identity;
@@ -5,6 +6,7 @@ using Koralytics.Infrastructure.Context;
 using Koralytics.Infrastructure.Repositories;
 using Koralytics.Infrastructure.Seeding;
 using Koralytics.Infrastructure.UnitOfWork;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -23,6 +25,8 @@ namespace Koralytics.API
             builder.Services.AddIdentity<User, Role>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
+            builder.Services.AddProblemDetails();
+            builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
             builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
@@ -38,6 +42,8 @@ namespace Koralytics.API
                         rollingInterval: RollingInterval.Day));
 
             var app = builder.Build();
+
+            app.UseExceptionHandler();
 
             // Seed database
             using (var scope = app.Services.CreateScope())
