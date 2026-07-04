@@ -61,6 +61,7 @@ namespace Koralytics.Infrastructure.Context
         public DbSet<AcademyRequest> AcademyRequests { get; set; }
         
         public DbSet<Parent> Parents { get; set; }
+        public DbSet<ParentPlayer> ParentPlayers { get; set; }
         #endregion
 
         #region Bishoy's Entities (Drills & Platform Settings)

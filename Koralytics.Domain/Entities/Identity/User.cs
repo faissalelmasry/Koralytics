@@ -19,8 +19,8 @@ namespace Koralytics.Domain.Entities.Identity
         public DateTime UpdatedAt { get; set; }
         public int? UpdatedById { get ; set ; }
         public User? UpdatedByUser { get; set; }
-        public int CreatedById { get; set; }
-        public User CreatedByUser { get; set; }
+        public int? CreatedById { get; set; }
+        public User? CreatedByUser { get; set; }
         DateTime? IAuditable.UpdatedAt { get; set; }
     }
 }
