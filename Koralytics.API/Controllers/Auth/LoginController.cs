@@ -92,13 +92,5 @@ namespace Koralytics.API.Controllers.Auth
             return Ok(new { message = "Password changed successfully." });
         }
 
-        // test endpoint to check if the user is authenticated
-        [HttpGet("test-auth")]
-        [Authorize]
-        public IActionResult TestAuth()
-        {
-            return Ok(new { message = "User is authenticated." });
-        }
-
     }
 }

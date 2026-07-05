@@ -19,9 +19,16 @@ using Microsoft.Extensions.Logging;
 
 namespace Koralytics.Application.Services.Auth.Register
 {
-    /// <summary>
-    /// Provides user registration services for different user roles (Player, Coach, Scouter, Parent).
-    /// </summary>
+
+    internal static class RegistrationRoles
+    {
+        public const string Player = "Player";
+        public const string Coach = "Coach";
+        public const string Scouter = "Scouter";
+        public const string Parent = "Parent";
+    }
+
+
     public class RegistrationService : IRegistrationService
     {
         private readonly UserManager<User> _userManager;
@@ -32,7 +39,9 @@ namespace Koralytics.Application.Services.Auth.Register
 
         // Password validation constraints
         private const int MinimumPasswordLength = 8;
-        private const string PasswordPattern = @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]";
+
+        
+        private const string PasswordPattern = @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$";
 
         public RegistrationService(
             UserManager<User> userManager,
@@ -58,7 +67,6 @@ namespace Koralytics.Application.Services.Auth.Register
             _logger.LogInformation("Starting player registration for email: {email}", request.Email);
 
             await ValidateRegistrationAsync(request);
-            await EnsureRoleExistsAsync("Player");
 
             var player = new Player
             {
@@ -82,45 +90,42 @@ namespace Koralytics.Application.Services.Auth.Register
                 CreatedByUser = null!
             };
 
-            var identityResult = await _userManager.CreateAsync(player, request.Password);
-            if (!identityResult.Succeeded)
+            await ExecuteRegistrationInTransactionAsync(async () =>
             {
-                var errors = string.Join(", ", identityResult.Errors.Select(e => e.Description));
-                _logger.LogWarning("Failed to create player account for email {email}. Errors: {errors}", request.Email, errors);
-                throw new BadRequestException(identityResult.Errors.FirstOrDefault()?.Description ?? "Unable to create user account.");
-            }
+                await CreateUserWithRoleAsync(player, request.Password, RegistrationRoles.Player);
 
-            await _userManager.AddToRoleAsync(player, "Player");
-
-            if (request.AcademyId > 0)
-            {
-                var academy = await _unitOfWork.Repository<Academy>().GetByIdAsync(request.AcademyId);
-                if (academy is null)
+                if (request.AcademyId > 0)
                 {
-                    _logger.LogWarning("Academy not found for player registration. AcademyId: {academyId}", request.AcademyId);
-                    throw new NotFoundException("Academy not found.");
+                    var academy = await _unitOfWork.Repository<Academy>().GetByIdAsync(request.AcademyId);
+                    if (academy is null)
+                    {
+                        _logger.LogWarning("Academy not found for player registration. AcademyId: {academyId}", request.AcademyId);
+                        throw new NotFoundException("Academy not found.");
+                    }
+
+                    await _unitOfWork.Repository<PlayerAcademy>().AddAsync(new PlayerAcademy
+                    {
+                        PlayerId = player.Id,
+                        AcademyId = academy.Id,
+                        Status = PlayerAcademyStatus.Active,
+                        JoinedAt = DateTime.UtcNow
+                    });
+
+                    await _unitOfWork.Repository<PlayerSubscription>().AddAsync(new PlayerSubscription
+                    {
+                        PlayerId = player.Id,
+                        AcademyId = academy.Id,
+                        PaidByUserId = player.Id,
+                        Status = SubscriptionStatus.Unpaid,
+                        PaidAt = null,
+                        GraceUntil = null
+                    });
                 }
 
-                await _unitOfWork.Repository<PlayerAcademy>().AddAsync(new PlayerAcademy
-                {
-                    PlayerId = player.Id,
-                    AcademyId = academy.Id,
-                    Status = PlayerAcademyStatus.Active,
-                    JoinedAt = DateTime.UtcNow
-                });
+                await _unitOfWork.SaveChangesAsync();
+                return true;
+            });
 
-                await _unitOfWork.Repository<PlayerSubscription>().AddAsync(new PlayerSubscription
-                {
-                    PlayerId = player.Id,
-                    AcademyId = academy.Id,
-                    PaidByUserId = player.Id,
-                    Status = SubscriptionStatus.Unpaid,
-                    PaidAt = null,
-                    GraceUntil = null
-                });
-            }
-
-            await _unitOfWork.SaveChangesAsync();
             _logger.LogInformation("Player successfully registered. UserId: {userId}, Email: {email}", player.Id, player.Email);
 
             return await _authService.LoginAsync(new LoginRequestDto
@@ -140,9 +145,7 @@ namespace Koralytics.Application.Services.Auth.Register
             _logger.LogInformation("Starting coach registration for email: {email}", request.Email);
 
             await ValidateRegistrationAsync(request);
-            await EnsureRoleExistsAsync("Coach");
 
-            // Create Coach instance directly (don't create separate User instance)
             var coach = new Coach
             {
                 UserName = request.UserName,
@@ -157,34 +160,31 @@ namespace Koralytics.Application.Services.Auth.Register
                 CreatedByUser = null!
             };
 
-            var identityResult = await _userManager.CreateAsync(coach, request.Password);
-            if (!identityResult.Succeeded)
+            await ExecuteRegistrationInTransactionAsync(async () =>
             {
-                var errors = string.Join(", ", identityResult.Errors.Select(e => e.Description));
-                _logger.LogWarning("Failed to create coach account for email {email}. Errors: {errors}", request.Email, errors);
-                throw new BadRequestException(identityResult.Errors.FirstOrDefault()?.Description ?? "Unable to create user account.");
-            }
+                await CreateUserWithRoleAsync(coach, request.Password, RegistrationRoles.Coach);
 
-            await _userManager.AddToRoleAsync(coach, "Coach");
-
-            if (request.AcademyId > 0)
-            {
-                var academy = await _unitOfWork.Repository<Academy>().GetByIdAsync(request.AcademyId);
-                if (academy is null)
+                if (request.AcademyId > 0)
                 {
-                    _logger.LogWarning("Academy not found for coach registration. AcademyId: {academyId}", request.AcademyId);
-                    throw new NotFoundException("Academy not found.");
+                    var academy = await _unitOfWork.Repository<Academy>().GetByIdAsync(request.AcademyId);
+                    if (academy is null)
+                    {
+                        _logger.LogWarning("Academy not found for coach registration. AcademyId: {academyId}", request.AcademyId);
+                        throw new NotFoundException("Academy not found.");
+                    }
+
+                    await _unitOfWork.Repository<CoachAcademy>().AddAsync(new CoachAcademy
+                    {
+                        CoachUserId = coach.Id,
+                        AcademyId = academy.Id,
+                        JoinedAt = DateTime.UtcNow
+                    });
                 }
 
-                await _unitOfWork.Repository<CoachAcademy>().AddAsync(new CoachAcademy
-                {
-                    CoachUserId = coach.Id,
-                    AcademyId = academy.Id,
-                    JoinedAt = DateTime.UtcNow
-                });
-            }
+                await _unitOfWork.SaveChangesAsync();
+                return true;
+            });
 
-            await _unitOfWork.SaveChangesAsync();
             _logger.LogInformation("Coach successfully registered. UserId: {userId}, Email: {email}", coach.Id, coach.Email);
 
             return await _authService.LoginAsync(new LoginRequestDto
@@ -204,9 +204,7 @@ namespace Koralytics.Application.Services.Auth.Register
             _logger.LogInformation("Starting scouter registration for email: {email}", request.Email);
 
             await ValidateRegistrationAsync(request);
-            await EnsureRoleExistsAsync("Scouter");
 
-            // Create Scouter instance directly (don't create separate User instance)
             var scouter = new Scouter
             {
                 UserName = request.UserName,
@@ -222,16 +220,12 @@ namespace Koralytics.Application.Services.Auth.Register
                 CreatedByUser = null!
             };
 
-            var identityResult = await _userManager.CreateAsync(scouter, request.Password);
-            if (!identityResult.Succeeded)
+            await ExecuteRegistrationInTransactionAsync(async () =>
             {
-                var errors = string.Join(", ", identityResult.Errors.Select(e => e.Description));
-                _logger.LogWarning("Failed to create scouter account for email {email}. Errors: {errors}", request.Email, errors);
-                throw new BadRequestException(identityResult.Errors.FirstOrDefault()?.Description ?? "Unable to create user account.");
-            }
-
-            await _userManager.AddToRoleAsync(scouter, "Scouter");
-            await _unitOfWork.SaveChangesAsync();
+                await CreateUserWithRoleAsync(scouter, request.Password, RegistrationRoles.Scouter);
+                await _unitOfWork.SaveChangesAsync();
+                return true;
+            });
 
             _logger.LogInformation("Scouter successfully registered. UserId: {userId}, Email: {email}", scouter.Id, scouter.Email);
 
@@ -252,9 +246,17 @@ namespace Koralytics.Application.Services.Auth.Register
             _logger.LogInformation("Starting parent registration for email: {email}, child player id: {childPlayerId}", request.Email, request.ChildPlayerId);
 
             await ValidateRegistrationAsync(request);
-            await EnsureRoleExistsAsync("Parent");
 
-            // Create Parent instance directly (don't create separate User instance)
+            // Verify the child player exists BEFORE creating the parent's Identity account.
+            // This avoids leaving behind an orphaned user with no role/link if the
+            // child lookup fails.
+            var child = await _unitOfWork.Repository<Player>().GetByIdAsync(request.ChildPlayerId);
+            if (child is null)
+            {
+                _logger.LogWarning("Child player not found for parent registration. PlayerId: {playerId}", request.ChildPlayerId);
+                throw new NotFoundException("Child player not found.");
+            }
+
             var parent = new Parent
             {
                 UserName = request.UserName,
@@ -269,31 +271,21 @@ namespace Koralytics.Application.Services.Auth.Register
                 CreatedByUser = null!
             };
 
-            var identityResult = await _userManager.CreateAsync(parent, request.Password);
-            if (!identityResult.Succeeded)
+            await ExecuteRegistrationInTransactionAsync(async () =>
             {
-                var errors = string.Join(", ", identityResult.Errors.Select(e => e.Description));
-                _logger.LogWarning("Failed to create parent account for email {email}. Errors: {errors}", request.Email, errors);
-                throw new BadRequestException(identityResult.Errors.FirstOrDefault()?.Description ?? "Unable to create user account.");
-            }
+                await CreateUserWithRoleAsync(parent, request.Password, RegistrationRoles.Parent);
 
-            await _userManager.AddToRoleAsync(parent, "Parent");
+                await _unitOfWork.Repository<ParentPlayer>().AddAsync(new ParentPlayer
+                {
+                    ParentId = parent.Id,
+                    PlayerId = child.Id
+                });
 
-            var child = await _unitOfWork.Repository<Player>().GetByIdAsync(request.ChildPlayerId);
-            if (child is null)
-            {
-                _logger.LogWarning("Child player not found for parent registration. PlayerId: {playerId}", request.ChildPlayerId);
-                throw new NotFoundException("Child player not found.");
-            }
-
-            await _unitOfWork.Repository<ParentPlayer>().AddAsync(new ParentPlayer
-            {
-                ParentId = parent.Id,
-                PlayerId = child.Id
+                await _unitOfWork.SaveChangesAsync();
+                return true;
             });
 
-            await _unitOfWork.SaveChangesAsync();
-            _logger.LogInformation("Parent successfully registered. UserId: {userId}, Email: {email}, linked to player: {childPlayerId}", 
+            _logger.LogInformation("Parent successfully registered. UserId: {userId}, Email: {email}, linked to player: {childPlayerId}",
                 parent.Id, parent.Email, child.Id);
 
             return await _authService.LoginAsync(new LoginRequestDto
@@ -301,6 +293,54 @@ namespace Koralytics.Application.Services.Auth.Register
                 EmailOrUserName = parent.Email ?? parent.UserName ?? string.Empty,
                 Password = request.Password
             });
+        }
+
+        /// <summary>
+        /// Creates the Identity user record for the given entity and assigns it to the
+        /// specified role, ensuring the role exists first.
+        /// </summary>
+        private async Task CreateUserWithRoleAsync<TUser>(TUser user, string password, string roleName) where TUser : User
+        {
+            await EnsureRoleExistsAsync(roleName);
+
+            var identityResult = await _userManager.CreateAsync(user, password);
+            if (!identityResult.Succeeded)
+            {
+                var errors = string.Join(", ", identityResult.Errors.Select(e => e.Description));
+                _logger.LogWarning("Failed to create {role} account for email {email}. Errors: {errors}", roleName, user.Email, errors);
+                throw new BadRequestException(identityResult.Errors.FirstOrDefault()?.Description ?? "Unable to create user account.");
+            }
+
+            var roleResult = await _userManager.AddToRoleAsync(user, roleName);
+            if (!roleResult.Succeeded)
+            {
+                var errors = string.Join(", ", roleResult.Errors.Select(e => e.Description));
+                _logger.LogError("Failed to assign role {role} to user {email}. Errors: {errors}", roleName, user.Email, errors);
+                throw new BadRequestException("Account was created but role assignment failed. Please contact support.");
+            }
+        }
+
+        /// <summary>
+        /// Runs the given registration work inside a database transaction and commits on
+        /// success. If any step throws (Identity creation, role assignment, related entity
+        /// lookups/writes), the transaction is rolled back so no orphaned user or partial
+        /// state is left behind. <paramref name="work"/> is responsible for calling
+        /// SaveChangesAsync itself before returning, so it happens inside the transaction.
+        /// </summary>
+        private async Task<TResult> ExecuteRegistrationInTransactionAsync<TResult>(Func<Task<TResult>> work)
+        {
+            await using var transaction = await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+                var result = await work();
+                await transaction.CommitAsync();
+                return result;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         private async Task ValidateRegistrationAsync(BaseRegistrationRequestDto request)
@@ -359,6 +399,7 @@ namespace Koralytics.Application.Services.Auth.Register
             }
         }
 
+        
         private static bool IsValidEmail(string email)
         {
             try
@@ -374,7 +415,7 @@ namespace Koralytics.Application.Services.Auth.Register
 
         private static bool IsValidUsername(string username)
         {
-            return !string.IsNullOrWhiteSpace(username) && 
+            return !string.IsNullOrWhiteSpace(username) &&
                    Regex.IsMatch(username, @"^[a-zA-Z0-9_]{3,20}$");
         }
 
@@ -384,25 +425,6 @@ namespace Koralytics.Application.Services.Auth.Register
                 return false;
 
             return Regex.IsMatch(password, PasswordPattern);
-        }
-
-        private async Task<User> CreateBaseUserAsync(BaseRegistrationRequestDto request, string roleName)
-        {
-            var user = new User
-            {
-                UserName = request.UserName,
-                Email = request.Email,
-                FirstName = request.FirstName,
-                LastName = request.LastName,
-                PhoneNumber = request.PhoneNumber,
-                ProfileImageUrl = request.ProfileImageUrl,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-                CreatedById = null,
-                CreatedByUser = null!
-            };
-
-            return user;
         }
 
         private async Task EnsureRoleExistsAsync(string roleName)
@@ -420,18 +442,6 @@ namespace Koralytics.Application.Services.Auth.Register
                 "left" => PreferredFoot.Left,
                 "both" => PreferredFoot.Both,
                 _ => PreferredFoot.Right
-            };
-        }
-
-        private static AuthResponseDto BuildAuthResponse(User user)
-        {
-            return new AuthResponseDto
-            {
-                UserId = user.Id,
-                UserName = user.UserName ?? string.Empty,
-                Email = user.Email ?? string.Empty,
-                FullName = string.Join(' ', new[] { user.FirstName, user.LastName }.Where(x => !string.IsNullOrWhiteSpace(x))),
-                Roles = new List<string>()
             };
         }
     }

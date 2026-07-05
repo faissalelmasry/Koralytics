@@ -4,6 +4,7 @@ using System.Text;
 
 using Koralytics.Application.DTOs.AuthDTOs.LoginDTOs;
 using Koralytics.Application.Interfaces;
+using Koralytics.Application.Services.Auth.Register;
 using Koralytics.Domain.Entities.Coach;
 using Koralytics.Domain.Entities.Identity;
 using Koralytics.Domain.Entities.Player;
@@ -16,7 +17,6 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace Koralytics.Application.Services.Auth.Login
 {
-
     public class AuthService : IAuthService
     {
         private readonly UserManager<User> _userManager;
@@ -62,6 +62,7 @@ namespace Koralytics.Application.Services.Auth.Login
                 throw new UnauthorizedException("Invalid credentials.");
             }
 
+            
             var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: false);
             if (!result.Succeeded)
             {
@@ -74,20 +75,10 @@ namespace Koralytics.Application.Services.Auth.Login
             var accessToken = CreateToken(user, roles, academyId, tokenType: "access");
             var refreshToken = CreateToken(user, roles, academyId, tokenType: "refresh");
 
-            _logger.LogInformation("Successful login for user: {userId} ({email}), roles: {roles}", 
+            _logger.LogInformation("Successful login for user: {userId} ({email}), roles: {roles}",
                 user.Id, user.Email, string.Join(", ", roles));
 
-            return new AuthResponseDto
-            {
-                AccessToken = accessToken,
-                RefreshToken = refreshToken,
-                ExpiresAt = DateTime.UtcNow.AddMinutes(int.Parse(_configuration["Jwt:AccessTokenMinutes"] ?? "60")),
-                UserId = user.Id,
-                UserName = user.UserName ?? string.Empty,
-                Email = user.Email ?? string.Empty,
-                FullName = string.Join(' ', new[] { user.FirstName, user.LastName }.Where(x => !string.IsNullOrWhiteSpace(x))),
-                Roles = roles
-            };
+            return BuildAuthResponse(user, roles, accessToken, refreshToken);
         }
 
         /// <summary>
@@ -130,27 +121,9 @@ namespace Koralytics.Application.Services.Auth.Login
 
                 _logger.LogInformation("Token refreshed for user: {userId}", user.Id);
 
-                return new AuthResponseDto
-                {
-                    AccessToken = newAccessToken,
-                    RefreshToken = newRefreshToken,
-                    ExpiresAt = DateTime.UtcNow.AddMinutes(int.Parse(_configuration["Jwt:AccessTokenMinutes"] ?? "60")),
-                    UserId = user.Id,
-                    UserName = user.UserName ?? string.Empty,
-                    Email = user.Email ?? string.Empty,
-                    FullName = string.Join(' ', new[] { user.FirstName, user.LastName }.Where(x => !string.IsNullOrWhiteSpace(x))),
-                    Roles = roles
-                };
+                return BuildAuthResponse(user, roles, newAccessToken, newRefreshToken);
             }
-            catch (UnauthorizedException)
-            {
-                throw;
-            }
-            catch (NotFoundException)
-            {
-                throw;
-            }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not (UnauthorizedException or NotFoundException))
             {
                 _logger.LogError(ex, "Unexpected error during token refresh.");
                 throw;
@@ -187,13 +160,34 @@ namespace Koralytics.Application.Services.Auth.Login
                 throw new BadRequestException(errorMessage);
             }
 
+            
             _logger.LogInformation("Password changed successfully for user: {userId}", userId);
         }
 
-        private string CreateToken(User user, IReadOnlyCollection<string> roles, int? academyId, string tokenType)
+        /// <summary>
+        /// Builds the response DTO for a successful login or refresh, using the access
+        /// token's own expiration rather than recomputing it, so the two can't drift apart.
+        /// </summary>
+        private static AuthResponseDto BuildAuthResponse(User user, IReadOnlyCollection<string> roles, TokenResult accessToken, TokenResult refreshToken)
         {
-            var key = _configuration["Jwt:Key"] ?? "SuperSecretJwtKeyForDevelopmentOnly!123456";
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
+            return new AuthResponseDto
+            {
+                AccessToken = accessToken.Token,
+                RefreshToken = refreshToken.Token,
+                ExpiresAt = accessToken.ExpiresAt,
+                UserId = user.Id,
+                UserName = user.UserName ?? string.Empty,
+                Email = user.Email ?? string.Empty,
+                FullName = string.Join(' ', new[] { user.FirstName, user.LastName }.Where(x => !string.IsNullOrWhiteSpace(x))),
+                Roles = roles.ToList()
+            };
+        }
+
+        private readonly record struct TokenResult(string Token, DateTime ExpiresAt);
+
+        private TokenResult CreateToken(User user, IReadOnlyCollection<string> roles, int? academyId, string tokenType)
+        {
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(GetRequiredJwtSigningKey()));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
             var claims = new List<Claim>
@@ -211,8 +205,8 @@ namespace Koralytics.Application.Services.Auth.Login
                 claims.Add(new Claim(ClaimTypes.Role, role));
             }
 
-            var accessTokenMinutes = int.Parse(_configuration["Jwt:AccessTokenMinutes"] ?? "60");
-            var refreshTokenDays = int.Parse(_configuration["Jwt:RefreshTokenDays"] ?? "7");
+            var accessTokenMinutes = GetConfigInt("Jwt:AccessTokenMinutes", defaultValue: 60);
+            var refreshTokenDays = GetConfigInt("Jwt:RefreshTokenDays", defaultValue: 7);
 
             var expirationTime = tokenType == "refresh"
                 ? DateTime.UtcNow.AddDays(refreshTokenDays)
@@ -226,17 +220,17 @@ namespace Koralytics.Application.Services.Auth.Login
                 signingCredentials: credentials);
 
             var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
-            _logger.LogDebug("Token created for user: {userId}, type: {tokenType}, expires: {expiration}", 
+            _logger.LogDebug("Token created for user: {userId}, type: {tokenType}, expires: {expiration}",
                 user.Id, tokenType, expirationTime);
 
-            return tokenString;
+            return new TokenResult(tokenString, expirationTime);
         }
 
         private ClaimsPrincipal ValidateToken(string token, string expectedTokenType)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.UTF8.GetBytes(_configuration["Jwt:Key"] ?? "SuperSecretJwtKeyForDevelopmentOnly!123456");
-            var clockSkewMinutes = int.Parse(_configuration["Jwt:ClockSkewMinutes"] ?? "1");
+            var key = Encoding.UTF8.GetBytes(GetRequiredJwtSigningKey());
+            var clockSkewMinutes = GetConfigInt("Jwt:ClockSkewMinutes", defaultValue: 1);
 
             var validationParameters = new TokenValidationParameters
             {
@@ -269,16 +263,44 @@ namespace Koralytics.Application.Services.Auth.Login
             }
         }
 
+        /// <summary>
+        /// Returns the configured JWT signing key. Throws rather than silently falling back
+        /// to a hardcoded default: a missing key in any environment (including production
+        /// misconfiguration) must fail loudly, since a default baked into source code would
+        /// let anyone forge valid tokens for any user.
+        /// </summary>
+        private string GetRequiredJwtSigningKey()
+        {
+            var key = _configuration["Jwt:Key"];
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                _logger.LogCritical("Jwt:Key is not configured. Refusing to issue or validate tokens.");
+                throw new InvalidOperationException("JWT signing key is not configured. Set 'Jwt:Key' in configuration.");
+            }
+
+            return key;
+        }
+
+        /// <summary>
+        /// Reads an integer configuration value, falling back to <paramref name="defaultValue"/>
+        /// if the key is missing or not a valid integer, instead of throwing FormatException
+        /// at request time on a misconfigured value.
+        /// </summary>
+        private int GetConfigInt(string key, int defaultValue)
+        {
+            return int.TryParse(_configuration[key], out var value) ? value : defaultValue;
+        }
+
         private async Task<int?> GetAcademyIdAsync(User user, IReadOnlyCollection<string> roles)
         {
-            if (roles.Contains("Player"))
+            if (roles.Contains(RegistrationRoles.Player))
             {
                 var playerAcademy = await _unitOfWork.Repository<PlayerAcademy>()
                     .FindAsNoTrackingAsync(x => x.PlayerId == user.Id);
                 return playerAcademy?.AcademyId;
             }
 
-            if (roles.Contains("Coach"))
+            if (roles.Contains(RegistrationRoles.Coach))
             {
                 var coachAcademy = await _unitOfWork.Repository<CoachAcademy>()
                     .FindAsNoTrackingAsync(x => x.CoachUserId == user.Id);
