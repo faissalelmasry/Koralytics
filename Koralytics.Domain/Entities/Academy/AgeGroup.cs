@@ -1,6 +1,5 @@
 ﻿using Koralytics.Domain.Models.BaseModels;
 using System;
-using AcademyEntity = Koralytics.Domain.Entities.Academy.Academy;
 
 
 namespace Koralytics.Domain.Entities.Academy
@@ -12,7 +11,7 @@ namespace Koralytics.Domain.Entities.Academy
         public int MinAge { get; set; }
         public int MaxAge { get; set; }
 
-        public AcademyEntity Academy { get; set; } = null!;
+        public Academy Academy { get; set; } = null!;
 
         public ICollection<Team> Teams { get; set; } = [];
     }

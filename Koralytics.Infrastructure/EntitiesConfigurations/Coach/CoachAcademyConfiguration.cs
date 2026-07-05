@@ -20,6 +20,9 @@ namespace Koralytics.Infrastructure.EntitiesConfigurations.Coach
                 .WithMany()
                 .HasForeignKey(ca => ca.AcademyId)
                 .OnDelete(DeleteBehavior.Restrict);
+            builder.Property(ca => ca.BiasScore)
+                   .HasColumnType("decimal(5,2)")
+                   .IsRequired(false);
         }
     }
 }

@@ -33,6 +33,12 @@ namespace Koralytics.Infrastructure.EntitiesConfigurations.Match
                 t.HasCheckConstraint(
                     "CK_MatchEvent_Player_AssistPlayer",
                     "[AssistPlayerId] IS NULL OR [PlayerId] <> [AssistPlayerId]");
+
+                //t.HasCheckConstraint(
+                //    "CK_MatchEvent_TeamId",
+                //    "[TeamId] = (SELECT HomeTeamId FROM Matches WHERE Id = MatchId) OR " +
+                //    "[TeamId] = (SELECT AwayTeamId FROM Matches WHERE Id = MatchId)"
+                //);
             });
 
             builder.HasOne(x => x.Match)
@@ -49,10 +55,15 @@ namespace Koralytics.Infrastructure.EntitiesConfigurations.Match
                 .WithMany()
                 .HasForeignKey(x => x.AssistPlayerId)
                 .OnDelete(DeleteBehavior.Restrict);
+
             builder.HasOne(me => me.CreatedByUser)
                .WithMany()
                .HasForeignKey(me => me.CreatedById)
                .OnDelete(DeleteBehavior.SetNull);
+            builder.HasOne(me => me.Team)
+                   .WithMany()
+                   .HasForeignKey(me => me.TeamId)
+                   .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

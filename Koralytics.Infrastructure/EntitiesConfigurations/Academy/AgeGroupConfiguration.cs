@@ -22,7 +22,7 @@ namespace Koralytics.Infrastructure.EntitiesConfigurations.Academy
             builder.HasOne(x => x.Academy)
                 .WithMany(a => a.AgeGroups)
                 .HasForeignKey(x => x.AcademyId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
             //builder.HasMany(x => x.Teams)
             //    .WithOne(t => t.AgeGroup)

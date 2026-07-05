@@ -28,7 +28,7 @@ namespace Koralytics.Domain.Entities.Match
 
         public DateTime MatchDate { get; set; }
 
-        public string Location { get; set; } = default!;
+        public string Location { get; set; } = string.Empty;
 
         public MatchStatus Status { get; set; }
 

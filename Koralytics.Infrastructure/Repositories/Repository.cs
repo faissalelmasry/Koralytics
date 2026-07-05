@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Koralytics.Infrastructure.Repositories
 {
-    public class Repository<T> : IRepository<T> where T : class,ISoftDelete
+    public class Repository<T> : IRepository<T> where T : class, ISoftDelete
     {
         protected readonly ApplicationDbContext _context;
         protected readonly DbSet<T> _dbSet;
@@ -58,32 +58,6 @@ namespace Koralytics.Infrastructure.Repositories
 
         public async Task<T?> FindAsync(Expression<Func<T, bool>> predicate)
             => await _dbSet.FirstOrDefaultAsync(predicate);
-            return await query.FirstOrDefaultAsync(predicate);
-        }
-        public async Task AddAsync(T entity)
-        {
-            await _dbSet.AddAsync(entity);
-        }
-        public async Task AddRangeAsync(IEnumerable<T> entities)
-        {
-            await _dbSet.AddRangeAsync(entities);
-        }
-        public void Delete(T entity)
-        {
-            _dbSet.Remove(entity);
-        }
-        public async Task<bool> AnyAsync(Expression<Func<T, bool>> predicate)
-        {
-            return await _dbSet.AnyAsync(predicate);
-        }
-        public async Task<int> CountAsync(Expression<Func<T, bool>> predicate)
-        {
-            return await _dbSet.CountAsync(predicate);
-        }
-        public void Update(T entity)
-        {
-            _dbSet.Update(entity);
-        }
 
         public async Task<T?> FindAsNoTrackingAsync(Expression<Func<T, bool>> predicate)
             => await _dbSet.AsNoTracking().FirstOrDefaultAsync(predicate);
