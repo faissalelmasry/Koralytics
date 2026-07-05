@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 
 using Koralytics.Application.DTOs.AuthDTOs.RegisterDTOs;
+using Koralytics.Domain.Entities.Academy;
 using Koralytics.Domain.Entities.Coach;
 using Koralytics.Domain.Entities.Parents;
 using Koralytics.Domain.Entities.Player;
@@ -22,7 +23,7 @@ namespace Koralytics.Application.Mappings.Auth
             CreateMap<RegisterParentRequestDto, Parent>().ReverseMap();
             CreateMap<RegisterCoachRequestDto, Coach>().ReverseMap();
             CreateMap<RegisterScouterRequestDto, Scouter>().ReverseMap();
-            CreateMap<RegisterAcademyAdminRequestDto, Coach>().ReverseMap();// Change to AcademyAdmin entity when available
+            CreateMap<RegisterAcademyAdminRequestDto, AcademyAdmin>().ReverseMap();
         }
     }
 }

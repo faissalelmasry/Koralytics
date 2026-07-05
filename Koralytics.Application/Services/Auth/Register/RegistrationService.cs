@@ -274,20 +274,14 @@ namespace Koralytics.Application.Services.Auth.Register
             // ensure the academy exists before creating the admin account 
             await _businessValidator.EnsureAcademyExistsAsync(request.AcademyId);
 
-            var academyAdmin = _mapper.Map<Coach>(request);// error here, should be AcademyAdmin entity instead of Coach
+            var academyAdmin = _mapper.Map<AcademyAdmin>(request);// error here, should be AcademyAdmin entity instead of Coach
 
             await ExecuteRegistrationInTransactionAsync(async () =>
             {
 
                 await CreateUserWithRoleAsync(academyAdmin, request.Password, RegistrationRoles.AcademyAdmin);
 
-               /* await _unitOfWork.Repository<AcademyAdmin>().AddAsync(new AcademyAdmin
-                {
-                    UserId = academyAdmin.Id,
-                    AcademyId = request.AcademyId,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                });*/
+
 
                 await _unitOfWork.SaveChangesAsync();
                 return true;
