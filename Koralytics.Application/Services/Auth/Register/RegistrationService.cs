@@ -1,10 +1,12 @@
-using System.Globalization;
-using System.Text.RegularExpressions;
+using AutoMapper;
 
-using Koralytics.Application.DTOs.AuthDTOs.RegisterDTOs;
+using FluentValidation;
+
 using Koralytics.Application.DTOs.AuthDTOs.LoginDTOs;
+using Koralytics.Application.DTOs.AuthDTOs.RegisterDTOs;
 using Koralytics.Application.Interfaces;
 using Koralytics.Application.Services.Auth.Login;
+using Koralytics.Application.Validators.UserBusiness;
 using Koralytics.Domain.Entities.Academy;
 using Koralytics.Domain.Entities.Coach;
 using Koralytics.Domain.Entities.Identity;
@@ -19,42 +21,55 @@ using Microsoft.Extensions.Logging;
 
 namespace Koralytics.Application.Services.Auth.Register
 {
-
+    /// <summary>
+    /// Well-known role names used during registration. Centralized to avoid
+    /// magic strings scattered across the service.
+    /// </summary>
     internal static class RegistrationRoles
     {
         public const string Player = "Player";
         public const string Coach = "Coach";
         public const string Scouter = "Scouter";
         public const string Parent = "Parent";
+        public const string AcademyAdmin = "AcademyAdmin";
     }
 
-
+    /// <summary>
+    /// Provides user registration services for different user roles (Player, Coach, Scouter, Parent, AcademyAdmin).
+    /// Request-shape validation is delegated to <see cref="IValidator{BaseRegistrationRequestDto}"/>
+    /// (FluentValidation) and DB-backed business checks are delegated to
+    /// <see cref="IUserBusinessValidator"/>, so this class only orchestrates entity creation,
+    /// role assignment, and related-entity linking.
+    /// </summary>
     public class RegistrationService : IRegistrationService
     {
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<Role> _roleManager;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IAuthService _authService;
+        private readonly IValidator<BaseRegistrationRequestDto> _requestValidator;
+        private readonly IUserBusinessValidator _businessValidator;
         private readonly ILogger<RegistrationService> _logger;
-
-        // Password validation constraints
-        private const int MinimumPasswordLength = 8;
-
-        
-        private const string PasswordPattern = @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$";
+        private readonly IMapper _mapper;
 
         public RegistrationService(
             UserManager<User> userManager,
             RoleManager<Role> roleManager,
             IUnitOfWork unitOfWork,
             IAuthService authService,
-            ILogger<RegistrationService> logger)
+            IValidator<BaseRegistrationRequestDto> requestValidator,
+            IUserBusinessValidator businessValidator,
+            ILogger<RegistrationService> logger,
+            IMapper mapper)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _unitOfWork = unitOfWork;
             _authService = authService;
+            _requestValidator = requestValidator;
+            _businessValidator = businessValidator;
             _logger = logger;
+            _mapper = mapper;
         }
 
         /// <summary>
@@ -66,29 +81,16 @@ namespace Koralytics.Application.Services.Auth.Register
         {
             _logger.LogInformation("Starting player registration for email: {email}", request.Email);
 
-            await ValidateRegistrationAsync(request);
+            await ValidateRegistrationRequestAsync(request);
 
-            var player = new Player
-            {
-                UserName = request.UserName,
-                Email = request.Email,
-                FirstName = request.FirstName,
-                LastName = request.LastName,
-                PhoneNumber = request.PhoneNumber,
-                ProfileImageUrl = request.ProfileImageUrl,
-                DateOfBirth = request.DateOfBirth,
-                Nationality = request.Nationality,
-                PreferredFoot = ParsePreferredFoot(request.PreferredFoot),
-                WeakFootRating = request.WeakFootRating,
-                PlayStyleTag = request.PlayStyleTag,
-                ArchetypePlayerName = request.ArchetypePlayerName,
-                ArchetypeText = request.ArchetypeText,
-                AvailabilityStatus = AvailabilityStatus.Available,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-                CreatedById = null,
-                CreatedByUser = null!
-            };
+
+
+            var player = _mapper.Map<Player>(request);
+            player.PreferredFoot = ParsePreferredFoot(request.PreferredFoot);
+            player.AvailabilityStatus = AvailabilityStatus.Available;
+            player.CreatedAt = DateTime.UtcNow;
+            player.UpdatedAt = DateTime.UtcNow;
+
 
             await ExecuteRegistrationInTransactionAsync(async () =>
             {
@@ -144,21 +146,9 @@ namespace Koralytics.Application.Services.Auth.Register
         {
             _logger.LogInformation("Starting coach registration for email: {email}", request.Email);
 
-            await ValidateRegistrationAsync(request);
+            await ValidateRegistrationRequestAsync(request);
 
-            var coach = new Coach
-            {
-                UserName = request.UserName,
-                Email = request.Email,
-                FirstName = request.FirstName,
-                LastName = request.LastName,
-                PhoneNumber = request.PhoneNumber,
-                ProfileImageUrl = request.ProfileImageUrl,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-                CreatedById = null,
-                CreatedByUser = null!
-            };
+            var coach = _mapper.Map<Coach>(request);
 
             await ExecuteRegistrationInTransactionAsync(async () =>
             {
@@ -203,22 +193,13 @@ namespace Koralytics.Application.Services.Auth.Register
         {
             _logger.LogInformation("Starting scouter registration for email: {email}", request.Email);
 
-            await ValidateRegistrationAsync(request);
+            await ValidateRegistrationRequestAsync(request);
 
-            var scouter = new Scouter
-            {
-                UserName = request.UserName,
-                Email = request.Email,
-                FirstName = request.FirstName,
-                LastName = request.LastName,
-                PhoneNumber = request.PhoneNumber,
-                ProfileImageUrl = request.ProfileImageUrl,
-                IsVerified = false,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-                CreatedById = null,
-                CreatedByUser = null!
-            };
+            var scouter = _mapper.Map<Scouter>(request);
+
+            scouter.IsVerified = false;
+            scouter.CreatedAt = DateTime.UtcNow;
+            scouter.UpdatedAt = DateTime.UtcNow;
 
             await ExecuteRegistrationInTransactionAsync(async () =>
             {
@@ -245,7 +226,7 @@ namespace Koralytics.Application.Services.Auth.Register
         {
             _logger.LogInformation("Starting parent registration for email: {email}, child player id: {childPlayerId}", request.Email, request.ChildPlayerId);
 
-            await ValidateRegistrationAsync(request);
+            await ValidateRegistrationRequestAsync(request);
 
             // Verify the child player exists BEFORE creating the parent's Identity account.
             // This avoids leaving behind an orphaned user with no role/link if the
@@ -257,19 +238,7 @@ namespace Koralytics.Application.Services.Auth.Register
                 throw new NotFoundException("Child player not found.");
             }
 
-            var parent = new Parent
-            {
-                UserName = request.UserName,
-                Email = request.Email,
-                FirstName = request.FirstName,
-                LastName = request.LastName,
-                PhoneNumber = request.PhoneNumber,
-                ProfileImageUrl = request.ProfileImageUrl,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-                CreatedById = null,
-                CreatedByUser = null!
-            };
+            var parent = _mapper.Map<Parent>(request);
 
             await ExecuteRegistrationInTransactionAsync(async () =>
             {
@@ -295,13 +264,72 @@ namespace Koralytics.Application.Services.Auth.Register
             });
         }
 
+        // create Academy admin registration method
+        public async Task<AuthResponseDto> RegisterAcademyAdminAsync(RegisterAcademyAdminRequestDto request)
+        {
+            _logger.LogInformation("Starting academy admin registration for email: {email}", request.Email);
+
+            await ValidateRegistrationRequestAsync(request);
+
+            // ensure the academy exists before creating the admin account 
+            await _businessValidator.EnsureAcademyExistsAsync(request.AcademyId);
+
+            var academyAdmin = _mapper.Map<Coach>(request);// error here, should be AcademyAdmin entity instead of Coach
+
+            await ExecuteRegistrationInTransactionAsync(async () =>
+            {
+
+                await CreateUserWithRoleAsync(academyAdmin, request.Password, RegistrationRoles.AcademyAdmin);
+
+               /* await _unitOfWork.Repository<AcademyAdmin>().AddAsync(new AcademyAdmin
+                {
+                    UserId = academyAdmin.Id,
+                    AcademyId = request.AcademyId,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                });*/
+
+                await _unitOfWork.SaveChangesAsync();
+                return true;
+            });
+
+            _logger.LogInformation("Academy admin successfully registered. UserId: {userId}, Email: {email}", academyAdmin.Id, academyAdmin.Email);
+
+            return await _authService.LoginAsync(new LoginRequestDto
+            {
+                EmailOrUserName = academyAdmin.Email ?? academyAdmin.UserName ?? string.Empty,
+                Password = request.Password
+            });
+        }
+
+        /// <summary>
+        /// Runs FluentValidation's field/format rules, then the DB-backed uniqueness checks.
+        /// Kept as one call site per Register method so callers don't need to know there are
+        /// two separate validators behind it.
+        /// </summary>
+        private async Task ValidateRegistrationRequestAsync(BaseRegistrationRequestDto request)
+        {
+            var validationResult = await _requestValidator.ValidateAsync(request);
+            if (!validationResult.IsValid)
+            {
+                var errorMessage = string.Join(" ", validationResult.Errors.Select(e => e.ErrorMessage));
+                _logger.LogWarning("Registration validation failed for email {email}: {errors}", request.Email, errorMessage);
+                throw new BadRequestException(errorMessage);
+            }
+
+            await _businessValidator.EnsureEmailNotExistsAsync(request.Email);
+            await _businessValidator.EnsureUsernameNotExistsAsync(request.UserName);
+        }
+
         /// <summary>
         /// Creates the Identity user record for the given entity and assigns it to the
-        /// specified role, ensuring the role exists first.
+        /// specified role, ensuring the role exists first. Centralizes the
+        /// create-account-and-assign-role flow that was previously duplicated across
+        /// each Register*Async method.
         /// </summary>
         private async Task CreateUserWithRoleAsync<TUser>(TUser user, string password, string roleName) where TUser : User
         {
-            await EnsureRoleExistsAsync(roleName);
+            await _businessValidator.EnsureRoleExistsAsync(roleName);
 
             var identityResult = await _userManager.CreateAsync(user, password);
             if (!identityResult.Succeeded)
@@ -343,97 +371,6 @@ namespace Koralytics.Application.Services.Auth.Register
             }
         }
 
-        private async Task ValidateRegistrationAsync(BaseRegistrationRequestDto request)
-        {
-            // Validate required fields
-            if (string.IsNullOrWhiteSpace(request.FirstName) ||
-                string.IsNullOrWhiteSpace(request.LastName) ||
-                string.IsNullOrWhiteSpace(request.UserName) ||
-                string.IsNullOrWhiteSpace(request.Email) ||
-                string.IsNullOrWhiteSpace(request.Password))
-            {
-                _logger.LogWarning("Registration validation failed: missing required fields");
-                throw new BadRequestException("Please provide first name, last name, username, email and password.");
-            }
-
-            // Validate email format
-            if (!IsValidEmail(request.Email))
-            {
-                _logger.LogWarning("Registration validation failed: invalid email format. Email: {email}", request.Email);
-                throw new BadRequestException("Invalid email format.");
-            }
-
-            // Validate username format (alphanumeric and underscores only)
-            if (!IsValidUsername(request.UserName))
-            {
-                _logger.LogWarning("Registration validation failed: invalid username format. Username: {username}", request.UserName);
-                throw new BadRequestException("Username must contain only letters, numbers, and underscores.");
-            }
-
-            // Validate password strength
-            if (!IsValidPassword(request.Password))
-            {
-                throw new BadRequestException(
-                    $"Password must be at least {MinimumPasswordLength} characters and contain uppercase, lowercase, digit, and special character (@$!%*?&).");
-            }
-
-            // Validate password confirmation
-            if (request.Password != request.ConfirmPassword)
-            {
-                _logger.LogWarning("Registration validation failed: password mismatch for email {email}", request.Email);
-                throw new BadRequestException("Password and confirmation do not match.");
-            }
-
-            // Check email uniqueness
-            if (await _userManager.FindByEmailAsync(request.Email) is not null)
-            {
-                _logger.LogWarning("Registration validation failed: email already registered. Email: {email}", request.Email);
-                throw new ConflictException("Email already registered.");
-            }
-
-            // Check username uniqueness
-            if (await _userManager.FindByNameAsync(request.UserName) is not null)
-            {
-                _logger.LogWarning("Registration validation failed: username already registered. Username: {username}", request.UserName);
-                throw new ConflictException("Username already registered.");
-            }
-        }
-
-        
-        private static bool IsValidEmail(string email)
-        {
-            try
-            {
-                var addr = new System.Net.Mail.MailAddress(email);
-                return addr.Address == email;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        private static bool IsValidUsername(string username)
-        {
-            return !string.IsNullOrWhiteSpace(username) &&
-                   Regex.IsMatch(username, @"^[a-zA-Z0-9_]{3,20}$");
-        }
-
-        private static bool IsValidPassword(string password)
-        {
-            if (string.IsNullOrWhiteSpace(password) || password.Length < MinimumPasswordLength)
-                return false;
-
-            return Regex.IsMatch(password, PasswordPattern);
-        }
-
-        private async Task EnsureRoleExistsAsync(string roleName)
-        {
-            if (!await _roleManager.RoleExistsAsync(roleName))
-            {
-                await _roleManager.CreateAsync(new Role { Name = roleName });
-            }
-        }
 
         private static PreferredFoot ParsePreferredFoot(string preferredFoot)
         {

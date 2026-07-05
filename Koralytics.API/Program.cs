@@ -1,9 +1,17 @@
-using System.Text;
+using AutoMapper;
+
+using FluentValidation;
+using FluentValidation.AspNetCore;
 
 using Koralytics.API.Middlewares;
+using Koralytics.Application;
+using Koralytics.Application.DTOs.AuthDTOs.RegisterDTOs;
 using Koralytics.Application.Interfaces;
+using Koralytics.Application.Mappings.Auth;
 using Koralytics.Application.Services.Auth.Login;
 using Koralytics.Application.Services.Auth.Register;
+using Koralytics.Application.Validators.Auth;
+using Koralytics.Application.Validators.UserBusiness;
 using Koralytics.Domain.Entities;
 using Koralytics.Domain.Entities.Identity;
 using Koralytics.Infrastructure.Context;
@@ -18,6 +26,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 using Serilog;
+
+using System.Text;
 
 namespace Koralytics.API
 {
@@ -80,6 +90,19 @@ namespace Koralytics.API
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IRegistrationService, RegistrationService>();
+
+            // Register FluentValidation validators
+            builder.Services.AddValidatorsFromAssemblyContaining<LoginRequestValidator>();
+            builder.Services.AddValidatorsFromAssemblyContaining<ChangePasswordValidator>();
+            builder.Services.AddValidatorsFromAssemblyContaining<BaseRegisterationRequestValidator>();
+            builder.Services.AddScoped<IUserBusinessValidator, UserBusinessValidator>();
+
+            builder.Services
+                .AddFluentValidationAutoValidation()
+                .AddFluentValidationClientsideAdapters();
+
+            // Register mapping profiles
+            builder.Services.AddAutoMapper(op => op.AddProfile<RegisterProfile>());
 
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

@@ -1,10 +1,11 @@
-using System.Security.Claims;
-
 using Koralytics.Application.DTOs.AuthDTOs.LoginDTOs;
 using Koralytics.Application.Services.Auth.Login;
+using Koralytics.Domain.Exceptions;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+
+using System.Security.Claims;
 
 namespace Koralytics.API.Controllers.Auth
 {
@@ -85,7 +86,7 @@ namespace Koralytics.API.Controllers.Auth
             var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!int.TryParse(userIdClaim, out var userId))
             {
-                return Unauthorized(new { message = "Invalid or missing user identifier." });
+                throw new UnauthorizedException("Invalid or missing user identifier.");
             }
 
             await _authService.ChangePasswordAsync(userId, request);

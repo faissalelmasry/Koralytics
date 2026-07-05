@@ -2,12 +2,16 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
+using FluentValidation;
+
 using Koralytics.Application.DTOs.AuthDTOs.LoginDTOs;
 using Koralytics.Application.Interfaces;
 using Koralytics.Application.Services.Auth.Register;
+using Koralytics.Application.Validators.UserBusiness;
 using Koralytics.Domain.Entities.Coach;
 using Koralytics.Domain.Entities.Identity;
 using Koralytics.Domain.Entities.Player;
+using Koralytics.Domain.Entities.Academy;
 using Koralytics.Domain.Exceptions;
 
 using Microsoft.AspNetCore.Identity;
@@ -23,6 +27,9 @@ namespace Koralytics.Application.Services.Auth.Login
         private readonly SignInManager<User> _signInManager;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IConfiguration _configuration;
+        private readonly IValidator<LoginRequestDto> _loginValidator;
+        private readonly IValidator<ChangePasswordRequestDto> _changePasswordValidator;
+        private readonly IUserBusinessValidator _businessValidator;
         private readonly ILogger<AuthService> _logger;
 
         public AuthService(
@@ -30,12 +37,18 @@ namespace Koralytics.Application.Services.Auth.Login
             SignInManager<User> signInManager,
             IUnitOfWork unitOfWork,
             IConfiguration configuration,
+            IValidator<LoginRequestDto> loginValidator,
+            IValidator<ChangePasswordRequestDto> changePasswordValidator,
+            IUserBusinessValidator businessValidator,
             ILogger<AuthService> logger)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _unitOfWork = unitOfWork;
             _configuration = configuration;
+            _loginValidator = loginValidator;
+            _changePasswordValidator = changePasswordValidator;
+            _businessValidator = businessValidator;
             _logger = logger;
         }
 
@@ -47,22 +60,16 @@ namespace Koralytics.Application.Services.Auth.Login
         /// <exception cref="BadRequestException">Thrown when credentials are invalid.</exception>
         public async Task<AuthResponseDto> LoginAsync(LoginRequestDto request)
         {
-            if (string.IsNullOrWhiteSpace(request.EmailOrUserName) || string.IsNullOrWhiteSpace(request.Password))
+            var validationResult = await _loginValidator.ValidateAsync(request);
+            if (!validationResult.IsValid)
             {
-                _logger.LogWarning("Login attempt with missing credentials (email/username or password).");
-                throw new BadRequestException("Email/username and password are required.");
+                var errorMessage = string.Join(" ", validationResult.Errors.Select(e => e.ErrorMessage));
+                _logger.LogWarning("Login validation failed: {errors}", errorMessage);
+                throw new BadRequestException(errorMessage);
             }
 
-            var user = await _userManager.FindByEmailAsync(request.EmailOrUserName)
-                ?? await _userManager.FindByNameAsync(request.EmailOrUserName);
+            var user = await _businessValidator.GetUserByEmailOrUsernameOrThrowAsync(request.EmailOrUserName);
 
-            if (user is null)
-            {
-                _logger.LogWarning("Login attempt for non-existent user: {emailOrUserName}", request.EmailOrUserName);
-                throw new UnauthorizedException("Invalid credentials.");
-            }
-
-            
             var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: false);
             if (!result.Succeeded)
             {
@@ -107,12 +114,7 @@ namespace Koralytics.Application.Services.Auth.Login
                     throw new UnauthorizedException("Invalid refresh token.");
                 }
 
-                var user = await _userManager.FindByIdAsync(userId.ToString());
-                if (user is null)
-                {
-                    _logger.LogWarning("Token refresh attempted for non-existent user: {userId}", userId);
-                    throw new NotFoundException("User not found.");
-                }
+                var user = await _businessValidator.GetUserOrThrowAsync(userId);
 
                 var roles = (await _userManager.GetRolesAsync(user)).ToList();
                 var academyId = await GetAcademyIdAsync(user, roles);
@@ -139,18 +141,15 @@ namespace Koralytics.Application.Services.Auth.Login
         /// <exception cref="NotFoundException">Thrown when user is not found.</exception>
         public async Task ChangePasswordAsync(int userId, ChangePasswordRequestDto request)
         {
-            if (request.NewPassword != request.ConfirmPassword)
+            var validationResult = await _changePasswordValidator.ValidateAsync(request);
+            if (!validationResult.IsValid)
             {
-                _logger.LogWarning("Password change attempt with mismatched new password and confirmation for user: {userId}", userId);
-                throw new BadRequestException("New password and confirmation do not match.");
+                var errorMessage = string.Join(" ", validationResult.Errors.Select(e => e.ErrorMessage));
+                _logger.LogWarning("Change password validation failed for user {userId}: {errors}", userId, errorMessage);
+                throw new BadRequestException(errorMessage);
             }
 
-            var user = await _userManager.FindByIdAsync(userId.ToString());
-            if (user is null)
-            {
-                _logger.LogWarning("Password change attempted for non-existent user: {userId}", userId);
-                throw new NotFoundException("User not found.");
-            }
+            var user = await _businessValidator.GetUserOrThrowAsync(userId);
 
             var result = await _userManager.ChangePasswordAsync(user, request.OldPassword, request.NewPassword);
             if (!result.Succeeded)
@@ -160,7 +159,6 @@ namespace Koralytics.Application.Services.Auth.Login
                 throw new BadRequestException(errorMessage);
             }
 
-            
             _logger.LogInformation("Password changed successfully for user: {userId}", userId);
         }
 
