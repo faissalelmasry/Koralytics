@@ -10,6 +10,7 @@ namespace Koralytics.Domain.Entities.Player
 {
     public class PlayerTeam : BaseEntity
     {
+        public int PlayerId { get; set; }
         public int TeamId { get; set; }
         public DateTime JoinedAt { get; set; }
         public DateTime? LeftAt { get; set; }

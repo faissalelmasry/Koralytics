@@ -1,17 +1,15 @@
-﻿using Koralytics.Domain.Models.BaseModels;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Koralytics.Domain.Enums;
+using Koralytics.Domain.Entities.Identity;
+
 namespace Koralytics.Domain.Entities.Academy
 {
-    public class AcademyBadge:BaseEntity
+    public class AcademyAdmin : User
     {
         public int AcademyId { get; set; }
-        public AcademyBadgeType BadgeType { get; set; }
-        public DateTime AwardedAt { get; set; }
         public Academy Academy { get; set; } = null!;
     }
 }
