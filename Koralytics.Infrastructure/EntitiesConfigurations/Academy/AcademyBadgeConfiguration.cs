@@ -13,10 +13,10 @@ namespace Koralytics.Infrastructure.EntitiesConfigurations.Academy
     {
         public void Configure(EntityTypeBuilder<AcademyBadge> builder)
         {
-            builder.HasOne<Domain.Entities.Academy.Academy>()
-                .WithMany()
-                .HasForeignKey(x => x.AcademyId)
-                .OnDelete(DeleteBehavior.Cascade);
+            builder.HasOne(ab => ab.Academy)
+                   .WithMany(a => a.AcademyBadges)
+                   .HasForeignKey(ab => ab.AcademyId)
+                   .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

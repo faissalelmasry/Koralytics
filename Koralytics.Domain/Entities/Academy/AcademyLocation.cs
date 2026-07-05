@@ -14,5 +14,7 @@ namespace Koralytics.Domain.Entities.Academy
         public string Address { get; set; }
         public string City { get; set; }
         public bool IsMain { get; set; }
+        public Academy Academy { get; set; } = null!;
+
     }
 }

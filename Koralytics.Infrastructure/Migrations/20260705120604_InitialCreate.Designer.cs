@@ -4,6 +4,7 @@ using Koralytics.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Koralytics.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260705120604_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1073,7 +1076,7 @@ namespace Koralytics.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("CreatedById")
+                    b.Property<int>("CreatedById")
                         .HasColumnType("int");
 
                     b.Property<string>("Email")
@@ -1334,6 +1337,8 @@ namespace Koralytics.Infrastructure.Migrations
                             t.HasCheckConstraint("CK_MatchEvent_Minute", "[Minute] >= 0 AND [Minute] <= 130");
 
                             t.HasCheckConstraint("CK_MatchEvent_Player_AssistPlayer", "[AssistPlayerId] IS NULL OR [PlayerId] <> [AssistPlayerId]");
+
+                            //t.HasCheckConstraint("CK_MatchEvent_TeamId", "[TeamId] = (SELECT HomeTeamId FROM Matches WHERE Id = MatchId) OR [TeamId] = (SELECT AwayTeamId FROM Matches WHERE Id = MatchId)");
                         });
                 });
 
@@ -1492,44 +1497,6 @@ namespace Koralytics.Infrastructure.Migrations
 
                             t.HasCheckConstraint("CK_MatchPlayerRating_Rating", "[Rating] >= 0 AND [Rating] <= 10");
                         });
-                });
-
-            modelBuilder.Entity("Koralytics.Domain.Entities.Parents.ParentPlayer", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("CreatedById")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("CreatedByUserId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("ParentId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PlayerId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatedByUserId");
-
-                    b.HasIndex("PlayerId");
-
-                    b.HasIndex("ParentId", "PlayerId")
-                        .IsUnique();
-
-                    b.ToTable("ParentPlayers", (string)null);
                 });
 
             modelBuilder.Entity("Koralytics.Domain.Entities.Player.PlayerAcademy", b =>
@@ -2864,20 +2831,6 @@ namespace Koralytics.Infrastructure.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Koralytics.Domain.Entities.Academy.AcademyAdmin", b =>
-                {
-                    b.HasBaseType("Koralytics.Domain.Entities.Identity.User");
-
-                    b.Property<int>("AcademyId")
-                        .HasColumnType("int");
-
-                    b.HasIndex("AcademyId")
-                        .IsUnique()
-                        .HasFilter("[AcademyId] IS NOT NULL");
-
-                    b.ToTable("AcademyAdmins", (string)null);
-                });
-
             modelBuilder.Entity("Koralytics.Domain.Entities.Coach.Coach", b =>
                 {
                     b.HasBaseType("Koralytics.Domain.Entities.Identity.User");
@@ -3454,7 +3407,8 @@ namespace Koralytics.Infrastructure.Migrations
                     b.HasOne("Koralytics.Domain.Entities.Identity.User", "CreatedByUser")
                         .WithMany()
                         .HasForeignKey("CreatedById")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("Koralytics.Domain.Entities.Identity.User", "UpdatedByUser")
                         .WithMany()
@@ -3642,31 +3596,6 @@ namespace Koralytics.Infrastructure.Migrations
                     b.Navigation("Player");
 
                     b.Navigation("UpdatedByUser");
-                });
-
-            modelBuilder.Entity("Koralytics.Domain.Entities.Parents.ParentPlayer", b =>
-                {
-                    b.HasOne("Koralytics.Domain.Entities.Identity.User", "CreatedByUser")
-                        .WithMany()
-                        .HasForeignKey("CreatedByUserId");
-
-                    b.HasOne("Koralytics.Domain.Entities.Parents.Parent", "Parent")
-                        .WithMany()
-                        .HasForeignKey("ParentId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Koralytics.Domain.Entities.Player.Player", "Player")
-                        .WithMany()
-                        .HasForeignKey("PlayerId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("CreatedByUser");
-
-                    b.Navigation("Parent");
-
-                    b.Navigation("Player");
                 });
 
             modelBuilder.Entity("Koralytics.Domain.Entities.Player.PlayerAcademy", b =>
@@ -4329,23 +4258,6 @@ namespace Koralytics.Infrastructure.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("Koralytics.Domain.Entities.Academy.AcademyAdmin", b =>
-                {
-                    b.HasOne("Koralytics.Domain.Entities.Academy.Academy", "Academy")
-                        .WithOne()
-                        .HasForeignKey("Koralytics.Domain.Entities.Academy.AcademyAdmin", "AcademyId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Koralytics.Domain.Entities.Identity.User", null)
-                        .WithOne()
-                        .HasForeignKey("Koralytics.Domain.Entities.Academy.AcademyAdmin", "Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Academy");
                 });
 
             modelBuilder.Entity("Koralytics.Domain.Entities.Coach.Coach", b =>

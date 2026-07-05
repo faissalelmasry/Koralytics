@@ -13,22 +13,18 @@ namespace Koralytics.Infrastructure.EntitiesConfigurations.Academy
     {
         public void Configure(EntityTypeBuilder<Team> builder)
         {
-            builder.HasOne<Domain.Entities.Academy.Academy>()
-                .WithMany()
-                .HasForeignKey(x => x.AcademyId)
-                .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasOne<AgeGroup>()
-                .WithMany()
-                .HasForeignKey(x => x.AgeGroupId)
-                .OnDelete(DeleteBehavior.Restrict);
+            builder.HasOne(t => t.AgeGroup)
+                   .WithMany(ag => ag.Teams)
+                   .HasForeignKey(t => t.AgeGroupId)
+                   .OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasOne<AcademyLocation>()
-                .WithMany()
-                .HasForeignKey(x => x.LocationId)
-                .OnDelete(DeleteBehavior.Restrict);
+            builder.HasOne(t => t.Location)
+                   .WithMany()
+                   .HasForeignKey(t => t.LocationId)
+                   .OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasIndex(x => new { x.AcademyId, x.Name }).IsUnique();
+            builder.HasIndex(x => new { x.AgeGroupId, x.Name }).IsUnique();
         }
     }
 }

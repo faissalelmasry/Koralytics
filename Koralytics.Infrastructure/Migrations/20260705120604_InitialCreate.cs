@@ -459,7 +459,6 @@ namespace Koralytics.Infrastructure.Migrations
                     Body = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     TargetType = table.Column<int>(type: "int", nullable: false),
                     TargetId = table.Column<int>(type: "int", nullable: false),
-                    AcademyId1 = table.Column<int>(type: "int", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false),
                     UpdatedById = table.Column<int>(type: "int", nullable: true),
@@ -476,12 +475,7 @@ namespace Koralytics.Infrastructure.Migrations
                         column: x => x.AcademyId,
                         principalTable: "Academies",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_AcademyAnnouncements_Academies_AcademyId1",
-                        column: x => x.AcademyId1,
-                        principalTable: "Academies",
-                        principalColumn: "Id");
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_AcademyAnnouncements_AspNetUsers_CreatedByUserId",
                         column: x => x.CreatedByUserId,
@@ -503,7 +497,6 @@ namespace Koralytics.Infrastructure.Migrations
                     AcademyId = table.Column<int>(type: "int", nullable: false),
                     BadgeType = table.Column<int>(type: "int", nullable: false),
                     AwardedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    AcademyId1 = table.Column<int>(type: "int", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedById = table.Column<int>(type: "int", nullable: true),
                     CreatedByUserId = table.Column<int>(type: "int", nullable: true),
@@ -517,12 +510,7 @@ namespace Koralytics.Infrastructure.Migrations
                         column: x => x.AcademyId,
                         principalTable: "Academies",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_AcademyBadges_Academies_AcademyId1",
-                        column: x => x.AcademyId1,
-                        principalTable: "Academies",
-                        principalColumn: "Id");
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_AcademyBadges_AspNetUsers_CreatedByUserId",
                         column: x => x.CreatedByUserId,
@@ -557,7 +545,7 @@ namespace Koralytics.Infrastructure.Migrations
                         column: x => x.AcademyId,
                         principalTable: "Academies",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_AcademyLocations_AspNetUsers_CreatedByUserId",
                         column: x => x.CreatedByUserId,
@@ -596,7 +584,7 @@ namespace Koralytics.Infrastructure.Migrations
                         column: x => x.AcademyId,
                         principalTable: "Academies",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_AgeGroups_AspNetUsers_CreatedByUserId",
                         column: x => x.CreatedByUserId,
@@ -646,7 +634,6 @@ namespace Koralytics.Infrastructure.Migrations
                     AffectedUserId = table.Column<int>(type: "int", nullable: false),
                     Action = table.Column<int>(type: "int", nullable: false),
                     Details = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    AcademyId1 = table.Column<int>(type: "int", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false),
                     UpdatedById = table.Column<int>(type: "int", nullable: true),
@@ -663,17 +650,24 @@ namespace Koralytics.Infrastructure.Migrations
                         column: x => x.AcademyId,
                         principalTable: "Academies",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_RoleAuditLogs_Academies_AcademyId1",
-                        column: x => x.AcademyId1,
-                        principalTable: "Academies",
-                        principalColumn: "Id");
+                        name: "FK_RoleAuditLogs_AspNetUsers_AffectedUserId",
+                        column: x => x.AffectedUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_RoleAuditLogs_AspNetUsers_CreatedByUserId",
                         column: x => x.CreatedByUserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_RoleAuditLogs_AspNetUsers_PerformedByUserId",
+                        column: x => x.PerformedByUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_RoleAuditLogs_AspNetUsers_UpdatedByUserId",
                         column: x => x.UpdatedByUserId,
@@ -691,7 +685,7 @@ namespace Koralytics.Infrastructure.Migrations
                     AcademyId = table.Column<int>(type: "int", nullable: false),
                     JoinedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     LeftAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    BiasScore = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    BiasScore = table.Column<decimal>(type: "decimal(5,2)", nullable: true),
                     BiasLastCalculatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedById = table.Column<int>(type: "int", nullable: true),
@@ -1205,11 +1199,9 @@ namespace Koralytics.Infrastructure.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    AcademyId = table.Column<int>(type: "int", nullable: false),
                     AgeGroupId = table.Column<int>(type: "int", nullable: false),
                     LocationId = table.Column<int>(type: "int", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    AgeGroupId1 = table.Column<int>(type: "int", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false),
                     UpdatedById = table.Column<int>(type: "int", nullable: true),
@@ -1222,12 +1214,6 @@ namespace Koralytics.Infrastructure.Migrations
                 {
                     table.PrimaryKey("PK_Teams", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Teams_Academies_AcademyId",
-                        column: x => x.AcademyId,
-                        principalTable: "Academies",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
                         name: "FK_Teams_AcademyLocations_LocationId",
                         column: x => x.LocationId,
                         principalTable: "AcademyLocations",
@@ -1239,11 +1225,6 @@ namespace Koralytics.Infrastructure.Migrations
                         principalTable: "AgeGroups",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Teams_AgeGroups_AgeGroupId1",
-                        column: x => x.AgeGroupId1,
-                        principalTable: "AgeGroups",
-                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Teams_AspNetUsers_CreatedByUserId",
                         column: x => x.CreatedByUserId,
@@ -1396,10 +1377,10 @@ namespace Koralytics.Infrastructure.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    PlayerId = table.Column<int>(type: "int", nullable: false),
                     TeamId = table.Column<int>(type: "int", nullable: false),
                     JoinedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     LeftAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    PlayerId = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedById = table.Column<int>(type: "int", nullable: true),
                     CreatedByUserId = table.Column<int>(type: "int", nullable: true),
@@ -1997,6 +1978,7 @@ namespace Koralytics.Infrastructure.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     MatchId = table.Column<int>(type: "int", nullable: false),
+                    TeamId = table.Column<int>(type: "int", nullable: false),
                     PlayerId = table.Column<int>(type: "int", nullable: false),
                     AssistPlayerId = table.Column<int>(type: "int", nullable: true),
                     EventType = table.Column<int>(type: "int", nullable: false),
@@ -2013,6 +1995,7 @@ namespace Koralytics.Infrastructure.Migrations
                     table.PrimaryKey("PK_MatchEvents", x => x.Id);
                     table.CheckConstraint("CK_MatchEvent_Minute", "[Minute] >= 0 AND [Minute] <= 130");
                     table.CheckConstraint("CK_MatchEvent_Player_AssistPlayer", "[AssistPlayerId] IS NULL OR [PlayerId] <> [AssistPlayerId]");
+                    //table.CheckConstraint("CK_MatchEvent_TeamId", "[TeamId] = (SELECT HomeTeamId FROM Matches WHERE Id = MatchId) OR [TeamId] = (SELECT AwayTeamId FROM Matches WHERE Id = MatchId)");
                     table.ForeignKey(
                         name: "FK_MatchEvents_AspNetUsers_CreatedById",
                         column: x => x.CreatedById,
@@ -2040,6 +2023,12 @@ namespace Koralytics.Infrastructure.Migrations
                         name: "FK_MatchEvents_Players_PlayerId",
                         column: x => x.PlayerId,
                         principalTable: "Players",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_MatchEvents_Teams_TeamId",
+                        column: x => x.TeamId,
+                        principalTable: "Teams",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -2270,11 +2259,6 @@ namespace Koralytics.Infrastructure.Migrations
                 column: "AcademyId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_AcademyAnnouncements_AcademyId1",
-                table: "AcademyAnnouncements",
-                column: "AcademyId1");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_AcademyAnnouncements_CreatedByUserId",
                 table: "AcademyAnnouncements",
                 column: "CreatedByUserId");
@@ -2288,11 +2272,6 @@ namespace Koralytics.Infrastructure.Migrations
                 name: "IX_AcademyBadges_AcademyId",
                 table: "AcademyBadges",
                 column: "AcademyId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_AcademyBadges_AcademyId1",
-                table: "AcademyBadges",
-                column: "AcademyId1");
 
             migrationBuilder.CreateIndex(
                 name: "IX_AcademyBadges_CreatedByUserId",
@@ -2722,6 +2701,11 @@ namespace Koralytics.Infrastructure.Migrations
                 column: "PlayerId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_MatchEvents_TeamId",
+                table: "MatchEvents",
+                column: "TeamId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_MatchEvents_UpdatedByUserId",
                 table: "MatchEvents",
                 column: "UpdatedByUserId");
@@ -2945,9 +2929,9 @@ namespace Koralytics.Infrastructure.Migrations
                 column: "AcademyId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_RoleAuditLogs_AcademyId1",
+                name: "IX_RoleAuditLogs_AffectedUserId",
                 table: "RoleAuditLogs",
-                column: "AcademyId1");
+                column: "AffectedUserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_RoleAuditLogs_CreatedByUserId",
@@ -3051,20 +3035,10 @@ namespace Koralytics.Infrastructure.Migrations
                 column: "UpdatedByUserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Teams_AcademyId_Name",
+                name: "IX_Teams_AgeGroupId_Name",
                 table: "Teams",
-                columns: new[] { "AcademyId", "Name" },
+                columns: new[] { "AgeGroupId", "Name" },
                 unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Teams_AgeGroupId",
-                table: "Teams",
-                column: "AgeGroupId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Teams_AgeGroupId1",
-                table: "Teams",
-                column: "AgeGroupId1");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Teams_CreatedByUserId",

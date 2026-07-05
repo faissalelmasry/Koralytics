@@ -16,5 +16,6 @@ namespace Koralytics.Domain.Entities.Academy
         public string Body { get; set; }
         public AnnouncementTargetType TargetType { get; set; }
         public int TargetId { get; set; }
+        public virtual Academy Academy { get; set; } = null!;
     }
 }

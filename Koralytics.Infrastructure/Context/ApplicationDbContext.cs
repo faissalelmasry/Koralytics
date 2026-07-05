@@ -51,6 +51,7 @@ namespace Koralytics.Infrastructure.Context
         #endregion
 
         #region Aly's Entities (Academy Settings & SuperAdmin)
+        public DbSet<AcademyAdmin> AcademyAdmins { get; set; }
         public DbSet<Team> Teams { get; set; }
         public DbSet<AcademyLocation> AcademyLocations { get; set; }
         public DbSet<AcademyAnnouncement> AcademyAnnouncements { get; set; }
@@ -111,6 +112,7 @@ namespace Koralytics.Infrastructure.Context
             builder.Entity<Coach>().ToTable("Coaches");
             builder.Entity<Scouter>().ToTable("Scouters");
             builder.Entity<Parent>().ToTable("Parents");
+            builder.Entity<AcademyAdmin>().ToTable("AcademyAdmins");
             builder.ApplyGlobalQueryFilters();
         }
     }
