@@ -15,7 +15,7 @@ namespace Koralytics.Domain.Interfaces
 
         public User? UpdatedByUser { get; set; }
         public DateTime CreatedAt { get; set; }
-        public int CreatedById { get; set; }
-        public User CreatedByUser { get; set; }
+        public int? CreatedById { get; set; }
+        public User? CreatedByUser { get; set; }
     }
 }

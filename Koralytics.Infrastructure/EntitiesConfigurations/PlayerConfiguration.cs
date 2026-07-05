@@ -13,12 +13,14 @@ namespace Koralytics.Infrastructure.EntitiesConfigurations
     {
         public void Configure(EntityTypeBuilder<Player> builder)
         {
-            builder.ToTable("Players");
             builder.Property(p => p.PlayStyleTag).HasMaxLength(100);
             builder.Property(p => p.ArchetypePlayerName).HasMaxLength(100);
             builder.Property(p => p.ArchetypeText).HasMaxLength(1000);
             builder.Property(p => p.WeakFootRating).HasDefaultValue(3);
-            builder.ToTable(t => t.HasCheckConstraint("CK_Player_WeakFoot", "[WeakFootRating] BETWEEN 1 AND 5"));
+            builder.ToTable("Players", t =>
+            {
+                t.HasCheckConstraint("CK_Player_Age", "[Age] >= 5");
+            });
         }
     }
 }

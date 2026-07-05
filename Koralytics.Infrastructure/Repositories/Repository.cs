@@ -76,6 +76,10 @@ namespace Koralytics.Infrastructure.Repositories
         {
             return await _dbSet.CountAsync(predicate);
         }
+        public void Update(T entity)
+        {
+            _dbSet.Update(entity);
+        }
 
     }
 }

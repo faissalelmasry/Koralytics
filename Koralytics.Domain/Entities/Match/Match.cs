@@ -42,7 +42,6 @@ namespace Koralytics.Domain.Entities.Match
 
         public int? WinningTeamId { get; set; }
 
-
         public Team HomeTeam { get; set; } = default!;
 
         public Team AwayTeam { get; set; } = default!;
