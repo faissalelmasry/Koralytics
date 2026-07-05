@@ -82,7 +82,7 @@ namespace Koralytics.Application.Services.Auth.Register
             _logger.LogInformation("Starting player registration for email: {email}", request.Email);
 
             await ValidateRegistrationRequestAsync(request);
-
+            await _businessValidator.EnsureWeakFootRating(request.WeakFootRating);
 
 
             var player = _mapper.Map<Player>(request);
