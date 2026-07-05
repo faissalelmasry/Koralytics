@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Koralytics.Domain.Entities.Identity;
+using Koralytics.Domain.Entities.Parents;
 using Koralytics.Domain.Enums;
 
 namespace Koralytics.Domain.Entities.Player
@@ -27,6 +28,6 @@ namespace Koralytics.Domain.Entities.Player
         public ICollection<PlayerHighlight> PlayerHighlights { get; set; } = new List<PlayerHighlight>();
         public ICollection<PlayerAchievement> PlayerAchievements { get; set; } = new List<PlayerAchievement>();
         public ICollection<ScouterView> ScouterViews { get; set; } = new List<ScouterView>();
-        public ICollection<PlayerParent> ParentPlayers { get; set; } = new List<PlayerParent>();
+        public ICollection<Parent> ParentPlayers { get; set; } = new List<Parent>();
     }
 }

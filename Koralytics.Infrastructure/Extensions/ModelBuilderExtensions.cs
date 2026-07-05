@@ -15,17 +15,14 @@ namespace Koralytics.Infrastructure.Extensions
         public static void ApplyGlobalQueryFilters(this ModelBuilder modelBuilder)
         {
             var entityTypes = modelBuilder.Model.GetEntityTypes()
-                .Where(e =>
-                    typeof(ISoftDelete).IsAssignableFrom(e.ClrType));
+                .Where(e => typeof(ISoftDelete).IsAssignableFrom(e.ClrType)
+                         && e.BaseType == null); // <-- only root entity types
 
             foreach (var entityType in entityTypes)
             {
                 var parameter = Expression.Parameter(entityType.ClrType, "e");
-
                 var property = Expression.Property(parameter, nameof(BaseEntity.IsDeleted));
-
                 var condition = Expression.Equal(property, Expression.Constant(false));
-
                 var lambda = Expression.Lambda(condition, parameter);
 
                 modelBuilder.Entity(entityType.ClrType).HasQueryFilter(lambda);

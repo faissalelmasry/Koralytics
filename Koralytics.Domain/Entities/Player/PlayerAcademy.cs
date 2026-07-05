@@ -12,7 +12,7 @@ namespace Koralytics.Domain.Entities.Player
 {
     public class PlayerAcademy : BaseEntity
     {
-        public string PlayerId { get; set; } = string.Empty;
+        public int PlayerId { get; set; }
         public int AcademyId { get; set; }
         public DateTime JoinedAt { get; set; }
         public DateTime? LeftAt { get; set; }

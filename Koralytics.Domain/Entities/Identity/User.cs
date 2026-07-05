@@ -10,7 +10,8 @@ namespace Koralytics.Domain.Entities.Identity
 {
     public class User : IdentityUser<int>, IAuditable
     {
-        public string FullName { get; set; } = string.Empty;
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
         public string? ProfileImageUrl { get; set; }
 
         public bool IsDeleted { get; set; }

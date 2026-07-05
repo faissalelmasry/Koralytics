@@ -11,6 +11,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="8.0.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="DTOs\Drill\" />
     <Folder Include="DTOs\Match\" />
     <Folder Include="DTOs\Coach\" />
@@ -22,7 +28,7 @@
     <Folder Include="Interfaces\ISpeceficRepositories\" />
     <Folder Include="Interfaces\IExternalServices\" />
     <Folder Include="Mappings\" />
-    <Folder Include="Services\" />
+    <Folder Include="Options\" />
     <Folder Include="Validators\" />
   </ItemGroup>
 

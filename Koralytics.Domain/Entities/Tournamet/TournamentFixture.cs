@@ -10,6 +10,8 @@ namespace Koralytics.Domain.Entities.Tournamet
 {
     public class TournamentFixture:BaseEntity
     {
+        public int? MatchId { get; set; }
+        public Match.Match? Match { get; set; }
         public int? GroupId { get; set; }
         public TournamentGroup? Group { get; set; }
 
