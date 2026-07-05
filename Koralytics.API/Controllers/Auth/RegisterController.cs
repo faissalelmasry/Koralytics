@@ -42,7 +42,7 @@ namespace Koralytics.API.Controllers.Auth
         public async Task<ActionResult<AuthResponseDto>> RegisterPlayer([FromBody] RegisterPlayerRequestDto request)
         {
             var response = await _registrationService.RegisterPlayerAsync(request);
-            return CreatedAtAction(nameof(RegisterPlayer), response);
+            return Ok(response);
         }
 
         /// <summary>
@@ -61,7 +61,7 @@ namespace Koralytics.API.Controllers.Auth
         public async Task<ActionResult<AuthResponseDto>> RegisterCoach([FromBody] RegisterCoachRequestDto request)
         {
             var response = await _registrationService.RegisterCoachAsync(request);
-            return CreatedAtAction(nameof(RegisterCoach), response);
+            return Ok(response);
         }
 
         /// <summary>
@@ -80,7 +80,7 @@ namespace Koralytics.API.Controllers.Auth
         public async Task<ActionResult<AuthResponseDto>> RegisterScouter([FromBody] RegisterScouterRequestDto request)
         {
             var response = await _registrationService.RegisterScouterAsync(request);
-            return CreatedAtAction(nameof(RegisterScouter), response);
+            return Ok(response);
         }
 
         /// <summary>
@@ -101,7 +101,7 @@ namespace Koralytics.API.Controllers.Auth
         public async Task<ActionResult<AuthResponseDto>> RegisterParent([FromBody] RegisterParentRequestDto request)
         {
             var response = await _registrationService.RegisterParentAsync(request);
-            return CreatedAtAction(nameof(RegisterParent), response);
+            return Ok(response);
         }
     }
 }

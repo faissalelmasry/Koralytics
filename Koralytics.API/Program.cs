@@ -1,9 +1,17 @@
-using System.Text;
+using AutoMapper;
+
+using FluentValidation;
+using FluentValidation.AspNetCore;
 
 using Koralytics.API.Middlewares;
+using Koralytics.Application;
+using Koralytics.Application.DTOs.AuthDTOs.RegisterDTOs;
 using Koralytics.Application.Interfaces;
+using Koralytics.Application.Mappings.Auth;
 using Koralytics.Application.Services.Auth.Login;
 using Koralytics.Application.Services.Auth.Register;
+using Koralytics.Application.Validators.Auth;
+using Koralytics.Application.Validators.UserBusiness;
 using Koralytics.Domain.Entities;
 using Koralytics.Domain.Entities.Identity;
 using Koralytics.Infrastructure.Context;
@@ -18,6 +26,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 using Serilog;
+
+using System.Text;
 
 namespace Koralytics.API
 {
@@ -34,11 +44,20 @@ namespace Koralytics.API
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
 
-            // Configure JWT authentication from appsettings.json
-            var jwtKey = builder.Configuration["Jwt:Key"] ?? "SuperSecretJwtKeyForDevelopmentOnly!123456";
+
+
+            var jwtKey = builder.Configuration["Jwt:Key"];
+            if (string.IsNullOrWhiteSpace(jwtKey))
+            {
+                throw new InvalidOperationException(
+                    "JWT signing key is not configured. Set 'Jwt:Key' in configuration before starting the app.");
+            }
+
             var jwtIssuer = builder.Configuration["Jwt:Issuer"];
             var jwtAudience = builder.Configuration["Jwt:Audience"];
-            var clockSkew = int.Parse(builder.Configuration["Jwt:ClockSkewMinutes"] ?? "1");
+            var clockSkew = int.TryParse(builder.Configuration["Jwt:ClockSkewMinutes"], out var parsedClockSkew) ? parsedClockSkew : 1;
+
+
 
             builder.Services.AddAuthentication(options =>
             {
@@ -60,6 +79,8 @@ namespace Koralytics.API
                         ClockSkew = TimeSpan.FromMinutes(clockSkew)
                     };
                 });
+
+
             builder.Services.AddAuthorization();
             builder.Services.AddProblemDetails();
             builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
@@ -69,6 +90,21 @@ namespace Koralytics.API
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IRegistrationService, RegistrationService>();
+
+            // Register FluentValidation validators
+            builder.Services.AddValidatorsFromAssemblyContaining<LoginRequestValidator>();
+            builder.Services.AddValidatorsFromAssemblyContaining<ChangePasswordValidator>();
+            builder.Services.AddValidatorsFromAssemblyContaining<BaseRegisterationRequestValidator>();
+            builder.Services.AddScoped<IUserBusinessValidator, UserBusinessValidator>();
+
+            builder.Services
+                .AddFluentValidationAutoValidation()
+                .AddFluentValidationClientsideAdapters();
+
+            // Register mapping profiles
+            builder.Services.AddAutoMapper(op => op.AddProfile<RegisterProfile>());
+
+
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(options =>
@@ -98,6 +134,7 @@ namespace Koralytics.API
                     }
                 });
             });
+
             builder.Host.UseSerilog((context, configuration) =>
                 configuration
                     .WriteTo.Console()
