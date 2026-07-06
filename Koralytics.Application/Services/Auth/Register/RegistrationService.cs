@@ -85,7 +85,7 @@ namespace Koralytics.Application.Services.Auth.Register
             await _businessValidator.EnsureWeakFootRating(request.WeakFootRating);
 
 
-            var player = _mapper.Map<Player>(request);
+            var player = _mapper.Map<Domain.Entities.Player.Player>(request);
             player.PreferredFoot = ParsePreferredFoot(request.PreferredFoot);
             player.AvailabilityStatus = AvailabilityStatus.Available;
             player.CreatedAt = DateTime.UtcNow;
@@ -231,7 +231,7 @@ namespace Koralytics.Application.Services.Auth.Register
             // Verify the child player exists BEFORE creating the parent's Identity account.
             // This avoids leaving behind an orphaned user with no role/link if the
             // child lookup fails.
-            var child = await _unitOfWork.Repository<Player>().GetByIdAsync(request.ChildPlayerId);
+            var child = await _unitOfWork.Repository<Domain.Entities.Player.Player>().GetByIdAsync(request.ChildPlayerId);
             if (child is null)
             {
                 _logger.LogWarning("Child player not found for parent registration. PlayerId: {playerId}", request.ChildPlayerId);

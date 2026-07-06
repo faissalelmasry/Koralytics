@@ -294,15 +294,21 @@ namespace Koralytics.Application.Services.Auth.Login
             if (roles.Contains(RegistrationRoles.Player))
             {
                 var playerAcademy = await _unitOfWork.Repository<PlayerAcademy>()
-                    .FindAsNoTrackingAsync(x => x.PlayerId == user.Id);
+                    .FindAsNoTrackingAsync(x => x.PlayerId == user.Id && x.LeftAt==null);
                 return playerAcademy?.AcademyId;
             }
 
             if (roles.Contains(RegistrationRoles.Coach))
             {
                 var coachAcademy = await _unitOfWork.Repository<CoachAcademy>()
-                    .FindAsNoTrackingAsync(x => x.CoachUserId == user.Id);
+                    .FindAsNoTrackingAsync(x => x.CoachUserId == user.Id && x.LeftAt == null);
                 return coachAcademy?.AcademyId;
+            }
+            if (roles.Contains(RegistrationRoles.AcademyAdmin))
+            {
+                var AcademyAdmin = await _unitOfWork.Repository<AcademyAdmin>()
+                    .FindAsNoTrackingAsync(x => x.Id == user.Id);
+                return AcademyAdmin?.AcademyId;
             }
 
             return null;
