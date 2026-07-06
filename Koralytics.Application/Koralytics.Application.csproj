@@ -25,7 +25,6 @@
     <Folder Include="DTOs\Academy\" />
     <Folder Include="DTOs\Common\" />
     <Folder Include="DTOs\Scouter\" />
-    <Folder Include="DTOs\Tournament\" />
     <Folder Include="DTOs\Player\" />
     <Folder Include="Interfaces\ISpeceficRepositories\" />
     <Folder Include="Interfaces\IExternalServices\" />
