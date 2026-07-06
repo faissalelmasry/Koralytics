@@ -10,6 +10,7 @@ using Koralytics.Application.Interfaces;
 using Koralytics.Application.Mappings.Auth;
 using Koralytics.Application.Services.Auth.Login;
 using Koralytics.Application.Services.Auth.Register;
+using Koralytics.Application.Services.Player.PlayerTransferService;
 using Koralytics.Application.Validators.Auth;
 using Koralytics.Application.Validators.UserBusiness;
 using Koralytics.Domain.Entities;
@@ -90,6 +91,7 @@ namespace Koralytics.API
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IRegistrationService, RegistrationService>();
+            builder.Services.AddScoped<IPlayerTransferService, PlayerTransferService>();
 
             // Register FluentValidation validators
             builder.Services.AddValidatorsFromAssemblyContaining<LoginRequestValidator>();
