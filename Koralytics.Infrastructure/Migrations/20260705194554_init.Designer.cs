@@ -12,8 +12,13 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Koralytics.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
+<<<<<<<< HEAD:Koralytics.Infrastructure/Migrations/20260705194554_init.Designer.cs
     [Migration("20260705194554_init")]
     partial class init
+========
+    [Migration("20260705192551_CleanArchitecture_V1")]
+    partial class CleanArchitecture_V1
+>>>>>>>> feature/drill-template-service:Koralytics.Infrastructure/Migrations/20260705192551_CleanArchitecture_V1.Designer.cs
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

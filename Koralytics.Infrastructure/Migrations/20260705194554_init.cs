@@ -6,7 +6,11 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Koralytics.Infrastructure.Migrations
 {
     /// <inheritdoc />
+<<<<<<<< HEAD:Koralytics.Infrastructure/Migrations/20260705194554_init.cs
     public partial class init : Migration
+========
+    public partial class CleanArchitecture_V1 : Migration
+>>>>>>>> feature/drill-template-service:Koralytics.Infrastructure/Migrations/20260705192551_CleanArchitecture_V1.cs
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
