@@ -6,7 +6,11 @@ using System.Threading.Tasks;
 
 namespace Koralytics.Application.DTOs.Tournaments
 {
-    internal class GroupStandingDto
+    public class GroupStandingDto
     {
+        public int GroupId { get; set; }
+        public string GroupName { get; set; } = string.Empty;
+        public List<StandingRowDto> Standings { get; set; } = [];
+        public List<FixtureDto> Fixtures { get; set; } = [];
     }
 }
