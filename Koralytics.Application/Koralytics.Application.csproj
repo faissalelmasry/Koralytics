@@ -19,7 +19,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="DTOs\Drill\" />
     <Folder Include="DTOs\Match\" />
     <Folder Include="DTOs\Coach\" />
     <Folder Include="DTOs\Academy\" />
