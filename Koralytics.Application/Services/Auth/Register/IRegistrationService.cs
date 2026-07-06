@@ -9,5 +9,6 @@ namespace Koralytics.Application.Services.Auth.Register
         Task<AuthResponseDto> RegisterCoachAsync(RegisterCoachRequestDto request);
         Task<AuthResponseDto> RegisterScouterAsync(RegisterScouterRequestDto request);
         Task<AuthResponseDto> RegisterParentAsync(RegisterParentRequestDto request);
+        Task<AuthResponseDto> RegisterAcademyAdminAsync(RegisterAcademyAdminRequestDto request);
     }
 }

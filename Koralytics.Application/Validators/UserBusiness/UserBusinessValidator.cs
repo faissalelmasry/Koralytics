@@ -60,6 +60,15 @@ namespace Koralytics.Application.Validators.UserBusiness
             }
         }
 
+        public async Task EnsureWeakFootRating(int weakFootRating)
+        {
+            if (weakFootRating < 1 || weakFootRating > 5)
+            {
+                _logger.LogWarning("Invalid weak foot rating: {WeakFootRating}", weakFootRating);
+                throw new BadRequestException("Weak foot rating must be between 1 and 5.");
+            }
+        }
+
         public async Task<User> GetUserOrThrowAsync(int userId)
         {
             var user = await _userManager.FindByIdAsync(userId.ToString());

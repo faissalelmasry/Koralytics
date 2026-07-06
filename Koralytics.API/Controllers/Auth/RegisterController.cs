@@ -103,5 +103,25 @@ namespace Koralytics.API.Controllers.Auth
             var response = await _registrationService.RegisterParentAsync(request);
             return Ok(response);
         }
+
+        /// <summary>
+        /// Registers a new Register Academy Admin account.
+        /// </summary>
+        /// <param name="request">The academy admin registration details.</param>
+        /// <returns>JWT tokens and user information on successful registration.</returns>
+        /// <response code="200">Returns the authentication response with access and refresh tokens.</response>
+        /// <response code="400">Returned when registration data is invalid or incomplete.</response>
+        /// <response code="409">Returned when email or username is already registered.</response>
+        [HttpPost("academy-admin")]
+        [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        public async Task<ActionResult<AuthResponseDto>> RegisterAcademyAdmin([FromBody] RegisterAcademyAdminRequestDto request)
+        {
+            var response = await _registrationService.RegisterAcademyAdminAsync(request);
+            return Ok(response);
+        }
+
     }
 }

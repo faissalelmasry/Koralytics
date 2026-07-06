@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Koralytics.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -39,7 +39,7 @@ namespace Koralytics.Infrastructure.Migrations
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedById = table.Column<int>(type: "int", nullable: true),
-                    CreatedById = table.Column<int>(type: "int", nullable: false),
+                    CreatedById = table.Column<int>(type: "int", nullable: true),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -441,6 +441,30 @@ namespace Koralytics.Infrastructure.Migrations
                     table.PrimaryKey("PK_SystemAdmins", x => x.Id);
                     table.ForeignKey(
                         name: "FK_SystemAdmins_AspNetUsers_Id",
+                        column: x => x.Id,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AcademyAdmins",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false),
+                    AcademyId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AcademyAdmins", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AcademyAdmins_Academies_AcademyId",
+                        column: x => x.AcademyId,
+                        principalTable: "Academies",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_AcademyAdmins_AspNetUsers_Id",
                         column: x => x.Id,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
@@ -1282,6 +1306,41 @@ namespace Koralytics.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ParentPlayers",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ParentId = table.Column<int>(type: "int", nullable: false),
+                    PlayerId = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatedById = table.Column<int>(type: "int", nullable: true),
+                    CreatedByUserId = table.Column<int>(type: "int", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ParentPlayers", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ParentPlayers_AspNetUsers_CreatedByUserId",
+                        column: x => x.CreatedByUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_ParentPlayers_Parents_ParentId",
+                        column: x => x.ParentId,
+                        principalTable: "Parents",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_ParentPlayers_Players_PlayerId",
+                        column: x => x.PlayerId,
+                        principalTable: "Players",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "CoachTeams",
                 columns: table => new
                 {
@@ -1995,7 +2054,6 @@ namespace Koralytics.Infrastructure.Migrations
                     table.PrimaryKey("PK_MatchEvents", x => x.Id);
                     table.CheckConstraint("CK_MatchEvent_Minute", "[Minute] >= 0 AND [Minute] <= 130");
                     table.CheckConstraint("CK_MatchEvent_Player_AssistPlayer", "[AssistPlayerId] IS NULL OR [PlayerId] <> [AssistPlayerId]");
-                    //table.CheckConstraint("CK_MatchEvent_TeamId", "[TeamId] = (SELECT HomeTeamId FROM Matches WHERE Id = MatchId) OR [TeamId] = (SELECT AwayTeamId FROM Matches WHERE Id = MatchId)");
                     table.ForeignKey(
                         name: "FK_MatchEvents_AspNetUsers_CreatedById",
                         column: x => x.CreatedById,
@@ -2252,6 +2310,13 @@ namespace Koralytics.Infrastructure.Migrations
                 name: "IX_Academies_UpdatedByUserId",
                 table: "Academies",
                 column: "UpdatedByUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AcademyAdmins_AcademyId",
+                table: "AcademyAdmins",
+                column: "AcademyId",
+                unique: true,
+                filter: "[AcademyId] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_AcademyAnnouncements_AcademyId",
@@ -2773,6 +2838,22 @@ namespace Koralytics.Infrastructure.Migrations
                 column: "UpdatedByUserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ParentPlayers_CreatedByUserId",
+                table: "ParentPlayers",
+                column: "CreatedByUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ParentPlayers_ParentId_PlayerId",
+                table: "ParentPlayers",
+                columns: new[] { "ParentId", "PlayerId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ParentPlayers_PlayerId",
+                table: "ParentPlayers",
+                column: "PlayerId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Parents_PlayerId",
                 table: "Parents",
                 column: "PlayerId");
@@ -3272,6 +3353,9 @@ namespace Koralytics.Infrastructure.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "AcademyAdmins");
+
+            migrationBuilder.DropTable(
                 name: "AcademyAnnouncements");
 
             migrationBuilder.DropTable(
@@ -3323,7 +3407,7 @@ namespace Koralytics.Infrastructure.Migrations
                 name: "MatchPlayerRatings");
 
             migrationBuilder.DropTable(
-                name: "Parents");
+                name: "ParentPlayers");
 
             migrationBuilder.DropTable(
                 name: "PlatformAuditLogs");
@@ -3398,6 +3482,9 @@ namespace Koralytics.Infrastructure.Migrations
                 name: "Drills");
 
             migrationBuilder.DropTable(
+                name: "Parents");
+
+            migrationBuilder.DropTable(
                 name: "Scouters");
 
             migrationBuilder.DropTable(
@@ -3407,9 +3494,6 @@ namespace Koralytics.Infrastructure.Migrations
                 name: "TournamentRounds");
 
             migrationBuilder.DropTable(
-                name: "Players");
-
-            migrationBuilder.DropTable(
                 name: "TournamentGroups");
 
             migrationBuilder.DropTable(
@@ -3417,6 +3501,9 @@ namespace Koralytics.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "DrillTemplates");
+
+            migrationBuilder.DropTable(
+                name: "Players");
 
             migrationBuilder.DropTable(
                 name: "DrillSessions");

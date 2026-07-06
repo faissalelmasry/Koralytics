@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Koralytics.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260704194348_MakeCreatedByIdNullable")]
-    partial class MakeCreatedByIdNullable
+    [Migration("20260705194554_init")]
+    partial class init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -153,9 +153,6 @@ namespace Koralytics.Infrastructure.Migrations
                     b.Property<int>("AcademyId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("AcademyId1")
-                        .HasColumnType("int");
-
                     b.Property<string>("Body")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -198,8 +195,6 @@ namespace Koralytics.Infrastructure.Migrations
 
                     b.HasIndex("AcademyId");
 
-                    b.HasIndex("AcademyId1");
-
                     b.HasIndex("CreatedByUserId");
 
                     b.HasIndex("UpdatedByUserId");
@@ -216,9 +211,6 @@ namespace Koralytics.Infrastructure.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("AcademyId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("AcademyId1")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("AwardedAt")
@@ -242,8 +234,6 @@ namespace Koralytics.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AcademyId");
-
-                    b.HasIndex("AcademyId1");
 
                     b.HasIndex("CreatedByUserId");
 
@@ -372,9 +362,6 @@ namespace Koralytics.Infrastructure.Migrations
                     b.Property<int>("AcademyId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("AcademyId1")
-                        .HasColumnType("int");
-
                     b.Property<int>("Action")
                         .HasColumnType("int");
 
@@ -413,7 +400,7 @@ namespace Koralytics.Infrastructure.Migrations
 
                     b.HasIndex("AcademyId");
 
-                    b.HasIndex("AcademyId1");
+                    b.HasIndex("AffectedUserId");
 
                     b.HasIndex("CreatedByUserId");
 
@@ -432,13 +419,7 @@ namespace Koralytics.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("AcademyId")
-                        .HasColumnType("int");
-
                     b.Property<int>("AgeGroupId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("AgeGroupId1")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
@@ -471,17 +452,13 @@ namespace Koralytics.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AgeGroupId");
-
-                    b.HasIndex("AgeGroupId1");
-
                     b.HasIndex("CreatedByUserId");
 
                     b.HasIndex("LocationId");
 
                     b.HasIndex("UpdatedByUserId");
 
-                    b.HasIndex("AcademyId", "Name")
+                    b.HasIndex("AgeGroupId", "Name")
                         .IsUnique();
 
                     b.ToTable("Teams");
@@ -502,7 +479,7 @@ namespace Koralytics.Infrastructure.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<decimal?>("BiasScore")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(5,2)");
 
                     b.Property<int>("CoachUserId")
                         .HasColumnType("int");
@@ -1325,6 +1302,9 @@ namespace Koralytics.Infrastructure.Migrations
                     b.Property<int>("PlayerId")
                         .HasColumnType("int");
 
+                    b.Property<int>("TeamId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -1343,6 +1323,8 @@ namespace Koralytics.Infrastructure.Migrations
                     b.HasIndex("MatchId");
 
                     b.HasIndex("PlayerId");
+
+                    b.HasIndex("TeamId");
 
                     b.HasIndex("UpdatedByUserId");
 
@@ -2885,6 +2867,20 @@ namespace Koralytics.Infrastructure.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Koralytics.Domain.Entities.Academy.AcademyAdmin", b =>
+                {
+                    b.HasBaseType("Koralytics.Domain.Entities.Identity.User");
+
+                    b.Property<int>("AcademyId")
+                        .HasColumnType("int");
+
+                    b.HasIndex("AcademyId")
+                        .IsUnique()
+                        .HasFilter("[AcademyId] IS NOT NULL");
+
+                    b.ToTable("AcademyAdmins", (string)null);
+                });
+
             modelBuilder.Entity("Koralytics.Domain.Entities.Coach.Coach", b =>
                 {
                     b.HasBaseType("Koralytics.Domain.Entities.Identity.User");
@@ -3005,15 +3001,11 @@ namespace Koralytics.Infrastructure.Migrations
 
             modelBuilder.Entity("Koralytics.Domain.Entities.Academy.AcademyAnnouncement", b =>
                 {
-                    b.HasOne("Koralytics.Domain.Entities.Academy.Academy", null)
-                        .WithMany()
-                        .HasForeignKey("AcademyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Koralytics.Domain.Entities.Academy.Academy", null)
+                    b.HasOne("Koralytics.Domain.Entities.Academy.Academy", "Academy")
                         .WithMany("AcademyAnnouncements")
-                        .HasForeignKey("AcademyId1");
+                        .HasForeignKey("AcademyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("Koralytics.Domain.Entities.Identity.User", "CreatedByUser")
                         .WithMany()
@@ -3022,6 +3014,8 @@ namespace Koralytics.Infrastructure.Migrations
                     b.HasOne("Koralytics.Domain.Entities.Identity.User", "UpdatedByUser")
                         .WithMany()
                         .HasForeignKey("UpdatedByUserId");
+
+                    b.Navigation("Academy");
 
                     b.Navigation("CreatedByUser");
 
@@ -3030,29 +3024,27 @@ namespace Koralytics.Infrastructure.Migrations
 
             modelBuilder.Entity("Koralytics.Domain.Entities.Academy.AcademyBadge", b =>
                 {
-                    b.HasOne("Koralytics.Domain.Entities.Academy.Academy", null)
-                        .WithMany()
-                        .HasForeignKey("AcademyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Koralytics.Domain.Entities.Academy.Academy", null)
+                    b.HasOne("Koralytics.Domain.Entities.Academy.Academy", "Academy")
                         .WithMany("AcademyBadges")
-                        .HasForeignKey("AcademyId1");
+                        .HasForeignKey("AcademyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("Koralytics.Domain.Entities.Identity.User", "CreatedByUser")
                         .WithMany()
                         .HasForeignKey("CreatedByUserId");
+
+                    b.Navigation("Academy");
 
                     b.Navigation("CreatedByUser");
                 });
 
             modelBuilder.Entity("Koralytics.Domain.Entities.Academy.AcademyLocation", b =>
                 {
-                    b.HasOne("Koralytics.Domain.Entities.Academy.Academy", null)
+                    b.HasOne("Koralytics.Domain.Entities.Academy.Academy", "Academy")
                         .WithMany("AcademyLocations")
                         .HasForeignKey("AcademyId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Koralytics.Domain.Entities.Identity.User", "CreatedByUser")
@@ -3062,6 +3054,8 @@ namespace Koralytics.Infrastructure.Migrations
                     b.HasOne("Koralytics.Domain.Entities.Identity.User", "UpdatedByUser")
                         .WithMany()
                         .HasForeignKey("UpdatedByUserId");
+
+                    b.Navigation("Academy");
 
                     b.Navigation("CreatedByUser");
 
@@ -3073,7 +3067,7 @@ namespace Koralytics.Infrastructure.Migrations
                     b.HasOne("Koralytics.Domain.Entities.Academy.Academy", "Academy")
                         .WithMany("AgeGroups")
                         .HasForeignKey("AcademyId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Koralytics.Domain.Entities.Identity.User", "CreatedByUser")
@@ -3087,52 +3081,56 @@ namespace Koralytics.Infrastructure.Migrations
 
             modelBuilder.Entity("Koralytics.Domain.Entities.Academy.RoleAuditLog", b =>
                 {
-                    b.HasOne("Koralytics.Domain.Entities.Academy.Academy", null)
-                        .WithMany()
+                    b.HasOne("Koralytics.Domain.Entities.Academy.Academy", "Academy")
+                        .WithMany("RoleAuditLogs")
                         .HasForeignKey("AcademyId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Koralytics.Domain.Entities.Academy.Academy", null)
-                        .WithMany("RoleAuditLogs")
-                        .HasForeignKey("AcademyId1");
+                    b.HasOne("Koralytics.Domain.Entities.Identity.User", "AffectedUser")
+                        .WithMany()
+                        .HasForeignKey("AffectedUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("Koralytics.Domain.Entities.Identity.User", "CreatedByUser")
                         .WithMany()
                         .HasForeignKey("CreatedByUserId");
 
+                    b.HasOne("Koralytics.Domain.Entities.Identity.User", "PerformedByUser")
+                        .WithMany()
+                        .HasForeignKey("PerformedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Koralytics.Domain.Entities.Identity.User", "UpdatedByUser")
                         .WithMany()
                         .HasForeignKey("UpdatedByUserId");
 
+                    b.Navigation("Academy");
+
+                    b.Navigation("AffectedUser");
+
                     b.Navigation("CreatedByUser");
+
+                    b.Navigation("PerformedByUser");
 
                     b.Navigation("UpdatedByUser");
                 });
 
             modelBuilder.Entity("Koralytics.Domain.Entities.Academy.Team", b =>
                 {
-                    b.HasOne("Koralytics.Domain.Entities.Academy.Academy", null)
-                        .WithMany()
-                        .HasForeignKey("AcademyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Koralytics.Domain.Entities.Academy.AgeGroup", null)
-                        .WithMany()
+                    b.HasOne("Koralytics.Domain.Entities.Academy.AgeGroup", "AgeGroup")
+                        .WithMany("Teams")
                         .HasForeignKey("AgeGroupId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.HasOne("Koralytics.Domain.Entities.Academy.AgeGroup", null)
-                        .WithMany("Teams")
-                        .HasForeignKey("AgeGroupId1");
 
                     b.HasOne("Koralytics.Domain.Entities.Identity.User", "CreatedByUser")
                         .WithMany()
                         .HasForeignKey("CreatedByUserId");
 
-                    b.HasOne("Koralytics.Domain.Entities.Academy.AcademyLocation", null)
+                    b.HasOne("Koralytics.Domain.Entities.Academy.AcademyLocation", "Location")
                         .WithMany()
                         .HasForeignKey("LocationId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -3142,7 +3140,11 @@ namespace Koralytics.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("UpdatedByUserId");
 
+                    b.Navigation("AgeGroup");
+
                     b.Navigation("CreatedByUser");
+
+                    b.Navigation("Location");
 
                     b.Navigation("UpdatedByUser");
                 });
@@ -3544,6 +3546,12 @@ namespace Koralytics.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Koralytics.Domain.Entities.Academy.Team", "Team")
+                        .WithMany()
+                        .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Koralytics.Domain.Entities.Identity.User", "UpdatedByUser")
                         .WithMany()
                         .HasForeignKey("UpdatedByUserId");
@@ -3555,6 +3563,8 @@ namespace Koralytics.Infrastructure.Migrations
                     b.Navigation("Match");
 
                     b.Navigation("Player");
+
+                    b.Navigation("Team");
 
                     b.Navigation("UpdatedByUser");
                 });
@@ -4322,6 +4332,23 @@ namespace Koralytics.Infrastructure.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Koralytics.Domain.Entities.Academy.AcademyAdmin", b =>
+                {
+                    b.HasOne("Koralytics.Domain.Entities.Academy.Academy", "Academy")
+                        .WithOne()
+                        .HasForeignKey("Koralytics.Domain.Entities.Academy.AcademyAdmin", "AcademyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Koralytics.Domain.Entities.Identity.User", null)
+                        .WithOne()
+                        .HasForeignKey("Koralytics.Domain.Entities.Academy.AcademyAdmin", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Academy");
                 });
 
             modelBuilder.Entity("Koralytics.Domain.Entities.Coach.Coach", b =>

@@ -18,6 +18,8 @@ namespace Koralytics.Application.Validators.UserBusiness
 
         Task EnsureAcademyExistsAsync(int academyId);
 
+        Task EnsureWeakFootRating(int weakFootRating);
+
         Task<User> GetUserOrThrowAsync(int userId);
 
         Task<User> GetUserByEmailOrUsernameOrThrowAsync(string emailOrUsername);
