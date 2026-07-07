@@ -1,16 +1,18 @@
 using AutoMapper;
-
 using FluentValidation;
 using FluentValidation.AspNetCore;
-
 using Koralytics.API.Middlewares;
 using Koralytics.Application;
 using Koralytics.Application.DTOs.AuthDTOs.RegisterDTOs;
 using Koralytics.Application.Interfaces;
+using Koralytics.Application.Interfaces.Tournament;
+using Koralytics.Application.Interfaces.Tournaments;
 using Koralytics.Application.Mappings.Auth;
+using Koralytics.Application.Mappings.Tournaments;
 using Koralytics.Application.Services.Auth.Login;
 using Koralytics.Application.Services.Auth.Register;
 using Koralytics.Application.Services.Player.PlayerTransferService;
+using Koralytics.Application.Services.Tournament;
 using Koralytics.Application.Validators.Auth;
 using Koralytics.Application.Validators.UserBusiness;
 using Koralytics.Domain.Entities;
@@ -19,15 +21,12 @@ using Koralytics.Infrastructure.Context;
 using Koralytics.Infrastructure.Repositories;
 using Koralytics.Infrastructure.Seeding;
 using Koralytics.Infrastructure.UnitOfWork;
-
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-
 using Serilog;
-
 using System.Text;
 
 namespace Koralytics.API
@@ -92,7 +91,10 @@ namespace Koralytics.API
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IRegistrationService, RegistrationService>();
             builder.Services.AddScoped<IPlayerTransferService, PlayerTransferService>();
-
+            builder.Services.AddScoped<ITournamentService, TournamentService>();
+            builder.Services.AddScoped<ITournamentDrawService, TournamentDrawService>();
+            builder.Services.AddScoped<ITournamentFixtureService, TournamentFixtureService>();
+            builder.Services.AddScoped<ITournamentReportService, TournamentReportService>();
             // Register FluentValidation validators
             builder.Services.AddValidatorsFromAssemblyContaining<LoginRequestValidator>();
             builder.Services.AddValidatorsFromAssemblyContaining<ChangePasswordValidator>();
@@ -105,7 +107,7 @@ namespace Koralytics.API
 
             // Register mapping profiles
             builder.Services.AddAutoMapper(op => op.AddProfile<RegisterProfile>());
-
+            builder.Services.AddAutoMapper(op => op.AddProfile<TournamentProfile>());
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
