@@ -12,13 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Koralytics.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-<<<<<<<< HEAD:Koralytics.Infrastructure/Migrations/20260705194554_init.Designer.cs
-    [Migration("20260705194554_init")]
+    [Migration("20260707034709_init")]
     partial class init
-========
-    [Migration("20260705192551_CleanArchitecture_V1")]
-    partial class CleanArchitecture_V1
->>>>>>>> feature/drill-template-service:Koralytics.Infrastructure/Migrations/20260705192551_CleanArchitecture_V1.Designer.cs
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -423,6 +418,9 @@ namespace Koralytics.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AcademyId")
+                        .HasColumnType("int");
 
                     b.Property<int>("AgeGroupId")
                         .HasColumnType("int");
@@ -2938,10 +2936,7 @@ namespace Koralytics.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasDefaultValue(3);
 
-                    b.ToTable("Players", null, t =>
-                        {
-                            t.HasCheckConstraint("CK_Player_WeakFoot", "[WeakFootRating] BETWEEN 1 AND 5");
-                        });
+                    b.ToTable("Players", (string)null);
                 });
 
             modelBuilder.Entity("Koralytics.Domain.Entities.Scouter.Scouter", b =>

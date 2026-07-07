@@ -14,6 +14,7 @@ using Koralytics.Application.Services.Auth.Register;
 using Koralytics.Application.Services.Player.PlayerTransferService;
 using Koralytics.Application.Services.Tournament;
 using Koralytics.Application.Validators.Auth;
+using Koralytics.Application.Validators.Tournament;
 using Koralytics.Application.Validators.UserBusiness;
 using Koralytics.Domain.Entities;
 using Koralytics.Domain.Entities.Identity;
@@ -99,6 +100,8 @@ namespace Koralytics.API
             builder.Services.AddValidatorsFromAssemblyContaining<LoginRequestValidator>();
             builder.Services.AddValidatorsFromAssemblyContaining<ChangePasswordValidator>();
             builder.Services.AddValidatorsFromAssemblyContaining<BaseRegisterationRequestValidator>();
+            builder.Services.AddValidatorsFromAssemblyContaining<CreateTournamentValidator>();
+            builder.Services.AddValidatorsFromAssemblyContaining<RegisterSquadValidator>();
             builder.Services.AddScoped<IUserBusinessValidator, UserBusinessValidator>();
 
             builder.Services

@@ -416,6 +416,9 @@ namespace Koralytics.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("AcademyId")
+                        .HasColumnType("int");
+
                     b.Property<int>("AgeGroupId")
                         .HasColumnType("int");
 
@@ -2930,10 +2933,7 @@ namespace Koralytics.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasDefaultValue(3);
 
-                    b.ToTable("Players", null, t =>
-                        {
-                            t.HasCheckConstraint("CK_Player_WeakFoot", "[WeakFootRating] BETWEEN 1 AND 5");
-                        });
+                    b.ToTable("Players", (string)null);
                 });
 
             modelBuilder.Entity("Koralytics.Domain.Entities.Scouter.Scouter", b =>
