@@ -1,3 +1,4 @@
+using Koralytics.API.Controllers.BaseController;
 using Koralytics.Application.DTOs.AuthDTOs.LoginDTOs;
 using Koralytics.Application.Services.Auth.Login;
 using Koralytics.Domain.Exceptions;
@@ -15,7 +16,7 @@ namespace Koralytics.API.Controllers.Auth
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
-    public class LoginController : ControllerBase
+    public class LoginController : ApiBaseController
     {
         private readonly IAuthService _authService;
 
@@ -41,10 +42,10 @@ namespace Koralytics.API.Controllers.Auth
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<ActionResult<AuthResponseDto>> Login([FromBody] LoginRequestDto request)
+        public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
         {
             var response = await _authService.LoginAsync(request);
-            return Ok(response);
+            return OkResponse(response, "Login successful.");
         }
 
         /// <summary>
@@ -60,10 +61,10 @@ namespace Koralytics.API.Controllers.Auth
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<ActionResult<AuthResponseDto>> RefreshToken([FromBody] RefreshTokenRequestDto request)
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequestDto request)
         {
             var response = await _authService.RefreshTokenAsync(request.RefreshToken);
-            return Ok(response);
+            return OkResponse(response, "Token refreshed successfully.");
         }
 
         /// <summary>
@@ -83,6 +84,12 @@ namespace Koralytics.API.Controllers.Auth
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequestDto request)
         {
+            //if token type refresh, throw exception
+            if(User.HasClaim(c => c.Type == "tokenType" && c.Value == "refresh"))
+            {
+                throw new UnauthorizedException("Refresh tokens cannot be used to change passwords.");
+            }
+
             var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!int.TryParse(userIdClaim, out var userId))
             {
@@ -90,7 +97,7 @@ namespace Koralytics.API.Controllers.Auth
             }
 
             await _authService.ChangePasswordAsync(userId, request);
-            return Ok(new { message = "Password changed successfully." });
+            return OkResponse(new { Message = "Password changed successfully." }, "Password changed successfully.");
         }
 
     }

@@ -141,6 +141,7 @@ namespace Koralytics.Application.Services.Auth.Login
         /// <exception cref="NotFoundException">Thrown when user is not found.</exception>
         public async Task ChangePasswordAsync(int userId, ChangePasswordRequestDto request)
         {
+
             var validationResult = await _changePasswordValidator.ValidateAsync(request);
             if (!validationResult.IsValid)
             {
