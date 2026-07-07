@@ -16,7 +16,9 @@ namespace Koralytics.Domain.Entities.Match
 
         public int CoachId { get; set; }
 
-        public decimal Rating { get; set; }
+        public decimal Rating => CategoryRatings.Any()
+        ? CategoryRatings.Average(cr => cr.Rating)
+        : 0;
 
         public int Goals { get; set; }
 
@@ -34,5 +36,8 @@ namespace Koralytics.Domain.Entities.Match
         public Player.Player Player { get; set; } = default!;
 
         public User Coach { get; set; } = default!;
+
+        public ICollection<MatchPlayerCategoryRating> CategoryRatings { get; set; }
+            = new HashSet<MatchPlayerCategoryRating>();
     }
 }

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Koralytics.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260705194554_init")]
-    partial class init
+    [Migration("20260707131007_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -418,6 +418,9 @@ namespace Koralytics.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AcademyId")
+                        .HasColumnType("int");
 
                     b.Property<int>("AgeGroupId")
                         .HasColumnType("int");
@@ -1405,6 +1408,50 @@ namespace Koralytics.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Koralytics.Domain.Entities.Match.MatchPlayerCategoryRating", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("CreatedById")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CreatedByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DrillCategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("MatchPlayerRatingId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Rating")
+                        .HasColumnType("decimal(4,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("DrillCategoryId");
+
+                    b.HasIndex("MatchPlayerRatingId", "DrillCategoryId")
+                        .IsUnique();
+
+                    b.ToTable("MatchPlayerCategoryRatings", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_MatchPlayerCategoryRating_Rating", "[Rating] >= 0 AND [Rating] <= 10");
+                        });
+                });
+
             modelBuilder.Entity("Koralytics.Domain.Entities.Match.MatchPlayerRating", b =>
                 {
                     b.Property<int>("Id")
@@ -1458,9 +1505,6 @@ namespace Koralytics.Infrastructure.Migrations
                     b.Property<int>("PlayerId")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("Rating")
-                        .HasColumnType("decimal(4,2)");
-
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -1492,8 +1536,6 @@ namespace Koralytics.Infrastructure.Migrations
                             t.HasCheckConstraint("CK_MatchPlayerRating_Goals", "[Goals] >= 0");
 
                             t.HasCheckConstraint("CK_MatchPlayerRating_MinutesPlayed", "[MinutesPlayed] >= 0 AND [MinutesPlayed] <= 150");
-
-                            t.HasCheckConstraint("CK_MatchPlayerRating_Rating", "[Rating] >= 0 AND [Rating] <= 10");
                         });
                 });
 
@@ -1626,6 +1668,98 @@ namespace Koralytics.Infrastructure.Migrations
                         {
                             t.HasCheckConstraint("CK_PlayerAchievement_Polymorphic_Pair", "([ReferenceId] IS NULL AND [ReferenceType] IS NULL) OR ([ReferenceId] IS NOT NULL AND [ReferenceType] IS NOT NULL)");
                         });
+                });
+
+            modelBuilder.Entity("Koralytics.Domain.Entities.Player.PlayerCard", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("CreatedById")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CreatedByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("LastCalculatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("OverallRating")
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<decimal>("OverallTournamentAvg")
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<decimal>("OverallTrainingAvg")
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<int>("PlayerId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TransferClassification")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("PlayerId")
+                        .IsUnique();
+
+                    b.ToTable("PlayerCards", (string)null);
+                });
+
+            modelBuilder.Entity("Koralytics.Domain.Entities.Player.PlayerCategoryRating", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("CreatedById")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CreatedByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DrillCategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("LastUpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("PlayerCardId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Score")
+                        .HasColumnType("decimal(5,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("DrillCategoryId");
+
+                    b.HasIndex("PlayerCardId", "DrillCategoryId")
+                        .IsUnique();
+
+                    b.ToTable("PlayerCategoryRatings", (string)null);
                 });
 
             modelBuilder.Entity("Koralytics.Domain.Entities.Player.PlayerGoal", b =>
@@ -2933,10 +3067,7 @@ namespace Koralytics.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasDefaultValue(3);
 
-                    b.ToTable("Players", null, t =>
-                        {
-                            t.HasCheckConstraint("CK_Player_WeakFoot", "[WeakFootRating] BETWEEN 1 AND 5");
-                        });
+                    b.ToTable("Players", (string)null);
                 });
 
             modelBuilder.Entity("Koralytics.Domain.Entities.Scouter.Scouter", b =>
@@ -3608,6 +3739,31 @@ namespace Koralytics.Infrastructure.Migrations
                     b.Navigation("UpdatedByUser");
                 });
 
+            modelBuilder.Entity("Koralytics.Domain.Entities.Match.MatchPlayerCategoryRating", b =>
+                {
+                    b.HasOne("Koralytics.Domain.Entities.Identity.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId");
+
+                    b.HasOne("Koralytics.Domain.Entities.Drill.DrillCategory", "DrillCategory")
+                        .WithMany()
+                        .HasForeignKey("DrillCategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Koralytics.Domain.Entities.Match.MatchPlayerRating", "MatchPlayerRating")
+                        .WithMany("CategoryRatings")
+                        .HasForeignKey("MatchPlayerRatingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("DrillCategory");
+
+                    b.Navigation("MatchPlayerRating");
+                });
+
             modelBuilder.Entity("Koralytics.Domain.Entities.Match.MatchPlayerRating", b =>
                 {
                     b.HasOne("Koralytics.Domain.Entities.Identity.User", "Coach")
@@ -3713,6 +3869,48 @@ namespace Koralytics.Infrastructure.Migrations
                     b.Navigation("CreatedByUser");
 
                     b.Navigation("Player");
+                });
+
+            modelBuilder.Entity("Koralytics.Domain.Entities.Player.PlayerCard", b =>
+                {
+                    b.HasOne("Koralytics.Domain.Entities.Identity.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId");
+
+                    b.HasOne("Koralytics.Domain.Entities.Player.Player", "Player")
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("Player");
+                });
+
+            modelBuilder.Entity("Koralytics.Domain.Entities.Player.PlayerCategoryRating", b =>
+                {
+                    b.HasOne("Koralytics.Domain.Entities.Identity.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId");
+
+                    b.HasOne("Koralytics.Domain.Entities.Drill.DrillCategory", "DrillCategory")
+                        .WithMany()
+                        .HasForeignKey("DrillCategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Koralytics.Domain.Entities.Player.PlayerCard", "PlayerCard")
+                        .WithMany("CategoryRatings")
+                        .HasForeignKey("PlayerCardId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("DrillCategory");
+
+                    b.Navigation("PlayerCard");
                 });
 
             modelBuilder.Entity("Koralytics.Domain.Entities.Player.PlayerGoal", b =>
@@ -4447,6 +4645,16 @@ namespace Koralytics.Infrastructure.Migrations
                     b.Navigation("MatchLineups");
 
                     b.Navigation("MatchPlayerRatings");
+                });
+
+            modelBuilder.Entity("Koralytics.Domain.Entities.Match.MatchPlayerRating", b =>
+                {
+                    b.Navigation("CategoryRatings");
+                });
+
+            modelBuilder.Entity("Koralytics.Domain.Entities.Player.PlayerCard", b =>
+                {
+                    b.Navigation("CategoryRatings");
                 });
 
             modelBuilder.Entity("Koralytics.Domain.Entities.Tournamet.Tournament", b =>
