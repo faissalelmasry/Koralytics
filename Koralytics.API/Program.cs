@@ -11,6 +11,7 @@ using Koralytics.Application.Mappings.Auth;
 using Koralytics.Application.Mappings.Tournaments;
 using Koralytics.Application.Services.Auth.Login;
 using Koralytics.Application.Services.Auth.Register;
+using Koralytics.Application.Services.Player.PlayerCardService;
 using Koralytics.Application.Services.Player.PlayerTransferService;
 using Koralytics.Application.Services.Tournament;
 using Koralytics.Application.Validators.Auth;
@@ -96,6 +97,8 @@ namespace Koralytics.API
             builder.Services.AddScoped<ITournamentDrawService, TournamentDrawService>();
             builder.Services.AddScoped<ITournamentFixtureService, TournamentFixtureService>();
             builder.Services.AddScoped<ITournamentReportService, TournamentReportService>();
+            builder.Services.AddScoped<IPlayerCardService, PlayerCardService>();
+
             // Register FluentValidation validators
             builder.Services.AddValidatorsFromAssemblyContaining<LoginRequestValidator>();
             builder.Services.AddValidatorsFromAssemblyContaining<ChangePasswordValidator>();

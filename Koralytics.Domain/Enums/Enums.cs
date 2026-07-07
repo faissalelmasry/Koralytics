@@ -143,4 +143,14 @@ namespace Koralytics.Domain.Enums
         Premium = 3
     }
 
+    public enum TransferClassification
+    {
+        Elite = 1,
+        Trainable = 2,
+        Natural = 3,
+        NeedsWork = 4,
+        Developing = 5,
+        InsufficientData=0
+    }
+
 }

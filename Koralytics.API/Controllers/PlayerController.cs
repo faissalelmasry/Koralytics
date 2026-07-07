@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using Koralytics.Application.Services.Player.PlayerCardService;
 using Koralytics.Application.Services.Player.PlayerTransferService;
 using Koralytics.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
@@ -12,9 +13,14 @@ namespace Koralytics.API.Controllers
     public class PlayerController : ControllerBase
     {
         private readonly IPlayerTransferService _playerTransferService;
-        public PlayerController(IPlayerTransferService playerTransferService)
+        private readonly IPlayerCardService _playerCardService;
+
+        public PlayerController(
+            IPlayerTransferService playerTransferService,
+            IPlayerCardService playerCardService)
         {
             _playerTransferService = playerTransferService;
+            _playerCardService = playerCardService;
         }
         [HttpPatch("{playerId}/availability")]
         [Authorize(Roles = "Player,Coach,AcademyAdmin")]
@@ -47,6 +53,36 @@ namespace Koralytics.API.Controllers
 
             await _playerTransferService.LoanPlayerAsync(playerId, AcademyId, requesterAcademyId);
             return NoContent();
+        }
+
+        [HttpGet("{playerId}/card")]
+        [Authorize]
+        public async Task<IActionResult> GetPlayerCard(int playerId)
+        {
+            var card = await _playerCardService.GetPlayerCardAsync(playerId);
+            if (card is null)
+                return NotFound(new { message = "Insufficient data. At least 5 drill results or match ratings are required." });
+
+            return Ok(card);
+        }
+
+        [HttpPost("{playerId}/card/recalculate")]
+        [Authorize]
+        public async Task<IActionResult> RecalculatePlayerCard(int playerId)
+        {
+            await _playerCardService.RecalculateCategoryRatingAsync(playerId);
+            return NoContent();
+        }
+
+        [HttpGet("{playerId}/transfer-rate")]
+        [Authorize]
+        public async Task<IActionResult> GetTransferRate(int playerId)
+        {
+            var rate = await _playerCardService.GetDrillToMatchTransferRateAsync(playerId);
+            if (rate is null)
+                return NotFound(new { message = "Insufficient data. Player card not yet calculated." });
+
+            return Ok(rate);
         }
     }
 }
