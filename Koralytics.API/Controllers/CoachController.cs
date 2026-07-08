@@ -1,5 +1,7 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
+using Koralytics.Application.Services.Coach.CoachNoteService;
 using Koralytics.Application.Services.Coach.CoachSquadService;
+using Koralytics.Application.DTOs.Coach;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,10 +13,14 @@ namespace Koralytics.API.Controllers
     public class CoachController : ControllerBase
     {
         private readonly ICoachSquadService _coachSquadService;
+        private readonly ICoachNoteService _coachNoteService;
 
-        public CoachController(ICoachSquadService coachSquadService)
+        public CoachController(
+            ICoachSquadService coachSquadService,
+            ICoachNoteService coachNoteService)
         {
             _coachSquadService = coachSquadService;
+            _coachNoteService = coachNoteService;
         }
 
         /// <summary>
@@ -62,6 +68,34 @@ namespace Koralytics.API.Controllers
 
             var comparison = await _coachSquadService.GetSquadComparisonAsync(playerAId, playerBId);
             return Ok(comparison);
+        }
+        /// <summary>
+        /// Writes a note about a player who belongs to one of the coach's active teams.
+        /// Optionally links the note to a drill session or match.
+        /// </summary>
+        [HttpPost("notes")]
+        [Authorize(Roles = "Coach")]
+        public async Task<IActionResult> WriteNote([FromBody] WriteNoteDto dto)
+        {
+            var coachId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var academyId = int.Parse(User.FindFirstValue("academyId")!);
+
+            var note = await _coachNoteService.WriteNoteAsync(coachId, academyId, dto);
+            return CreatedAtAction(nameof(GetPlayerNotes),
+                new { playerId = dto.PlayerId }, note);
+        }
+
+        /// <summary>
+        /// Returns all notes written by the authenticated coach for a specific player,
+        /// ordered newest-first.
+        /// </summary>
+        [HttpGet("players/{playerId}/notes")]
+        [Authorize(Roles = "Coach")]
+        public async Task<IActionResult> GetPlayerNotes(int playerId)
+        {
+            var coachId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var notes = await _coachNoteService.GetPlayerNotesAsync(coachId, playerId);
+            return Ok(notes);
         }
     }
 }
