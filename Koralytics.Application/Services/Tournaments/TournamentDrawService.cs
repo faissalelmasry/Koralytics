@@ -177,16 +177,39 @@ namespace Koralytics.Application.Services.Tournament
                 .OrderBy(tt => tt.SeedNumber)
                 .ToListAsync();
 
+            _logger.LogInformation(
+                "Found {Count} accepted teams for tournament {TournamentId}",
+                seededTeams.Count, tournamentId);
+
             if (seededTeams.Count < 2)
+            {
+                var allTeams = await _unitOfWork.Repository<TournamentTeamEntity>()
+                    .GetQueryable()
+                    .Where(tt => tt.TournamentId == tournamentId)
+                    .ToListAsync();
+
+                _logger.LogWarning(
+                    "Not enough accepted teams. Total teams: {Total}, Accepted: {Accepted}. " +
+                    "Team statuses: {Statuses}",
+                    allTeams.Count, 
+                    seededTeams.Count,
+                    string.Join(", ", allTeams.Select(t => $"Team {t.TeamId}: {t.Status}")));
+
                 throw new BadRequestException(
-                    "At least 2 accepted teams are required to generate draw");
+                    $"At least 2 accepted teams are required to generate draw. Found {seededTeams.Count}");
+            }
 
             // Check seeding has been done
             var unseeded = seededTeams.Any(tt => tt.SeedNumber == null);
             if (unseeded)
+            {
+                _logger.LogWarning(
+                    "Some teams are not seeded for tournament {TournamentId}",
+                    tournamentId);
                 throw new BadRequestException(
                     "All teams must be seeded before generating the draw. " +
                     "Run GenerateSeedingAsync first");
+            }
 
             // Generate draw based on tournament structure
             switch (tournament.Structure)
@@ -254,8 +277,17 @@ namespace Koralytics.Application.Services.Tournament
             // Seed 1 vs Seed N, Seed 2 vs Seed N-1, etc.
             var fixtures = PairTeamsBySeeding(seededTeams);
 
+            _logger.LogInformation(
+                "Generated {FixtureCount} fixture pairs for tournament {TournamentId}",
+                fixtures.Count, tournament.Id);
+
+            int fixtureCount = 0;
             foreach (var (home, away) in fixtures)
             {
+                _logger.LogDebug(
+                    "Creating fixture {FixtureNum}: HomeTeamId={HomeTeamId}, AwayTeamId={AwayTeamId}",
+                    ++fixtureCount, home.Id, away.Id);
+
                 var fixture = new TournamentFixtureEntity
                 {
                     RoundId = round.Id,

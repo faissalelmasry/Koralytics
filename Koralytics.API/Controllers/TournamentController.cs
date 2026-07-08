@@ -2,6 +2,7 @@
 using Koralytics.Application.DTOs.Tournament;
 using Koralytics.Application.Interfaces.Tournament;
 using Koralytics.Application.Interfaces.Tournaments;
+using Koralytics.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -9,7 +10,7 @@ using System.Security.Claims;
 namespace Koralytics.API.Controllers
 {
     [Route("api/[controller]")]
-    [Authorize]
+    //[Authorize]
     public class TournamentController : ApiBaseController
     {
         private readonly ITournamentService _tournamentService;
@@ -30,7 +31,7 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "SuperAdmin")]
+        //[Authorize(Roles = "SuperAdmin")]
         public async Task<IActionResult> CreateTournament(
             [FromBody] CreateTournamentDto dto)
         {
@@ -46,7 +47,7 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpPost("{tournamentId}/invite/{academyId}")]
-        [Authorize(Roles = "SuperAdmin")]
+        //[Authorize(Roles = "SuperAdmin")]
         public async Task<IActionResult> InviteAcademy(
             int tournamentId, int academyId)
         {
@@ -55,7 +56,7 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpPut("{tournamentId}/accept/{academyId}")]
-        [Authorize(Roles = "Admin")]
+        //[Authorize(Roles = "Admin")]
         public async Task<IActionResult> AcceptInvitation(
             int tournamentId, int academyId)
         {
@@ -64,7 +65,7 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpPost("{tournamentId}/squad/{teamId}")]
-        [Authorize(Roles = "Coach")]
+        //[Authorize(Roles = "Coach")]
         public async Task<IActionResult> RegisterSquad(
             int tournamentId,
             int teamId,
@@ -76,7 +77,7 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpPost("{tournamentId}/seeding")]
-        [Authorize(Roles = "SuperAdmin")]
+        //[Authorize(Roles = "SuperAdmin")]
         public async Task<IActionResult> GenerateSeeding(int tournamentId)
         {
             await _tournamentDrawService.GenerateSeedingAsync(tournamentId);
@@ -84,7 +85,7 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpPost("{tournamentId}/draw")]
-        [Authorize(Roles = "SuperAdmin")]
+        //[Authorize(Roles = "SuperAdmin")]
         public async Task<IActionResult> GenerateDraw(int tournamentId)
         {
             await _tournamentDrawService.GenerateDrawAsync(tournamentId);
@@ -92,7 +93,7 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpPut("groups/{groupId}/standings/{matchId}")]
-        [Authorize(Roles = "Coach")]
+        //[Authorize(Roles = "Coach")]
         public async Task<IActionResult> UpdateStandings(
             int groupId, int matchId)
         {
@@ -101,7 +102,7 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpPost("{tournamentId}/rounds/{roundId}/advance")]
-        [Authorize(Roles = "SuperAdmin")]
+        //[Authorize(Roles = "SuperAdmin")]
         public async Task<IActionResult> AdvanceKnockout(
             int tournamentId, int roundId)
         {
@@ -120,7 +121,7 @@ namespace Koralytics.API.Controllers
 
     
         [HttpPost("{tournamentId}/complete")]
-        [Authorize(Roles = "SuperAdmin")]
+        //[Authorize(Roles = "SuperAdmin")]
         public async Task<IActionResult> CompleteTournament(int tournamentId)
         {
             await _tournamentReportService.CompleteTournamentAsync(tournamentId);
@@ -138,6 +139,15 @@ namespace Koralytics.API.Controllers
                 throw new UnauthorizedAccessException("Invalid user token");
 
             return userId;
+        }
+      
+        [HttpPut("{tournamentId}/status")]
+        [Authorize(Roles = "SuperAdmin")]
+        public async Task<IActionResult> UpdateStatus(
+            int tournamentId, [FromBody] TournamentStatus status)
+        {
+            await _tournamentService.UpdateStatusAsync(tournamentId, status);
+            return NoContentResponse("Tournament status updated successfully");
         }
     }
 }

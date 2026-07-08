@@ -36,7 +36,7 @@ namespace Koralytics.Infrastructure.EntitiesConfigurations.Tournment
                   .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasOne(x => x.Round)
-                  .WithMany()
+                  .WithMany(r => r.TournamentFixtures)
                   .HasForeignKey(x => x.RoundId)
                   .OnDelete(DeleteBehavior.Restrict);
 

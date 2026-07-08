@@ -29,7 +29,22 @@ namespace Koralytics.Application.Services.Tournament
             _mapper = mapper;
             _logger = logger;
         }
+        public async Task UpdateStatusAsync(int tournamentId, TournamentStatus status)
+        {
+            var tournament = await _unitOfWork.Repository<TournamentEntity>()
+                .FindAsync(t => t.Id == tournamentId);
 
+            if (tournament is null)
+                throw new NotFoundException(
+                    $"Tournament with Id {tournamentId} not found");
+
+            tournament.Status = status;
+            await _unitOfWork.SaveChangesAsync();
+
+            _logger.LogInformation(
+                "Tournament {Id} status updated to {Status}",
+                tournamentId, status);
+        }
         public async Task<TournamentDto> CreateTournamentAsync(
             CreateTournamentDto dto, int requestingUserId)
         {
@@ -60,7 +75,7 @@ namespace Koralytics.Application.Services.Tournament
 
             // Map and create tournament
             var tournament = _mapper.Map<TournamentEntity>(dto);
-            tournament.Status = TournamentStatus.Draft;
+            tournament.Status = TournamentStatus.Registration;
 
             await _unitOfWork.Repository<TournamentEntity>().AddAsync(tournament);
             await _unitOfWork.SaveChangesAsync();

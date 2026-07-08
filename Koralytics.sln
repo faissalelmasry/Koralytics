@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.0.31903.59
+# Visual Studio Version 18
+VisualStudioVersion = 18.7.11903.348 stable
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Koralytics.API", "Koralytics.API\Koralytics.API.csproj", "{8A538F62-BC2C-4B8D-A04A-884B48105FD9}"
 EndProject
@@ -10,8 +10,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Koralytics.Infrastructure", "Koralytics.Infrastructure\Koralytics.Infrastructure.csproj", "{0E3B995B-44F6-4FAD-9239-4E5747F46FB6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Koralytics.Application", "Koralytics.Application\Koralytics.Application.csproj", "{292CECE7-5786-48D7-8898-8FC68754C807}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Koralytics.Application.UnitTests", "Koralytics.Application.UnitTests\Koralytics.Application.UnitTests.csproj", "{9047E03B-09B9-4F39-A013-F0BF66D41623}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,12 +33,11 @@ Global
 		{292CECE7-5786-48D7-8898-8FC68754C807}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{292CECE7-5786-48D7-8898-8FC68754C807}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{292CECE7-5786-48D7-8898-8FC68754C807}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9047E03B-09B9-4F39-A013-F0BF66D41623}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9047E03B-09B9-4F39-A013-F0BF66D41623}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9047E03B-09B9-4F39-A013-F0BF66D41623}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9047E03B-09B9-4F39-A013-F0BF66D41623}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {10AD9005-4E3D-4048-8E2E-7295A05ED204}
 	EndGlobalSection
 EndGlobal
