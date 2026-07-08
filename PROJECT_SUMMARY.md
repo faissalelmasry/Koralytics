@@ -251,14 +251,14 @@ The database context (`ApplicationDbContext`) inherits from `IdentityDbContext<U
 ### YOUSSEF — Coach, Storage & Match Readiness
 
 #### Coach/
-**`ICoachSquadService` / `CoachSquadService`**
+**`ICoachSquadService` / `CoachSquadService`** *(implemented)*
 - `GetSquadAsync(coachId, teamId)` → fetch all active `PlayerTeam` records for team → include each player's FIFA card rating + availability → return squad overview dto
 - `SplitTrainingTeamsAsync(sessionId)` → fetch all players attending session → sort by overall rating → alternate assignment Team A/B → return two balanced groups
 - `GetSquadComparisonAsync(playerAId, playerBId)` → fetch both players category ratings + match stats → return side-by-side comparison dto
 
-**`ICoachNoteService` / `CoachNoteService`**
-- `WriteNoteAsync(coachId, dto)` → validate player belongs to coach's team → create `CoachNote` (`SessionId` or `MatchId` nullable depending on context)
-- `GetPlayerNotesAsync(coachId, playerId)` → fetch all `CoachNotes` for this player by this coach
+**`ICoachNoteService` / `CoachNoteService`** *(implemented)*
+- `WriteNoteAsync(coachId, academyId, dto)` → validate note is non-empty → validate player exists → validate player belongs to one of coach's active teams (via `CoachTeam` + `PlayerTeam`) → create `CoachNote` (optionally linked to `SessionId` / `MatchId`) → return `CoachNoteDto`
+- `GetPlayerNotesAsync(coachId, playerId)` → validate player exists → fetch all `CoachNotes` by this coach for this player → return ordered newest-first
 
 **`ICoachAccessService` / `CoachAccessService`**
 - `GrantTempAccessAsync(coachId, dto)` → validate grantee exists → create `CoachTempAccess` with Status = Active
