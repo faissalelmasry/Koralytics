@@ -325,6 +325,7 @@ The presentation and infrastructure are wired together in `Program.cs`.
 * **`RegisterController`**: Handles varied role registrations (Player, Coach, Scouter, Parent).
 * **`PlayerController`**: Main interface for player operations (transfers, profiling, card).
 * **`TournamentController`**: Interface for tournament-related endpoints (create, draw, fixtures, bracket).
+* **`CoachController`**: Interface for coach squad operations (squad overview, training team split, player comparison).
 
 ---
 
