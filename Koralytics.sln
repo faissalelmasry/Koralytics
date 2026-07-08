@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Koralytics.Infrastructure",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Koralytics.Application", "Koralytics.Application\Koralytics.Application.csproj", "{292CECE7-5786-48D7-8898-8FC68754C807}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Koralytics.Application.UnitTests", "Koralytics.Application.UnitTests\Koralytics.Application.UnitTests.csproj", "{9047E03B-09B9-4F39-A013-F0BF66D41623}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

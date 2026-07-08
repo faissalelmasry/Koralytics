@@ -60,8 +60,6 @@ namespace Koralytics.API.Controllers
         public async Task<IActionResult> GetPlayerCard(int playerId)
         {
             var card = await _playerCardService.GetPlayerCardAsync(playerId);
-            if (card is null)
-                return NotFound(new { message = "Insufficient data. At least 5 drill results or match ratings are required." });
 
             return Ok(card);
         }
@@ -70,7 +68,7 @@ namespace Koralytics.API.Controllers
         [Authorize]
         public async Task<IActionResult> RecalculatePlayerCard(int playerId)
         {
-            await _playerCardService.RecalculateCategoryRatingAsync(playerId);
+            await _playerCardService.RecalculatePlayerCardAsync(playerId);
             return NoContent();
         }
 
