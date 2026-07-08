@@ -23,7 +23,7 @@ The database context (`ApplicationDbContext`) inherits from `IdentityDbContext<U
 - **Identity**: `User`, `Role`
 
 ### Core Match & Player (Faissal's Entities)
-- **Players**: `Player` (Mapped to "Players"), `PlayerAcademy`, `PlayerTeam`, `PlayerCard`, `PlayerCategoryRating`
+- **Players**: `Player` (Mapped to "Players"), `PlayerAcademy`, `PlayerTeam`, `PlayerCard`, `PlayerCategoryRating` *(Player now has `PlayerRatings` nav → `MatchPlayerRating`)*
 - **Matches**: `Match`, `MatchEvent`, `MatchLineup`, `MatchPlayerRating`, `MatchPlayerCategoryRating`
 - **Tournaments (Core)**: `Tournament`, `TournamentFixture`, `TournamentGroup`
 
@@ -80,10 +80,17 @@ The database context (`ApplicationDbContext`) inherits from `IdentityDbContext<U
 - `GetPlayerVsAcademyAverageAsync(playerId, academyId)` → calculate player's category averages → calculate academy average per category for same age group → return comparison dto
 - `GetScouterViewsCountAsync(playerId, month)` → count `ScouterView` rows for this player this month
 
-**`IPlayerCardService` / `PlayerCardService`**
-- `GetPlayerCardAsync(playerId)` → aggregate drill scores per category (weighted by difficulty) → factor in match rating average → calculate overall rating → return `PlayerCardDto`
-- `RecalculateCategoryRatingAsync(playerId)` → triggered after new `DrillResult` or `MatchPlayerRating` saved → recalculate all category ratings
-- `GetDrillToMatchTransferRateAsync(playerId)` → compare overall drill avg vs overall match rating avg → classify as Elite/Trainable/Natural/NeedsWork → return `TransferRateDto`
+**`IPlayerCardService` / `PlayerCardService`** *(refactored — now uses `IMapper` + `PlayerCardCalculator` static helper)*
+- `GetPlayerCardAsync(playerId)` → aggregate drill scores per category (weighted by difficulty via `PlayerCardCalculator`) → factor in match rating average → calculate overall rating → return `PlayerCardDto`
+- `RecalculatePlayerCardAsync(playerId)` *(renamed from `RecalculateCategoryRatingAsync`)* → triggered after new `DrillResult` or `MatchPlayerRating` saved → recalculate all category ratings using `PlayerCardCalculator`
+- `GetDrillToMatchTransferRateAsync(playerId)` → compare overall drill avg vs overall match rating avg → classify as Elite/Trainable/Natural/NeedsWork → return `TransferRateDto` (mapped via `PlayerProfile`)
+
+**`PlayerCardCalculator`** *(static helper class, `Application/Services/Player/Helpers/`)*
+- Pure static calculation logic extracted from `PlayerCardService` for testability
+- `GetDifficultyWeight(level)` → Beginner=1.0, Intermediate=1.5, Advanced=2.0
+- `CalculateWeightedDrillAvg(drills)` → weighted average of drill scores by difficulty
+- `CalculateTrainingCombined(drillAvg, ...)` → blends drill + training match scores
+- `RatingLookups` / `CategoryAggregate` — sealed records used internally for aggregation
 
 **`IPlayerTransferService` / `PlayerTransferService`**
 - `TransferPlayerAsync(playerId, newAcademyId)` → set current `PlayerAcademy.LeftAt = now` → create new `PlayerAcademy` with Status = Active → historical data stays linked to old academy
@@ -308,6 +315,7 @@ The presentation and infrastructure are wired together in `Program.cs`.
 ### AutoMapper Profiles Currently Registered
 * `RegisterProfile` — Registration DTOs to Domain Entities
 * `TournamentProfile` — Tournament DTOs to Domain Entities
+* `PlayerProfile` — `PlayerCard` → `TransferRateDto` (maps `PlayerName`, `TransferGap`, `Classification`)
 
 ### FluentValidation Validators Currently Registered
 * `LoginRequestValidator`
@@ -316,6 +324,11 @@ The presentation and infrastructure are wired together in `Program.cs`.
 * `CreateTournamentValidator`
 * `RegisterSquadValidator`
 * `UserBusinessValidator` (injected directly in workflows)
+
+### Unit Test Project
+* **`Koralytics.Application.UnitTests`**: xUnit test project covering Application layer logic.
+  * `PlayerCardCalculatorTests` — unit tests for all `PlayerCardCalculator` static methods
+  * `PlayerCardServiceTests` — integration-style tests for `PlayerCardService` using mocked `IUnitOfWork`
 
 ---
 
