@@ -260,9 +260,10 @@ The database context (`ApplicationDbContext`) inherits from `IdentityDbContext<U
 - `WriteNoteAsync(coachId, academyId, dto)` → validate note is non-empty → validate player exists → validate player belongs to one of coach's active teams (via `CoachTeam` + `PlayerTeam`) → create `CoachNote` (optionally linked to `SessionId` / `MatchId`) → return `CoachNoteDto`
 - `GetPlayerNotesAsync(coachId, playerId)` → validate player exists → fetch all `CoachNotes` by this coach for this player → return ordered newest-first
 
-**`ICoachAccessService` / `CoachAccessService`**
-- `GrantTempAccessAsync(coachId, dto)` → validate grantee exists → create `CoachTempAccess` with Status = Active
-- `RevokeTempAccessAsync(coachId, accessId)` → validate coach owns this access record → set `CoachTempAccess.Status = Revoked`
+**`ICoachAccessService` / `CoachAccessService`** *(implemented)*
+- `GrantTempAccessAsync(coachId, dto)` → validate future expiry + non-empty access level + grantee exists → prevent self-grant → create `CoachTempAccess` with Status = Active → return `TempAccessDto`
+- `RevokeTempAccessAsync(coachId, accessId)` → validate coach owns this access record → validate not already revoked → set `CoachTempAccess.Status = Revoked` → return updated `TempAccessDto`
+- `GetActiveGrantsAsync(coachId)` → fetch all grants where Status = Active and ExpiresAt > now → return ordered newest-first
 
 #### Storage/ (Cloudflare R2)
 **`IStorageService` / `StorageService`**

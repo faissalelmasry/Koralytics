@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Koralytics.Application.Services.Coach.CoachAccessService;
 using Koralytics.Application.Services.Coach.CoachNoteService;
 using Koralytics.Application.Services.Coach.CoachSquadService;
 using Koralytics.Application.DTOs.Coach;
@@ -14,13 +15,16 @@ namespace Koralytics.API.Controllers
     {
         private readonly ICoachSquadService _coachSquadService;
         private readonly ICoachNoteService _coachNoteService;
+        private readonly ICoachAccessService _coachAccessService;
 
         public CoachController(
             ICoachSquadService coachSquadService,
-            ICoachNoteService coachNoteService)
+            ICoachNoteService coachNoteService,
+            ICoachAccessService coachAccessService)
         {
             _coachSquadService = coachSquadService;
             _coachNoteService = coachNoteService;
+            _coachAccessService = coachAccessService;
         }
 
         /// <summary>
@@ -96,6 +100,41 @@ namespace Koralytics.API.Controllers
             var coachId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
             var notes = await _coachNoteService.GetPlayerNotesAsync(coachId, playerId);
             return Ok(notes);
+        }
+        /// <summary>
+        /// Grants temporary squad-view access to another user for a defined period.
+        /// </summary>
+        [HttpPost("access/grant")]
+        [Authorize(Roles = "Coach")]
+        public async Task<IActionResult> GrantTempAccess([FromBody] GrantTempAccessDto dto)
+        {
+            var coachId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var result = await _coachAccessService.GrantTempAccessAsync(coachId, dto);
+            return CreatedAtAction(nameof(GetActiveGrants), null, result);
+        }
+
+        /// <summary>
+        /// Revokes an existing temp-access grant owned by the authenticated coach.
+        /// </summary>
+        [HttpPatch("access/{accessId}/revoke")]
+        [Authorize(Roles = "Coach")]
+        public async Task<IActionResult> RevokeTempAccess(int accessId)
+        {
+            var coachId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var result = await _coachAccessService.RevokeTempAccessAsync(coachId, accessId);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Returns all active (non-revoked, non-expired) access grants issued by the authenticated coach.
+        /// </summary>
+        [HttpGet("access/active")]
+        [Authorize(Roles = "Coach")]
+        public async Task<IActionResult> GetActiveGrants()
+        {
+            var coachId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var grants = await _coachAccessService.GetActiveGrantsAsync(coachId);
+            return Ok(grants);
         }
     }
 }
