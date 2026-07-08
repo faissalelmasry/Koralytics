@@ -9,6 +9,7 @@ using Koralytics.Application.Services.Auth.Login;
 using Koralytics.Application.Validators.UserBusiness;
 using Koralytics.Domain.Entities.Academy;
 using Koralytics.Domain.Entities.Coach;
+using CoachEntity = Koralytics.Domain.Entities.Coach.Coach;
 using Koralytics.Domain.Entities.Identity;
 using Koralytics.Domain.Entities.Parents;
 using Koralytics.Domain.Entities.Player;
@@ -148,7 +149,7 @@ namespace Koralytics.Application.Services.Auth.Register
 
             await ValidateRegistrationRequestAsync(request);
 
-            var coach = _mapper.Map<Coach>(request);
+            var coach = _mapper.Map<CoachEntity>(request);
 
             await ExecuteRegistrationInTransactionAsync(async () =>
             {
