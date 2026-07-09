@@ -8,9 +8,13 @@ using Koralytics.Application.Interfaces;
 using Koralytics.Application.Interfaces.Tournament;
 using Koralytics.Application.Interfaces.Tournaments;
 using Koralytics.Application.Mappings.Auth;
+using Koralytics.Application.Mappings.Player;
 using Koralytics.Application.Mappings.Tournaments;
 using Koralytics.Application.Services.Auth.Login;
 using Koralytics.Application.Services.Auth.Register;
+using Koralytics.Application.Services.Coach.CoachAccessService;
+using Koralytics.Application.Services.Coach.CoachNoteService;
+using Koralytics.Application.Services.Coach.CoachSquadService;
 using Koralytics.Application.Services.Player.PlayerCardService;
 using Koralytics.Application.Services.Player.PlayerTransferService;
 using Koralytics.Application.Services.Tournament;
@@ -108,6 +112,9 @@ namespace Koralytics.API
             builder.Services.AddScoped<IAcademyTeamService, AcademyTeamService>();
             builder.Services.AddScoped<IAcademyAnalyticsService, AcademyAnalyticsService>();
             builder.Services.AddScoped<IAcademyAnnouncementService, AcademyAnnouncementService>();
+            builder.Services.AddScoped<ICoachSquadService, CoachSquadService>();
+            builder.Services.AddScoped<ICoachNoteService, CoachNoteService>();
+            builder.Services.AddScoped<ICoachAccessService, CoachAccessService>();
 
             // Register FluentValidation validators
             builder.Services.AddValidatorsFromAssemblyContaining<LoginRequestValidator>();
@@ -131,6 +138,7 @@ namespace Koralytics.API
             builder.Services.AddAutoMapper(op => op.AddProfile<RegisterProfile>());
             builder.Services.AddAutoMapper(op => op.AddProfile<TournamentProfile>());
             builder.Services.AddAutoMapper(op => op.AddProfile<AcademyProfile>());
+            builder.Services.AddAutoMapper(op => op.AddProfile<PlayerProfile>());
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();

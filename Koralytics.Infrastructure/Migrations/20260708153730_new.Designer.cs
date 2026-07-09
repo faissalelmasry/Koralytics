@@ -4,6 +4,7 @@ using Koralytics.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Koralytics.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260708153730_new")]
+    partial class @new
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -422,9 +425,6 @@ namespace Koralytics.Infrastructure.Migrations
                     b.Property<int>("AgeGroupId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("CoachId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -454,8 +454,6 @@ namespace Koralytics.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CoachId");
 
                     b.HasIndex("CreatedByUserId");
 
@@ -3256,11 +3254,6 @@ namespace Koralytics.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Koralytics.Domain.Entities.Coach.Coach", "Coach")
-                        .WithMany()
-                        .HasForeignKey("CoachId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("Koralytics.Domain.Entities.Identity.User", "CreatedByUser")
                         .WithMany()
                         .HasForeignKey("CreatedByUserId");
@@ -3276,8 +3269,6 @@ namespace Koralytics.Infrastructure.Migrations
                         .HasForeignKey("UpdatedByUserId");
 
                     b.Navigation("AgeGroup");
-
-                    b.Navigation("Coach");
 
                     b.Navigation("CreatedByUser");
 
@@ -4036,7 +4027,7 @@ namespace Koralytics.Infrastructure.Migrations
                         .IsRequired();
 
                     b.HasOne("Koralytics.Domain.Entities.Academy.Team", "Team")
-                        .WithMany("PlayerTeams")
+                        .WithMany()
                         .HasForeignKey("TeamId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -4620,11 +4611,6 @@ namespace Koralytics.Infrastructure.Migrations
             modelBuilder.Entity("Koralytics.Domain.Entities.Academy.AgeGroup", b =>
                 {
                     b.Navigation("Teams");
-                });
-
-            modelBuilder.Entity("Koralytics.Domain.Entities.Academy.Team", b =>
-                {
-                    b.Navigation("PlayerTeams");
                 });
 
             modelBuilder.Entity("Koralytics.Domain.Entities.Drill.Drill", b =>

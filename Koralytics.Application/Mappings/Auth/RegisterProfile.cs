@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using PlayerEntity = Koralytics.Domain.Entities.Player.Player;
 
 namespace Koralytics.Application.Mappings.Auth
 {
@@ -19,7 +20,7 @@ namespace Koralytics.Application.Mappings.Auth
     {
         public RegisterProfile()
         {
-            CreateMap<RegisterPlayerRequestDto, Player>().ReverseMap();
+            CreateMap<RegisterPlayerRequestDto, PlayerEntity>().ReverseMap();
             CreateMap<RegisterParentRequestDto, Parent>().ReverseMap();
             CreateMap<RegisterCoachRequestDto, Coach>().ReverseMap();
             CreateMap<RegisterScouterRequestDto, Scouter>().ReverseMap();

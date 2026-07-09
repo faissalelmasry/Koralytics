@@ -42,7 +42,7 @@ namespace Koralytics.Infrastructure.EntitiesConfigurations.Match
                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(x => x.Player)
-                .WithMany()
+                .WithMany(p => p.PlayerRatings)
                 .HasForeignKey(x => x.PlayerId)
                 .OnDelete(DeleteBehavior.Restrict);
 
@@ -55,6 +55,10 @@ namespace Koralytics.Infrastructure.EntitiesConfigurations.Match
                 .WithOne(cr => cr.MatchPlayerRating)
                 .HasForeignKey(cr => cr.MatchPlayerRatingId)
                 .OnDelete(DeleteBehavior.Cascade);
+            builder
+                .HasOne(x => x.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(x => x.CreatedById);
 
 
             builder.HasIndex(mpr => new { mpr.MatchId, mpr.PlayerId })

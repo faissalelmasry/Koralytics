@@ -24,15 +24,7 @@ namespace Koralytics.API.Controllers.BaseController
 
         protected IActionResult NoContentResponse(string _message = "Completed successfully")
         {
-            return StatusCode(
-                StatusCodes.Status204NoContent,
-                new ApiResponse<object?>
-                {
-                    IsSuccess = true,
-                    StatusCode = 204,
-                    Message = _message,
-                    Data = null
-                });
+            return Ok(CreateResponse<object?>(null, _message, StatusCodes.Status200OK));
         }
 
        
