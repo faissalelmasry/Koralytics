@@ -4,6 +4,7 @@ using Koralytics.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Koralytics.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260709044748_Init")]
+    partial class Init
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1480,6 +1483,9 @@ namespace Koralytics.Infrastructure.Migrations
                     b.Property<int?>("CreatedById")
                         .HasColumnType("int");
 
+                    b.Property<int?>("CreatedByUserId")
+                        .HasColumnType("int");
+
                     b.Property<int>("Goals")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
@@ -1517,7 +1523,7 @@ namespace Koralytics.Infrastructure.Migrations
 
                     b.HasIndex("CoachId");
 
-                    b.HasIndex("CreatedById");
+                    b.HasIndex("CreatedByUserId");
 
                     b.HasIndex("MatchId");
 
@@ -3780,7 +3786,7 @@ namespace Koralytics.Infrastructure.Migrations
 
                     b.HasOne("Koralytics.Domain.Entities.Identity.User", "CreatedByUser")
                         .WithMany()
-                        .HasForeignKey("CreatedById");
+                        .HasForeignKey("CreatedByUserId");
 
                     b.HasOne("Koralytics.Domain.Entities.Match.Match", "Match")
                         .WithMany("MatchPlayerRatings")
@@ -3789,7 +3795,7 @@ namespace Koralytics.Infrastructure.Migrations
                         .IsRequired();
 
                     b.HasOne("Koralytics.Domain.Entities.Player.Player", "Player")
-                        .WithMany("PlayerRatings")
+                        .WithMany()
                         .HasForeignKey("PlayerId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -4730,8 +4736,6 @@ namespace Koralytics.Infrastructure.Migrations
                     b.Navigation("PlayerHighlights");
 
                     b.Navigation("PlayerPositions");
-
-                    b.Navigation("PlayerRatings");
 
                     b.Navigation("PlayerSubscriptions");
 

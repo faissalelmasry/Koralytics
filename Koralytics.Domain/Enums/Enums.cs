@@ -140,7 +140,7 @@ namespace Koralytics.Domain.Enums
         All = 1,
         Team = 2,
         AgeGroup = 3,
-        Role = 4
+        Role = 4 // For example, Coach, Player, Parent, etc.
     }
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum TempAccessStatus

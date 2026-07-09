@@ -2,6 +2,7 @@ using AutoMapper;
 
 using FluentValidation;
 
+using AcademyEntity = Koralytics.Domain.Entities.Academy.Academy;
 using Koralytics.Application.DTOs.AuthDTOs.LoginDTOs;
 using Koralytics.Application.DTOs.AuthDTOs.RegisterDTOs;
 using Koralytics.Application.Interfaces;
@@ -22,10 +23,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Koralytics.Application.Services.Auth.Register
 {
-    /// <summary>
-    /// Well-known role names used during registration. Centralized to avoid
-    /// magic strings scattered across the service.
-    /// </summary>
+
     internal static class RegistrationRoles
     {
         public const string Player = "Player";
@@ -35,13 +33,6 @@ namespace Koralytics.Application.Services.Auth.Register
         public const string AcademyAdmin = "AcademyAdmin";
     }
 
-    /// <summary>
-    /// Provides user registration services for different user roles (Player, Coach, Scouter, Parent, AcademyAdmin).
-    /// Request-shape validation is delegated to <see cref="IValidator{BaseRegistrationRequestDto}"/>
-    /// (FluentValidation) and DB-backed business checks are delegated to
-    /// <see cref="IUserBusinessValidator"/>, so this class only orchestrates entity creation,
-    /// role assignment, and related-entity linking.
-    /// </summary>
     public class RegistrationService : IRegistrationService
     {
         private readonly UserManager<User> _userManager;
@@ -99,7 +90,7 @@ namespace Koralytics.Application.Services.Auth.Register
 
                 if (request.AcademyId > 0)
                 {
-                    var academy = await _unitOfWork.Repository<Academy>().GetByIdAsync(request.AcademyId);
+                    var academy = await _unitOfWork.Repository<AcademyEntity>().GetByIdAsync(request.AcademyId);
                     if (academy is null)
                     {
                         _logger.LogWarning("Academy not found for player registration. AcademyId: {academyId}", request.AcademyId);
@@ -157,7 +148,7 @@ namespace Koralytics.Application.Services.Auth.Register
 
                 if (request.AcademyId > 0)
                 {
-                    var academy = await _unitOfWork.Repository<Academy>().GetByIdAsync(request.AcademyId);
+                    var academy = await _unitOfWork.Repository<AcademyEntity>().GetByIdAsync(request.AcademyId);
                     if (academy is null)
                     {
                         _logger.LogWarning("Academy not found for coach registration. AcademyId: {academyId}", request.AcademyId);

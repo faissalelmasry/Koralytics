@@ -22,6 +22,8 @@ using Koralytics.Application.Validators.Auth;
 using Koralytics.Application.Validators.Tournament;
 using Koralytics.Application.Validators.UserBusiness;
 using Koralytics.Domain.Entities;
+using Koralytics.Application.Validators.Academies;
+using Koralytics.Application.Mappings.Academies;
 using Koralytics.Domain.Entities.Identity;
 using Koralytics.Infrastructure.Context;
 using Koralytics.Infrastructure.Repositories;
@@ -34,6 +36,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using System.Text;
+using Koralytics.Application.Services.Academy.AcademyService;
+using Koralytics.Application.Services.Academy.AcademyTeamService;
+using Koralytics.Application.Services.Academy.AcademyAnalyticsService;
+using Koralytics.Application.Services.Academy.AcademyAnnouncementService;
 
 namespace Koralytics.API
 {
@@ -102,6 +108,10 @@ namespace Koralytics.API
             builder.Services.AddScoped<ITournamentFixtureService, TournamentFixtureService>();
             builder.Services.AddScoped<ITournamentReportService, TournamentReportService>();
             builder.Services.AddScoped<IPlayerCardService, PlayerCardService>();
+            builder.Services.AddScoped<IAcademyService, AcademyService>();
+            builder.Services.AddScoped<IAcademyTeamService, AcademyTeamService>();
+            builder.Services.AddScoped<IAcademyAnalyticsService, AcademyAnalyticsService>();
+            builder.Services.AddScoped<IAcademyAnnouncementService, AcademyAnnouncementService>();
             builder.Services.AddScoped<ICoachSquadService, CoachSquadService>();
             builder.Services.AddScoped<ICoachNoteService, CoachNoteService>();
             builder.Services.AddScoped<ICoachAccessService, CoachAccessService>();
@@ -112,6 +122,12 @@ namespace Koralytics.API
             builder.Services.AddValidatorsFromAssemblyContaining<BaseRegisterationRequestValidator>();
             builder.Services.AddValidatorsFromAssemblyContaining<CreateTournamentValidator>();
             builder.Services.AddValidatorsFromAssemblyContaining<RegisterSquadValidator>();
+            builder.Services.AddValidatorsFromAssemblyContaining<CreateAcademyValidator>();
+            builder.Services.AddValidatorsFromAssemblyContaining<UpdateAcademyValidator>();
+            builder.Services.AddValidatorsFromAssemblyContaining<AddLocationValidator>();
+            builder.Services.AddValidatorsFromAssemblyContaining<CreateAgeGroupValidator>();
+            builder.Services.AddValidatorsFromAssemblyContaining<CreateTeamValidator>();
+            builder.Services.AddValidatorsFromAssemblyContaining<SendAnnouncementValidator>();
             builder.Services.AddScoped<IUserBusinessValidator, UserBusinessValidator>();
 
             builder.Services
@@ -121,6 +137,7 @@ namespace Koralytics.API
             // Register mapping profiles
             builder.Services.AddAutoMapper(op => op.AddProfile<RegisterProfile>());
             builder.Services.AddAutoMapper(op => op.AddProfile<TournamentProfile>());
+            builder.Services.AddAutoMapper(op => op.AddProfile<AcademyProfile>());
             builder.Services.AddAutoMapper(op => op.AddProfile<PlayerProfile>());
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

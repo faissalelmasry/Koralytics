@@ -19,6 +19,11 @@ namespace Koralytics.Infrastructure.EntitiesConfigurations.Academy
                    .HasForeignKey(t => t.AgeGroupId)
                    .OnDelete(DeleteBehavior.Restrict);
 
+            builder.HasOne(c=>c.Coach)
+                   .WithMany()
+                   .HasForeignKey(t => t.CoachId)
+                   .OnDelete(DeleteBehavior.Restrict);
+
             builder.HasOne(t => t.Location)
                    .WithMany()
                    .HasForeignKey(t => t.LocationId)

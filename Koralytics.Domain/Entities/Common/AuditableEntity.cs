@@ -13,8 +13,5 @@ namespace Koralytics.Domain.Models.BaseModels
         public User? UpdatedByUser { get; set; }
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-        public int? CreatedById { get; set; }
-        public User? CreatedByUser { get; set; }
-
     }
 }

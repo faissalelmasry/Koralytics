@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using TournamentEntity = Koralytics.Domain.Entities.Tournamet.Tournament;
+using AcademyEntity = Koralytics.Domain.Entities.Academy.Academy;
 using TournamentGroupEntity = Koralytics.Domain.Entities.Tournamet.TournamentGroup;
 using TournamentTeamEntity = Koralytics.Domain.Entities.Tournamet.TournamentTeam;
 using TournamentSquadEntity = Koralytics.Domain.Entities.Tournamet.TournamentSquad;
@@ -126,7 +127,7 @@ namespace Koralytics.Application.Services.Tournament
                     "Tournament must be in Registration status to invite teams");
 
             // Validate academy exists
-            var academy = await _unitOfWork.Repository<Academy>()
+            var academy = await _unitOfWork.Repository<AcademyEntity>()
                 .FindAsync(a => a.Id == academyId);
 
             if (academy is null)

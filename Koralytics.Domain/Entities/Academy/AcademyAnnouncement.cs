@@ -15,7 +15,7 @@ namespace Koralytics.Domain.Entities.Academy
         public string Title { get; set; }
         public string Body { get; set; }
         public AnnouncementTargetType TargetType { get; set; }
-        public int TargetId { get; set; }
+        public int TargetId { get; set; }// This can be the ID of the target entity (e.g., a specific team, group, or individual)
         public virtual Academy Academy { get; set; } = null!;
     }
 }
