@@ -3,12 +3,13 @@ using Koralytics.Application.DTOs.Drill;
 using Koralytics.Application.Interfaces;
 using Koralytics.Domain.Entities.Coach;
 using Koralytics.Domain.Entities.Drill;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using DrillSessionEntity = Koralytics.Domain.Entities.Drill.DrillSession;
 
-namespace Koralytics.Application.Services.Drills.DrillSession
+namespace Koralytics.Application.Services.Drill.DrillSession
 {
     public class DrillSessionService : IDrillSessionService
     {
@@ -23,7 +24,6 @@ namespace Koralytics.Application.Services.Drills.DrillSession
 
         public async Task<DrillSessionDto> CreateSessionAsync(CreateDrillSessionDto dto, int currentCoachId, int currentAcademyId)
         {
-            // 1. SECURE VALIDATION: Does this coach ACTUALLY and CURRENTLY manage this team?
             var isAuthorizedCoach = await _unitOfWork.Repository<CoachTeam>()
                 .ExistsAsync(ct =>
                     ct.CoachUserId == currentCoachId &&
@@ -35,15 +35,12 @@ namespace Koralytics.Application.Services.Drills.DrillSession
                 throw new UnauthorizedAccessException("You do not have active permission to schedule a session for this team.");
             }
 
-            // 2. MAP THE SESSION
             var session = _mapper.Map<DrillSessionEntity>(dto);
 
-            // Overwrite with secure JWT values
             session.CoachId = currentCoachId;
             session.AcademyId = currentAcademyId;
             session.CreatedById = currentCoachId;
 
-            // 3. GENERATE ATTENDANCE SHEET IN MEMORY
             foreach (var playerId in dto.PlayerIds)
             {
                 session.SessionAttendances.Add(new SessionAttendance
@@ -54,7 +51,6 @@ namespace Koralytics.Application.Services.Drills.DrillSession
                 });
             }
 
-            // 4. BLAZING FAST TRANSACTION
             await _unitOfWork.Repository<DrillSessionEntity>().AddAsync(session);
             await _unitOfWork.SaveChangesAsync();
 
@@ -63,7 +59,6 @@ namespace Koralytics.Application.Services.Drills.DrillSession
 
         public async Task<DrillDto> AddDrillToSessionAsync(int sessionId, AddSessionDrillDto dto, int currentCoachId)
         {
-            // 1. SECURE VALIDATION: Verify the session exists and the coach owns it
             var session = await _unitOfWork.Repository<DrillSessionEntity>().GetByIdAsNoTrackingAsync(sessionId);
 
             if (session == null)
@@ -76,7 +71,6 @@ namespace Koralytics.Application.Services.Drills.DrillSession
                 throw new UnauthorizedAccessException("You can only add drills to your own scheduled sessions.");
             }
 
-            // 2. TEMPLATE VALIDATION: Ensure the template exists
             var templateExists = await _unitOfWork.Repository<Koralytics.Domain.Entities.Drill.DrillTemplate>()
                 .ExistsAsync(t => t.Id == dto.DrillTemplateId);
 
@@ -85,7 +79,6 @@ namespace Koralytics.Application.Services.Drills.DrillSession
                 throw new KeyNotFoundException($"Drill Template with ID {dto.DrillTemplateId} does not exist.");
             }
 
-            // 3. MAP AND SAVE THE DRILL
             var drill = _mapper.Map<Koralytics.Domain.Entities.Drill.Drill>(dto);
 
             drill.SessionId = sessionId;
@@ -97,14 +90,115 @@ namespace Koralytics.Application.Services.Drills.DrillSession
             return _mapper.Map<DrillDto>(drill);
         }
 
-        public async Task<IEnumerable<DrillSessionDto>> GetCoachSessionsAsync(int currentCoachId, int currentAcademyId)
+        public async Task<IEnumerable<DrillSessionDto>> GetCoachSessionsAsync(int currentCoachId, int currentAcademyId, SessionFilterDto filter)
         {
-            var sessions = await _unitOfWork.Repository<DrillSessionEntity>()
-                .FindAllAsNoTrackingAsync(s =>
-                    s.CoachId == currentCoachId &&
-                    s.AcademyId == currentAcademyId);
+            var query = _unitOfWork.Repository<DrillSessionEntity>()
+                .GetQueryable()
+                .AsNoTracking()
+                .Where(s => s.CoachId == currentCoachId && s.AcademyId == currentAcademyId);
+
+            if (filter.TeamId.HasValue)
+            {
+                query = query.Where(s => s.TeamId == filter.TeamId.Value);
+            }
+
+            // --- MODIFIED FIX: Filter by the new Status property ---
+            if (filter.Status.HasValue)
+            {
+                query = query.Where(s => s.Status == filter.Status.Value);
+            }
+
+            if (filter.FromDate.HasValue)
+            {
+                query = query.Where(s => s.SessionDate >= filter.FromDate.Value);
+            }
+
+            if (filter.ToDate.HasValue)
+            {
+                query = query.Where(s => s.SessionDate <= filter.ToDate.Value);
+            }
+
+            var sessions = await query
+                .OrderByDescending(s => s.SessionDate)
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize)
+                .ToListAsync();
 
             return _mapper.Map<IEnumerable<DrillSessionDto>>(sessions);
+        }
+
+        public async Task<DrillSessionDetailsDto> GetSessionByIdAsync(int sessionId, int currentCoachId)
+        {
+            var session = await _unitOfWork.Repository<DrillSessionEntity>()
+                .GetQueryable()
+                .Include(s => s.SessionDrills)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(s => s.Id == sessionId && s.CoachId == currentCoachId);
+
+            if (session == null)
+            {
+                throw new KeyNotFoundException($"Session with ID {sessionId} was not found or you do not have permission to access it.");
+            }
+
+            return _mapper.Map<DrillSessionDetailsDto>(session);
+        }
+
+        public async Task<DrillSessionDto> UpdateSessionAsync(int sessionId, UpdateDrillSessionDto dto, int currentCoachId)
+        {
+            var session = await _unitOfWork.Repository<DrillSessionEntity>()
+                .GetQueryable()
+                .FirstOrDefaultAsync(s => s.Id == sessionId && s.CoachId == currentCoachId);
+
+            if (session == null)
+            {
+                throw new KeyNotFoundException($"Session with ID {sessionId} was not found or you do not have permission to modify it.");
+            }
+
+            session.SessionDate = dto.SessionDate;
+
+            session.Type = dto.Type;
+            session.Status = dto.Status;
+
+            session.Notes = dto.Notes;
+            session.UpdatedById = currentCoachId;
+
+            await _unitOfWork.SaveChangesAsync();
+
+            return _mapper.Map<DrillSessionDto>(session);
+        }
+
+        public async Task RemoveDrillFromSessionAsync(int sessionId, int drillId, int currentCoachId)
+        {
+            var sessionExists = await _unitOfWork.Repository<DrillSessionEntity>()
+                .ExistsAsync(s => s.Id == sessionId && s.CoachId == currentCoachId);
+
+            if (!sessionExists)
+            {
+                throw new UnauthorizedAccessException("You do not have permission to alter this session.");
+            }
+
+            var rowsDeleted = await _unitOfWork.Repository<Koralytics.Domain.Entities.Drill.Drill>()
+                .GetQueryable()
+                .Where(d => d.Id == drillId && d.SessionId == sessionId)
+                .ExecuteDeleteAsync();
+
+            if (rowsDeleted == 0)
+            {
+                throw new KeyNotFoundException($"Drill with ID {drillId} is not attached to Session {sessionId}.");
+            }
+        }
+
+        public async Task DeleteSessionAsync(int sessionId, int currentCoachId)
+        {
+            var rowsDeleted = await _unitOfWork.Repository<DrillSessionEntity>()
+                .GetQueryable()
+                .Where(s => s.Id == sessionId && s.CoachId == currentCoachId)
+                .ExecuteDeleteAsync();
+
+            if (rowsDeleted == 0)
+            {
+                throw new KeyNotFoundException($"Session with ID {sessionId} was not found or you do not have permission to delete it.");
+            }
         }
     }
 }

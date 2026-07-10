@@ -24,12 +24,12 @@ namespace Koralytics.Domain.Entities.Drill
 
         public DateTime SessionDate { get; set; }
 
-
         public SessionType Type { get; set; }
+        public SessionStatus Status { get; set; }
 
         public string? Notes { get; set; }
 
-        public ICollection<Drill> SessionDrills { get; set; }=new HashSet<Drill>();
-        public ICollection<SessionAttendance> SessionAttendances { get; set; }=new HashSet<SessionAttendance>();
+        public ICollection<Drill> SessionDrills { get; set; } = new HashSet<Drill>();
+        public ICollection<SessionAttendance> SessionAttendances { get; set; } = new HashSet<SessionAttendance>();
     }
 }

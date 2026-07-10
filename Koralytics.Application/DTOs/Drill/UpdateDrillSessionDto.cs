@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 
 namespace Koralytics.Application.DTOs.Drill
 {
-    public class AddSessionDrillDto
+    public class UpdateDrillSessionDto
     {
-        public int DrillTemplateId { get; set; }
-        public DrillMode Mode { get; set; }
-        public DifficultyLevel DifficultyLevel { get; set; }
+        public DateTime SessionDate { get; set; }
+        public SessionType Type { get; set; }
+        public SessionStatus Status { get; set; }
         public string? Notes { get; set; }
     }
 }

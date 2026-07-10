@@ -343,7 +343,7 @@ namespace Koralytics.Infrastructure.Seeding
                     TeamId = team.Id,
                     CoachId = coachUser.Id,
                     SessionDate = DateTime.UtcNow.AddDays(-7),
-                    Type = SessionType.Regular,
+                  //  Type = SessionType.Regular,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };

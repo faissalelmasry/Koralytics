@@ -8,8 +8,14 @@ using Koralytics.Application;
 using Koralytics.Application.DTOs.AuthDTOs.RegisterDTOs;
 using Koralytics.Application.Interfaces;
 using Koralytics.Application.Mappings.Auth;
+using Koralytics.Application.Mappings.Drills;
 using Koralytics.Application.Services.Auth.Login;
 using Koralytics.Application.Services.Auth.Register;
+using Koralytics.Application.Services.Drill;
+using Koralytics.Application.Services.Drill.DrillAnalytic;
+using Koralytics.Application.Services.Drill.DrillResult;
+using Koralytics.Application.Services.Drill.DrillSession;
+using Koralytics.Application.Services.Drill.DrillTemplate;
 using Koralytics.Application.Services.Player.PlayerTransferService;
 using Koralytics.Application.Validators.Auth;
 using Koralytics.Application.Validators.UserBusiness;
@@ -92,7 +98,10 @@ namespace Koralytics.API
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IRegistrationService, RegistrationService>();
             builder.Services.AddScoped<IPlayerTransferService, PlayerTransferService>();
-
+            builder.Services.AddScoped<IDrillResultService, DrillResultService>();
+            builder.Services.AddScoped<IDrillTemplateService, DrillTemplateService>();
+            builder.Services.AddScoped<IDrillSessionService, DrillSessionService>();
+            builder.Services.AddScoped<IDrillAnalyticsService, DrillAnalyticsService>();
             // Register FluentValidation validators
             builder.Services.AddValidatorsFromAssemblyContaining<LoginRequestValidator>();
             builder.Services.AddValidatorsFromAssemblyContaining<ChangePasswordValidator>();
@@ -104,8 +113,11 @@ namespace Koralytics.API
                 .AddFluentValidationClientsideAdapters();
 
             // Register mapping profiles
-            builder.Services.AddAutoMapper(op => op.AddProfile<RegisterProfile>());
-
+            builder.Services.AddAutoMapper(op =>
+            {
+                op.AddProfile<RegisterProfile>();
+                op.AddProfile<DrillMappingProfile>(); // <-- This is the one fixing the 500 Error
+            });
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();

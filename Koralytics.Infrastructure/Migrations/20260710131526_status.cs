@@ -6,11 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Koralytics.Infrastructure.Migrations
 {
     /// <inheritdoc />
-<<<<<<<< HEAD:Koralytics.Infrastructure/Migrations/20260705194554_init.cs
-    public partial class init : Migration
-========
-    public partial class CleanArchitecture_V1 : Migration
->>>>>>>> feature/drill-template-service:Koralytics.Infrastructure/Migrations/20260705192551_CleanArchitecture_V1.cs
+    public partial class status : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -406,7 +402,6 @@ namespace Koralytics.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Players", x => x.Id);
-                    table.CheckConstraint("CK_Player_WeakFoot", "[WeakFootRating] BETWEEN 1 AND 5");
                     table.ForeignKey(
                         name: "FK_Players_AspNetUsers_Id",
                         column: x => x.Id,
@@ -1228,6 +1223,7 @@ namespace Koralytics.Infrastructure.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     AgeGroupId = table.Column<int>(type: "int", nullable: false),
+                    AcademyId = table.Column<int>(type: "int", nullable: false),
                     LocationId = table.Column<int>(type: "int", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -1392,6 +1388,7 @@ namespace Koralytics.Infrastructure.Migrations
                     CoachId = table.Column<int>(type: "int", nullable: false),
                     SessionDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Type = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Notes = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false),

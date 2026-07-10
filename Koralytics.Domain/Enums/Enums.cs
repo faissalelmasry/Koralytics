@@ -87,11 +87,19 @@ namespace Koralytics.Domain.Enums
         Accepted = 2,
         Rejected = 3
     }
+    public enum SessionStatus
+    {
+        Scheduled = 1,
+        InProgress = 2,
+        Completed = 3
+    }
+
     public enum SessionType
     {
-        Regular = 1,
-        PreSeason = 2,
-        SessionMatch = 3
+        PreSeason = 1,
+        RegularSeason = 2,
+        OffSeason = 3
+        // Add any others your friends created!
     }
     public enum MatchEventType
     {

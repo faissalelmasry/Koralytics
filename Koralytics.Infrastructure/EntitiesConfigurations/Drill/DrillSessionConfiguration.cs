@@ -17,6 +17,11 @@ namespace Koralytics.Infrastructure.EntitiesConfigurations.Drill
 
             builder.Property(ds => ds.SessionDate)
                 .IsRequired();
+            
+
+            builder.Property(ds => ds.Status)
+                .IsRequired()
+                .HasConversion<string>();
 
             builder.Property(ds => ds.Type)
                 .IsRequired()
