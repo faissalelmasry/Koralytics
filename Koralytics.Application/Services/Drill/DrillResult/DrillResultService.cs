@@ -4,11 +4,6 @@ using Koralytics.Application.Interfaces;
 using Koralytics.Domain.Entities.Drill;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using DrillSessionEntity = Koralytics.Domain.Entities.Drill.DrillSession;
 
 namespace Koralytics.Application.Services.Drill.DrillResult
@@ -17,13 +12,10 @@ namespace Koralytics.Application.Services.Drill.DrillResult
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly IServiceScopeFactory _scopeFactory;
-
-        public DrillResultService(IUnitOfWork unitOfWork, IMapper mapper, IServiceScopeFactory scopeFactory)
+        public DrillResultService(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
-            _scopeFactory = scopeFactory;
         }
 
         public async Task SubmitResultsAsync(int sessionId, int drillId, SubmitDrillResultsDto dto, int currentCoachId)

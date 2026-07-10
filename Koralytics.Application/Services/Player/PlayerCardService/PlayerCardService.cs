@@ -123,6 +123,7 @@ namespace Koralytics.Application.Services.Player.PlayerCardService
                 tournamentMatchCategoryAvgs);
 
             playerCard.LastCalculatedAt = DateTime.UtcNow;
+            playerCard.NeedsRecalculation = false;
 
             await SavePlayerCardAsync(existingCard, playerCard);
 

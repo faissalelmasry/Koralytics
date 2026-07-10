@@ -46,7 +46,11 @@ namespace Koralytics.Application.Services.Player.Helpers
                 .ToListAsync(cancellationToken);
 
             foreach (var playerId in pendingIds)
+            {
                 _invalidated.TryAdd(playerId, true);
+                
+            }
+            
 
             _logger.LogInformation(
                 $"CardInvalidationList restored {pendingIds.Count} pending players from DB");

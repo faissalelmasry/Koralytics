@@ -12,13 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Koralytics.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-<<<<<<<< HEAD:Koralytics.Infrastructure/Migrations/20260710131526_status.Designer.cs
-    [Migration("20260710131526_status")]
-    partial class status
-========
-    [Migration("20260710132012_Init")]
-    partial class Init
->>>>>>>> 54489e943030330b98fdefdb692d98e2a8e0df38:Koralytics.Infrastructure/Migrations/20260710132012_Init.Designer.cs
+    [Migration("20260710140811_new")]
+    partial class @new
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

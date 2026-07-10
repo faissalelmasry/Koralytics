@@ -111,7 +111,7 @@ namespace Koralytics.Domain.Enums
     public enum SessionType
     {
         PreSeason = 1,
-        RegularSeason = 2,
+        Regular = 2,
         OffSeason = 3
         // Add any others your friends created!
     }

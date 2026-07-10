@@ -199,6 +199,15 @@ namespace Koralytics.API.Controllers.Drill
 
             return NoContent();
         }
+        [HttpPatch("sessions/{sessionId}/complete")]
+        public async Task<IActionResult> CompleteSession(int sessionId)
+        {
+            var claims = GetCurrentUserClaims();
+
+            await _sessionService.CompleteSessionAsync(sessionId, claims.UserId);
+
+            return Ok(new { message = "Session completed successfully. Player cards queued for recalculation." });
+        }
 
         // ==========================================
         // 3. RESULT & ATTENDANCE ENDPOINTS (/api/drills/results)

@@ -16,5 +16,7 @@ namespace Koralytics.Application.Services.Drill.DrillSession
         Task<DrillSessionDto> UpdateSessionAsync(int sessionId, UpdateDrillSessionDto dto, int currentCoachId);
         Task RemoveDrillFromSessionAsync(int sessionId, int drillId, int currentCoachId);
         Task DeleteSessionAsync(int sessionId, int currentCoachId);
+        Task CompleteSessionAsync(int sessionId, int currentCoachId);
+
     }
 }
