@@ -48,6 +48,13 @@ using Koralytics.Application.Services.Academy.AcademyTeamService;
 using Koralytics.Application.Services.Academy.AcademyAnalyticsService;
 using Koralytics.Application.Services.Academy.AcademyAnnouncementService;
 using Koralytics.Application.Services.Player.Helpers;
+using Koralytics.Application.Interfaces.Scouter;
+using Koralytics.Application.Interfaces.ScouterInterfaces;
+using Koralytics.Application.Services.ScouterServices.ScouterFollowService;
+using Koralytics.Application.Services.ScouterServices.ScouterReportService;
+using Koralytics.Application.Services.ScouterServices.ScouterSearchService;
+using Koralytics.Application.Services.ScouterServices.ScouterShortlistService;
+using Koralytics.Application.Mappings.ScouterProfile;
 
 namespace Koralytics.API
 {
@@ -130,6 +137,10 @@ namespace Koralytics.API
             builder.Services.AddScoped<ICoachAccessService, CoachAccessService>();
             builder.Services.AddSingleton<CardInvalidationList>();
             builder.Services.AddHostedService(sp => sp.GetRequiredService<CardInvalidationList>());
+            builder.Services.AddScoped<IScouterSearchService, ScouterSearchService>();
+            builder.Services.AddScoped<IScouterShortlistService, ScouterShortlistService>();
+            builder.Services.AddScoped<IScouterFollowService, ScouterFollowService>();
+            builder.Services.AddScoped<IScouterReportService, ScouterReportService>();
 
             // Register FluentValidation validators
             builder.Services.AddValidatorsFromAssemblyContaining<LoginRequestValidator>();
@@ -159,6 +170,7 @@ namespace Koralytics.API
             builder.Services.AddAutoMapper(op => op.AddProfile<TournamentProfile>());
             builder.Services.AddAutoMapper(op => op.AddProfile<AcademyProfile>());
             builder.Services.AddAutoMapper(op => op.AddProfile<PlayerProfile>());
+            builder.Services.AddAutoMapper(op=>op.AddProfile<ScouterProfile>());
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
