@@ -169,6 +169,7 @@ namespace Koralytics.Infrastructure.Seeding
                 // --- Team ---
                 var team = new Team
                 {
+                    AcademyId = academy.Id,
                     AgeGroupId = ageGroup.Id,
                     LocationId = location.Id,
                     Name = "U17 Team A"
@@ -200,6 +201,7 @@ namespace Koralytics.Infrastructure.Seeding
 
                 var awayTeam = new Team
                 {
+                    AcademyId = zamalekAcademy.Id,
                     AgeGroupId = zamalekAgeGroup.Id,
                     LocationId = zamalekLocation.Id,
                     Name = "U17 Team A"
