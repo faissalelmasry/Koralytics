@@ -1692,6 +1692,9 @@ namespace Koralytics.Infrastructure.Migrations
                     b.Property<DateTime>("LastCalculatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<bool>("NeedsRecalculation")
+                        .HasColumnType("bit");
+
                     b.Property<decimal>("OverallRating")
                         .HasColumnType("decimal(5,2)");
 
@@ -2486,9 +2489,6 @@ namespace Koralytics.Infrastructure.Migrations
                     b.Property<int?>("TournamentGroupId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("TournamentRoundId")
-                        .HasColumnType("int");
-
                     b.Property<int?>("WinnerTeamId")
                         .HasColumnType("int");
 
@@ -2505,8 +2505,6 @@ namespace Koralytics.Infrastructure.Migrations
                     b.HasIndex("RoundId");
 
                     b.HasIndex("TournamentGroupId");
-
-                    b.HasIndex("TournamentRoundId");
 
                     b.HasIndex("WinnerTeamId");
 
@@ -4264,17 +4262,13 @@ namespace Koralytics.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Koralytics.Domain.Entities.Tournamet.TournamentRound", "Round")
-                        .WithMany()
+                        .WithMany("TournamentFixtures")
                         .HasForeignKey("RoundId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Koralytics.Domain.Entities.Tournamet.TournamentGroup", null)
                         .WithMany("TournamentFixtures")
                         .HasForeignKey("TournamentGroupId");
-
-                    b.HasOne("Koralytics.Domain.Entities.Tournamet.TournamentRound", null)
-                        .WithMany("TournamentFixtures")
-                        .HasForeignKey("TournamentRoundId");
 
                     b.HasOne("Koralytics.Domain.Entities.Tournamet.TournamentTeam", "WinnerTeam")
                         .WithMany()

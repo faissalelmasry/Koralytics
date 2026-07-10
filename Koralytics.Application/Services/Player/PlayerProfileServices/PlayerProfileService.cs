@@ -299,7 +299,7 @@ namespace Koralytics.Application.Services.Player.PlayerProfileServices
             if (player is null)
                 throw new NotFoundException($"Player with id {playerId} was not found");
 
-            var academy = await _unitOfWork.Repository<Academy>()
+            var academy = await _unitOfWork.Repository<Domain.Entities.Academy.Academy>()
                 .GetQueryableAsNoTracking()
                 .Where(a => a.Id == academyId)
                 .Select(a => a.Name)

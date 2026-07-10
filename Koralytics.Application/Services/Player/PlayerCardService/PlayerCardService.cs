@@ -1,6 +1,7 @@
 using AutoMapper;
 using Koralytics.Application.DTOs.Player;
 using Koralytics.Application.Interfaces;
+using Koralytics.Application.Services.Player.Helpers;
 using Koralytics.Domain.Entities.Drill;
 using Koralytics.Domain.Entities.Match;
 using Koralytics.Domain.Entities.Player;
@@ -18,15 +19,18 @@ namespace Koralytics.Application.Services.Player.PlayerCardService
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<PlayerCardService> _logger;
         private readonly IMapper _mapper;
+        private readonly CardInvalidationList _invalidationList;
 
         public PlayerCardService(
             IUnitOfWork unitOfWork,
             ILogger<PlayerCardService> logger,
-            IMapper mapper)
+            IMapper mapper,
+            CardInvalidationList invalidationList)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
             _mapper = mapper;
+            _invalidationList = invalidationList;
         }
 
         public async Task<PlayerCardDto> GetPlayerCardAsync(int playerId)
@@ -42,7 +46,7 @@ namespace Koralytics.Application.Services.Player.PlayerCardService
             .FirstOrDefaultAsync(pc => pc.PlayerId == playerId);
 
 
-            if (playerCard is null)
+            if (playerCard is null || _invalidationList.TryConsume(playerId))
             {
                 var playerExists = await _unitOfWork.Repository<PlayerEntity>()
                     .ExistsAsync(p => p.Id == playerId);

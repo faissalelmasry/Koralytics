@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Koralytics.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260708153730_new")]
-    partial class @new
+    [Migration("20260710132012_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -425,6 +425,9 @@ namespace Koralytics.Infrastructure.Migrations
                     b.Property<int>("AgeGroupId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("CoachId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -454,6 +457,8 @@ namespace Koralytics.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CoachId");
 
                     b.HasIndex("CreatedByUserId");
 
@@ -1690,6 +1695,9 @@ namespace Koralytics.Infrastructure.Migrations
                     b.Property<DateTime>("LastCalculatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<bool>("NeedsRecalculation")
+                        .HasColumnType("bit");
+
                     b.Property<decimal>("OverallRating")
                         .HasColumnType("decimal(5,2)");
 
@@ -2484,9 +2492,6 @@ namespace Koralytics.Infrastructure.Migrations
                     b.Property<int?>("TournamentGroupId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("TournamentRoundId")
-                        .HasColumnType("int");
-
                     b.Property<int?>("WinnerTeamId")
                         .HasColumnType("int");
 
@@ -2503,8 +2508,6 @@ namespace Koralytics.Infrastructure.Migrations
                     b.HasIndex("RoundId");
 
                     b.HasIndex("TournamentGroupId");
-
-                    b.HasIndex("TournamentRoundId");
 
                     b.HasIndex("WinnerTeamId");
 
@@ -3254,6 +3257,11 @@ namespace Koralytics.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Koralytics.Domain.Entities.Coach.Coach", "Coach")
+                        .WithMany()
+                        .HasForeignKey("CoachId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Koralytics.Domain.Entities.Identity.User", "CreatedByUser")
                         .WithMany()
                         .HasForeignKey("CreatedByUserId");
@@ -3269,6 +3277,8 @@ namespace Koralytics.Infrastructure.Migrations
                         .HasForeignKey("UpdatedByUserId");
 
                     b.Navigation("AgeGroup");
+
+                    b.Navigation("Coach");
 
                     b.Navigation("CreatedByUser");
 
@@ -4027,7 +4037,7 @@ namespace Koralytics.Infrastructure.Migrations
                         .IsRequired();
 
                     b.HasOne("Koralytics.Domain.Entities.Academy.Team", "Team")
-                        .WithMany()
+                        .WithMany("PlayerTeams")
                         .HasForeignKey("TeamId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -4255,17 +4265,13 @@ namespace Koralytics.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Koralytics.Domain.Entities.Tournamet.TournamentRound", "Round")
-                        .WithMany()
+                        .WithMany("TournamentFixtures")
                         .HasForeignKey("RoundId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Koralytics.Domain.Entities.Tournamet.TournamentGroup", null)
                         .WithMany("TournamentFixtures")
                         .HasForeignKey("TournamentGroupId");
-
-                    b.HasOne("Koralytics.Domain.Entities.Tournamet.TournamentRound", null)
-                        .WithMany("TournamentFixtures")
-                        .HasForeignKey("TournamentRoundId");
 
                     b.HasOne("Koralytics.Domain.Entities.Tournamet.TournamentTeam", "WinnerTeam")
                         .WithMany()
@@ -4611,6 +4617,11 @@ namespace Koralytics.Infrastructure.Migrations
             modelBuilder.Entity("Koralytics.Domain.Entities.Academy.AgeGroup", b =>
                 {
                     b.Navigation("Teams");
+                });
+
+            modelBuilder.Entity("Koralytics.Domain.Entities.Academy.Team", b =>
+                {
+                    b.Navigation("PlayerTeams");
                 });
 
             modelBuilder.Entity("Koralytics.Domain.Entities.Drill.Drill", b =>

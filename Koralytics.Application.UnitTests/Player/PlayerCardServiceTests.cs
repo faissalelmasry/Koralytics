@@ -16,6 +16,7 @@ using PlayerEntity = Koralytics.Domain.Entities.Player.Player;
 using MockQueryable;
 using Koralytics.Application.DTOs.Player;
 using Koralytics.Domain.Enums;
+using Koralytics.Application.Services.Player.Helpers;
 
 namespace Koralytics.Application.UnitTests.Player
 {
@@ -24,6 +25,7 @@ namespace Koralytics.Application.UnitTests.Player
         private readonly Mock<IUnitOfWork> _unitOfWorkMock;
         private readonly Mock<IMapper> _mapperMock;
         private readonly Mock<ILogger<PlayerCardService>> _loggerMock;
+        private readonly Mock<CardInvalidationList> _invalidationListMock;
 
         private readonly PlayerCardService _service;
 
@@ -32,11 +34,13 @@ namespace Koralytics.Application.UnitTests.Player
             _unitOfWorkMock = new();
             _mapperMock = new();
             _loggerMock = new();
+            _invalidationListMock = new();
 
             _service = new PlayerCardService(
                 _unitOfWorkMock.Object,
                 _loggerMock.Object,
-                _mapperMock.Object);
+                _mapperMock.Object,
+                _invalidationListMock.Object);
         }
         [Fact]
         public async Task GetDrillToMatchTransferRateAsync_PlayerNotFound_ThrowsNotFoundException()

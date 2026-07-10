@@ -171,7 +171,7 @@ namespace Koralytics.Application.Services.Academy.AcademyTeamService
                 throw new ConflictException(
                     $"Coach {coachUserId} is already actively assigned to team {teamId}.");
 
-            team.CoachId = coachUserId;
+            //team.CoachId = coachUserId;
 
             var coachTeam = new CoachTeam
             {
@@ -188,7 +188,7 @@ namespace Koralytics.Application.Services.Academy.AcademyTeamService
                 "Coach {CoachId} assigned to team {TeamId} successfully.", coachUserId, teamId);
 
             // Fetch coach name for response
-            var coach = await _unitOfWork.Repository<Coach>()
+            var coach = await _unitOfWork.Repository<Domain.Entities.Coach.Coach>()
                 .GetQueryableAsNoTracking()
                 .FirstOrDefaultAsync(c => c.Id == coachUserId);
 
@@ -241,7 +241,7 @@ namespace Koralytics.Application.Services.Academy.AcademyTeamService
                 .GetQueryableAsNoTracking()
                 .Include(t => t.AgeGroup)
                 .Include(t => t.Location)
-                .Include(t=>t.Coach)
+                //.Include(t=>t.Coach)
                 .Where(t => t.AcademyId == academyId )
                 .ToListAsync();
 

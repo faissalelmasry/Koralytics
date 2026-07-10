@@ -16,6 +16,7 @@ namespace Koralytics.Domain.Entities.Player
         public decimal OverallRating { get; set; }
         public decimal OverallTrainingAvg { get; set; }
         public decimal OverallTournamentAvg { get; set; }
+        public bool NeedsRecalculation { get; set; } = false;
         public TransferClassification TransferClassification { get; set; }
         public DateTime LastCalculatedAt { get; set; } = DateTime.UtcNow;
 

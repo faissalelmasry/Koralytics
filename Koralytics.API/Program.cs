@@ -41,6 +41,7 @@ using Koralytics.Application.Services.Academy.AcademyService;
 using Koralytics.Application.Services.Academy.AcademyTeamService;
 using Koralytics.Application.Services.Academy.AcademyAnalyticsService;
 using Koralytics.Application.Services.Academy.AcademyAnnouncementService;
+using Koralytics.Application.Services.Player.Helpers;
 
 namespace Koralytics.API
 {
@@ -117,6 +118,8 @@ namespace Koralytics.API
             builder.Services.AddScoped<ICoachSquadService, CoachSquadService>();
             builder.Services.AddScoped<ICoachNoteService, CoachNoteService>();
             builder.Services.AddScoped<ICoachAccessService, CoachAccessService>();
+            builder.Services.AddSingleton<CardInvalidationList>();
+            builder.Services.AddHostedService(sp => sp.GetRequiredService<CardInvalidationList>());
 
             // Register FluentValidation validators
             builder.Services.AddValidatorsFromAssemblyContaining<LoginRequestValidator>();
