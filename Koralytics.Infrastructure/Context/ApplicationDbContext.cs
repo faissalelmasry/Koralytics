@@ -27,11 +27,14 @@ namespace Koralytics.Infrastructure.Context
         public DbSet<Player> Players { get; set; }
         public DbSet<PlayerAcademy> PlayerAcademies { get; set; }
         public DbSet<PlayerTeam> PlayerTeams { get; set; }
+        public DbSet<PlayerCard> PlayerCards { get; set; }
+        public DbSet<PlayerCategoryRating> PlayerCategoryRatings { get; set; }
 
         public DbSet<Match> Matches { get; set; }
         public DbSet<MatchEvent> MatchEvents { get; set; }
         public DbSet<MatchLineup> MatchLineups { get; set; }
         public DbSet<MatchPlayerRating> MatchPlayerRatings { get; set; }
+        public DbSet<MatchPlayerCategoryRating> MatchPlayerCategoryRatings { get; set; }
 
         public DbSet<Tournament> Tournaments { get; set; }
         public DbSet<TournamentFixture> TournamentFixtures { get; set; }

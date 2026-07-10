@@ -11,6 +11,7 @@ using Microsoft.Extensions.Logging;
 using Koralytics.Domain.Exceptions;
 using Koralytics.Domain.Entities.Academy;
 using Koralytics.Domain.Entities.Player;
+using AcademyEntity= Koralytics.Domain.Entities.Academy.Academy;
 
 namespace Koralytics.Application.Services.Player.PlayerTransferService
 {
@@ -37,7 +38,7 @@ namespace Koralytics.Application.Services.Player.PlayerTransferService
             if (player is null)
                 throw new NotFoundException($"Player with id {playerId} was not found");
 
-            var newAcademy = await _uow.Repository<Academy>().GetByIdAsync(academyId);
+            var newAcademy = await _uow.Repository<AcademyEntity>().GetByIdAsync(academyId);
             if (newAcademy is null)
                 throw new NotFoundException($"Academy with id {academyId} was not found");
 
@@ -103,7 +104,7 @@ namespace Koralytics.Application.Services.Player.PlayerTransferService
             if (requesterAcademyId != newAcademyId && requesterAcademyId != currentAcademy?.AcademyId)
                 throw new ForbiddenException("You are not authorized to transfer players to this academy");
 
-            var newAcademy = await _uow.Repository<Academy>().GetByIdAsync(newAcademyId);
+            var newAcademy = await _uow.Repository<AcademyEntity>().GetByIdAsync(newAcademyId);
             if (newAcademy is null)
                 throw new NotFoundException($"Academy with id {newAcademyId} was not found");
 

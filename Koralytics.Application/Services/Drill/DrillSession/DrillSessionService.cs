@@ -16,11 +16,11 @@ namespace Koralytics.Application.Services.Drill.DrillSession
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public DrillSessionService(IUnitOfWork unitOfWork, IMapper mapper)
-        {
-            _unitOfWork = unitOfWork;
-            _mapper = mapper;
-        }
+//        public DrillSessionService(IUnitOfWork unitOfWork, IMapper mapper)
+//        {
+//            _unitOfWork = unitOfWork;
+//            _mapper = mapper;
+//        }
 
         public async Task<DrillSessionDto> CreateSessionAsync(CreateDrillSessionDto dto, int currentCoachId, int currentAcademyId)
         {
@@ -30,10 +30,10 @@ namespace Koralytics.Application.Services.Drill.DrillSession
                     ct.TeamId == dto.TeamId &&
                     ct.RemovedAt == null);
 
-            if (!isAuthorizedCoach)
-            {
-                throw new UnauthorizedAccessException("You do not have active permission to schedule a session for this team.");
-            }
+//            if (!isAuthorizedCoach)
+//            {
+//                throw new UnauthorizedAccessException("You do not have active permission to schedule a session for this team.");
+//            }
 
             var session = _mapper.Map<DrillSessionEntity>(dto);
 
@@ -54,41 +54,41 @@ namespace Koralytics.Application.Services.Drill.DrillSession
             await _unitOfWork.Repository<DrillSessionEntity>().AddAsync(session);
             await _unitOfWork.SaveChangesAsync();
 
-            return _mapper.Map<DrillSessionDto>(session);
-        }
+//            return _mapper.Map<DrillSessionDto>(session);
+//        }
 
         public async Task<DrillDto> AddDrillToSessionAsync(int sessionId, AddSessionDrillDto dto, int currentCoachId)
         {
             var session = await _unitOfWork.Repository<DrillSessionEntity>().GetByIdAsNoTrackingAsync(sessionId);
 
-            if (session == null)
-            {
-                throw new KeyNotFoundException($"Drill Session with ID {sessionId} was not found.");
-            }
+//            if (session == null)
+//            {
+//                throw new KeyNotFoundException($"Drill Session with ID {sessionId} was not found.");
+//            }
 
-            if (session.CoachId != currentCoachId)
-            {
-                throw new UnauthorizedAccessException("You can only add drills to your own scheduled sessions.");
-            }
+//            if (session.CoachId != currentCoachId)
+//            {
+//                throw new UnauthorizedAccessException("You can only add drills to your own scheduled sessions.");
+//            }
 
             var templateExists = await _unitOfWork.Repository<Koralytics.Domain.Entities.Drill.DrillTemplate>()
                 .ExistsAsync(t => t.Id == dto.DrillTemplateId);
 
-            if (!templateExists)
-            {
-                throw new KeyNotFoundException($"Drill Template with ID {dto.DrillTemplateId} does not exist.");
-            }
+//            if (!templateExists)
+//            {
+//                throw new KeyNotFoundException($"Drill Template with ID {dto.DrillTemplateId} does not exist.");
+//            }
 
             var drill = _mapper.Map<Koralytics.Domain.Entities.Drill.Drill>(dto);
 
-            drill.SessionId = sessionId;
-            drill.CreatedById = currentCoachId;
+//            drill.SessionId = sessionId;
+//            drill.CreatedById = currentCoachId;
 
-            await _unitOfWork.Repository<Koralytics.Domain.Entities.Drill.Drill>().AddAsync(drill);
-            await _unitOfWork.SaveChangesAsync();
+//            await _unitOfWork.Repository<Koralytics.Domain.Entities.Drill.Drill>().AddAsync(drill);
+//            await _unitOfWork.SaveChangesAsync();
 
-            return _mapper.Map<DrillDto>(drill);
-        }
+//            return _mapper.Map<DrillDto>(drill);
+//        }
 
         public async Task<IEnumerable<DrillSessionDto>> GetCoachSessionsAsync(int currentCoachId, int currentAcademyId, SessionFilterDto filter)
         {

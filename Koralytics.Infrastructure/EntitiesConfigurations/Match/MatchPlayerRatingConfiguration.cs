@@ -14,9 +14,7 @@ namespace Koralytics.Infrastructure.EntitiesConfigurations.Match
         public void Configure(EntityTypeBuilder<MatchPlayerRating> builder)
         {
 
-            builder.Property(mpr => mpr.Rating)
-               .IsRequired()
-               .HasColumnType("decimal(4,2)");
+            builder.Ignore(mpr => mpr.Rating);
 
             builder.Property(mpr => mpr.Goals)
                    .IsRequired()
@@ -44,7 +42,7 @@ namespace Koralytics.Infrastructure.EntitiesConfigurations.Match
                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(x => x.Player)
-                .WithMany()
+                .WithMany(p => p.PlayerRatings)
                 .HasForeignKey(x => x.PlayerId)
                 .OnDelete(DeleteBehavior.Restrict);
 
@@ -52,6 +50,15 @@ namespace Koralytics.Infrastructure.EntitiesConfigurations.Match
                 .WithMany()
                 .HasForeignKey(x => x.CoachId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasMany(x => x.CategoryRatings)
+                .WithOne(cr => cr.MatchPlayerRating)
+                .HasForeignKey(cr => cr.MatchPlayerRatingId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder
+                .HasOne(x => x.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(x => x.CreatedById);
 
 
             builder.HasIndex(mpr => new { mpr.MatchId, mpr.PlayerId })
@@ -64,10 +71,6 @@ namespace Koralytics.Infrastructure.EntitiesConfigurations.Match
 
             builder.ToTable(t =>
             {
-                t.HasCheckConstraint(
-                    "CK_MatchPlayerRating_Rating",
-                    "[Rating] >= 0 AND [Rating] <= 10");
-
                 t.HasCheckConstraint(
                     "CK_MatchPlayerRating_Goals",
                     "[Goals] >= 0");

@@ -1,40 +1,53 @@
 using AutoMapper;
-
 using FluentValidation;
 using FluentValidation.AspNetCore;
-
 using Koralytics.API.Middlewares;
 using Koralytics.Application;
 using Koralytics.Application.DTOs.AuthDTOs.RegisterDTOs;
 using Koralytics.Application.Interfaces;
+using Koralytics.Application.Interfaces.Tournament;
+using Koralytics.Application.Interfaces.Tournaments;
 using Koralytics.Application.Mappings.Auth;
+using Koralytics.Application.Mappings.Player;
+using Koralytics.Application.Mappings.Tournaments;
 using Koralytics.Application.Mappings.Drills;
 using Koralytics.Application.Services.Auth.Login;
 using Koralytics.Application.Services.Auth.Register;
+using Koralytics.Application.Services.Coach.CoachAccessService;
+using Koralytics.Application.Services.Coach.CoachNoteService;
+using Koralytics.Application.Services.Coach.CoachSquadService;
+using Koralytics.Application.Services.Player.PlayerCardService;
+using Koralytics.Application.Services.Player.PlayerProfileServices;
 using Koralytics.Application.Services.Drill;
 using Koralytics.Application.Services.Drill.DrillAnalytic;
 using Koralytics.Application.Services.Drill.DrillResult;
 using Koralytics.Application.Services.Drill.DrillSession;
 using Koralytics.Application.Services.Drill.DrillTemplate;
 using Koralytics.Application.Services.Player.PlayerTransferService;
+using Koralytics.Application.Services.Tournament;
 using Koralytics.Application.Validators.Auth;
+using Koralytics.Application.Validators.Tournament;
 using Koralytics.Application.Validators.UserBusiness;
 using Koralytics.Domain.Entities;
+using Koralytics.Application.Validators.Academies;
+using Koralytics.Application.Mappings.Academies;
 using Koralytics.Domain.Entities.Identity;
 using Koralytics.Infrastructure.Context;
 using Koralytics.Infrastructure.Repositories;
 using Koralytics.Infrastructure.Seeding;
 using Koralytics.Infrastructure.UnitOfWork;
-
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-
 using Serilog;
-
 using System.Text;
+using Koralytics.Application.Services.Academy.AcademyService;
+using Koralytics.Application.Services.Academy.AcademyTeamService;
+using Koralytics.Application.Services.Academy.AcademyAnalyticsService;
+using Koralytics.Application.Services.Academy.AcademyAnnouncementService;
+using Koralytics.Application.Services.Player.Helpers;
 
 namespace Koralytics.API
 {
@@ -102,10 +115,34 @@ namespace Koralytics.API
             builder.Services.AddScoped<IDrillTemplateService, DrillTemplateService>();
             builder.Services.AddScoped<IDrillSessionService, DrillSessionService>();
             builder.Services.AddScoped<IDrillAnalyticsService, DrillAnalyticsService>();
+            builder.Services.AddScoped<ITournamentService, TournamentService>();
+            builder.Services.AddScoped<ITournamentDrawService, TournamentDrawService>();
+            builder.Services.AddScoped<ITournamentFixtureService, TournamentFixtureService>();
+            builder.Services.AddScoped<ITournamentReportService, TournamentReportService>();
+            builder.Services.AddScoped<IPlayerCardService, PlayerCardService>();
+            builder.Services.AddScoped<IPlayerProfileService, PlayerProfileService>();
+            builder.Services.AddScoped<IAcademyService, AcademyService>();
+            builder.Services.AddScoped<IAcademyTeamService, AcademyTeamService>();
+            builder.Services.AddScoped<IAcademyAnalyticsService, AcademyAnalyticsService>();
+            builder.Services.AddScoped<IAcademyAnnouncementService, AcademyAnnouncementService>();
+            builder.Services.AddScoped<ICoachSquadService, CoachSquadService>();
+            builder.Services.AddScoped<ICoachNoteService, CoachNoteService>();
+            builder.Services.AddScoped<ICoachAccessService, CoachAccessService>();
+            builder.Services.AddSingleton<CardInvalidationList>();
+            builder.Services.AddHostedService(sp => sp.GetRequiredService<CardInvalidationList>());
+
             // Register FluentValidation validators
             builder.Services.AddValidatorsFromAssemblyContaining<LoginRequestValidator>();
             builder.Services.AddValidatorsFromAssemblyContaining<ChangePasswordValidator>();
             builder.Services.AddValidatorsFromAssemblyContaining<BaseRegisterationRequestValidator>();
+            builder.Services.AddValidatorsFromAssemblyContaining<CreateTournamentValidator>();
+            builder.Services.AddValidatorsFromAssemblyContaining<RegisterSquadValidator>();
+            builder.Services.AddValidatorsFromAssemblyContaining<CreateAcademyValidator>();
+            builder.Services.AddValidatorsFromAssemblyContaining<UpdateAcademyValidator>();
+            builder.Services.AddValidatorsFromAssemblyContaining<AddLocationValidator>();
+            builder.Services.AddValidatorsFromAssemblyContaining<CreateAgeGroupValidator>();
+            builder.Services.AddValidatorsFromAssemblyContaining<CreateTeamValidator>();
+            builder.Services.AddValidatorsFromAssemblyContaining<SendAnnouncementValidator>();
             builder.Services.AddScoped<IUserBusinessValidator, UserBusinessValidator>();
 
             builder.Services
@@ -118,6 +155,10 @@ namespace Koralytics.API
                 op.AddProfile<RegisterProfile>();
                 op.AddProfile<DrillMappingProfile>(); // <-- This is the one fixing the 500 Error
             });
+            builder.Services.AddAutoMapper(op => op.AddProfile<RegisterProfile>());
+            builder.Services.AddAutoMapper(op => op.AddProfile<TournamentProfile>());
+            builder.Services.AddAutoMapper(op => op.AddProfile<AcademyProfile>());
+            builder.Services.AddAutoMapper(op => op.AddProfile<PlayerProfile>());
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
