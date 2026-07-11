@@ -41,7 +41,7 @@ The database context (`ApplicationDbContext`) inherits from `IdentityDbContext<U
 - **Platform Management**: `PlatformSettings`, `PlatformAuditLog`
 
 ### Player Progression & AI (Rawan's Entities)
-- **Player Metrics**: `PlayerSubscription`, `PlayerGoal`, `PlayerAchievement`
+- **Player Metrics**: `PlayerSubscription`, `PlayerGoal`, `PlayerAchievement`, `PlayerCard`
 - **Artificial Intelligence**: `AIReport`
 
 ### Staff, Scouting & Media (Youssef's Entities)
@@ -64,10 +64,11 @@ The database context (`ApplicationDbContext`) inherits from `IdentityDbContext<U
 - `ChangePasswordAsync(userId, dto)` → validate old password → update via `UserManager`
 
 **`IRegistrationService` / `RegistrationService`**
-- `RegisterPlayerAsync(dto)` → create `ApplicationUser` → create `Player` record (TPT) → assign "Player" role → create `PlayerAcademy` + `PlayerSubscription` (Status = Unpaid)
-- `RegisterCoachAsync(dto)` → create `ApplicationUser` → assign "Coach" role → create `Coach` marker + `CoachAcademy` record
-- `RegisterScouterAsync(dto)` → create `ApplicationUser` → assign "Scouter" role → create `Scouter` record with `IsVerified = false`
-- `RegisterParentAsync(dto)` → create `ApplicationUser` → assign "Parent" role → create `Parent` marker + `ParentPlayer` linking to child
+- `RegisterPlayerAsync(dto)` → create `ApplicationUser` via UserManager → create `Player` record → assign "Player" role → create `PlayerAcademy` + `PlayerSubscription` (Status = Unpaid) → return `AuthResponseDto`
+- `RegisterCoachAsync(dto)` → create `ApplicationUser` → assign "Coach" role → create `Coach` marker + `CoachAcademy` record → return `AuthResponseDto`
+- `RegisterScouterAsync(dto)` → create `ApplicationUser` → assign "Scouter" role → create `Scouter` record with `IsVerified = false` → return `AuthResponseDto`
+- `RegisterParentAsync(dto)` → create `ApplicationUser` → assign "Parent" role → create `Parent` marker + `ParentPlayer` linking to child → return `AuthResponseDto`
+- `RegisterAcademyAdminAsync(dto)` ⚡ *(added beyond original plan)* → create `ApplicationUser` → assign "AcademyAdmin" role → return `AuthResponseDto`
 
 ---
 
@@ -76,9 +77,11 @@ The database context (`ApplicationDbContext`) inherits from `IdentityDbContext<U
 #### Player/
 **`IPlayerProfileService` / `PlayerProfileService`**
 - `GetPlayerProfileAsync(playerId)` → fetch player + all positions + current academy + current teams → call `PlayerCardService.GetPlayerCardAsync()` → return full `PlayerProfileDto`
-- `GetPlayerTimelineAsync(playerId)` → fetch all drill sessions + match ratings + achievements ordered by date
-- `GetPlayerVsAcademyAverageAsync(playerId, academyId)` → calculate player's category averages → calculate academy average per category for same age group → return comparison dto
-- `GetScouterViewsCountAsync(playerId, month)` → count `ScouterView` rows for this player this month
+- `GetDrillTimelineAsync(playerId, page, pageSize)` ⚡ *(original plan had one `GetPlayerTimelineAsync`; split into 3 paginated methods)* → paginated drill session history
+- `GetMatchTimelineAsync(playerId, page, pageSize)` → paginated match rating history
+- `GetAchievementTimelineAsync(playerId, page, pageSize)` → paginated achievement history
+- `GetPlayerVsAcademyAverageAsync(playerId, academyId)` → calculate player's category averages vs academy average for same age group → return `PlayerVsAcademyAverageDto`
+- `GetScouterViewsCountAsync(playerId, year, month)` ⚡ *(signature changed: now takes `year` + `month`)* → count `ScouterView` rows for this player → return `ScouterViewsCountDto`
 
 **`IPlayerCardService` / `PlayerCardService`** *(refactored — now uses `IMapper` + `PlayerCardCalculator` static helper)*
 - `GetPlayerCardAsync(playerId)` → aggregate drill scores per category (weighted by difficulty via `PlayerCardCalculator`) → factor in match rating average → calculate overall rating → return `PlayerCardDto`
@@ -92,52 +95,26 @@ The database context (`ApplicationDbContext`) inherits from `IdentityDbContext<U
 - `CalculateTrainingCombined(drillAvg, ...)` → blends drill + training match scores
 - `RatingLookups` / `CategoryAggregate` — sealed records used internally for aggregation
 
+**`CardInvalidationList`** *(background hosted service, `Application/Services/Player/Helpers/`)*
+- Registered as **Singleton + `IHostedService`** in `Program.cs`
+- Uses a `ConcurrentDictionary<int, bool>` as an in-memory dirty-list of player IDs whose `PlayerCard` needs recalculation
+- `Invalidate(playerId)` → adds player to dirty set; `TryConsume(playerId)` → removes and returns true if present
+- **`StartAsync`**: on app startup, queries DB for all `PlayerCard` records where `NeedsRecalculation = true` and pre-populates the in-memory set (crash-safe restore)
+- **`StopAsync`**: on graceful shutdown, writes all remaining dirty IDs back to DB (`NeedsRecalculation = true`) so no pending recalculations are lost
+- Injected into scouter services (`ScouterSearchService`, `ScouterShortlistService`, `ScouterFollowService`) which call `TryConsume()` before returning player cards to ensure stale cards are recalculated on-demand
+
 **`IPlayerTransferService` / `PlayerTransferService`**
-- `TransferPlayerAsync(playerId, newAcademyId)` → set current `PlayerAcademy.LeftAt = now` → create new `PlayerAcademy` with Status = Active → historical data stays linked to old academy
-- `LoanPlayerAsync(playerId, academyId)` → same as transfer but Status = Loaned
-- `UpdateAvailabilityAsync(playerId, status)` → update `AvailabilityStatus` on `Player`
+- `TransferPlayerAsync(playerId, newAcademyId, requesterAcademyId)` ⚡ *(extra `requesterAcademyId` param for authorization)* → set current `PlayerAcademy.LeftAt = now` → create new `PlayerAcademy` with Status = Active
+- `LoanPlayerAsync(playerId, academyId, requesterAcademyId)` → same as transfer but Status = Loaned
+- `UpdateAvailabilityAsync(playerId, status, requesterAcademyId, requesterRole)` ⚡ *(extra auth params)* → update `AvailabilityStatus` on `Player`
 
-**`IPlayerArchetypeService` / `PlayerArchetypeService`** *(depends on AI services)*
-- `UpdateArchetypeAsync(playerId)` → collect player stats (position, foot, weak foot, top categories) → call `AIArchetypeService.GenerateArchetypeAsync()` → save `ArchetypePlayerName` + `ArchetypeText` on `Player`
+**`IPlayerArchetypeService` / `PlayerArchetypeService`** — **⚠️ NOT IMPLEMENTED** *(no service file exists; planned but blocked on AI services)*
 
-#### Match/
-**`IMatchService` / `MatchService`**
-- `CreateFriendlyMatchAsync(dto)` → validate both teams exist and belong to different academies → create `Match` with Type = Friendly, Status = Scheduled
-- `CreateTournamentMatchAsync(dto)` → validate `TournamentFixture` exists and `MatchId` is null → validate both teams registered in `TournamentSquad` → create `Match` with Type = Tournament → update `TournamentFixture.MatchId`
-- `CreateSessionMatchAsync(dto)` → validate `DrillSession` exists → validate players belong to the session → create `Match` with Type = Session, `SessionId` filled
-- `StartMatchAsync(matchId)` → validate match Status = Scheduled → set `Match.Status = Live`
-- `GetFormGuideAsync(teamId, format)` → fetch last 5 matches for team filtered by format → return W/D/L sequence
+#### Match/ — **⚠️ NOT IMPLEMENTED**
+> All Match services (`MatchService`, `MatchEventService`, `MatchRatingService`, `MatchAnalyticsService`) were **planned but not yet created**. No service files exist under `Services/` for these. The `Match` domain entities and `MatchController` route stubs may exist but the Application layer services are absent.
 
-**`IMatchEventService` / `MatchEventService`**
-- `LogMatchEventAsync(matchId, dto)` → validate match Status = Live → validate player is in `MatchLineup` → validate `TeamId` = HomeTeamId or AwayTeamId → create `MatchEvent` → if Goal → update `Match.HomeScore` or `AwayScore` based on `TeamId`
-- `GetMatchTimelineAsync(matchId)` → fetch all `MatchEvents` ordered by Minute → return timeline dto
-
-**`IMatchRatingService` / `MatchRatingService`**
-- `SubmitLineupAsync(matchId, dto)` → validate player count matches format (5, 7, or 11) → validate all players belong to the team → create `MatchLineup` records
-- `SubmitMatchRatingsAsync(matchId, ratings)` → validate match Status = Live → validate exactly one MOTM per match → auto-fill Goals + Assists from `MatchEvent` per player → create `MatchPlayerRating` per player → set `Match.Status = Completed` → set `Match.WinningTeamId` based on scores → lock `MatchEvents` (no more edits) → trigger `PlayerCardService.RecalculateCategoryRatingAsync()` → trigger `AIReportService.GenerateMatchReportAsync()`
-
-**`IMatchAnalyticsService` / `MatchAnalyticsService`** *(shared: Faissal + Youssef)*
-- `GetHeadToHeadAsync(teamAId, teamBId)` → fetch all matches between two teams → return results, top scorers, MOTM count
-- `GetPostMatchAnalysisAsync(teamId)` → fetch last 10 matches → detect patterns → call `AIQueryService.GeneratePostMatchAnalysisAsync()` → return pattern explanation
-- `GetPlayerReadinessAsync(coachId, matchId)` *(Youssef)* → for each player in lineup → fetch last 3 `DrillSession` scores → check `AvailabilityStatus` → calculate readiness % → return readiness per player
-
-#### AI/
-**`IAIReportService` / `AIReportService`**
-- `GenerateMatchReportAsync(matchId)` → fetch all match stats (events, ratings, lineup) → build Claude prompt → call Claude API → save `AIReport` with ReportType = Match
-- `GenerateTournamentReportAsync(tournamentId)` → fetch standings, top scorers, MOTM counts → build Claude prompt → call Claude API → save `AIReport` with ReportType = Tournament
-- `GenerateSeasonReportAsync(academyId)` → fetch all season data for academy → build Claude prompt → call Claude API → save `AIReport` with ReportType = Season
-
-**`IAIPreviewService` / `AIPreviewService`**
-- `GenerateMatchPreviewAsync(matchId)` → fetch both teams recent form + head to head → build Claude prompt → call Claude API → return preview string (not stored)
-- `GenerateTournamentPreviewAsync(tournamentId)` → fetch all participating academies current form → build Claude prompt → call Claude API → return preview string (not stored)
-
-**`IAIQueryService` / `AIQueryService`**
-- `GenerateScouterQueryAsync(query, academyId?)` → build system prompt with full DB schema + tenant scope → send to Claude → returns SQL → validate and sanitize SQL → execute against DB → send results back to Claude for NL response → return final answer
-- `GenerateRoleQueryAsync(role, query, userId)` → same as above scoped to role: Coach (his players), Player (own data only), AcademyAdmin (his academy), Scouter (all academies)
-- `GeneratePostMatchAnalysisAsync(teamId)` → fetch last 10 matches → detect patterns → build Claude prompt → return pattern explanation
-
-**`IAIArchetypeService` / `AIArchetypeService`**
-- `GenerateArchetypeAsync(playerStatsDto)` → build Claude prompt with position, foot, weak foot, top categories → call Claude API → return `ArchetypePlayerName` + `ArchetypeText`
+#### AI/ — **⚠️ NOT IMPLEMENTED**
+> All AI services (`AIReportService`, `AIPreviewService`, `AIQueryService`, `AIArchetypeService`) were **planned but not yet created**. No service files exist. This is the primary blocker for: `ScouterReportService.GenerateScoutingReportAsync`, `PlayerArchetypeService`, `CompleteTournamentAsync` AI trigger, and `GetPostMatchAnalysisAsync`.
 
 ---
 
@@ -145,10 +122,11 @@ The database context (`ApplicationDbContext`) inherits from `IdentityDbContext<U
 
 #### Tournament/
 **`ITournamentService` / `TournamentService`**
-- `CreateTournamentAsync(dto)` → validate Super Admin role → create `Tournament` record → if Structure = League → auto-create dummy `TournamentGroup`
-- `InviteAcademyAsync(tournamentId, academyId)` → create `TournamentTeam` with Status = Invited
+- `CreateTournamentAsync(dto, requestingUserId)` ⚡ *(extra `requestingUserId` param)* → validate `AgeGroup` exists → create `Tournament` record → if Structure = League → auto-create dummy `TournamentGroup`
+- `InviteAcademyAsync(tournamentId, academyId)` → validate tournament + academy exist → create `TournamentTeam` with Status = Invited
 - `AcceptInvitationAsync(tournamentId, academyId)` → update `TournamentTeam.Status = Accepted`
 - `RegisterSquadAsync(tournamentId, teamId, playerIds)` → validate player count within tournament rules → create `TournamentSquad` records for each player
+- `UpdateStatusAsync(tournamentId, status)` ⚡ *(added beyond original plan)* → update `Tournament.Status`
 
 **`ITournamentDrawService` / `TournamentDrawService`**
 - `GenerateSeedingAsync(tournamentId)` → fetch all accepted `TournamentTeams` → calculate seed score per academy (win rate + average player rating + previous tournament results) → assign `SeedNumber` ordered by score
@@ -171,68 +149,85 @@ The database context (`ApplicationDbContext`) inherits from `IdentityDbContext<U
 
 #### Drill/
 **`IDrillSessionService` / `DrillSessionService`**
-- `CreateSessionAsync(dto)` → validate team + coach exist and are linked via `CoachTeam` → create `DrillSession` → create `SessionAttendance` for each player in `dto.PlayerIds`
-- `AddDrillToSessionAsync(sessionId, dto)` → validate session exists and belongs to coach's team → validate `DrillTemplate` exists → create `SessionDrill`
-- `GetSessionHistoryAsync(coachId, filters)` → fetch all sessions for coach → filterable by date range, team, category → return paginated list
+- `CreateSessionAsync(dto, currentCoachId, currentAcademyId)` ⚡ *(context params added)* → validate team + coach linked via `CoachTeam` → create `DrillSession` → create `SessionAttendance` for each player → return `DrillSessionDto`
+- `AddDrillToSessionAsync(sessionId, dto, currentCoachId)` → validate session ownership → validate `DrillTemplate` exists → create `Drill` record → return `DrillDto`
+- `GetCoachSessionsAsync(currentCoachId, currentAcademyId, filter)` ⚡ *(renamed from `GetSessionHistoryAsync`; filterable via `SessionFilterDto`)* → return `IEnumerable<DrillSessionDto>`
+- `GetSessionByIdAsync(sessionId, currentCoachId)` ⚡ *(new)* → return `DrillSessionDetailsDto` (includes drills + attendance)
+- `UpdateSessionAsync(sessionId, dto, currentCoachId)` ⚡ *(new)* → update session metadata → return `DrillSessionDto`
+- `RemoveDrillFromSessionAsync(sessionId, drillId, currentCoachId)` ⚡ *(new)* → validate ownership → remove drill
+- `DeleteSessionAsync(sessionId, currentCoachId)` ⚡ *(new)* → soft-delete session
+- `CompleteSessionAsync(sessionId, currentCoachId)` ⚡ *(new)* → set session status to Completed
 
 **`IDrillResultService` / `DrillResultService`**
-- `LogBulkDrillResultsAsync(sessionDrillId, results)` → validate each player attended the session → Mode 1: `FinalScore = ManualScore`; Mode 2: `FinalScore = DoneCount / (DoneCount + MissedCount) * 10` → bulk create `DrillResult` records → trigger `PlayerCardService.RecalculateCategoryRatingAsync()`
-- `GetPlayerDrillProgressionAsync(playerId, category)` → fetch all `DrillResults` for player in category ordered by date → return progression over time
+- `SubmitResultsAsync(sessionId, drillId, dto, currentCoachId)` ⚡ *(renamed from `LogBulkDrillResultsAsync`; takes sessionId + drillId)* → validate coach owns session → Mode 1/2 score calculation → bulk create `DrillResult` records → trigger `PlayerCardService.RecalculatePlayerCardAsync()`
+- `MarkAttendanceAsync(sessionId, dto, currentCoachId)` ⚡ *(new)* → bulk update `SessionAttendance.IsPresent` flags
+- `GetPlayerDrillProgressionAsync(playerId, categoryId, currentAcademyId)` ⚡ *(takes `categoryId` int, not category name string)* → return `PlayerProgressionDto`
+- `GetDrillResultsAsync(sessionId, drillId, currentCoachId)` ⚡ *(new)* → return `IEnumerable<DrillResultDto>` for a specific drill
+- `GetSessionAttendanceAsync(sessionId, currentCoachId)` ⚡ *(new)* → return `IEnumerable<PlayerAttendanceDto>`
 
 **`IDrillAnalyticsService` / `DrillAnalyticsService`**
-- `GetSquadWeakCategoriesAsync(teamId)` → calculate average score per category for all players in team → return categories ranked weakest to strongest
-- `DetectCoachBiasAsync(coachUserId, academyId)` → fetch all `DrillResults` logged by this coach (Mode 1 only) → fetch `MatchPlayerRatings` for same players → compare drill scores vs match performance → calculate bias score → update `CoachAcademy.BiasScore` + `BiasLastCalculatedAt`
+- `GetSquadWeakCategoriesAsync(teamId)` → return `IEnumerable<CategoryPerformanceDto>` ranked weakest to strongest
+- `DetectCoachBiasAsync(coachUserId, academyId)` → return `CoachBiasReportDto`
 
 **`IDrillTemplateService` / `DrillTemplateService`**
-- `CreateTemplateAsync(dto)` → validate category exists → AcademyAdmin/Coach: `AcademyId` filled; SuperAdmin: `AcademyId = null` (system-wide) → create `DrillTemplate`
-- `GetTemplatesAsync(academyId)` → fetch system-wide (`AcademyId = null`) + academy-specific → return combined list
-- `ShareTemplateAsync(templateId)` → validate requester owns the template → set `DrillTemplate.IsShared = true`
-- `GetTemplatesByCategoryAsync(categoryId, academyId)` → filter by category → return system-wide + academy-specific
+- `CreateTemplateAsync(dto, currentUserId, currentUserRole, currentUserAcademyId?)` ⚡ *(context params added)* → validate category → set `AcademyId` based on role → return `DrillTemplateDto`
+- `GetTemplatesAsync(academyId, currentUserId, filter)` ⚡ *(context params added; filter via `TemplateFilterDto`)* → return `IEnumerable<DrillTemplateDto>`
+- `GetTemplatesByCategoryAsync(categoryId, academyId, currentUserId, filter)` → return `IEnumerable<DrillTemplateDto>`
+- `GetTemplateByIdAsync(id, currentUserId, currentUserAcademyId?)` ⚡ *(new)* → return single `DrillTemplateDto`
+- `ShareTemplateAsync(templateId, currentUserId, currentUserRole, currentUserAcademyId?)` ⚡ *(context params added)* → validate ownership → set `IsShared = true`
+- `UpdateTemplateAsync(id, dto, currentUserId, currentUserRole, currentUserAcademyId?)` ⚡ *(new)* → update template fields → return `DrillTemplateDto`
+- `DeleteTemplateAsync(id, currentUserId, currentUserRole, currentUserAcademyId?)` ⚡ *(new)* → validate ownership → soft-delete
 
 #### Academy/
 **`IAcademyService` / `AcademyService`**
-- `CreateAcademyAsync(dto)` → called after SuperAdmin approves `AcademyRequest` → create `Academy` record → update `AcademyRequest.AcademyId` + Status = Approved
-- `UpdateAcademyAsync(academyId, dto)` → update name, logo, colors
-- `AddLocationAsync(academyId, dto)` → create `AcademyLocation` → if first location → set `IsMain = true`
+- `CreateAcademyAsync(dto, performedByUserId)` → validate `AcademyRequest` exists and is Pending → validate name uniqueness → wrapped in **DB transaction**: create `Academy` (Status = Active) → mark `AcademyRequest.RequestStatus = Approved` → create `RoleAuditLog` entry for the AcademyAdmin assignment → commit; rollback on failure
+- `UpdateAcademyAsync(academyId, dto, performedByUserId)` → update name (unique check), LogoUrl, PrimaryColor, SecondaryColor → return `AcademyResponseDto`
+- `AddLocationAsync(academyId, dto, performedByUserId)` → validate academy exists → check duplicate location name → if first location → `IsMain = true` automatically → return `AcademyLocationResponseDto`
+- `GetAcademyAsync(academyId)` → return single `AcademyResponseDto` (includes Admin nav)
+- `GetAllAcademiesAsync()` → return all academies as `IEnumerable<AcademyResponseDto>`
+- `GetLocationsAsync(academyId)` → return all `AcademyLocationResponseDto` for the academy
+- `SetMainLocationAsync(academyId, locationId, performedByUserId)` → clears existing `IsMain` flag → sets target location as main
 
 **`IAcademyTeamService` / `AcademyTeamService`**
-- `CreateAgeGroupAsync(academyId, dto)` → validate min/max age range doesn't overlap existing groups → create `AgeGroup`
-- `CreateTeamAsync(academyId, dto)` → validate `AgeGroup` belongs to academy → create `Team`
-- `AssignCoachToTeamAsync(coachId, teamId)` → validate coach belongs to same academy → create `CoachTeam` record
-- `RemoveCoachFromTeamAsync(coachId, teamId)` → set `CoachTeam.RemovedAt = now`
+- `CreateAgeGroupAsync(academyId, dto, performedByUserId)` ⚡ *(extra auth param)* → validate age range non-overlapping → create `AgeGroup` → return `AgeGroupResponseDto`
+- `CreateTeamAsync(academyId, dto, performedByUserId)` → validate `AgeGroup` belongs to academy → create `Team` → return `TeamResponseDto`
+- `AssignCoachToTeamAsync(coachUserId, teamId, performedByUserId)` ⚡ *(renamed param)* → validate coach belongs to same academy → create `CoachTeam` → return `CoachTeamAssignmentDto`
+- `RemoveCoachFromTeamAsync(coachUserId, teamId, performedByUserId)` → set `CoachTeam.RemovedAt = now`
+- `GetTeamsByAcademyAsync(academyId)` ⚡ *(new)* → return `IEnumerable<TeamResponseDto>`
+- `GetAgeGroupsByAcademyAsync(academyId)` ⚡ *(new)* → return `IEnumerable<AgeGroupResponseDto>`
 
 **`IAcademyAnalyticsService` / `AcademyAnalyticsService`**
-- `GetCoachPerformanceDashboardAsync(academyId)` → for each coach: fetch all players in his teams → calculate average player improvement rate → fetch `BiasScore` from `CoachAcademy` → return ranked coach performance list
-- `GetSubscriptionStatusAsync(academyId)` → fetch all `PlayerSubscriptions` for academy → group by Status (Paid, Unpaid, Grace) → return summary + list of unpaid players
+- `GetCoachPerformanceDashboardAsync(academyId)` → return `IEnumerable<CoachPerformanceDto>` ranked by performance
+- `GetSubscriptionStatusAsync(academyId)` → return `SubscriptionStatusSummaryDto`
 
 **`IAcademyAnnouncementService` / `AcademyAnnouncementService`**
-- `SendAnnouncementAsync(academyId, dto)` → validate TargetType (All, Team, AgeGroup, Role) → create `AcademyAnnouncement` → trigger `NotificationService.SendAnnouncementAsync()`
-- `RemovePlayerAsync(academyId, playerId, coachId)` → validate subscription unpaid and grace period expired → validate requester is coach of player's team → set `PlayerAcademy.LeftAt = now` → log to `RoleAuditLog`
+- `SendAnnouncementAsync(academyId, dto, sentByUserId)` ⚡ *(extra auth param)* → validate TargetType → create `AcademyAnnouncement` → return `AnnouncementResponseDto`
+- `GetAnnouncementsAsync(academyId)` ⚡ *(new)* → return `IEnumerable<AnnouncementResponseDto>`
+- `RemovePlayerAsync(academyId, playerId, coachUserId, reason)` ⚡ *(extra `reason` string param)* → validate subscription + grace period → validate coach owns player's team → set `PlayerAcademy.LeftAt = now` → log to `RoleAuditLog`
 
 ---
 
 ### RAWAN — Scouting & Notifications (depends on AI services for NL search)
 
-#### Scouter/
+#### Scouter/ *(services in namespace `ScouterServices.*`, implemented)*
 **`IScouterSearchService` / `ScouterSearchService`**
-- `SearchPlayersNLAsync(query, scouterId)` → call `AIQueryService.GenerateScouterQueryAsync()` → return player results
-- `SearchPlayersFilteredAsync(filters)` → filter by position, age, format, rating range, foot, academy → return paginated `PlayerCardDto` list
+- `SearchPlayersAsync(filters: PlayerSearchFiltersDto)` → applies optional filters (MinAge, MaxAge, PreferredFoot, Positions, AcademyId, Format, MinRating, MaxRating) → paginates results (`PageNumber`, `PageSize`) → for each page: checks `CardInvalidationList.TryConsume()` + `NeedsRecalculation` flag and recalculates stale cards on-demand → returns `PaginatedResult<PlayerCardDto>` *(NL/AI search is planned but not yet wired)*
 
 **`IScouterShortlistService` / `ScouterShortlistService`**
-- `AddToShortlistAsync(scouterId, playerId)` → validate player exists → create `ScouterShortlist` record
-- `RemoveFromShortlistAsync(scouterId, playerId)` → soft delete `ScouterShortlist` record
-- `GetShortlistAsync(scouterId)` → fetch all shortlisted players → return list of `PlayerCardDto`
+- `AddToShortlistAsync(scouterId, playerId)` → validate scouter + player exist → idempotent (returns existing if already shortlisted) → create `ScouterShortlist` record → return `ScouterShortlistDto`
+- `RemoveFromShortlistAsync(scouterId, playerId)` → soft-delete `ScouterShortlist` record → return `bool`
+- `GetShortlistAsync(scouterId)` → fetch shortlisted player IDs → recalculate stale cards via `CardInvalidationList.TryConsume()` → return `List<PlayerCardDto>` ordered by shortlist insertion (newest-first)
 
 **`IScouterFollowService` / `ScouterFollowService`**
-- `FollowPlayerAsync(scouterId, playerId)` → create `ScouterFollow` record
-- `UnfollowPlayerAsync(scouterId, playerId)` → soft delete `ScouterFollow` record
-- `GetFollowedPlayersAsync(scouterId)` → fetch all followed players with latest stats
-- `LogProfileViewAsync(scouterId, playerId)` → create `ScouterView` record → called automatically when scouter opens any player profile
+- `FollowPlayerAsync(scouterId, playerId)` → validate scouter + player exist → idempotent (silently returns if already following) → create `ScouterFollow` record
+- `UnfollowPlayerAsync(playerId, scouterId)` *(note: parameter order is playerId first)* → soft-delete `ScouterFollow` record → throws `NotFoundException` if not currently following
+- `GetFollowedPlayersAsync(scouterId)` → fetch followed player IDs (excluding soft-deleted) → recalculate stale cards via `CardInvalidationList.TryConsume()` → return `List<PlayerCardDto>`
+- `LogProfileViewAsync(scouterId, playerId)` → validate scouter + player exist → create `ScouterView` record *(TODO comment: should move to fire-and-forget background worker)*
 
 **`IScouterReportService` / `ScouterReportService`**
-- `GenerateScoutingReportAsync(scouterId, playerId)` → fetch full player data → call `AIReportService.GenerateScoutingReportAsync()` → create `ScouterReport` record → return report text
-- `GetScoutingReportAsync(scouterId, playerId)` → fetch existing `ScouterReport` if exists, else call `GenerateScoutingReportAsync`
-- `VerifyScouterAsync(scouterId)` → SuperAdmin only → set `Scouter.IsVerified = true` + `VerifiedAt = now`
+- `GenerateScoutingReportAsync(scouterId, playerId)` → **⚠️ NOT IMPLEMENTED** (throws `NotImplementedException` — blocked waiting on AI service integration)
+- `GetScoutingReportAsync(scouterId, playerId)` → return existing `ScouterReport` if found; else calls `GenerateScoutingReportAsync` (currently throws until AI is wired) → returns `ScouterReport` entity
+- `VerifyScouterAsync(scouterId)` → validate scouter exists → set `Scouter.IsVerified = true` + `VerifiedAt = DateTime.UtcNow` → return `bool`
 
 #### Notification/
 **`IAnnouncementNotificationService` / `AnnouncementNotificationService`**
@@ -252,28 +247,24 @@ The database context (`ApplicationDbContext`) inherits from `IdentityDbContext<U
 
 #### Coach/
 **`ICoachSquadService` / `CoachSquadService`** *(implemented)*
-- `GetSquadAsync(coachId, teamId)` → fetch all active `PlayerTeam` records for team → include each player's FIFA card rating + availability → return squad overview dto
-- `SplitTrainingTeamsAsync(sessionId)` → fetch all players attending session → sort by overall rating → alternate assignment Team A/B → return two balanced groups
-- `GetSquadComparisonAsync(playerAId, playerBId)` → fetch both players category ratings + match stats → return side-by-side comparison dto
+- `GetSquadAsync(coachId, teamId)` → verify coach is assigned to team (via `CoachTeam`) → load all active `PlayerTeam` records → load `PlayerCard` per player → return `SquadOverviewDto`
+- `SplitTrainingTeamsAsync(coachId, sessionId)` → verify coach owns session → load attending players (`IsPresent = true`) → sort by `OverallRating` → snake-draft into Team A / Team B → return `TrainingTeamSplitDto`
+- `GetSquadComparisonAsync(playerAId, playerBId)` → load both players + their `PlayerCard` → return `SquadComparisonDto`
 
 **`ICoachNoteService` / `CoachNoteService`** *(implemented)*
-- `WriteNoteAsync(coachId, academyId, dto)` → validate note is non-empty → validate player exists → validate player belongs to one of coach's active teams (via `CoachTeam` + `PlayerTeam`) → create `CoachNote` (optionally linked to `SessionId` / `MatchId`) → return `CoachNoteDto`
-- `GetPlayerNotesAsync(coachId, playerId)` → validate player exists → fetch all `CoachNotes` by this coach for this player → return ordered newest-first
+- `WriteNoteAsync(coachId, academyId, dto)` ⚡ *(original plan had `(coachId, dto)` only; `academyId` added)* → validate player belongs to one of coach's active teams → create `CoachNote` (optionally linked to `SessionId` / `MatchId`) → return `CoachNoteDto`
+- `GetPlayerNotesAsync(coachId, playerId)` → fetch all `CoachNotes` by this coach for this player → return `IEnumerable<CoachNoteDto>` newest-first
 
 **`ICoachAccessService` / `CoachAccessService`** *(implemented)*
-- `GrantTempAccessAsync(coachId, dto)` → validate future expiry + non-empty access level + grantee exists → prevent self-grant → create `CoachTempAccess` with Status = Active → return `TempAccessDto`
-- `RevokeTempAccessAsync(coachId, accessId)` → validate coach owns this access record → validate not already revoked → set `CoachTempAccess.Status = Revoked` → return updated `TempAccessDto`
-- `GetActiveGrantsAsync(coachId)` → fetch all grants where Status = Active and ExpiresAt > now → return ordered newest-first
+- `GrantTempAccessAsync(coachId, dto)` → validate future expiry + non-empty `AccessLevel` + grantee exists → prevent self-grant → create `CoachTempAccess` (Status stored as string `"Active"`) → return `TempAccessDto`
+- `RevokeTempAccessAsync(coachId, accessId)` → validate coach owns record → validate Status ≠ `"Revoked"` → set Status = `"Revoked"` → return `TempAccessDto`
+- `GetActiveGrantsAsync(coachId)` → fetch grants where Status = `"Active"` and `ExpiresAt > now` → return `IEnumerable<TempAccessDto>` newest-first
 
-#### Storage/ (Cloudflare R2)
-**`IStorageService` / `StorageService`**
-- `UploadHighlightAsync(playerId, academyId, file)` → validate file size and format (video only) → generate unique file name → upload to Cloudflare R2 → create `PlayerHighlight` record with `VideoUrl` → return `PlayerHighlight` dto
-- `DeleteHighlightAsync(highlightId, playerId)` → validate player owns the highlight → delete from Cloudflare R2 → soft delete `PlayerHighlight` record
-- `PinHighlightAsync(highlightId, playerId)` → unpin any existing pinned highlight for this player → set `PlayerHighlight.IsPinned = true`
-- `GetHighlightsAsync(playerId)` → fetch all `PlayerHighlight` records → return ordered (pinned first, then by date)
+#### Storage/ (Cloudflare R2) — **⚠️ NOT IMPLEMENTED**
+> `IStorageService` / `StorageService` was planned but **no service file exists** yet. Blocked on Cloudflare R2 integration.
 
-#### Match/ (Youssef's contribution to shared MatchAnalyticsService)
-- `GetPlayerReadinessAsync(coachId, matchId)` → for each player in lineup: fetch last 3 `DrillSession` scores → check `AvailabilityStatus` → calculate readiness % → return readiness per player
+#### Match/ (Youssef's contribution) — **⚠️ NOT IMPLEMENTED**
+> `GetPlayerReadinessAsync` was planned as part of `MatchAnalyticsService` but that service doesn't exist yet.
 
 ---
 
@@ -312,11 +303,15 @@ The presentation and infrastructure are wired together in `Program.cs`.
 * **Real-Time**: **SignalR** used for push notifications (announcements, player milestones, scouter alerts).
 * **External Storage**: **Cloudflare R2** for player highlight video uploads.
 * **AI Provider**: **Claude API** used for all AI report generation, NL querying, and player archetype generation.
+* **Background Services**: **`CardInvalidationList`** registered as `Singleton` + `IHostedService`. Uses `ConcurrentDictionary` as in-memory dirty-list. On startup it restores pending IDs from DB (`NeedsRecalculation = true`); on shutdown it persists the dirty set back to DB. Card recalculation is triggered **on-demand** by scouter services (not by the hosted service loop itself).
 
 ### AutoMapper Profiles Currently Registered
-* `RegisterProfile` — Registration DTOs to Domain Entities
-* `TournamentProfile` — Tournament DTOs to Domain Entities
+* `RegisterProfile` — Registration DTOs → Domain Entities
+* `TournamentProfile` — Tournament DTOs → Domain Entities
 * `PlayerProfile` — `PlayerCard` → `TransferRateDto` (maps `PlayerName`, `TransferGap`, `Classification`)
+* `AcademyProfile` — Academy DTOs → Domain Entities (`Academy`, `AgeGroup`, `Team`, `AcademyLocation`, `AcademyAnnouncement`)
+* `DrillMappingProfile` — Drill DTOs → Domain Entities (`DrillTemplate`, `DrillSession`, `DrillResult`, etc.)
+* `ScouterProfile` — Scouter DTOs → Domain Entities (`ScouterShortlist`, `ScouterFollow`, `ScouterReport`)
 
 ### FluentValidation Validators Currently Registered
 * `LoginRequestValidator`
@@ -324,12 +319,20 @@ The presentation and infrastructure are wired together in `Program.cs`.
 * `ChangePasswordValidator`
 * `CreateTournamentValidator`
 * `RegisterSquadValidator`
-* `UserBusinessValidator` (injected directly in workflows)
+* `CreateAcademyValidator`
+* `UpdateAcademyValidator`
+* `AddLocationValidator`
+* `CreateAgeGroupValidator`
+* `CreateTeamValidator`
+* `SendAnnouncementValidator`
+* `UserBusinessValidator` (injected directly in workflows via `IUserBusinessValidator`)
 
-### Unit Test Project
+### Unit Test Projects
 * **`Koralytics.Application.UnitTests`**: xUnit test project covering Application layer logic.
   * `PlayerCardCalculatorTests` — unit tests for all `PlayerCardCalculator` static methods
   * `PlayerCardServiceTests` — integration-style tests for `PlayerCardService` using mocked `IUnitOfWork`
+  * `PlayerProfileServiceTests` — comprehensive tests for `PlayerProfileService` using mocked dependencies
+* **`Koralytics.API.UnitTests`**: xUnit test project for API layer (currently a placeholder — `Class1.cs` only).
 
 ---
 
@@ -339,7 +342,13 @@ The presentation and infrastructure are wired together in `Program.cs`.
 * **`RegisterController`**: Handles varied role registrations (Player, Coach, Scouter, Parent).
 * **`PlayerController`**: Main interface for player operations (transfers, profiling, card).
 * **`TournamentController`**: Interface for tournament-related endpoints (create, draw, fixtures, bracket).
-* **`CoachController`**: Interface for coach squad operations (squad overview, training team split, player comparison).
+* **`CoachController`**: Interface for coach operations — squad overview, training team split, player comparison, writing/fetching player notes, and granting/revoking/listing temporary squad access.
+* **`ScouterController`**: Interface for scouter operations — filtered player search, shortlist management (add/remove/get), follow/unfollow/log-view, and AI scouting report generation & verification.
+* **`DrillsController`**: Interface for all drill operations — template CRUD, session management, bulk result logging, drill analytics (squad weak categories, coach bias). JWT claims extracted from token per request.
+* **`AcademyController`**: Manages academy creation, update, and location management.
+* **`AcademyTeamController`**: Manages age group and team creation, coach assignment/removal.
+* **`AcademyAnnouncementController`**: Sends announcements and removes players from academy.
+* **`AcademyAnalyticsController`**: Returns coach performance dashboard and subscription status.
 
 ---
 
