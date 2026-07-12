@@ -55,6 +55,12 @@ using Koralytics.Application.Services.ScouterServices.ScouterReportService;
 using Koralytics.Application.Services.ScouterServices.ScouterSearchService;
 using Koralytics.Application.Services.ScouterServices.ScouterShortlistService;
 using Koralytics.Application.Mappings.ScouterProfile;
+using Koralytics.API.Services;
+using Koralytics.Application.Interfaces.Notification;
+using Koralytics.Application.Services.Notification.AnnouncementNotificationService;
+using Koralytics.Application.Services.Notification.PlayerNotificationService;
+using Koralytics.Application.Services.Notification.ScouterNotificationService;
+using Koralytics.API.Hubs;
 
 namespace Koralytics.API
 {
@@ -141,6 +147,11 @@ namespace Koralytics.API
             builder.Services.AddScoped<IScouterShortlistService, ScouterShortlistService>();
             builder.Services.AddScoped<IScouterFollowService, ScouterFollowService>();
             builder.Services.AddScoped<IScouterReportService, ScouterReportService>();
+            builder.Services.AddSignalR();
+            builder.Services.AddScoped<IRealTimeBridge, RealTimeBridge>();
+            builder.Services.AddScoped<IPlayerNotificationService, PlayerNotificationService>();
+            builder.Services.AddScoped<IScouterNotificationService, ScouterNotificationService>();
+            builder.Services.AddScoped<IAnnouncementNotificationService, AnnouncementNotificationService>();
 
             // Register FluentValidation validators
             builder.Services.AddValidatorsFromAssemblyContaining<LoginRequestValidator>();
@@ -245,6 +256,8 @@ namespace Koralytics.API
 
             app.UseAuthentication();
             app.UseAuthorization();
+
+            app.MapHub<NotificationHub>("/hubs/notifications");
 
             app.MapControllers();
 

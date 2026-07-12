@@ -35,7 +35,7 @@ namespace Koralytics.API.Controllers
         #region 1. Player Search & Discovery
 
         [HttpPost("search")]
-       // [Authorize(Roles = "Scouter,SuperAdmin")]
+        [Authorize(Roles = "Scouter,SystemAdmin")]
         public async Task<IActionResult> SearchPlayers([FromBody] PlayerSearchFiltersDto filters)
         {
             var result = await _searchService.SearchPlayersAsync(filters);
@@ -47,7 +47,7 @@ namespace Koralytics.API.Controllers
         #region 2. Shortlist Management
 
         [HttpGet("{scouterId}/shortlist")]
-        [Authorize(Roles = "Scouter,SuperAdmin")]
+        [Authorize(Roles = "Scouter,SystemAdmin")]
         public async Task<IActionResult> GetShortlist(int scouterId)
         {
             var requesterId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -62,7 +62,7 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpPost("{scouterId}/shortlist/{playerId}")]
-        [Authorize(Roles = "Scouter,SuperAdmin")]
+        [Authorize(Roles = "Scouter,SystemAdmin")]
         public async Task<IActionResult> AddToShortlist(int scouterId, int playerId)
         {
             var requesterId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -76,7 +76,7 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpDelete("{scouterId}/shortlist/{playerId}")]
-        [Authorize(Roles = "Scouter,SuperAdmin")]
+        [Authorize(Roles = "Scouter,SystemAdmin")]
         public async Task<IActionResult> RemoveFromShortlist(int scouterId, int playerId)
         {
             var requesterId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -93,7 +93,7 @@ namespace Koralytics.API.Controllers
 
         #region 3. Social Interaction & Engagement Tracking
         [HttpGet("{scouterId}/followed-players")]
-        [Authorize(Roles = "Scouter,SuperAdmin")]
+        [Authorize(Roles = "Scouter,SystemAdmin")]
         public async Task<IActionResult> GetFollowedPlayers(int scouterId)
         {
             var requesterId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -108,7 +108,7 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpPost("{scouterId}/follow/{playerId}")]
-        [Authorize(Roles = "Scouter,SuperAdmin")]
+        [Authorize(Roles = "Scouter,SystemAdmin")]
         public async Task<IActionResult> FollowPlayer(int scouterId, int playerId)
         {
             var requesterId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -122,7 +122,7 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpDelete("{scouterId}/follow/{playerId}")]
-        [Authorize(Roles = "Scouter,SuperAdmin")]
+        [Authorize(Roles = "Scouter,SystemAdmin")]
         public async Task<IActionResult> UnfollowPlayer(int scouterId, int playerId)
         {
             var requesterId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -137,7 +137,7 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpPost("{scouterId}/view-profile/{playerId}")]
-        [Authorize(Roles = "Scouter,SuperAdmin")]
+        [Authorize(Roles = "Scouter,SystemAdmin")]
         public async Task<IActionResult> LogProfileView(int scouterId, int playerId)
         {
             var requesterId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -155,7 +155,7 @@ namespace Koralytics.API.Controllers
         #region 4. AI Scouting Reports & Verifications
 
         [HttpGet("{scouterId}/reports/{playerId}")]
-        [Authorize(Roles = "Scouter,SuperAdmin")]
+        [Authorize(Roles = "Scouter,SystemAdmin")]
         public async Task<IActionResult> GetScoutingReport(int scouterId, int playerId)
         {
             var requesterId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -169,7 +169,7 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpPost("{scouterId}/reports/{playerId}/generate")]
-        [Authorize(Roles = "Scouter,SuperAdmin")]
+        [Authorize(Roles = "Scouter,SystemAdmin")]
         public async Task<IActionResult> GenerateScoutingReport(int scouterId, int playerId)
         {
             var requesterId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -183,7 +183,7 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpPost("{scouterId}/verify")]
-        [Authorize(Roles = "SuperAdmin")] 
+        [Authorize(Roles = "SystemAdmin")] 
         public async Task<IActionResult> VerifyScouter(int scouterId)
         {
             await _reportService.VerifyScouterAsync(scouterId);
