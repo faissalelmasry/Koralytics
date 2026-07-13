@@ -18,6 +18,9 @@ namespace Koralytics.Infrastructure.EntitiesConfigurations.Match
             builder.Property(x => x.EventType)
                 .IsRequired();
 
+            builder.Property(x => x.IsHomeSide)
+                .IsRequired(false);
+
             builder.HasIndex(x => new { x.MatchId, x.PlayerId });
 
             builder.HasIndex(me => me.MatchId);

@@ -61,6 +61,10 @@ using Koralytics.Application.Services.Notification.AnnouncementNotificationServi
 using Koralytics.Application.Services.Notification.PlayerNotificationService;
 using Koralytics.Application.Services.Notification.ScouterNotificationService;
 using Koralytics.API.Hubs;
+using Koralytics.Application.Interfaces.Match;
+using Koralytics.Application.Services.Match;
+using Koralytics.Application.Validators.Match;
+using Koralytics.Application.Mappings.Match;
 
 namespace Koralytics.API
 {
@@ -141,7 +145,12 @@ namespace Koralytics.API
             builder.Services.AddScoped<ICoachSquadService, CoachSquadService>();
             builder.Services.AddScoped<ICoachNoteService, CoachNoteService>();
             builder.Services.AddScoped<ICoachAccessService, CoachAccessService>();
+            builder.Services.AddScoped<IMatchService, MatchService>();
+            builder.Services.AddScoped<IMatchEventService, MatchEventService>();
+            builder.Services.AddScoped<IMatchRatingService, MatchRatingService>();
+            builder.Services.AddScoped<IMatchAnalyticsService, MatchAnalyticsService>();
             builder.Services.AddSingleton<CardInvalidationList>();
+            builder.Services.AddSingleton<ICardInvalidationList>(sp => sp.GetRequiredService<CardInvalidationList>());
             builder.Services.AddHostedService(sp => sp.GetRequiredService<CardInvalidationList>());
             builder.Services.AddScoped<IScouterSearchService, ScouterSearchService>();
             builder.Services.AddScoped<IScouterShortlistService, ScouterShortlistService>();
@@ -165,6 +174,7 @@ namespace Koralytics.API
             builder.Services.AddValidatorsFromAssemblyContaining<CreateAgeGroupValidator>();
             builder.Services.AddValidatorsFromAssemblyContaining<CreateTeamValidator>();
             builder.Services.AddValidatorsFromAssemblyContaining<SendAnnouncementValidator>();
+            builder.Services.AddValidatorsFromAssemblyContaining<CreateFriendlyMatchValidator>();
             builder.Services.AddScoped<IUserBusinessValidator, UserBusinessValidator>();
 
             builder.Services
@@ -181,6 +191,7 @@ namespace Koralytics.API
             builder.Services.AddAutoMapper(op => op.AddProfile<TournamentProfile>());
             builder.Services.AddAutoMapper(op => op.AddProfile<AcademyProfile>());
             builder.Services.AddAutoMapper(op => op.AddProfile<PlayerProfile>());
+            builder.Services.AddAutoMapper(op => op.AddProfile<MatchProfile>());
             builder.Services.AddAutoMapper(op=>op.AddProfile<ScouterProfile>());
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
