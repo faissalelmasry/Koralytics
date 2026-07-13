@@ -1,13 +1,14 @@
-﻿// TournamentDrawService.cs
-using TournamentEntity = Koralytics.Domain.Entities.Tournamet.Tournament;
+﻿using TournamentEntity = Koralytics.Domain.Entities.Tournamet.Tournament;
 using TournamentTeamEntity = Koralytics.Domain.Entities.Tournamet.TournamentTeam;
 using TournamentGroupEntity = Koralytics.Domain.Entities.Tournamet.TournamentGroup;
 using TournamentRoundEntity = Koralytics.Domain.Entities.Tournamet.TournamentRound;
 using TournamentFixtureEntity = Koralytics.Domain.Entities.Tournamet.TournamentFixture;
 using TournamentGroupTeamEntity = Koralytics.Domain.Entities.Tournamet.TournamentGroupTeam;
 using TournamentStandingEntity = Koralytics.Domain.Entities.Tournamet.TournamentStanding;
+using MatchPlayerRatingEntity = Koralytics.Domain.Entities.Match.MatchPlayerRating;
 using Koralytics.Application.Interfaces;
 using Koralytics.Application.Interfaces.Tournament;
+using Koralytics.Application.Services.Player.PlayerCardService;
 using Koralytics.Domain.Enums;
 using Koralytics.Domain.Exceptions;
 using Microsoft.EntityFrameworkCore;
@@ -19,14 +20,17 @@ namespace Koralytics.Application.Services.Tournament
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<TournamentDrawService> _logger;
+        private readonly IPlayerCardService _playerCardService;
         private readonly Random _random = new();
 
         public TournamentDrawService(
             IUnitOfWork unitOfWork,
-            ILogger<TournamentDrawService> logger)
+            ILogger<TournamentDrawService> logger,
+            IPlayerCardService playerCardService)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
+            _playerCardService = playerCardService;
         }
 
         // ─────────────────────────────────────────────────────────────
@@ -38,7 +42,6 @@ namespace Koralytics.Application.Services.Tournament
             _logger.LogInformation(
                 "Generating seeding for tournament {TournamentId}", tournamentId);
 
-            // Validate tournament exists
             var tournament = await _unitOfWork.Repository<TournamentEntity>()
                 .FindAsync(t => t.Id == tournamentId);
 
@@ -50,8 +53,8 @@ namespace Koralytics.Application.Services.Tournament
                 throw new BadRequestException(
                     "Seeding can only be generated during Registration status");
 
-            // Fetch all accepted tournament teams with their team data
-            var tournamentTeams = await _unitOfWork.Repository<TournamentTeamEntity>()
+            var tournamentTeams = await _unitOfWork
+                .Repository<TournamentTeamEntity>()
                 .GetQueryable()
                 .Include(tt => tt.Team)
                 .Where(tt =>
@@ -73,16 +76,13 @@ namespace Koralytics.Application.Services.Tournament
                 seedScores.Add((tournamentTeam, score));
             }
 
-            // Order by score descending — highest score = seed #1
+            // Order by score descending — highest = seed #1
             var ordered = seedScores
                 .OrderByDescending(x => x.Score)
                 .ToList();
 
-            // Assign seed numbers
             for (int i = 0; i < ordered.Count; i++)
-            {
                 ordered[i].Team.SeedNumber = i + 1;
-            }
 
             await _unitOfWork.SaveChangesAsync();
 
@@ -91,8 +91,6 @@ namespace Koralytics.Application.Services.Tournament
                 ordered.Count, tournamentId);
         }
 
-        // Calculates a composite seed score for a team
-        // Score = WinRate (0-1) + PlayerRating (0-10) + PreviousTournamentScore (0-1)
         private async Task<double> CalculateSeedScoreAsync(
             int teamId, int currentTournamentId)
         {
@@ -101,14 +99,11 @@ namespace Koralytics.Application.Services.Tournament
             double previousResults = await CalculatePreviousTournamentScoreAsync(
                 teamId, currentTournamentId);
 
-            // Weighted composite score
-            // Win rate weighted 40%, player rating 40%, previous results 20%
             return (winRate * 0.4) + (playerRating * 0.4) + (previousResults * 0.2);
         }
 
         private async Task<double> CalculateWinRateAsync(int teamId)
         {
-            // Fetch all completed fixtures where this team participated
             var fixtures = await _unitOfWork.Repository<TournamentFixtureEntity>()
                 .GetQueryable()
                 .Where(f =>
@@ -124,18 +119,43 @@ namespace Koralytics.Application.Services.Tournament
 
         private async Task<double> CalculateAveragePlayerRatingAsync(int teamId)
         {
-            // TODO: Replace with PlayerCardService.GetPlayerCardAsync()
-            // once Faissal's service is implemented
-            // For now returns 0 as placeholder
-            await Task.CompletedTask;
-            return 0;
+            var playerIds = await _unitOfWork
+                .Repository<Domain.Entities.Player.PlayerTeam>()
+                .GetQueryable()
+                .Where(pt => pt.TeamId == teamId && pt.LeftAt == null)
+                .Select(pt => pt.PlayerId)
+                .ToListAsync();
+
+            if (playerIds.Count == 0) return 0;
+
+            var ratings = new List<double>();
+
+            foreach (var playerId in playerIds)
+            {
+                try
+                {
+                    var card = await _playerCardService
+                        .GetPlayerCardAsync(playerId);
+                    if (card != null)
+                        ratings.Add((double)card.OverallRating);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(
+                        "Could not get card for player {PlayerId}: {Message}",
+                        playerId, ex.Message);
+                }
+            }
+
+            if (ratings.Count == 0) return 0;
+            return ratings.Average() / 10.0;
         }
 
         private async Task<double> CalculatePreviousTournamentScoreAsync(
             int teamId, int currentTournamentId)
         {
-            // Check if team won any previous tournaments
-            var previousWins = await _unitOfWork.Repository<TournamentFixtureEntity>()
+            var previousWins = await _unitOfWork
+                .Repository<TournamentFixtureEntity>()
                 .GetQueryable()
                 .Where(f =>
                     f.WinnerTeamId == teamId &&
@@ -143,7 +163,6 @@ namespace Koralytics.Application.Services.Tournament
                     f.Status == MatchStatus.Completed)
                 .CountAsync();
 
-            // Normalize to 0-1 range (cap at 10 wins)
             return Math.Min(previousWins / 10.0, 1.0);
         }
 
@@ -156,7 +175,6 @@ namespace Koralytics.Application.Services.Tournament
             _logger.LogInformation(
                 "Generating draw for tournament {TournamentId}", tournamentId);
 
-            // Validate tournament exists
             var tournament = await _unitOfWork.Repository<TournamentEntity>()
                 .FindAsync(t => t.Id == tournamentId);
 
@@ -168,7 +186,20 @@ namespace Koralytics.Application.Services.Tournament
                 throw new BadRequestException(
                     "Draw can only be generated during Registration status");
 
-            // Fetch all accepted and seeded teams ordered by seed
+            // Idempotency check — draw already generated
+            var drawExists = await _unitOfWork.Repository<TournamentRoundEntity>()
+                .ExistsAsync(r => r.TournamentId == tournamentId);
+
+            var groupsExist = await _unitOfWork.Repository<TournamentGroupEntity>()
+                .ExistsAsync(g =>
+                    g.TournamentId == tournamentId &&
+                    !g.IsDummy);
+
+            if (drawExists || groupsExist)
+                throw new ConflictException(
+                    "Draw has already been generated for this tournament");
+
+            // Fetch seeded teams
             var seededTeams = await _unitOfWork.Repository<TournamentTeamEntity>()
                 .GetQueryable()
                 .Where(tt =>
@@ -177,66 +208,46 @@ namespace Koralytics.Application.Services.Tournament
                 .OrderBy(tt => tt.SeedNumber)
                 .ToListAsync();
 
-            _logger.LogInformation(
-                "Found {Count} accepted teams for tournament {TournamentId}",
-                seededTeams.Count, tournamentId);
-
             if (seededTeams.Count < 2)
-            {
-                var allTeams = await _unitOfWork.Repository<TournamentTeamEntity>()
-                    .GetQueryable()
-                    .Where(tt => tt.TournamentId == tournamentId)
-                    .ToListAsync();
-
-                _logger.LogWarning(
-                    "Not enough accepted teams. Total teams: {Total}, Accepted: {Accepted}. " +
-                    "Team statuses: {Statuses}",
-                    allTeams.Count, 
-                    seededTeams.Count,
-                    string.Join(", ", allTeams.Select(t => $"Team {t.TeamId}: {t.Status}")));
-
                 throw new BadRequestException(
-                    $"At least 2 accepted teams are required to generate draw. Found {seededTeams.Count}");
-            }
+                    "At least 2 accepted teams are required to generate draw");
 
-            // Check seeding has been done
-            var unseeded = seededTeams.Any(tt => tt.SeedNumber == null);
-            if (unseeded)
-            {
-                _logger.LogWarning(
-                    "Some teams are not seeded for tournament {TournamentId}",
-                    tournamentId);
+            // Validate seeding is done
+            if (seededTeams.Any(tt => tt.SeedNumber == null))
                 throw new BadRequestException(
                     "All teams must be seeded before generating the draw. " +
                     "Run GenerateSeedingAsync first");
-            }
 
-            // Generate draw based on tournament structure
-            switch (tournament.Structure)
+            // Wrap entire draw generation in transaction
+            using var transaction = await _unitOfWork.BeginTransactionAsync();
+            try
             {
-                case TournamentStructure.Knockout:
-                    await GenerateKnockoutDrawAsync(
-                        tournament, seededTeams);
-                    break;
+                switch (tournament.Structure)
+                {
+                    case TournamentStructure.Knockout:
+                        await GenerateKnockoutDrawAsync(tournament, seededTeams);
+                        break;
+                    case TournamentStructure.GroupAndKnockout:
+                        await GenerateGroupAndKnockoutDrawAsync(
+                            tournament, seededTeams);
+                        break;
+                    case TournamentStructure.League:
+                        await GenerateLeagueDrawAsync(tournament, seededTeams);
+                        break;
+                    default:
+                        throw new BadRequestException(
+                            $"Unknown tournament structure: {tournament.Structure}");
+                }
 
-                case TournamentStructure.GroupAndKnockout:
-                    await GenerateGroupAndKnockoutDrawAsync(
-                        tournament, seededTeams);
-                    break;
-
-                case TournamentStructure.League:
-                    await GenerateLeagueDrawAsync(
-                        tournament, seededTeams);
-                    break;
-
-                default:
-                    throw new BadRequestException(
-                        $"Unknown tournament structure: {tournament.Structure}");
+                tournament.Status = TournamentStatus.InProgress;
+                await _unitOfWork.SaveChangesAsync();
+                await transaction.CommitAsync();
             }
-
-            // Update tournament status to InProgress
-            tournament.Status = TournamentStatus.InProgress;
-            await _unitOfWork.SaveChangesAsync();
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
 
             _logger.LogInformation(
                 "Draw generated successfully for tournament {TournamentId}",
@@ -244,25 +255,18 @@ namespace Koralytics.Application.Services.Tournament
         }
 
         // ─────────────────────────────────────────────────────────────
-        // KNOCKOUT DRAW
+        // KNOCKOUT
         // ─────────────────────────────────────────────────────────────
 
         private async Task GenerateKnockoutDrawAsync(
             TournamentEntity tournament,
             List<TournamentTeamEntity> seededTeams)
         {
-            _logger.LogInformation(
-                "Generating knockout draw for tournament {TournamentId}",
-                tournament.Id);
-
-            // Validate team count is a power of 2 for clean bracket
-            // e.g. 2, 4, 8, 16 teams
             if (!IsPowerOfTwo(seededTeams.Count))
                 throw new BadRequestException(
                     $"Knockout tournaments require a power of 2 number of teams " +
                     $"(2, 4, 8, 16). Got {seededTeams.Count}");
 
-            // Create Round 1
             var round = new TournamentRoundEntity
             {
                 TournamentId = tournament.Id,
@@ -273,74 +277,56 @@ namespace Koralytics.Application.Services.Tournament
             await _unitOfWork.Repository<TournamentRoundEntity>().AddAsync(round);
             await _unitOfWork.SaveChangesAsync();
 
-            // Pair teams respecting seeds
-            // Seed 1 vs Seed N, Seed 2 vs Seed N-1, etc.
             var fixtures = PairTeamsBySeeding(seededTeams);
 
-            _logger.LogInformation(
-                "Generated {FixtureCount} fixture pairs for tournament {TournamentId}",
-                fixtures.Count, tournament.Id);
-
-            int fixtureCount = 0;
             foreach (var (home, away) in fixtures)
             {
-                _logger.LogDebug(
-                    "Creating fixture {FixtureNum}: HomeTeamId={HomeTeamId}, AwayTeamId={AwayTeamId}",
-                    ++fixtureCount, home.Id, away.Id);
-
-                var fixture = new TournamentFixtureEntity
-                {
-                    RoundId = round.Id,
-                    GroupId = null,
-                    HomeTeamId = home.Id,
-                    AwayTeamId = away.Id,
-                    Status = MatchStatus.Scheduled,
-                    LegNumber = tournament.HasTwoLegs ? 1 : null
-                };
-
                 await _unitOfWork.Repository<TournamentFixtureEntity>()
-                    .AddAsync(fixture);
-
-                // If two legs — create second leg fixture (home/away swapped)
-                if (tournament.HasTwoLegs)
-                {
-                    var secondLeg = new TournamentFixtureEntity
+                    .AddAsync(new TournamentFixtureEntity
                     {
                         RoundId = round.Id,
                         GroupId = null,
-                        HomeTeamId = away.Id,
-                        AwayTeamId = home.Id,
+                        HomeTeamId = home.Id,
+                        AwayTeamId = away.Id,
                         Status = MatchStatus.Scheduled,
-                        LegNumber = 2
-                    };
+                        LegNumber = tournament.HasTwoLegs ? 1 : null
+                    });
 
+                if (tournament.HasTwoLegs)
                     await _unitOfWork.Repository<TournamentFixtureEntity>()
-                        .AddAsync(secondLeg);
-                }
+                        .AddAsync(new TournamentFixtureEntity
+                        {
+                            RoundId = round.Id,
+                            GroupId = null,
+                            HomeTeamId = away.Id,
+                            AwayTeamId = home.Id,
+                            Status = MatchStatus.Scheduled,
+                            LegNumber = 2
+                        });
             }
 
             await _unitOfWork.SaveChangesAsync();
         }
 
         // ─────────────────────────────────────────────────────────────
-        // GROUP + KNOCKOUT DRAW
+        // GROUP + KNOCKOUT
         // ─────────────────────────────────────────────────────────────
 
         private async Task GenerateGroupAndKnockoutDrawAsync(
             TournamentEntity tournament,
             List<TournamentTeamEntity> seededTeams)
         {
-            _logger.LogInformation(
-                "Generating group and knockout draw for tournament {TournamentId}",
-                tournament.Id);
-
-            // Calculate number of groups
-            // Aim for groups of 4 teams — standard football group stage
+            // Validate group distribution
             int groupCount = Math.Max(2, seededTeams.Count / 4);
-            var groupNames = GenerateGroupNames(groupCount);
 
-            // Create groups
+            if (seededTeams.Count < groupCount * 2)
+                throw new BadRequestException(
+                    $"Not enough teams for {groupCount} groups. " +
+                    $"Need at least {groupCount * 2} teams");
+
+            var groupNames = GenerateGroupNames(groupCount);
             var groups = new List<TournamentGroupEntity>();
+
             foreach (var name in groupNames)
             {
                 var group = new TournamentGroupEntity
@@ -349,90 +335,68 @@ namespace Koralytics.Application.Services.Tournament
                     Name = name,
                     IsDummy = false
                 };
-
                 await _unitOfWork.Repository<TournamentGroupEntity>().AddAsync(group);
                 groups.Add(group);
             }
 
             await _unitOfWork.SaveChangesAsync();
 
-            // Distribute teams into groups respecting seeds
-            // Pot system: divide seeded teams into pots, draw one from each pot per group
             var pots = CreateSeedingPots(seededTeams, groupCount);
             var groupAssignments = AssignTeamsToGroups(groups, pots);
 
-            // Create TournamentGroupTeam records and standing rows
             foreach (var (group, teams) in groupAssignments)
             {
                 foreach (var team in teams)
                 {
-                    // Group team assignment
-                    var groupTeam = new TournamentGroupTeamEntity
-                    {
-                        GroupId = group.Id,
-                        TournamentTeamId = team.Id
-                    };
-
                     await _unitOfWork.Repository<TournamentGroupTeamEntity>()
-                        .AddAsync(groupTeam);
-
-                    // Initial standing row — all zeros
-                    var standing = new TournamentStandingEntity
-                    {
-                        GroupId = group.Id,
-                        TournamentTeamId = team.Id,
-                        Played = 0,
-                        Won = 0,
-                        Drawn = 0,
-                        Lost = 0,
-                        GoalsFor = 0,
-                        GoalsAgainst = 0,
-                        Points = 0
-                    };
+                        .AddAsync(new TournamentGroupTeamEntity
+                        {
+                            GroupId = group.Id,
+                            TournamentTeamId = team.Id
+                        });
 
                     await _unitOfWork.Repository<TournamentStandingEntity>()
-                        .AddAsync(standing);
+                        .AddAsync(new TournamentStandingEntity
+                        {
+                            GroupId = group.Id,
+                            TournamentTeamId = team.Id,
+                            Played = 0,
+                            Won = 0,
+                            Drawn = 0,
+                            Lost = 0,
+                            GoalsFor = 0,
+                            GoalsAgainst = 0,
+                            Points = 0
+                        });
                 }
 
-                // Create fixtures within the group
-                // Every team plays every other team once (or twice if HasTwoLegs)
                 var teamList = groupAssignments[group];
                 for (int i = 0; i < teamList.Count; i++)
                 {
                     for (int j = i + 1; j < teamList.Count; j++)
                     {
-                        var home = teamList[i];
-                        var away = teamList[j];
-
-                        var fixture = new TournamentFixtureEntity
-                        {
-                            GroupId = group.Id,
-                            RoundId = null,
-                            HomeTeamId = home.Id,
-                            AwayTeamId = away.Id,
-                            Status = MatchStatus.Scheduled,
-                            LegNumber = tournament.HasTwoLegs ? 1 : null
-                        };
-
                         await _unitOfWork.Repository<TournamentFixtureEntity>()
-                            .AddAsync(fixture);
-
-                        // Second leg — home/away swapped
-                        if (tournament.HasTwoLegs)
-                        {
-                            var secondLeg = new TournamentFixtureEntity
+                            .AddAsync(new TournamentFixtureEntity
                             {
                                 GroupId = group.Id,
                                 RoundId = null,
-                                HomeTeamId = away.Id,
-                                AwayTeamId = home.Id,
+                                HomeTeamId = teamList[i].Id,
+                                AwayTeamId = teamList[j].Id,
                                 Status = MatchStatus.Scheduled,
-                                LegNumber = 2
-                            };
+                                LegNumber = tournament.HasTwoLegs ? 1 : null
+                            });
 
+                        if (tournament.HasTwoLegs)
                             await _unitOfWork.Repository<TournamentFixtureEntity>()
-                                .AddAsync(secondLeg);
-                        }
+                                .AddAsync(new TournamentFixtureEntity
+                                {
+                                    GroupId = group.Id,
+                                    RoundId = null,
+                                    HomeTeamId = teamList[j].Id,
+                                    AwayTeamId = teamList[i].Id,
+                                    Status = MatchStatus.Scheduled,
+                                    LegNumber = 2
+                                });
                     }
                 }
             }
@@ -441,18 +405,13 @@ namespace Koralytics.Application.Services.Tournament
         }
 
         // ─────────────────────────────────────────────────────────────
-        // LEAGUE DRAW
+        // LEAGUE
         // ─────────────────────────────────────────────────────────────
 
         private async Task GenerateLeagueDrawAsync(
             TournamentEntity tournament,
             List<TournamentTeamEntity> seededTeams)
         {
-            _logger.LogInformation(
-                "Generating league draw for tournament {TournamentId}",
-                tournament.Id);
-
-            // Fetch the existing dummy group created during tournament creation
             var dummyGroup = await _unitOfWork.Repository<TournamentGroupEntity>()
                 .FindAsync(g =>
                     g.TournamentId == tournament.Id &&
@@ -460,77 +419,60 @@ namespace Koralytics.Application.Services.Tournament
 
             if (dummyGroup is null)
                 throw new NotFoundException(
-                    "League dummy group not found. " +
-                    "Ensure tournament was created with League structure");
+                    "League dummy group not found");
 
-            // Create group team records and standing rows for all teams
             foreach (var team in seededTeams)
             {
-                var groupTeam = new TournamentGroupTeamEntity
-                {
-                    GroupId = dummyGroup.Id,
-                    TournamentTeamId = team.Id
-                };
-
                 await _unitOfWork.Repository<TournamentGroupTeamEntity>()
-                    .AddAsync(groupTeam);
-
-                var standing = new TournamentStandingEntity
-                {
-                    GroupId = dummyGroup.Id,
-                    TournamentTeamId = team.Id,
-                    Played = 0,
-                    Won = 0,
-                    Drawn = 0,
-                    Lost = 0,
-                    GoalsFor = 0,
-                    GoalsAgainst = 0,
-                    Points = 0
-                };
+                    .AddAsync(new TournamentGroupTeamEntity
+                    {
+                        GroupId = dummyGroup.Id,
+                        TournamentTeamId = team.Id
+                    });
 
                 await _unitOfWork.Repository<TournamentStandingEntity>()
-                    .AddAsync(standing);
+                    .AddAsync(new TournamentStandingEntity
+                    {
+                        GroupId = dummyGroup.Id,
+                        TournamentTeamId = team.Id,
+                        Played = 0,
+                        Won = 0,
+                        Drawn = 0,
+                        Lost = 0,
+                        GoalsFor = 0,
+                        GoalsAgainst = 0,
+                        Points = 0
+                    });
             }
 
             await _unitOfWork.SaveChangesAsync();
 
-            // Create fixtures — every team vs every other team
             for (int i = 0; i < seededTeams.Count; i++)
             {
                 for (int j = i + 1; j < seededTeams.Count; j++)
                 {
-                    var home = seededTeams[i];
-                    var away = seededTeams[j];
-
-                    var fixture = new TournamentFixtureEntity
-                    {
-                        GroupId = dummyGroup.Id,
-                        RoundId = null,
-                        HomeTeamId = home.Id,
-                        AwayTeamId = away.Id,
-                        Status = MatchStatus.Scheduled,
-                        LegNumber = tournament.HasTwoLegs ? 1 : null
-                    };
-
                     await _unitOfWork.Repository<TournamentFixtureEntity>()
-                        .AddAsync(fixture);
-
-                    // Second leg — home/away swapped
-                    if (tournament.HasTwoLegs)
-                    {
-                        var secondLeg = new TournamentFixtureEntity
+                        .AddAsync(new TournamentFixtureEntity
                         {
                             GroupId = dummyGroup.Id,
                             RoundId = null,
-                            HomeTeamId = away.Id,
-                            AwayTeamId = home.Id,
+                            HomeTeamId = seededTeams[i].Id,
+                            AwayTeamId = seededTeams[j].Id,
                             Status = MatchStatus.Scheduled,
-                            LegNumber = 2
-                        };
+                            LegNumber = tournament.HasTwoLegs ? 1 : null
+                        });
 
+                    if (tournament.HasTwoLegs)
                         await _unitOfWork.Repository<TournamentFixtureEntity>()
-                            .AddAsync(secondLeg);
-                    }
+                            .AddAsync(new TournamentFixtureEntity
+                            {
+                                GroupId = dummyGroup.Id,
+                                RoundId = null,
+                                HomeTeamId = seededTeams[j].Id,
+                                AwayTeamId = seededTeams[i].Id,
+                                Status = MatchStatus.Scheduled,
+                                LegNumber = 2
+                            });
                 }
             }
 
@@ -541,13 +483,11 @@ namespace Koralytics.Application.Services.Tournament
         // HELPERS
         // ─────────────────────────────────────────────────────────────
 
-        // Pairs seed 1 vs seed N, seed 2 vs seed N-1, etc.
-        private List<(TournamentTeamEntity Home, TournamentTeamEntity Away)>
+        private List<(TournamentTeamEntity, TournamentTeamEntity)>
             PairTeamsBySeeding(List<TournamentTeamEntity> seededTeams)
         {
             var pairs = new List<(TournamentTeamEntity, TournamentTeamEntity)>();
-            int left = 0;
-            int right = seededTeams.Count - 1;
+            int left = 0, right = seededTeams.Count - 1;
 
             while (left < right)
             {
@@ -559,8 +499,6 @@ namespace Koralytics.Application.Services.Tournament
             return pairs;
         }
 
-        // Creates seeding pots — divides teams into N pots of equal size
-        // Pot 1 = top seeds, Pot 2 = next seeds, etc.
         private List<List<TournamentTeamEntity>> CreateSeedingPots(
             List<TournamentTeamEntity> seededTeams, int groupCount)
         {
@@ -568,17 +506,11 @@ namespace Koralytics.Application.Services.Tournament
             int potSize = seededTeams.Count / groupCount;
 
             for (int i = 0; i < groupCount; i++)
-            {
-                pots.Add(seededTeams
-                    .Skip(i * potSize)
-                    .Take(potSize)
-                    .ToList());
-            }
+                pots.Add(seededTeams.Skip(i * potSize).Take(potSize).ToList());
 
             return pots;
         }
 
-        // Assigns one team from each pot to each group randomly
         private Dictionary<TournamentGroupEntity, List<TournamentTeamEntity>>
             AssignTeamsToGroups(
                 List<TournamentGroupEntity> groups,
@@ -590,27 +522,19 @@ namespace Koralytics.Application.Services.Tournament
 
             foreach (var pot in pots)
             {
-                // Shuffle the pot for randomness
                 var shuffled = pot.OrderBy(_ => _random.Next()).ToList();
-
                 for (int i = 0; i < groups.Count && i < shuffled.Count; i++)
-                {
                     assignments[groups[i]].Add(shuffled[i]);
-                }
             }
 
             return assignments;
         }
 
-        // Generates group names: Group A, Group B, Group C...
-        private List<string> GenerateGroupNames(int count)
-        {
-            return Enumerable.Range(0, count)
+        private List<string> GenerateGroupNames(int count) =>
+            Enumerable.Range(0, count)
                 .Select(i => $"Group {(char)('A' + i)}")
                 .ToList();
-        }
 
-        // Returns round name based on remaining team count
         private string GetRoundName(int teamCount) => teamCount switch
         {
             2 => "Final",
@@ -620,7 +544,6 @@ namespace Koralytics.Application.Services.Tournament
             _ => $"Round of {teamCount}"
         };
 
-        // Checks if a number is a power of 2
         private bool IsPowerOfTwo(int n) =>
             n > 0 && (n & (n - 1)) == 0;
     }

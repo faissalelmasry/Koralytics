@@ -1,4 +1,5 @@
-﻿using Koralytics.Application.DTOs.Tournaments;
+﻿using Koralytics.Application.DTOs.Tournament;
+using Koralytics.Application.DTOs.Tournaments;
 using Koralytics.Application.Interfaces;
 using Koralytics.Application.Interfaces.Tournament;
 using Koralytics.Domain.Enums;
@@ -9,7 +10,6 @@ using MatchPlayerRatingEntity = Koralytics.Domain.Entities.Match.MatchPlayerRati
 using TournamentEntity = Koralytics.Domain.Entities.Tournamet.Tournament;
 using TournamentFixtureEntity = Koralytics.Domain.Entities.Tournamet.TournamentFixture;
 using TournamentGroupEntity = Koralytics.Domain.Entities.Tournamet.TournamentGroup;
-using TournamentGroupTeamEntity = Koralytics.Domain.Entities.Tournamet.TournamentGroupTeam;
 using TournamentHallOfFameEntity = Koralytics.Domain.Entities.Tournamet.TournamentHallOfFame;
 using TournamentRoundEntity = Koralytics.Domain.Entities.Tournamet.TournamentRound;
 using TournamentStandingEntity = Koralytics.Domain.Entities.Tournamet.TournamentStanding;
@@ -34,7 +34,6 @@ namespace Koralytics.Application.Services.Tournament
             _logger.LogInformation(
                 "Completing tournament {TournamentId}", tournamentId);
 
-            // Validate tournament exists and is in progress
             var tournament = await _unitOfWork.Repository<TournamentEntity>()
                 .FindAsync(t => t.Id == tournamentId);
 
@@ -42,51 +41,66 @@ namespace Koralytics.Application.Services.Tournament
                 throw new NotFoundException(
                     $"Tournament with Id {tournamentId} not found");
 
+            // Check not already completed
+            if (tournament.Status == TournamentStatus.Completed)
+                throw new ConflictException(
+                    "Tournament is already completed");
+
             if (tournament.Status != TournamentStatus.InProgress)
                 throw new BadRequestException(
                     "Tournament must be InProgress to complete it");
 
-            // Validate all fixtures are completed
-            var hasIncomplete = await _unitOfWork.Repository<TournamentFixtureEntity>()
+            // Validate all fixtures completed
+            var hasIncomplete = await _unitOfWork
+                .Repository<TournamentFixtureEntity>()
                 .ExistsAsync(f =>
                     f.Status != MatchStatus.Completed &&
                     (f.Round != null
                         ? f.Round.TournamentId == tournamentId
-                        : f.Group != null && f.Group.TournamentId == tournamentId));
+                        : f.Group != null &&
+                          f.Group.TournamentId == tournamentId));
 
             if (hasIncomplete)
                 throw new BadRequestException(
                     "All fixtures must be completed before completing the tournament");
 
-            // Determine tournament winner from final fixture
-            var finalWinnerId = await GetTournamentWinnerAsync(tournamentId, tournament);
+            // Determine winner
+            var finalWinnerId = await GetTournamentWinnerAsync(
+                tournamentId, tournament);
 
             if (finalWinnerId is null)
                 throw new BadRequestException(
-                    "Could not determine tournament winner. " +
-                    "Ensure final fixture has a winner");
+                    "Could not determine tournament winner");
 
-            // Build Hall of Fame records
-            await CreateHallOfFameAsync(tournamentId, finalWinnerId.Value);
+            // Wrap in transaction
+            using var transaction = await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+                await CreateHallOfFameAsync(tournamentId, finalWinnerId.Value);
 
-            // Mark tournament as completed
-            tournament.Status = TournamentStatus.Completed;
-            await _unitOfWork.SaveChangesAsync();
+                tournament.Status = TournamentStatus.Completed;
+                await _unitOfWork.SaveChangesAsync();
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
 
-            // TODO: trigger AIReportService.GenerateTournamentReportAsync(tournamentId)
-            // once Faissal's AI service is implemented
+            // TODO: trigger AIReportService.GenerateTournamentReportAsync()
+            // Add try-catch here when implemented so AI failure doesn't
+            // roll back the tournament completion
 
             _logger.LogInformation(
                 "Tournament {TournamentId} completed successfully", tournamentId);
         }
 
-  
         public async Task<BracketDto> GetBracketAsync(int tournamentId)
         {
             _logger.LogInformation(
                 "Fetching bracket for tournament {TournamentId}", tournamentId);
 
-            // Validate tournament exists
             var tournament = await _unitOfWork.Repository<TournamentEntity>()
                 .GetQueryable()
                 .Include(t => t.AgeGroup)
@@ -96,42 +110,37 @@ namespace Koralytics.Application.Services.Tournament
                 throw new NotFoundException(
                     $"Tournament with Id {tournamentId} not found");
 
-            var bracketDto = new BracketDto
+            return new BracketDto
             {
                 TournamentId = tournament.Id,
                 TournamentName = tournament.Name,
-                Status = tournament.Status
+                Status = tournament.Status,
+                Groups = await GetGroupStandingsAsync(tournamentId),
+                Rounds = await GetRoundsAsync(tournamentId)
             };
-
-            // Fetch group stage data
-            bracketDto.Groups = await GetGroupStandingsAsync(tournamentId);
-
-            // Fetch knockout rounds data
-            bracketDto.Rounds = await GetRoundsAsync(tournamentId);
-
-            return bracketDto;
         }
 
+        // ─────────────────────────────────────────────────────────────
+        // PRIVATE HELPERS
+        // ─────────────────────────────────────────────────────────────
+
         private async Task<int?> GetTournamentWinnerAsync(
-            int tournamentId,
-            TournamentEntity tournament)
+            int tournamentId, TournamentEntity tournament)
         {
-            // For Knockout and GroupAndKnockout — winner is from final round fixture
             if (tournament.Structure == TournamentStructure.Knockout ||
                 tournament.Structure == TournamentStructure.GroupAndKnockout)
             {
-                // Get the last round (highest round number)
-                var finalRound = await _unitOfWork.Repository<TournamentRoundEntity>()
+                var finalRound = await _unitOfWork
+                    .Repository<TournamentRoundEntity>()
                     .GetQueryable()
                     .Where(r => r.TournamentId == tournamentId)
                     .OrderByDescending(r => r.RoundNumber)
                     .FirstOrDefaultAsync();
 
-                if (finalRound is null)
-                    return null;
+                if (finalRound is null) return null;
 
-                // Get the final fixture winner
-                var finalFixture = await _unitOfWork.Repository<TournamentFixtureEntity>()
+                var finalFixture = await _unitOfWork
+                    .Repository<TournamentFixtureEntity>()
                     .GetQueryable()
                     .Where(f =>
                         f.RoundId == finalRound.Id &&
@@ -142,18 +151,18 @@ namespace Koralytics.Application.Services.Tournament
                 return finalFixture?.WinnerTeamId;
             }
 
-            // For League — winner is team with most points in dummy group
             if (tournament.Structure == TournamentStructure.League)
             {
-                var dummyGroup = await _unitOfWork.Repository<TournamentGroupEntity>()
+                var dummyGroup = await _unitOfWork
+                    .Repository<TournamentGroupEntity>()
                     .FindAsync(g =>
                         g.TournamentId == tournamentId &&
                         g.IsDummy == true);
 
-                if (dummyGroup is null)
-                    return null;
+                if (dummyGroup is null) return null;
 
-                var topTeam = await _unitOfWork.Repository<TournamentStandingEntity>()
+                var topTeam = await _unitOfWork
+                    .Repository<TournamentStandingEntity>()
                     .GetQueryable()
                     .Where(s => s.GroupId == dummyGroup.Id)
                     .OrderByDescending(s => s.Points)
@@ -170,7 +179,6 @@ namespace Koralytics.Application.Services.Tournament
         private async Task CreateHallOfFameAsync(
             int tournamentId, int winnerTournamentTeamId)
         {
-            // Fetch all matches in this tournament
             var tournamentMatchIds = await _unitOfWork
                 .Repository<TournamentFixtureEntity>()
                 .GetQueryable()
@@ -178,75 +186,92 @@ namespace Koralytics.Application.Services.Tournament
                     f.MatchId != null &&
                     (f.Round != null
                         ? f.Round.TournamentId == tournamentId
-                        : f.Group != null && f.Group.TournamentId == tournamentId))
+                        : f.Group != null &&
+                          f.Group.TournamentId == tournamentId))
                 .Select(f => f.MatchId!.Value)
                 .ToListAsync();
 
-            if (tournamentMatchIds.Count == 0)
-                return;
+            if (tournamentMatchIds.Count == 0) return;
 
-            // Fetch all player ratings for tournament matches
-            var allRatings = await _unitOfWork.Repository<MatchPlayerRatingEntity>()
+            var allRatings = await _unitOfWork
+                .Repository<MatchPlayerRatingEntity>()
                 .GetQueryable()
                 .Where(r => tournamentMatchIds.Contains(r.MatchId))
                 .ToListAsync();
 
-            if (allRatings.Count == 0)
-                return;
+            if (allRatings.Count == 0) return;
 
             var hallOfFameRecords = new List<TournamentHallOfFameEntity>();
 
-            // Top Scorer — most goals
+            // Top Scorer — Goals → Assists → AvgRating
             var topScorer = allRatings
                 .GroupBy(r => r.PlayerId)
-                .OrderByDescending(g => g.Sum(r => r.Goals))
+                .Select(g => new
+                {
+                    PlayerId = g.Key,
+                    Goals = g.Sum(r => r.Goals),
+                    Assists = g.Sum(r => r.Assists),
+                    AvgRating = g.Average(r => (double)r.Rating)
+                })
+                .OrderByDescending(x => x.Goals)
+                .ThenByDescending(x => x.Assists)
+                .ThenByDescending(x => x.AvgRating)
                 .FirstOrDefault();
 
             if (topScorer != null)
-            {
                 hallOfFameRecords.Add(new TournamentHallOfFameEntity
                 {
                     TournamentId = tournamentId,
-                    PlayerId = topScorer.Key,
+                    PlayerId = topScorer.PlayerId,
                     AwardType = "TopScorer"
                 });
-            }
 
-            // Most Assists
+            // Most Assists — Assists → Goals → AvgRating
             var mostAssists = allRatings
                 .GroupBy(r => r.PlayerId)
-                .OrderByDescending(g => g.Sum(r => r.Assists))
+                .Select(g => new
+                {
+                    PlayerId = g.Key,
+                    Assists = g.Sum(r => r.Assists),
+                    Goals = g.Sum(r => r.Goals),
+                    AvgRating = g.Average(r => (double)r.Rating)
+                })
+                .OrderByDescending(x => x.Assists)
+                .ThenByDescending(x => x.Goals)
+                .ThenByDescending(x => x.AvgRating)
                 .FirstOrDefault();
 
             if (mostAssists != null)
-            {
                 hallOfFameRecords.Add(new TournamentHallOfFameEntity
                 {
                     TournamentId = tournamentId,
-                    PlayerId = mostAssists.Key,
+                    PlayerId = mostAssists.PlayerId,
                     AwardType = "MostAssists"
                 });
-            }
 
-            // Most MOTM
+            // Most MOTM — MOTM count → AvgRating
             var mostMOTM = allRatings
                 .Where(r => r.IsMOTM)
                 .GroupBy(r => r.PlayerId)
-                .OrderByDescending(g => g.Count())
+                .Select(g => new
+                {
+                    PlayerId = g.Key,
+                    MOTMCount = g.Count(),
+                    AvgRating = g.Average(r => (double)r.Rating)
+                })
+                .OrderByDescending(x => x.MOTMCount)
+                .ThenByDescending(x => x.AvgRating)
                 .FirstOrDefault();
 
             if (mostMOTM != null)
-            {
                 hallOfFameRecords.Add(new TournamentHallOfFameEntity
                 {
                     TournamentId = tournamentId,
-                    PlayerId = mostMOTM.Key,
+                    PlayerId = mostMOTM.PlayerId,
                     AwardType = "MostMOTM"
                 });
-            }
 
-            // Best Goalkeeper — highest avg rating among goalkeepers
-            // Fetch player positions to identify goalkeepers
+            // Best Goalkeeper — AvgRating → MinutesPlayed
             var playerIds = allRatings
                 .Select(r => r.PlayerId)
                 .Distinct()
@@ -267,35 +292,47 @@ namespace Koralytics.Application.Services.Tournament
                 var bestGoalkeeper = allRatings
                     .Where(r => goalkeeperIds.Contains(r.PlayerId))
                     .GroupBy(r => r.PlayerId)
-                    .OrderByDescending(g => g.Average(r => r.Rating))
+                    .Select(g => new
+                    {
+                        PlayerId = g.Key,
+                        AvgRating = g.Average(r => (double)r.Rating),
+                        TotalMinutes = g.Sum(r => r.MinutesPlayed)
+                    })
+                    .OrderByDescending(x => x.AvgRating)
+                    .ThenByDescending(x => x.TotalMinutes)
                     .FirstOrDefault();
 
                 if (bestGoalkeeper != null)
-                {
                     hallOfFameRecords.Add(new TournamentHallOfFameEntity
                     {
                         TournamentId = tournamentId,
-                        PlayerId = bestGoalkeeper.Key,
+                        PlayerId = bestGoalkeeper.PlayerId,
                         AwardType = "BestGoalkeeper"
                     });
-                }
             }
 
-            // Best Player — highest avg rating overall
+            // Best Player — AvgRating → Goals → Assists
             var bestPlayer = allRatings
                 .GroupBy(r => r.PlayerId)
-                .OrderByDescending(g => g.Average(r => r.Rating))
+                .Select(g => new
+                {
+                    PlayerId = g.Key,
+                    AvgRating = g.Average(r => (double)r.Rating),
+                    Goals = g.Sum(r => r.Goals),
+                    Assists = g.Sum(r => r.Assists)
+                })
+                .OrderByDescending(x => x.AvgRating)
+                .ThenByDescending(x => x.Goals)
+                .ThenByDescending(x => x.Assists)
                 .FirstOrDefault();
 
             if (bestPlayer != null)
-            {
                 hallOfFameRecords.Add(new TournamentHallOfFameEntity
                 {
                     TournamentId = tournamentId,
-                    PlayerId = bestPlayer.Key,
+                    PlayerId = bestPlayer.PlayerId,
                     AwardType = "BestPlayer"
                 });
-            }
 
             await _unitOfWork.Repository<TournamentHallOfFameEntity>()
                 .AddRangeAsync(hallOfFameRecords);
@@ -318,8 +355,8 @@ namespace Koralytics.Application.Services.Tournament
                     .ThenInclude(f => f.AwayTeam)
                         .ThenInclude(tt => tt.Team)
                 .Include(g => g.TournamentFixtures)
-                    .ThenInclude(f => f.WinnerTeam)
-                        .ThenInclude(tt => tt!.Team)
+                    .ThenInclude(f => f.WinnerTeam!)
+                        .ThenInclude(tt => tt.Team)
                 .Where(g => g.TournamentId == tournamentId)
                 .ToListAsync();
 
@@ -345,7 +382,7 @@ namespace Koralytics.Application.Services.Tournament
                         Points = s.Points
                     }).ToList(),
                 Fixtures = g.TournamentFixtures
-                    .Select(f => MapFixtureToDto(f))
+                    .Select(MapFixtureToDto)
                     .ToList()
             }).ToList();
         }
@@ -361,8 +398,8 @@ namespace Koralytics.Application.Services.Tournament
                     .ThenInclude(f => f.AwayTeam)
                         .ThenInclude(tt => tt.Team)
                 .Include(r => r.TournamentFixtures)
-                    .ThenInclude(f => f.WinnerTeam)
-                        .ThenInclude(tt => tt!.Team)
+                    .ThenInclude(f => f.WinnerTeam!)
+                        .ThenInclude(tt => tt.Team)
                 .Where(r => r.TournamentId == tournamentId)
                 .OrderBy(r => r.RoundNumber)
                 .ToListAsync();
@@ -373,22 +410,21 @@ namespace Koralytics.Application.Services.Tournament
                 RoundName = r.Name,
                 RoundNumber = r.RoundNumber,
                 Fixtures = r.TournamentFixtures
-                    .Select(f => MapFixtureToDto(f))
+                    .Select(MapFixtureToDto)
                     .ToList()
             }).ToList();
         }
 
-        private FixtureDto MapFixtureToDto(TournamentFixtureEntity f) =>
-            new()
-            {
-                FixtureId = f.Id,
-                HomeTeamName = f.HomeTeam.Team.Name,
-                AwayTeamName = f.AwayTeam.Team.Name,
-                HomeScore = f.HomeScore,
-                AwayScore = f.AwayScore,
-                WinnerTeamName = f.WinnerTeam?.Team.Name,
-                Status = f.Status,
-                LegNumber = f.LegNumber
-            };
+        private FixtureDto MapFixtureToDto(TournamentFixtureEntity f) => new()
+        {
+            FixtureId = f.Id,
+            HomeTeamName = f.HomeTeam.Team.Name,
+            AwayTeamName = f.AwayTeam.Team.Name,
+            HomeScore = f.HomeScore,
+            AwayScore = f.AwayScore,
+            WinnerTeamName = f.WinnerTeam?.Team.Name,
+            Status = f.Status,
+            LegNumber = f.LegNumber
+        };
     }
 }

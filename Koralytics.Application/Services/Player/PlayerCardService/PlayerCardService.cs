@@ -19,13 +19,13 @@ namespace Koralytics.Application.Services.Player.PlayerCardService
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<PlayerCardService> _logger;
         private readonly IMapper _mapper;
-        private readonly CardInvalidationList _invalidationList;
+        private readonly ICardInvalidationList _invalidationList;
 
         public PlayerCardService(
             IUnitOfWork unitOfWork,
             ILogger<PlayerCardService> logger,
             IMapper mapper,
-            CardInvalidationList invalidationList)
+            ICardInvalidationList invalidationList)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;

@@ -25,7 +25,7 @@ namespace Koralytics.Application.UnitTests.Player
         private readonly Mock<IUnitOfWork> _unitOfWorkMock;
         private readonly Mock<IMapper> _mapperMock;
         private readonly Mock<ILogger<PlayerCardService>> _loggerMock;
-        private readonly Mock<CardInvalidationList> _invalidationListMock;
+        private readonly Mock<ICardInvalidationList> _invalidationListMock;
 
         private readonly PlayerCardService _service;
 
@@ -38,6 +38,7 @@ namespace Koralytics.Application.UnitTests.Player
             var scopeFactoryMock = new Mock<Microsoft.Extensions.DependencyInjection.IServiceScopeFactory>();
             var listLoggerMock = new Mock<ILogger<CardInvalidationList>>();
             _invalidationListMock = new Mock<CardInvalidationList>(scopeFactoryMock.Object, listLoggerMock.Object);
+            _invalidationListMock = new Mock<ICardInvalidationList>();
 
             _service = new PlayerCardService(
                 _unitOfWorkMock.Object,

@@ -18,10 +18,13 @@ namespace Koralytics.Domain.Entities.Match
 
         public bool IsStarting { get; set; }
 
-        public int? JerseyNumber { get; set; }
+                public int? JerseyNumber { get; set; }
 
+        public bool? IsHomeSide { get; set; }
 
         public Match Match { get; set; } = default!;
+
+
 
         public Player.Player Player { get; set; } = default!;
 

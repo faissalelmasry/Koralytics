@@ -1,9 +1,10 @@
 ﻿using AutoMapper;
 using TournamentEntity = Koralytics.Domain.Entities.Tournamet.Tournament;
-using AcademyEntity = Koralytics.Domain.Entities.Academy.Academy;
 using TournamentGroupEntity = Koralytics.Domain.Entities.Tournamet.TournamentGroup;
 using TournamentTeamEntity = Koralytics.Domain.Entities.Tournamet.TournamentTeam;
 using TournamentSquadEntity = Koralytics.Domain.Entities.Tournamet.TournamentSquad;
+using PlayerTeamEntity = Koralytics.Domain.Entities.Player.PlayerTeam;
+using AcademyEntity= Koralytics.Domain.Entities.Academy.Academy;
 using Koralytics.Application.DTOs.Tournament;
 using Koralytics.Application.Interfaces;
 using Koralytics.Application.Interfaces.Tournament;
@@ -30,22 +31,7 @@ namespace Koralytics.Application.Services.Tournament
             _mapper = mapper;
             _logger = logger;
         }
-        public async Task UpdateStatusAsync(int tournamentId, TournamentStatus status)
-        {
-            var tournament = await _unitOfWork.Repository<TournamentEntity>()
-                .FindAsync(t => t.Id == tournamentId);
 
-            if (tournament is null)
-                throw new NotFoundException(
-                    $"Tournament with Id {tournamentId} not found");
-
-            tournament.Status = status;
-            await _unitOfWork.SaveChangesAsync();
-
-            _logger.LogInformation(
-                "Tournament {Id} status updated to {Status}",
-                tournamentId, status);
-        }
         public async Task<TournamentDto> CreateTournamentAsync(
             CreateTournamentDto dto, int requestingUserId)
         {
@@ -74,38 +60,51 @@ namespace Koralytics.Application.Services.Tournament
                 throw new ConflictException(
                     $"Tournament with name '{dto.Name}' already exists");
 
-            // Map and create tournament
-            var tournament = _mapper.Map<TournamentEntity>(dto);
-            tournament.Status = TournamentStatus.Registration;
-
-            await _unitOfWork.Repository<TournamentEntity>().AddAsync(tournament);
-            await _unitOfWork.SaveChangesAsync();
-
-            // If structure is League → auto create dummy group
-            if (dto.Structure == TournamentStructure.League)
+            // Wrap in transaction — tournament + dummy group must be atomic
+            using var transaction = await _unitOfWork.BeginTransactionAsync();
+            try
             {
-                var dummyGroup = new TournamentGroupEntity
-                {
-                    TournamentId = tournament.Id,
-                    Name = "League",
-                    IsDummy = true
-                };
-                await _unitOfWork.Repository<TournamentGroupEntity>()
-                    .AddAsync(dummyGroup);
+                // Map and create tournament
+                var tournament = _mapper.Map<TournamentEntity>(dto);
+                tournament.Status = TournamentStatus.Draft;
+
+                await _unitOfWork.Repository<TournamentEntity>()
+                    .AddAsync(tournament);
                 await _unitOfWork.SaveChangesAsync();
+
+                // If structure is League → auto create dummy group
+                if (dto.Structure == TournamentStructure.League)
+                {
+                    var dummyGroup = new TournamentGroupEntity
+                    {
+                        TournamentId = tournament.Id,
+                        Name = "League",
+                        IsDummy = true
+                    };
+                    await _unitOfWork.Repository<TournamentGroupEntity>()
+                        .AddAsync(dummyGroup);
+                    await _unitOfWork.SaveChangesAsync();
+                }
+
+                await transaction.CommitAsync();
+
+                // Reload with AgeGroup for mapping
+                var created = await _unitOfWork.Repository<TournamentEntity>()
+                    .GetQueryable()
+                    .Include(t => t.AgeGroup)
+                    .FirstOrDefaultAsync(t => t.Id == tournament.Id);
+
+                _logger.LogInformation(
+                    "Tournament {Name} created successfully with Id {Id}",
+                    tournament.Name, tournament.Id);
+
+                return _mapper.Map<TournamentDto>(created!);
             }
-
-            // Reload with AgeGroup for mapping
-            var created = await _unitOfWork.Repository<TournamentEntity>()
-                .GetQueryable()
-                .Include(t => t.AgeGroup)
-                .FirstOrDefaultAsync(t => t.Id == tournament.Id);
-
-            _logger.LogInformation(
-                "Tournament {Name} created successfully with Id {Id}",
-                tournament.Name, tournament.Id);
-
-            return _mapper.Map<TournamentDto>(created!);
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         public async Task InviteAcademyAsync(int tournamentId, int academyId)
@@ -236,34 +235,57 @@ namespace Koralytics.Application.Services.Tournament
                 throw new BadRequestException(
                     "Duplicate players found in squad registration");
 
-            // Validate player count matches format
+            // Validate minimum player count matches format
+            var minPlayers = (int)tournament.Format;
+            if (playerIds.Count < minPlayers)
+                throw new BadRequestException(
+                    $"Squad must have at least {minPlayers} players " +
+                    $"for {tournament.Format} format");
+
+            // Validate maximum player count
             var maxPlayers = (int)tournament.Format + 5;
             if (playerIds.Count > maxPlayers)
                 throw new BadRequestException(
-                    $"Squad exceeds maximum allowed players for {tournament.Format} format");
+                    $"Squad exceeds maximum allowed players " +
+                    $"for {tournament.Format} format");
 
-            // Validate each player not already registered in this tournament
+            // Validate each player belongs to the team
+            // and is not already registered in this tournament
             foreach (var playerId in playerIds)
             {
-                var alreadyRegistered = await _unitOfWork.Repository<TournamentSquadEntity>()
+                // Check player belongs to this team
+                var belongsToTeam = await _unitOfWork.Repository<PlayerTeamEntity>()
+                    .ExistsAsync(pt =>
+                        pt.PlayerId == playerId &&
+                        pt.TeamId == teamId &&
+                        pt.LeftAt == null);
+
+                if (!belongsToTeam)
+                    throw new BadRequestException(
+                        $"Player {playerId} does not belong to team {teamId}");
+
+                // Check player not already registered in this tournament
+                var alreadyRegistered = await _unitOfWork
+                    .Repository<TournamentSquadEntity>()
                     .ExistsAsync(ts =>
                         ts.TournamentId == tournamentId &&
                         ts.PlayerId == playerId);
 
                 if (alreadyRegistered)
                     throw new ConflictException(
-                        $"Player with Id {playerId} is already " +
-                        $"registered in this tournament");
+                        $"Player {playerId} is already registered " +
+                        $"in this tournament");
             }
 
             // Create squad records
-            var squadRecords = playerIds.Select(playerId => new TournamentSquadEntity
-            {
-                TournamentId = tournamentId,
-                TeamId = teamId,
-                PlayerId = playerId,
-                RegisteredAt = DateTime.UtcNow
-            }).ToList();
+            var squadRecords = playerIds.Select(playerId =>
+                new TournamentSquadEntity
+                {
+                    TournamentId = tournamentId,
+                    TeamId = teamId,
+                    PlayerId = playerId,
+                    RegisteredAt = DateTime.UtcNow
+                }).ToList();
 
             await _unitOfWork.Repository<TournamentSquadEntity>()
                 .AddRangeAsync(squadRecords);
@@ -273,6 +295,24 @@ namespace Koralytics.Application.Services.Tournament
                 "Successfully registered {Count} players for team {TeamId} " +
                 "in tournament {TournamentId}",
                 playerIds.Count, teamId, tournamentId);
+        }
+
+        public async Task UpdateStatusAsync(
+            int tournamentId, TournamentStatus status)
+        {
+            var tournament = await _unitOfWork.Repository<TournamentEntity>()
+                .FindAsync(t => t.Id == tournamentId);
+
+            if (tournament is null)
+                throw new NotFoundException(
+                    $"Tournament with Id {tournamentId} not found");
+
+            tournament.Status = status;
+            await _unitOfWork.SaveChangesAsync();
+
+            _logger.LogInformation(
+                "Tournament {Id} status updated to {Status}",
+                tournamentId, status);
         }
     }
 }
