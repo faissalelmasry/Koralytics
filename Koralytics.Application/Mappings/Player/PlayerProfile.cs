@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Koralytics.Application.DTOs.Player;
 using Koralytics.Domain.Entities.Drill;
 using Koralytics.Domain.Entities.Match;
@@ -26,6 +26,7 @@ namespace Koralytics.Application.Mappings.Player
                 .ForMember(d => d.TournamentStats, o => o.Ignore());
 
             CreateMap<PlayerPosition, PlayerPositionDto>();
+            CreateMap<PlayerHighlight, PlayerHighlightDto>();
 
             CreateMap<PlayerAcademy, PlayerAcademyDto>()
                 .ForMember(d => d.AcademyName,

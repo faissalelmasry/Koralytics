@@ -1,4 +1,5 @@
 using AutoMapper;
+using Amazon.S3;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Koralytics.API.Middlewares;
@@ -55,6 +56,8 @@ using Koralytics.Application.Services.ScouterServices.ScouterReportService;
 using Koralytics.Application.Services.ScouterServices.ScouterSearchService;
 using Koralytics.Application.Services.ScouterServices.ScouterShortlistService;
 using Koralytics.Application.Mappings.ScouterProfile;
+using Koralytics.Application.Services.Storage;
+using Koralytics.Application.Options;
 
 namespace Koralytics.API
 {
@@ -111,6 +114,28 @@ namespace Koralytics.API
             builder.Services.AddAuthorization();
             builder.Services.AddProblemDetails();
             builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+            builder.Services.Configure<CloudflareR2Options>(
+                builder.Configuration.GetSection(CloudflareR2Options.SectionName));
+
+            builder.Services.AddSingleton<IAmazonS3>(sp =>
+            {
+                var config = sp.GetRequiredService<IConfiguration>();
+                var section = config.GetSection(CloudflareR2Options.SectionName);
+                var accessKey = section["AccessKeyId"]
+                    ?? throw new InvalidOperationException("CloudflareR2:AccessKeyId is missing from configuration.");
+                var secretKey = section["SecretAccessKey"]
+                    ?? throw new InvalidOperationException("CloudflareR2:SecretAccessKey is missing from configuration.");
+                var endpoint = section["Endpoint"]
+                    ?? throw new InvalidOperationException("CloudflareR2:Endpoint is missing from configuration.");
+
+                var s3Config = new AmazonS3Config
+                {
+                    ServiceURL = endpoint,
+                    ForcePathStyle = true
+                };
+                return new AmazonS3Client(accessKey, secretKey, s3Config);
+            });
+
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
             builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
@@ -141,6 +166,7 @@ namespace Koralytics.API
             builder.Services.AddScoped<IScouterShortlistService, ScouterShortlistService>();
             builder.Services.AddScoped<IScouterFollowService, ScouterFollowService>();
             builder.Services.AddScoped<IScouterReportService, ScouterReportService>();
+            builder.Services.AddScoped<IStorageService, StorageService>();
 
             // Register FluentValidation validators
             builder.Services.AddValidatorsFromAssemblyContaining<LoginRequestValidator>();
