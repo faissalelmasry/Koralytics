@@ -22,6 +22,9 @@ namespace Koralytics.Domain.Entities.Match
         public MatchEventType EventType { get; set; }
 
         public int Minute { get; set; }
+
+        public bool? IsHomeSide { get; set; }
+
         public Match Match { get; set; } = default!;
         public Team Team { get; set; } = default!;
 

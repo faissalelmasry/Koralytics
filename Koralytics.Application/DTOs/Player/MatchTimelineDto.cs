@@ -19,6 +19,8 @@ namespace Koralytics.Application.DTOs.Player
         public string? AwayTeamName { get; set; }
         public int HomeScore { get; set; }
         public int AwayScore { get; set; }
+        public int? HomePenaltyScore { get; set; }
+        public int? AwayPenaltyScore { get; set; }
         public int Goals { get; set; }
         public int Assists { get; set; }
         public int MinutesPlayed { get; set; }

@@ -205,15 +205,23 @@ namespace Koralytics.Application.Services.Player.PlayerProfileServices
                 .Select(mpr => new MatchTimelineEvent
                 {
                     Date = mpr.Match!.MatchDate,
-                    Title = (mpr.Match!.HomeTeam != null ? mpr.Match.HomeTeam.Name : "TBD")
-                        + " vs "
-                        + (mpr.Match.AwayTeam != null ? mpr.Match.AwayTeam.Name : "TBD"),
+                    Title = mpr.Match!.Type == Domain.Enums.MatchType.Session
+                        ? "Home Side vs Away Side"
+                        : (mpr.Match!.HomeTeam != null ? mpr.Match.HomeTeam.Name : "TBD")
+                            + " vs "
+                            + (mpr.Match.AwayTeam != null ? mpr.Match.AwayTeam.Name : "TBD"),
                     MatchId = mpr.Match!.Id,
                     MatchType = mpr.Match!.Type.ToString(),
-                    HomeTeamName = mpr.Match!.HomeTeam != null ? mpr.Match.HomeTeam.Name : null,
-                    AwayTeamName = mpr.Match!.AwayTeam != null ? mpr.Match.AwayTeam.Name : null,
+                    HomeTeamName = mpr.Match!.Type == Domain.Enums.MatchType.Session
+                        ? "Home Side"
+                        : mpr.Match!.HomeTeam != null ? mpr.Match.HomeTeam.Name : null,
+                    AwayTeamName = mpr.Match!.Type == Domain.Enums.MatchType.Session
+                        ? "Away Side"
+                        : mpr.Match!.AwayTeam != null ? mpr.Match.AwayTeam.Name : null,
                     HomeScore = mpr.Match!.HomeScore,
                     AwayScore = mpr.Match!.AwayScore,
+                    HomePenaltyScore = mpr.Match!.HomePenaltyScore,
+                    AwayPenaltyScore = mpr.Match!.AwayPenaltyScore,
                     Goals = mpr.Goals,
                     Assists = mpr.Assists,
                     MinutesPlayed = mpr.MinutesPlayed,
@@ -230,6 +238,8 @@ namespace Koralytics.Application.Services.Player.PlayerProfileServices
                 if (!(evt.HomeScore == 0 && evt.AwayScore == 0))
                 {
                     evt.Description = $"{evt.HomeScore} - {evt.AwayScore}";
+                    if (evt.HomePenaltyScore.HasValue && evt.AwayPenaltyScore.HasValue)
+                        evt.Description += $" ({evt.HomePenaltyScore} - {evt.AwayPenaltyScore} pen)";
                 }
             }
 

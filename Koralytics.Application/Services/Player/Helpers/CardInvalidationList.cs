@@ -13,7 +13,13 @@ using Microsoft.Extensions.Logging;
 
 namespace Koralytics.Application.Services.Player.Helpers
 {
-    public class CardInvalidationList : IHostedService
+    public interface ICardInvalidationList
+    {
+        void Invalidate(int playerId);
+        bool TryConsume(int playerId);
+    }
+
+    public class CardInvalidationList : ICardInvalidationList, IHostedService
     {
         private readonly ConcurrentDictionary<int, bool> _invalidated = new();
         private readonly IServiceScopeFactory _scopeFactory;
