@@ -1,4 +1,4 @@
-﻿using Koralytics.Domain.Entities.Academy;
+using Koralytics.Domain.Entities.Academy;
 using Koralytics.Domain.Entities.AI;
 using Koralytics.Domain.Entities.Coach;
 using Koralytics.Domain.Entities.Drill;
@@ -22,6 +22,8 @@ namespace Koralytics.Infrastructure.Context
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
         }
+
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
 
         #region Faissal's Entities (Core Player, Match, Tournament)
         public DbSet<Player> Players { get; set; }

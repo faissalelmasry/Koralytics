@@ -1,14 +1,21 @@
 using Koralytics.Application.DTOs.AuthDTOs.LoginDTOs;
 using Koralytics.Application.DTOs.AuthDTOs.RegisterDTOs;
+using Koralytics.Domain.Entities.Identity;
 
 namespace Koralytics.Application.Services.Auth.Register
 {
     public interface IRegistrationService
     {
-        Task<AuthResponseDto> RegisterPlayerAsync(RegisterPlayerRequestDto request);
-        Task<AuthResponseDto> RegisterCoachAsync(RegisterCoachRequestDto request);
-        Task<AuthResponseDto> RegisterScouterAsync(RegisterScouterRequestDto request);
-        Task<AuthResponseDto> RegisterParentAsync(RegisterParentRequestDto request);
-        Task<AuthResponseDto> RegisterAcademyAdminAsync(RegisterAcademyAdminRequestDto request);
+        Task<AuthResultDto> RegisterPlayerAsync(RegisterPlayerRequestDto request);
+        Task<AuthResultDto> RegisterCoachAsync(RegisterCoachRequestDto request);
+        Task<AuthResultDto> RegisterScouterAsync(RegisterScouterRequestDto request);
+        Task<AuthResultDto> RegisterParentAsync(RegisterParentRequestDto request);
+        Task<AuthResultDto> RegisterAcademyAdminAsync(RegisterAcademyAdminRequestDto request);
+        
+        Task CompleteProfileAsPlayerAsync(User existingUser, CompleteProfileAsPlayerDto profileData);
+        Task CompleteProfileAsCoachAsync(User existingUser, CompleteProfileAsCoachDto profileData);
+        Task CompleteProfileAsScouterAsync(User existingUser, CompleteProfileAsScouterDto profileData);
+        Task CompleteProfileAsParentAsync(User existingUser, CompleteProfileAsParentDto profileData);
+        Task CompleteProfileAsAcademyAdminAsync(User existingUser, CompleteProfileAsAcademyAdminDto profileData);
     }
 }

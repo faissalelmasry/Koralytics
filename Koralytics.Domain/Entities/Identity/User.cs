@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,6 +13,8 @@ namespace Koralytics.Domain.Entities.Identity
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string? ProfileImageUrl { get; set; }
+        public string? GoogleId { get; set; }
+        public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
 
         public bool IsDeleted { get; set; }
         public DateTime CreatedAt { get; set; }

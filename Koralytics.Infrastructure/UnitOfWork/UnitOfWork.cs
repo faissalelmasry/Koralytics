@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,6 +7,7 @@ using Koralytics.Application.Interfaces;
 using Koralytics.Domain.Interfaces;
 using Koralytics.Infrastructure.Context;
 using Koralytics.Infrastructure.Repositories;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Koralytics.Infrastructure.UnitOfWork
@@ -36,6 +37,11 @@ namespace Koralytics.Infrastructure.UnitOfWork
         }
         public async Task<int> SaveChangesAsync()
             => await _context.SaveChangesAsync();
+
+        public async Task<int> ExecuteSqlRawAsync(string sql, params object[] parameters)
+        {
+            return await _context.Database.ExecuteSqlRawAsync(sql, parameters);
+        }
 
         public void Dispose()
             => _context.Dispose();

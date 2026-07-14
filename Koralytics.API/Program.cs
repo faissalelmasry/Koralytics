@@ -5,6 +5,11 @@ using Koralytics.API.Middlewares;
 using Koralytics.Application;
 using Koralytics.Application.DTOs.AuthDTOs.RegisterDTOs;
 using Koralytics.Application.Interfaces;
+using Koralytics.Application.Interfaces.Auth;
+using Koralytics.Application.Services.Auth.Token;
+using Koralytics.Application.Services.Auth.OAuth;
+using Koralytics.Application.Options;
+using Koralytics.Infrastructure.ExternalServices;
 using Koralytics.Application.Interfaces.Tournament;
 using Koralytics.Application.Interfaces.Tournaments;
 using Koralytics.Application.Mappings.Auth;
@@ -70,7 +75,19 @@ namespace Koralytics.API
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
+            builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
+
+            builder.Services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(policy =>
+                {
+                    var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
+                    policy.WithOrigins(allowedOrigins)
+                          .AllowAnyHeader()
+                          .AllowAnyMethod()
+                          .AllowCredentials();
+                });
+            });
 
             builder.Services.AddControllers();
             builder.Services.AddIdentity<User, Role>()
@@ -99,6 +116,29 @@ namespace Koralytics.API
             })
                 .AddJwtBearer(options =>
                 {
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnMessageReceived = context =>
+                        {
+                            // Priority 1: Authorization header (Bearer token) — handled automatically by
+                            // the JWT middleware; we only override when the header is absent.
+                            var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
+                            if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                            {
+                                // Let the built-in handler extract the token from the header.
+                                return Task.CompletedTask;
+                            }
+
+                            // Priority 2: access_token cookie — used as a fallback when no header is sent.
+                            var accessToken = context.Request.Cookies["access_token"];
+                            if (!string.IsNullOrEmpty(accessToken))
+                            {
+                                context.Token = accessToken;
+                            }
+
+                            return Task.CompletedTask;
+                        }
+                    };
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuer = true,
@@ -123,6 +163,10 @@ namespace Koralytics.API
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IRegistrationService, RegistrationService>();
+            builder.Services.AddScoped<ITokenService, TokenService>();
+            builder.Services.AddScoped<ICookieService, CookieService>();
+            builder.Services.AddScoped<IOAuthProvider, GoogleOAuthProvider>();
+            builder.Services.AddScoped<IOAuthProviderFactory, OAuthProviderFactory>();
             builder.Services.AddScoped<IPlayerTransferService, PlayerTransferService>();
             builder.Services.AddScoped<IDrillResultService, DrillResultService>();
             builder.Services.AddScoped<IDrillTemplateService, DrillTemplateService>();
@@ -155,16 +199,6 @@ namespace Koralytics.API
 
             // Register FluentValidation validators
             builder.Services.AddValidatorsFromAssemblyContaining<LoginRequestValidator>();
-            builder.Services.AddValidatorsFromAssemblyContaining<ChangePasswordValidator>();
-            builder.Services.AddValidatorsFromAssemblyContaining<BaseRegisterationRequestValidator>();
-            builder.Services.AddValidatorsFromAssemblyContaining<CreateTournamentValidator>();
-            builder.Services.AddValidatorsFromAssemblyContaining<RegisterSquadValidator>();
-            builder.Services.AddValidatorsFromAssemblyContaining<CreateAcademyValidator>();
-            builder.Services.AddValidatorsFromAssemblyContaining<UpdateAcademyValidator>();
-            builder.Services.AddValidatorsFromAssemblyContaining<AddLocationValidator>();
-            builder.Services.AddValidatorsFromAssemblyContaining<CreateAgeGroupValidator>();
-            builder.Services.AddValidatorsFromAssemblyContaining<CreateTeamValidator>();
-            builder.Services.AddValidatorsFromAssemblyContaining<SendAnnouncementValidator>();
             builder.Services.AddScoped<IUserBusinessValidator, UserBusinessValidator>();
 
             builder.Services
@@ -176,12 +210,11 @@ namespace Koralytics.API
             {
                 op.AddProfile<RegisterProfile>();
                 op.AddProfile<DrillMappingProfile>(); // <-- This is the one fixing the 500 Error
+                op.AddProfile<TournamentProfile>();
+                op.AddProfile<AcademyProfile>();
+                op.AddProfile<PlayerProfile>();
+                op.AddProfile<ScouterProfile>();
             });
-            builder.Services.AddAutoMapper(op => op.AddProfile<RegisterProfile>());
-            builder.Services.AddAutoMapper(op => op.AddProfile<TournamentProfile>());
-            builder.Services.AddAutoMapper(op => op.AddProfile<AcademyProfile>());
-            builder.Services.AddAutoMapper(op => op.AddProfile<PlayerProfile>());
-            builder.Services.AddAutoMapper(op=>op.AddProfile<ScouterProfile>());
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
@@ -254,6 +287,7 @@ namespace Koralytics.API
                 app.UseHttpsRedirection();
             }
 
+            app.UseCors();
             app.UseAuthentication();
             app.UseAuthorization();
 
