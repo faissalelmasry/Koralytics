@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Koralytics.Application.DTOs.Player;
 using Koralytics.Application.Services.Player.PlayerCardService;
 using Koralytics.Application.Services.Player.PlayerGoalService;
@@ -8,6 +8,7 @@ using Koralytics.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Koralytics.Application.Services.Storage;
 
 namespace Koralytics.API.Controllers
 {
@@ -18,17 +19,20 @@ namespace Koralytics.API.Controllers
         private readonly IPlayerTransferService _playerTransferService;
         private readonly IPlayerCardService _playerCardService;
         private readonly IPlayerProfileService _playerProfileService;
+        private readonly IStorageService _storageService;
         private readonly IPlayerGoalService _playerGoalService;
 
         public PlayerController(
             IPlayerTransferService playerTransferService,
             IPlayerCardService playerCardService,
             IPlayerProfileService playerProfileService,
+            IStorageService storageService)
             IPlayerGoalService playerGoalService)
         {
             _playerTransferService = playerTransferService;
             _playerCardService = playerCardService;
             _playerProfileService = playerProfileService;
+            _storageService = storageService;
             _playerGoalService = playerGoalService;
         }
         [HttpPatch("{playerId}/availability")]
@@ -185,6 +189,48 @@ namespace Koralytics.API.Controllers
             return Ok(rate);
         }
 
+        [HttpPost("{playerId}/highlights")]
+        [Authorize(Roles = "Player")]
+        public async Task<IActionResult> UploadHighlight(int playerId, [FromForm] int academyId, IFormFile file, [FromForm] string? title)
+        {
+            var requesterId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            if (requesterId != playerId)
+                return Forbid();
+
+            var result = await _storageService.UploadHighlightAsync(playerId, academyId, file, title);
+            return CreatedAtAction(nameof(GetHighlights), new { playerId }, result);
+        }
+
+        [HttpDelete("{playerId}/highlights/{highlightId}")]
+        [Authorize(Roles = "Player")]
+        public async Task<IActionResult> DeleteHighlight(int playerId, int highlightId)
+        {
+            var requesterId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            if (requesterId != playerId)
+                return Forbid();
+
+            await _storageService.DeleteHighlightAsync(highlightId, playerId);
+            return NoContent();
+        }
+
+        [HttpPatch("{playerId}/highlights/{highlightId}/pin")]
+        [Authorize(Roles = "Player")]
+        public async Task<IActionResult> PinHighlight(int playerId, int highlightId)
+        {
+            var requesterId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            if (requesterId != playerId)
+                return Forbid();
+
+            await _storageService.PinHighlightAsync(highlightId, playerId);
+            return NoContent();
+        }
+
+        [HttpGet("{playerId}/highlights")]
+        [Authorize]
+        public async Task<IActionResult> GetHighlights(int playerId)
+        {
+            var highlights = await _storageService.GetHighlightsAsync(playerId);
+            return Ok(highlights);
         [HttpPost("{playerId}/goals")]
         [Authorize(Roles = "Coach,AcademyAdmin")]
         public async Task<IActionResult> CreatePlayerGoal(int playerId, [FromBody] CreatePlayerGoalDto dto)

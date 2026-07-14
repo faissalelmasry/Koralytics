@@ -260,8 +260,11 @@ The database context (`ApplicationDbContext`) inherits from `IdentityDbContext<U
 - `RevokeTempAccessAsync(coachId, accessId)` → validate coach owns record → validate Status ≠ `"Revoked"` → set Status = `"Revoked"` → return `TempAccessDto`
 - `GetActiveGrantsAsync(coachId)` → fetch grants where Status = `"Active"` and `ExpiresAt > now` → return `IEnumerable<TempAccessDto>` newest-first
 
-#### Storage/ (Cloudflare R2) — **⚠️ NOT IMPLEMENTED**
-> `IStorageService` / `StorageService` was planned but **no service file exists** yet. Blocked on Cloudflare R2 integration.
+#### Storage/ (Cloudflare R2) — **✅ IMPLEMENTED**
+- `UploadHighlightAsync(playerId, academyId, file, title)` → validate file size (<100MB) and format (video only) → generate unique file name → upload to Cloudflare R2 via `IAmazonS3` → create `PlayerHighlight` record with `VideoUrl` → return `PlayerHighlightDto`
+- `DeleteHighlightAsync(highlightId, playerId)` → validate player owns highlight → delete from Cloudflare R2 → soft delete `PlayerHighlight` record
+- `PinHighlightAsync(highlightId, playerId)` → unpin any existing pinned highlight for player → set `PlayerHighlight.IsPinned = true`
+- `GetHighlightsAsync(playerId)` → fetch player highlights ordered pinned-first then newest-first
 
 #### Match/ (Youssef's contribution) — **⚠️ NOT IMPLEMENTED**
 > `GetPlayerReadinessAsync` was planned as part of `MatchAnalyticsService` but that service doesn't exist yet.

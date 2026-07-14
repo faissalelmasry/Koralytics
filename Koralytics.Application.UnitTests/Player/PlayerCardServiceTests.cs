@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -34,6 +34,10 @@ namespace Koralytics.Application.UnitTests.Player
             _unitOfWorkMock = new();
             _mapperMock = new();
             _loggerMock = new();
+            
+            var scopeFactoryMock = new Mock<Microsoft.Extensions.DependencyInjection.IServiceScopeFactory>();
+            var listLoggerMock = new Mock<ILogger<CardInvalidationList>>();
+            _invalidationListMock = new Mock<CardInvalidationList>(scopeFactoryMock.Object, listLoggerMock.Object);
             _invalidationListMock = new Mock<ICardInvalidationList>();
 
             _service = new PlayerCardService(
