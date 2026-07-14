@@ -15,6 +15,7 @@ using AutoMapper.QueryableExtensions;
 using AutoMapper;
 using Koralytics.Application.Services.Player.Helpers;
 using Koralytics.Application.Services.Player.PlayerCardService;
+using Koralytics.Application.DTOs.Scouter;
 
 namespace Koralytics.Application.Services.ScouterServices.ScouterSearchService
 {
@@ -38,12 +39,16 @@ namespace Koralytics.Application.Services.ScouterServices.ScouterSearchService
             _playerCardService = playerCardService;
             _invalidationList = invalidationList;
         }
-
         public async Task<PaginatedResult<PlayerCardDto>> SearchPlayersAsync(PlayerSearchFiltersDto filters)
         {
             var query = _unitOfWork.Repository<Domain.Entities.Player.Player>().GetQueryableAsNoTracking();
             var currentYear = DateTime.UtcNow.Year;
-            var playerCardQuery = _unitOfWork.Repository<PlayerCard>().GetQueryableAsNoTracking();
+
+            // FIX: Include CategoryRatings and DrillCategory directly onto the card query pipeline
+            var playerCardQuery = _unitOfWork.Repository<PlayerCard>()
+                .GetQueryableAsNoTracking()
+                .Include(pc => pc.CategoryRatings)
+                    .ThenInclude(cr => cr.DrillCategory);
 
             if (filters != null)
             {
@@ -74,7 +79,6 @@ namespace Koralytics.Application.Services.ScouterServices.ScouterSearchService
                 .Select(p => p.Id)
                 .ToListAsync();
 
-            
             var existingCardsState = await _unitOfWork.Repository<PlayerCard>()
                 .GetQueryableAsNoTracking()
                 .Where(pc => pagedPlayerIds.Contains(pc.PlayerId))
@@ -110,6 +114,7 @@ namespace Koralytics.Application.Services.ScouterServices.ScouterSearchService
                     OverallRating = x.Card != null ? x.Card.OverallRating : 0,
                     TransferClassification = x.Card != null ? x.Card.TransferClassification.ToString() : string.Empty,
 
+                    // Safe navigation added here as well to cleanly handle newly generated cards without crashing
                     PaceRating = x.Card != null ? x.Card.CategoryRatings.Where(cr => cr.DrillCategory.Name == "Speed").Select(cr => (decimal?)cr.Score).FirstOrDefault() : null,
                     ShootingRating = x.Card != null ? x.Card.CategoryRatings.Where(cr => cr.DrillCategory.Name == "Shooting").Select(cr => (decimal?)cr.Score).FirstOrDefault() : null,
                     DribblingRating = x.Card != null ? x.Card.CategoryRatings.Where(cr => cr.DrillCategory.Name == "Dribbling").Select(cr => (decimal?)cr.Score).FirstOrDefault() : null,
@@ -133,6 +138,17 @@ namespace Koralytics.Application.Services.ScouterServices.ScouterSearchService
                 PageNumber = filters.PageNumber,
                 PageSize = filters.PageSize
             };
+        }
+
+
+
+        public async Task<ScouterProfileDto?> GetScouterByIdAsync(int scouterId)
+        {
+            return await _unitOfWork.Repository<Domain.Entities.Scouter.Scouter>()
+                .GetQueryableAsNoTracking()
+                .Where(s => s.Id == scouterId)
+                .ProjectTo<ScouterProfileDto>(_mapper.ConfigurationProvider)
+                .FirstOrDefaultAsync();
         }
     }
 }
