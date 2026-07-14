@@ -112,8 +112,8 @@ namespace Koralytics.Domain.Enums
     {
         PreSeason = 1,
         Regular = 2,
-        OffSeason = 3
-        // Add any others your friends created!
+        OffSeason = 3,
+        SessionMatch = 4
     }
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum MatchEventType
@@ -181,6 +181,14 @@ namespace Koralytics.Domain.Enums
         NeedsWork = 4,
         Developing = 5,
         InsufficientData=0
+    }
+
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public enum MatchRequestStatus
+    {
+        Pending = 1,
+        Accepted = 2,
+        Declined = 3
     }
 
 }

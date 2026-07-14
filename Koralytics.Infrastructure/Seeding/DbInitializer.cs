@@ -1155,6 +1155,29 @@ namespace Koralytics.Infrastructure.Seeding
                 }
                 await context.SaveChangesAsync();
             }
+
+            // ===== MATCH REQUEST: Pending request from Ahly Coach -> Zamalek Team =====
+            if (!await context.MatchRequests.AnyAsync())
+            {
+                var ahlyAc = await context.Academies.FirstAsync(a => a.Name == "Al Ahly Academy");
+                var zamAc = await context.Academies.FirstAsync(a => a.Name == "Zamalek Academy");
+                var ahlyTeam = await context.Teams.FirstAsync(t => t.Name == "U17 Team A" && t.AcademyId == ahlyAc.Id);
+                var zamTeam = await context.Teams.FirstAsync(t => t.Name == "U17 Team A" && t.AcademyId == zamAc.Id);
+                var ahlyCoach = await userManager.FindByEmailAsync("coach@test.com");
+
+                context.MatchRequests.Add(new MatchRequest
+                {
+                    RequesterTeamId = ahlyTeam.Id,
+                    TargetTeamId = zamTeam.Id,
+                    RequesterCoachId = ahlyCoach!.Id,
+                    Format = MatchFormat.ElevenSide,
+                    ProposedDate = DateTime.UtcNow.AddDays(14),
+                    Location = "Test - Pending Friendly Request",
+                    Status = MatchRequestStatus.Pending,
+                    CreatedAt = DateTime.UtcNow
+                });
+                await context.SaveChangesAsync();
+            }
         }
     }
 }

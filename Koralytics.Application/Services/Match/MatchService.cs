@@ -36,6 +36,9 @@ namespace Koralytics.Application.Services.Match
                 "Creating friendly match: HomeTeam {HomeTeamId} vs AwayTeam {AwayTeamId}, Format {Format}",
                 dto.HomeTeamId, dto.AwayTeamId, dto.Format);
 
+            if (dto.HomeTeamId == dto.AwayTeamId)
+                throw new BadRequestException("Home and Away teams cannot be the same.");
+
             var homeTeam = await _unitOfWork.Repository<Team>()
                 .FindAsNoTrackingAsync(t => t.Id == dto.HomeTeamId);
 
@@ -47,6 +50,7 @@ namespace Koralytics.Application.Services.Match
 
             if (awayTeam is null)
                 throw new NotFoundException($"Away team with Id {dto.AwayTeamId} not found");
+
 
             var match = _mapper.Map<MatchEntity>(dto);
             match.Type = DomainEnums.MatchType.Friendly;
@@ -187,64 +191,84 @@ namespace Koralytics.Application.Services.Match
                 .Concat(dto.AwayPlayers.Select(p => p.PlayerId))
                 .ToList();
 
+            var duplicatedPlayers = allPlayerIds
+                .GroupBy(x => x)
+                .Where(g => g.Count() > 1)
+                .Select(g => g.Key)
+                .ToList();
+
+            if (duplicatedPlayers.Any())
+                throw new BadRequestException("Player is found more than one time");
+
             var missingPlayers = allPlayerIds.Where(id => !presentPlayerIds.Contains(id)).ToList();
             if (missingPlayers.Count != 0)
                 throw new BadRequestException(
                     $"Players {string.Join(", ", missingPlayers)} are not present in session {dto.SessionId}.");
 
-            var match = _mapper.Map<MatchEntity>(dto);
-            match.HomeTeamId = session.TeamId;
-            match.AwayTeamId = session.TeamId;
-            match.Type = DomainEnums.MatchType.Session;
-            match.Status = DomainEnums.MatchStatus.Live;
-            match.HomeScore = 0;
-            match.AwayScore = 0;
-
-            await _unitOfWork.Repository<MatchEntity>().AddAsync(match);
-            await _unitOfWork.SaveChangesAsync();
-
-            foreach (var player in dto.HomePlayers)
+            await using var transaction = await _unitOfWork.BeginTransactionAsync();
+            try
             {
-                var lineup = new MatchLineupEntity
-                {
-                    MatchId = match.Id,
-                    PlayerId = player.PlayerId,
-                    TeamId = session.TeamId,
-                    IsStarting = player.IsStarting,
-                    JerseyNumber = player.JerseyNumber,
-                    IsHomeSide = true
-                };
-                await _unitOfWork.Repository<MatchLineupEntity>().AddAsync(lineup);
-            }
 
-            foreach (var player in dto.AwayPlayers)
+                var match = _mapper.Map<MatchEntity>(dto);
+                match.HomeTeamId = session.TeamId;
+                match.AwayTeamId = session.TeamId;
+                match.Type = DomainEnums.MatchType.Session;
+                match.Status = DomainEnums.MatchStatus.Live;
+                match.HomeScore = 0;
+                match.AwayScore = 0;
+
+                await _unitOfWork.Repository<MatchEntity>().AddAsync(match);
+                await _unitOfWork.SaveChangesAsync();
+
+                foreach (var player in dto.HomePlayers)
+                {
+                    var lineup = new MatchLineupEntity
+                    {
+                        MatchId = match.Id,
+                        PlayerId = player.PlayerId,
+                        TeamId = session.TeamId,
+                        IsStarting = player.IsStarting,
+                        JerseyNumber = player.JerseyNumber,
+                        IsHomeSide = true
+                    };
+                    await _unitOfWork.Repository<MatchLineupEntity>().AddAsync(lineup);
+                }
+
+                foreach (var player in dto.AwayPlayers)
+                {
+                    var lineup = new MatchLineupEntity
+                    {
+                        MatchId = match.Id,
+                        PlayerId = player.PlayerId,
+                        TeamId = session.TeamId,
+                        IsStarting = player.IsStarting,
+                        JerseyNumber = player.JerseyNumber,
+                        IsHomeSide = false
+                    };
+                    await _unitOfWork.Repository<MatchLineupEntity>().AddAsync(lineup);
+                }
+
+                await _unitOfWork.SaveChangesAsync();
+
+                var created = await _unitOfWork.Repository<MatchEntity>()
+                    .GetQueryableAsNoTracking()
+                    .Include(m => m.HomeTeam)
+                    .Include(m => m.AwayTeam)
+                    .Include(m => m.WinningTeam)
+                    .FirstOrDefaultAsync(m => m.Id == match.Id);
+
+                _logger.LogInformation(
+                    "Session match created with Id {MatchId} for session {SessionId}, status Live",
+                    match.Id, dto.SessionId);
+
+                return _mapper.Map<MatchResponseDto>(created!);
+            }
+            catch
             {
-                var lineup = new MatchLineupEntity
-                {
-                    MatchId = match.Id,
-                    PlayerId = player.PlayerId,
-                    TeamId = session.TeamId,
-                    IsStarting = player.IsStarting,
-                    JerseyNumber = player.JerseyNumber,
-                    IsHomeSide = false
-                };
-                await _unitOfWork.Repository<MatchLineupEntity>().AddAsync(lineup);
+                await transaction.RollbackAsync();
+                _logger.LogError("Error occurred while creating session match for session {SessionId}", dto.SessionId);
+                throw new BadRequestException("Unable to create the match because of invalid database data."); ;
             }
-
-            await _unitOfWork.SaveChangesAsync();
-
-            var created = await _unitOfWork.Repository<MatchEntity>()
-                .GetQueryableAsNoTracking()
-                .Include(m => m.HomeTeam)
-                .Include(m => m.AwayTeam)
-                .Include(m => m.WinningTeam)
-                .FirstOrDefaultAsync(m => m.Id == match.Id);
-
-            _logger.LogInformation(
-                "Session match created with Id {MatchId} for session {SessionId}, status Live",
-                match.Id, dto.SessionId);
-
-            return _mapper.Map<MatchResponseDto>(created!);
         }
 
         public async Task<MatchResponseDto> GetMatchAsync(int matchId)
@@ -261,16 +285,23 @@ namespace Koralytics.Application.Services.Match
 
             return _mapper.Map<MatchResponseDto>(match);
         }
+        public async Task CancelMatchAsync(int matchId)
+        {
+            var match = await _unitOfWork.Repository<MatchEntity>().FindAsync(m => m.Id == matchId);
+            if (match is null)
+                throw new NotFoundException($"Match with Id {matchId} not found");
+            if(match.Status != DomainEnums.MatchStatus.Scheduled)
+                throw new NotFoundException($"Can't delete this match,it's done or cancelled");
+            match.Status = DomainEnums.MatchStatus.Cancelled;
+            await _unitOfWork.SaveChangesAsync();
+        }
 
-        public async Task<MatchResponseDto> StartMatchAsync(int matchId)
+        public async Task StartMatchAsync(int matchId)
         {
             _logger.LogInformation("Starting match {MatchId}", matchId);
 
             var match = await _unitOfWork.Repository<MatchEntity>()
                 .GetQueryable()
-                .Include(m => m.HomeTeam)
-                .Include(m => m.AwayTeam)
-                .Include(m => m.WinningTeam)
                 .FirstOrDefaultAsync(m => m.Id == matchId);
 
             if (match is null)
@@ -285,7 +316,6 @@ namespace Koralytics.Application.Services.Match
 
             _logger.LogInformation("Match {MatchId} started", matchId);
 
-            return _mapper.Map<MatchResponseDto>(match);
         }
 
         public async Task<MatchResponseDto> EndMatchAsync(int matchId)

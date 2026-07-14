@@ -97,6 +97,19 @@ namespace Koralytics.Application.Mappings.Player
                 .ForMember(d => d.Description, o => o.MapFrom(s => s.ReferenceType))
                 .ForMember(d => d.AchievementId, o => o.MapFrom(s => s.Id))
                 .ForMember(d => d.AchievementType, o => o.MapFrom(s => s.AchievementType));
+
+            CreateMap<PlayerGoal, PlayerGoalDto>();
+
+            CreateMap<CreatePlayerGoalDto, PlayerGoal>()
+                .ForMember(d => d.Id, o => o.Ignore())
+                .ForMember(d => d.PlayerId, o => o.Ignore())
+                .ForMember(d => d.Achieved, o => o.Ignore())
+                .ForMember(d => d.Player, o => o.Ignore())
+                .ForMember(d => d.Academy, o => o.Ignore())
+                .ForMember(d => d.CreatedAt, o => o.Ignore())
+                .ForMember(d => d.CreatedById, o => o.Ignore())
+                .ForMember(d => d.CreatedByUser, o => o.Ignore())
+                .ForMember(d => d.IsDeleted, o => o.Ignore());
         }
     }
 }
