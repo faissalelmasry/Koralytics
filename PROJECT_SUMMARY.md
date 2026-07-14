@@ -20,11 +20,11 @@ The database context (`ApplicationDbContext`) inherits from `IdentityDbContext<U
 
 ### Common & Identity Entities
 - **Common Base**: `AuditableEntity`, `BaseEntity`
-- **Identity**: `User`, `Role`
+- **Identity**: `User`, `Role`, `RefreshToken`
 
 ### Core Match & Player (Faissal's Entities)
 - **Players**: `Player` (Mapped to "Players"), `PlayerAcademy`, `PlayerTeam`, `PlayerCard`, `PlayerCategoryRating` *(Player now has `PlayerRatings` nav → `MatchPlayerRating`)*
-- **Matches**: `Match`, `MatchEvent`, `MatchLineup`, `MatchPlayerRating`, `MatchPlayerCategoryRating`
+- **Matches**: `Match`, `MatchEvent`, `MatchLineup`, `MatchPlayerRating`, `MatchPlayerCategoryRating`, `MatchRequest`
 - **Tournaments (Core)**: `Tournament`, `TournamentFixture`, `TournamentGroup`
 
 ### Tournament Logic & Core Academy (Adham's Entities)
@@ -59,16 +59,26 @@ The database context (`ApplicationDbContext`) inherits from `IdentityDbContext<U
 
 #### Auth/
 **`IAuthService` / `AuthService`**
-- `LoginAsync(dto)` → validate credentials via `SignInManager` → generate JWT with claims (UserId, Role, AcademyId) → return token + expiry
-- `RefreshTokenAsync(token)` → validate refresh token → generate new JWT
+- `LoginAsync(dto)` → validate credentials via `SignInManager` → generate JWT via `TokenService` → return token pair
+- `RefreshTokenAsync(token)` → validate refresh token → generate new token pair via `TokenService`
 - `ChangePasswordAsync(userId, dto)` → validate old password → update via `UserManager`
+- `OAuthLoginOrRegisterAsync(request)` → handle Google OAuth login/registration
+- `CompleteOAuthProfileAs[Role]Async` → complete registration for OAuth users by role
+
+**`ITokenService` / `TokenService`**
+- `GenerateTokenPairAsync(...)` → generates JWT and Refresh Token
+- `RefreshTokensAsync(...)` → handles token refresh logic
+
+**OAuth & Cookie Services**
+- **`IOAuthProviderFactory` / `OAuthProviderFactory`**: resolves correct provider (e.g., `GoogleOAuthProvider`)
+- **`ICookieService` / `CookieService`**: sets/gets refresh token cookies
 
 **`IRegistrationService` / `RegistrationService`**
-- `RegisterPlayerAsync(dto)` → create `ApplicationUser` via UserManager → create `Player` record → assign "Player" role → create `PlayerAcademy` + `PlayerSubscription` (Status = Unpaid) → return `AuthResponseDto`
-- `RegisterCoachAsync(dto)` → create `ApplicationUser` → assign "Coach" role → create `Coach` marker + `CoachAcademy` record → return `AuthResponseDto`
-- `RegisterScouterAsync(dto)` → create `ApplicationUser` → assign "Scouter" role → create `Scouter` record with `IsVerified = false` → return `AuthResponseDto`
-- `RegisterParentAsync(dto)` → create `ApplicationUser` → assign "Parent" role → create `Parent` marker + `ParentPlayer` linking to child → return `AuthResponseDto`
-- `RegisterAcademyAdminAsync(dto)` ⚡ *(added beyond original plan)* → create `ApplicationUser` → assign "AcademyAdmin" role → return `AuthResponseDto`
+- `RegisterPlayerAsync(dto)` → create `ApplicationUser` via UserManager → create `Player` record → assign "Player" role → create `PlayerAcademy` + `PlayerSubscription` (Status = Unpaid) → return `AuthResultDto`
+- `RegisterCoachAsync(dto)` → create `ApplicationUser` → assign "Coach" role → create `Coach` marker + `CoachAcademy` record → return `AuthResultDto`
+- `RegisterScouterAsync(dto)` → create `ApplicationUser` → assign "Scouter" role → create `Scouter` record with `IsVerified = false` → return `AuthResultDto`
+- `RegisterParentAsync(dto)` → create `ApplicationUser` → assign "Parent" role → create `Parent` marker + `ParentPlayer` linking to child → return `AuthResultDto`
+- `RegisterAcademyAdminAsync(dto)` ⚡ *(added beyond original plan)* → create `ApplicationUser` → assign "AcademyAdmin" role → return `AuthResultDto`
 
 ---
 
@@ -110,8 +120,31 @@ The database context (`ApplicationDbContext`) inherits from `IdentityDbContext<U
 
 **`IPlayerArchetypeService` / `PlayerArchetypeService`** — **⚠️ NOT IMPLEMENTED** *(no service file exists; planned but blocked on AI services)*
 
-#### Match/ — **⚠️ NOT IMPLEMENTED**
-> All Match services (`MatchService`, `MatchEventService`, `MatchRatingService`, `MatchAnalyticsService`) were **planned but not yet created**. No service files exist under `Services/` for these. The `Match` domain entities and `MatchController` route stubs may exist but the Application layer services are absent.
+**`IPlayerGoalService` / `PlayerGoalService`**
+- `CreatePlayerGoalAsync(playerId, dto)` → creates a goal for a player
+- `UpdatePlayerGoalAsync(goalId, dto)` → updates an existing player goal
+
+#### Match/
+**`IMatchService` / `MatchService`**
+- `CreateFriendlyMatchAsync(dto)` / `CreateTournamentMatchAsync(dto)` / `CreateSessionMatchAsync(dto)` → creates matches
+- `GetMatchAsync(matchId)` / `EndMatchAsync(matchId)`
+- `GetFormGuideAsync(teamId, format)` / `GetMatchesByDateAsync(date, page, pageSize)` / `GetTeamMatchesByStatusAsync(...)`
+
+**`IMatchRequestService` / `MatchRequestService`**
+- `RequestFriendlyMatchAsync(coachId, dto)` → requests a friendly match
+- `AcceptMatchRequestAsync(requestId, coachId)` → creates actual Match upon acceptance
+- `GetPendingRequestsAsync(teamId)` / `GetSentRequestsAsync(teamId)`
+
+**`IMatchRatingService` / `MatchRatingService`**
+- `GetLineupAsync(matchId)` / `GetMatchRatingsAsync(matchId)`
+
+**`IMatchEventService` / `MatchEventService`**
+- `LogMatchEventAsync(matchId, dto)` / `LogSessionMatchEventAsync(matchId, dto)`
+- `GetMatchTimelineAsync(matchId)`
+
+**`IMatchAnalyticsService` / `MatchAnalyticsService`**
+- `GetHeadToHeadAsync(teamAId, teamBId)`
+- `GetPostMatchAnalysisAsync(teamId)`
 
 #### AI/ — **⚠️ NOT IMPLEMENTED**
 > All AI services (`AIReportService`, `AIPreviewService`, `AIQueryService`, `AIArchetypeService`) were **planned but not yet created**. No service files exist. This is the primary blocker for: `ScouterReportService.GenerateScoutingReportAsync`, `PlayerArchetypeService`, `CompleteTournamentAsync` AI trigger, and `GetPostMatchAnalysisAsync`.
@@ -306,6 +339,7 @@ The presentation and infrastructure are wired together in `Program.cs`.
 * **Real-Time**: **SignalR** used for push notifications (announcements, player milestones, scouter alerts).
 * **External Storage**: **Cloudflare R2** for player highlight video uploads.
 * **AI Provider**: **Claude API** used for all AI report generation, NL querying, and player archetype generation.
+* **Authentication Providers**: **Google OAuth** integrated for third-party sign-ins, managed via `OAuthProviderFactory`.
 * **Background Services**: **`CardInvalidationList`** registered as `Singleton` + `IHostedService`. Uses `ConcurrentDictionary` as in-memory dirty-list. On startup it restores pending IDs from DB (`NeedsRecalculation = true`); on shutdown it persists the dirty set back to DB. Card recalculation is triggered **on-demand** by scouter services (not by the hosted service loop itself).
 
 ### AutoMapper Profiles Currently Registered
@@ -341,8 +375,7 @@ The presentation and infrastructure are wired together in `Program.cs`.
 
 ## 6. Active Controllers
 * **`ApiBaseController`**: Base controller providing shared API logic and standardized responses.
-* **`LoginController`**: Handles user login and token delivery.
-* **`RegisterController`**: Handles varied role registrations (Player, Coach, Scouter, Parent).
+* **`AuthController`**: Handles login (including Google OAuth), registration for varied roles, profile completion, and token delivery. *(Replaced LoginController and RegisterController)*
 * **`PlayerController`**: Main interface for player operations (transfers, profiling, card).
 * **`TournamentController`**: Interface for tournament-related endpoints (create, draw, fixtures, bracket).
 * **`CoachController`**: Interface for coach operations — squad overview, training team split, player comparison, writing/fetching player notes, and granting/revoking/listing temporary squad access.
