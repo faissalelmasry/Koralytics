@@ -151,8 +151,12 @@ namespace Koralytics.Application.Services.ScouterServices.ScouterShortlistServic
                 })
                 .ToListAsync();
 
+            var shortlistOrderLookup = shortlistedPlayerIds
+                .Select((playerId, index) => new { playerId, index })
+                .ToDictionary(x => x.playerId, x => x.index);
+
             var playerCardDtos = pagedRecords
-                .OrderBy(x => shortlistedPlayerIds.IndexOf(x.PlayerId))
+                .OrderBy(x => shortlistOrderLookup[x.PlayerId])
                 .Select(x => new PlayerCardDto
                 {
                     PlayerName = x.Player.FirstName + " " + x.Player.LastName,

@@ -12,8 +12,8 @@ namespace Koralytics.Application.Interfaces.Scouter
 {
     public interface IScouterFollowService
     {
-        Task FollowPlayerAsync(int playerId, int scouterId);
-        Task UnfollowPlayerAsync(int playerId, int scouterId);
+        Task FollowPlayerAsync(int scouterId, int playerId);
+        Task UnfollowPlayerAsync(int scouterId, int playerId);
         Task LogProfileViewAsync(int scouterId, int playerId);
         Task<List<PlayerCardDto>> GetFollowedPlayersAsync(int scouterId);
         Task<PlayerProfileViewAnalyticsDto> GetProfileViewsAnalyticsAsync(int playerId);

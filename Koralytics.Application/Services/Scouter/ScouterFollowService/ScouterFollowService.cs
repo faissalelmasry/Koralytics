@@ -39,7 +39,7 @@ namespace Koralytics.Application.Services.ScouterServices.ScouterFollowService
         }
         public async Task FollowPlayerAsync(int scouterId, int playerId)
         {
-            
+
             var scouterExists = await _unitOfWork.Repository<Scouter>().ExistsAsync(s => s.Id == scouterId);
             if (!scouterExists)
             {
@@ -70,12 +70,13 @@ namespace Koralytics.Application.Services.ScouterServices.ScouterFollowService
             await _unitOfWork.Repository<ScouterFollow>().AddAsync(follow);
             await _unitOfWork.SaveChangesAsync();
         }
-        public async Task UnfollowPlayerAsync(int playerId, int scouterId)
+        public async Task UnfollowPlayerAsync(int scouterId, int playerId)
         {
             var isFollowing = await _unitOfWork.Repository<ScouterFollow>()
                .FindAsync(f => f.ScouterUserId == scouterId && f.PlayerId == playerId);
-           
-            if (isFollowing==null) {
+
+            if (isFollowing == null)
+            {
                 var scouterExists = await _unitOfWork.Repository<Scouter>().ExistsAsync(s => s.Id == scouterId);
                 if (!scouterExists)
                 {
@@ -94,9 +95,10 @@ namespace Koralytics.Application.Services.ScouterServices.ScouterFollowService
 
         }
 
+
         // TODO: Refactor to Redis or a fire-and-forget background worker (e.g., Hangfire/Channels) 
         // to offload profile view logging from the primary request thread. 
-        
+
         public async Task LogProfileViewAsync(int scouterId, int playerId)
         {
             var scouterExists = await _unitOfWork.Repository<Scouter>().ExistsAsync(s => s.Id == scouterId);
@@ -120,7 +122,6 @@ namespace Koralytics.Application.Services.ScouterServices.ScouterFollowService
             await _unitOfWork.SaveChangesAsync();
 
         }
-
         public async Task<List<PlayerCardDto>> GetFollowedPlayersAsync(int scouterId)
         {
             var scouterExists = await _unitOfWork.Repository<Scouter>()
@@ -199,6 +200,7 @@ namespace Koralytics.Application.Services.ScouterServices.ScouterFollowService
 
             return followedPlayerCards;
         }
+
 
         public async Task<PlayerProfileViewAnalyticsDto> GetProfileViewsAnalyticsAsync(int playerId)
         {
