@@ -1,127 +1,62 @@
-using Koralytics.Application.DTOs.AuthDTOs.LoginDTOs;
+using Koralytics.API.Controllers.BaseController;
 using Koralytics.Application.DTOs.AuthDTOs.RegisterDTOs;
+using Koralytics.Application.Interfaces.Auth;
 using Koralytics.Application.Services.Auth.Register;
-
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace Koralytics.API.Controllers.Auth
 {
-    /// <summary>
-    /// Provides endpoints for user registration of different roles (Player, Coach, Scouter, Parent).
-    /// </summary>
-    [ApiController]
     [Route("api/[controller]")]
-    [Produces("application/json")]
-    public class RegisterController : ControllerBase
+    public class RegisterController : ApiBaseController
     {
         private readonly IRegistrationService _registrationService;
+        private readonly ICookieService _cookieService;
 
-        /// <summary>
-        /// Initializes a new instance of the RegisterController.
-        /// </summary>
-        /// <param name="registrationService">The registration service.</param>
-        public RegisterController(IRegistrationService registrationService)
+        public RegisterController(IRegistrationService registrationService, ICookieService cookieService)
         {
             _registrationService = registrationService;
+            _cookieService = cookieService;
         }
 
-        /// <summary>
-        /// Registers a new player account.
-        /// </summary>
-        /// <param name="request">The player registration details.</param>
-        /// <returns>JWT tokens and user information on successful registration.</returns>
-        /// <response code="200">Returns the authentication response with access and refresh tokens.</response>
-        /// <response code="400">Returned when registration data is invalid or incomplete.</response>
-        /// <response code="409">Returned when email or username is already registered.</response>
         [HttpPost("player")]
-        [AllowAnonymous]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status409Conflict)]
-        public async Task<ActionResult<AuthResponseDto>> RegisterPlayer([FromBody] RegisterPlayerRequestDto request)
+        public async Task<IActionResult> RegisterPlayer([FromBody] RegisterPlayerRequestDto request)
         {
-            var response = await _registrationService.RegisterPlayerAsync(request);
-            return Ok(response);
+            var result = await _registrationService.RegisterPlayerAsync(request);
+            _cookieService.SetAuthCookies(Response, result.Tokens);
+            return CreatedResponse(result.User, nameof(RegisterPlayer), null, "Player registered successfully.");
         }
 
-        /// <summary>
-        /// Registers a new coach account.
-        /// </summary>
-        /// <param name="request">The coach registration details.</param>
-        /// <returns>JWT tokens and user information on successful registration.</returns>
-        /// <response code="200">Returns the authentication response with access and refresh tokens.</response>
-        /// <response code="400">Returned when registration data is invalid or incomplete.</response>
-        /// <response code="409">Returned when email or username is already registered.</response>
         [HttpPost("coach")]
-        [AllowAnonymous]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status409Conflict)]
-        public async Task<ActionResult<AuthResponseDto>> RegisterCoach([FromBody] RegisterCoachRequestDto request)
+        public async Task<IActionResult> RegisterCoach([FromBody] RegisterCoachRequestDto request)
         {
-            var response = await _registrationService.RegisterCoachAsync(request);
-            return Ok(response);
+            var result = await _registrationService.RegisterCoachAsync(request);
+            _cookieService.SetAuthCookies(Response, result.Tokens);
+            return CreatedResponse(result.User, nameof(RegisterCoach), null, "Coach registered successfully.");
         }
 
-        /// <summary>
-        /// Registers a new scouter account.
-        /// </summary>
-        /// <param name="request">The scouter registration details.</param>
-        /// <returns>JWT tokens and user information on successful registration.</returns>
-        /// <response code="200">Returns the authentication response with access and refresh tokens.</response>
-        /// <response code="400">Returned when registration data is invalid or incomplete.</response>
-        /// <response code="409">Returned when email or username is already registered.</response>
         [HttpPost("scouter")]
-        [AllowAnonymous]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status409Conflict)]
-        public async Task<ActionResult<AuthResponseDto>> RegisterScouter([FromBody] RegisterScouterRequestDto request)
+        public async Task<IActionResult> RegisterScouter([FromBody] RegisterScouterRequestDto request)
         {
-            var response = await _registrationService.RegisterScouterAsync(request);
-            return Ok(response);
+            var result = await _registrationService.RegisterScouterAsync(request);
+            _cookieService.SetAuthCookies(Response, result.Tokens);
+            return CreatedResponse(result.User, nameof(RegisterScouter), null, "Scouter registered successfully. Waiting for verification.");
         }
 
-        /// <summary>
-        /// Registers a new parent account and links it to a player.
-        /// </summary>
-        /// <param name="request">The parent registration details with child player ID.</param>
-        /// <returns>JWT tokens and user information on successful registration.</returns>
-        /// <response code="200">Returns the authentication response with access and refresh tokens.</response>
-        /// <response code="400">Returned when registration data is invalid or incomplete.</response>
-        /// <response code="404">Returned when the child player is not found.</response>
-        /// <response code="409">Returned when email or username is already registered.</response>
         [HttpPost("parent")]
-        [AllowAnonymous]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status409Conflict)]
-        public async Task<ActionResult<AuthResponseDto>> RegisterParent([FromBody] RegisterParentRequestDto request)
+        public async Task<IActionResult> RegisterParent([FromBody] RegisterParentRequestDto request)
         {
-            var response = await _registrationService.RegisterParentAsync(request);
-            return Ok(response);
+            var result = await _registrationService.RegisterParentAsync(request);
+            _cookieService.SetAuthCookies(Response, result.Tokens);
+            return CreatedResponse(result.User, nameof(RegisterParent), null, "Parent registered successfully.");
         }
 
-        /// <summary>
-        /// Registers a new Register Academy Admin account.
-        /// </summary>
-        /// <param name="request">The academy admin registration details.</param>
-        /// <returns>JWT tokens and user information on successful registration.</returns>
-        /// <response code="200">Returns the authentication response with access and refresh tokens.</response>
-        /// <response code="400">Returned when registration data is invalid or incomplete.</response>
-        /// <response code="409">Returned when email or username is already registered.</response>
         [HttpPost("academy-admin")]
-        [AllowAnonymous]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status409Conflict)]
-        public async Task<ActionResult<AuthResponseDto>> RegisterAcademyAdmin([FromBody] RegisterAcademyAdminRequestDto request)
+        public async Task<IActionResult> RegisterAcademyAdmin([FromBody] RegisterAcademyAdminRequestDto request)
         {
-            var response = await _registrationService.RegisterAcademyAdminAsync(request);
-            return Ok(response);
+            var result = await _registrationService.RegisterAcademyAdminAsync(request);
+            _cookieService.SetAuthCookies(Response, result.Tokens);
+            return CreatedResponse(result.User, nameof(RegisterAcademyAdmin), null, "Academy Admin registered successfully.");
         }
-
     }
 }
