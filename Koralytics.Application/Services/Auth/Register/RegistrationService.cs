@@ -1,16 +1,20 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
 using AutoMapper;
 
 using FluentValidation;
 
-using AcademyEntity = Koralytics.Domain.Entities.Academy.Academy;
+using Koralytics.Application.Common;
 using Koralytics.Application.DTOs.AuthDTOs.LoginDTOs;
 using Koralytics.Application.DTOs.AuthDTOs.RegisterDTOs;
 using Koralytics.Application.Interfaces;
-using Koralytics.Application.Services.Auth.Login;
+using Koralytics.Application.Services.Auth.Token;
 using Koralytics.Application.Validators.UserBusiness;
 using Koralytics.Domain.Entities.Academy;
 using Koralytics.Domain.Entities.Coach;
-using CoachEntity = Koralytics.Domain.Entities.Coach.Coach;
 using Koralytics.Domain.Entities.Identity;
 using Koralytics.Domain.Entities.Parents;
 using Koralytics.Domain.Entities.Player;
@@ -21,24 +25,17 @@ using Koralytics.Domain.Exceptions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 
+using AcademyEntity = Koralytics.Domain.Entities.Academy.Academy;
+using CoachEntity = Koralytics.Domain.Entities.Coach.Coach;
+
 namespace Koralytics.Application.Services.Auth.Register
 {
-
-    internal static class RegistrationRoles
-    {
-        public const string Player = "Player";
-        public const string Coach = "Coach";
-        public const string Scouter = "Scouter";
-        public const string Parent = "Parent";
-        public const string AcademyAdmin = "AcademyAdmin";
-    }
-
     public class RegistrationService : IRegistrationService
     {
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<Role> _roleManager;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IAuthService _authService;
+        private readonly ITokenService _tokenService;
         private readonly IValidator<BaseRegistrationRequestDto> _requestValidator;
         private readonly IUserBusinessValidator _businessValidator;
         private readonly ILogger<RegistrationService> _logger;
@@ -48,7 +45,7 @@ namespace Koralytics.Application.Services.Auth.Register
             UserManager<User> userManager,
             RoleManager<Role> roleManager,
             IUnitOfWork unitOfWork,
-            IAuthService authService,
+            ITokenService tokenService,
             IValidator<BaseRegistrationRequestDto> requestValidator,
             IUserBusinessValidator businessValidator,
             ILogger<RegistrationService> logger,
@@ -57,25 +54,18 @@ namespace Koralytics.Application.Services.Auth.Register
             _userManager = userManager;
             _roleManager = roleManager;
             _unitOfWork = unitOfWork;
-            _authService = authService;
+            _tokenService = tokenService;
             _requestValidator = requestValidator;
             _businessValidator = businessValidator;
             _logger = logger;
             _mapper = mapper;
         }
 
-        /// <summary>
-        /// Registers a new player account.
-        /// </summary>
-        /// <param name="request">The player registration details.</param>
-        /// <returns>Authentication response with JWT tokens.</returns>
-        public async Task<AuthResponseDto> RegisterPlayerAsync(RegisterPlayerRequestDto request)
+        public async Task<AuthResultDto> RegisterPlayerAsync(RegisterPlayerRequestDto request)
         {
             _logger.LogInformation("Starting player registration for email: {email}", request.Email);
-
             await ValidateRegistrationRequestAsync(request);
             await _businessValidator.EnsureWeakFootRating(request.WeakFootRating);
-
 
             var player = _mapper.Map<Domain.Entities.Player.Player>(request);
             player.PreferredFoot = ParsePreferredFoot(request.PreferredFoot);
@@ -83,223 +73,256 @@ namespace Koralytics.Application.Services.Auth.Register
             player.CreatedAt = DateTime.UtcNow;
             player.UpdatedAt = DateTime.UtcNow;
 
-
             await ExecuteRegistrationInTransactionAsync(async () =>
             {
-                await CreateUserWithRoleAsync(player, request.Password, RegistrationRoles.Player);
-
-                if (request.AcademyId > 0)
-                {
-                    var academy = await _unitOfWork.Repository<AcademyEntity>().GetByIdAsync(request.AcademyId);
-                    if (academy is null)
-                    {
-                        _logger.LogWarning("Academy not found for player registration. AcademyId: {academyId}", request.AcademyId);
-                        throw new NotFoundException("Academy not found.");
-                    }
-
-                    await _unitOfWork.Repository<PlayerAcademy>().AddAsync(new PlayerAcademy
-                    {
-                        PlayerId = player.Id,
-                        AcademyId = academy.Id,
-                        Status = PlayerAcademyStatus.Active,
-                        JoinedAt = DateTime.UtcNow
-                    });
-
-                    await _unitOfWork.Repository<PlayerSubscription>().AddAsync(new PlayerSubscription
-                    {
-                        PlayerId = player.Id,
-                        AcademyId = academy.Id,
-                        PaidByUserId = player.Id,
-                        Status = SubscriptionStatus.Unpaid,
-                        PaidAt = null,
-                        GraceUntil = null
-                    });
-                }
-
+                await CreateUserWithRoleAsync(player, request.Password, AuthConstants.Roles.Player);
+                await CreatePlayerSpecificDataAsync(player.Id, request.AcademyId);
                 await _unitOfWork.SaveChangesAsync();
                 return true;
             });
 
-            _logger.LogInformation("Player successfully registered. UserId: {userId}, Email: {email}", player.Id, player.Email);
-
-            return await _authService.LoginAsync(new LoginRequestDto
-            {
-                EmailOrUserName = player.Email ?? player.UserName ?? string.Empty,
-                Password = request.Password
-            });
+            _logger.LogInformation("Player successfully registered. UserId: {userId}", player.Id);
+            return await GenerateAuthResultAsync(player, AuthConstants.Roles.Player, request.AcademyId > 0 ? request.AcademyId : null);
         }
 
-        /// <summary>
-        /// Registers a new coach account.
-        /// </summary>
-        /// <param name="request">The coach registration details.</param>
-        /// <returns>Authentication response with JWT tokens.</returns>
-        public async Task<AuthResponseDto> RegisterCoachAsync(RegisterCoachRequestDto request)
+        public async Task<AuthResultDto> RegisterCoachAsync(RegisterCoachRequestDto request)
         {
             _logger.LogInformation("Starting coach registration for email: {email}", request.Email);
-
             await ValidateRegistrationRequestAsync(request);
 
             var coach = _mapper.Map<CoachEntity>(request);
 
             await ExecuteRegistrationInTransactionAsync(async () =>
             {
-                await CreateUserWithRoleAsync(coach, request.Password, RegistrationRoles.Coach);
-
-                if (request.AcademyId > 0)
-                {
-                    var academy = await _unitOfWork.Repository<AcademyEntity>().GetByIdAsync(request.AcademyId);
-                    if (academy is null)
-                    {
-                        _logger.LogWarning("Academy not found for coach registration. AcademyId: {academyId}", request.AcademyId);
-                        throw new NotFoundException("Academy not found.");
-                    }
-
-                    await _unitOfWork.Repository<CoachAcademy>().AddAsync(new CoachAcademy
-                    {
-                        CoachUserId = coach.Id,
-                        AcademyId = academy.Id,
-                        JoinedAt = DateTime.UtcNow
-                    });
-                }
-
+                await CreateUserWithRoleAsync(coach, request.Password, AuthConstants.Roles.Coach);
+                await CreateCoachSpecificDataAsync(coach.Id, request.AcademyId);
                 await _unitOfWork.SaveChangesAsync();
                 return true;
             });
 
-            _logger.LogInformation("Coach successfully registered. UserId: {userId}, Email: {email}", coach.Id, coach.Email);
-
-            return await _authService.LoginAsync(new LoginRequestDto
-            {
-                EmailOrUserName = coach.Email ?? coach.UserName ?? string.Empty,
-                Password = request.Password
-            });
+            _logger.LogInformation("Coach successfully registered. UserId: {userId}", coach.Id);
+            return await GenerateAuthResultAsync(coach, AuthConstants.Roles.Coach, request.AcademyId > 0 ? request.AcademyId : null);
         }
 
-        /// <summary>
-        /// Registers a new scouter account.
-        /// </summary>
-        /// <param name="request">The scouter registration details.</param>
-        /// <returns>Authentication response with JWT tokens.</returns>
-        public async Task<AuthResponseDto> RegisterScouterAsync(RegisterScouterRequestDto request)
+        public async Task<AuthResultDto> RegisterScouterAsync(RegisterScouterRequestDto request)
         {
             _logger.LogInformation("Starting scouter registration for email: {email}", request.Email);
-
             await ValidateRegistrationRequestAsync(request);
 
             var scouter = _mapper.Map<Scouter>(request);
-
             scouter.IsVerified = false;
             scouter.CreatedAt = DateTime.UtcNow;
             scouter.UpdatedAt = DateTime.UtcNow;
 
             await ExecuteRegistrationInTransactionAsync(async () =>
             {
-                await CreateUserWithRoleAsync(scouter, request.Password, RegistrationRoles.Scouter);
+                await CreateUserWithRoleAsync(scouter, request.Password, AuthConstants.Roles.Scouter);
                 await _unitOfWork.SaveChangesAsync();
                 return true;
             });
 
-            _logger.LogInformation("Scouter successfully registered. UserId: {userId}, Email: {email}", scouter.Id, scouter.Email);
-
-            return await _authService.LoginAsync(new LoginRequestDto
-            {
-                EmailOrUserName = scouter.Email ?? scouter.UserName ?? string.Empty,
-                Password = request.Password
-            });
+            _logger.LogInformation("Scouter successfully registered. UserId: {userId}", scouter.Id);
+            return await GenerateAuthResultAsync(scouter, AuthConstants.Roles.Scouter, null);
         }
 
-        /// <summary>
-        /// Registers a new parent account and links it to a player.
-        /// </summary>
-        /// <param name="request">The parent registration details with child player ID.</param>
-        /// <returns>Authentication response with JWT tokens.</returns>
-        public async Task<AuthResponseDto> RegisterParentAsync(RegisterParentRequestDto request)
+        public async Task<AuthResultDto> RegisterParentAsync(RegisterParentRequestDto request)
         {
-            _logger.LogInformation("Starting parent registration for email: {email}, child player id: {childPlayerId}", request.Email, request.ChildPlayerId);
-
+            _logger.LogInformation("Starting parent registration for email: {email}", request.Email);
             await ValidateRegistrationRequestAsync(request);
 
-            // Verify the child player exists BEFORE creating the parent's Identity account.
-            // This avoids leaving behind an orphaned user with no role/link if the
-            // child lookup fails.
             var child = await _unitOfWork.Repository<Domain.Entities.Player.Player>().GetByIdAsync(request.ChildPlayerId);
-            if (child is null)
-            {
-                _logger.LogWarning("Child player not found for parent registration. PlayerId: {playerId}", request.ChildPlayerId);
-                throw new NotFoundException("Child player not found.");
-            }
+            if (child is null) throw new NotFoundException("Child player not found.");
 
             var parent = _mapper.Map<Parent>(request);
 
             await ExecuteRegistrationInTransactionAsync(async () =>
             {
-                await CreateUserWithRoleAsync(parent, request.Password, RegistrationRoles.Parent);
-
-                await _unitOfWork.Repository<ParentPlayer>().AddAsync(new ParentPlayer
-                {
-                    ParentId = parent.Id,
-                    PlayerId = child.Id
-                });
-
+                await CreateUserWithRoleAsync(parent, request.Password, AuthConstants.Roles.Parent);
+                await CreateParentSpecificDataAsync(parent.Id, request.ChildPlayerId);
                 await _unitOfWork.SaveChangesAsync();
                 return true;
             });
 
-            _logger.LogInformation("Parent successfully registered. UserId: {userId}, Email: {email}, linked to player: {childPlayerId}",
-                parent.Id, parent.Email, child.Id);
-
-            return await _authService.LoginAsync(new LoginRequestDto
-            {
-                EmailOrUserName = parent.Email ?? parent.UserName ?? string.Empty,
-                Password = request.Password
-            });
+            _logger.LogInformation("Parent successfully registered. UserId: {userId}", parent.Id);
+            return await GenerateAuthResultAsync(parent, AuthConstants.Roles.Parent, null);
         }
 
-        // create Academy admin registration method
-        public async Task<AuthResponseDto> RegisterAcademyAdminAsync(RegisterAcademyAdminRequestDto request)
+        public async Task<AuthResultDto> RegisterAcademyAdminAsync(RegisterAcademyAdminRequestDto request)
         {
             _logger.LogInformation("Starting academy admin registration for email: {email}", request.Email);
-
             await ValidateRegistrationRequestAsync(request);
-
-            // ensure the academy exists before creating the admin account 
             await _businessValidator.EnsureAcademyExistsAsync(request.AcademyId);
 
-            var academyAdmin = _mapper.Map<AcademyAdmin>(request);// error here, should be AcademyAdmin entity instead of Coach
+            var academyAdmin = _mapper.Map<AcademyAdmin>(request);
 
             await ExecuteRegistrationInTransactionAsync(async () =>
             {
-
-                await CreateUserWithRoleAsync(academyAdmin, request.Password, RegistrationRoles.AcademyAdmin);
-
-
-
+                await CreateUserWithRoleAsync(academyAdmin, request.Password, AuthConstants.Roles.AcademyAdmin);
                 await _unitOfWork.SaveChangesAsync();
                 return true;
             });
 
-            _logger.LogInformation("Academy admin successfully registered. UserId: {userId}, Email: {email}", academyAdmin.Id, academyAdmin.Email);
+            _logger.LogInformation("Academy admin successfully registered. UserId: {userId}", academyAdmin.Id);
+            return await GenerateAuthResultAsync(academyAdmin, AuthConstants.Roles.AcademyAdmin, request.AcademyId);
+        }
 
-            return await _authService.LoginAsync(new LoginRequestDto
+        public async Task CompleteProfileAsPlayerAsync(User existingUser, CompleteProfileAsPlayerDto profileData)
+        {
+            await _businessValidator.EnsureWeakFootRating(profileData.WeakFootRating ?? 3);
+
+            await ExecuteRegistrationInTransactionAsync(async () =>
             {
-                EmailOrUserName = academyAdmin.Email ?? academyAdmin.UserName ?? string.Empty,
-                Password = request.Password
+                await ReplacePendingProfileRoleAsync(existingUser, AuthConstants.Roles.Player);
+
+                var dob = profileData.DateOfBirth ?? throw new BadRequestException("DateOfBirth is required for players.");
+                var prefFoot = profileData.PreferredFoot != null ? (int)ParsePreferredFoot(profileData.PreferredFoot) : 1;
+                var weakFoot = profileData.WeakFootRating ?? 3;
+
+                await _unitOfWork.ExecuteSqlRawAsync(
+                    "INSERT INTO Players (Id, DateOfBirth, PreferredFoot, WeakFootRating, AvailabilityStatus) VALUES ({0}, {1}, {2}, {3}, {4})",
+                    existingUser.Id, dob, prefFoot, weakFoot, (int)AvailabilityStatus.Available);
+
+                if (profileData.AcademyId > 0)
+                {
+                    await CreatePlayerSpecificDataAsync(existingUser.Id, profileData.AcademyId.Value);
+                }
+
+                await _unitOfWork.SaveChangesAsync();
+                return true;
             });
         }
 
-        /// <summary>
-        /// Runs FluentValidation's field/format rules, then the DB-backed uniqueness checks.
-        /// Kept as one call site per Register method so callers don't need to know there are
-        /// two separate validators behind it.
-        /// </summary>
+        public async Task CompleteProfileAsCoachAsync(User existingUser, CompleteProfileAsCoachDto profileData)
+        {
+            await ExecuteRegistrationInTransactionAsync(async () =>
+            {
+                await ReplacePendingProfileRoleAsync(existingUser, AuthConstants.Roles.Coach);
+
+                await _unitOfWork.ExecuteSqlRawAsync("INSERT INTO Coaches (Id) VALUES ({0})", existingUser.Id);
+
+                if (profileData.AcademyId > 0)
+                {
+                    await CreateCoachSpecificDataAsync(existingUser.Id, profileData.AcademyId.Value);
+                }
+
+                await _unitOfWork.SaveChangesAsync();
+                return true;
+            });
+        }
+
+        public async Task CompleteProfileAsParentAsync(User existingUser, CompleteProfileAsParentDto profileData)
+        {
+            var child = await _unitOfWork.Repository<Domain.Entities.Player.Player>().GetByIdAsync(profileData.ChildPlayerId);
+            if (child is null) throw new NotFoundException("Child player not found.");
+
+            await ExecuteRegistrationInTransactionAsync(async () =>
+            {
+                await ReplacePendingProfileRoleAsync(existingUser, AuthConstants.Roles.Parent);
+
+                await _unitOfWork.ExecuteSqlRawAsync("INSERT INTO Parents (Id) VALUES ({0})", existingUser.Id);
+                await CreateParentSpecificDataAsync(existingUser.Id, profileData.ChildPlayerId);
+
+                await _unitOfWork.SaveChangesAsync();
+                return true;
+            });
+        }
+
+        public async Task CompleteProfileAsScouterAsync(User existingUser, CompleteProfileAsScouterDto profileData)
+        {
+            await ExecuteRegistrationInTransactionAsync(async () =>
+            {
+                await ReplacePendingProfileRoleAsync(existingUser, AuthConstants.Roles.Scouter);
+
+                await _unitOfWork.ExecuteSqlRawAsync("INSERT INTO Scouters (Id, IsVerified) VALUES ({0}, {1})", existingUser.Id, false);
+
+                await _unitOfWork.SaveChangesAsync();
+                return true;
+            });
+        }
+
+        public async Task CompleteProfileAsAcademyAdminAsync(User existingUser, CompleteProfileAsAcademyAdminDto profileData)
+        {
+            await _businessValidator.EnsureAcademyExistsAsync(profileData.AcademyId);
+
+            await ExecuteRegistrationInTransactionAsync(async () =>
+            {
+                await ReplacePendingProfileRoleAsync(existingUser, AuthConstants.Roles.AcademyAdmin);
+
+                await _unitOfWork.ExecuteSqlRawAsync("INSERT INTO AcademyAdmins (Id, AcademyId) VALUES ({0}, {1})", existingUser.Id, profileData.AcademyId);
+
+                await _unitOfWork.SaveChangesAsync();
+                return true;
+            });
+        }
+
+        private async Task ReplacePendingProfileRoleAsync(User user, string newRole)
+        {
+            await _userManager.RemoveFromRoleAsync(user, "PendingProfile");
+            await _businessValidator.EnsureRoleExistsAsync(newRole);
+            var roleResult = await _userManager.AddToRoleAsync(user, newRole);
+            if (!roleResult.Succeeded) 
+            {
+                var errors = string.Join(", ", roleResult.Errors.Select(e => e.Description));
+                throw new BadRequestException($"Failed to assign role: {errors}");
+            }
+        }
+
+        private async Task CreatePlayerSpecificDataAsync(int playerId, int academyId)
+        {
+            if (academyId > 0)
+            {
+                var academy = await _unitOfWork.Repository<AcademyEntity>().GetByIdAsync(academyId);
+                if (academy == null) throw new NotFoundException("Academy not found.");
+
+                await _unitOfWork.Repository<PlayerAcademy>().AddAsync(new PlayerAcademy
+                {
+                    PlayerId = playerId,
+                    AcademyId = academy.Id,
+                    Status = PlayerAcademyStatus.Active,
+                    JoinedAt = DateTime.UtcNow
+                });
+
+                await _unitOfWork.Repository<PlayerSubscription>().AddAsync(new PlayerSubscription
+                {
+                    PlayerId = playerId,
+                    AcademyId = academy.Id,
+                    PaidByUserId = playerId,
+                    Status = SubscriptionStatus.Unpaid
+                });
+            }
+        }
+
+        private async Task CreateCoachSpecificDataAsync(int coachId, int academyId)
+        {
+            if (academyId > 0)
+            {
+                var academy = await _unitOfWork.Repository<AcademyEntity>().GetByIdAsync(academyId);
+                if (academy == null) throw new NotFoundException("Academy not found.");
+
+                await _unitOfWork.Repository<CoachAcademy>().AddAsync(new CoachAcademy
+                {
+                    CoachUserId = coachId,
+                    AcademyId = academy.Id,
+                    JoinedAt = DateTime.UtcNow
+                });
+            }
+        }
+
+        private async Task CreateParentSpecificDataAsync(int parentId, int childPlayerId)
+        {
+            await _unitOfWork.Repository<ParentPlayer>().AddAsync(new ParentPlayer
+            {
+                ParentId = parentId,
+                PlayerId = childPlayerId
+            });
+        }
+
         private async Task ValidateRegistrationRequestAsync(BaseRegistrationRequestDto request)
         {
             var validationResult = await _requestValidator.ValidateAsync(request);
             if (!validationResult.IsValid)
             {
                 var errorMessage = string.Join(" ", validationResult.Errors.Select(e => e.ErrorMessage));
-                _logger.LogWarning("Registration validation failed for email {email}: {errors}", request.Email, errorMessage);
                 throw new BadRequestException(errorMessage);
             }
 
@@ -307,12 +330,6 @@ namespace Koralytics.Application.Services.Auth.Register
             await _businessValidator.EnsureUsernameNotExistsAsync(request.UserName);
         }
 
-        /// <summary>
-        /// Creates the Identity user record for the given entity and assigns it to the
-        /// specified role, ensuring the role exists first. Centralizes the
-        /// create-account-and-assign-role flow that was previously duplicated across
-        /// each Register*Async method.
-        /// </summary>
         private async Task CreateUserWithRoleAsync<TUser>(TUser user, string password, string roleName) where TUser : User
         {
             await _businessValidator.EnsureRoleExistsAsync(roleName);
@@ -320,27 +337,16 @@ namespace Koralytics.Application.Services.Auth.Register
             var identityResult = await _userManager.CreateAsync(user, password);
             if (!identityResult.Succeeded)
             {
-                var errors = string.Join(", ", identityResult.Errors.Select(e => e.Description));
-                _logger.LogWarning("Failed to create {role} account for email {email}. Errors: {errors}", roleName, user.Email, errors);
-                throw new BadRequestException(identityResult.Errors.FirstOrDefault()?.Description ?? "Unable to create user account.");
+                throw new BadRequestException(identityResult.Errors.FirstOrDefault()?.Description ?? "Unable to create account.");
             }
 
             var roleResult = await _userManager.AddToRoleAsync(user, roleName);
             if (!roleResult.Succeeded)
             {
-                var errors = string.Join(", ", roleResult.Errors.Select(e => e.Description));
-                _logger.LogError("Failed to assign role {role} to user {email}. Errors: {errors}", roleName, user.Email, errors);
-                throw new BadRequestException("Account was created but role assignment failed. Please contact support.");
+                throw new BadRequestException("Account was created but role assignment failed.");
             }
         }
 
-        /// <summary>
-        /// Runs the given registration work inside a database transaction and commits on
-        /// success. If any step throws (Identity creation, role assignment, related entity
-        /// lookups/writes), the transaction is rolled back so no orphaned user or partial
-        /// state is left behind. <paramref name="work"/> is responsible for calling
-        /// SaveChangesAsync itself before returning, so it happens inside the transaction.
-        /// </summary>
         private async Task<TResult> ExecuteRegistrationInTransactionAsync<TResult>(Func<Task<TResult>> work)
         {
             await using var transaction = await _unitOfWork.BeginTransactionAsync();
@@ -357,15 +363,35 @@ namespace Koralytics.Application.Services.Auth.Register
             }
         }
 
-
         private static PreferredFoot ParsePreferredFoot(string preferredFoot)
         {
-            return preferredFoot.ToLowerInvariant() switch
+            return preferredFoot?.ToLowerInvariant() switch
             {
                 "left" => PreferredFoot.Left,
                 "both" => PreferredFoot.Both,
                 _ => PreferredFoot.Right
             };
+        }
+
+        private async Task<AuthResultDto> GenerateAuthResultAsync(User user, string role, int? academyId)
+        {
+            var roles = new List<string> { role };
+            var tokens = await _tokenService.GenerateTokenPairAsync(user, roles, academyId);
+            
+            var response = new AuthResponseDto
+            {
+                AccessToken = tokens.AccessToken,
+                RefreshToken = tokens.RefreshToken,
+                AccessTokenExpiresAt = tokens.AccessTokenExpiresAt,
+                RefreshTokenExpiresAt = tokens.RefreshTokenExpiresAt,
+                UserId = user.Id,
+                UserName = user.UserName ?? string.Empty,
+                Email = user.Email ?? string.Empty,
+                FullName = string.Join(' ', new[] { user.FirstName, user.LastName }.Where(x => !string.IsNullOrWhiteSpace(x))),
+                Roles = roles
+            };
+            
+            return new AuthResultDto(response, tokens);
         }
     }
 }

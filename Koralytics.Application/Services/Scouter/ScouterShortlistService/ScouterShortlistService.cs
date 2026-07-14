@@ -100,7 +100,6 @@ namespace Koralytics.Application.Services.ScouterServices.ScouterShortlistServic
         }
         public async Task<List<PlayerCardDto>> GetShortlistAsync(int scouterId)
         {
-
             var scouterExists = await _unitOfWork.Repository<Scouter>().ExistsAsync(s => s.Id == scouterId);
             if (!scouterExists)
             {
@@ -113,6 +112,11 @@ namespace Koralytics.Application.Services.ScouterServices.ScouterShortlistServic
                 .OrderByDescending(sl => sl.Id)
                 .Select(sl => sl.PlayerId)
                 .ToListAsync();
+
+            if (!shortlistedPlayerIds.Any())
+            {
+                return new List<PlayerCardDto>();
+            }
 
             var existingCardsState = await _unitOfWork.Repository<PlayerCard>()
                 .GetQueryableAsNoTracking()
@@ -130,8 +134,10 @@ namespace Koralytics.Application.Services.ScouterServices.ScouterShortlistServic
                     await _playerCardService.RecalculatePlayerCardAsync(id);
                 }
             }
-
-            var playerCardQuery = _unitOfWork.Repository<PlayerCard>().GetQueryableAsNoTracking();
+            var playerCardQuery = _unitOfWork.Repository<PlayerCard>()
+                .GetQueryableAsNoTracking()
+                .Include(pc => pc.CategoryRatings)
+                    .ThenInclude(cr => cr.DrillCategory);
 
             var pagedRecords = await _unitOfWork.Repository<Domain.Entities.Player.Player>()
                 .GetQueryableAsNoTracking()
@@ -145,7 +151,6 @@ namespace Koralytics.Application.Services.ScouterServices.ScouterShortlistServic
                 })
                 .ToListAsync();
 
-
             var playerCardDtos = pagedRecords
                 .OrderBy(x => shortlistedPlayerIds.IndexOf(x.PlayerId))
                 .Select(x => new PlayerCardDto
@@ -155,13 +160,13 @@ namespace Koralytics.Application.Services.ScouterServices.ScouterShortlistServic
                     OverallRating = x.Card != null ? x.Card.OverallRating : 0,
                     TransferClassification = x.Card != null ? x.Card.TransferClassification.ToString() : string.Empty,
 
-                    PaceRating = x.Card != null ? x.Card.CategoryRatings.Where(cr => cr.DrillCategory.Name == "Speed").Select(cr => (decimal?)cr.Score).FirstOrDefault() : null,
-                    ShootingRating = x.Card != null ? x.Card.CategoryRatings.Where(cr => cr.DrillCategory.Name == "Shooting").Select(cr => (decimal?)cr.Score).FirstOrDefault() : null,
-                    DribblingRating = x.Card != null ? x.Card.CategoryRatings.Where(cr => cr.DrillCategory.Name == "Dribbling").Select(cr => (decimal?)cr.Score).FirstOrDefault() : null,
-                    DefendingRating = x.Card != null ? x.Card.CategoryRatings.Where(cr => cr.DrillCategory.Name == "Defending").Select(cr => (decimal?)cr.Score).FirstOrDefault() : null,
-                    PassingRating = x.Card != null ? x.Card.CategoryRatings.Where(cr => cr.DrillCategory.Name == "Passing").Select(cr => (decimal?)cr.Score).FirstOrDefault() : null,
-                    PhysicalRating = x.Card != null ? x.Card.CategoryRatings.Where(cr => cr.DrillCategory.Name == "Physical").Select(cr => (decimal?)cr.Score).FirstOrDefault() : null,
-                    GoalkeepingRating = x.Card != null ? x.Card.CategoryRatings.Where(cr => cr.DrillCategory.Name == "GoalKeeping").Select(cr => (decimal?)cr.Score).FirstOrDefault() : null,
+                    PaceRating = x.Card?.CategoryRatings?.Where(cr => cr.DrillCategory.Name == "Speed").Select(cr => (decimal?)cr.Score).FirstOrDefault(),
+                    ShootingRating = x.Card?.CategoryRatings?.Where(cr => cr.DrillCategory.Name == "Shooting").Select(cr => (decimal?)cr.Score).FirstOrDefault(),
+                    DribblingRating = x.Card?.CategoryRatings?.Where(cr => cr.DrillCategory.Name == "Dribbling").Select(cr => (decimal?)cr.Score).FirstOrDefault(),
+                    DefendingRating = x.Card?.CategoryRatings?.Where(cr => cr.DrillCategory.Name == "Defending").Select(cr => (decimal?)cr.Score).FirstOrDefault(),
+                    PassingRating = x.Card?.CategoryRatings?.Where(cr => cr.DrillCategory.Name == "Passing").Select(cr => (decimal?)cr.Score).FirstOrDefault(),
+                    PhysicalRating = x.Card?.CategoryRatings?.Where(cr => cr.DrillCategory.Name == "Physical").Select(cr => (decimal?)cr.Score).FirstOrDefault(),
+                    GoalkeepingRating = x.Card?.CategoryRatings?.Where(cr => cr.DrillCategory.Name == "GoalKeeping").Select(cr => (decimal?)cr.Score).FirstOrDefault(),
 
                     PlayStyleTag = x.Player.PlayStyleTag,
                     PreferredFoot = x.Player.PreferredFoot,

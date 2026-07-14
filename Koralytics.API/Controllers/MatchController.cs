@@ -17,24 +17,41 @@ namespace Koralytics.API.Controllers
         private readonly IMatchEventService _matchEventService;
         private readonly IMatchRatingService _matchRatingService;
         private readonly IMatchAnalyticsService _matchAnalyticsService;
+        private readonly IMatchRequestService _matchRequestService;
 
-        public MatchController(IMatchService matchService, IMatchEventService matchEventService, IMatchRatingService matchRatingService, IMatchAnalyticsService matchAnalyticsService)
+        public MatchController(
+            IMatchService matchService,
+            IMatchEventService matchEventService,
+            IMatchRatingService matchRatingService,
+            IMatchAnalyticsService matchAnalyticsService,
+            IMatchRequestService matchRequestService)
         {
             _matchService = matchService;
             _matchEventService = matchEventService;
             _matchRatingService = matchRatingService;
             _matchAnalyticsService = matchAnalyticsService;
+            _matchRequestService = matchRequestService;
         }
 
-        [HttpPost("friendly")]
+        [HttpPost("request")]
         [Authorize(Roles = "Coach,AcademyAdmin")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> CreateFriendlyMatch([FromBody] CreateFriendlyMatchDto dto)
+        public async Task<IActionResult> RequestFriendlyMatch([FromBody] CreateMatchRequestDto dto)
         {
-            var result = await _matchService.CreateFriendlyMatchAsync(dto);
-            return CreatedResponse(result, nameof(GetMatch), new { matchId = result.Id }, "Friendly match created successfully");
+            var coachId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var result = await _matchRequestService.RequestFriendlyMatchAsync(coachId, dto);
+            return CreatedResponse(result, nameof(GetMatchRequest), new { requestId = result.Id }, "Match request sent successfully");
+        }
+
+        [HttpGet("request/{requestId:int}")]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetMatchRequest(int requestId)
+        {
+            return OkResponse(new { Id = requestId });
         }
 
         [HttpPost("tournament")]
@@ -71,13 +88,13 @@ namespace Koralytics.API.Controllers
 
         [HttpPatch("{matchId:int}/start")]
         [Authorize(Roles = "SuperAdmin,Coach,AcademyAdmin")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> StartMatch(int matchId)
         {
-            var result = await _matchService.StartMatchAsync(matchId);
-            return OkResponse(result, "Match started successfully");
+            await _matchService.StartMatchAsync(matchId);
+            return NoContentResponse("Match started successfully");
         }
 
         [HttpGet]
@@ -110,7 +127,7 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpPost("{matchId:int}/events")]
-        [Authorize(Roles = "Coach")]
+        [Authorize(Roles = "SuperAdmin,Coach")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -149,8 +166,8 @@ namespace Koralytics.API.Controllers
         public async Task<IActionResult> SubmitLineup(int matchId, [FromBody] SubmitLineupDto dto)
         {
             var coachId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-            var result = await _matchRatingService.SubmitLineupAsync(matchId, coachId, dto);
-            return CreatedResponse(result, nameof(GetLineup), new { matchId }, "Lineup submitted successfully");
+            await _matchRatingService.SubmitLineupAsync(matchId, coachId, dto);
+            return Created();
         }
 
         [HttpGet("{matchId:int}/lineup")]
@@ -182,8 +199,8 @@ namespace Koralytics.API.Controllers
         public async Task<IActionResult> SubmitMatchRatings(int matchId, [FromBody] SubmitMatchRatingsDto dto)
         {
             var coachId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-            var result = await _matchRatingService.SubmitMatchRatingsAsync(matchId, coachId, dto);
-            return OkResponse(result, "Match ratings submitted successfully");
+            await _matchRatingService.SubmitMatchRatingsAsync(matchId, coachId, dto);
+            return NoContentResponse("Match ratings submitted successfully");
         }
 
         [HttpGet("head-to-head")]
@@ -204,6 +221,69 @@ namespace Koralytics.API.Controllers
         {
             var result = await _matchAnalyticsService.GetPostMatchAnalysisAsync(teamId);
             return OkResponse(result);
+        }
+
+        [HttpPatch("request/{requestId:int}/accept")]
+        [Authorize(Roles = "Coach,AcademyAdmin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> AcceptMatchRequest(int requestId)
+        {
+            var coachId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var result = await _matchRequestService.AcceptMatchRequestAsync(requestId, coachId);
+            return OkResponse(result, "Match request accepted successfully");
+        }
+
+        [HttpPatch("request/{requestId:int}/decline")]
+        [Authorize(Roles = "Coach,AcademyAdmin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeclineMatchRequest(int requestId)
+        {
+            var coachId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            await _matchRequestService.DeclineMatchRequestAsync(requestId, coachId);
+            return NoContentResponse("Match request declined successfully");
+        }
+
+        [HttpGet("request/incoming")]
+        [Authorize(Roles = "Coach,AcademyAdmin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetIncomingRequests([FromQuery] int teamId)
+        {
+            var result = await _matchRequestService.GetPendingRequestsAsync(teamId);
+            return OkResponse(result);
+        }
+
+        [HttpGet("request/outgoing")]
+        [Authorize(Roles = "Coach,AcademyAdmin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetOutgoingRequests([FromQuery] int teamId)
+        {
+            var result = await _matchRequestService.GetSentRequestsAsync(teamId);
+            return OkResponse(result);
+        }
+
+        [HttpGet("{matchId:int}/ratings")]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetMatchRatings(int matchId)
+        {
+            var result = await _matchRatingService.GetMatchRatingsAsync(matchId);
+            return OkResponse(result);
+        }
+        [HttpPatch("{matchId:int}/cancel")]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> CancelMatch(int matchId)
+        {
+            await _matchService.CancelMatchAsync(matchId);
+            return NoContent();
         }
     }
 }

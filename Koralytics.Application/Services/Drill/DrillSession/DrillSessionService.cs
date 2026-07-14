@@ -73,7 +73,7 @@ namespace Koralytics.Application.Services.Drill.DrillSession
                 throw new UnauthorizedAccessException("You can only add drills to your own scheduled sessions.");
             }
 
-            var templateExists = await _unitOfWork.Repository<Koralytics.Domain.Entities.Drill.DrillTemplate>()
+            var templateExists = await _unitOfWork.Repository<Domain.Entities.Drill.DrillTemplate>()
                 .ExistsAsync(t => t.Id == dto.DrillTemplateId);
 
             if (!templateExists)
@@ -81,12 +81,12 @@ namespace Koralytics.Application.Services.Drill.DrillSession
                 throw new KeyNotFoundException($"Drill Template with ID {dto.DrillTemplateId} does not exist.");
             }
 
-            var drill = _mapper.Map<Koralytics.Domain.Entities.Drill.Drill>(dto);
+            var drill = _mapper.Map<Domain.Entities.Drill.Drill>(dto);
 
             drill.SessionId = sessionId;
             drill.CreatedById = currentCoachId;
 
-            await _unitOfWork.Repository<Koralytics.Domain.Entities.Drill.Drill>().AddAsync(drill);
+            await _unitOfWork.Repository<Domain.Entities.Drill.Drill>().AddAsync(drill);
             await _unitOfWork.SaveChangesAsync();
 
             return _mapper.Map<DrillDto>(drill);
@@ -216,7 +216,7 @@ namespace Koralytics.Application.Services.Drill.DrillSession
 
             // Optional: Prevent them from ending it twice
             // (Assuming '2' or whatever number represents Completed in your SessionStatus enum)
-            if (session.Status == Koralytics.Domain.Enums.SessionStatus.Completed)
+            if (session.Status == Domain.Enums.SessionStatus.Completed)
             {
                 throw new InvalidOperationException("This session is already marked as completed.");
             }

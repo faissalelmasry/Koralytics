@@ -3,6 +3,8 @@ using Koralytics.Application.DTOs.Match;
 using MatchEntity = Koralytics.Domain.Entities.Match.Match;
 using MatchEventEntity = Koralytics.Domain.Entities.Match.MatchEvent;
 using MatchLineupEntity = Koralytics.Domain.Entities.Match.MatchLineup;
+using MatchPlayerRatingEntity = Koralytics.Domain.Entities.Match.MatchPlayerRating;
+using MatchRequestEntity = Koralytics.Domain.Entities.Match.MatchRequest;
 using DomainEnums = Koralytics.Domain.Enums;
 
 namespace Koralytics.Application.Mappings.Match
@@ -139,6 +141,19 @@ namespace Koralytics.Application.Mappings.Match
             CreateMap<MatchLineupEntity, LineupResponseDto>()
                 .ForMember(d => d.PlayerName, o => o.MapFrom(s => s.Player.FirstName + " " + s.Player.LastName))
                 .ForMember(d => d.TeamName, o => o.MapFrom(s => s.Team.Name));
+
+            CreateMap<MatchPlayerRatingEntity, MatchPlayerRatingDto>()
+                .ForMember(d => d.PlayerName, o => o.Ignore())
+                .ForMember(d => d.CoachName, o => o.Ignore())
+                .ForMember(d => d.CategoryRatings, o => o.Ignore());
+
+            CreateMap<MatchRequestEntity, MatchRequestResponseDto>()
+                .ForMember(d => d.RequesterTeamName, o => o.MapFrom(s => s.RequesterTeam.Name))
+                .ForMember(d => d.TargetTeamName, o => o.MapFrom(s => s.TargetTeam.Name))
+                .ForMember(d => d.RequesterCoachName, o => o.MapFrom(s => s.RequesterCoach.FirstName + " " + s.RequesterCoach.LastName))
+                .ForMember(d => d.ResolvedByCoachName, o => o.MapFrom(s => s.ResolvedByCoach != null ? s.ResolvedByCoach.FirstName + " " + s.ResolvedByCoach.LastName : null))
+                .ForMember(d => d.Format, o => o.MapFrom(s => s.Format.ToString()))
+                .ForMember(d => d.Status, o => o.MapFrom(s => s.Status.ToString()));
         }
     }
 }

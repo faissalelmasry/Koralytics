@@ -1,4 +1,4 @@
-﻿using Koralytics.Domain.Entities.Academy;
+using Koralytics.Domain.Entities.Academy;
 using Koralytics.Domain.Entities.AI;
 using Koralytics.Domain.Entities.Coach;
 using Koralytics.Domain.Entities.Drill;
@@ -23,6 +23,8 @@ namespace Koralytics.Infrastructure.Context
         {
         }
 
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
+
         #region Faissal's Entities (Core Player, Match, Tournament)
         public DbSet<Player> Players { get; set; }
         public DbSet<PlayerAcademy> PlayerAcademies { get; set; }
@@ -35,6 +37,7 @@ namespace Koralytics.Infrastructure.Context
         public DbSet<MatchLineup> MatchLineups { get; set; }
         public DbSet<MatchPlayerRating> MatchPlayerRatings { get; set; }
         public DbSet<MatchPlayerCategoryRating> MatchPlayerCategoryRatings { get; set; }
+        public DbSet<MatchRequest> MatchRequests { get; set; }
 
         public DbSet<Tournament> Tournaments { get; set; }
         public DbSet<TournamentFixture> TournamentFixtures { get; set; }

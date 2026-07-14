@@ -50,15 +50,27 @@ namespace Koralytics.Application.UnitTests.Player
         public async Task GetDrillToMatchTransferRateAsync_PlayerNotFound_ThrowsNotFoundException()
         {
             // Arrange
+            var playerCards = new List<PlayerCard>();
+            var playerCardQueryable = playerCards.BuildMock();
+
             var playerRepo = new Mock<IRepository<PlayerEntity>>();
+            var playerCardRepo = new Mock<IRepository<PlayerCard>>();
 
             playerRepo
-                .Setup(r => r.FindAsync(It.IsAny<Expression<Func<PlayerEntity, bool>>>()))
-                .ReturnsAsync((PlayerEntity?)null);
+                .Setup(r => r.ExistsAsync(It.IsAny<Expression<Func<PlayerEntity, bool>>>()))
+                .ReturnsAsync(false);
+
+            playerCardRepo
+                .Setup(r => r.GetQueryableAsNoTracking())
+                .Returns(playerCardQueryable);
 
             _unitOfWorkMock
                 .Setup(u => u.Repository<PlayerEntity>())
                 .Returns(playerRepo.Object);
+
+            _unitOfWorkMock
+                .Setup(u => u.Repository<PlayerCard>())
+                .Returns(playerCardRepo.Object);
 
             // Act & Assert
             await Assert.ThrowsAsync<NotFoundException>(() =>
@@ -68,21 +80,15 @@ namespace Koralytics.Application.UnitTests.Player
         public async Task GetDrillToMatchTransferRateAsync_PlayerCardNotFound_ReturnsNull()
         {
             // Arrange
-            var player = new PlayerEntity
-            {
-                Id = 1
-            };
-
             var playerCards = new List<PlayerCard>();
-
             var playerCardQueryable = playerCards.BuildMock();
 
             var playerRepo = new Mock<IRepository<PlayerEntity>>();
             var playerCardRepo = new Mock<IRepository<PlayerCard>>();
 
             playerRepo
-                .Setup(r => r.FindAsync(It.IsAny<Expression<Func<PlayerEntity, bool>>>()))
-                .ReturnsAsync(player);
+                .Setup(r => r.ExistsAsync(It.IsAny<Expression<Func<PlayerEntity, bool>>>()))
+                .ReturnsAsync(true);
 
             playerCardRepo
                 .Setup(r => r.GetQueryableAsNoTracking())

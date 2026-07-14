@@ -17,7 +17,7 @@ namespace Koralytics.Infrastructure.Seeding
         public static async Task SeedAsync(ApplicationDbContext context, UserManager<User> userManager, RoleManager<Role> roleManager)
         {
             // Seed Roles
-            var roles = new[] { "Scouter", "SystemAdmin", "AcademyAdmin", "Player", "Parent", "Coach" };
+            var roles = new[] { "Scouter", "SystemAdmin", "AcademyAdmin", "Player", "Parent", "Coach", "PendingProfile" };
             foreach (var roleName in roles)
             {
                 if (!await roleManager.RoleExistsAsync(roleName))
@@ -1153,6 +1153,29 @@ namespace Koralytics.Infrastructure.Seeding
                         IsStarting = true, JerseyNumber = i + 1, IsHomeSide = false
                     });
                 }
+                await context.SaveChangesAsync();
+            }
+
+            // ===== MATCH REQUEST: Pending request from Ahly Coach -> Zamalek Team =====
+            if (!await context.MatchRequests.AnyAsync())
+            {
+                var ahlyAc = await context.Academies.FirstAsync(a => a.Name == "Al Ahly Academy");
+                var zamAc = await context.Academies.FirstAsync(a => a.Name == "Zamalek Academy");
+                var ahlyTeam = await context.Teams.FirstAsync(t => t.Name == "U17 Team A" && t.AcademyId == ahlyAc.Id);
+                var zamTeam = await context.Teams.FirstAsync(t => t.Name == "U17 Team A" && t.AcademyId == zamAc.Id);
+                var ahlyCoach = await userManager.FindByEmailAsync("coach@test.com");
+
+                context.MatchRequests.Add(new MatchRequest
+                {
+                    RequesterTeamId = ahlyTeam.Id,
+                    TargetTeamId = zamTeam.Id,
+                    RequesterCoachId = ahlyCoach!.Id,
+                    Format = MatchFormat.ElevenSide,
+                    ProposedDate = DateTime.UtcNow.AddDays(14),
+                    Location = "Test - Pending Friendly Request",
+                    Status = MatchRequestStatus.Pending,
+                    CreatedAt = DateTime.UtcNow
+                });
                 await context.SaveChangesAsync();
             }
         }

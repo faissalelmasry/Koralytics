@@ -37,8 +37,6 @@ namespace Koralytics.Application.Services.Match
 
             var match = await _unitOfWork.Repository<MatchEntity>()
                 .GetQueryable()
-                .Include(m => m.HomeTeam)
-                .Include(m => m.AwayTeam)
                 .FirstOrDefaultAsync(m => m.Id == matchId);
 
             if (match is null)

@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using Koralytics.Application.DTOs.Player;
+using Koralytics.Application.DTOs.Scouter;
 using Koralytics.Application.Interfaces;
 using Koralytics.Application.Interfaces.Scouter;
 using Koralytics.Application.Mappings.ScouterProfile;
@@ -130,17 +132,17 @@ namespace Koralytics.Application.Services.ScouterServices.ScouterFollowService
                 throw new NotFoundException($"Scouter profile with ID {scouterId} was not found.");
             }
 
-            
             var pagedPlayerIds = await _unitOfWork.Repository<ScouterFollow>()
                 .GetQueryableAsNoTracking()
                 .Where(sf => sf.ScouterUserId == scouterId && !sf.IsDeleted)
-                .Select(sf => sf.Player.Id) 
+                .Select(sf => sf.Player.Id)
                 .ToListAsync();
 
             if (!pagedPlayerIds.Any())
             {
                 return new List<PlayerCardDto>();
             }
+
             var existingCardsState = await _unitOfWork.Repository<PlayerCard>()
                 .GetQueryableAsNoTracking()
                 .Where(pc => pagedPlayerIds.Contains(pc.PlayerId))
@@ -158,7 +160,10 @@ namespace Koralytics.Application.Services.ScouterServices.ScouterFollowService
                     await _playerCardService.RecalculatePlayerCardAsync(id);
                 }
             }
-            var playerCardQuery = _unitOfWork.Repository<PlayerCard>().GetQueryableAsNoTracking();
+            var playerCardQuery = _unitOfWork.Repository<PlayerCard>()
+                .GetQueryableAsNoTracking()
+                .Include(pc => pc.CategoryRatings)
+                    .ThenInclude(cr => cr.DrillCategory);
 
             var followedPlayerCards = await _unitOfWork.Repository<Koralytics.Domain.Entities.Player.Player>()
                 .GetQueryableAsNoTracking()
@@ -193,6 +198,21 @@ namespace Koralytics.Application.Services.ScouterServices.ScouterFollowService
                 .ToListAsync();
 
             return followedPlayerCards;
+        }
+
+        public async Task<PlayerProfileViewAnalyticsDto> GetProfileViewsAnalyticsAsync(int playerId)
+        {
+            var analytics = await _unitOfWork.Repository<Domain.Entities.Player.Player>()
+                .GetQueryableAsNoTracking()
+                .Where(p => p.Id == playerId)
+                .ProjectTo<PlayerProfileViewAnalyticsDto>(_mapper.ConfigurationProvider)
+                .FirstOrDefaultAsync();
+
+            return analytics ?? new PlayerProfileViewAnalyticsDto
+            {
+                TotalViewsCount = 0,
+                RecentViews = new List<ProfileViewerDetailDto>()
+            };
         }
     }
 }

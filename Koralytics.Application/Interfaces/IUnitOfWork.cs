@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,5 +13,6 @@ namespace Koralytics.Application.Interfaces
         IRepository<T> Repository<T>() where T : class, ISoftDelete;
         Task<int> SaveChangesAsync();
         Task<IDbContextTransaction> BeginTransactionAsync();
+        Task<int> ExecuteSqlRawAsync(string sql, params object[] parameters);
     }
 }

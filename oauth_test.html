@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Koralytics – OAuth Test Page</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+    .card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 16px;
+      padding: 2rem;
+      width: 100%;
+      max-width: 640px;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+    }
+    h1 { font-size: 1.4rem; font-weight: 700; margin-bottom: 0.25rem; color: #f1f5f9; }
+    .subtitle { font-size: 0.85rem; color: #94a3b8; margin-bottom: 1.5rem; }
+    label { display: block; font-size: 0.8rem; font-weight: 600; color: #94a3b8; margin-bottom: 0.4rem; }
+    input, textarea {
+      width: 100%;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      color: #e2e8f0;
+      font-size: 0.85rem;
+      padding: 0.6rem 0.8rem;
+      margin-bottom: 1rem;
+      font-family: monospace;
+    }
+    textarea { height: 100px; resize: vertical; }
+    button {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 0.65rem 1.4rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-right: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    button:hover { background: #2563eb; }
+    button.secondary { background: #334155; }
+    button.secondary:hover { background: #475569; }
+    .response-box {
+      margin-top: 1.5rem;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 1rem;
+      font-family: monospace;
+      font-size: 0.8rem;
+      white-space: pre-wrap;
+      word-break: break-all;
+      min-height: 60px;
+      color: #94a3b8;
+    }
+    .response-box.ok { color: #4ade80; border-color: #166534; }
+    .response-box.err { color: #f87171; border-color: #7f1d1d; }
+    .tag {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      margin-bottom: 1rem;
+      background: #fef08a22;
+      color: #fde047;
+      border: 1px solid #fde04755;
+    }
+    hr { border: none; border-top: 1px solid #334155; margin: 1.5rem 0; }
+    .step { font-size: 0.82rem; color: #94a3b8; margin-bottom: 0.5rem; line-height: 1.6; }
+    .step strong { color: #e2e8f0; }
+    a { color: #60a5fa; }
+    code { background: #0f172a; padding: 0.1em 0.3em; border-radius: 4px; font-size: 0.85em; }
+  </style>
+  <!-- Google Identity Services SDK -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+<div class="card">
+  <h1>Koralytics OAuth Test</h1>
+  <p class="subtitle">Get a real Google ID token and test the /api/Auth/oauth endpoint</p>
+  <span class="tag">Dev only — do not expose in production</span>
+
+  <label>API Base URL</label>
+  <input id="apiBase" value="http://localhost:5038" />
+
+  <hr />
+
+  <p class="step"><strong>Step 1:</strong> Sign in with your Google account below to get a real <code>id_token</code>.</p>
+
+  <!-- Google One-Tap / Sign-In button rendered by GSI -->
+  <div id="g_id_signin" style="margin: 0.5rem 0 1rem;"></div>
+
+  <label>id_token (auto-filled after sign-in, or paste manually)</label>
+  <textarea id="idToken" placeholder="Paste your Google id_token here, or click Sign in with Google above..."></textarea>
+
+  <hr />
+
+  <p class="step"><strong>Step 2:</strong> Send the token to your API.</p>
+  <button onclick="callOAuth()">Call POST /api/Auth/oauth</button>
+  <button class="secondary" onclick="copyToken()">Copy Token</button>
+
+  <div id="response" class="response-box">Response will appear here...</div>
+
+  <hr />
+  <p class="step">
+    <strong>Alternative:</strong> Get a token from
+    <a href="https://developers.google.com/oauthplayground/" target="_blank">Google OAuth Playground</a>:
+    select <em>OpenID Connect v1</em> scopes &rarr; Authorize API &rarr; Exchange authorization code for tokens &rarr; copy the <code>id_token</code> value.
+  </p>
+</div>
+
+<script>
+  // Your app's Google client ID (from appsettings.json OAuth:Google:ClientId)
+  const GOOGLE_CLIENT_ID = '1058453634827-mbmccfc7ema4ilrofjnrijor8cckgem1.apps.googleusercontent.com';
+
+  window.addEventListener('load', () => {
+    if (typeof google !== 'undefined') {
+      google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleGoogleToken,
+        auto_select: false,
+        cancel_on_tap_outside: true,
+      });
+      google.accounts.id.renderButton(
+        document.getElementById('g_id_signin'),
+        { theme: 'filled_blue', size: 'large', text: 'signin_with', shape: 'rectangular', width: 300 }
+      );
+    } else {
+      document.getElementById('g_id_signin').textContent = 'Google SDK failed to load. Open this file via a local server (not file://).';
+    }
+  });
+
+  function handleGoogleToken(response) {
+    // response.credential is the id_token JWT
+    document.getElementById('idToken').value = response.credential;
+    log('Google ID token received! Click "Call POST /api/Auth/oauth" to test.', 'ok');
+  }
+
+  async function callOAuth() {
+    const apiBase = document.getElementById('apiBase').value.trim();
+    const idToken  = document.getElementById('idToken').value.trim();
+
+    if (!idToken) {
+      log('Please sign in with Google first, or paste an id_token.', 'err');
+      return;
+    }
+
+    log('Sending request...', '');
+    try {
+      const res = await fetch(`${apiBase}/api/Auth/oauth`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',   // stores returned cookies (access_token, refresh_token)
+        body: JSON.stringify({ provider: 'Google', idToken })
+      });
+
+      const text = await res.text();
+      let data;
+      try { data = JSON.parse(text); } catch { data = text; }
+
+      log(
+        'HTTP ' + res.status + ' ' + res.statusText + '\n\n' + JSON.stringify(data, null, 2),
+        res.ok ? 'ok' : 'err'
+      );
+    } catch (err) {
+      log('Network error: ' + err.message + '\n\nMake sure your API is running and CORS allows this origin.', 'err');
+    }
+  }
+
+  function copyToken() {
+    const token = document.getElementById('idToken').value.trim();
+    if (!token) { alert('No token to copy.'); return; }
+    navigator.clipboard.writeText(token).then(() => alert('Token copied to clipboard!'));
+  }
+
+  function log(msg, type) {
+    const el = document.getElementById('response');
+    el.textContent = msg;
+    el.className = 'response-box' + (type ? ' ' + type : '');
+  }
+</script>
+</body>
+</html>
