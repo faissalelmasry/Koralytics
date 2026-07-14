@@ -1,5 +1,7 @@
 ﻿using System.Security.Claims;
+using Koralytics.Application.DTOs.Player;
 using Koralytics.Application.Services.Player.PlayerCardService;
+using Koralytics.Application.Services.Player.PlayerGoalService;
 using Koralytics.Application.Services.Player.PlayerProfileServices;
 using Koralytics.Application.Services.Player.PlayerTransferService;
 using Koralytics.Domain.Enums;
@@ -16,15 +18,18 @@ namespace Koralytics.API.Controllers
         private readonly IPlayerTransferService _playerTransferService;
         private readonly IPlayerCardService _playerCardService;
         private readonly IPlayerProfileService _playerProfileService;
+        private readonly IPlayerGoalService _playerGoalService;
 
         public PlayerController(
             IPlayerTransferService playerTransferService,
             IPlayerCardService playerCardService,
-            IPlayerProfileService playerProfileService)
+            IPlayerProfileService playerProfileService,
+            IPlayerGoalService playerGoalService)
         {
             _playerTransferService = playerTransferService;
             _playerCardService = playerCardService;
             _playerProfileService = playerProfileService;
+            _playerGoalService = playerGoalService;
         }
         [HttpPatch("{playerId}/availability")]
         [Authorize(Roles = "Player,Coach,AcademyAdmin")]
@@ -178,6 +183,22 @@ namespace Koralytics.API.Controllers
                 return NotFound(new { message = "Insufficient data. Player card not yet calculated." });
 
             return Ok(rate);
+        }
+
+        [HttpPost("{playerId}/goals")]
+        [Authorize(Roles = "Coach,AcademyAdmin")]
+        public async Task<IActionResult> CreatePlayerGoal(int playerId, [FromBody] CreatePlayerGoalDto dto)
+        {
+            var result = await _playerGoalService.CreatePlayerGoalAsync(playerId, dto);
+            return Ok(result);
+        }
+
+        [HttpPatch("goals/{goalId:int}")]
+        [Authorize(Roles = "Coach,AcademyAdmin")]
+        public async Task<IActionResult> UpdatePlayerGoal(int goalId, [FromBody] UpdatePlayerGoalDto dto)
+        {
+            var result = await _playerGoalService.UpdatePlayerGoalAsync(goalId, dto);
+            return Ok(result);
         }
     }
 }

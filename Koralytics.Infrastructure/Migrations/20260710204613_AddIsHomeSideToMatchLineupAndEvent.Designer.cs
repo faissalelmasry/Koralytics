@@ -4,6 +4,7 @@ using Koralytics.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Koralytics.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260710204613_AddIsHomeSideToMatchLineupAndEvent")]
+    partial class AddIsHomeSideToMatchLineupAndEvent
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -868,10 +871,6 @@ namespace Koralytics.Infrastructure.Migrations
                     b.Property<DateTime>("SessionDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int>("TeamId")
                         .HasColumnType("int");
 
@@ -1037,63 +1036,6 @@ namespace Koralytics.Infrastructure.Migrations
                     b.ToTable("SessionAttendances", (string)null);
                 });
 
-            modelBuilder.Entity("Koralytics.Domain.Entities.Identity.RefreshToken", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("DeviceInfo")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("ExpiresAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("IpAddress")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("JtiId")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
-
-                    b.Property<string>("ReplacedByToken")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("RevokedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("RevokedReason")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Token")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("JtiId");
-
-                    b.HasIndex("Token")
-                        .IsUnique();
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("RefreshTokens", (string)null);
-                });
-
             modelBuilder.Entity("Koralytics.Domain.Entities.Identity.Role", b =>
                 {
                     b.Property<int>("Id")
@@ -1156,9 +1098,6 @@ namespace Koralytics.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
-
-                    b.Property<string>("GoogleId")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
@@ -1611,78 +1550,6 @@ namespace Koralytics.Infrastructure.Migrations
 
                             t.HasCheckConstraint("CK_MatchPlayerRating_MinutesPlayed", "[MinutesPlayed] >= 0 AND [MinutesPlayed] <= 150");
                         });
-                });
-
-            modelBuilder.Entity("Koralytics.Domain.Entities.Match.MatchRequest", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("CreatedById")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("CreatedByUserId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Format")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Location")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<int?>("MatchId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("ProposedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("RequesterCoachId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("RequesterTeamId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("ResolvedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("ResolvedByCoachId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("TargetTeamId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatedByUserId");
-
-                    b.HasIndex("MatchId");
-
-                    b.HasIndex("RequesterCoachId");
-
-                    b.HasIndex("RequesterTeamId");
-
-                    b.HasIndex("ResolvedByCoachId");
-
-                    b.HasIndex("Status");
-
-                    b.HasIndex("TargetTeamId");
-
-                    b.ToTable("MatchRequests");
                 });
 
             modelBuilder.Entity("Koralytics.Domain.Entities.Parents.ParentPlayer", b =>
@@ -3734,17 +3601,6 @@ namespace Koralytics.Infrastructure.Migrations
                     b.Navigation("UpdatedByUser");
                 });
 
-            modelBuilder.Entity("Koralytics.Domain.Entities.Identity.RefreshToken", b =>
-                {
-                    b.HasOne("Koralytics.Domain.Entities.Identity.User", "User")
-                        .WithMany("RefreshTokens")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("Koralytics.Domain.Entities.Identity.User", b =>
                 {
                     b.HasOne("Koralytics.Domain.Entities.Identity.User", "CreatedByUser")
@@ -3963,53 +3819,6 @@ namespace Koralytics.Infrastructure.Migrations
                     b.Navigation("Player");
 
                     b.Navigation("UpdatedByUser");
-                });
-
-            modelBuilder.Entity("Koralytics.Domain.Entities.Match.MatchRequest", b =>
-                {
-                    b.HasOne("Koralytics.Domain.Entities.Identity.User", "CreatedByUser")
-                        .WithMany()
-                        .HasForeignKey("CreatedByUserId");
-
-                    b.HasOne("Koralytics.Domain.Entities.Match.Match", "Match")
-                        .WithMany()
-                        .HasForeignKey("MatchId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("Koralytics.Domain.Entities.Identity.User", "RequesterCoach")
-                        .WithMany()
-                        .HasForeignKey("RequesterCoachId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Koralytics.Domain.Entities.Academy.Team", "RequesterTeam")
-                        .WithMany()
-                        .HasForeignKey("RequesterTeamId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Koralytics.Domain.Entities.Identity.User", "ResolvedByCoach")
-                        .WithMany()
-                        .HasForeignKey("ResolvedByCoachId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("Koralytics.Domain.Entities.Academy.Team", "TargetTeam")
-                        .WithMany()
-                        .HasForeignKey("TargetTeamId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("CreatedByUser");
-
-                    b.Navigation("Match");
-
-                    b.Navigation("RequesterCoach");
-
-                    b.Navigation("RequesterTeam");
-
-                    b.Navigation("ResolvedByCoach");
-
-                    b.Navigation("TargetTeam");
                 });
 
             modelBuilder.Entity("Koralytics.Domain.Entities.Parents.ParentPlayer", b =>
@@ -4846,11 +4655,6 @@ namespace Koralytics.Infrastructure.Migrations
             modelBuilder.Entity("Koralytics.Domain.Entities.Drill.DrillTemplate", b =>
                 {
                     b.Navigation("TemplateDrills");
-                });
-
-            modelBuilder.Entity("Koralytics.Domain.Entities.Identity.User", b =>
-                {
-                    b.Navigation("RefreshTokens");
                 });
 
             modelBuilder.Entity("Koralytics.Domain.Entities.Match.Match", b =>

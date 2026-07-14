@@ -19,13 +19,13 @@ namespace Koralytics.Application.Services.Player.PlayerCardService
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<PlayerCardService> _logger;
         private readonly IMapper _mapper;
-        private readonly CardInvalidationList _invalidationList;
+        private readonly ICardInvalidationList _invalidationList;
 
         public PlayerCardService(
             IUnitOfWork unitOfWork,
             ILogger<PlayerCardService> logger,
             IMapper mapper,
-            CardInvalidationList invalidationList)
+            ICardInvalidationList invalidationList)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
@@ -45,24 +45,15 @@ namespace Koralytics.Application.Services.Player.PlayerCardService
             .ThenInclude(cr => cr.DrillCategory)
             .FirstOrDefaultAsync(pc => pc.PlayerId == playerId);
 
-
             if (playerCard is null || _invalidationList.TryConsume(playerId))
             {
-                var playerExists = await _unitOfWork.Repository<PlayerEntity>()
-                    .ExistsAsync(p => p.Id == playerId);
-
-                if (!playerExists)
-                    throw new NotFoundException($"Player with id {playerId} was not found");
-
                 await RecalculatePlayerCardAsync(playerId);
 
-                playerCard = await _unitOfWork.Repository<PlayerCard>()
-                            .GetQueryableAsNoTracking()
-                            .Include(pc => pc.Player)
-                            .ThenInclude(p => p.PlayerPositions)
-                            .Include(pc => pc.CategoryRatings)
-                            .ThenInclude(cr => cr.DrillCategory)
-                            .FirstOrDefaultAsync(pc => pc.PlayerId == playerId);
+                var dto = await ProjectPlayerCardDtoAsync(playerId);
+                if (dto is null)
+                    throw new NotFoundException($"Player card for player {playerId} was not found");
+
+                return dto;
             }
 
             return MapToDto(playerCard);
@@ -74,11 +65,8 @@ namespace Koralytics.Application.Services.Player.PlayerCardService
                 "Recalculating player card for player {PlayerId}",
                 playerId);
 
-            var existingCard = await GetExistingPlayerCardAsync(playerId);
-
-            var targetCategories = await GetTargetCategoriesAsync(
-                playerId,
-                existingCard);
+            var (existingCard, primaryPosition) = await GetCardAndPositionAsync(playerId);
+            var targetCategories = GetTargetCategories(primaryPosition);
 
             var categoryDrillAvgs = await GetDrillAggregatesAsync(
                 playerId,
@@ -138,23 +126,82 @@ namespace Koralytics.Application.Services.Player.PlayerCardService
         {
             _logger.LogInformation("Fetching transfer rate for player {PlayerId}", playerId);
 
-            var player = await _unitOfWork.Repository<PlayerEntity>()
-                .FindAsync(p => p.Id == playerId);
-            if (player is null)
-                throw new NotFoundException($"Player with Id {playerId} not found");
-
             var playerCard = await _unitOfWork.Repository<PlayerCard>()
                 .GetQueryableAsNoTracking()
                 .Include(pc => pc.Player)
                 .FirstOrDefaultAsync(pc => pc.PlayerId == playerId);
 
-            if (playerCard is null)
-                return null;
+            if (playerCard is not null)
+                return _mapper.Map<TransferRateDto>(playerCard);
 
-            return _mapper.Map<TransferRateDto>(playerCard);
+            var playerExists = await _unitOfWork.Repository<PlayerEntity>()
+                .ExistsAsync(p => p.Id == playerId);
+
+            if (!playerExists)
+                throw new NotFoundException($"Player with Id {playerId} not found");
+
+            return null;
         }
 
-        private async Task<PlayerCard?> GetExistingPlayerCardAsync(int playerId)
+        private async Task<PlayerCardDto?> ProjectPlayerCardDtoAsync(int playerId)
+        {
+            var data = await _unitOfWork.Repository<PlayerCard>()
+                .GetQueryableAsNoTracking()
+                .Where(pc => pc.PlayerId == playerId)
+                .Select(pc => new
+                {
+                    pc.OverallRating,
+                    pc.TransferClassification,
+                    pc.Player.FirstName,
+                    pc.Player.LastName,
+                    pc.Player.PreferredFoot,
+                    pc.Player.WeakFootRating,
+                    pc.Player.ArchetypePlayerName,
+                    pc.Player.PlayStyleTag,
+                    pc.Player.ProfileImageUrl,
+                    PrimaryPosition = pc.Player.PlayerPositions
+                        .Where(pp => pp.IsPrimary)
+                        .Select(pp => pp.Position)
+                        .FirstOrDefault(),
+                    Categories = pc.CategoryRatings
+                        .Select(cr => new { cr.DrillCategory.Name, cr.Score })
+                })
+                .FirstOrDefaultAsync();
+
+            if (data is null)
+                return null;
+
+            var dto = new PlayerCardDto
+            {
+                PlayerName = $"{data.FirstName} {data.LastName}",
+                Position = data.PrimaryPosition ?? string.Empty,
+                OverallRating = data.OverallRating,
+                TransferClassification = data.TransferClassification.ToString(),
+                PreferredFoot = data.PreferredFoot,
+                WeakFootRating = data.WeakFootRating,
+                ArchetypePlayerName = data.ArchetypePlayerName,
+                PlayStyleTag = data.PlayStyleTag,
+                ProfileImageUrl = data.ProfileImageUrl
+            };
+
+            foreach (var cat in data.Categories)
+            {
+                switch (cat.Name)
+                {
+                    case "Passing": dto.PassingRating = cat.Score; break;
+                    case "Shooting": dto.ShootingRating = cat.Score; break;
+                    case "Dribbling": dto.DribblingRating = cat.Score; break;
+                    case "Defending": dto.DefendingRating = cat.Score; break;
+                    case "Speed": dto.PaceRating = cat.Score; break;
+                    case "Physical": dto.PhysicalRating = cat.Score; break;
+                    case "GoalKeeping": dto.GoalkeepingRating = cat.Score; break;
+                }
+            }
+
+            return dto;
+        }
+
+        private async Task<(PlayerCard? Card, string? PrimaryPosition)> GetCardAndPositionAsync(int playerId)
         {
             var existingCard = await _unitOfWork.Repository<PlayerCard>()
                 .GetQueryable()
@@ -164,38 +211,29 @@ namespace Koralytics.Application.Services.Player.PlayerCardService
                 .FirstOrDefaultAsync(pc => pc.PlayerId == playerId);
 
             if (existingCard is not null)
-                return existingCard;
-
-            var playerExists = await _unitOfWork.Repository<PlayerEntity>()
-                .ExistsAsync(p => p.Id == playerId);
-
-            if (!playerExists)
-                throw new NotFoundException(
-                    $"Player with id {playerId} was not found");
-
-            return null;
-        }
-        private async Task<string[]> GetTargetCategoriesAsync(int playerId,PlayerCard? existingCard)
-        {
-            var primaryPosition = existingCard?
-                .Player
-                .PlayerPositions
-                .FirstOrDefault(x => x.IsPrimary)?
-                .Position;
-
-            if (primaryPosition is null)
             {
-                var player = await _unitOfWork.Repository<PlayerEntity>()
-                    .GetQueryableAsNoTracking()
-                    .Include(p => p.PlayerPositions)
-                    .FirstOrDefaultAsync(p => p.Id == playerId);
+                var position = existingCard.Player.PlayerPositions
+                    .FirstOrDefault(x => x.IsPrimary)?.Position;
 
-                primaryPosition = player?
-                    .PlayerPositions
-                    .FirstOrDefault(x => x.IsPrimary)?
-                    .Position;
+                return (existingCard, position);
             }
 
+            var player = await _unitOfWork.Repository<PlayerEntity>()
+                .GetQueryableAsNoTracking()
+                .Include(p => p.PlayerPositions)
+                .FirstOrDefaultAsync(p => p.Id == playerId);
+
+            if (player is null)
+                throw new NotFoundException($"Player with id {playerId} was not found");
+
+            var primaryPosition = player.PlayerPositions
+                .FirstOrDefault(x => x.IsPrimary)?.Position;
+
+            return (null, primaryPosition);
+        }
+
+        private static string[] GetTargetCategories(string? primaryPosition)
+        {
             var isGoalkeeper = string.Equals(
                 primaryPosition,
                 "GK",
@@ -205,12 +243,12 @@ namespace Koralytics.Application.Services.Player.PlayerCardService
                 ? ["GoalKeeping"]
                 : [
                     "Speed",
-            "Shooting",
-            "Passing",
-            "Dribbling",
-            "Defending",
-            "Physical"
-                ];
+                    "Shooting",
+                    "Passing",
+                    "Dribbling",
+                    "Defending",
+                    "Physical"
+                  ];
         }
         private async Task<List<PlayerCardCalculator.CategoryAggregate>> GetDrillAggregatesAsync(int playerId,string[] targetCategories)
         {

@@ -31,8 +31,16 @@ namespace Koralytics.Infrastructure.EntitiesConfigurations.Match
                 .HasForeignKey(x => x.TeamId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            builder.Property(x => x.IsHomeSide)
+                .IsRequired(false);
+
             builder.HasIndex(ml => new { ml.MatchId, ml.PlayerId, ml.TeamId })
-               .IsUnique();
+                .IsUnique()
+                .HasFilter("[IsHomeSide] IS NULL");
+
+            builder.HasIndex(ml => new { ml.MatchId, ml.PlayerId, ml.TeamId, ml.IsHomeSide })
+               .IsUnique()
+               .HasFilter("[IsHomeSide] IS NOT NULL");
 
             builder.HasIndex(ml => new { ml.MatchId, ml.IsStarting });
 

@@ -25,7 +25,7 @@ namespace Koralytics.Application.UnitTests.Player
         private readonly Mock<IUnitOfWork> _unitOfWorkMock;
         private readonly Mock<IMapper> _mapperMock;
         private readonly Mock<ILogger<PlayerCardService>> _loggerMock;
-        private readonly Mock<CardInvalidationList> _invalidationListMock;
+        private readonly Mock<ICardInvalidationList> _invalidationListMock;
 
         private readonly PlayerCardService _service;
 
@@ -34,7 +34,7 @@ namespace Koralytics.Application.UnitTests.Player
             _unitOfWorkMock = new();
             _mapperMock = new();
             _loggerMock = new();
-            _invalidationListMock = new();
+            _invalidationListMock = new Mock<ICardInvalidationList>();
 
             _service = new PlayerCardService(
                 _unitOfWorkMock.Object,
@@ -46,15 +46,27 @@ namespace Koralytics.Application.UnitTests.Player
         public async Task GetDrillToMatchTransferRateAsync_PlayerNotFound_ThrowsNotFoundException()
         {
             // Arrange
+            var playerCards = new List<PlayerCard>();
+            var playerCardQueryable = playerCards.BuildMock();
+
             var playerRepo = new Mock<IRepository<PlayerEntity>>();
+            var playerCardRepo = new Mock<IRepository<PlayerCard>>();
 
             playerRepo
-                .Setup(r => r.FindAsync(It.IsAny<Expression<Func<PlayerEntity, bool>>>()))
-                .ReturnsAsync((PlayerEntity?)null);
+                .Setup(r => r.ExistsAsync(It.IsAny<Expression<Func<PlayerEntity, bool>>>()))
+                .ReturnsAsync(false);
+
+            playerCardRepo
+                .Setup(r => r.GetQueryableAsNoTracking())
+                .Returns(playerCardQueryable);
 
             _unitOfWorkMock
                 .Setup(u => u.Repository<PlayerEntity>())
                 .Returns(playerRepo.Object);
+
+            _unitOfWorkMock
+                .Setup(u => u.Repository<PlayerCard>())
+                .Returns(playerCardRepo.Object);
 
             // Act & Assert
             await Assert.ThrowsAsync<NotFoundException>(() =>
@@ -64,21 +76,15 @@ namespace Koralytics.Application.UnitTests.Player
         public async Task GetDrillToMatchTransferRateAsync_PlayerCardNotFound_ReturnsNull()
         {
             // Arrange
-            var player = new PlayerEntity
-            {
-                Id = 1
-            };
-
             var playerCards = new List<PlayerCard>();
-
             var playerCardQueryable = playerCards.BuildMock();
 
             var playerRepo = new Mock<IRepository<PlayerEntity>>();
             var playerCardRepo = new Mock<IRepository<PlayerCard>>();
 
             playerRepo
-                .Setup(r => r.FindAsync(It.IsAny<Expression<Func<PlayerEntity, bool>>>()))
-                .ReturnsAsync(player);
+                .Setup(r => r.ExistsAsync(It.IsAny<Expression<Func<PlayerEntity, bool>>>()))
+                .ReturnsAsync(true);
 
             playerCardRepo
                 .Setup(r => r.GetQueryableAsNoTracking())

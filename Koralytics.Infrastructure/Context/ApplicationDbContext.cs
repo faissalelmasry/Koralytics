@@ -37,6 +37,7 @@ namespace Koralytics.Infrastructure.Context
         public DbSet<MatchLineup> MatchLineups { get; set; }
         public DbSet<MatchPlayerRating> MatchPlayerRatings { get; set; }
         public DbSet<MatchPlayerCategoryRating> MatchPlayerCategoryRatings { get; set; }
+        public DbSet<MatchRequest> MatchRequests { get; set; }
 
         public DbSet<Tournament> Tournaments { get; set; }
         public DbSet<TournamentFixture> TournamentFixtures { get; set; }
