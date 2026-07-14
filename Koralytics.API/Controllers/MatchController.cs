@@ -223,6 +223,16 @@ namespace Koralytics.API.Controllers
             return OkResponse(result);
         }
 
+        [HttpGet("player/{playerId:int}/readiness")]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetPlayerReadiness(int playerId)
+        {
+            var result = await _matchAnalyticsService.GetPlayerReadinessAsync(playerId);
+            return OkResponse(result);
+        }
+
         [HttpPatch("request/{requestId:int}/accept")]
         [Authorize(Roles = "Coach,AcademyAdmin")]
         [ProducesResponseType(StatusCodes.Status200OK)]

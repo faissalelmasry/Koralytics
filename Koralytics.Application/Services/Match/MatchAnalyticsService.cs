@@ -167,6 +167,80 @@ namespace Koralytics.Application.Services.Match
             };
         }
 
+        public async Task<PlayerReadinessDto> GetPlayerReadinessAsync(int playerId)
+        {
+            _logger.LogInformation("Getting player readiness for player {PlayerId}", playerId);
+
+            var player = await _unitOfWork.Repository<Koralytics.Domain.Entities.Player.Player>()
+                .FindAsNoTrackingAsync(p => p.Id == playerId);
+
+            if (player == null)
+                throw new NotFoundException($"Player with Id {playerId} not found");
+
+            var sevenDaysAgo = DateTime.UtcNow.AddDays(-7);
+
+            var recentMatchesCount = await _unitOfWork.Repository<Koralytics.Domain.Entities.Match.MatchLineup>()
+                .GetQueryableAsNoTracking()
+                .Include(ml => ml.Match)
+                .Where(ml => ml.PlayerId == playerId && ml.Match.MatchDate >= sevenDaysAgo && ml.Match.Status == DomainEnums.MatchStatus.Completed)
+                .CountAsync();
+
+            var dto = new PlayerReadinessDto
+            {
+                PlayerId = player.Id,
+                PlayerName = $"{player.FirstName} {player.LastName}",
+                MatchesPlayedLast7Days = recentMatchesCount
+            };
+
+            switch (player.AvailabilityStatus)
+            {
+                case DomainEnums.AvailabilityStatus.Injured:
+                    dto.ReadinessScore = 0;
+                    dto.Status = "Injured";
+                    dto.Recommendation = "Player needs medical clearance.";
+                    break;
+                case DomainEnums.AvailabilityStatus.Suspended:
+                    dto.ReadinessScore = 0;
+                    dto.Status = "Suspended";
+                    dto.Recommendation = "Player is suspended and cannot play.";
+                    break;
+                case DomainEnums.AvailabilityStatus.Resting:
+                    dto.ReadinessScore = 0;
+                    dto.Status = "Resting";
+                    dto.Recommendation = "Player is currently on a rest period.";
+                    break;
+                default:
+                    // Available
+                    if (recentMatchesCount >= 3)
+                    {
+                        dto.ReadinessScore = 30;
+                        dto.Status = "Highly Fatigued";
+                        dto.Recommendation = "Player has played heavily in the last 7 days. High risk of injury. Needs rest.";
+                    }
+                    else if (recentMatchesCount == 2)
+                    {
+                        dto.ReadinessScore = 60;
+                        dto.Status = "Fatigued";
+                        dto.Recommendation = "Player has played 2 matches recently. Monitor minutes carefully.";
+                    }
+                    else if (recentMatchesCount == 1)
+                    {
+                        dto.ReadinessScore = 85;
+                        dto.Status = "Match Fit";
+                        dto.Recommendation = "Player is in good rhythm and match fit.";
+                    }
+                    else
+                    {
+                        dto.ReadinessScore = 100;
+                        dto.Status = "Fully Rested";
+                        dto.Recommendation = "Player is fully rested and ready to play.";
+                    }
+                    break;
+            }
+
+            return dto;
+        }
+
         private static bool IsDraw(MatchEntity m)
         {
             if (m.HomeScore != m.AwayScore) return false;

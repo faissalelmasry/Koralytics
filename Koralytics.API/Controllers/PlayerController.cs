@@ -26,7 +26,7 @@ namespace Koralytics.API.Controllers
             IPlayerTransferService playerTransferService,
             IPlayerCardService playerCardService,
             IPlayerProfileService playerProfileService,
-            IStorageService storageService)
+            IStorageService storageService,
             IPlayerGoalService playerGoalService)
         {
             _playerTransferService = playerTransferService;
@@ -231,6 +231,7 @@ namespace Koralytics.API.Controllers
         {
             var highlights = await _storageService.GetHighlightsAsync(playerId);
             return Ok(highlights);
+        }
         [HttpPost("{playerId}/goals")]
         [Authorize(Roles = "Coach,AcademyAdmin")]
         public async Task<IActionResult> CreatePlayerGoal(int playerId, [FromBody] CreatePlayerGoalDto dto)

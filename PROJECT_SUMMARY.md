@@ -145,6 +145,7 @@ The database context (`ApplicationDbContext`) inherits from `IdentityDbContext<U
 **`IMatchAnalyticsService` / `MatchAnalyticsService`**
 - `GetHeadToHeadAsync(teamAId, teamBId)`
 - `GetPostMatchAnalysisAsync(teamId)`
+- `GetPlayerReadinessAsync(playerId)` → calculates player readiness based on AvailabilityStatus and recent match load
 
 #### AI/ — **⚠️ NOT IMPLEMENTED**
 > All AI services (`AIReportService`, `AIPreviewService`, `AIQueryService`, `AIArchetypeService`) were **planned but not yet created**. No service files exist. This is the primary blocker for: `ScouterReportService.GenerateScoutingReportAsync`, `PlayerArchetypeService`, `CompleteTournamentAsync` AI trigger, and `GetPostMatchAnalysisAsync`.
@@ -299,8 +300,8 @@ The database context (`ApplicationDbContext`) inherits from `IdentityDbContext<U
 - `PinHighlightAsync(highlightId, playerId)` → unpin any existing pinned highlight for player → set `PlayerHighlight.IsPinned = true`
 - `GetHighlightsAsync(playerId)` → fetch player highlights ordered pinned-first then newest-first
 
-#### Match/ (Youssef's contribution) — **⚠️ NOT IMPLEMENTED**
-> `GetPlayerReadinessAsync` was planned as part of `MatchAnalyticsService` but that service doesn't exist yet.
+#### Match/ (Youssef's contribution) — **✅ IMPLEMENTED**
+> `GetPlayerReadinessAsync` has been successfully implemented under `MatchAnalyticsService`.
 
 ---
 

@@ -399,5 +399,91 @@ namespace Koralytics.Application.UnitTests.Match
         }
 
         #endregion
+
+        #region GetPlayerReadinessAsync
+
+        [Fact]
+        public async Task GetPlayerReadinessAsync_PlayerNotFound_ThrowsNotFoundException()
+        {
+            var playerRepo = new Mock<IRepository<Koralytics.Domain.Entities.Player.Player>>();
+            playerRepo.Setup(r => r.FindAsNoTrackingAsync(It.IsAny<Expression<Func<Koralytics.Domain.Entities.Player.Player, bool>>>()))
+                .ReturnsAsync((Koralytics.Domain.Entities.Player.Player?)null);
+            SetupRepository(playerRepo);
+
+            await Assert.ThrowsAsync<NotFoundException>(() =>
+                _service.GetPlayerReadinessAsync(1));
+        }
+
+        [Fact]
+        public async Task GetPlayerReadinessAsync_InjuredPlayer_ReturnsZeroScore()
+        {
+            var player = new Koralytics.Domain.Entities.Player.Player { Id = 1, FirstName = "Test", LastName = "Player", AvailabilityStatus = DomainEnums.AvailabilityStatus.Injured };
+            var playerRepo = new Mock<IRepository<Koralytics.Domain.Entities.Player.Player>>();
+            playerRepo.Setup(r => r.FindAsNoTrackingAsync(It.IsAny<Expression<Func<Koralytics.Domain.Entities.Player.Player, bool>>>()))
+                .ReturnsAsync(player);
+            SetupRepository(playerRepo);
+
+            var lineups = new List<Koralytics.Domain.Entities.Match.MatchLineup>();
+            var queryable = lineups.BuildMock();
+            var lineupRepo = new Mock<IRepository<Koralytics.Domain.Entities.Match.MatchLineup>>();
+            lineupRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(queryable);
+            SetupRepository(lineupRepo);
+
+            var result = await _service.GetPlayerReadinessAsync(1);
+
+            Assert.Equal(0, result.ReadinessScore);
+            Assert.Equal("Injured", result.Status);
+        }
+
+        [Fact]
+        public async Task GetPlayerReadinessAsync_AvailablePlayer_NoRecentMatches_ReturnsFullyRested()
+        {
+            var player = new Koralytics.Domain.Entities.Player.Player { Id = 1, FirstName = "Test", LastName = "Player", AvailabilityStatus = DomainEnums.AvailabilityStatus.Available };
+            var playerRepo = new Mock<IRepository<Koralytics.Domain.Entities.Player.Player>>();
+            playerRepo.Setup(r => r.FindAsNoTrackingAsync(It.IsAny<Expression<Func<Koralytics.Domain.Entities.Player.Player, bool>>>()))
+                .ReturnsAsync(player);
+            SetupRepository(playerRepo);
+
+            var lineups = new List<Koralytics.Domain.Entities.Match.MatchLineup>();
+            var queryable = lineups.BuildMock();
+            var lineupRepo = new Mock<IRepository<Koralytics.Domain.Entities.Match.MatchLineup>>();
+            lineupRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(queryable);
+            SetupRepository(lineupRepo);
+
+            var result = await _service.GetPlayerReadinessAsync(1);
+
+            Assert.Equal(100, result.ReadinessScore);
+            Assert.Equal("Fully Rested", result.Status);
+            Assert.Equal(0, result.MatchesPlayedLast7Days);
+        }
+
+        [Fact]
+        public async Task GetPlayerReadinessAsync_AvailablePlayer_ManyRecentMatches_ReturnsHighlyFatigued()
+        {
+            var player = new Koralytics.Domain.Entities.Player.Player { Id = 1, FirstName = "Test", LastName = "Player", AvailabilityStatus = DomainEnums.AvailabilityStatus.Available };
+            var playerRepo = new Mock<IRepository<Koralytics.Domain.Entities.Player.Player>>();
+            playerRepo.Setup(r => r.FindAsNoTrackingAsync(It.IsAny<Expression<Func<Koralytics.Domain.Entities.Player.Player, bool>>>()))
+                .ReturnsAsync(player);
+            SetupRepository(playerRepo);
+
+            var lineups = new List<Koralytics.Domain.Entities.Match.MatchLineup>
+            {
+                new Koralytics.Domain.Entities.Match.MatchLineup { PlayerId = 1, Match = new MatchEntity { MatchDate = DateTime.UtcNow.AddDays(-1), Status = DomainEnums.MatchStatus.Completed } },
+                new Koralytics.Domain.Entities.Match.MatchLineup { PlayerId = 1, Match = new MatchEntity { MatchDate = DateTime.UtcNow.AddDays(-2), Status = DomainEnums.MatchStatus.Completed } },
+                new Koralytics.Domain.Entities.Match.MatchLineup { PlayerId = 1, Match = new MatchEntity { MatchDate = DateTime.UtcNow.AddDays(-3), Status = DomainEnums.MatchStatus.Completed } }
+            };
+            var queryable = lineups.BuildMock();
+            var lineupRepo = new Mock<IRepository<Koralytics.Domain.Entities.Match.MatchLineup>>();
+            lineupRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(queryable);
+            SetupRepository(lineupRepo);
+
+            var result = await _service.GetPlayerReadinessAsync(1);
+
+            Assert.Equal(30, result.ReadinessScore);
+            Assert.Equal("Highly Fatigued", result.Status);
+            Assert.Equal(3, result.MatchesPlayedLast7Days);
+        }
+
+        #endregion
     }
 }

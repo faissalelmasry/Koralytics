@@ -6,5 +6,6 @@ namespace Koralytics.Application.Interfaces.Match
     {
         Task<HeadToHeadResponseDto> GetHeadToHeadAsync(int teamAId, int teamBId);
         Task<PostMatchAnalysisResponseDto> GetPostMatchAnalysisAsync(int teamId);
+        Task<PlayerReadinessDto> GetPlayerReadinessAsync(int playerId);
     }
 }
