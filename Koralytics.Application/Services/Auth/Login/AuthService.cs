@@ -1,23 +1,27 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 using FluentValidation;
 
+using Koralytics.Application.Common;
 using Koralytics.Application.DTOs.AuthDTOs.LoginDTOs;
+using Koralytics.Application.DTOs.AuthDTOs.RegisterDTOs;
 using Koralytics.Application.Interfaces;
+using Koralytics.Application.Services.Auth.OAuth;
 using Koralytics.Application.Services.Auth.Register;
+using Koralytics.Application.Services.Auth.Token;
 using Koralytics.Application.Validators.UserBusiness;
+using Koralytics.Domain.Entities.Academy;
 using Koralytics.Domain.Entities.Coach;
 using Koralytics.Domain.Entities.Identity;
 using Koralytics.Domain.Entities.Player;
-using Koralytics.Domain.Entities.Academy;
 using Koralytics.Domain.Exceptions;
 
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Koralytics.Application.Services.Auth.Login
 {
@@ -26,39 +30,39 @@ namespace Koralytics.Application.Services.Auth.Login
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IConfiguration _configuration;
+        private readonly ITokenService _tokenService;
+        private readonly IOAuthProviderFactory _oauthProviderFactory;
         private readonly IValidator<LoginRequestDto> _loginValidator;
         private readonly IValidator<ChangePasswordRequestDto> _changePasswordValidator;
         private readonly IUserBusinessValidator _businessValidator;
         private readonly ILogger<AuthService> _logger;
+        private readonly IRegistrationService _registrationService;
 
         public AuthService(
             UserManager<User> userManager,
             SignInManager<User> signInManager,
             IUnitOfWork unitOfWork,
-            IConfiguration configuration,
+            ITokenService tokenService,
+            IOAuthProviderFactory oauthProviderFactory,
             IValidator<LoginRequestDto> loginValidator,
             IValidator<ChangePasswordRequestDto> changePasswordValidator,
             IUserBusinessValidator businessValidator,
-            ILogger<AuthService> logger)
+            ILogger<AuthService> logger,
+            IRegistrationService registrationService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _unitOfWork = unitOfWork;
-            _configuration = configuration;
+            _tokenService = tokenService;
+            _oauthProviderFactory = oauthProviderFactory;
             _loginValidator = loginValidator;
             _changePasswordValidator = changePasswordValidator;
             _businessValidator = businessValidator;
             _logger = logger;
+            _registrationService = registrationService;
         }
 
-        /// <summary>
-        /// Authenticates a user with email/username and password.
-        /// </summary>
-        /// <param name="request">Login credentials.</param>
-        /// <returns>Authentication response with JWT tokens.</returns>
-        /// <exception cref="BadRequestException">Thrown when credentials are invalid.</exception>
-        public async Task<AuthResponseDto> LoginAsync(LoginRequestDto request)
+        public async Task<AuthResultDto> LoginAsync(LoginRequestDto request)
         {
             var validationResult = await _loginValidator.ValidateAsync(request);
             if (!validationResult.IsValid)
@@ -77,76 +81,44 @@ namespace Koralytics.Application.Services.Auth.Login
                 throw new UnauthorizedException("Invalid credentials.");
             }
 
-            var roles = (await _userManager.GetRolesAsync(user)).ToList();
-            var academyId = await GetAcademyIdAsync(user, roles);
-            var accessToken = CreateToken(user, roles, academyId, tokenType: "access");
-            var refreshToken = CreateToken(user, roles, academyId, tokenType: "refresh");
-
-            _logger.LogInformation("Successful login for user: {userId} ({email}), roles: {roles}",
-                user.Id, user.Email, string.Join(", ", roles));
-
-            return BuildAuthResponse(user, roles, accessToken, refreshToken);
+            return await GenerateAuthResultAsync(user);
         }
 
-        /// <summary>
-        /// Refreshes authentication tokens using a valid refresh token.
-        /// </summary>
-        /// <param name="refreshToken">The refresh token.</param>
-        /// <returns>New authentication response with updated tokens.</returns>
-        /// <exception cref="BadRequestException">Thrown when refresh token is missing.</exception>
-        /// <exception cref="UnauthorizedException">Thrown when refresh token is invalid or expired.</exception>
-        public async Task<AuthResponseDto> RefreshTokenAsync(string refreshToken)
+        public async Task<AuthResultDto> RefreshTokenAsync(string refreshToken)
         {
             if (string.IsNullOrWhiteSpace(refreshToken))
             {
-                _logger.LogWarning("Token refresh attempt with missing refresh token.");
                 throw new BadRequestException("Refresh token is required.");
             }
 
-            try
+            // TokenService validates the token, performs rotation, and returns the new pair
+            var tokens = await _tokenService.RefreshTokensAsync(refreshToken, GetAcademyIdAsync);
+
+            // Load the user for the response DTO — extract user ID from the new access token claims
+            var principal = _tokenService.ValidateAccessToken(tokens.AccessToken);
+            var userIdStr = principal.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+            if (!int.TryParse(userIdStr, out var userId))
             {
-                var principal = ValidateToken(refreshToken, expectedTokenType: "refresh");
-                var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-                if (!int.TryParse(userIdClaim, out var userId))
-                {
-                    _logger.LogWarning("Token refresh with invalid user ID claim in token.");
-                    throw new UnauthorizedException("Invalid refresh token.");
-                }
-
-                var user = await _businessValidator.GetUserOrThrowAsync(userId);
-
-                var roles = (await _userManager.GetRolesAsync(user)).ToList();
-                var academyId = await GetAcademyIdAsync(user, roles);
-                var newAccessToken = CreateToken(user, roles, academyId, tokenType: "access");
-                var newRefreshToken = CreateToken(user, roles, academyId, tokenType: "refresh");
-
-                _logger.LogInformation("Token refreshed for user: {userId}", user.Id);
-
-                return BuildAuthResponse(user, roles, newAccessToken, newRefreshToken);
+                throw new UnauthorizedException("Could not determine user from refreshed token.");
             }
-            catch (Exception ex) when (ex is not (UnauthorizedException or NotFoundException))
-            {
-                _logger.LogError(ex, "Unexpected error during token refresh.");
-                throw;
-            }
+
+            var user = await _businessValidator.GetUserOrThrowAsync(userId);
+            // Reload roles from UserManager so they're always up-to-date
+            var roles = (await _userManager.GetRolesAsync(user)).ToList();
+
+            var response = BuildAuthResponse(user, roles, tokens.AccessToken, tokens.RefreshToken, tokens.AccessTokenExpiresAt, tokens.RefreshTokenExpiresAt);
+
+            _logger.LogInformation("Tokens refreshed for user: {userId} ({email})", user.Id, user.Email);
+            return new AuthResultDto(response, tokens);
         }
 
-        /// <summary>
-        /// Changes the password for an authenticated user.
-        /// </summary>
-        /// <param name="userId">The ID of the user.</param>
-        /// <param name="request">Password change request with old and new passwords.</param>
-        /// <exception cref="BadRequestException">Thrown when passwords don't match or change fails.</exception>
-        /// <exception cref="NotFoundException">Thrown when user is not found.</exception>
         public async Task ChangePasswordAsync(int userId, ChangePasswordRequestDto request)
         {
-
             var validationResult = await _changePasswordValidator.ValidateAsync(request);
             if (!validationResult.IsValid)
             {
                 var errorMessage = string.Join(" ", validationResult.Errors.Select(e => e.ErrorMessage));
-                _logger.LogWarning("Change password validation failed for user {userId}: {errors}", userId, errorMessage);
                 throw new BadRequestException(errorMessage);
             }
 
@@ -156,160 +128,204 @@ namespace Koralytics.Application.Services.Auth.Login
             if (!result.Succeeded)
             {
                 var errorMessage = result.Errors.FirstOrDefault()?.Description ?? "Unable to change password.";
-                _logger.LogWarning("Failed password change for user: {userId}. Error: {error}", userId, errorMessage);
                 throw new BadRequestException(errorMessage);
             }
 
-            _logger.LogInformation("Password changed successfully for user: {userId}", userId);
+            // Revoke all existing sessions so the user has to log in again with new password
+            await _tokenService.RevokeAllUserTokensAsync(userId, "PasswordChanged");
+            _logger.LogInformation("Password changed successfully for user: {userId}. Sessions revoked.", userId);
         }
 
-        /// <summary>
-        /// Builds the response DTO for a successful login or refresh, using the access
-        /// token's own expiration rather than recomputing it, so the two can't drift apart.
-        /// </summary>
-        private static AuthResponseDto BuildAuthResponse(User user, IReadOnlyCollection<string> roles, TokenResult accessToken, TokenResult refreshToken)
+        public async Task LogoutAsync(string refreshToken)
+        {
+            if (!string.IsNullOrWhiteSpace(refreshToken))
+            {
+                await _tokenService.RevokeRefreshTokenAsync(refreshToken, "ManualRevoke");
+            }
+        }
+
+        public async Task LogoutAllAsync(int userId)
+        {
+            await _tokenService.RevokeAllUserTokensAsync(userId, "ManualRevoke");
+        }
+
+        public async Task<OAuthLoginResult> OAuthLoginOrRegisterAsync(OAuthLoginRequestDto request)
+        {
+            var provider = _oauthProviderFactory.GetProvider(request.Provider);
+            var userInfo = await provider.GetUserInfoAsync(request.IdToken);
+
+            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.GoogleId == userInfo.ProviderId)
+                       ?? await _userManager.FindByEmailAsync(userInfo.Email);
+
+            if (user == null)
+            {
+                // New user - create account but no role yet
+                user = new User
+                {
+                    Email = userInfo.Email,
+                    UserName = userInfo.Email, // default username
+                    FirstName = userInfo.FirstName,
+                    LastName = userInfo.LastName,
+                    ProfileImageUrl = userInfo.ProfileImageUrl,
+                    GoogleId = userInfo.ProviderId,
+                    EmailConfirmed = true,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+
+                var result = await _userManager.CreateAsync(user);
+                if (!result.Succeeded)
+                {
+                    throw new BadRequestException("Failed to create OAuth user.");
+                }
+                
+                // Return requires profile completion along with a temporary token
+                var tempTokens = await _tokenService.GenerateTokenPairAsync(user, new List<string> { "PendingProfile" }, null);
+                return new OAuthLoginResult
+                {
+                    RequiresProfileCompletion = true,
+                    UserId = user.Id,
+                    TemporaryToken = tempTokens.AccessToken
+                };
+            }
+
+            // Existing user - link Google ID if missing
+            if (string.IsNullOrEmpty(user.GoogleId))
+            {
+                user.GoogleId = userInfo.ProviderId;
+                await _userManager.UpdateAsync(user);
+            }
+
+            var roles = await _userManager.GetRolesAsync(user);
+            
+            if (!roles.Any() || roles.Contains("PendingProfile"))
+            {
+                // User was created but didn't finish the second step
+                var tempTokens = await _tokenService.GenerateTokenPairAsync(user, new List<string> { "PendingProfile" }, null);
+                return new OAuthLoginResult
+                {
+                    RequiresProfileCompletion = true,
+                    UserId = user.Id,
+                    TemporaryToken = tempTokens.AccessToken
+                };
+            }
+
+            // Normal login
+            var authResult = await GenerateAuthResultAsync(user, roles.ToList());
+            return new OAuthLoginResult
+            {
+                RequiresProfileCompletion = false,
+                AuthResult = authResult
+            };
+        }
+
+        public async Task<AuthResultDto> CompleteOAuthProfileAsPlayerAsync(int userId, CompleteProfileAsPlayerDto request)
+        {
+            var user = await PreCompleteProfileChecksAsync(userId, request);
+            await _registrationService.CompleteProfileAsPlayerAsync(user, request);
+            return await GenerateAuthResultAsync(user, new List<string> { AuthConstants.Roles.Player });
+        }
+
+        public async Task<AuthResultDto> CompleteOAuthProfileAsCoachAsync(int userId, CompleteProfileAsCoachDto request)
+        {
+            var user = await PreCompleteProfileChecksAsync(userId, request);
+            await _registrationService.CompleteProfileAsCoachAsync(user, request);
+            return await GenerateAuthResultAsync(user, new List<string> { AuthConstants.Roles.Coach });
+        }
+
+        public async Task<AuthResultDto> CompleteOAuthProfileAsScouterAsync(int userId, CompleteProfileAsScouterDto request)
+        {
+            var user = await PreCompleteProfileChecksAsync(userId, request);
+            await _registrationService.CompleteProfileAsScouterAsync(user, request);
+            return await GenerateAuthResultAsync(user, new List<string> { AuthConstants.Roles.Scouter });
+        }
+
+        public async Task<AuthResultDto> CompleteOAuthProfileAsParentAsync(int userId, CompleteProfileAsParentDto request)
+        {
+            var user = await PreCompleteProfileChecksAsync(userId, request);
+            await _registrationService.CompleteProfileAsParentAsync(user, request);
+            return await GenerateAuthResultAsync(user, new List<string> { AuthConstants.Roles.Parent });
+        }
+
+        public async Task<AuthResultDto> CompleteOAuthProfileAsAcademyAdminAsync(int userId, CompleteProfileAsAcademyAdminDto request)
+        {
+            var user = await PreCompleteProfileChecksAsync(userId, request);
+            await _registrationService.CompleteProfileAsAcademyAdminAsync(user, request);
+            return await GenerateAuthResultAsync(user, new List<string> { AuthConstants.Roles.AcademyAdmin });
+        }
+
+        private async Task<User> PreCompleteProfileChecksAsync(int userId, CompleteProfileBaseDto request)
+        {
+            var user = await _businessValidator.GetUserOrThrowAsync(userId);
+            
+            var roles = await _userManager.GetRolesAsync(user);
+            if (roles.Any(r => r != "PendingProfile"))
+            {
+                throw new BadRequestException("Profile is already completed.");
+            }
+
+            if (!string.IsNullOrEmpty(request.UserName))
+            {
+                await _businessValidator.EnsureUsernameNotExistsAsync(request.UserName);
+                user.UserName = request.UserName;
+            }
+            if (!string.IsNullOrEmpty(request.PhoneNumber))
+            {
+                user.PhoneNumber = request.PhoneNumber;
+            }
+
+            await _userManager.UpdateAsync(user);
+            return user;
+        }
+
+        private async Task<AuthResultDto> GenerateAuthResultAsync(User user, IList<string>? preFetchedRoles = null)
+        {
+            var roles = preFetchedRoles ?? (await _userManager.GetRolesAsync(user)).ToList();
+            var academyId = await GetAcademyIdAsync(user, roles);
+            var tokens = await _tokenService.GenerateTokenPairAsync(user, roles, academyId);
+            var response = BuildAuthResponse(user, roles, tokens.AccessToken, tokens.RefreshToken, tokens.AccessTokenExpiresAt, tokens.RefreshTokenExpiresAt);
+            
+            _logger.LogInformation("Successful authentication for user: {userId} ({email}), roles: {roles}", user.Id, user.Email, string.Join(", ", roles));
+            return new AuthResultDto(response, tokens);
+        }
+
+        private static AuthResponseDto BuildAuthResponse(User user, IList<string> roles, string accessToken, string refreshToken, DateTime accessExpiresAt, DateTime refreshExpiresAt)
         {
             return new AuthResponseDto
             {
-                AccessToken = accessToken.Token,
-                RefreshToken = refreshToken.Token,
-                ExpiresAt = accessToken.ExpiresAt,
+                AccessToken = accessToken,
+                RefreshToken = refreshToken,
+                AccessTokenExpiresAt = accessExpiresAt,
+                RefreshTokenExpiresAt = refreshExpiresAt,
                 UserId = user.Id,
                 UserName = user.UserName ?? string.Empty,
                 Email = user.Email ?? string.Empty,
                 FullName = string.Join(' ', new[] { user.FirstName, user.LastName }.Where(x => !string.IsNullOrWhiteSpace(x))),
-                Roles = roles.ToList()
+                Roles = roles
             };
         }
 
-        private readonly record struct TokenResult(string Token, DateTime ExpiresAt);
-
-        private TokenResult CreateToken(User user, IReadOnlyCollection<string> roles, int? academyId, string tokenType)
+        private async Task<int?> GetAcademyIdAsync(User user, IList<string> roles)
         {
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(GetRequiredJwtSigningKey()));
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
-            var claims = new List<Claim>
-            {
-                new(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new(ClaimTypes.Name, string.Join(' ', new[] { user.FirstName, user.LastName }.Where(x => !string.IsNullOrWhiteSpace(x)))),
-                new(ClaimTypes.Email, user.Email ?? string.Empty),
-                new("username", user.UserName ?? string.Empty),
-                new("tokenType", tokenType),
-                new("academyId", academyId?.ToString() ?? string.Empty)
-            };
-
-            foreach (var role in roles)
-            {
-                claims.Add(new Claim(ClaimTypes.Role, role));
-            }
-
-            var accessTokenMinutes = GetConfigInt("Jwt:AccessTokenMinutes", defaultValue: 60);
-            var refreshTokenDays = GetConfigInt("Jwt:RefreshTokenDays", defaultValue: 7);
-
-            var expirationTime = tokenType == "refresh"
-                ? DateTime.UtcNow.AddDays(refreshTokenDays)
-                : DateTime.UtcNow.AddMinutes(accessTokenMinutes);
-
-            var token = new JwtSecurityToken(
-                issuer: _configuration["Jwt:Issuer"],
-                audience: _configuration["Jwt:Audience"],
-                claims: claims,
-                expires: expirationTime,
-                signingCredentials: credentials);
-
-            var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
-            _logger.LogDebug("Token created for user: {userId}, type: {tokenType}, expires: {expiration}",
-                user.Id, tokenType, expirationTime);
-
-            return new TokenResult(tokenString, expirationTime);
-        }
-
-        private ClaimsPrincipal ValidateToken(string token, string expectedTokenType)
-        {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.UTF8.GetBytes(GetRequiredJwtSigningKey());
-            var clockSkewMinutes = GetConfigInt("Jwt:ClockSkewMinutes", defaultValue: 1);
-
-            var validationParameters = new TokenValidationParameters
-            {
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(key),
-                ValidateIssuer = true,
-                ValidIssuer = _configuration["Jwt:Issuer"],
-                ValidateAudience = true,
-                ValidAudience = _configuration["Jwt:Audience"],
-                ValidateLifetime = true,
-                ClockSkew = TimeSpan.FromMinutes(clockSkewMinutes)
-            };
-
-            try
-            {
-                var principal = tokenHandler.ValidateToken(token, validationParameters, out _);
-                var tokenType = principal.FindFirst("tokenType")?.Value;
-                if (!string.Equals(tokenType, expectedTokenType, StringComparison.OrdinalIgnoreCase))
-                {
-                    _logger.LogWarning("Token type mismatch. Expected: {expected}, Got: {actual}", expectedTokenType, tokenType);
-                    throw new SecurityTokenException("Unexpected token type.");
-                }
-
-                return principal;
-            }
-            catch (Exception ex) when (ex is SecurityTokenException or ArgumentException)
-            {
-                _logger.LogWarning("Token validation failed: {message}", ex.Message);
-                throw new UnauthorizedException("Invalid or expired refresh token.");
-            }
-        }
-
-        /// <summary>
-        /// Returns the configured JWT signing key. Throws rather than silently falling back
-        /// to a hardcoded default: a missing key in any environment (including production
-        /// misconfiguration) must fail loudly, since a default baked into source code would
-        /// let anyone forge valid tokens for any user.
-        /// </summary>
-        private string GetRequiredJwtSigningKey()
-        {
-            var key = _configuration["Jwt:Key"];
-            if (string.IsNullOrWhiteSpace(key))
-            {
-                _logger.LogCritical("Jwt:Key is not configured. Refusing to issue or validate tokens.");
-                throw new InvalidOperationException("JWT signing key is not configured. Set 'Jwt:Key' in configuration.");
-            }
-
-            return key;
-        }
-
-        /// <summary>
-        /// Reads an integer configuration value, falling back to <paramref name="defaultValue"/>
-        /// if the key is missing or not a valid integer, instead of throwing FormatException
-        /// at request time on a misconfigured value.
-        /// </summary>
-        private int GetConfigInt(string key, int defaultValue)
-        {
-            return int.TryParse(_configuration[key], out var value) ? value : defaultValue;
-        }
-
-        private async Task<int?> GetAcademyIdAsync(User user, IReadOnlyCollection<string> roles)
-        {
-            if (roles.Contains(RegistrationRoles.Player))
+            if (roles.Contains(AuthConstants.Roles.Player))
             {
                 var playerAcademy = await _unitOfWork.Repository<PlayerAcademy>()
-                    .FindAsNoTrackingAsync(x => x.PlayerId == user.Id && x.LeftAt==null);
+                    .FindAsNoTrackingAsync(x => x.PlayerId == user.Id && x.LeftAt == null);
                 return playerAcademy?.AcademyId;
             }
 
-            if (roles.Contains(RegistrationRoles.Coach))
+            if (roles.Contains(AuthConstants.Roles.Coach))
             {
                 var coachAcademy = await _unitOfWork.Repository<CoachAcademy>()
                     .FindAsNoTrackingAsync(x => x.CoachUserId == user.Id && x.LeftAt == null);
                 return coachAcademy?.AcademyId;
             }
-            if (roles.Contains(RegistrationRoles.AcademyAdmin))
+            
+            if (roles.Contains(AuthConstants.Roles.AcademyAdmin))
             {
-                var AcademyAdmin = await _unitOfWork.Repository<AcademyAdmin>()
+                var admin = await _unitOfWork.Repository<AcademyAdmin>()
                     .FindAsNoTrackingAsync(x => x.Id == user.Id);
-                return AcademyAdmin?.AcademyId;
+                return admin?.AcademyId;
             }
 
             return null;

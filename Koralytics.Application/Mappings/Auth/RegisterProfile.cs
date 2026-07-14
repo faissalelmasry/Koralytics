@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 
 using Koralytics.Application.DTOs.AuthDTOs.RegisterDTOs;
 using Koralytics.Domain.Entities.Academy;
@@ -25,6 +25,12 @@ namespace Koralytics.Application.Mappings.Auth
             CreateMap<RegisterCoachRequestDto, Coach>().ReverseMap();
             CreateMap<RegisterScouterRequestDto, Scouter>().ReverseMap();
             CreateMap<RegisterAcademyAdminRequestDto, AcademyAdmin>().ReverseMap();
+
+            CreateMap<CompleteProfileAsPlayerDto, PlayerEntity>().ReverseMap();
+            CreateMap<CompleteProfileAsCoachDto, Coach>().ReverseMap();
+            CreateMap<CompleteProfileAsParentDto, Parent>().ReverseMap();
+            CreateMap<CompleteProfileAsScouterDto, Scouter>().ReverseMap();
+            CreateMap<CompleteProfileAsAcademyAdminDto, AcademyAdmin>().ReverseMap();
         }
     }
 }
