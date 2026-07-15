@@ -14,7 +14,7 @@ using Koralytics.Domain.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace Koralytics.Application.Services.Tournament
+namespace Koralytics.Application.Services.Tournaments
 {
     public class TournamentService : ITournamentService
     {

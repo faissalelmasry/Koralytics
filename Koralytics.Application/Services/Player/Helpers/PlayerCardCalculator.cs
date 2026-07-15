@@ -7,7 +7,7 @@ using Koralytics.Domain.Entities.Player;
 using Koralytics.Domain.Enums;
 using static Koralytics.Application.Services.Player.PlayerCardService.PlayerCardService;
 
-namespace Koralytics.Application.Services.Player
+namespace Koralytics.Application.Services.Player.Helpers
 {
     public static class PlayerCardCalculator
     {

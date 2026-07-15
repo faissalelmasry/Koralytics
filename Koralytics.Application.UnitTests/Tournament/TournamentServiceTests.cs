@@ -2,7 +2,6 @@
 using AutoMapper;
 using Koralytics.Application.DTOs.Tournament;
 using Koralytics.Application.Interfaces;
-using Koralytics.Application.Services.Tournament;
 using Koralytics.Domain.Entities.Academy;
 using Koralytics.Domain.Enums;
 using Koralytics.Domain.Exceptions;
@@ -15,6 +14,7 @@ using TournamentEntity = Koralytics.Domain.Entities.Tournamet.Tournament;
 using TournamentTeamEntity = Koralytics.Domain.Entities.Tournamet.TournamentTeam;
 using TournamentSquadEntity = Koralytics.Domain.Entities.Tournamet.TournamentSquad;
 using PlayerTeamEntity = Koralytics.Domain.Entities.Player.PlayerTeam;
+using Koralytics.Application.Services.Tournaments;
 namespace Koralytics.Application.UnitTests.Tournament
 {
     public class TournamentServiceTests

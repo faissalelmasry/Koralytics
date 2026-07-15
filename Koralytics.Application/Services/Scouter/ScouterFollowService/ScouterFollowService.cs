@@ -8,7 +8,8 @@ using Koralytics.Application.Mappings.ScouterProfile;
 using Koralytics.Application.Services.Player.Helpers;
 using Koralytics.Application.Services.Player.PlayerCardService;
 using Koralytics.Domain.Entities.Player;
-using Koralytics.Domain.Entities.Scouter;
+using ScouterEntity = Koralytics.Domain.Entities.Scouter.Scouter;
+using ScouterFollow = Koralytics.Domain.Entities.Scouter.ScouterFollow;
 using Koralytics.Domain.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -17,7 +18,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Koralytics.Application.Services.ScouterServices.ScouterFollowService
+namespace Koralytics.Application.Services.Scouter.ScouterFollowService
 {
     public class ScouterFollowService : IScouterFollowService
     {
@@ -40,7 +41,7 @@ namespace Koralytics.Application.Services.ScouterServices.ScouterFollowService
         public async Task FollowPlayerAsync(int scouterId, int playerId)
         {
 
-            var scouterExists = await _unitOfWork.Repository<Scouter>().ExistsAsync(s => s.Id == scouterId);
+var scouterExists = await _unitOfWork.Repository<ScouterEntity>().ExistsAsync(s => s.Id == scouterId);
             if (!scouterExists)
             {
                 throw new NotFoundException($"Scouter with ID {scouterId} not found.");
@@ -77,9 +78,9 @@ namespace Koralytics.Application.Services.ScouterServices.ScouterFollowService
 
             if (isFollowing == null)
             {
-                var scouterExists = await _unitOfWork.Repository<Scouter>().ExistsAsync(s => s.Id == scouterId);
+var scouterExists = await _unitOfWork.Repository<ScouterEntity>().ExistsAsync(s => s.Id == scouterId);
                 if (!scouterExists)
-                {
+        {
                     throw new NotFoundException($"Scouter with ID {scouterId} not found.");
                 }
 
@@ -101,9 +102,9 @@ namespace Koralytics.Application.Services.ScouterServices.ScouterFollowService
 
         public async Task LogProfileViewAsync(int scouterId, int playerId)
         {
-            var scouterExists = await _unitOfWork.Repository<Scouter>().ExistsAsync(s => s.Id == scouterId);
+var scouterExists = await _unitOfWork.Repository<ScouterEntity>().ExistsAsync(s => s.Id == scouterId);
             if (!scouterExists)
-            {
+        {
                 throw new NotFoundException($"Scouter with ID {scouterId} not found.");
             }
 
@@ -124,7 +125,7 @@ namespace Koralytics.Application.Services.ScouterServices.ScouterFollowService
         }
         public async Task<List<PlayerCardDto>> GetFollowedPlayersAsync(int scouterId)
         {
-            var scouterExists = await _unitOfWork.Repository<Scouter>()
+var scouterExists = await _unitOfWork.Repository<ScouterEntity>()
                 .GetQueryableAsNoTracking()
                 .AnyAsync(s => s.Id == scouterId && !s.IsDeleted);
 
@@ -166,7 +167,7 @@ namespace Koralytics.Application.Services.ScouterServices.ScouterFollowService
                 .Include(pc => pc.CategoryRatings)
                     .ThenInclude(cr => cr.DrillCategory);
 
-            var followedPlayerCards = await _unitOfWork.Repository<Koralytics.Domain.Entities.Player.Player>()
+            var followedPlayerCards = await _unitOfWork.Repository<Domain.Entities.Player.Player>()
                 .GetQueryableAsNoTracking()
                 .Where(p => pagedPlayerIds.Contains(p.Id))
                 .Select(p => new

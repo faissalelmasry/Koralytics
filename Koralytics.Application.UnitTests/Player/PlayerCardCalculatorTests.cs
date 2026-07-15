@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Koralytics.Application.Services.Player;
 using Koralytics.Domain.Entities.Player;
 using Koralytics.Domain.Enums;
-using static Koralytics.Application.Services.Player.PlayerCardCalculator;
+using static Koralytics.Application.Services.Player.Helpers.PlayerCardCalculator;
 
 namespace Koralytics.Application.UnitTests.Player
 {

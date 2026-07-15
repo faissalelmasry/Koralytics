@@ -15,15 +15,16 @@ using Koralytics.Application.DTOs.ScouterDtos;
 using Koralytics.Application.Interfaces;
 using Koralytics.Application.Services.Player.Helpers;
 using Koralytics.Application.Services.Player.PlayerCardService;
-using Koralytics.Application.Services.ScouterServices.ScouterFollowService;
-using Koralytics.Application.Services.ScouterServices.ScouterSearchService;
-using Koralytics.Application.Services.ScouterServices.ScouterReportService;
-using Koralytics.Application.Services.ScouterServices.ScouterShortlistService;
+
 using Koralytics.Domain.Entities.Academy;
 using Koralytics.Domain.Entities.Identity;
 using Koralytics.Domain.Entities.Player;
 using Koralytics.Domain.Entities.Scouter;
 using Koralytics.Domain.Exceptions;
+using Koralytics.Application.Services.Scouter.ScouterFollowService;
+using Koralytics.Application.Services.Scouter.ScouterShortlistService;
+using Koralytics.Application.Services.Scouter.ScouterSearchService;
+using Koralytics.Application.Services.Scouter.ScouterReportService;
 
 namespace Koralytics.Tests.ScouterTests
 {

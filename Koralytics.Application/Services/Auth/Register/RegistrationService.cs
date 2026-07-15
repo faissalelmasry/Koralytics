@@ -18,7 +18,7 @@ using Koralytics.Domain.Entities.Coach;
 using Koralytics.Domain.Entities.Identity;
 using Koralytics.Domain.Entities.Parents;
 using Koralytics.Domain.Entities.Player;
-using Koralytics.Domain.Entities.Scouter;
+using ScouterEntity = Koralytics.Domain.Entities.Scouter.Scouter;
 using Koralytics.Domain.Enums;
 using Koralytics.Domain.Exceptions;
 
@@ -109,7 +109,7 @@ namespace Koralytics.Application.Services.Auth.Register
             _logger.LogInformation("Starting scouter registration for email: {email}", request.Email);
             await ValidateRegistrationRequestAsync(request);
 
-            var scouter = _mapper.Map<Scouter>(request);
+            var scouter = _mapper.Map<ScouterEntity>(request);
             scouter.IsVerified = false;
             scouter.CreatedAt = DateTime.UtcNow;
             scouter.UpdatedAt = DateTime.UtcNow;

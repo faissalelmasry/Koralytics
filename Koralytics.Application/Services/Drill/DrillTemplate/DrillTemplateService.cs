@@ -1,11 +1,10 @@
 ﻿using AutoMapper;
 using Koralytics.Application.DTOs.Drill;
 using Koralytics.Application.Interfaces;
-using Koralytics.Application.Services.Drill.DrillTemplate;
 using Koralytics.Domain.Entities.Drill;
 using Microsoft.EntityFrameworkCore;
 
-namespace Koralytics.Application.Services.Drill
+namespace Koralytics.Application.Services.Drill.DrillTemplate
 {
     public class DrillTemplateService : IDrillTemplateService
     {

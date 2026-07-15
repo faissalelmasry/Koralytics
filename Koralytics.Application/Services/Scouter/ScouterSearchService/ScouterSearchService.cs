@@ -19,7 +19,7 @@ using Koralytics.Application.DTOs.Scouter;
 using Koralytics.Domain.Entities.Scouter;
 using Koralytics.Domain.Exceptions;
 
-namespace Koralytics.Application.Services.ScouterServices.ScouterSearchService
+namespace Koralytics.Application.Services.Scouter.ScouterSearchService
 {
     public class ScouterSearchService : IScouterSearchService
     {
@@ -140,7 +140,7 @@ namespace Koralytics.Application.Services.ScouterServices.ScouterSearchService
         }
         public async Task<ScouterProfileDto> GetScouterByIdAsync(int scouterId)
         {
-            var scouterDto = await _unitOfWork.Repository<Scouter>()
+            var scouterDto = await _unitOfWork.Repository<Koralytics.Domain.Entities.Scouter.Scouter>()
                 .GetQueryableAsNoTracking()
                 .Where(s => s.Id == scouterId)
                 .ProjectTo<ScouterProfileDto>(_mapper.ConfigurationProvider)

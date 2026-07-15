@@ -8,7 +8,8 @@ using Koralytics.Application.Services.Player.Helpers;
 using Koralytics.Application.Services.Player.PlayerCardService;
 using Koralytics.Domain.Entities.Match;
 using Koralytics.Domain.Entities.Player;
-using Koralytics.Domain.Entities.Scouter;
+using ScouterEntity = Koralytics.Domain.Entities.Scouter.Scouter;
+using ScouterShortlist = Koralytics.Domain.Entities.Scouter.ScouterShortlist;
 using Koralytics.Domain.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -18,7 +19,7 @@ using System.Text;
 using System.Threading.Tasks;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
-namespace Koralytics.Application.Services.ScouterServices.ScouterShortlistService
+namespace Koralytics.Application.Services.Scouter.ScouterShortlistService
 {
     public class ScouterShortlistService : IScouterShortlistService
     {
@@ -40,7 +41,7 @@ namespace Koralytics.Application.Services.ScouterServices.ScouterShortlistServic
         }
         public async Task<ScouterShortlistDto> AddToShortlistAsync(int scouterId, int playerId)
         {
-            var scouterExists = await _unitOfWork.Repository<Scouter>().ExistsAsync(s => s.Id == scouterId);
+var scouterExists = await _unitOfWork.Repository<ScouterEntity>().ExistsAsync(s => s.Id == scouterId);
             if (!scouterExists)
             {
                 throw new NotFoundException($"Scouter with ID {scouterId} not found.");
@@ -79,9 +80,9 @@ namespace Koralytics.Application.Services.ScouterServices.ScouterShortlistServic
 
             if (entry == null)
             {
-                var scouterExists = await _unitOfWork.Repository<Scouter>().ExistsAsync(s => s.Id == scouterId);
+var scouterExists = await _unitOfWork.Repository<ScouterEntity>().ExistsAsync(s => s.Id == scouterId);
                 if (!scouterExists)
-                {
+        {
                     throw new NotFoundException($"Scouter with ID {scouterId} not found.");
                 }
 
@@ -100,7 +101,7 @@ namespace Koralytics.Application.Services.ScouterServices.ScouterShortlistServic
         }
         public async Task<List<PlayerCardDto>> GetShortlistAsync(int scouterId)
         {
-            var scouterExists = await _unitOfWork.Repository<Scouter>().ExistsAsync(s => s.Id == scouterId);
+var scouterExists = await _unitOfWork.Repository<ScouterEntity>().ExistsAsync(s => s.Id == scouterId);
             if (!scouterExists)
             {
                 throw new NotFoundException($"Scouter with ID {scouterId} not found.");

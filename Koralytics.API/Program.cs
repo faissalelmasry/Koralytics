@@ -25,12 +25,10 @@ using Koralytics.Application.Services.Coach.CoachSquadService;
 using Koralytics.Application.Services.Player.PlayerCardService;
 using Koralytics.Application.Services.Player.PlayerProfileServices;
 using Koralytics.Application.Services.Player.PlayerGoalService;
-using Koralytics.Application.Services.Drill;
 using Koralytics.Application.Services.Drill.DrillAnalytic;
 using Koralytics.Application.Services.Drill.DrillResult;
 using Koralytics.Application.Services.Drill.DrillSession;
 using Koralytics.Application.Services.Player.PlayerTransferService;
-using Koralytics.Application.Services.Tournament;
 using Koralytics.Application.Validators.Auth;
 using Koralytics.Application.Validators.Tournament;
 using Koralytics.Application.Validators.UserBusiness;
@@ -56,10 +54,6 @@ using Koralytics.Application.Services.Academy.AcademyAnnouncementService;
 using Koralytics.Application.Services.Player.Helpers;
 using Koralytics.Application.Interfaces.Scouter;
 using Koralytics.Application.Interfaces.ScouterInterfaces;
-using Koralytics.Application.Services.ScouterServices.ScouterFollowService;
-using Koralytics.Application.Services.ScouterServices.ScouterReportService;
-using Koralytics.Application.Services.ScouterServices.ScouterSearchService;
-using Koralytics.Application.Services.ScouterServices.ScouterShortlistService;
 using Koralytics.Application.Mappings.ScouterProfile;
 using Koralytics.Application.Services.Storage;
 using Koralytics.Application.Options;
@@ -74,6 +68,11 @@ using Koralytics.Application.Services.Match;
 using Koralytics.Application.Validators.Match;
 using Koralytics.Application.Mappings.Match;
 using Koralytics.Application.Services.Drill.DrillTemplate;
+using Koralytics.Application.Services.Tournaments;
+using Koralytics.Application.Services.Scouter.ScouterFollowService;
+using Koralytics.Application.Services.Scouter.ScouterReportService;
+using Koralytics.Application.Services.Scouter.ScouterSearchService;
+using Koralytics.Application.Services.Scouter.ScouterShortlistService;
 
 namespace Koralytics.API
 {

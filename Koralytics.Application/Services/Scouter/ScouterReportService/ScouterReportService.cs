@@ -1,6 +1,7 @@
 ﻿using Koralytics.Application.Interfaces;
 using Koralytics.Application.Interfaces.Scouter;
-using Koralytics.Domain.Entities.Scouter;
+using ScouterEntity = Koralytics.Domain.Entities.Scouter.Scouter;
+using ScouterReport = Koralytics.Domain.Entities.Scouter.ScouterReport;
 using Koralytics.Domain.Exceptions;
 using System;
 using System.Collections.Generic;
@@ -8,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Koralytics.Application.Services.ScouterServices.ScouterReportService
+namespace Koralytics.Application.Services.Scouter.ScouterReportService
 {
     public class ScouterReportService : IScouterReportService
     {
@@ -50,7 +51,7 @@ namespace Koralytics.Application.Services.ScouterServices.ScouterReportService
 
         public async Task<bool> VerifyScouterAsync(int scouterId)
         {
-            var scouter = await _unitOfWork.Repository<Scouter>()
+            var scouter = await _unitOfWork.Repository<ScouterEntity>()
                 .FindAsync(s => s.Id == scouterId);
 
             if (scouter == null)

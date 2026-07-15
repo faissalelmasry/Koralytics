@@ -1,7 +1,6 @@
 ﻿using System.Linq.Expressions;
 using Koralytics.Application.Interfaces;
 using Koralytics.Application.Services.Player.PlayerCardService;
-using Koralytics.Application.Services.Tournament;
 using Koralytics.Domain.Enums;
 using Koralytics.Domain.Exceptions;
 using Microsoft.Extensions.Logging;
@@ -14,6 +13,7 @@ using TournamentTeamEntity = Koralytics.Domain.Entities.Tournamet.TournamentTeam
 using TournamentRoundEntity = Koralytics.Domain.Entities.Tournamet.TournamentRound;
 using TournamentGroupEntity = Koralytics.Domain.Entities.Tournamet.TournamentGroup;
 using TournamentFixtureEntity = Koralytics.Domain.Entities.Tournamet.TournamentFixture;
+using Koralytics.Application.Services.Tournaments;
 
 namespace Koralytics.Application.UnitTests.Tournament
 {

@@ -1,6 +1,5 @@
 ﻿using System.Linq.Expressions;
 using Koralytics.Application.Interfaces;
-using Koralytics.Application.Services.Tournament;
 using Koralytics.Domain.Enums;
 using Koralytics.Domain.Exceptions;
 using Microsoft.Extensions.Logging;
@@ -13,6 +12,7 @@ using TournamentRoundEntity = Koralytics.Domain.Entities.Tournamet.TournamentRou
 using TournamentStandingEntity = Koralytics.Domain.Entities.Tournamet.TournamentStanding;
 using MockQueryable.Moq;
 using MockQueryable;
+using Koralytics.Application.Services.Tournaments;
 
 namespace Koralytics.Application.UnitTests.Tournament
 {

@@ -14,7 +14,7 @@ using TournamentHallOfFameEntity = Koralytics.Domain.Entities.Tournamet.Tourname
 using TournamentRoundEntity = Koralytics.Domain.Entities.Tournamet.TournamentRound;
 using TournamentStandingEntity = Koralytics.Domain.Entities.Tournamet.TournamentStanding;
 
-namespace Koralytics.Application.Services.Tournament
+namespace Koralytics.Application.Services.Tournaments
 {
     public class TournamentReportService : ITournamentReportService
     {
