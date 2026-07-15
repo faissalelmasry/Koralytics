@@ -9,7 +9,7 @@
 It follows **Clean Architecture** and **Domain-Driven Design (DDD)** concepts, separated into four main layers:
 
 - **`Koralytics.API`**: ASP.NET Core Presentation layer. Responsible for routing, HTTP requests, middlewares (Global Error Handling), JWT Authentication, Serilog logging, and Swagger documentation.
-- **`Koralytics.Application`**: Business Logic. Contains DTOs, Application Services, Interfaces, AutoMapper Profiles, and FluentValidation validators.
+- **`Koralytics.Application`**: Business Logic. Contains DTOs, Application Services, Interfaces, AutoMapper Profiles, and FluentValidation validators. Also contains shared response wrappers in `Common/` (e.g., `PagedResult<T>` for paginated results).
 - **`Koralytics.Domain`**: Core domain logic. Contains enterprise models (Entities), Enums, specific Exceptions, and core interfaces (`IRepository`, `IUnitOfWork`).
 - **`Koralytics.Infrastructure`**: Data access and infrastructure implementation. Contains the `ApplicationDbContext`, Migrations, Generic Repository implementation, UnitOfWork implementation, and Db Seeding logic.
 
@@ -45,7 +45,7 @@ The database context (`ApplicationDbContext`) inherits from `IdentityDbContext<U
 - **Artificial Intelligence**: `AIReport`
 
 ### Staff, Scouting & Media (Youssef's Entities)
-- **Coach Management**: `Coach` (Mapped to "Coaches"), `CoachAcademy`, `CoachTeam`, `CoachNote`, `CoachTempAccess`
+- **Coach Management**: `Coach` (Mapped to "Coaches"), `CoachAcademy`, `CoachTeam`, `CoachNote`, `CoachTempAccess` (`AccessLevel` → `TempAccessAccessLevel` enum, `Status` → `TempAccessStatus` enum; both stored as `nvarchar(50)` strings in DB via `HasConversion<string>()`)
 - **Scouting**: `Scouter` (Mapped to "Scouters"), `ScouterShortlist`, `ScouterFollow`, `ScouterReport`, `ScouterView`
 - **Player Media/Details**: `PlayerHighlight`, `PlayerPosition`
 
@@ -286,13 +286,13 @@ The database context (`ApplicationDbContext`) inherits from `IdentityDbContext<U
 - `GetSquadComparisonAsync(playerAId, playerBId)` → load both players + their `PlayerCard` → return `SquadComparisonDto`
 
 **`ICoachNoteService` / `CoachNoteService`** *(implemented)*
-- `WriteNoteAsync(coachId, academyId, dto)` ⚡ *(original plan had `(coachId, dto)` only; `academyId` added)* → validate player belongs to one of coach's active teams → create `CoachNote` (optionally linked to `SessionId` / `MatchId`) → return `CoachNoteDto`
-- `GetPlayerNotesAsync(coachId, playerId)` → fetch all `CoachNotes` by this coach for this player → return `IEnumerable<CoachNoteDto>` newest-first
+- `WriteNoteAsync(coachId, academyId, dto)` ⚡ *(original plan had `(coachId, dto)` only; `academyId` added)* → validate player belongs to one of coach's active teams using a **single JOIN query** (`CoachTeam ⋈ PlayerTeam`) to eliminate an extra DB round-trip → create `CoachNote` (optionally linked to `SessionId` / `MatchId`) → return `CoachNoteDto`
+- `GetPlayerNotesAsync(coachId, playerId, page = 1, pageSize = 20)` ⚡ *(now paginated)* → validate player exists → execute `CountAsync` + `Skip/Take` on the ordered query → return `PagedResult<CoachNoteDto>` (includes `TotalCount`, `TotalPages`, `HasPreviousPage`, `HasNextPage`)
 
 **`ICoachAccessService` / `CoachAccessService`** *(implemented)*
-- `GrantTempAccessAsync(coachId, dto)` → validate future expiry + non-empty `AccessLevel` + grantee exists → prevent self-grant → create `CoachTempAccess` (Status stored as string `"Active"`) → return `TempAccessDto`
-- `RevokeTempAccessAsync(coachId, accessId)` → validate coach owns record → validate Status ≠ `"Revoked"` → set Status = `"Revoked"` → return `TempAccessDto`
-- `GetActiveGrantsAsync(coachId)` → fetch grants where Status = `"Active"` and `ExpiresAt > now` → return `IEnumerable<TempAccessDto>` newest-first
+- `GrantTempAccessAsync(coachId, dto)` → validate future expiry + grantee exists → prevent self-grant → create `CoachTempAccess` with `AccessLevel` (`TempAccessAccessLevel` enum: `ReadOnly`, `FullSquad`) and `Status` (`TempAccessStatus` enum: `Active`) → return `TempAccessDto`
+- `RevokeTempAccessAsync(coachId, accessId)` → validate coach owns record → validate `Status ≠ TempAccessStatus.Revoked` → set `Status = TempAccessStatus.Revoked` → return `TempAccessDto`
+- `GetActiveGrantsAsync(coachId)` → fetch grants where `Status == TempAccessStatus.Active` and `ExpiresAt > now` → return `IEnumerable<TempAccessDto>` newest-first
 
 #### Storage/ (Cloudflare R2) — **✅ IMPLEMENTED**
 - `UploadHighlightAsync(playerId, academyId, file, title)` → validate file size (<100MB) and format (video only) → generate unique file name → upload to Cloudflare R2 via `IAmazonS3` → create `PlayerHighlight` record with `VideoUrl` → return `PlayerHighlightDto`
@@ -379,7 +379,7 @@ The presentation and infrastructure are wired together in `Program.cs`.
 * **`AuthController`**: Handles login (including Google OAuth), registration for varied roles, profile completion, and token delivery. *(Replaced LoginController and RegisterController)*
 * **`PlayerController`**: Main interface for player operations (transfers, profiling, card).
 * **`TournamentController`**: Interface for tournament-related endpoints (create, draw, fixtures, bracket).
-* **`CoachController`**: Interface for coach operations — squad overview, training team split, player comparison, writing/fetching player notes, and granting/revoking/listing temporary squad access.
+* **`CoachController`**: Interface for coach operations — squad overview, training team split, player comparison, writing/fetching player notes (`GET players/{playerId}/notes?page=1&pageSize=20` returns `PagedResult<CoachNoteDto>`), and granting/revoking/listing temporary squad access (access level and status are now strongly-typed enums: `TempAccessAccessLevel`, `TempAccessStatus`).
 * **`ScouterController`**: Interface for scouter operations — filtered player search, shortlist management (add/remove/get), follow/unfollow/log-view, and AI scouting report generation & verification.
 * **`DrillsController`**: Interface for all drill operations — template CRUD, session management, bulk result logging, drill analytics (squad weak categories, coach bias). JWT claims extracted from token per request.
 * **`AcademyController`**: Manages academy creation, update, and location management.
