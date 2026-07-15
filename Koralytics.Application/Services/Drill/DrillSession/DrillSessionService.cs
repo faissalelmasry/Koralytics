@@ -4,9 +4,6 @@ using Koralytics.Application.Interfaces;
 using Koralytics.Domain.Entities.Coach;
 using Koralytics.Domain.Entities.Drill;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using DrillSessionEntity = Koralytics.Domain.Entities.Drill.DrillSession;
 using Koralytics.Application.Services.Player.Helpers;
 

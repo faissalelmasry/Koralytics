@@ -9,7 +9,6 @@ using Koralytics.Domain.Enums;
 using Koralytics.Domain.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-
 using PlayerEntity = Koralytics.Domain.Entities.Player.Player;
 
 namespace Koralytics.Application.Services.Player.PlayerCardService

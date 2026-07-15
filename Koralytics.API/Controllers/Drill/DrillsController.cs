@@ -269,11 +269,21 @@ namespace Koralytics.API.Controllers.Drill
             return Ok(report);
         }
 
-        [HttpPost("analytics/coach-bias/calculate")]
-        public async Task<IActionResult> GetCoachBiasReport()
+        [HttpPost("coaches/{coachId}/bias/calculate")]
+        public async Task<IActionResult> GetCoachBiasReport(int coachId)
         {
+            // 1. Extract Identity
             var claims = GetCurrentUserClaims();
-            var biasReport = await _analyticsService.DetectCoachBiasAsync(claims.UserId, claims.AcademyId ?? 0);
+
+            // 2. Delegate to Service (The Service handles all security and math)
+            var biasReport = await _analyticsService.DetectCoachBiasAsync(
+                targetCoachId: coachId,
+                academyId: claims.AcademyId ?? 0,
+                currentUserId: claims.UserId,
+                currentUserRole: claims.Role
+            );
+
+            // 3. Return
             return Ok(biasReport);
         }
     }
