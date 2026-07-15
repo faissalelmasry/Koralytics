@@ -5,6 +5,8 @@ using Koralytics.Domain.Enums;
 using Koralytics.Domain.Exceptions;
 using Microsoft.Extensions.Logging;
 using Moq;
+using MockQueryable;
+using MockQueryable.Moq;
 using Xunit;
 using TournamentEntity = Koralytics.Domain.Entities.Tournamet.Tournament;
 using TournamentRoundEntity = Koralytics.Domain.Entities.Tournamet.TournamentRound;
@@ -368,7 +370,8 @@ namespace Koralytics.Application.UnitTests.Tournament
                     It.IsAny<Expression<Func<TournamentEntity, bool>>>()))
                 .ReturnsAsync(new TournamentEntity
                 {
-                    Status = TournamentStatus.InProgress
+                    Status = TournamentStatus.InProgress,
+                    HasTwoLegs = false
                 });
 
             _roundRepoMock
@@ -385,13 +388,18 @@ namespace Koralytics.Application.UnitTests.Tournament
                     It.IsAny<Expression<Func<TournamentRoundEntity, bool>>>()))
                 .ReturnsAsync(false);
 
+            // One live fixture — not all completed
+            var fixtures = new List<TournamentFixtureEntity>
+            {
+                new() { Id = 1, RoundId = 1, Status = MatchStatus.Live,
+                        WinnerTeamId = null },
+                new() { Id = 2, RoundId = 1, Status = MatchStatus.Completed,
+                        WinnerTeamId = 10 }
+            };
+
             _fixtureRepoMock
                 .Setup(r => r.GetQueryable())
-                .Returns(new List<TournamentFixtureEntity>
-                {
-                    new() { RoundId = 1, Status = MatchStatus.Live },
-                    new() { RoundId = 1, Status = MatchStatus.Completed }
-                }.AsQueryable());
+                .Returns(fixtures.BuildMock());
 
             await Assert.ThrowsAsync<BadRequestException>(() =>
                 _service.AdvanceKnockoutAsync(1, 1));

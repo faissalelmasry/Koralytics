@@ -8,12 +8,13 @@ using Koralytics.Domain.Enums;
 using Koralytics.Domain.Exceptions;
 using Microsoft.Extensions.Logging;
 using Moq;
+using MockQueryable;
+using MockQueryable.Moq;
 using Xunit;
 using TournamentEntity = Koralytics.Domain.Entities.Tournamet.Tournament;
 using TournamentTeamEntity = Koralytics.Domain.Entities.Tournamet.TournamentTeam;
 using TournamentSquadEntity = Koralytics.Domain.Entities.Tournamet.TournamentSquad;
 using PlayerTeamEntity = Koralytics.Domain.Entities.Player.PlayerTeam;
-
 namespace Koralytics.Application.UnitTests.Tournament
 {
     public class TournamentServiceTests
@@ -235,14 +236,14 @@ namespace Koralytics.Application.UnitTests.Tournament
                 _service.InviteAcademyAsync(1, 1));
         }
 
-        // ─── AcceptInvitationAsync ───────────────────────────────────
-
         [Fact]
         public async Task AcceptInvitationAsync_InvitationNotFound_ThrowsNotFoundException()
         {
+            // Use DbContextOptions to create a real in-memory queryable
+            // OR mock GetQueryable to return data with navigation properties populated
             _tournamentTeamRepoMock
                 .Setup(r => r.GetQueryable())
-                .Returns(new List<TournamentTeamEntity>().AsQueryable());
+                .Returns(new List<TournamentTeamEntity>().BuildMock());
 
             await Assert.ThrowsAsync<NotFoundException>(() =>
                 _service.AcceptInvitationAsync(1, 1));
@@ -251,24 +252,28 @@ namespace Koralytics.Application.UnitTests.Tournament
         [Fact]
         public async Task AcceptInvitationAsync_AlreadyAccepted_ThrowsBadRequestException()
         {
+            // Navigation property Team must be populated manually
+            // since Include() doesn't work on in-memory lists
+            var team = new Team { Id = 1, AcademyId = 1 };
+
             var tournamentTeam = new TournamentTeamEntity
             {
                 TournamentId = 1,
+                TeamId = 1,
                 Status = TournamentTeamStatus.Accepted,
-                Team = new Team { AcademyId = 1 }
+                Team = team  // ← manually set navigation property
             };
 
             _tournamentTeamRepoMock
                 .Setup(r => r.GetQueryable())
                 .Returns(new List<TournamentTeamEntity>
                 {
-                    tournamentTeam
-                }.AsQueryable());
+            tournamentTeam
+                }.BuildMock());
 
             await Assert.ThrowsAsync<BadRequestException>(() =>
                 _service.AcceptInvitationAsync(1, 1));
         }
-
         // ─── RegisterSquadAsync ──────────────────────────────────────
 
         [Fact]
@@ -378,10 +383,9 @@ namespace Koralytics.Application.UnitTests.Tournament
                     Status = TournamentTeamStatus.Accepted
                 });
 
-            // Player does not belong to team
+            // Return false — no players belong to this team
             _playerTeamRepoMock
-                .Setup(r => r.ExistsAsync(
-                    It.IsAny<Expression<Func<PlayerTeamEntity, bool>>>()))
+                .Setup(r => r.ExistsAsync(It.IsAny<Expression<Func<PlayerTeamEntity, bool>>>()))
                 .ReturnsAsync(false);
 
             await Assert.ThrowsAsync<BadRequestException>(() =>
@@ -408,21 +412,20 @@ namespace Koralytics.Application.UnitTests.Tournament
                     Status = TournamentTeamStatus.Accepted
                 });
 
+            // All 5 players belong to the team
             _playerTeamRepoMock
-                .Setup(r => r.ExistsAsync(
-                    It.IsAny<Expression<Func<PlayerTeamEntity, bool>>>()))
+                .Setup(r => r.ExistsAsync(It.IsAny<Expression<Func<PlayerTeamEntity, bool>>>()))
                 .ReturnsAsync(true);
 
-            // Player already in tournament
+            // Player 1 already registered in tournament
+            // First call (player 1) returns true — already registered
             _tournamentSquadRepoMock
-                .Setup(r => r.ExistsAsync(
-                    It.IsAny<Expression<Func<TournamentSquadEntity, bool>>>()))
+                .SetupSequence(r => r.ExistsAsync(It.IsAny<Expression<Func<TournamentSquadEntity, bool>>>()))
                 .ReturnsAsync(true);
 
             await Assert.ThrowsAsync<ConflictException>(() =>
                 _service.RegisterSquadAsync(1, 1, [1, 2, 3, 4, 5]));
         }
-
         [Fact]
         public async Task RegisterSquadAsync_TeamNotAccepted_ThrowsBadRequestException()
         {
