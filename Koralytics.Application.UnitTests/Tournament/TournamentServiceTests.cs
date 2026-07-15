@@ -383,10 +383,14 @@ namespace Koralytics.Application.UnitTests.Tournament
                     Status = TournamentTeamStatus.Accepted
                 });
 
-            // Return false — no players belong to this team
+            // Return empty list — no players belong to this team
             _playerTeamRepoMock
-                .Setup(r => r.ExistsAsync(It.IsAny<Expression<Func<PlayerTeamEntity, bool>>>()))
-                .ReturnsAsync(false);
+                .Setup(r => r.GetQueryable())
+                .Returns(new List<PlayerTeamEntity>().BuildMock());
+
+            _tournamentSquadRepoMock
+                .Setup(r => r.GetQueryable())
+                .Returns(new List<TournamentSquadEntity>().BuildMock());
 
             await Assert.ThrowsAsync<BadRequestException>(() =>
                 _service.RegisterSquadAsync(1, 1, [1, 2, 3, 4, 5]));
@@ -414,14 +418,23 @@ namespace Koralytics.Application.UnitTests.Tournament
 
             // All 5 players belong to the team
             _playerTeamRepoMock
-                .Setup(r => r.ExistsAsync(It.IsAny<Expression<Func<PlayerTeamEntity, bool>>>()))
-                .ReturnsAsync(true);
+                .Setup(r => r.GetQueryable())
+                .Returns(new List<PlayerTeamEntity>
+                {
+                    new() { PlayerId = 1, TeamId = 1, LeftAt = null },
+                    new() { PlayerId = 2, TeamId = 1, LeftAt = null },
+                    new() { PlayerId = 3, TeamId = 1, LeftAt = null },
+                    new() { PlayerId = 4, TeamId = 1, LeftAt = null },
+                    new() { PlayerId = 5, TeamId = 1, LeftAt = null }
+                }.BuildMock());
 
             // Player 1 already registered in tournament
-            // First call (player 1) returns true — already registered
             _tournamentSquadRepoMock
-                .SetupSequence(r => r.ExistsAsync(It.IsAny<Expression<Func<TournamentSquadEntity, bool>>>()))
-                .ReturnsAsync(true);
+                .Setup(r => r.GetQueryable())
+                .Returns(new List<TournamentSquadEntity>
+                {
+                    new() { TournamentId = 1, PlayerId = 1 }
+                }.BuildMock());
 
             await Assert.ThrowsAsync<ConflictException>(() =>
                 _service.RegisterSquadAsync(1, 1, [1, 2, 3, 4, 5]));
