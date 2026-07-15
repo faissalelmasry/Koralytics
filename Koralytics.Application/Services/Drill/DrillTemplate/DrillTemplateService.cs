@@ -61,6 +61,7 @@ namespace Koralytics.Application.Services.Drill
             }
 
             var pagedTemplates = await query
+                .OrderByDescending(t => t.Id) 
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
                 .ToListAsync();
@@ -81,6 +82,7 @@ namespace Koralytics.Application.Services.Drill
                 );
 
             var pagedTemplates = await query
+                .OrderByDescending(t => t.Id)
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
                 .ToListAsync();
@@ -194,7 +196,6 @@ namespace Koralytics.Application.Services.Drill
                 throw new KeyNotFoundException($"Drill Template with ID {id} was not found.");
             }
 
-            // Security Bouncer
             if (currentUserRole == "SystemAdmin" && template.AcademyId != null)
             {
                 throw new UnauthorizedAccessException("SystemAdmins can only delete system-wide templates.");
@@ -208,7 +209,6 @@ namespace Koralytics.Application.Services.Drill
                 throw new UnauthorizedAccessException("Coaches can only delete their own private templates.");
             }
 
-            // 🛑 THE SAFETY CHECK: Has this template ever been used in a scheduled session?
             var isTemplateInUse = await _unitOfWork.Repository<Domain.Entities.Drill.Drill>()
                 .ExistsAsync(d => d.DrillTemplateId == id);
 
@@ -217,9 +217,10 @@ namespace Koralytics.Application.Services.Drill
                 throw new InvalidOperationException("This template cannot be deleted because it is already attached to historical drill sessions. Consider renaming it or marking it as inactive instead.");
             }
 
-            // If it passes all checks, it is safe to delete
-            _unitOfWork.Repository<Domain.Entities.Drill.DrillTemplate>().SoftDelete(template); // Or whatever your UoW delete method is called
-            await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.Repository<Domain.Entities.Drill.DrillTemplate>()
+                .GetQueryable()
+                .Where(t => t.Id == id)
+                .ExecuteDeleteAsync();
         }
     }
 }

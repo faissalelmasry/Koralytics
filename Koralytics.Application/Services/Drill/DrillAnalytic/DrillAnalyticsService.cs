@@ -1,10 +1,6 @@
 ﻿using Koralytics.Application.DTOs.Drill;
 using Koralytics.Application.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Koralytics.Application.Services.Drill.DrillAnalytic
 {
@@ -34,13 +30,22 @@ namespace Koralytics.Application.Services.Drill.DrillAnalytic
             return squadPerformance;
         }
 
-        public async Task<CoachBiasReportDto> DetectCoachBiasAsync(int coachUserId, int academyId)
+        public async Task<CoachBiasReportDto> DetectCoachBiasAsync(int targetCoachId, int academyId, int currentUserId, string currentUserRole)
         {
+            // 🛑 THE BOUNCER: Security Check
+            if (currentUserRole == "Coach" && currentUserId != targetCoachId)
+            {
+                throw new UnauthorizedAccessException("Coaches can only view their own bias reports. Academy Admins can view any coach.");
+            }
+
             var cutoffDate = DateTime.UtcNow.AddDays(-30);
 
+            // ====================================================================
+            // 1. FETCH PRACTICE SCORES (The Subjective Data)
+            // ====================================================================
             var practiceScores = await _unitOfWork.Repository<Domain.Entities.Drill.DrillResult>()
                 .GetQueryableAsNoTracking()
-                .Where(dr => dr.CreatedById == coachUserId
+                .Where(dr => dr.CreatedById == targetCoachId
                           && dr.Drill.Mode == Koralytics.Domain.Enums.DrillMode.Manual
                           && dr.CreatedAt >= cutoffDate)
                 .GroupBy(dr => dr.PlayerId)
@@ -49,7 +54,7 @@ namespace Koralytics.Application.Services.Drill.DrillAnalytic
                     PlayerId = g.Key,
                     AvgPracticeScore = g.Average(x => x.FinalScore)
                 })
-                .ToListAsync();
+                .ToListAsync(); // <-- This executes the query and makes it awaitable!
 
             var playerIdsToAnalyze = practiceScores.Select(p => p.PlayerId).ToList();
 
@@ -57,13 +62,16 @@ namespace Koralytics.Application.Services.Drill.DrillAnalytic
             {
                 return new CoachBiasReportDto
                 {
-                    CoachId = coachUserId,
+                    CoachId = targetCoachId,
                     TrustPercentage = 100,
                     PlayersAnalyzedCount = 0,
                     Remarks = "Insufficient practice data in the last 30 days."
                 };
             }
 
+            // ====================================================================
+            // 2. FETCH MATCH SCORES (The Objective Reality)
+            // ====================================================================
             var matchScores = await _unitOfWork.Repository<Domain.Entities.Match.MatchPlayerRating>()
                 .GetQueryableAsNoTracking()
                 .Where(mr => playerIdsToAnalyze.Contains(mr.PlayerId)
@@ -76,6 +84,9 @@ namespace Koralytics.Application.Services.Drill.DrillAnalytic
                 })
                 .ToListAsync();
 
+            // ====================================================================
+            // 3. THE TRUST INDEX CALCULATION
+            // ====================================================================
             decimal totalDelta = 0;
             int validPlayerComparisons = 0;
 
@@ -95,7 +106,7 @@ namespace Koralytics.Application.Services.Drill.DrillAnalytic
             {
                 return new CoachBiasReportDto
                 {
-                    CoachId = coachUserId,
+                    CoachId = targetCoachId,
                     TrustPercentage = 100,
                     PlayersAnalyzedCount = 0,
                     Remarks = "Players practiced but played no matches in the last 30 days to compare against."
@@ -107,9 +118,12 @@ namespace Koralytics.Application.Services.Drill.DrillAnalytic
 
             decimal finalTrustPercentage = Math.Max(0, Math.Round(rawTrustPercentage, 2));
 
+            // ====================================================================
+            // 4. SAVE THE AUDIT TO THE DATABASE
+            // ====================================================================
             var coachAcademyRecord = await _unitOfWork.Repository<Domain.Entities.Coach.CoachAcademy>()
                 .GetQueryable()
-                .FirstOrDefaultAsync(ca => ca.CoachUserId == coachUserId && ca.AcademyId == academyId);
+                .FirstOrDefaultAsync(ca => ca.CoachUserId == targetCoachId && ca.AcademyId == academyId);
 
             if (coachAcademyRecord != null)
             {
@@ -121,7 +135,7 @@ namespace Koralytics.Application.Services.Drill.DrillAnalytic
 
             return new CoachBiasReportDto
             {
-                CoachId = coachUserId,
+                CoachId = targetCoachId,
                 TrustPercentage = finalTrustPercentage,
                 PlayersAnalyzedCount = validPlayerComparisons,
                 Remarks = "Trust Index calculated successfully."

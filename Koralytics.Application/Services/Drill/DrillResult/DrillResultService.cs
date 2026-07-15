@@ -3,7 +3,6 @@ using Koralytics.Application.DTOs.Drill;
 using Koralytics.Application.Interfaces;
 using Koralytics.Domain.Entities.Drill;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using DrillSessionEntity = Koralytics.Domain.Entities.Drill.DrillSession;
 
 namespace Koralytics.Application.Services.Drill.DrillResult
@@ -20,34 +19,29 @@ namespace Koralytics.Application.Services.Drill.DrillResult
 
         public async Task SubmitResultsAsync(int sessionId, int drillId, SubmitDrillResultsDto dto, int currentCoachId)
         {
+            // 1. Validations (Session, Coach, Drill)
             var session = await _unitOfWork.Repository<DrillSessionEntity>().GetByIdAsNoTrackingAsync(sessionId);
-
-            if (session == null)
-            {
-                throw new KeyNotFoundException($"Drill Session with ID {sessionId} was not found.");
-            }
-
-            if (session.CoachId != currentCoachId)
-            {
-                throw new UnauthorizedAccessException("You can only submit results for your own scheduled sessions.");
-            }
+            if (session == null) throw new KeyNotFoundException($"Drill Session with ID {sessionId} was not found.");
+            if (session.CoachId != currentCoachId) throw new UnauthorizedAccessException("...");
 
             var drill = await _unitOfWork.Repository<Koralytics.Domain.Entities.Drill.Drill>().GetByIdAsNoTrackingAsync(drillId);
-
-            if (drill == null || drill.SessionId != sessionId)
-            {
-                throw new InvalidOperationException($"Drill with ID {drillId} does not belong to Session {sessionId}.");
-            }
+            if (drill == null || drill.SessionId != sessionId) throw new InvalidOperationException("...");
 
             var attendanceSheet = await _unitOfWork.Repository<SessionAttendance>()
                 .FindAllAsNoTrackingAsync(sa => sa.SessionId == sessionId);
 
             var resultRepo = _unitOfWork.Repository<Domain.Entities.Drill.DrillResult>();
 
+            // 🚀 THE FIX: Fetch ALL existing results for this drill in ONE query before the loop
+            var playerIdsSubmitted = dto.Results.Select(r => r.PlayerId).ToList();
+            var existingResultsList = await resultRepo
+                .GetQueryable() // Keep tracking ON so we can update them
+                .Where(r => r.DrillId == drillId && playerIdsSubmitted.Contains(r.PlayerId))
+                .ToListAsync();
+
             foreach (var incomingScore in dto.Results)
             {
                 var playerAttendance = attendanceSheet.FirstOrDefault(sa => sa.playerId == incomingScore.PlayerId);
-
                 if (playerAttendance == null || !playerAttendance.IsPresent)
                 {
                     throw new InvalidOperationException($"Player {incomingScore.PlayerId} is not present for this session.");
@@ -64,10 +58,12 @@ namespace Koralytics.Application.Services.Drill.DrillResult
                     finalScoreCalculated = totalAttempts > 0 ? ((decimal)incomingScore.DoneCount / totalAttempts) * 10 : 0;
                 }
 
-                var existingResult = await resultRepo.FindAsync(r => r.DrillId == drillId && r.PlayerId == incomingScore.PlayerId);
+                // 🚀 THE FIX: Search the in-memory list instead of hitting the database
+                var existingResult = existingResultsList.FirstOrDefault(r => r.PlayerId == incomingScore.PlayerId);
 
                 if (existingResult != null)
                 {
+                    // UPDATE
                     existingResult.ManualScore = drill.Mode == Koralytics.Domain.Enums.DrillMode.Manual ? incomingScore.ManualScore : null;
                     existingResult.DoneCount = drill.Mode == Koralytics.Domain.Enums.DrillMode.SuccessOrMissed ? incomingScore.DoneCount : 0;
                     existingResult.MissedCount = drill.Mode == Koralytics.Domain.Enums.DrillMode.SuccessOrMissed ? incomingScore.MissedCount : 0;
@@ -78,6 +74,7 @@ namespace Koralytics.Application.Services.Drill.DrillResult
                 }
                 else
                 {
+                    // INSERT
                     var newResult = new Domain.Entities.Drill.DrillResult
                     {
                         DrillId = drillId,
@@ -129,26 +126,27 @@ namespace Koralytics.Application.Services.Drill.DrillResult
 
         public async Task<PlayerProgressionDto> GetPlayerDrillProgressionAsync(int playerId, int categoryId, int currentAcademyId)
         {
-            var playerExists = await _unitOfWork.Repository<Koralytics.Domain.Entities.Player.Player>()
+            var playerExists = await _unitOfWork.Repository<Domain.Entities.Player.Player>()
                 .ExistsAsync(p => p.Id == playerId && p.PlayerAcademies.Any(pa => pa.AcademyId == currentAcademyId));
 
             if (!playerExists)
             {
                 throw new UnauthorizedAccessException($"Player with ID {playerId} does not exist or does not belong to your academy.");
             }
-
-            var rawResults = await _unitOfWork.Repository<Domain.Entities.Drill.DrillResult>()
-                .GetQueryable()
-                .AsNoTracking()
-                .Include(dr => dr.Drill)
-                    .ThenInclude(d => d.DrillSession)
-                .Include(dr => dr.Drill)
-                    .ThenInclude(d => d.DrillTemplate)
-                        .ThenInclude(t => t.DrillCategory) 
+            var rawData = await _unitOfWork.Repository<Domain.Entities.Drill.DrillResult>()
+                .GetQueryableAsNoTracking()
                 .Where(dr => dr.PlayerId == playerId && dr.Drill!.DrillTemplate!.CategoryId == categoryId)
+                .Select(dr => new
+                {
+                    CategoryName = dr.Drill!.DrillTemplate!.DrillCategory!.Name,
+                    SessionDate = dr.Drill.DrillSession!.SessionDate,
+                    FinalScore = dr.FinalScore,
+                    DrillName = dr.Drill.DrillTemplate.Name
+                })
+                .OrderBy(x => x.SessionDate) 
                 .ToListAsync();
 
-            if (!rawResults.Any())
+            if (!rawData.Any())
             {
                 return new PlayerProgressionDto
                 {
@@ -158,22 +156,16 @@ namespace Koralytics.Application.Services.Drill.DrillResult
                 };
             }
 
-            string categoryName = rawResults.First().Drill?.DrillTemplate?.DrillCategory?.Name ?? "Unknown";
-
             var response = new PlayerProgressionDto
             {
                 PlayerId = playerId,
-                CategoryName = categoryName,
-                ProgressionChart = rawResults
-                    .Where(r => r.Drill?.DrillSession != null && r.Drill?.DrillTemplate != null)
-                    .Select(r => new ProgressionDataPointDto
-                    {
-                        SessionDate = r.Drill!.DrillSession!.SessionDate,
-                        FinalScore = r.FinalScore,
-                        DrillName = r.Drill!.DrillTemplate!.Name
-                    })
-                    .OrderBy(p => p.SessionDate)
-                    .ToList()
+                CategoryName = rawData.First().CategoryName,
+                ProgressionChart = rawData.Select(x => new ProgressionDataPointDto
+                {
+                    SessionDate = x.SessionDate,
+                    FinalScore = x.FinalScore,
+                    DrillName = x.DrillName
+                }).ToList()
             };
 
             return response;
