@@ -6,6 +6,8 @@ using Koralytics.Domain.Enums;
 using Koralytics.Domain.Exceptions;
 using Microsoft.Extensions.Logging;
 using Moq;
+using MockQueryable;
+using MockQueryable.Moq;
 using Xunit;
 using TournamentEntity = Koralytics.Domain.Entities.Tournamet.Tournament;
 using TournamentTeamEntity = Koralytics.Domain.Entities.Tournamet.TournamentTeam;
@@ -105,7 +107,7 @@ namespace Koralytics.Application.UnitTests.Tournament
                 .Returns(new List<TournamentTeamEntity>
                 {
                     new() { Status = TournamentTeamStatus.Accepted }
-                }.AsQueryable());
+                }.BuildMock());
 
             await Assert.ThrowsAsync<BadRequestException>(() =>
                 _service.GenerateSeedingAsync(1));
@@ -190,7 +192,7 @@ namespace Koralytics.Application.UnitTests.Tournament
                 {
                     new() { Status = TournamentTeamStatus.Accepted, SeedNumber = null },
                     new() { Status = TournamentTeamStatus.Accepted, SeedNumber = null }
-                }.AsQueryable());
+                }.BuildMock());
 
             await Assert.ThrowsAsync<BadRequestException>(() =>
                 _service.GenerateDrawAsync(1));
@@ -226,7 +228,7 @@ namespace Koralytics.Application.UnitTests.Tournament
                     new() { Status = TournamentTeamStatus.Accepted, SeedNumber = 1 },
                     new() { Status = TournamentTeamStatus.Accepted, SeedNumber = 2 },
                     new() { Status = TournamentTeamStatus.Accepted, SeedNumber = 3 }
-                }.AsQueryable());
+                }.BuildMock());
 
             _unitOfWorkMock
                 .Setup(u => u.BeginTransactionAsync())
@@ -264,7 +266,7 @@ namespace Koralytics.Application.UnitTests.Tournament
                 .Returns(new List<TournamentTeamEntity>
                 {
                     new() { Status = TournamentTeamStatus.Accepted, SeedNumber = 1 }
-                }.AsQueryable());
+                }.BuildMock());
 
             await Assert.ThrowsAsync<BadRequestException>(() =>
                 _service.GenerateDrawAsync(1));

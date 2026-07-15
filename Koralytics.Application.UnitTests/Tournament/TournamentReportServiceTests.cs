@@ -11,6 +11,8 @@ using TournamentFixtureEntity = Koralytics.Domain.Entities.Tournamet.TournamentF
 using TournamentGroupEntity = Koralytics.Domain.Entities.Tournamet.TournamentGroup;
 using TournamentRoundEntity = Koralytics.Domain.Entities.Tournamet.TournamentRound;
 using TournamentStandingEntity = Koralytics.Domain.Entities.Tournamet.TournamentStanding;
+using MockQueryable.Moq;
+using MockQueryable;
 
 namespace Koralytics.Application.UnitTests.Tournament
 {
@@ -117,81 +119,92 @@ namespace Koralytics.Application.UnitTests.Tournament
 
         // ─── GetBracketAsync ─────────────────────────────────────────
 
-        [Fact]
-        public async Task GetBracketAsync_TournamentNotFound_ThrowsNotFoundException()
-        {
-            _tournamentRepoMock
-                .Setup(r => r.GetQueryable())
-                .Returns(new List<TournamentEntity>().AsQueryable());
+[Fact]
+    public async Task GetBracketAsync_TournamentNotFound_ThrowsNotFoundException()
+    {
+        var emptyList = new List<TournamentEntity>();
+        var mockQueryable = emptyList.BuildMock();
 
-            await Assert.ThrowsAsync<NotFoundException>(() =>
-                _service.GetBracketAsync(1));
-        }
+        _tournamentRepoMock
+            .Setup(r => r.GetQueryable())
+            .Returns(mockQueryable);
 
-        [Fact]
-        public async Task GetBracketAsync_ValidTournament_ReturnsCorrectIds()
-        {
-            var tournament = new TournamentEntity
-            {
-                Id = 1,
-                Name = "Summer Cup",
-                Status = TournamentStatus.InProgress
-            };
-
-            _tournamentRepoMock
-                .Setup(r => r.GetQueryable())
-                .Returns(new List<TournamentEntity>
-                {
-                    tournament
-                }.AsQueryable());
-
-            _groupRepoMock
-                .Setup(r => r.GetQueryable())
-                .Returns(new List<TournamentGroupEntity>().AsQueryable());
-
-            _roundRepoMock
-                .Setup(r => r.GetQueryable())
-                .Returns(new List<TournamentRoundEntity>().AsQueryable());
-
-            var result = await _service.GetBracketAsync(1);
-
-            Assert.NotNull(result);
-            Assert.Equal(1, result.TournamentId);
-            Assert.Equal("Summer Cup", result.TournamentName);
-            Assert.Equal(TournamentStatus.InProgress, result.Status);
-            Assert.Empty(result.Groups);
-            Assert.Empty(result.Rounds);
-        }
-
-        [Fact]
-        public async Task GetBracketAsync_ValidTournament_ReturnsEmptyGroupsAndRoundsWhenNoneExist()
-        {
-            var tournament = new TournamentEntity
-            {
-                Id = 5,
-                Name = "Winter League",
-                Status = TournamentStatus.Draft
-            };
-
-            _tournamentRepoMock
-                .Setup(r => r.GetQueryable())
-                .Returns(new List<TournamentEntity>
-                {
-                    tournament
-                }.AsQueryable());
-
-            _groupRepoMock
-                .Setup(r => r.GetQueryable())
-                .Returns(new List<TournamentGroupEntity>().AsQueryable());
-
-            _roundRepoMock
-                .Setup(r => r.GetQueryable())
-                .Returns(new List<TournamentRoundEntity>().AsQueryable());
-
-            var result = await _service.GetBracketAsync(5);
-
-            Assert.Empty(result.Groups);
-            Assert.Empty(result.Rounds);
-        }
+        await Assert.ThrowsAsync<NotFoundException>(() =>
+            _service.GetBracketAsync(1));
     }
+
+    [Fact]
+    public async Task GetBracketAsync_ValidTournament_ReturnsCorrectIds()
+    {
+        var tournament = new TournamentEntity
+        {
+            Id = 1,
+            Name = "Summer Cup",
+            Status = TournamentStatus.InProgress
+        };
+
+        var mockTournament = new List<TournamentEntity>
+        { tournament }.BuildMock();
+
+        _tournamentRepoMock
+            .Setup(r => r.GetQueryable())
+            .Returns(mockTournament);
+
+        var mockGroups = new List<TournamentGroupEntity>()
+            .BuildMock();
+        _groupRepoMock
+            .Setup(r => r.GetQueryable())
+            .Returns(mockGroups);
+
+        var mockRounds = new List<TournamentRoundEntity>()
+            .BuildMock();
+        _roundRepoMock
+            .Setup(r => r.GetQueryable())
+            .Returns(mockRounds);
+
+        var result = await _service.GetBracketAsync(1);
+
+        Assert.NotNull(result);
+        Assert.Equal(1, result.TournamentId);
+        Assert.Equal("Summer Cup", result.TournamentName);
+        Assert.Equal(TournamentStatus.InProgress, result.Status);
+        Assert.Empty(result.Groups);
+        Assert.Empty(result.Rounds);
+    }
+
+    [Fact]
+    public async Task GetBracketAsync_ValidTournament_ReturnsEmptyGroupsAndRoundsWhenNoneExist()
+    {
+        var tournament = new TournamentEntity
+        {
+            Id = 5,
+            Name = "Winter League",
+            Status = TournamentStatus.Draft
+        };
+
+        var mockTournament = new List<TournamentEntity>
+        { tournament }.BuildMock();
+
+        _tournamentRepoMock
+            .Setup(r => r.GetQueryable())
+            .Returns(mockTournament);
+
+        var mockGroups = new List<TournamentGroupEntity>()
+            .BuildMock();
+        _groupRepoMock
+            .Setup(r => r.GetQueryable())
+            .Returns(mockGroups);
+
+        var mockRounds = new List<TournamentRoundEntity>()
+            .BuildMock();
+        _roundRepoMock
+            .Setup(r => r.GetQueryable())
+            .Returns(mockRounds);
+
+        var result = await _service.GetBracketAsync(5);
+
+        Assert.Empty(result.Groups);
+        Assert.Empty(result.Rounds);
+    }
+}
 }
