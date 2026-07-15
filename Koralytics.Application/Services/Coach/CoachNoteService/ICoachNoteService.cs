@@ -1,4 +1,5 @@
-﻿using Koralytics.Application.DTOs.Coach;
+using Koralytics.Application.Common;
+using Koralytics.Application.DTOs.Coach;
 
 namespace Koralytics.Application.Services.Coach.CoachNoteService
 {
@@ -11,9 +12,10 @@ namespace Koralytics.Application.Services.Coach.CoachNoteService
         Task<CoachNoteDto> WriteNoteAsync(int coachId, int academyId, WriteNoteDto dto);
 
         /// <summary>
-        /// Returns all notes written by this coach about a specific player,
+        /// Returns a paginated list of notes written by this coach about a specific player,
         /// ordered by creation date descending (newest first).
         /// </summary>
-        Task<IEnumerable<CoachNoteDto>> GetPlayerNotesAsync(int coachId, int playerId);
+        Task<PagedResult<CoachNoteDto>> GetPlayerNotesAsync(
+            int coachId, int playerId, int page = 1, int pageSize = 20);
     }
 }
