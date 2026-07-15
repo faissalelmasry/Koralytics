@@ -45,7 +45,28 @@ namespace Koralytics.Application.Mappings.ScouterProfile
                 .ForMember(dest => dest.IsVerified, opt => opt.MapFrom(src => src.IsVerified))
                 .ForMember(dest => dest.VerifiedAt, opt => opt.MapFrom(src => src.VerifiedAt))
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt));
+          
+                CreateMap<PlayerCard, PlayerCardDto>()
+                    .ForMember(d => d.PlayerName, opt => opt.MapFrom(s => $"{s.Player.FirstName} {s.Player.LastName}"))
+                    .ForMember(d => d.TransferClassification, opt => opt.MapFrom(s => s.TransferClassification.ToString()))
+                    .ForMember(d => d.Position, opt => opt.MapFrom(s => s.Player.PlayerPositions.FirstOrDefault(p => p.IsPrimary).Position.ToString() ?? string.Empty))
+                    .ForMember(d => d.PreferredFoot, opt => opt.MapFrom(s => s.Player.PreferredFoot))
+                    .ForMember(d => d.WeakFootRating, opt => opt.MapFrom(s => s.Player.WeakFootRating))
+                    .ForMember(d => d.ArchetypePlayerName, opt => opt.MapFrom(s => s.Player.ArchetypePlayerName))
+                    .ForMember(d => d.PlayStyleTag, opt => opt.MapFrom(s => s.Player.PlayStyleTag))
+                    .ForMember(d => d.ProfileImageUrl, opt => opt.MapFrom(s => s.Player.ProfileImageUrl))
+                    // Map the category attributes using your teammate's switch/conditional logic
+                    .ForMember(d => d.PassingRating, opt => opt.MapFrom(s => s.CategoryRatings.Where(r => r.DrillCategory.Name == "Passing").Select(r => (decimal?)r.Score).FirstOrDefault() ?? 0))
+    .ForMember(d => d.ShootingRating, opt => opt.MapFrom(s => s.CategoryRatings.Where(r => r.DrillCategory.Name == "Shooting").Select(r => (decimal?)r.Score).FirstOrDefault() ?? 0))
+    .ForMember(d => d.DribblingRating, opt => opt.MapFrom(s => s.CategoryRatings.Where(r => r.DrillCategory.Name == "Dribbling").Select(r => (decimal?)r.Score).FirstOrDefault() ?? 0))
+    .ForMember(d => d.DefendingRating, opt => opt.MapFrom(s => s.CategoryRatings.Where(r => r.DrillCategory.Name == "Defending").Select(r => (decimal?)r.Score).FirstOrDefault() ?? 0))
+    .ForMember(d => d.PaceRating, opt => opt.MapFrom(s => s.CategoryRatings.Where(r => r.DrillCategory.Name == "Speed").Select(r => (decimal?)r.Score).FirstOrDefault() ?? 0))
+    .ForMember(d => d.PhysicalRating, opt => opt.MapFrom(s => s.CategoryRatings.Where(r => r.DrillCategory.Name == "Physical").Select(r => (decimal?)r.Score).FirstOrDefault() ?? 0))
+    .ForMember(d => d.GoalkeepingRating, opt => opt.MapFrom(s => s.CategoryRatings.Where(r => r.DrillCategory.Name == "GoalKeeping").Select(r => (decimal?)r.Score).FirstOrDefault() ?? 0));
+
         }
+        
+    }
 
     }
-}
+

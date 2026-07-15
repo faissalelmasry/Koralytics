@@ -2,6 +2,7 @@
 using AutoMapper.QueryableExtensions;
 using Koralytics.Application.DTOs.Player;
 using Koralytics.Application.DTOs.Scouter;
+using Koralytics.Application.DTOs.ScouterDtos;
 using Koralytics.Application.Interfaces;
 using Koralytics.Application.Interfaces.Scouter;
 using Koralytics.Application.Mappings.ScouterProfile;
@@ -12,11 +13,8 @@ using ScouterEntity = Koralytics.Domain.Entities.Scouter.Scouter;
 using ScouterFollow = Koralytics.Domain.Entities.Scouter.ScouterFollow;
 using Koralytics.Domain.Exceptions;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+
 
 namespace Koralytics.Application.Services.Scouter.ScouterFollowService
 {
@@ -24,31 +22,38 @@ namespace Koralytics.Application.Services.Scouter.ScouterFollowService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly IPlayerCardService _playerCardService;
-        private readonly CardInvalidationList _invalidationList;
-
+        private readonly ILogger<ScouterFollowService> _logger;
         public ScouterFollowService(
-            IUnitOfWork unitOfWork,
-            IMapper mapper,
-            IPlayerCardService playerCardService,
-            CardInvalidationList invalidationList)
+             IUnitOfWork unitOfWork,
+             IMapper mapper,
+             ILogger<ScouterFollowService> logger)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
-            _playerCardService = playerCardService;
-            _invalidationList = invalidationList;
+            _logger = logger;
         }
         public async Task FollowPlayerAsync(int scouterId, int playerId)
         {
+            _logger.LogInformation("Initiating FollowPlayer request. ScouterId: {ScouterId}, PlayerId: {PlayerId}", scouterId, playerId);
 
-var scouterExists = await _unitOfWork.Repository<ScouterEntity>().ExistsAsync(s => s.Id == scouterId);
-            if (!scouterExists)
+            var existenceData = await _unitOfWork.Repository<ScouterEntity>()
+                .GetQueryableAsNoTracking()
+                .Where(s => s.Id == scouterId)
+                .Select(s => new { Key = "Scouter" })
+                .Concat(
+                    _unitOfWork.Repository<Domain.Entities.Player.Player>()
+                        .GetQueryableAsNoTracking()
+                        .Where(p => p.Id == playerId)
+                        .Select(p => new { Key = "Player" })
+                )
+                .ToListAsync();
+
+            if (!existenceData.Any(x => x.Key == "Scouter"))
             {
                 throw new NotFoundException($"Scouter with ID {scouterId} not found.");
             }
 
-            var playerExists = await _unitOfWork.Repository<Domain.Entities.Player.Player>().ExistsAsync(p => p.Id == playerId);
-            if (!playerExists)
+            if (!existenceData.Any(x => x.Key == "Player"))
             {
                 throw new NotFoundException($"Player with ID {playerId} not found.");
             }
@@ -58,7 +63,8 @@ var scouterExists = await _unitOfWork.Repository<ScouterEntity>().ExistsAsync(s 
 
             if (alreadyFollowing)
             {
-                return; // Idempotent handling: silently succeed if already following
+                _logger.LogInformation("Idempotency triggered: Scouter {ScouterId} already follows Player {PlayerId}. No action taken.", scouterId, playerId);
+                return;
             }
 
             var follow = new ScouterFollow
@@ -67,44 +73,57 @@ var scouterExists = await _unitOfWork.Repository<ScouterEntity>().ExistsAsync(s 
                 PlayerId = playerId,
                 FollowedAt = DateTime.UtcNow
             };
-
+            _logger.LogInformation("Adding new ScouterFollow record. ScouterId: {ScouterId}, PlayerId: {PlayerId}", scouterId, playerId);
             await _unitOfWork.Repository<ScouterFollow>().AddAsync(follow);
             await _unitOfWork.SaveChangesAsync();
+            _logger.LogInformation("Successfully saved follow relationship. ScouterId: {ScouterId}, PlayerId: {PlayerId}", scouterId, playerId);
         }
+
         public async Task UnfollowPlayerAsync(int scouterId, int playerId)
         {
-            var isFollowing = await _unitOfWork.Repository<ScouterFollow>()
-               .FindAsync(f => f.ScouterUserId == scouterId && f.PlayerId == playerId);
+            _logger.LogInformation("Initiating UnfollowPlayer request. ScouterId: {ScouterId}, PlayerId: {PlayerId}", scouterId, playerId);
+            var follow = await _unitOfWork.Repository<ScouterFollow>()
+                .FindAsync(f => f.ScouterUserId == scouterId && f.PlayerId == playerId);
 
-            if (isFollowing == null)
+            if (follow != null)
             {
-var scouterExists = await _unitOfWork.Repository<ScouterEntity>().ExistsAsync(s => s.Id == scouterId);
-                if (!scouterExists)
-        {
-                    throw new NotFoundException($"Scouter with ID {scouterId} not found.");
-                }
-
-                var playerExists = await _unitOfWork.Repository<Domain.Entities.Player.Player>().ExistsAsync(p => p.Id == playerId);
-                if (!playerExists)
-                {
-                    throw new NotFoundException($"Player with ID {playerId} not found.");
-                }
-                throw new NotFoundException($"Player with ID {playerId} is not followed by Scouter with ID {scouterId}.");
+                _logger.LogInformation("Follow relationship found. Processing soft delete for ScouterId: {ScouterId}, PlayerId: {PlayerId}", scouterId, playerId);
+                _unitOfWork.Repository<ScouterFollow>().SoftDelete(follow);
+                await _unitOfWork.SaveChangesAsync();
+                _logger.LogInformation("Successfully soft-deleted follow relationship. ScouterId: {ScouterId}, PlayerId: {PlayerId}", scouterId, playerId);
+                return;
             }
-            _unitOfWork.Repository<ScouterFollow>().SoftDelete(isFollowing);
-            await _unitOfWork.SaveChangesAsync();
 
+            var existenceData = await _unitOfWork.Repository<ScouterEntity>()
+                .GetQueryableAsNoTracking()
+                .Where(s => s.Id == scouterId)
+                .Select(s => new { Key = "Scouter" })
+                .Concat(
+                    _unitOfWork.Repository<Domain.Entities.Player.Player>()
+                        .GetQueryableAsNoTracking()
+                        .Where(p => p.Id == playerId)
+                        .Select(p => new { Key = "Player" })
+                )
+                .ToListAsync();
+
+            if (!existenceData.Any(x => x.Key == "Scouter"))
+                throw new NotFoundException($"Scouter with ID {scouterId} not found.");
+
+            if (!existenceData.Any(x => x.Key == "Player"))
+                throw new NotFoundException($"Player with ID {playerId} not found.");
+
+            throw new NotFoundException($"Player with ID {playerId} is not followed by Scouter with ID {scouterId}.");
         }
-
 
         // TODO: Refactor to Redis or a fire-and-forget background worker (e.g., Hangfire/Channels) 
         // to offload profile view logging from the primary request thread. 
 
         public async Task LogProfileViewAsync(int scouterId, int playerId)
         {
-var scouterExists = await _unitOfWork.Repository<ScouterEntity>().ExistsAsync(s => s.Id == scouterId);
+            _logger.LogInformation("Logging profile view audit. ScouterId: {ScouterId}, PlayerId: {PlayerId}", scouterId, playerId);
+            var scouterExists = await _unitOfWork.Repository<ScouterEntity>().ExistsAsync(s => s.Id == scouterId);
             if (!scouterExists)
-        {
+            {
                 throw new NotFoundException($"Scouter with ID {scouterId} not found.");
             }
 
@@ -119,103 +138,93 @@ var scouterExists = await _unitOfWork.Repository<ScouterEntity>().ExistsAsync(s 
                 PlayerId = playerId,
                 ViewedAt = DateTime.UtcNow
             };
+
+            _logger.LogDebug("Saving profile view record into database registry.");
             await _unitOfWork.Repository<ScouterView>().AddAsync(profileView);
             await _unitOfWork.SaveChangesAsync();
+            _logger.LogInformation("Successfully logged profile view audit. ScouterId: {ScouterId}, PlayerId: {PlayerId}", scouterId, playerId);
 
         }
-        public async Task<List<PlayerCardDto>> GetFollowedPlayersAsync(int scouterId)
+        public async Task<PaginatedResult<PlayerCardDto>> GetFollowedPlayersAsync(int scouterId, int pageNumber = 1, int pageSize = 10, string? searchTerm = null)
         {
-var scouterExists = await _unitOfWork.Repository<ScouterEntity>()
-                .GetQueryableAsNoTracking()
-                .AnyAsync(s => s.Id == scouterId && !s.IsDeleted);
+            _logger.LogInformation("Retrieving followed players for ScouterId: {ScouterId}. Parameters -> PageNumber: {Page}, PageSize: {Size}, SearchTerm: '{Term}'", scouterId, pageNumber, pageSize, searchTerm ?? string.Empty);
 
-            if (!scouterExists)
+            var baseQuery = _unitOfWork.Repository<ScouterFollow>()
+                .GetQueryableAsNoTracking()
+                .Where(sf => sf.ScouterUserId == scouterId && !sf.IsDeleted);
+
+            if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                throw new NotFoundException($"Scouter profile with ID {scouterId} was not found.");
+                baseQuery = baseQuery.Where(sf =>
+                    (sf.Player.FirstName + " " + sf.Player.LastName).Contains(searchTerm));
             }
 
-            var pagedPlayerIds = await _unitOfWork.Repository<ScouterFollow>()
-                .GetQueryableAsNoTracking()
-                .Where(sf => sf.ScouterUserId == scouterId && !sf.IsDeleted)
-                .Select(sf => sf.Player.Id)
-                .ToListAsync();
+            int totalCount = await baseQuery.CountAsync();
 
-            if (!pagedPlayerIds.Any())
+            if (totalCount == 0)
             {
-                return new List<PlayerCardDto>();
-            }
+                var scouterExists = await _unitOfWork.Repository<ScouterEntity>()
+                    .GetQueryableAsNoTracking()
+                    .AnyAsync(s => s.Id == scouterId && !s.IsDeleted);
 
-            var existingCardsState = await _unitOfWork.Repository<PlayerCard>()
-                .GetQueryableAsNoTracking()
-                .Where(pc => pagedPlayerIds.Contains(pc.PlayerId))
-                .Select(pc => new { pc.PlayerId, pc.NeedsRecalculation })
-                .ToListAsync();
-
-            var cardStateLookup = existingCardsState.ToDictionary(x => x.PlayerId, x => x.NeedsRecalculation);
-
-            foreach (var id in pagedPlayerIds)
-            {
-                var cardExists = cardStateLookup.TryGetValue(id, out var dbNeedsRecalculation);
-
-                if (!cardExists || _invalidationList.TryConsume(id) || dbNeedsRecalculation)
+                if (!scouterExists)
                 {
-                    await _playerCardService.RecalculatePlayerCardAsync(id);
+                    throw new NotFoundException($"Scouter profile with ID {scouterId} was not found.");
                 }
+
+                _logger.LogInformation("No matching followed players found for Scouter {ScouterId}.", scouterId);
+                return new PaginatedResult<PlayerCardDto>
+                {
+                    Items = new List<PlayerCardDto>(),
+                    TotalCount = 0,
+                    PageNumber = pageNumber,
+                    PageSize = pageSize
+                };
             }
-            var playerCardQuery = _unitOfWork.Repository<PlayerCard>()
-                .GetQueryableAsNoTracking()
-                .Include(pc => pc.CategoryRatings)
-                    .ThenInclude(cr => cr.DrillCategory);
 
-            var followedPlayerCards = await _unitOfWork.Repository<Domain.Entities.Player.Player>()
-                .GetQueryableAsNoTracking()
-                .Where(p => pagedPlayerIds.Contains(p.Id))
-                .Select(p => new
-                {
-                    Player = p,
-                    PrimaryPosition = p.PlayerPositions.Where(pp => pp.IsPrimary).Select(pp => pp.Position.ToString()).FirstOrDefault() ?? string.Empty,
-                    Card = playerCardQuery.FirstOrDefault(pc => pc.PlayerId == p.Id)
-                })
-                .Select(x => new PlayerCardDto
-                {
-                    PlayerName = x.Player.FirstName + " " + x.Player.LastName,
-                    Position = x.PrimaryPosition,
-                    OverallRating = x.Card != null ? x.Card.OverallRating : 0,
-                    TransferClassification = x.Card != null ? x.Card.TransferClassification.ToString() : string.Empty,
+            var playerCardQuery = _unitOfWork.Repository<PlayerCard>().GetQueryableAsNoTracking();
 
-                    PaceRating = x.Card != null ? x.Card.CategoryRatings.Where(cr => cr.DrillCategory.Name == "Speed").Select(cr => (decimal?)cr.Score).FirstOrDefault() : null,
-                    ShootingRating = x.Card != null ? x.Card.CategoryRatings.Where(cr => cr.DrillCategory.Name == "Shooting").Select(cr => (decimal?)cr.Score).FirstOrDefault() : null,
-                    DribblingRating = x.Card != null ? x.Card.CategoryRatings.Where(cr => cr.DrillCategory.Name == "Dribbling").Select(cr => (decimal?)cr.Score).FirstOrDefault() : null,
-                    DefendingRating = x.Card != null ? x.Card.CategoryRatings.Where(cr => cr.DrillCategory.Name == "Defending").Select(cr => (decimal?)cr.Score).FirstOrDefault() : null,
-                    PassingRating = x.Card != null ? x.Card.CategoryRatings.Where(cr => cr.DrillCategory.Name == "Passing").Select(cr => (decimal?)cr.Score).FirstOrDefault() : null,
-                    PhysicalRating = x.Card != null ? x.Card.CategoryRatings.Where(cr => cr.DrillCategory.Name == "Physical").Select(cr => (decimal?)cr.Score).FirstOrDefault() : null,
-                    GoalkeepingRating = x.Card != null ? x.Card.CategoryRatings.Where(cr => cr.DrillCategory.Name == "GoalKeeping").Select(cr => (decimal?)cr.Score).FirstOrDefault() : null,
-
-                    PlayStyleTag = x.Player.PlayStyleTag,
-                    PreferredFoot = x.Player.PreferredFoot,
-                    WeakFootRating = x.Player.WeakFootRating,
-                    ProfileImageUrl = x.Player.ProfileImageUrl,
-                    ArchetypePlayerName = x.Player.ArchetypePlayerName
-                })
+            var items = await baseQuery
+                .OrderByDescending(sf => sf.FollowedAt)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .Select(sf => playerCardQuery.FirstOrDefault(pc => pc.PlayerId == sf.PlayerId))
+                .ProjectTo<PlayerCardDto>(_mapper.ConfigurationProvider)
                 .ToListAsync();
 
-            return followedPlayerCards;
-        }
+            _logger.LogInformation("Fetched {Count} player card records successfully for Scouter {ScouterId}.", items.Count, scouterId);
 
+            return new PaginatedResult<PlayerCardDto>
+            {
+                Items = items,
+                TotalCount = totalCount,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
+        }
 
         public async Task<PlayerProfileViewAnalyticsDto> GetProfileViewsAnalyticsAsync(int playerId)
         {
+            _logger.LogInformation("Retrieving profile view analytics for PlayerId: {PlayerId}", playerId);
+
             var analytics = await _unitOfWork.Repository<Domain.Entities.Player.Player>()
                 .GetQueryableAsNoTracking()
                 .Where(p => p.Id == playerId)
                 .ProjectTo<PlayerProfileViewAnalyticsDto>(_mapper.ConfigurationProvider)
                 .FirstOrDefaultAsync();
 
-            return analytics ?? new PlayerProfileViewAnalyticsDto
+            if (analytics == null)
             {
-                TotalViewsCount = 0,
-                RecentViews = new List<ProfileViewerDetailDto>()
-            };
+                _logger.LogWarning("No existing profile views data found for Player {PlayerId}. Returning safe defaults.", playerId);
+                return new PlayerProfileViewAnalyticsDto
+                {
+                    TotalViewsCount = 0,
+                    RecentViews = new List<ProfileViewerDetailDto>()
+                };
+            }
+
+            _logger.LogInformation("Successfully retrieved view stats for Player {PlayerId}. Total Views: {Count}", playerId, analytics.TotalViewsCount);
+            return analytics;
         }
     }
 }

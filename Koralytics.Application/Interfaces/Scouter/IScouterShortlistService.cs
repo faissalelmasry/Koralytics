@@ -14,6 +14,6 @@ namespace Koralytics.Application.Interfaces.Scouter
     {
         Task<ScouterShortlistDto> AddToShortlistAsync(int scouterId, int playerId);
         Task<bool> RemoveFromShortlistAsync( int scouterId,int playerId);
-        Task<List<PlayerCardDto>> GetShortlistAsync(int scouterId);
+        Task<PaginatedResult<PlayerCardDto>> GetShortlistAsync( int scouterId, int pageNumber = 1, int pageSize = 10, string? searchTerm = null);
     }
 }
