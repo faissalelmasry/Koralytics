@@ -5,7 +5,6 @@ using TournamentRoundEntity = Koralytics.Domain.Entities.Tournamet.TournamentRou
 using TournamentFixtureEntity = Koralytics.Domain.Entities.Tournamet.TournamentFixture;
 using TournamentGroupTeamEntity = Koralytics.Domain.Entities.Tournamet.TournamentGroupTeam;
 using TournamentStandingEntity = Koralytics.Domain.Entities.Tournamet.TournamentStanding;
-using MatchPlayerRatingEntity = Koralytics.Domain.Entities.Match.MatchPlayerRating;
 using Koralytics.Application.Interfaces;
 using Koralytics.Application.Interfaces.Tournament;
 using Koralytics.Application.Services.Player.PlayerCardService;
@@ -66,17 +65,121 @@ namespace Koralytics.Application.Services.Tournament
                 throw new BadRequestException(
                     "At least 2 accepted teams are required to generate seeding");
 
-            // Calculate seed score for each team
+            var teamIds = tournamentTeams.Select(tt => tt.TeamId).ToList();
+
+            // ── FIX: Bulk fetch 1 — all completed fixtures for ALL teams ──
+            // Before: one query per team inside CalculateWinRateAsync
+            // After:  one query for all teams combined
+            var allFixtures = await _unitOfWork
+                .Repository<TournamentFixtureEntity>()
+                .GetQueryable()
+                .Where(f =>
+                    (teamIds.Contains(f.HomeTeamId) ||
+                     teamIds.Contains(f.AwayTeamId)) &&
+                    f.Status == MatchStatus.Completed)
+                .ToListAsync();
+
+            // ── FIX: Bulk fetch 2 — all active players for ALL teams ──
+            // Before: one query per team inside CalculateAveragePlayerRatingAsync
+            // After:  one query for all teams combined
+            var allTeamPlayers = await _unitOfWork
+                .Repository<Domain.Entities.Player.PlayerTeam>()
+                .GetQueryable()
+                .Where(pt => teamIds.Contains(pt.TeamId) && pt.LeftAt == null)
+                .Select(pt => new { pt.TeamId, pt.PlayerId })
+                .ToListAsync();
+
+            // ── FIX: Bulk fetch 3 — previous knockout wins for ALL teams ──
+            // Before: one query per team inside CalculatePreviousTournamentScoreAsync
+            // After:  one grouped query for all teams combined
+            var previousWinCounts = await _unitOfWork
+                .Repository<TournamentFixtureEntity>()
+                .GetQueryable()
+                .Where(f =>
+                    f.WinnerTeamId.HasValue &&
+                    teamIds.Contains(f.WinnerTeamId.Value) &&
+                    f.Round != null &&
+                    f.Status == MatchStatus.Completed)
+                .GroupBy(f => f.WinnerTeamId!.Value)
+                .Select(g => new { TeamId = g.Key, Wins = g.Count() })
+                .ToListAsync();
+
+            var winCountLookup = previousWinCounts
+                .ToDictionary(x => x.TeamId, x => x.Wins);
+
+            // ── FIX: Fetch all player cards upfront ──
+            // Before: N calls inside foreach per team
+            // After:  one call per unique player across all teams
+            var uniquePlayerIds = allTeamPlayers
+                .Select(p => p.PlayerId)
+                .Distinct()
+                .ToList();
+
+            var playerRatings = new Dictionary<int, double>();
+            foreach (var playerId in uniquePlayerIds)
+            {
+                try
+                {
+                    var card = await _playerCardService
+                        .GetPlayerCardAsync(playerId);
+                    if (card != null)
+                        playerRatings[playerId] = (double)card.OverallRating;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(
+                        "Could not get card for player {PlayerId}: {Message}",
+                        playerId, ex.Message);
+                }
+            }
+
+            // ── Calculate all scores in memory — zero additional DB queries ──
             var seedScores = new List<(TournamentTeamEntity Team, double Score)>();
 
             foreach (var tournamentTeam in tournamentTeams)
             {
-                var score = await CalculateSeedScoreAsync(
-                    tournamentTeam.TeamId, tournamentId);
+                var teamId = tournamentTeam.TeamId;
+
+                // Win rate — from pre-fetched fixtures
+                var teamFixtures = allFixtures
+                    .Where(f =>
+                        f.HomeTeamId == teamId ||
+                        f.AwayTeamId == teamId)
+                    .ToList();
+
+                double winRate = teamFixtures.Count == 0
+                    ? 0
+                    : (double)teamFixtures.Count(f => f.WinnerTeamId == teamId)
+                      / teamFixtures.Count;
+
+                // Player rating — from pre-fetched player data + cached cards
+                var teamPlayerIds = allTeamPlayers
+                    .Where(p => p.TeamId == teamId)
+                    .Select(p => p.PlayerId)
+                    .ToList();
+
+                double playerRating = teamPlayerIds.Count == 0
+                    ? 0
+                    : teamPlayerIds
+                        .Where(pid => playerRatings.ContainsKey(pid))
+                        .Select(pid => playerRatings[pid])
+                        .DefaultIfEmpty(0)
+                        .Average() / 10.0;
+
+                // Previous results — from pre-fetched win counts
+                var previousWins = winCountLookup.GetValueOrDefault(teamId, 0);
+                double previousResults = Math.Min(previousWins / 10.0, 1.0);
+
+                // Composite score
+                double score =
+                    (winRate * 0.4) +
+                    (playerRating * 0.4) +
+                    (previousResults * 0.2);
+
                 seedScores.Add((tournamentTeam, score));
             }
 
-            // Order by score descending — highest = seed #1
+            // Order and assign seed numbers
             var ordered = seedScores
                 .OrderByDescending(x => x.Score)
                 .ToList();
@@ -89,81 +192,6 @@ namespace Koralytics.Application.Services.Tournament
             _logger.LogInformation(
                 "Seeding generated for {Count} teams in tournament {TournamentId}",
                 ordered.Count, tournamentId);
-        }
-
-        private async Task<double> CalculateSeedScoreAsync(
-            int teamId, int currentTournamentId)
-        {
-            double winRate = await CalculateWinRateAsync(teamId);
-            double playerRating = await CalculateAveragePlayerRatingAsync(teamId);
-            double previousResults = await CalculatePreviousTournamentScoreAsync(
-                teamId, currentTournamentId);
-
-            return (winRate * 0.4) + (playerRating * 0.4) + (previousResults * 0.2);
-        }
-
-        private async Task<double> CalculateWinRateAsync(int teamId)
-        {
-            var fixtures = await _unitOfWork.Repository<TournamentFixtureEntity>()
-                .GetQueryable()
-                .Where(f =>
-                    (f.HomeTeamId == teamId || f.AwayTeamId == teamId) &&
-                    f.Status == MatchStatus.Completed)
-                .ToListAsync();
-
-            if (fixtures.Count == 0) return 0;
-
-            var wins = fixtures.Count(f => f.WinnerTeamId == teamId);
-            return (double)wins / fixtures.Count;
-        }
-
-        private async Task<double> CalculateAveragePlayerRatingAsync(int teamId)
-        {
-            var playerIds = await _unitOfWork
-                .Repository<Domain.Entities.Player.PlayerTeam>()
-                .GetQueryable()
-                .Where(pt => pt.TeamId == teamId && pt.LeftAt == null)
-                .Select(pt => pt.PlayerId)
-                .ToListAsync();
-
-            if (playerIds.Count == 0) return 0;
-
-            var ratings = new List<double>();
-
-            foreach (var playerId in playerIds)
-            {
-                try
-                {
-                    var card = await _playerCardService
-                        .GetPlayerCardAsync(playerId);
-                    if (card != null)
-                        ratings.Add((double)card.OverallRating);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(
-                        "Could not get card for player {PlayerId}: {Message}",
-                        playerId, ex.Message);
-                }
-            }
-
-            if (ratings.Count == 0) return 0;
-            return ratings.Average() / 10.0;
-        }
-
-        private async Task<double> CalculatePreviousTournamentScoreAsync(
-            int teamId, int currentTournamentId)
-        {
-            var previousWins = await _unitOfWork
-                .Repository<TournamentFixtureEntity>()
-                .GetQueryable()
-                .Where(f =>
-                    f.WinnerTeamId == teamId &&
-                    f.Round != null &&
-                    f.Status == MatchStatus.Completed)
-                .CountAsync();
-
-            return Math.Min(previousWins / 10.0, 1.0);
         }
 
         // ─────────────────────────────────────────────────────────────
@@ -186,7 +214,6 @@ namespace Koralytics.Application.Services.Tournament
                 throw new BadRequestException(
                     "Draw can only be generated during Registration status");
 
-            // Idempotency check — draw already generated
             var drawExists = await _unitOfWork.Repository<TournamentRoundEntity>()
                 .ExistsAsync(r => r.TournamentId == tournamentId);
 
@@ -199,7 +226,6 @@ namespace Koralytics.Application.Services.Tournament
                 throw new ConflictException(
                     "Draw has already been generated for this tournament");
 
-            // Fetch seeded teams
             var seededTeams = await _unitOfWork.Repository<TournamentTeamEntity>()
                 .GetQueryable()
                 .Where(tt =>
@@ -212,13 +238,11 @@ namespace Koralytics.Application.Services.Tournament
                 throw new BadRequestException(
                     "At least 2 accepted teams are required to generate draw");
 
-            // Validate seeding is done
             if (seededTeams.Any(tt => tt.SeedNumber == null))
                 throw new BadRequestException(
                     "All teams must be seeded before generating the draw. " +
                     "Run GenerateSeedingAsync first");
 
-            // Wrap entire draw generation in transaction
             using var transaction = await _unitOfWork.BeginTransactionAsync();
             try
             {
@@ -316,7 +340,6 @@ namespace Koralytics.Application.Services.Tournament
             TournamentEntity tournament,
             List<TournamentTeamEntity> seededTeams)
         {
-            // Validate group distribution
             int groupCount = Math.Max(2, seededTeams.Count / 4);
 
             if (seededTeams.Count < groupCount * 2)
