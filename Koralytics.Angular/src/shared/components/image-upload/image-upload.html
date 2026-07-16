@@ -1,0 +1,46 @@
+<div class="cyber-image-uploader-wrapper">
+  
+  <div class="cyber-image-dropzone"
+       [class.drag-over]="isDragOver"
+       [class.has-preview]="imagePreviewUrl"
+       [class.shape-circle]="aspectRatio === 'circle'"
+       [class.shape-square]="aspectRatio === 'square'"
+       [class.uploading]="isUploading"
+       (dragover)="onDragOver($event)"
+       (dragleave)="onDragLeave($event)"
+       (drop)="onDrop($event)"
+       (click)="imageFileInput.click()">
+
+    <input type="file" 
+           #imageFileInput 
+           accept="image/*" 
+           [disabled]="isUploading"
+           (change)="onFileChange($event)" 
+           style="display: none;" />
+
+    <div class="upload-state-empty" *ngIf="!imagePreviewUrl">
+      <svg viewBox="0 0 24 24" class="avatar-icon" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 12C14.2091 12 16 10.2091 16 8C16 5.79086 14.2091 4 12 4C9.79086 4 8 5.79086 8 8C8 10.2091 9.79086 12 12 12Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M4 20C4 16.6863 7.58172 14 12 14C16.4183 14 20 16.6863 20 20" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="upload-badge-text">upload avatar</span>
+    </div>
+
+    <div class="upload-state-preview" *ngIf="imagePreviewUrl">
+      <img [src]="imagePreviewUrl" alt="Player Identity Preview" class="preview-img-element" />
+      
+      <div class="preview-overlay-controls" *ngIf="!isUploading">
+        <button class="btn-delete-img" (click)="removeImage($event)">
+          remove
+        </button>
+      </div>
+    </div>
+
+    <div class="avatar-uploading-spinner" *ngIf="isUploading">
+      <div class="pulse-ring"></div>
+    </div>
+
+  </div>
+
+  <p class="image-upload-error" *ngIf="errorMessage">{{ errorMessage }}</p>
+</div>

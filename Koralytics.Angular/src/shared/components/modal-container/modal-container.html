@@ -1,0 +1,30 @@
+<!-- Backdrop Blur Effect -->
+<div class="modal-backdrop-overlay" *ngIf="options" (click)="modalService.cancel()">
+  
+  <!-- Modal Card -->
+  <div class="modal-cyber-card" [ngClass]="options.variant || 'info'" (click)="$event.stopPropagation()">
+    
+    <!-- Top Decorative Tech Border -->
+    <div class="modal-tech-bar"></div>
+
+    <div class="modal-header-zone">
+      <h3 class="modal-title">{{ options.title }}</h3>
+      <button class="modal-close-x" (click)="modalService.cancel()">&times;</button>
+    </div>
+
+    <div class="modal-body-zone">
+      <p>{{ options.message }}</p>
+    </div>
+
+    <div class="modal-actions-zone">
+      <button class="btn-modal btn-cancel" (click)="modalService.cancel()">
+        {{ options.cancelText || 'cancel' }}
+      </button>
+      <button class="btn-modal btn-confirm" (click)="modalService.confirm()">
+        {{ options.confirmText || 'confirm' }}
+      </button>
+    </div>
+
+  </div>
+
+</div>

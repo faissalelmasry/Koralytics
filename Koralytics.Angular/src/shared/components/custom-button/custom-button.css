@@ -1,0 +1,175 @@
+:host {
+  display: inline-block;
+  perspective: 1000px;
+}
+
+.btn-wrap {
+  position: relative;
+}
+
+/* ---------- Base Button & Heavy Transitions ---------- */
+.custom-btn {
+  position: relative;
+  width: 100%;
+  padding: 16px 32px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 14px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+  text-transform: lowercase;
+  cursor: pointer;
+  outline: none;
+  transform-style: preserve-3d;
+  overflow: hidden;
+  user-select: none;
+  
+  /* Advanced Transition layering matrix */
+  transition: 
+    transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), 
+    box-shadow 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), 
+    background-color 0.3s ease,
+    border-color 0.3s ease;
+}
+
+/* Radial Shine Overlay */
+.custom-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(120px circle at var(--mx, 50%) var(--my, 50%), rgba(255, 255, 255, 0.25), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.custom-btn:hover::before {
+  opacity: 1;
+}
+
+.btn-text {
+  position: relative;
+  z-index: 2;
+  display: block;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+
+/* 1. Accent (Phosphori Lime Green) */
+.custom-btn.accent {
+  background: #c8ff4d;
+  color: #0a0c0f;
+}
+.custom-btn.accent:hover {
+  box-shadow: 0 14px 40px -10px rgba(200, 255, 77, 0.5), 0 0 20px rgba(200, 255, 77, 0.2);
+  border-color: rgba(200, 255, 77, 0.6);
+}
+
+/* 2. Coral Red */
+.custom-btn.coral {
+  background: #ff6a5c;
+  color: #ffffff;
+}
+.custom-btn.coral:hover {
+  box-shadow: 0 14px 40px -10px rgba(255, 106, 92, 0.5);
+  border-color: rgba(255, 106, 92, 0.6);
+}
+
+/* 3. Cyan / Electric Blue */
+.custom-btn.cyan {
+  background: #00f0ff;
+  color: #0a0c0f;
+}
+.custom-btn.cyan:hover {
+  box-shadow: 0 14px 40px -10px rgba(0, 240, 255, 0.5), 0 0 20px rgba(0, 240, 255, 0.2);
+  border-color: rgba(0, 240, 255, 0.6);
+}
+
+/* 4. Slate Grey (Premium Dashboard Style) */
+.custom-btn.slate {
+  background: #14171c;
+  color: #f2f3f5;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+.custom-btn.slate:hover {
+  background: #1c2027;
+  box-shadow: 0 14px 40px -10px rgba(0, 0, 0, 0.6);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Pressed Click State */
+.custom-btn:active {
+  transform: scale(0.95) translateY(0) !important;
+}
+
+/* ---------- Custom Icon Spinner Mechanics ---------- */
+.icon-spinner-core {
+  display: none;
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 28px;
+  height: 28px;
+  z-index: 3;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-spinner-core img {
+  width: 100%;
+  height: auto;
+  display: block;
+  mix-blend-mode: screen;
+  
+  /* 👈 Force white color layout trick */
+  filter: brightness(0) invert(1); 
+}
+
+/* Loading Activate State Trigger */
+.custom-btn.loading {
+  pointer-events: none;
+}
+.custom-btn.loading .btn-text {
+  opacity: 0;
+  transform: translateY(10px); /* Text slides down softly */
+}
+.custom-btn.loading .icon-spinner-core {
+  display: flex;
+  animation: 
+    btnIconSpin 1s linear infinite, 
+    btnIconPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes btnIconSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Pulse effect white glow layer custom layout */
+@keyframes btnIconPulse {
+  0%, 100% { filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.4)) brightness(1); }
+  50% { filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.9)) brightness(1.2); }
+}
+
+/* ---------- Ripple Component effect ---------- */
+::ng-deep .ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(0);
+  animation: rippleAnim 0.65s cubic-bezier(0.25, 1, 0.5, 1);
+  pointer-events: none;
+  z-index: 1;
+}
+@keyframes rippleAnim { to { transform: scale(3); opacity: 0; } }
+
+/* Disabled State */
+.custom-btn:disabled:not(.loading) {
+  background: #111418;
+  color: #4a4f57;
+  border-color: transparent;
+  box-shadow: none !important;
+  cursor: not-allowed;
+  transform: none !important;
+}

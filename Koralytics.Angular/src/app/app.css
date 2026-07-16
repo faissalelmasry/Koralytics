@@ -1,0 +1,138 @@
+:host {
+  display: block;
+  width: 100%;
+  min-height: 100vh;
+  
+  /* 🎨 Hna zaweedna el-opacity wel-brightness bta3et el-colors 3ashan tb2a bayna aktar */
+  --bfa-dark: #07090e; 
+  --bfa-lime-glow: rgba(186, 255, 41, 0.25);  /* Keberna el-glow meshwsh w-zahir */
+  --bfa-cyan-glow: rgba(0, 229, 255, 0.2);
+  --bfa-line-color: rgba(255, 255, 255, 0.06); /* Zaweedna el-lines visibility lines teb2a clear */
+  --bfa-dashed-color: rgba(255, 255, 255, 0.04);
+}
+
+.bfa-cyber-pitch-wrapper {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  background-color: var(--bfa-dark);
+  overflow: hidden;
+}
+
+/* ---------- 🌟 1. BFA Aurora Space Blobs ---------- */
+.bfa-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(130px); 
+  z-index: 1;
+  pointer-events: none;
+}
+.bfa-blob-lime {
+  top: -10%;
+  left: 15%;
+  width: 50vw;
+  height: 50vw;
+  background: radial-gradient(circle, var(--bfa-lime-glow) 0%, transparent 75%);
+  animation: bfaPulseGlow 10s ease-in-out infinite alternate;
+}
+.bfa-blob-cyan {
+  bottom: -5%;
+  right: 10%;
+  width: 55vw;
+  height: 55vw;
+  background: radial-gradient(circle, var(--bfa-cyan-glow) 0%, transparent 75%);
+  animation: bfaPulseGlow 14s ease-in-out infinite alternate-reverse;
+}
+
+/* ---------- ⚽ 2. SVG Pitch Architecture Drawing ---------- */
+.bfa-pitch-container {
+  position: fixed;
+  inset: 40px; 
+  z-index: 2;
+  pointer-events: none;
+  
+  /* Mask gradient blend soft */
+  mask-image: radial-gradient(circle at center, black 60%, rgba(0,0,0,0.5) 80%, transparent 100%);
+  -webkit-mask-image: radial-gradient(circle at center, black 60%, rgba(0,0,0,0.5) 80%, transparent 100%);
+}
+
+.bfa-pitch-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.pitch-line {
+  fill: none;
+  stroke-linecap: round;
+}
+
+.pitch-line.standard-line {
+  stroke: var(--bfa-line-color);
+  stroke-width: 1.5px;
+}
+
+.pitch-line.dashed-line {
+  stroke: var(--bfa-dashed-color);
+  stroke-width: 1.2px;
+  stroke-dasharray: 8 6; /* Long blueprint dash effect */
+}
+
+.pitch-spot {
+  fill: var(--bfa-line-color);
+}
+
+/* ---------- 🎛️ 3. Main UI Content Layer ---------- */
+.app-main-layout {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  
+  opacity: 0;
+  transform: scale(0.98);
+  transition: opacity 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.app-main-layout.content-ready {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.main-content {
+  flex: 1;
+}
+
+/* Container spacing buttons showcase text */
+.buttons-test-zone {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 40px clamp(20px, 5vw, 64px);
+  justify-content: center;
+}
+
+/* ==================== PRELOADER OVERLAY PANELS ==================== */
+.preloader-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: var(--bfa-dark);
+  z-index: 99999; 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.6s ease;
+}
+
+.preloader-overlay.fade-out {
+  transform: translateY(-100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ---------- 🚀 Animations ---------- */
+@keyframes bfaPulseGlow {
+  0% { transform: scale(1) translate(0, 0); opacity: 0.7; }
+  50% { transform: scale(1.08) translate(2%, 3%); opacity: 1; }
+  100% { transform: scale(0.95) translate(-1%, -1%); opacity: 0.7; }
+}

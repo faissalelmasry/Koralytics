@@ -1,0 +1,125 @@
+:host {
+  display: block;
+  width: 100%;
+  padding: 48px 24px;
+  box-sizing: border-box;
+}
+
+.empty-state-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+/* SVG Cyber Icon Styling */
+.icon-blueprint-container {
+  width: 140px;
+  height: 140px;
+  margin-bottom: 24px;
+  position: relative;
+}
+
+.blueprint-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.base-board {
+  fill: rgba(20, 23, 28, 0.4);
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 2;
+}
+
+.clip-board {
+  fill: #14171c;
+  stroke: rgba(255, 255, 255, 0.15);
+  stroke-width: 1.5;
+}
+
+.pitch-mid-line, .pitch-center-circle {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.04);
+  stroke-width: 2;
+}
+
+.tactic-arrow {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.1);
+  stroke-width: 1.5;
+  stroke-dasharray: 4, 4;
+}
+
+/* الرادار المضيء في السنتر */
+.radar-ping {
+  fill: rgba(200, 255, 77, 0.05);
+  stroke: #c8ff4d;
+  stroke-width: 1.5;
+  animation: cyberPulse 2s infinite ease-in-out;
+  transform-origin: center;
+}
+
+.radar-text {
+  fill: #c8ff4d;
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  text-anchor: middle;
+  filter: drop-shadow(0 0 4px rgba(200, 255, 77, 0.6));
+}
+
+@keyframes cyberPulse {
+  0% { transform: scale(0.95); opacity: 0.6; stroke-width: 1.5; }
+  50% { transform: scale(1.1); opacity: 1; stroke-width: 2.5; }
+  100% { transform: scale(0.95); opacity: 0.6; stroke-width: 1.5; }
+}
+
+/* Typography */
+.empty-title {
+  color: #f2f3f5;
+  font-family: 'Inter', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 10px 0;
+  text-transform: lowercase;
+  letter-spacing: -0.5px;
+}
+
+.empty-desc {
+  color: #8b909a;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0;
+  text-transform: lowercase;
+}
+
+/* Button Zone */
+.action-zone {
+  margin-top: 24px;
+}
+
+.cyber-empty-btn {
+  background: transparent;
+  border: 1px solid #c8ff4d;
+  color: #c8ff4d;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  text-transform: lowercase;
+  transition: all 0.25s ease;
+  box-shadow: 0 0 15px rgba(200, 255, 77, 0.05);
+}
+
+.cyber-empty-btn:hover {
+  background: #c8ff4d;
+  color: #0a0c0f;
+  box-shadow: 0 0 20px rgba(200, 255, 77, 0.25);
+  transform: translateY(-1px);
+}

@@ -1,0 +1,100 @@
+:host {
+  display: inline-block;
+  --accent: #c8ff4d;
+  --accent-dim: rgba(200, 255, 77, 0.1);
+  --card-border: rgba(255, 255, 255, 0.07);
+}
+
+.spinner-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+/* Full Screen Overlay Hack */
+.spinner-wrapper.full-screen {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 12, 15, 0.75);
+  backdrop-filter: blur(8px);
+  z-index: 9999;
+}
+
+.spinner-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---------- Sizes Control ---------- */
+.spinner-container.sm { width: 32px; height: 32px; }
+.spinner-container.md { width: 56px; height: 56px; }
+.spinner-container.lg { width: 96px; height: 96px; }
+
+/* ---------- Base Ring Style ---------- */
+.ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid transparent;
+}
+
+/* Outer Ring */
+.outer-ring {
+  border-top-color: var(--accent);
+  border-right-color: var(--accent);
+  animation: spinClockwise 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* Inner Ring */
+.inner-ring {
+  inset: 6px;
+  border-bottom-color: rgba(255, 255, 255, 0.5);
+  border-left-color: rgba(255, 255, 255, 0.15);
+  animation: spinCounterClockwise 1.2s linear infinite;
+}
+
+/* ---------- 👈 Centered Icon Core Layout ---------- */
+.icon-core {
+  position: absolute;
+  width: 45%; 
+  height: 45%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  animation: pulseIcon 1.5s ease-in-out infinite; /* Micro pulse effect */
+}
+
+.icon-core img {
+  width: 100%;
+  height: auto;
+  display: block;
+  mix-blend-mode: screen;
+}
+
+/* ---------- Mechanics Animations ---------- */
+@keyframes spinClockwise {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes spinCounterClockwise {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+
+/* Soft scale pulse dynamics */
+@keyframes pulseIcon {
+  0%, 100% { 
+    transform: scale(0.9); 
+    filter: drop-shadow(0 0 4px rgba(200, 255, 77, 0.2));
+  }
+  50% { 
+    transform: scale(1.05); 
+    filter: drop-shadow(0 0 12px rgba(200, 255, 77, 0.6)); 
+  }
+}
