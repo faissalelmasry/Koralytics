@@ -1,0 +1,46 @@
+<div class="cyber-upload-zone" 
+     [class.drag-over]="isDragOver"
+     [class.disabled]="isUploading"
+     (dragover)="onDragOver($event)"
+     (dragleave)="onDragLeave($event)"
+     (drop)="onDrop($event)"
+     (click)="fileInput.click()">
+
+  <input type="file" 
+         #fileInput 
+         [accept]="accept" 
+         [disabled]="isUploading"
+         (change)="onFileChange($event)" 
+         style="display: none;" />
+
+  <div class="upload-prompt-view" *ngIf="!selectedFile">
+    <div class="cyber-upload-icon-container">
+      <svg viewBox="0 0 24 24" class="upload-svg" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 16V8M12 8L9 11M12 8L15 11" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M3 15C3 17.8284 3 19.2426 3.87868 20.1213C4.75736 21 6.17157 21 9 21H15C17.8284 21 19.2426 21 20.1213 20.1213C21 19.2426 21 17.8284 21 15" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <h4 class="prompt-title">drag & drop video footage</h4>
+    <p class="prompt-subtitle">or click to browse your academy server tactical files (max {{maxFileSizeMb}}mb)</p>
+  </div>
+
+  <div class="upload-progress-view" *ngIf="selectedFile">
+    <div class="file-details">
+      <div class="file-info-text">
+        <span class="file-name">{{ selectedFile.name }}</span>
+        <span class="file-size">{{ formatSize(selectedFile.size) }}</span>
+      </div>
+      <button class="btn-clear-file" *ngIf="!isUploading" (click)="clearFile($event)">
+        &times;
+      </button>
+    </div>
+
+    <div class="progress-track" *ngIf="isUploading || uploadProgress > 0">
+      <div class="progress-bar-fill" [style.width.%]="uploadProgress"></div>
+      <span class="progress-percentage">{{ uploadProgress }}% uploaded</span>
+    </div>
+  </div>
+
+</div>
+
+<p class="upload-error-msg" *ngIf="errorMessage">{{ errorMessage }}</p>

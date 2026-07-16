@@ -1,0 +1,41 @@
+<header>
+  <div class="logo-wrapper" routerLink="/" style="cursor: pointer;">
+    <img src="images/logo/primary/logo-primary-dark.png" alt="Koralytics Logo">
+  </div>
+
+  <nav>
+    <a routerLink="/home" routerLinkActive="active">home</a>
+    <a routerLink="/about" routerLinkActive="active">about</a>
+    <a routerLink="/clubs" routerLinkActive="active">clubs</a>
+    <a routerLink="/contact" routerLinkActive="active">contact</a>
+  </nav>
+</header>
+
+<div 
+  class="floating-sidebar-trigger" 
+  [class.sidebar-open]="isSidebarOpen"
+  (click)="toggleSidebar(!isSidebarOpen)">
+  <img src="images/logo/app-icon/logo-icon-dark.png" alt="Trigger Icon" class="trigger-icon">
+</div>
+
+<div 
+  class="sidebar-backdrop" 
+  [class.active]="isSidebarOpen" 
+  (click)="toggleSidebar(false)">
+</div>
+
+<aside class="sidebar-container" [class.open]="isSidebarOpen">
+  <div class="sidebar-header">
+    <img src="images/logo/app-icon/logo-icon-dark.png" alt="Koralytics Icon" class="sidebar-logo">
+    <button class="close-btn" (click)="toggleSidebar(false)">×</button>
+  </div>
+
+  <div class="sidebar-content">
+    <nav class="sidebar-nav">
+      <a routerLink="/home" routerLinkActive="active" (click)="toggleSidebar(false)">home</a>
+      <a routerLink="/about" routerLinkActive="active" (click)="toggleSidebar(false)">about</a>
+      <a routerLink="/clubs" routerLinkActive="active" (click)="toggleSidebar(false)">clubs</a>
+      <a routerLink="/contact" routerLinkActive="active" (click)="toggleSidebar(false)">contact</a>
+    </nav>
+  </div>
+</aside>

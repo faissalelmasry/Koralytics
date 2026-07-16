@@ -1,0 +1,47 @@
+<div class="cyber-table-responsive-container">
+  <table class="cyber-data-table">
+    
+    <!-- Table Header -->
+    <thead>
+      <tr>
+        <th *ngFor="let col of columns">
+          <span class="header-glitch-text">{{ col.label }}</span>
+        </th>
+      </tr>
+    </thead>
+
+    <!-- Table Body -->
+    <tbody>
+      <tr *ngFor="let row of data; let i = index" [style.--animation-order]="i">
+        <td *ngFor="let col of columns" [attr.data-label]="col.label">
+          
+          <!-- Case 1: Standard Text -->
+          <ng-container *ngIf="!col.type || col.type === 'text'">
+            <span class="cell-text">{{ row[col.key] }}</span>
+          </ng-container>
+
+          <!-- Case 2: Status/Type Badges -->
+          <ng-container *ngIf="col.type === 'badge'">
+            <span class="cyber-badge" [ngClass]="row[col.key]?.toLowerCase()">
+              {{ row[col.key] }}
+            </span>
+          </ng-container>
+
+          <!-- Case 3: Action Buttons -->
+          <ng-container *ngIf="col.type === 'action'">
+            <div class="table-actions-hub">
+              <button class="btn-table-action btn-view" (click)="onAction(row, 'view')">
+                analyze
+              </button>
+              <button class="btn-table-action btn-delete" (click)="onAction(row, 'delete')">
+                &times;
+              </button>
+            </div>
+          </ng-container>
+
+        </td>
+      </tr>
+    </tbody>
+
+  </table>
+</div>

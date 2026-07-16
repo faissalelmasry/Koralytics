@@ -1,0 +1,11 @@
+<div class="toggle-container" [class.is-disabled]="disabled" (click)="toggleState()">
+  
+  <div class="toggle-track" [class.is-checked]="checked">
+    <div class="toggle-thumb" [class.is-checked]="checked"></div>
+  </div>
+
+  <span class="toggle-label" *ngIf="label">
+    {{ label }}
+  </span>
+
+</div>

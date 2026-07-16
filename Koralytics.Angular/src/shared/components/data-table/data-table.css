@@ -1,0 +1,167 @@
+:host {
+  display: block;
+  width: 100%;
+  margin: 20px 0;
+}
+
+.cyber-table-responsive-container {
+  width: 100%;
+  overflow-x: auto;
+  background: rgba(18, 22, 28, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.cyber-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Header Styling */
+.cyber-data-table th {
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 16px 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #8b909a;
+  text-transform: lowercase;
+  letter-spacing: 0.5px;
+}
+
+/* Row Styling */
+.cyber-data-table tbody tr {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  transition: background 0.2s ease;
+  /* Staggered load animation effect */
+  animation: tableRowFadeIn 0.4s ease backwards;
+  animation-delay: calc(var(--animation-order) * 0.05s);
+}
+
+@keyframes tableRowFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.cyber-data-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.cyber-data-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+/* Cell Styling */
+.cyber-data-table td {
+  padding: 16px 20px;
+  font-size: 14px;
+  color: #f2f3f5;
+  vertical-align: middle;
+}
+
+.cell-text {
+  text-transform: lowercase;
+}
+
+/* Custom Cyber Badges */
+.cyber-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: lowercase;
+}
+
+.cyber-badge.active, .cyber-badge.success {
+  background: rgba(200, 255, 77, 0.1);
+  color: #c8ff4d;
+}
+.cyber-badge.injured, .cyber-badge.danger {
+  background: rgba(255, 106, 92, 0.1);
+  color: #ff6a5c;
+}
+.cyber-badge.pending, .cyber-badge.warning {
+  background: rgba(255, 184, 77, 0.1);
+  color: #ffb84d;
+}
+
+/* Action Buttons */
+.table-actions-hub {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-table-action {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: lowercase;
+}
+
+.btn-view {
+  background: rgba(77, 166, 255, 0.1);
+  border: 1px solid rgba(77, 166, 255, 0.2);
+  color: #4da6ff;
+}
+.btn-view:hover {
+  background: #4da6ff;
+  color: #06080a;
+}
+
+.btn-delete {
+  background: transparent;
+  border: none;
+  color: #8b909a;
+  font-size: 16px;
+  padding: 4px 8px;
+}
+.btn-delete:hover {
+  color: #ff6a5c;
+}
+
+/* 📱 Responsive Design Matrix (For Mobile Screens) */
+@media (max-width: 768px) {
+  .cyber-data-table, .cyber-data-table thead, .cyber-data-table tbody, .cyber-data-table th, .cyber-data-table td, .cyber-data-table tr {
+    display: block;
+  }
+  
+  .cyber-data-table thead {
+    display: none;
+  }
+  
+  .cyber-data-table tbody tr {
+    padding: 12px 6px;
+  }
+  
+  .cyber-data-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 16px;
+    border: none;
+    text-align: right;
+  }
+  
+  .cyber-data-table td::before {
+    content: attr(data-label);
+    font-size: 12px;
+    font-weight: 600;
+    color: #8b909a;
+    text-transform: lowercase;
+  }
+  
+  .table-actions-hub {
+    justify-content: flex-end;
+  }
+}

@@ -1,0 +1,78 @@
+:host {
+  display: inline-block;
+  user-select: none;
+  --track-bg: rgba(255, 255, 255, 0.07);
+  --track-checked-bg: rgba(200, 255, 77, 0.15);
+  --thumb-bg: #8b909a;
+  --thumb-checked-bg: #c8ff4d;
+  --border-color: rgba(255, 255, 255, 0.1);
+  --text-color: #f2f3f5;
+}
+
+.toggle-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.toggle-track {
+  position: relative;
+  width: 48px;
+  height: 26px;
+  background: var(--track-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 100px;
+  transition: background 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.3s ease, box-shadow 0.3s ease;
+  box-sizing: border-box;
+}
+
+/* الزرار المتحرك */
+.toggle-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  background: var(--thumb-bg);
+  border-radius: 50%;
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.3s ease;
+}
+
+.toggle-container:hover:not(.is-disabled) .toggle-track {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.toggle-container:hover:not(.is-disabled) .toggle-thumb:not(.is-checked) {
+  background: #f2f3f5;
+}
+
+.toggle-track.is-checked {
+  background: var(--track-checked-bg);
+  border-color: rgba(200, 255, 77, 0.3);
+  box-shadow: 0 0 15px rgba(200, 255, 77, 0.08);
+}
+
+.toggle-thumb.is-checked {
+  background: var(--thumb-checked-bg);
+  transform: translateX(22px);
+  box-shadow: 0 0 8px rgba(200, 255, 77, 0.5);
+}
+
+.toggle-label {
+  color: var(--text-color);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  text-transform: lowercase;
+  transition: color 0.2s ease;
+}
+
+.toggle-container.is-disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.toggle-container.is-disabled .toggle-track {
+  pointer-events: none;
+}

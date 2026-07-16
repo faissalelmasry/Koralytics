@@ -1,0 +1,37 @@
+<div class="select-field-group" [class.has-error]="errorMessage" [class.is-disabled]="disabled">
+  
+  <div class="select-control-wrapper" [class.opened]="isOpen" (click)="toggleDropdown()">
+    
+    <div class="selected-value-display">
+      {{ selectedLabel }}
+    </div>
+    
+    <label class="floating-label" [class.raised]="isOpen || value !== null && value !== ''">
+      {{ label }}
+    </label>
+
+    <div class="chevron-icon-wrapper" [class.rotated]="isOpen">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="chevron-icon">
+        <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+      </svg>
+    </div>
+
+  </div>
+
+  <div class="dropdown-panel" *ngIf="isOpen && !disabled">
+    <div class="dropdown-scroll-container">
+      <div 
+        *ngFor="let option of options" 
+        class="dropdown-item" 
+        [class.is-selected]="option.value === value"
+        (click)="selectOption(option); $event.stopPropagation()"
+      >
+        {{ option.label }}
+      </div>
+    </div>
+  </div>
+
+  <span class="error-text-msg" *ngIf="errorMessage && !disabled">
+    {{ errorMessage }}
+  </span>
+</div>

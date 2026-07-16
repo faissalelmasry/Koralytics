@@ -1,0 +1,143 @@
+:host {
+  display: block;
+  width: 100%;
+  --bg: #0a0c0f;
+  --card: #14171c;
+  --text: #f2f3f5;
+  --text-dim: #8b909a;
+  --accent: #c8ff4d;
+  --card-border: rgba(255, 255, 255, 0.07);
+}
+
+header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  box-sizing: border-box;
+  z-index: 1000;
+  display: flex; 
+  align-items: center; 
+  justify-content: space-between;
+  padding: 8px clamp(20px, 5vw, 64px);
+  
+  /* 🌟 خلفية شفافة بالكامل متناسقة مع تصميم الملعب */
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-bottom: none;
+  
+  opacity: 0; 
+  animation: fadeDown .6s ease forwards;
+}
+
+@keyframes fadeDown { 
+  from { opacity: 0; transform: translateY(-10px); } 
+  to { opacity: 1; transform: translateY(0); } 
+}
+
+.logo-wrapper {
+  display: flex;
+  align-items: center;
+  user-select: none;
+}
+
+.logo-wrapper img {
+  max-height: 94px; 
+  width: auto;
+  display: block;
+  mix-blend-mode: screen;
+}
+
+.floating-sidebar-trigger {
+  position: fixed;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1001;
+  background: linear-gradient(90deg, rgba(20, 23, 28, 0.9) 0%, rgba(14, 16, 20, 0.7) 100%);
+  border: 1px solid var(--card-border);
+  border-left: none;
+  padding: 16px 12px 16px 8px;
+  border-radius: 0 16px 16px 0; 
+  backdrop-filter: blur(8px);
+  box-shadow: 10px 0 30px rgba(0,0,0,0.3);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: left 0.4s cubic-bezier(.2, .8, .2, 1), transform 0.4s cubic-bezier(.2, .8, .2, 1);
+}
+
+.trigger-icon {
+  max-height: 32px;
+  width: auto;
+  display: block;
+  mix-blend-mode: screen;
+  transition: transform 0.5s cubic-bezier(.2, .8, .2, 1), filter 0.3s ease;
+}
+
+.floating-sidebar-trigger:hover {
+  padding-left: 14px;
+  filter: brightness(1.35) drop-shadow(0 0 8px var(--accent));
+}
+
+.floating-sidebar-trigger.sidebar-open {
+  left: 300px; 
+}
+
+.floating-sidebar-trigger.sidebar-open .trigger-icon {
+  transform: rotate(180deg);
+}
+
+nav { display: flex; }
+nav a {
+  position: relative; color: var(--text-dim); text-decoration: none; font-size: 14px; margin-left: 28px;
+  text-transform: lowercase; font-family: 'Inter', sans-serif; transition: color .25s ease;
+}
+nav a::after {
+  content: ""; position: absolute; left: 0; bottom: -4px; width: 100%; height: 1px;
+  background: var(--accent); transform: scaleX(0); transform-origin: left; transition: transform .25s ease;
+}
+nav a:hover, nav a.active { color: var(--text); }
+nav a:hover::after, nav a.active::after { transform: scaleX(1); }
+
+.sidebar-backdrop {
+  position: fixed; inset: 0; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(4px);
+  z-index: 999; opacity: 0; pointer-events: none; transition: opacity 0.4s cubic-bezier(.2, .8, .2, 1);
+}
+.sidebar-backdrop.active { opacity: 1; pointer-events: auto; }
+
+.sidebar-container {
+  position: fixed; 
+  top: 0; 
+  left: 0; 
+  bottom: 0;
+  width: 300px;
+  background: linear-gradient(180deg, rgba(20, 23, 28, 0.95), rgba(10, 12, 15, 0.98));
+  border-right: 1px solid var(--card-border); 
+  box-shadow: 40px 0 60px rgba(0, 0, 0, 0.5);
+  z-index: 1000; 
+  display: flex; 
+  flex-direction: column; 
+  padding: 24px;
+  transform: translateX(-100%); 
+  transition: transform 0.4s cubic-bezier(.2, .8, .2, 1);
+}
+.sidebar-container.open { transform: translateX(0); }
+
+.sidebar-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 48px; }
+.sidebar-logo { max-height: 40px; width: auto; mix-blend-mode: screen; }
+
+.close-btn {
+  background: none; border: none; color: var(--text-dim); font-size: 32px; cursor: pointer; line-height: 1;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+.close-btn:hover { color: var(--accent); transform: rotate(90deg); }
+
+.sidebar-nav { display: flex; flex-direction: column; gap: 24px; }
+.sidebar-nav a {
+  font-size: 18px; color: var(--text-dim); text-decoration: none; font-family: 'Inter', sans-serif;
+  text-transform: lowercase; margin-left: 0; transition: padding-left 0.25s ease, color 0.25s ease;
+}
+.sidebar-nav a:hover, .sidebar-nav a.active { color: var(--text); padding-left: 8px; }

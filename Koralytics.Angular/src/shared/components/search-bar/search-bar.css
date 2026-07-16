@@ -1,0 +1,119 @@
+:host {
+  display: block;
+  width: 100%;
+  max-width: 540px; 
+  margin: 0 auto;
+  --bg-card: rgba(20, 23, 28, 0.6); 
+  --card-border: rgba(255, 255, 255, 0.07);
+  --accent: #c8ff4d;
+  --text-dim: #8b909a;
+  --text-light: #f2f3f5;
+}
+
+.search-container-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.search-box-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  padding: 0 18px;
+  height: 54px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  
+  transition: 
+    border-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.search-icon {
+  width: 20px;
+  height: 20px;
+  color: var(--text-dim);
+  margin-right: 14px;
+  pointer-events: none;
+  transition: color 0.3s ease;
+}
+
+.search-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-light);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+.search-input::placeholder {
+  color: var(--text-dim);
+  text-transform: lowercase;
+  transition: opacity 0.3s ease;
+}
+
+.search-box-wrapper:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.search-box-wrapper:has(.search-input:focus) {
+  border-color: var(--accent);
+  box-shadow: 0 0 25px rgba(200, 255, 77, 0.15), inset 0 0 10px rgba(200, 255, 77, 0.05);
+  transform: translateY(-2px) scale(1.01);
+}
+
+.search-box-wrapper:has(.search-input:focus) .search-icon {
+  color: var(--accent);
+}
+
+.search-box-wrapper:has(.search-input:focus) .search-input::placeholder {
+  opacity: 0.5; 
+}
+
+.clear-btn {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 22px;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  margin-left: 10px;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.clear-btn:hover {
+  color: #ff6a5c; /* Bte2leb coral red lma t-hover precision cancel vibe */
+  transform: scale(1.15);
+}
+
+/* ---------- 💎 Shortcut Badge Overlay ---------- */
+.shortcut-badge {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  padding: 3px 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  margin-left: 10px;
+}
+
+.shortcut-badge span {
+  color: var(--text-dim);
+  font-size: 10px;
+  font-family: monospace;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}

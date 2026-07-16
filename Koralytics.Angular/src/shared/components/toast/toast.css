@@ -1,0 +1,107 @@
+.toast-global-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  pointer-events: none; 
+  max-width: 380px;
+  width: 100%;
+}
+
+.toast-card {
+  pointer-events: auto; 
+  background: rgba(20, 23, 28, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  padding: 14px 16px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  overflow: hidden;
+  
+  /* Animation */
+  animation: slideIn 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(120%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.toast-icon-zone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.toast-icon-zone svg {
+  width: 20px;
+  height: 20px;
+}
+
+.toast-message-content {
+  color: #f2f3f5;
+  font-family: 'Inter', sans-serif;
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1.4;
+  flex: 1;
+  text-transform: lowercase;
+}
+
+.toast-close-action {
+  background: none;
+  border: none;
+  color: #8b909a;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.toast-card:hover .toast-close-action {
+  color: #f2f3f5;
+}
+
+.toast-card.success {
+  border-left: 4px solid #c8ff4d;
+}
+.toast-card.success .toast-icon-zone {
+  color: #c8ff4d;
+}
+
+.toast-card.error {
+  border-left: 4px solid #ff6a5c;
+}
+.toast-card.error .toast-icon-zone {
+  color: #ff6a5c;
+}
+
+.toast-card.info {
+  border-left: 4px solid #4da6ff;
+}
+.toast-card.info .toast-icon-zone {
+  color: #4da6ff;
+}
+
+.toast-card.warning {
+  border-left: 4px solid #ffb34d;
+}
+.toast-card.warning .toast-icon-zone {
+  color: #ffb34d;
+}
