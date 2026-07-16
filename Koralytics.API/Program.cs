@@ -62,6 +62,8 @@ using Koralytics.Application.Interfaces.Notification;
 using Koralytics.Application.Services.Notification.AnnouncementNotificationService;
 using Koralytics.Application.Services.Notification.PlayerNotificationService;
 using Koralytics.Application.Services.Notification.ScouterNotificationService;
+using Koralytics.Application.Interfaces.Email;
+using Koralytics.Infrastructure.ExternalServices.Email;
 using Koralytics.API.Hubs;
 using Koralytics.Application.Interfaces.Match;
 using Koralytics.Application.Services.Match;
@@ -166,6 +168,11 @@ namespace Koralytics.API
             builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
             builder.Services.Configure<CloudflareR2Options>(
                 builder.Configuration.GetSection(CloudflareR2Options.SectionName));
+            
+            builder.Services.Configure<EmailSettings>(
+                builder.Configuration.GetSection(EmailSettings.SectionName));
+            builder.Services.AddSingleton<IEmailTemplateProvider, EmailTemplateProvider>();
+            builder.Services.AddScoped<IEmailService, SmtpEmailService>();
 
             builder.Services.AddSingleton<IAmazonS3>(sp =>
             {

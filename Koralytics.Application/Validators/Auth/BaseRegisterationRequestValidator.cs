@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 
 using Koralytics.Application.DTOs.AuthDTOs.RegisterDTOs;
 
@@ -46,7 +46,6 @@ namespace Koralytics.Application.Validators.Auth
                 .NotEmpty().WithMessage("Confirm password is required.")
                 .Equal(x => x.Password).WithMessage("Passwords do not match.");
 
-           
         }
     }
 }

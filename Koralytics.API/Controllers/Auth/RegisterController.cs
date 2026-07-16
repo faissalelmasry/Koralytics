@@ -58,5 +58,31 @@ namespace Koralytics.API.Controllers.Auth
             _cookieService.SetAuthCookies(Response, result.Tokens);
             return CreatedResponse(result.User, nameof(RegisterAcademyAdmin), null, "Academy Admin registered successfully.");
         }
+
+        [HttpPost("send-email-confirmation")]
+        public async Task<IActionResult> SendEmailConfirmation([FromBody] SendEmailConfirmationDto request)
+        {
+            await _registrationService.SendEmailConfirmationAsync(request.UserId);
+            return OkResponse<object>(null, "Confirmation email sent successfully.");
+        }
+
+        [HttpPost("confirm-email")]
+        public async Task<IActionResult> ConfirmEmail([FromBody] ConfirmEmailDto request)
+        {
+            var decodedToken = Uri.UnescapeDataString(request.Token);
+            var result = await _registrationService.ConfirmEmailAsync(request.UserId, decodedToken);
+            if (result)
+            {
+                return OkResponse<object>(null, "Email confirmed successfully.");
+            }
+            return BadRequest(new { message = "Email confirmation failed. Token may be invalid or expired." });
+        }
+
+        [HttpGet("{userId}/is-email-confirmed")]
+        public async Task<IActionResult> IsEmailConfirmed(int userId)
+        {
+            var isConfirmed = await _registrationService.IsEmailConfirmedAsync(userId);
+            return OkResponse(new { IsConfirmed = isConfirmed }, "Successfully retrieved email confirmation status.");
+        }
     }
 }
