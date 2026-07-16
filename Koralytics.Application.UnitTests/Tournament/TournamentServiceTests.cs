@@ -1,4 +1,4 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 using AutoMapper;
 using Koralytics.Application.DTOs.Tournament;
 using Koralytics.Application.Interfaces;
@@ -14,6 +14,7 @@ using TournamentEntity = Koralytics.Domain.Entities.Tournamet.Tournament;
 using TournamentTeamEntity = Koralytics.Domain.Entities.Tournamet.TournamentTeam;
 using TournamentSquadEntity = Koralytics.Domain.Entities.Tournamet.TournamentSquad;
 using PlayerTeamEntity = Koralytics.Domain.Entities.Player.PlayerTeam;
+using AcademyEntity = Koralytics.Domain.Entities.Academy.Academy;
 using Koralytics.Application.Services.Tournaments;
 namespace Koralytics.Application.UnitTests.Tournament
 {
@@ -27,7 +28,7 @@ namespace Koralytics.Application.UnitTests.Tournament
         private readonly Mock<IRepository<TournamentTeamEntity>> _tournamentTeamRepoMock;
         private readonly Mock<IRepository<TournamentSquadEntity>> _tournamentSquadRepoMock;
         private readonly Mock<IRepository<PlayerTeamEntity>> _playerTeamRepoMock;
-        private readonly Mock<IRepository<Academy>> _academyRepoMock;
+        private readonly Mock<IRepository<AcademyEntity>> _academyRepoMock;
         private readonly Mock<IRepository<Team>> _teamRepoMock;
         private readonly TournamentService _service;
 
@@ -41,7 +42,7 @@ namespace Koralytics.Application.UnitTests.Tournament
             _tournamentTeamRepoMock = new Mock<IRepository<TournamentTeamEntity>>();
             _tournamentSquadRepoMock = new Mock<IRepository<TournamentSquadEntity>>();
             _playerTeamRepoMock = new Mock<IRepository<PlayerTeamEntity>>();
-            _academyRepoMock = new Mock<IRepository<Academy>>();
+            _academyRepoMock = new Mock<IRepository<AcademyEntity>>();
             _teamRepoMock = new Mock<IRepository<Team>>();
 
             _unitOfWorkMock

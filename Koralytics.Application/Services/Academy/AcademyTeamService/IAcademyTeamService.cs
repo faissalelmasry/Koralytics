@@ -33,5 +33,17 @@ namespace Koralytics.Application.Services.Academy.AcademyTeamService
 
         /// <summary>Gets all age groups for a given academy.</summary>
         Task<IEnumerable<AgeGroupResponseDto>> GetAgeGroupsByAcademyAsync(int academyId);
+
+        /// <summary>
+        /// Assigns a player to a team by creating a PlayerTeam record.
+        /// Validates that the player belongs to the same academy as the team.
+        /// Prevents duplicate active assignments.
+        /// </summary>
+        Task AssignPlayerToTeamAsync(int playerUserId, int teamId, int performedByUserId);
+        
+        /// <summary>
+        /// Soft-removes a player from a team by setting PlayerTeam.LeftAt = UtcNow.
+        /// </summary>
+        Task RemovePlayerFromTeamAsync(int playerUserId, int teamId, int performedByUserId);
     }
 }

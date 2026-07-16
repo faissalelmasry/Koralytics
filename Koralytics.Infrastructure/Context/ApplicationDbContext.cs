@@ -66,6 +66,8 @@ namespace Koralytics.Infrastructure.Context
 
         public DbSet<SystemAdminUser> SuperAdmins { get; set; }
         public DbSet<AcademyRequest> AcademyRequests { get; set; }
+        public DbSet<AcademyPlayerJoinRequest> AcademyPlayerJoinRequests { get; set; }
+        public DbSet<AcademyCoachJoinRequest> AcademyCoachJoinRequests { get; set; }
         
         public DbSet<Parent> Parents { get; set; }
         public DbSet<ParentPlayer> ParentPlayers { get; set; }

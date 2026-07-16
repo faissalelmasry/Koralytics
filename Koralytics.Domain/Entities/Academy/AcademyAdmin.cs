@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,7 +9,7 @@ namespace Koralytics.Domain.Entities.Academy
 {
     public class AcademyAdmin : User
     {
-        public int AcademyId { get; set; }
-        public Academy Academy { get; set; } = null!;
+        public int? AcademyId { get; set; }
+        public Academy? Academy { get; set; }
     }
 }

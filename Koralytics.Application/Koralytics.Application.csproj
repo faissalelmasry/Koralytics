@@ -22,7 +22,6 @@
   <ItemGroup>
     <Folder Include="DTOs\Match\" />
     <Folder Include="DTOs\Coach\" />
-    <Folder Include="DTOs\Academy\" />
     <Folder Include="DTOs\Common\" />
     <Folder Include="DTOs\Scouter\" />
     <Folder Include="Interfaces\ISpeceficRepositories\" />

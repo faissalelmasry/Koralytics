@@ -74,6 +74,24 @@ namespace Koralytics.API.Controllers.Academies
             return NoContentResponse("Coach removed from team successfully.");
         }
 
+        [HttpPost("teams/{teamId}/players/{playerId}")]
+        //[Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AssignPlayerToTeam(int teamId, int playerId)
+        {
+            var userId = GetCurrentUserId();
+            await _academyTeamService.AssignPlayerToTeamAsync(playerId, teamId, userId);
+            return NoContentResponse("Player assigned to team successfully.");
+        }
+
+        [HttpDelete("teams/{teamId}/players/{playerId}")]
+        //[Authorize(Roles = "Admin")]
+        public async Task<IActionResult> RemovePlayerFromTeam(int teamId, int playerId)
+        {
+            var userId = GetCurrentUserId();
+            await _academyTeamService.RemovePlayerFromTeamAsync(playerId, teamId, userId);
+            return NoContentResponse("Player removed from team successfully.");
+        }
+
         private int GetCurrentUserId()
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
