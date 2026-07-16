@@ -32,7 +32,7 @@ The database context (`ApplicationDbContext`) inherits from `IdentityDbContext<U
 - **Academy Basics**: `Academy`, `AgeGroup`
 
 ### Academy Settings & Super Admin (Aly's Entities)
-- **Academy Management**: `AcademyAdmin` (Mapped to "AcademyAdmins"), `Team`, `AcademyLocation`, `AcademyAnnouncement`, `AcademyBadge`, `AcademyRequest`
+- **Academy Management**: `AcademyAdmin` (Mapped to "AcademyAdmins"), `Team`, `AcademyLocation`, `AcademyAnnouncement`, `AcademyBadge`, `AcademyRequest`, `AcademyPlayerJoinRequest`, `AcademyCoachJoinRequest`
 - **Administration**: `SystemAdminUser` (Mapped to "SystemAdmins"), `RoleAuditLog`
 - **Parents**: `Parent` (Mapped to "Parents"), `ParentPlayer`
 
@@ -69,9 +69,18 @@ The database context (`ApplicationDbContext`) inherits from `IdentityDbContext<U
 - `GenerateTokenPairAsync(...)` → generates JWT and Refresh Token
 - `RefreshTokensAsync(...)` → handles token refresh logic
 
-**OAuth & Cookie Services**
-- **`IOAuthProviderFactory` / `OAuthProviderFactory`**: resolves correct provider (e.g., `GoogleOAuthProvider`)
+**`IOAuthProviderFactory` / `OAuthProviderFactory`**: resolves correct provider (e.g., `GoogleOAuthProvider`)
 - **`ICookieService` / `CookieService`**: sets/gets refresh token cookies
+
+**`IEmailService` / `SmtpEmailService`** ⚡ *(new)*
+- `SendTemplatedAsync` → generic template sender
+- `SendAccountConfirmationAsync` → confirm email
+- `SendOtpAsync` → OTP verification
+- `SendPasswordResetAsync` → reset password flow
+- `SendWelcomeAsync` → welcome email
+
+**`IEmailTemplateProvider` / `EmailTemplateProvider`** ⚡ *(new)*
+- Loads and provides HTML templates (`Welcome.html`, `AccountConfirmation.html`, `PasswordReset.html`, etc.) from the file system.
 
 **`IRegistrationService` / `RegistrationService`**
 - `RegisterPlayerAsync(dto)` → create `ApplicationUser` via UserManager → create `Player` record → assign "Player" role → create `PlayerAcademy` + `PlayerSubscription` (Status = Unpaid) → return `AuthResultDto`
@@ -214,13 +223,20 @@ The database context (`ApplicationDbContext`) inherits from `IdentityDbContext<U
 
 #### Academy/
 **`IAcademyService` / `AcademyService`**
-- `CreateAcademyAsync(dto, performedByUserId)` → validate `AcademyRequest` exists and is Pending → validate name uniqueness → wrapped in **DB transaction**: create `Academy` (Status = Active) → mark `AcademyRequest.RequestStatus = Approved` → create `RoleAuditLog` entry for the AcademyAdmin assignment → commit; rollback on failure
+- `ApproveAcademyAsync(dto, performedByUserId)` ⚡ *(updated)* → handles SuperAdmin approval of Academy Requests and wraps in DB transaction.
 - `UpdateAcademyAsync(academyId, dto, performedByUserId)` → update name (unique check), LogoUrl, PrimaryColor, SecondaryColor → return `AcademyResponseDto`
 - `AddLocationAsync(academyId, dto, performedByUserId)` → validate academy exists → check duplicate location name → if first location → `IsMain = true` automatically → return `AcademyLocationResponseDto`
 - `GetAcademyAsync(academyId)` → return single `AcademyResponseDto` (includes Admin nav)
 - `GetAllAcademiesAsync()` → return all academies as `IEnumerable<AcademyResponseDto>`
 - `GetLocationsAsync(academyId)` → return all `AcademyLocationResponseDto` for the academy
 - `SetMainLocationAsync(academyId, locationId, performedByUserId)` → clears existing `IsMain` flag → sets target location as main
+- **Member Join Requests** ⚡ *(new)*: handles sending/responding/canceling `AcademyPlayerJoinRequest` and `AcademyCoachJoinRequest` flows.
+- **Member Removal** ⚡ *(new)*: handles removing coaches and players from an academy.
+
+**`IAcademyBadgeService` / `AcademyBadgeService`** ⚡ *(new)*
+- `CreateBadgeAsync(academyId, dto, performedByUserId)` → creates a new academy badge.
+- `GetBadgesByAcademyAsync(academyId)` → fetch all badges for an academy.
+- `DeleteBadgeAsync(badgeId, performedByUserId)` → deletes an academy badge.
 
 **`IAcademyTeamService` / `AcademyTeamService`**
 - `CreateAgeGroupAsync(academyId, dto, performedByUserId)` ⚡ *(extra auth param)* → validate age range non-overlapping → create `AgeGroup` → return `AgeGroupResponseDto`
@@ -338,10 +354,11 @@ The presentation and infrastructure are wired together in `Program.cs`.
 * **Logging**: Uses **Serilog**. Configured to write to Console and rolling log files at `Logs/log-.txt` (RollingInterval.Day).
 * **API Documentation**: Swagger is configured with a Security Definition for JWT Bearer Tokens, allowing authenticated requests directly from the Swagger UI.
 * **Real-Time**: **SignalR** used for push notifications (announcements, player milestones, scouter alerts).
+* **Email & Notifications**: **SmtpEmailService** handles sending HTML-templated emails (Welcome, Confirm Email, Password Reset, OTP).
 * **External Storage**: **Cloudflare R2** for player highlight video uploads.
 * **AI Provider**: **Claude API** used for all AI report generation, NL querying, and player archetype generation.
 * **Authentication Providers**: **Google OAuth** integrated for third-party sign-ins, managed via `OAuthProviderFactory`.
-* **Background Services**: **`CardInvalidationList`** registered as `Singleton` + `IHostedService`. Uses `ConcurrentDictionary` as in-memory dirty-list. On startup it restores pending IDs from DB (`NeedsRecalculation = true`); on shutdown it persists the dirty set back to DB. Card recalculation is triggered **on-demand** by scouter services (not by the hosted service loop itself).
+* **Background Services**: **`CardInvalidationList`** registered as `Singleton` + `IHostedService`. Uses `ConcurrentDictionary` as in-memory dirty-list. On startup it restores pending IDs from DB (`NeedsRecalculation = true`, which is properly indexed for performance); on shutdown it persists the dirty set back to DB. Card recalculation is triggered **on-demand** by scouter services (not by the hosted service loop itself).
 
 ### AutoMapper Profiles Currently Registered
 * `RegisterProfile` — Registration DTOs → Domain Entities
@@ -381,9 +398,10 @@ The presentation and infrastructure are wired together in `Program.cs`.
 * **`TournamentController`**: Interface for tournament-related endpoints (create, draw, fixtures, bracket).
 * **`CoachController`**: Interface for coach operations — squad overview, training team split, player comparison, writing/fetching player notes (`GET players/{playerId}/notes?page=1&pageSize=20` returns `PagedResult<CoachNoteDto>`), and granting/revoking/listing temporary squad access (access level and status are now strongly-typed enums: `TempAccessAccessLevel`, `TempAccessStatus`).
 * **`ScouterController`**: Interface for scouter operations — filtered player search, shortlist management (add/remove/get), follow/unfollow/log-view, and AI scouting report generation & verification.
-* **`DrillsController`**: Interface for all drill operations — template CRUD, session management, bulk result logging, drill analytics (squad weak categories, coach bias). JWT claims extracted from token per request.
-* **`AcademyController`**: Manages academy creation, update, and location management.
-* **`AcademyTeamController`**: Manages age group and team creation, coach assignment/removal.
+* **DrillsController**: Interface for all drill operations — template CRUD, session management, bulk result logging, drill analytics (squad weak categories, coach bias). JWT claims extracted from token per request.
+* **AcademyController**: Manages academy creation, update, location management, and handling of join requests.
+* **AcademyBadgeController**: Manages creation, retrieval, and deletion of academy badges.
+* **AcademyTeamController**: Manages age group and team creation, coach assignment/removal.
 * **`AcademyAnnouncementController`**: Sends announcements and removes players from academy.
 * **`AcademyAnalyticsController`**: Returns coach performance dashboard and subscription status.
 
@@ -396,3 +414,82 @@ For any AI agent or Developer working on this codebase:
 3. **Adding a Service:** Document its purpose and key methods under the relevant team member section in **Section 3**.
 4. **Altering Configuration:** If you change JWT config, Logging, Error Handling, AutoMapper profiles, or FluentValidation in `Program.cs`, update the **API & Infrastructure Setup** section.
 5. **New External Dependency:** Document it under **Cross-Cutting Concerns** in the API & Infrastructure Setup section.
+
+---
+
+## 8. Frontend UI Pages & Components
+
+### FAISSAL
+**Pages/Components:**
+- **Player Profile Page**: Full player profile display, FIFA card component, Timeline component (drills/matches/achievements), Player vs academy average chart, Drill to match transfer rate display, Scouter views counter, Professional archetype display.
+- **Player Card Page**: FIFA style card display, Category ratings (Pace, Shooting, Passing...), IsStale indicator + recalculate trigger, Card history.
+- **Match Details Page**: Match info (teams, score, format, date), Live events timeline, Lineup display, Player ratings display, MOTM highlight, AI match report display, AI match preview display.
+- **Match List Page**: Filterable match list (type, status, team, date), Form guide component (W/D/L last 5), Head to head stats.
+- **Live Match Page**: Live score display (SignalR), Real time events feed, Log event form (coach only), Lineup display, Start/End match controls.
+- **Post Match Page**: Submit lineup form, Submit player ratings form (per category), MOTM selection, Minutes played per player.
+
+### ADHAM
+**Pages/Components:**
+- **Tournament List Page**: All tournaments with status filters, Create tournament form (Super Admin).
+- **Tournament Details Page**: Tournament info (format, structure, dates), Participating academies list, Bracket display (knockout), Group standings table (group stage), League standings table, Hall of fame display, AI tournament preview display, AI tournament report display.
+- **Tournament Management Page (Super Admin)**: Invite academies, Generate seeding, Generate draw, Advance knockout rounds, Complete tournament, Update tournament status.
+- **Squad Registration Page**: Register players for tournament, View registered squad.
+
+### ALY
+**Pages/Components:**
+- **Drill Session List Page**: Coach's sessions list, Filterable by date, team, category, Session status indicator.
+- **Drill Session Details Page**: Session info (date, team, coach), Attendance roster, Drills list inside session, Drill results per player, Complete session button.
+- **Create Session Page**: Select team, Mark attendance, Add drills from templates.
+- **Drill Results Page**: Submit bulk drill results, Mode 1 (manual score input), Mode 2 (done/missed counter).
+- **Drill Template List Page**: List templates (system + academy), Filter by category, Share template toggle.
+- **Create/Edit Drill Template Page**: Template name, category, difficulty, mode.
+- **Player Drill Progression Page**: Line chart per category over time, Filter by category.
+- **Squad Weak Categories Page**: Bar chart showing weakest categories, Session planner suggestions.
+
+### BISHOY
+**Pages/Components:**
+- **Login Page**: Email + password form, Google OAuth button, Remember me.
+- **Register Page**: Role selection (player/coach/scouter/parent/academy admin), Role specific form fields.
+- **Complete OAuth Profile Page**: Fill missing profile fields after Google login.
+- **Change Password Page**: Old password + new password form.
+- **Academy List Page (Super Admin)**: All academies with status, Create academy button.
+- **Academy Details Page**: Academy info (name, logo, colors), Locations list, Set main location, Add location form.
+- **Academy Teams Page**: Age groups list, Teams per age group, Assign/Remove coach from team, Create age group form, Create team form.
+- **Academy Analytics Page**: Coach performance dashboard, Player improvement rates, Bias scores per coach.
+- **Subscription Status Page**: Paid/Unpaid/Grace period players list, Payment status indicators.
+
+### RAWAN
+**Pages/Components:**
+- **Scouter Search Page**: Filter based search (position, age, foot, rating range, academy), NL search bar (AI powered), Player card grid results, Pagination.
+- **Scouter Shortlist Page**: Shortlisted players grid, Remove from shortlist, Quick view player card.
+- **Scouter Followed Players Page**: Followed players list, Latest stats per player, Unfollow button.
+- **Scouting Report Page**: AI generated report display, Generate new report button, Export as PDF.
+- **Notifications Page**: All notifications list, Real time notifications (SignalR), Mark as read.
+- **Announcements Page (Academy Admin)**: Send announcement form, Target type selector (All/Team/AgeGroup/Role), Announcements history list.
+- **Profile Views Analytics Page**: Monthly view count chart, List of scouters who viewed.
+
+### YOUSSEF
+**Pages/Components:**
+- **Coach Squad Page**: Squad list with FIFA card ratings, Availability status indicators, Player readiness scores, Side by side player comparison.
+- **Training Split Page**: Split players into balanced teams, Display Team A vs Team B, Overall rating balance indicator.
+- **Coach Notes Page**: Write note form (session/match/standalone), Notes list per player, Public/Private toggle.
+- **Temp Access Page**: Grant access form (user + expiry date), Active access grants list, Revoke access button.
+- **Player Highlights Page**: Video gallery, Pin highlight button, Upload highlight form, Delete highlight button.
+- **Match Request Page**: Send friendly match request form, Incoming requests list (accept/decline), Outgoing requests list, Cancel request button.
+- **Player Readiness Page**: Readiness percentage per player, Last 3 sessions scores display, Availability status display.
+
+### Shared Components (everyone uses)
+- Navbar + Sidebar (role based menu)
+- PlayerCardMini (small FIFA card used in lists)
+- PaginatedTable
+- SearchBar
+- LoadingSpinner
+- ErrorBoundary
+- ConfirmDialog
+- ToastNotifications (SignalR powered)
+- RoleGuard (protect routes by role)
+
+### Dependency Order
+1. **Bishoy (Auth pages)** → Must finish first (everyone needs login to test their pages).
+2. **Faissal (Player Card component)** → Must finish before Rawan (uses PlayerCardMini in search results), Youssef (uses it in squad page), and Adham (uses it in tournament squad).
+3. **Rawan (Notifications/SignalR)** → Must finish before Faissal (needs it for live match updates), and everyone else (needs toast notifications).
