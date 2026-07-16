@@ -34,6 +34,13 @@ namespace Koralytics.Application.DTOs.Academies
         public string City { get; set; } = string.Empty;
     }
 
+    public class AcademyListRequestDto
+    {
+        public string? SearchQuery { get; set; }
+        public int Page { get; set; } = 1;
+        public int PageSize { get; set; } = 10;
+    }
+
     // ─── Response DTOs ───────────────────────────────────────────────────────
 
     public class AcademyResponseDto
@@ -47,6 +54,14 @@ namespace Koralytics.Application.DTOs.Academies
         public AcademyStatus Status { get; set; }
         public int AdminUserId { get; set; }
         public string AdminFullName { get; set; } = string.Empty;
+    }
+
+    public class AcademyListResponseDto
+    {
+        public List<AcademyResponseDto> Academies { get; set; } = [];
+        public int TotalCount { get; set; }
+        public int Page { get; set; }
+        public int PageSize { get; set; }
     }
 
     public class AcademyLocationResponseDto

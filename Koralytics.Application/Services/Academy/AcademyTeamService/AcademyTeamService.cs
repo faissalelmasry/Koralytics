@@ -264,5 +264,66 @@ namespace Koralytics.Application.Services.Academy.AcademyTeamService
 
             return _mapper.Map<IEnumerable<AgeGroupResponseDto>>(groups);
         }
+
+        // ──────────────────────────────────────────────────────────────────────
+        // AssignPlayerToTeamAsync
+        // ──────────────────────────────────────────────────────────────────────
+        public async Task AssignPlayerToTeamAsync(int playerUserId, int teamId, int performedByUserId)
+        {
+            _logger.LogInformation("User {UserId} assigning player {PlayerId} to team {TeamId}", performedByUserId, playerUserId, teamId);
+
+            var team = await _unitOfWork.Repository<Team>().FindAsync(t => t.Id == teamId);
+            if (team is null)
+                throw new NotFoundException($"Team {teamId} not found.");
+
+            var playerExists = await _unitOfWork.Repository<Domain.Entities.Player.Player>().ExistsAsync(p => p.Id == playerUserId);
+            if (!playerExists)
+                throw new NotFoundException($"Player with User Id {playerUserId} not found.");
+
+            // Player must be registered in the same academy
+            var playerAcademy = await _unitOfWork.Repository<Domain.Entities.Player.PlayerAcademy>()
+                .ExistsAsync(pa => pa.PlayerId == playerUserId && pa.AcademyId == team.AcademyId && pa.LeftAt == null);
+
+            if (!playerAcademy)
+                throw new BadRequestException($"Player {playerUserId} does not belong to the same academy as team {teamId}.");
+
+            var alreadyAssigned = await _unitOfWork.Repository<Domain.Entities.Player.PlayerTeam>()
+                .ExistsAsync(pt => pt.PlayerId == playerUserId && pt.TeamId == teamId && pt.LeftAt == null);
+
+            if (alreadyAssigned)
+                throw new ConflictException($"Player {playerUserId} is already actively assigned to team {teamId}.");
+
+            var playerTeam = new Domain.Entities.Player.PlayerTeam
+            {
+                PlayerId = playerUserId,
+                TeamId = teamId,
+                JoinedAt = DateTime.UtcNow,
+                CreatedById = performedByUserId
+            };
+
+            await _unitOfWork.Repository<Domain.Entities.Player.PlayerTeam>().AddAsync(playerTeam);
+            await _unitOfWork.SaveChangesAsync();
+
+            _logger.LogInformation("Player {PlayerId} assigned to team {TeamId} successfully.", playerUserId, teamId);
+        }
+
+        // ──────────────────────────────────────────────────────────────────────
+        // RemovePlayerFromTeamAsync
+        // ──────────────────────────────────────────────────────────────────────
+        public async Task RemovePlayerFromTeamAsync(int playerUserId, int teamId, int performedByUserId)
+        {
+            _logger.LogInformation("User {UserId} removing player {PlayerId} from team {TeamId}", performedByUserId, playerUserId, teamId);
+
+            var playerTeam = await _unitOfWork.Repository<Domain.Entities.Player.PlayerTeam>()
+                .FindAsync(pt => pt.PlayerId == playerUserId && pt.TeamId == teamId && pt.LeftAt == null);
+
+            if (playerTeam is null)
+                throw new NotFoundException($"Active assignment for player {playerUserId} in team {teamId} not found.");
+
+            playerTeam.LeftAt = DateTime.UtcNow;
+
+            _unitOfWork.Repository<Domain.Entities.Player.PlayerTeam>().SoftDelete(playerTeam);
+            await _unitOfWork.SaveChangesAsync();
+        }
     }
 }

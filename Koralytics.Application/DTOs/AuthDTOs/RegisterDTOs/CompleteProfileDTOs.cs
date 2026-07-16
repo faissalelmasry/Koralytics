@@ -10,7 +10,6 @@ namespace Koralytics.Application.DTOs.AuthDTOs.RegisterDTOs
 
     public class CompleteProfileAsPlayerDto : CompleteProfileBaseDto
     {
-        public int? AcademyId { get; set; }
         public DateTime? DateOfBirth { get; set; }
         public string? Nationality { get; set; }
         public string? PreferredFoot { get; set; }
@@ -19,12 +18,10 @@ namespace Koralytics.Application.DTOs.AuthDTOs.RegisterDTOs
 
     public class CompleteProfileAsCoachDto : CompleteProfileBaseDto
     {
-        public int? AcademyId { get; set; }
     }
 
     public class CompleteProfileAsAcademyAdminDto : CompleteProfileBaseDto
     {
-        public int AcademyId { get; set; }
     }
 
     public class CompleteProfileAsParentDto : CompleteProfileBaseDto

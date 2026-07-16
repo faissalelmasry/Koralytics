@@ -1,5 +1,6 @@
 using AutoMapper;
 using Koralytics.Application.DTOs.Academies;
+using Koralytics.Application.DTOs.Academy;
 using Koralytics.Domain.Entities.Academy;
 using Koralytics.Domain.Entities.Coach;
 
@@ -48,6 +49,28 @@ namespace Koralytics.Application.Mappings.Academies
             CreateMap<AcademyAnnouncement, AnnouncementResponseDto>()
                 .ForMember(dest => dest.SentByFullName,
                     opt => opt.Ignore()); // populated manually in service
+
+            // ── AcademyRequest ───────────────────────────────────────────────
+            CreateMap<Koralytics.Application.DTOs.SystemAdmin.CreateAcademyRequestDto, Koralytics.Domain.Entities.SystemAdmin.AcademyRequest>();
+            CreateMap<Koralytics.Domain.Entities.SystemAdmin.AcademyRequest, Koralytics.Application.DTOs.SystemAdmin.AcademyRequestResponseDto>()
+                .ForMember(dest => dest.RequestedByFullName,
+                    opt => opt.MapFrom(src => src.RequestedBy != null ? $"{src.RequestedBy.FirstName} {src.RequestedBy.LastName}" : string.Empty));
+
+            // ── AcademyBadge ─────────────────────────────────────────────────
+            CreateMap<Koralytics.Application.DTOs.Academies.CreateAcademyBadgeDto, AcademyBadge>();
+            CreateMap<AcademyBadge, Koralytics.Application.DTOs.Academies.AcademyBadgeResponseDto>();
+            // ── AcademyJoinRequest ───────────────────────────────────────────
+            CreateMap<AcademyPlayerJoinRequest, AcademyPlayerJoinRequestResponseDto>()
+                .ForMember(dest => dest.AcademyName,
+                    opt => opt.MapFrom(src => src.Academy != null ? src.Academy.Name : string.Empty))
+                .ForMember(dest => dest.PlayerName,
+                    opt => opt.MapFrom(src => src.Player != null ? $"{src.Player.FirstName} {src.Player.LastName}" : string.Empty));
+
+            CreateMap<AcademyCoachJoinRequest, AcademyCoachJoinRequestResponseDto>()
+                .ForMember(dest => dest.AcademyName,
+                    opt => opt.MapFrom(src => src.Academy != null ? src.Academy.Name : string.Empty))
+                .ForMember(dest => dest.CoachName,
+                    opt => opt.MapFrom(src => src.Coach != null ? $"{src.Coach.FirstName} {src.Coach.LastName}" : string.Empty));
         }
     }
 }
