@@ -10,6 +10,8 @@ namespace Koralytics.Application.Services.Auth.Login
         Task ChangePasswordAsync(int userId, ChangePasswordRequestDto request);
         Task LogoutAsync(string refreshToken);
         Task LogoutAllAsync(int userId);
+        Task ForgotPasswordAsync(ForgotPasswordRequestDto request);
+        Task ResetPasswordAsync(ResetPasswordRequestDto request);
         
         // OAuth
         Task<OAuthLoginResult> OAuthLoginOrRegisterAsync(OAuthLoginRequestDto request);
