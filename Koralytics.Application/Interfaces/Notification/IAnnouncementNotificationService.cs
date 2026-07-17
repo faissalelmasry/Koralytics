@@ -9,6 +9,6 @@ namespace Koralytics.Application.Interfaces.Notification
 {
     public interface IAnnouncementNotificationService
     {
-        Task SendAnnouncementNotificationAsync(int academyId, int userId, CreateAnnouncementDto body );
+        Task SendAnnouncementNotificationAsync(int academyId, int userId, CreateAnnouncementDto body, bool isSystemAdmin = false , CancellationToken cancellationToken = default);
     }
 }

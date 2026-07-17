@@ -1,12 +1,10 @@
-﻿using Koralytics.Application.Interfaces;
+﻿using Koralytics.Application.DTOs.Notification;
+using Koralytics.Application.Interfaces;
 using Koralytics.Application.Interfaces.Notification;
 using Koralytics.Domain.Entities.Scouter;
 using Koralytics.Domain.Exceptions;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Koralytics.Application.Services.Notification.ScouterNotificationService
@@ -23,13 +21,12 @@ namespace Koralytics.Application.Services.Notification.ScouterNotificationServic
         }
 
         /// <summary>
-        /// Notifies all scouters following a specific player when an engagement event occurs 
-        /// (e.g., player posts a highlight, wins MOTM, or has an overall rating improvement).
+        /// Notifies all scouters following a specific player when an engagement event occurs.
+        /// Saves the notification to each scouter's Redis cache and broadcasts it.
         /// </summary>
-        public async Task NotifyScouterFollowersAsync(int playerId, string eventType)
+        public async Task NotifyScouterFollowersAsync(int playerId, string eventType, CancellationToken cancellationToken = default)
         {
-           
-            var playerExists = await _unitOfWork.Repository<Koralytics.Domain.Entities.Player.Player>()
+            var playerExists = await _unitOfWork.Repository<Domain.Entities.Player.Player>()
                 .ExistsAsync(p => p.Id == playerId);
 
             if (!playerExists)
@@ -37,18 +34,22 @@ namespace Koralytics.Application.Services.Notification.ScouterNotificationServic
                 throw new NotFoundException($"Player with ID {playerId} does not exist.");
             }
 
-           
             var scouterFollows = await _unitOfWork.Repository<ScouterFollow>()
                 .FindAllAsync(s => s.PlayerId == playerId);
 
-            foreach (var follow in scouterFollows)
+            var scouterUserIds = scouterFollows.Select(f => f.ScouterUserId).Distinct().ToList();
+            if (scouterUserIds.Count == 0) return;
+
+            var notification = new CachedNotification
             {
-                await _realTimeBridge.SendToGroupAsync(
-                    $"Scouter_{follow.ScouterUserId}",
-                    "ReceiveScouterNotification",
-                    new { PlayerId = playerId, EventType = eventType }
-                );
-            }
+                Title = "Followed Player Activity",
+                Content = $"The player you follow has triggered a new event: {eventType}",
+                Type = "ScouterNotification",
+                Payload = new { PlayerId = playerId, EventType = eventType }
+            };
+
+            
+            await _realTimeBridge.SendAndCacheToUsersAsync(scouterUserIds, "ReceiveScouterNotification", notification, cancellationToken);
         }
     }
 }

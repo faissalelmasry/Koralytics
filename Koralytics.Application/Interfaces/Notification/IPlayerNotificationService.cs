@@ -10,9 +10,11 @@ namespace Koralytics.Application.Interfaces.Notification
 {
     public interface IPlayerNotificationService
     {
-        Task NotifyPlayerMilestoneAsync(int playerId, string achievementType);
-        Task NotifyParentAsync(int playerId, string eventType);
-        Task NotifySubscriptionGraceAsync(int playerId, int academyId);
-       
+        Task NotifyPlayerMilestoneAsync(int playerId, string achievementType, CancellationToken cancellationToken = default);
+
+        Task NotifyParentAsync(int playerId, string eventType, CancellationToken cancellationToken = default);
+
+        Task NotifySubscriptionGraceAsync(int playerId, int academyId, CancellationToken cancellationToken = default);
+
     }
 }

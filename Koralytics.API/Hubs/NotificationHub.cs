@@ -1,6 +1,6 @@
 ﻿using Koralytics.Application.Interfaces;
 using Koralytics.Domain.Entities.Player;
-using Koralytics.Domain.Entities.Parents; 
+using Koralytics.Domain.Entities.Parents;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -24,20 +24,23 @@ namespace Koralytics.API.Hubs
         public override async Task OnConnectedAsync()
         {
             var userIdString = Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
-            var role = Context.User?.FindFirstValue(ClaimTypes.Role);
+
+            var roles = Context.User?.FindAll(ClaimTypes.Role)
+                .Select(c => c.Value)
+                .Where(r => !string.IsNullOrWhiteSpace(r))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList() ?? new System.Collections.Generic.List<string>();
 
             if (!string.IsNullOrEmpty(userIdString) && int.TryParse(userIdString, out var userId))
             {
-                // 1. Always map to the universal User ID channel
                 await Groups.AddToGroupAsync(Context.ConnectionId, $"User_{userId}");
 
-                if (!string.IsNullOrEmpty(role))
+                foreach (var role in roles)
                 {
-                    await Groups.AddToGroupAsync(Context.ConnectionId, $"Role_{role}");
+                    await Groups.AddToGroupAsync(Context.ConnectionId, $"Role_{role.ToLowerInvariant()}");
                 }
 
-                // 2. If the user is a Player, subscribe them to their Player and Team channels
-                if (role == "Player")
+                if (roles.Any(r => string.Equals(r, "Player", StringComparison.OrdinalIgnoreCase)))
                 {
                     var player = await _unitOfWork.Repository<Player>()
                         .GetQueryableAsNoTracking()
@@ -45,10 +48,8 @@ namespace Koralytics.API.Hubs
 
                     if (player != null)
                     {
-                        // Add them to the specific Player channel expected by PlayerNotificationService
                         await Groups.AddToGroupAsync(Context.ConnectionId, $"Player_{player.Id}");
 
-                       
                         var teamIds = await _unitOfWork.Repository<PlayerTeam>()
                             .GetQueryableAsNoTracking()
                             .Where(pt => pt.PlayerId == player.Id)
@@ -62,16 +63,13 @@ namespace Koralytics.API.Hubs
                     }
                 }
 
-                // 3. If the user is a Parent, subscribe them to the Parent channels
-                if (role == "Parent")
+                if (roles.Any(r => string.Equals(r, "Parent", StringComparison.OrdinalIgnoreCase)))
                 {
-                    
                     await Groups.AddToGroupAsync(Context.ConnectionId, $"Parent_{userId}");
                 }
 
-                if (role == "Scouter")
+                if (roles.Any(r => string.Equals(r, "Scouter", StringComparison.OrdinalIgnoreCase)))
                 {
-                   
                     await Groups.AddToGroupAsync(Context.ConnectionId, $"Scouter_{userId}");
                 }
             }

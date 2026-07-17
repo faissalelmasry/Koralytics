@@ -1,8 +1,9 @@
 ﻿using Koralytics.Application.DTOs.Notification;
 using Koralytics.Application.Interfaces;
 using Koralytics.Application.Interfaces.Notification;
-using Koralytics.Application.Mappings.Academies;
 using Koralytics.Domain.Entities.Academy;
+using Koralytics.Domain.Entities.Coach;
+using Koralytics.Domain.Entities.Parents;
 using Koralytics.Domain.Entities.Player;
 using Koralytics.Domain.Enums;
 using Koralytics.Domain.Exceptions;
@@ -10,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Koralytics.Application.Services.Notification.AnnouncementNotificationService
@@ -18,14 +19,15 @@ namespace Koralytics.Application.Services.Notification.AnnouncementNotificationS
     public class AnnouncementNotificationService : IAnnouncementNotificationService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IRealTimeBridge _realTimeBridge; 
+        private readonly IRealTimeBridge _realTimeBridge;
 
         public AnnouncementNotificationService(IUnitOfWork unitOfWork, IRealTimeBridge realTimeBridge)
         {
             _unitOfWork = unitOfWork;
             _realTimeBridge = realTimeBridge;
         }
-        public async Task SendAnnouncementNotificationAsync(int academyId, int userId, CreateAnnouncementDto body)
+
+        public async Task SendAnnouncementNotificationAsync(int academyId,int userId, CreateAnnouncementDto body, bool isSystemAdmin = false, CancellationToken cancellationToken = default)
         {
             if (body == null)
                 throw new BadRequestException("Announcement payload cannot be null.");
@@ -39,21 +41,35 @@ namespace Koralytics.Application.Services.Notification.AnnouncementNotificationS
             if (!academyExists)
                 throw new NotFoundException($"Academy with ID {academyId} was not found or is inactive.");
 
-            var payload = new
+            var callerIsAcademyStaff = isSystemAdmin || await _unitOfWork.Repository<CoachAcademy>()
+                .ExistsAsync(ca => ca.AcademyId == academyId && ca.CoachUserId == userId && ca.LeftAt == null);
+
+            if (!callerIsAcademyStaff)
+                throw new ForbiddenException($"User {userId} is not authorized to send announcements for Academy {academyId}.");
+            
+            var payloadData = new { SenderId = userId, AcademyId = academyId };
+
+            var notification = new CachedNotification
             {
                 Title = body.Title,
                 Content = body.Body,
-                SenderId = userId,
-                AcademyId = academyId,
-                SentAt = DateTime.UtcNow
+                Type = "AcademyAnnouncement",
+                Payload = payloadData
             };
 
             const string clientMethod = "ReceiveAnnouncement";
+            var targetPlayerIds = new List<int>();
+            var targetNonPlayerUserIds = new List<int>();
+            var notifyParentsOfPlayers = false;
 
             switch (body.TargetType)
             {
                 case AnnouncementTargetType.All:
-                    await _realTimeBridge.SendToGroupAsync($"Academy_{academyId}", clientMethod, payload);
+                    targetPlayerIds = await _unitOfWork.Repository<PlayerAcademy>()
+                        .GetQueryableAsNoTracking()
+                        .Where(pa => pa.AcademyId == academyId && pa.Status == PlayerAcademyStatus.Active)
+                        .Select(pa => pa.PlayerId)
+                        .ToListAsync();
                     break;
 
                 case AnnouncementTargetType.Team:
@@ -66,22 +82,15 @@ namespace Koralytics.Application.Services.Notification.AnnouncementNotificationS
                     if (!teamExists)
                         throw new NotFoundException($"Team with ID {body.TargetId} does not exist inside Academy {academyId}.");
 
-                    await _realTimeBridge.SendToGroupAsync($"Team_{body.TargetId}", clientMethod, payload);
-
-                    var playerTeams = await _unitOfWork.Repository<PlayerTeam>()
-                        .FindAllAsync(pt => pt.TeamId == body.TargetId);
-
-                    var parentUserIds = playerTeams
-                        .Where(pt => pt.Player?.ParentPlayers != null)
-                        .SelectMany(pt => pt.Player.ParentPlayers)
-                        .Select(pp => pp.Id)
+                    targetPlayerIds = await _unitOfWork.Repository<PlayerTeam>()
+                        .GetQueryableAsNoTracking()
+                        .Where(pt => pt.TeamId == body.TargetId && pt.Team.AcademyId == academyId)
+                        .Select(pt => pt.PlayerId)
                         .Distinct()
-                        .ToList();
+                        .ToListAsync();
 
-                    foreach (var parentId in parentUserIds)
-                    {
-                        await _realTimeBridge.SendToGroupAsync($"Parent_{parentId}", clientMethod, payload);
-                    }
+                   
+                    notifyParentsOfPlayers = true;
                     break;
 
                 case AnnouncementTargetType.AgeGroup:
@@ -94,18 +103,65 @@ namespace Koralytics.Application.Services.Notification.AnnouncementNotificationS
                     if (!ageGroupExists)
                         throw new NotFoundException($"Age Group with ID {body.TargetId} does not exist inside Academy {academyId}.");
 
-                    await _realTimeBridge.SendToGroupAsync($"AgeGroup_{body.TargetId}", clientMethod, payload);
+                    targetPlayerIds = await _unitOfWork.Repository<PlayerTeam>()
+                        .GetQueryableAsNoTracking()
+                        .Where(pt => pt.Team.AgeGroupId == body.TargetId && pt.Team.AcademyId == academyId)
+                        .Select(pt => pt.PlayerId)
+                        .Distinct()
+                        .ToListAsync();
                     break;
 
                 case AnnouncementTargetType.Role:
                     if (string.IsNullOrWhiteSpace(body.Role))
                         throw new BadRequestException("TargetRole is required when TargetType is 'ROLE'.");
 
-                    await _realTimeBridge.SendToGroupAsync($"Academy_{academyId}_Role_{body.Role}", clientMethod, payload);
+                    if (body.Role.Equals("Coach", StringComparison.OrdinalIgnoreCase))
+                    {
+                        targetNonPlayerUserIds = await _unitOfWork.Repository<CoachAcademy>()
+                            .GetQueryableAsNoTracking()
+                            .Where(ca => ca.AcademyId == academyId && ca.LeftAt == null)
+                            .Select(ca => ca.CoachUserId)
+                            .ToListAsync();
+                    }
+                    else if (body.Role.Equals("Player", StringComparison.OrdinalIgnoreCase))
+                    {
+                        targetPlayerIds = await _unitOfWork.Repository<PlayerAcademy>()
+                            .GetQueryableAsNoTracking()
+                            .Where(pa => pa.AcademyId == academyId && pa.Status == PlayerAcademyStatus.Active)
+                            .Select(pa => pa.PlayerId)
+                            .ToListAsync();
+                    }
+                    else
+                    {
+                        throw new BadRequestException($"Unsupported announcement target role: '{body.Role}'.");
+                    }
                     break;
 
                 default:
                     throw new BadRequestException($"Invalid notification target type: {body.TargetType}");
+            }
+
+            var allTargetUserIds = new List<int>(targetNonPlayerUserIds);
+            allTargetUserIds.AddRange(targetPlayerIds);
+
+            if (notifyParentsOfPlayers && targetPlayerIds.Count > 0)
+            {
+                var parentIds = await _unitOfWork.Repository<ParentPlayer>()
+                    .GetQueryableAsNoTracking()
+                    .Where(pp => targetPlayerIds.Contains(pp.PlayerId))
+                    .Select(pp => pp.ParentId)
+                    .Distinct()
+                    .ToListAsync();
+
+                allTargetUserIds.AddRange(parentIds);
+            }
+
+            var distinctTargetUserIds = allTargetUserIds.Distinct().ToList();
+
+            if (distinctTargetUserIds.Count > 0)
+            {
+                
+                await _realTimeBridge.SendAndCacheToUsersAsync(distinctTargetUserIds, clientMethod, notification, cancellationToken);
             }
         }
     }

@@ -1,12 +1,11 @@
-﻿using Koralytics.Application.Interfaces;
+﻿using Koralytics.Application.DTOs.Notification;
+using Koralytics.Application.Interfaces;
 using Koralytics.Application.Interfaces.Notification;
+using Koralytics.Domain.Entities.Academy;
 using Koralytics.Domain.Entities.Player;
 using Koralytics.Domain.Exceptions;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Koralytics.Application.Services.Notification.PlayerNotificationService
@@ -15,7 +14,6 @@ namespace Koralytics.Application.Services.Notification.PlayerNotificationService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IRealTimeBridge _realTimeBridge;
-        private const string ClientMethod = "ReceiveNotification"; 
 
         public PlayerNotificationService(IUnitOfWork unitOfWork, IRealTimeBridge realTimeBridge)
         {
@@ -23,7 +21,10 @@ namespace Koralytics.Application.Services.Notification.PlayerNotificationService
             _realTimeBridge = realTimeBridge;
         }
 
-        public async Task NotifyPlayerMilestoneAsync(int playerId, string achievementType)
+        /// <summary>
+        /// Notifies a player of an earned achievement, storing it directly in their notification cache.
+        /// </summary>
+        public async Task NotifyPlayerMilestoneAsync(int playerId, string achievementType, CancellationToken cancellationToken = default)
         {
             var playerExists = await _unitOfWork.Repository<Domain.Entities.Player.Player>()
                 .ExistsAsync(p => p.Id == playerId);
@@ -33,29 +34,44 @@ namespace Koralytics.Application.Services.Notification.PlayerNotificationService
                 throw new NotFoundException($"Player with ID {playerId} does not exist.");
             }
 
-            await _realTimeBridge.SendToGroupAsync(
-                $"Player_{playerId}",
-                "ReceiveMilestoneNotification",
-                new { PlayerId = playerId, AchievementType = achievementType }
-            );
+            var notification = new CachedNotification
+            {
+                Title = "New Achievement! 🏆",
+                Content = $"Congratulations! You have achieved a new milestone: {achievementType}",
+                Type = "PlayerMilestone",
+                Payload = new { PlayerId = playerId, AchievementType = achievementType }
+            };
+
+            await _realTimeBridge.SendAndCacheToUserAsync(playerId, "ReceiveMilestoneNotification", notification, cancellationToken);
         }
 
-        public async Task NotifyParentAsync(int playerId, string eventType)
+        /// <summary>
+        /// Notifies parents associated with a player regarding crucial updates.
+        /// </summary>
+        public async Task NotifyParentAsync(int playerId, string eventType, CancellationToken cancellationToken = default)
         {
             var parentRelations = await _unitOfWork.Repository<Domain.Entities.Parents.ParentPlayer>()
                 .FindAllAsync(p => p.PlayerId == playerId);
 
-            foreach (var relation in parentRelations)
+            var parentIds = parentRelations.Select(r => r.ParentId).Distinct().ToList();
+            if (parentIds.Count == 0) return;
+
+            var notification = new CachedNotification
             {
-                await _realTimeBridge.SendToGroupAsync(
-                    $"Parent_{relation.ParentId}",
-                    "ReceiveParentNotification",
-                    new { PlayerId = playerId, EventType = eventType }
-                );
-            }
+                Title = "Parent Alert 📢",
+                Content = $"There is an update regarding your child: {eventType}",
+                Type = "ParentNotification",
+                Payload = new { PlayerId = playerId, EventType = eventType }
+            };
+
+            
+            await _realTimeBridge.SendAndCacheToUsersAsync(parentIds, "ReceiveParentNotification", notification, cancellationToken);
         }
 
-        public async Task NotifySubscriptionGraceAsync(int playerId, int academyId)
+        /// <summary>
+        /// Sends grace period warnings to both parents and the player.
+        /// </summary>
+        public async Task NotifySubscriptionGraceAsync(int playerId, int academyId, CancellationToken cancellationToken = default)
         {
             var academyExists = await _unitOfWork.Repository<Domain.Entities.Academy.Academy>()
                 .ExistsAsync(a => a.Id == academyId && !a.IsDeleted);
@@ -73,16 +89,33 @@ namespace Koralytics.Application.Services.Notification.PlayerNotificationService
                 throw new NotFoundException($"Player with ID {playerId} does not exist.");
             }
 
-            await NotifyParentAsync(playerId, "SubscriptionGrace");
-            await SendPlayerSubscriptionGraceInternalAsync(playerId, academyId);
+           
+            var playerBelongsToAcademy = await _unitOfWork.Repository<PlayerAcademy>()
+                .ExistsAsync(pa => pa.PlayerId == playerId && pa.AcademyId == academyId);
+
+            if (!playerBelongsToAcademy)
+            {
+                throw new BadRequestException($"Player {playerId} is not enrolled in Academy {academyId}.");
+            }
+
+            
+            await NotifyParentAsync(playerId, "SubscriptionGrace", cancellationToken);
+
+           
+            await SendPlayerSubscriptionGraceInternalAsync(playerId, academyId, cancellationToken);
         }
-        private async Task SendPlayerSubscriptionGraceInternalAsync(int playerId, int academyId)
+
+        private async Task SendPlayerSubscriptionGraceInternalAsync(int playerId, int academyId, CancellationToken cancellationToken)
         {
-            await _realTimeBridge.SendToGroupAsync(
-                $"Player_{playerId}",
-                "ReceiveSubscriptionGraceNotification",
-                new { PlayerId = playerId, AcademyId = academyId }
-            );
+            var notification = new CachedNotification
+            {
+                Title = "Subscription Grace Period ",
+                Content = "Your subscription is currently in its grace period. Please renew soon to keep full access.",
+                Type = "SubscriptionGrace",
+                Payload = new { PlayerId = playerId, AcademyId = academyId }
+            };
+
+            await _realTimeBridge.SendAndCacheToUserAsync(playerId, "ReceiveSubscriptionGraceNotification", notification, cancellationToken);
         }
     }
 }
