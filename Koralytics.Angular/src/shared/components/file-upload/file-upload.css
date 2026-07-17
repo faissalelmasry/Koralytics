@@ -1,0 +1,160 @@
+:host {
+  display: block;
+  width: 100%;
+  margin: 16px 0;
+}
+
+.cyber-upload-zone {
+  background: rgba(18, 22, 28, 0.3);
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 32px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* التأثير عند سحب ملف فوق الزون */
+.cyber-upload-zone.drag-over {
+  border-color: #c8ff4d;
+  background: rgba(200, 255, 77, 0.04);
+  box-shadow: 0 0 20px rgba(200, 255, 77, 0.05);
+  transform: scale(0.99);
+}
+
+.cyber-upload-zone.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Icon Core styling */
+.cyber-upload-icon-container {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.upload-svg {
+  width: 24px;
+  height: 24px;
+  stroke: #8b909a;
+  fill: none;
+  transition: stroke 0.2s;
+}
+
+.cyber-upload-zone:hover .upload-svg {
+  stroke: #c8ff4d;
+}
+
+/* Typography */
+.prompt-title {
+  color: #f2f3f5;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 6px 0;
+  text-transform: lowercase;
+}
+
+.prompt-subtitle {
+  color: #8b909a;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  margin: 0;
+  text-transform: lowercase;
+}
+
+/* Progress and active file styling */
+.upload-progress-view {
+  width: 100%;
+  text-align: left;
+}
+
+.file-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.file-info-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-width: 85%;
+}
+
+.file-name {
+  color: #f2f3f5;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-size {
+  color: #8b909a;
+  font-size: 12px;
+}
+
+.btn-clear-file {
+  background: transparent;
+  border: none;
+  color: #8b909a;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+}
+
+.btn-clear-file:hover {
+  color: #ff6a5c;
+}
+
+/* Progress bar engine */
+.progress-track {
+  margin-top: 16px;
+  position: relative;
+}
+
+.progress-bar-fill {
+  height: 6px;
+  background: #c8ff4d;
+  border-radius: 3px;
+  box-shadow: 0 0 10px rgba(200, 255, 77, 0.4);
+  transition: width 0.1s linear;
+  width: 0%;
+}
+
+.progress-percentage {
+  display: block;
+  margin-top: 8px;
+  color: #c8ff4d;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: lowercase;
+}
+
+/* Error View */
+.upload-error-msg {
+  color: #ff6a5c;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  margin: 8px 0 0 4px;
+  text-transform: lowercase;
+}

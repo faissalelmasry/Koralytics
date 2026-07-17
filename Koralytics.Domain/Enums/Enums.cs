@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -156,6 +156,13 @@ namespace Koralytics.Domain.Enums
         Revoked = 2,
         Expired = 3
     }
+
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public enum TempAccessAccessLevel
+    {
+        ReadOnly = 1,
+        FullSquad = 2
+    }
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum RoleAuditAction
     {
@@ -191,4 +198,12 @@ namespace Koralytics.Domain.Enums
         Declined = 3
     }
 
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public enum JoinRequestStatus
+    {
+        Pending = 1,
+        Accepted = 2,
+        Rejected = 3,
+        Cancelled = 4
+    }
 }

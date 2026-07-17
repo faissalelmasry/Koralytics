@@ -1,0 +1,135 @@
+.modal-backdrop-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(6, 8, 10, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 999999; /* طيار فوق التوست وفوق أي حاجة */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal-cyber-card {
+  background: rgba(18, 22, 28, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  border-radius: 16px;
+  max-width: 460px;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  
+  /* Smooth Scale In Animation */
+  animation: modalScaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes modalScaleIn {
+  from { transform: scale(0.9) translateY(10px); opacity: 0; }
+  to { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.modal-tech-bar {
+  height: 3px;
+  width: 100%;
+  background: #4da6ff; /* Default */
+}
+
+/* التنوع اللوني حسب طبيعة التحذير */
+.modal-cyber-card.danger .modal-tech-bar { background: #ff6a5c; }
+.modal-cyber-card.success .modal-tech-bar { background: #c8ff4d; }
+
+.modal-header-zone {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 12px;
+}
+
+.modal-title {
+  color: #f2f3f5;
+  font-family: 'Inter', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+  margin: 0;
+  text-transform: lowercase;
+}
+
+.modal-close-x {
+  background: none;
+  border: none;
+  color: #8b909a;
+  font-size: 22px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.modal-close-x:hover { color: #f2f3f5; }
+
+.modal-body-zone {
+  padding: 0 24px 24px;
+}
+
+.modal-body-zone p {
+  color: #8b909a;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0;
+  text-transform: lowercase;
+}
+
+.modal-actions-zone {
+  background: rgba(255, 255, 255, 0.02);
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  padding: 16px 24px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.btn-modal {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: lowercase;
+}
+
+.btn-cancel {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #f2f3f5;
+}
+.btn-cancel:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* تخصيص زرار التأكيد حسب الـ Variant */
+.btn-confirm {
+  background: #4da6ff;
+  border: none;
+  color: #06080a;
+}
+.modal-cyber-card.danger .btn-confirm {
+  background: #ff6a5c;
+  color: #ffffff;
+  box-shadow: 0 0 15px rgba(255, 106, 92, 0.2);
+}
+.modal-cyber-card.success .btn-confirm {
+  background: #c8ff4d;
+  color: #06080a;
+  box-shadow: 0 0 15px rgba(200, 255, 77, 0.2);
+}
+.btn-confirm:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+}

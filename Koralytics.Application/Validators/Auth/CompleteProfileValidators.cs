@@ -37,8 +37,6 @@ namespace Koralytics.Application.Validators.Auth
     {
         public CompleteProfileAsAcademyAdminValidator()
         {
-            RuleFor(x => x.AcademyId)
-                .GreaterThan(0).WithMessage("AcademyId is required.");
         }
     }
 

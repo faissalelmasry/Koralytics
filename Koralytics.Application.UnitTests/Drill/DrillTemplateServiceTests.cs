@@ -1,7 +1,8 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Koralytics.Application.DTOs.Drill;
 using Koralytics.Application.Interfaces;
 using Koralytics.Application.Services.Drill;
+using Koralytics.Application.Services.Drill.DrillTemplate;
 using Koralytics.Domain.Entities.Drill;
 using Moq;
 using System;

@@ -1,0 +1,16 @@
+<div class="btn-wrap" [ngClass]="variant">
+  <button 
+    #btnElement
+    [type]="type" 
+    [disabled]="disabled || loading"
+    [class]="'custom-btn ' + variant"
+    [class.loading]="loading"
+    (click)="createRipple($event)">
+    
+    <span class="btn-text"><ng-content></ng-content></span>
+    
+    <div class="icon-spinner-core">
+      <img src="images/logo/app-icon/logo-icon-dark.png" alt="Loading Icon">
+    </div>
+  </button>
+</div>

@@ -1,0 +1,38 @@
+<div class="cyber-pagination-container" *ngIf="totalPages > 1">
+  
+  <!-- Info Status Text -->
+  <span class="pagination-meta">
+    showing page <span class="highlight">{{ currentPage }}</span> of {{ totalPages }}
+  </span>
+
+  <!-- Navigation Control Buttons -->
+  <div class="pagination-controls">
+    
+    <!-- Previous Arrow -->
+    <button 
+      class="btn-nav" 
+      [disabled]="currentPage === 1" 
+      (click)="goToPage(currentPage - 1)">
+      &larr; prev
+    </button>
+
+    <!-- Page Numbers Loop -->
+    <button 
+      *ngFor="let page of pagesArray" 
+      class="btn-page-num" 
+      [class.active]="page === currentPage"
+      (click)="goToPage(page)">
+      {{ page }}
+    </button>
+
+    <!-- Next Arrow -->
+    <button 
+      class="btn-nav" 
+      [disabled]="currentPage === totalPages" 
+      (click)="goToPage(currentPage + 1)">
+      next &rarr;
+    </button>
+
+  </div>
+
+</div>

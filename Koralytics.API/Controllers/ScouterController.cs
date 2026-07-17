@@ -50,10 +50,9 @@ namespace Koralytics.API.Controllers
         #endregion
 
         #region 2. Shortlist Management
-
         [HttpGet("{scouterId}/shortlist")]
         [Authorize(Roles = "Scouter,SystemAdmin")]
-        public async Task<IActionResult> GetShortlist(int scouterId)
+        public async Task<IActionResult> GetShortlist(int scouterId,[FromQuery] int pageNumber = 1,  [FromQuery] int pageSize = 10, [FromQuery] string? searchTerm = null) 
         {
             var requesterId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
             var requesterRole = User.FindFirstValue(ClaimTypes.Role)!;
@@ -61,14 +60,14 @@ namespace Koralytics.API.Controllers
             if (requesterRole == "Scouter" && requesterId != scouterId)
                 return Forbid();
 
-            var result = await _shortlistService.GetShortlistAsync(scouterId);
+            var result = await _shortlistService.GetShortlistAsync(scouterId, pageNumber, pageSize, searchTerm);
+
             return Ok(new
             {
                 message = $"Successfully retrieved shortlist for Scouter ID {scouterId}.",
                 data = result
             });
         }
-
         [HttpPost("{scouterId}/shortlist/{playerId}")]
         [Authorize(Roles = "Scouter,SystemAdmin")]
         public async Task<IActionResult> AddToShortlist(int scouterId, int playerId)
@@ -104,13 +103,15 @@ namespace Koralytics.API.Controllers
             });
         }
 
+
         #endregion
 
         #region 3. Social Interaction & Engagement Tracking
 
         [HttpGet("{scouterId}/followed-players")]
         [Authorize(Roles = "Scouter,SystemAdmin")]
-        public async Task<IActionResult> GetFollowedPlayers(int scouterId)
+        [HttpGet("followed-players/{scouterId}")]
+        public async Task<IActionResult> GetFollowedPlayers( int scouterId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, [FromQuery] string? searchTerm = null)
         {
             var requesterId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
             var requesterRole = User.FindFirstValue(ClaimTypes.Role)!;
@@ -118,11 +119,13 @@ namespace Koralytics.API.Controllers
             if (requesterRole == "Scouter" && requesterId != scouterId)
                 return Forbid();
 
-            var followedPlayers = await _followService.GetFollowedPlayersAsync(scouterId);
+        
+            var paginatedFollowedPlayers = await _followService.GetFollowedPlayersAsync(scouterId, pageNumber, pageSize, searchTerm);
+
             return Ok(new
             {
                 message = $"Successfully retrieved followed players for Scouter ID {scouterId}.",
-                data = followedPlayers
+                data = paginatedFollowedPlayers
             });
         }
 
@@ -153,7 +156,7 @@ namespace Koralytics.API.Controllers
             if (requesterRole == "Scouter" && requesterId != scouterId)
                 return Forbid();
 
-            await _followService.UnfollowPlayerAsync(playerId, scouterId);
+            await _followService.UnfollowPlayerAsync(scouterId, playerId);
             return Ok(new
             {
                 message = $"Scouter ID {scouterId} has successfully unfollowed Player ID {playerId}."

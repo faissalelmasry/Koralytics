@@ -11,6 +11,14 @@ namespace Koralytics.Infrastructure.EntitiesConfigurations.Coach
         {
             base.Configure(builder);
 
+            builder.Property(cta => cta.AccessLevel)
+                .HasConversion<string>()
+                .HasMaxLength(50);
+
+            builder.Property(cta => cta.Status)
+                .HasConversion<string>()
+                .HasMaxLength(50);
+
             builder.HasOne(cta => cta.Coach)
                 .WithMany(c => c.CoachTempAccesses)
                 .HasForeignKey(cta => cta.CoachUserId)

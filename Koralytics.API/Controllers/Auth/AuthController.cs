@@ -30,6 +30,21 @@ namespace Koralytics.API.Controllers.Auth
             return OkResponse(result.User, "Login successful");
         }
 
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequestDto request)
+        {
+            await _authService.ForgotPasswordAsync(request);
+            // We always return Ok here to prevent email enumeration
+            return OkResponse<object>(null, "If your email is registered, a password reset link has been sent.");
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequestDto request)
+        {
+            await _authService.ResetPasswordAsync(request);
+            return OkResponse<object>(null, "Password has been successfully reset.");
+        }
+
         [HttpPost("refresh")]
         public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequestDto? request)
         {

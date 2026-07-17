@@ -41,6 +41,8 @@ namespace Koralytics.Infrastructure.EntitiesConfigurations.Player
 
             builder.HasIndex(pc => pc.PlayerId)
                 .IsUnique();
+
+            builder.HasIndex(pc => pc.NeedsRecalculation);
         }
     }
 }

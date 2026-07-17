@@ -1,3 +1,5 @@
+using Koralytics.Domain.Enums;
+
 namespace Koralytics.Application.DTOs.Coach
 {
     public class GrantTempAccessDto
@@ -8,9 +10,9 @@ namespace Koralytics.Application.DTOs.Coach
         public int GrantedToUserId { get; set; }
 
         /// <summary>
-        /// Access level scope (e.g. "ReadOnly", "FullSquad").
+        /// Access level scope (e.g. ReadOnly, FullSquad).
         /// </summary>
-        public string AccessLevel { get; set; } = string.Empty;
+        public TempAccessAccessLevel AccessLevel { get; set; }
 
         /// <summary>
         /// When this access grant expires (UTC).

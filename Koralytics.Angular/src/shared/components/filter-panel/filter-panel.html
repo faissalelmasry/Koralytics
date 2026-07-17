@@ -1,0 +1,71 @@
+<div class="cyber-filter-card" [class.expanded]="isExpanded">
+  
+  <div class="filter-header" (click)="togglePanel()">
+    <div class="header-title-zone">
+      <svg viewBox="0 0 24 24" class="filter-icon" xmlns="http://www.w3.org/2000/svg">
+        <path d="M4 6H20M7 12H17M10 18H14" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <h4>tactical filter radar</h4>
+    </div>
+    
+    <div class="header-actions" (click)="$event.stopPropagation()">
+      <button class="btn-reset-link" (click)="resetFilters()">reset database</button>
+      <span class="chevron-arrow">{{ isExpanded ? '&#9652;' : '&#9662;' }}</span>
+    </div>
+  </div>
+
+  <div class="filter-body-wrapper">
+    <div class="filter-grid-layout">
+      
+      <div class="filter-field">
+        <label class="field-label">search squad profile</label>
+        <input 
+          type="text"
+          class="cyber-filter-input"
+          placeholder="enter player name..."
+          [(ngModel)]="filters.search"
+          (ngModelChange)="emitFilters()" />
+      </div>
+
+      <div class="filter-field">
+        <label class="field-label">tactical position</label>
+        <select 
+          class="cyber-filter-select"
+          [(ngModel)]="filters.position"
+          (change)="emitFilters()">
+          <option value="">all field positions</option>
+          <option *ngFor="let pos of positionOptions" [value]="pos.value">{{ pos.label }}</option>
+        </select>
+      </div>
+
+      <div class="filter-field">
+        <label class="field-label">squad medical status</label>
+        <select 
+          class="cyber-filter-select"
+          [(ngModel)]="filters.status"
+          (change)="emitFilters()">
+          <option value="">all squad status</option>
+          <option *ngFor="let st of statusOptions" [value]="st.value">{{ st.label }}</option>
+        </select>
+      </div>
+
+      <div class="filter-field toggle-field">
+        <label class="field-label">ai analysis tracking</label>
+        <div class="toggle-align">
+          <input 
+            type="checkbox"
+            id="aiToggle"
+            class="cyber-checkbox-engine"
+            [(ngModel)]="filters.aiOnly"
+            (change)="emitFilters()" />
+          <label for="aiToggle" class="cyber-toggle-track">
+            <span class="toggle-thumb"></span>
+          </label>
+          <span class="toggle-text-status">{{ filters.aiOnly ? 'active target' : 'all targets' }}</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>

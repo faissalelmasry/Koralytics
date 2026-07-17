@@ -2,6 +2,7 @@ using Koralytics.Application.DTOs.Coach;
 using Koralytics.Application.Interfaces;
 using Koralytics.Domain.Entities.Coach;
 using Koralytics.Domain.Entities.Identity;
+using Koralytics.Domain.Enums;
 using Koralytics.Domain.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -30,9 +31,6 @@ namespace Koralytics.Application.Services.Coach.CoachAccessService
             if (dto.ExpiresAt <= DateTime.UtcNow)
                 throw new BadRequestException("ExpiresAt must be a future date.");
 
-            if (string.IsNullOrWhiteSpace(dto.AccessLevel))
-                throw new BadRequestException("AccessLevel cannot be empty.");
-
             // Validate grantee exists
             var grantee = await _unitOfWork.Repository<User>()
                 .FindAsync(u => u.Id == dto.GrantedToUserId)
@@ -46,9 +44,9 @@ namespace Koralytics.Application.Services.Coach.CoachAccessService
             {
                 CoachUserId = coachId,
                 GrantedToUserId = dto.GrantedToUserId,
-                AccessLevel = dto.AccessLevel.Trim(),
+                AccessLevel = dto.AccessLevel,
                 ExpiresAt = dto.ExpiresAt,
-                Status = "Active",
+                Status = TempAccessStatus.Active,
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -81,10 +79,10 @@ namespace Koralytics.Application.Services.Coach.CoachAccessService
                 throw new ForbiddenException(
                     $"Coach {coachId} does not own access grant {accessId}.");
 
-            if (access.Status == "Revoked")
+            if (access.Status == TempAccessStatus.Revoked)
                 throw new BadRequestException($"Access grant {accessId} is already revoked.");
 
-            access.Status = "Revoked";
+            access.Status = TempAccessStatus.Revoked;
             await _unitOfWork.SaveChangesAsync();
 
             _logger.LogInformation(
@@ -107,7 +105,7 @@ namespace Koralytics.Application.Services.Coach.CoachAccessService
                 .Include(a => a.GrantedToUser)
                 .Where(a =>
                     a.CoachUserId == coachId &&
-                    a.Status == "Active" &&
+                    a.Status == TempAccessStatus.Active &&
                     a.ExpiresAt > now)
                 .OrderByDescending(a => a.CreatedAt)
                 .ToListAsync();

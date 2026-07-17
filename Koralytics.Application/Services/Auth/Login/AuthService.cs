@@ -22,6 +22,8 @@ using Koralytics.Domain.Exceptions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
+using Koralytics.Application.Interfaces.Email;
 
 namespace Koralytics.Application.Services.Auth.Login
 {
@@ -34,9 +36,13 @@ namespace Koralytics.Application.Services.Auth.Login
         private readonly IOAuthProviderFactory _oauthProviderFactory;
         private readonly IValidator<LoginRequestDto> _loginValidator;
         private readonly IValidator<ChangePasswordRequestDto> _changePasswordValidator;
+        private readonly IValidator<ForgotPasswordRequestDto> _forgotPasswordValidator;
+        private readonly IValidator<ResetPasswordRequestDto> _resetPasswordValidator;
         private readonly IUserBusinessValidator _businessValidator;
         private readonly ILogger<AuthService> _logger;
         private readonly IRegistrationService _registrationService;
+        private readonly IEmailService _emailService;
+        private readonly IConfiguration _configuration;
 
         public AuthService(
             UserManager<User> userManager,
@@ -46,9 +52,13 @@ namespace Koralytics.Application.Services.Auth.Login
             IOAuthProviderFactory oauthProviderFactory,
             IValidator<LoginRequestDto> loginValidator,
             IValidator<ChangePasswordRequestDto> changePasswordValidator,
+            IValidator<ForgotPasswordRequestDto> forgotPasswordValidator,
+            IValidator<ResetPasswordRequestDto> resetPasswordValidator,
             IUserBusinessValidator businessValidator,
             ILogger<AuthService> logger,
-            IRegistrationService registrationService)
+            IRegistrationService registrationService,
+            IEmailService emailService,
+            IConfiguration configuration)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -57,9 +67,13 @@ namespace Koralytics.Application.Services.Auth.Login
             _oauthProviderFactory = oauthProviderFactory;
             _loginValidator = loginValidator;
             _changePasswordValidator = changePasswordValidator;
+            _forgotPasswordValidator = forgotPasswordValidator;
+            _resetPasswordValidator = resetPasswordValidator;
             _businessValidator = businessValidator;
             _logger = logger;
             _registrationService = registrationService;
+            _emailService = emailService;
+            _configuration = configuration;
         }
 
         public async Task<AuthResultDto> LoginAsync(LoginRequestDto request)
@@ -329,6 +343,46 @@ namespace Koralytics.Application.Services.Auth.Login
             }
 
             return null;
+        }
+        public async Task ForgotPasswordAsync(ForgotPasswordRequestDto request)
+        {
+            await _forgotPasswordValidator.ValidateAndThrowAsync(request);
+
+            var user = await _userManager.FindByEmailAsync(request.Email);
+            if (user == null)
+            {
+                // We return immediately to avoid email enumeration attacks
+                return;
+            }
+
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var encodedToken = Uri.EscapeDataString(token);
+
+            var frontendUrl = _configuration["FrontendBaseUrl"] ?? "http://localhost:3000";
+            var separator = frontendUrl.Contains('?') ? "&" : "?";
+            var finalUrl = $"{frontendUrl}/reset-password{separator}email={Uri.EscapeDataString(request.Email)}&token={encodedToken}";
+
+            await _emailService.SendPasswordResetAsync(user.Email!, user.FirstName ?? user.UserName!, finalUrl);
+        }
+
+        public async Task ResetPasswordAsync(ResetPasswordRequestDto request)
+        {
+            await _resetPasswordValidator.ValidateAndThrowAsync(request);
+
+            var user = await _userManager.FindByEmailAsync(request.Email);
+            if (user == null)
+            {
+                throw new BadRequestException("Invalid request.");
+            }
+
+            var decodedToken = Uri.UnescapeDataString(request.Token);
+            var result = await _userManager.ResetPasswordAsync(user, decodedToken, request.NewPassword);
+
+            if (!result.Succeeded)
+            {
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                throw new BadRequestException($"Password reset failed: {errors}");
+            }
         }
     }
 }

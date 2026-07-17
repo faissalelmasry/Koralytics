@@ -1,0 +1,17 @@
+:host {
+
+    display: inline-flex;
+
+    align-items: center;
+
+}
+
+img {
+
+    display: block;
+
+    height: auto;
+
+    max-width: 100%;
+
+}

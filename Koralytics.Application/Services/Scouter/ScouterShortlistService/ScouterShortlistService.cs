@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using Koralytics.Application.DTOs.Player;
 using Koralytics.Application.DTOs.ScouterDtos;
 using Koralytics.Application.Interfaces;
@@ -12,6 +13,7 @@ using ScouterEntity = Koralytics.Domain.Entities.Scouter.Scouter;
 using ScouterShortlist = Koralytics.Domain.Entities.Scouter.ScouterShortlist;
 using Koralytics.Domain.Exceptions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,23 +27,22 @@ namespace Koralytics.Application.Services.Scouter.ScouterShortlistService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly IPlayerCardService _playerCardService;
-        private readonly CardInvalidationList _invalidationList;
+        private readonly ILogger<ScouterShortlistService> _logger;
 
         public ScouterShortlistService(
             IUnitOfWork unitOfWork,
             IMapper mapper,
-            IPlayerCardService playerCardService,
-            CardInvalidationList invalidationList)
+            ILogger<ScouterShortlistService> logger)
         {
             _unitOfWork = unitOfWork;
-            _mapper = mapper;
-            _playerCardService = playerCardService;
-            _invalidationList = invalidationList;
+            _mapper = mapper; 
+            _logger = logger;
         }
         public async Task<ScouterShortlistDto> AddToShortlistAsync(int scouterId, int playerId)
         {
-var scouterExists = await _unitOfWork.Repository<ScouterEntity>().ExistsAsync(s => s.Id == scouterId);
+            _logger.LogInformation("Processing AddToShortlist request. ScouterId: {ScouterId}, PlayerId: {PlayerId}", scouterId, playerId);
+
+            var scouterExists = await _unitOfWork.Repository<ScouterEntity>().ExistsAsync(s => s.Id == scouterId);
             if (!scouterExists)
             {
                 throw new NotFoundException($"Scouter with ID {scouterId} not found.");
@@ -58,6 +59,7 @@ var scouterExists = await _unitOfWork.Repository<ScouterEntity>().ExistsAsync(s 
 
             if (alreadyShortlisted != null)
             {
+                _logger.LogInformation("Idempotency triggered: Player {PlayerId} is already shortlisted by Scouter {ScouterId}. Returning mapped existing record.", playerId, scouterId);
                 return _mapper.Map<ScouterShortlistDto>(alreadyShortlisted);
             }
 
@@ -66,23 +68,26 @@ var scouterExists = await _unitOfWork.Repository<ScouterEntity>().ExistsAsync(s 
                 ScouterUserId = scouterId,
                 PlayerId = playerId,
                 AddedAt = DateTime.UtcNow
-            };
+            }; 
 
+            _logger.LogInformation("Saving new shortlist record. ScouterId: {ScouterId}, PlayerId: {PlayerId}", scouterId, playerId);
             await _unitOfWork.Repository<ScouterShortlist>().AddAsync(entry);
             await _unitOfWork.SaveChangesAsync();
 
+            _logger.LogInformation("Successfully shortlisted Player {PlayerId} for Scouter {ScouterId}.", playerId, scouterId);
             return _mapper.Map<ScouterShortlistDto>(entry);
         }
         public async Task<bool> RemoveFromShortlistAsync(int scouterId, int playerId)
         {
+            _logger.LogInformation("Processing RemoveFromShortlist request. ScouterId: {ScouterId}, PlayerId: {PlayerId}", scouterId, playerId);
             var entry = await _unitOfWork.Repository<ScouterShortlist>()
                 .FindAsync(sl => sl.ScouterUserId == scouterId && sl.PlayerId == playerId);
 
             if (entry == null)
             {
-var scouterExists = await _unitOfWork.Repository<ScouterEntity>().ExistsAsync(s => s.Id == scouterId);
+                var scouterExists = await _unitOfWork.Repository<ScouterEntity>().ExistsAsync(s => s.Id == scouterId);
                 if (!scouterExists)
-        {
+                {
                     throw new NotFoundException($"Scouter with ID {scouterId} not found.");
                 }
 
@@ -95,94 +100,67 @@ var scouterExists = await _unitOfWork.Repository<ScouterEntity>().ExistsAsync(s 
                 throw new NotFoundException($"Player with ID {playerId} is not in Scouter {scouterId}'s shortlist.");
             }
 
+            _logger.LogInformation("Processing soft delete of shortlist record. EntryId: {Id}", entry.Id);
             _unitOfWork.Repository<ScouterShortlist>().SoftDelete(entry);
             await _unitOfWork.SaveChangesAsync();
+
+            _logger.LogInformation("Successfully removed Player {PlayerId} from Scouter {ScouterId}'s shortlist.", playerId, scouterId);
             return true;
         }
-        public async Task<List<PlayerCardDto>> GetShortlistAsync(int scouterId)
+        public async Task<PaginatedResult<PlayerCardDto>> GetShortlistAsync(int scouterId, int pageNumber = 1, int pageSize = 10, string? searchTerm = null)
         {
-var scouterExists = await _unitOfWork.Repository<ScouterEntity>().ExistsAsync(s => s.Id == scouterId);
-            if (!scouterExists)
+            _logger.LogInformation("Retrieving paginated shortlist grid for ScouterId: {ScouterId}. Parameters -> PageNumber: {Page}, PageSize: {Size}, SearchTerm: '{Term}'", scouterId, pageNumber, pageSize, searchTerm ?? string.Empty);
+
+            var baseQuery = _unitOfWork.Repository<ScouterShortlist>()
+                .GetQueryableAsNoTracking()
+                .Where(sl => sl.ScouterUserId == scouterId && !sl.IsDeleted);
+
+            if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                throw new NotFoundException($"Scouter with ID {scouterId} not found.");
+                baseQuery = baseQuery.Where(sl =>
+                    (sl.Player.FirstName + " " + sl.Player.LastName).Contains(searchTerm));
             }
 
-            var shortlistedPlayerIds = await _unitOfWork.Repository<ScouterShortlist>()
-                .GetQueryableAsNoTracking()
-                .Where(sl => sl.ScouterUserId == scouterId)
-                .OrderByDescending(sl => sl.Id)
-                .Select(sl => sl.PlayerId)
-                .ToListAsync();
+            int totalCount = await baseQuery.CountAsync();
 
-            if (!shortlistedPlayerIds.Any())
+            if (totalCount == 0)
             {
-                return new List<PlayerCardDto>();
-            }
+                var scouterExists = await _unitOfWork.Repository<ScouterEntity>()
+                    .GetQueryableAsNoTracking()
+                    .AnyAsync(s => s.Id == scouterId && !s.IsDeleted);
 
-            var existingCardsState = await _unitOfWork.Repository<PlayerCard>()
-                .GetQueryableAsNoTracking()
-                .Where(pc => shortlistedPlayerIds.Contains(pc.PlayerId))
-                .Select(pc => new { pc.PlayerId, pc.NeedsRecalculation })
-                .ToListAsync();
-
-            var cardStateLookup = existingCardsState.ToDictionary(x => x.PlayerId, x => x.NeedsRecalculation);
-
-            foreach (var id in shortlistedPlayerIds)
-            {
-                var cardExists = cardStateLookup.TryGetValue(id, out var dbNeedsRecalculation);
-                if (!cardExists || _invalidationList.TryConsume(id) || dbNeedsRecalculation)
+                if (!scouterExists)
                 {
-                    await _playerCardService.RecalculatePlayerCardAsync(id);
+                    throw new NotFoundException($"Scouter with ID {scouterId} not found.");
                 }
-            }
-            var playerCardQuery = _unitOfWork.Repository<PlayerCard>()
-                .GetQueryableAsNoTracking()
-                .Include(pc => pc.CategoryRatings)
-                    .ThenInclude(cr => cr.DrillCategory);
 
-            var pagedRecords = await _unitOfWork.Repository<Domain.Entities.Player.Player>()
-                .GetQueryableAsNoTracking()
-                .Where(p => shortlistedPlayerIds.Contains(p.Id))
-                .Select(p => new
+                _logger.LogInformation("No matching shortlisted players found for Scouter {ScouterId}.", scouterId);
+                return new PaginatedResult<PlayerCardDto>
                 {
-                    PlayerId = p.Id,
-                    Player = p,
-                    PrimaryPosition = p.PlayerPositions.Where(pp => pp.IsPrimary).Select(pp => pp.Position.ToString()).FirstOrDefault() ?? string.Empty,
-                    Card = playerCardQuery.FirstOrDefault(pc => pc.PlayerId == p.Id)
-                })
+                    Items = new List<PlayerCardDto>(),
+                    TotalCount = 0,
+                    PageNumber = pageNumber,
+                    PageSize = pageSize
+                };
+            }
+
+            var playerCardQuery = _unitOfWork.Repository<PlayerCard>().GetQueryableAsNoTracking();
+            var items = await baseQuery
+                .OrderByDescending(sl => sl.Id)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .Select(sl => playerCardQuery.FirstOrDefault(pc => pc.PlayerId == sl.PlayerId)) 
+                .ProjectTo<PlayerCardDto>(_mapper.ConfigurationProvider) 
                 .ToListAsync();
 
-            var shortlistOrderLookup = shortlistedPlayerIds
-                .Select((playerId, index) => new { playerId, index })
-                .ToDictionary(x => x.playerId, x => x.index);
-
-            var playerCardDtos = pagedRecords
-                .OrderBy(x => shortlistOrderLookup[x.PlayerId])
-                .Select(x => new PlayerCardDto
-                {
-                    PlayerName = x.Player.FirstName + " " + x.Player.LastName,
-                    Position = x.PrimaryPosition,
-                    OverallRating = x.Card != null ? x.Card.OverallRating : 0,
-                    TransferClassification = x.Card != null ? x.Card.TransferClassification.ToString() : string.Empty,
-
-                    PaceRating = x.Card?.CategoryRatings?.Where(cr => cr.DrillCategory.Name == "Speed").Select(cr => (decimal?)cr.Score).FirstOrDefault(),
-                    ShootingRating = x.Card?.CategoryRatings?.Where(cr => cr.DrillCategory.Name == "Shooting").Select(cr => (decimal?)cr.Score).FirstOrDefault(),
-                    DribblingRating = x.Card?.CategoryRatings?.Where(cr => cr.DrillCategory.Name == "Dribbling").Select(cr => (decimal?)cr.Score).FirstOrDefault(),
-                    DefendingRating = x.Card?.CategoryRatings?.Where(cr => cr.DrillCategory.Name == "Defending").Select(cr => (decimal?)cr.Score).FirstOrDefault(),
-                    PassingRating = x.Card?.CategoryRatings?.Where(cr => cr.DrillCategory.Name == "Passing").Select(cr => (decimal?)cr.Score).FirstOrDefault(),
-                    PhysicalRating = x.Card?.CategoryRatings?.Where(cr => cr.DrillCategory.Name == "Physical").Select(cr => (decimal?)cr.Score).FirstOrDefault(),
-                    GoalkeepingRating = x.Card?.CategoryRatings?.Where(cr => cr.DrillCategory.Name == "GoalKeeping").Select(cr => (decimal?)cr.Score).FirstOrDefault(),
-
-                    PlayStyleTag = x.Player.PlayStyleTag,
-                    PreferredFoot = x.Player.PreferredFoot,
-                    WeakFootRating = x.Player.WeakFootRating,
-                    ProfileImageUrl = x.Player.ProfileImageUrl,
-                    ArchetypePlayerName = x.Player.ArchetypePlayerName
-                })
-                .ToList();
-
-            return playerCardDtos;
+            _logger.LogInformation("Fetched {Count} player card records successfully from Scouter {ScouterId}'s shortlist.", items.Count, scouterId);
+            return new PaginatedResult<PlayerCardDto>
+            {
+                Items = items,
+                TotalCount = totalCount,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
         }
-
     }
 }

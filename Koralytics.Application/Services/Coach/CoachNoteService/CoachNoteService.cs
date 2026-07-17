@@ -1,4 +1,5 @@
-﻿using Koralytics.Application.DTOs.Coach;
+using Koralytics.Application.Common;
+using Koralytics.Application.DTOs.Coach;
 using Koralytics.Application.Interfaces;
 using Koralytics.Domain.Entities.Coach;
 using Koralytics.Domain.Entities.Player;
@@ -40,21 +41,16 @@ namespace Koralytics.Application.Services.Coach.CoachNoteService
                 ?? throw new NotFoundException($"Player with Id {dto.PlayerId} not found.");
 
             // 2. Validate the player belongs to at least one of the coach's active teams
-            var coachTeams = await _unitOfWork.Repository<CoachTeamEntity>()
+            //    Single query: JOIN CoachTeam → PlayerTeam to avoid two round-trips.
+            var playerBelongsToCoach = await _unitOfWork.Repository<CoachTeamEntity>()
                 .GetQueryableAsNoTracking()
                 .Where(ct => ct.CoachUserId == coachId && ct.RemovedAt == null)
-                .Select(ct => ct.TeamId)
-                .ToListAsync();
-
-            if (!coachTeams.Any())
-                throw new ForbiddenException(
-                    $"Coach {coachId} is not assigned to any active team.");
-
-            var playerBelongsToCoach = await _unitOfWork.Repository<PlayerTeam>()
-                .ExistsAsync(pt =>
-                    coachTeams.Contains(pt.TeamId) &&
-                    pt.PlayerId == dto.PlayerId &&
-                    pt.LeftAt == null);
+                .Join(
+                    _unitOfWork.Repository<PlayerTeam>().GetQueryableAsNoTracking(),
+                    ct => ct.TeamId,
+                    pt => pt.TeamId,
+                    (ct, pt) => pt)
+                .AnyAsync(pt => pt.PlayerId == dto.PlayerId && pt.LeftAt == null);
 
             if (!playerBelongsToCoach)
                 throw new ForbiddenException(
@@ -86,10 +82,12 @@ namespace Koralytics.Application.Services.Coach.CoachNoteService
         // ─────────────────────────────────────────────────────────────────────
         // GetPlayerNotesAsync
         // ─────────────────────────────────────────────────────────────────────
-        public async Task<IEnumerable<CoachNoteDto>> GetPlayerNotesAsync(int coachId, int playerId)
+        public async Task<PagedResult<CoachNoteDto>> GetPlayerNotesAsync(
+            int coachId, int playerId, int page = 1, int pageSize = 20)
         {
             _logger.LogInformation(
-                "Coach {CoachId} fetching notes for player {PlayerId}", coachId, playerId);
+                "Coach {CoachId} fetching notes for player {PlayerId} (page {Page}, size {PageSize})",
+                coachId, playerId, page, pageSize);
 
             // Validate player exists
             var playerExists = await _unitOfWork.Repository<PlayerEntity>()
@@ -98,15 +96,26 @@ namespace Koralytics.Application.Services.Coach.CoachNoteService
             if (!playerExists)
                 throw new NotFoundException($"Player with Id {playerId} not found.");
 
-            // Fetch all notes this coach has written for this player
-            var notes = await _unitOfWork.Repository<CoachNoteEntity>()
+            var query = _unitOfWork.Repository<CoachNoteEntity>()
                 .GetQueryableAsNoTracking()
                 .Where(n => n.CoachUserId == coachId && n.PlayerId == playerId)
                 .Include(n => n.Player)
-                .OrderByDescending(n => n.CreatedAt)
+                .OrderByDescending(n => n.CreatedAt);
+
+            var totalCount = await query.CountAsync();
+
+            var notes = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
 
-            return notes.Select(n => MapToDto(n, n.Player));
+            return new PagedResult<CoachNoteDto>
+            {
+                Items     = notes.Select(n => MapToDto(n, n.Player)).ToList(),
+                Page      = page,
+                PageSize  = pageSize,
+                TotalCount = totalCount
+            };
         }
 
         // ─────────────────────────────────────────────────────────────────────

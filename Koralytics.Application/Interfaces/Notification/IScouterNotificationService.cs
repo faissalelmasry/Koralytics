@@ -9,6 +9,7 @@ namespace Koralytics.Application.Interfaces.Notification
 {
     public interface IScouterNotificationService
     {
-        Task NotifyScouterFollowersAsync(int playerId, string eventType);
+        Task NotifyScouterFollowersAsync(int playerId, string eventType, CancellationToken cancellationToken = default);
+
     }
 }

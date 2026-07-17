@@ -2,7 +2,6 @@ namespace Koralytics.Application.DTOs.AuthDTOs.RegisterDTOs
 {
     public class RegisterPlayerRequestDto : BaseRegistrationRequestDto
     {
-        public int AcademyId { get; set; }
         public DateTime DateOfBirth { get; set; }
         public string? Nationality { get; set; }
         public string PreferredFoot { get; set; } = "Right";

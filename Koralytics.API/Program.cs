@@ -62,6 +62,8 @@ using Koralytics.Application.Interfaces.Notification;
 using Koralytics.Application.Services.Notification.AnnouncementNotificationService;
 using Koralytics.Application.Services.Notification.PlayerNotificationService;
 using Koralytics.Application.Services.Notification.ScouterNotificationService;
+using Koralytics.Application.Interfaces.Email;
+using Koralytics.Infrastructure.ExternalServices.Email;
 using Koralytics.API.Hubs;
 using Koralytics.Application.Interfaces.Match;
 using Koralytics.Application.Services.Match;
@@ -73,6 +75,7 @@ using Koralytics.Application.Services.Scouter.ScouterFollowService;
 using Koralytics.Application.Services.Scouter.ScouterReportService;
 using Koralytics.Application.Services.Scouter.ScouterSearchService;
 using Koralytics.Application.Services.Scouter.ScouterShortlistService;
+using StackExchange.Redis;
 
 namespace Koralytics.API
 {
@@ -97,7 +100,7 @@ namespace Koralytics.API
             });
 
             builder.Services.AddControllers();
-            builder.Services.AddIdentity<User, Role>()
+            builder.Services.AddIdentity<User, Domain.Entities.Identity.Role>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
 
@@ -166,6 +169,11 @@ namespace Koralytics.API
             builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
             builder.Services.Configure<CloudflareR2Options>(
                 builder.Configuration.GetSection(CloudflareR2Options.SectionName));
+            
+            builder.Services.Configure<EmailSettings>(
+                builder.Configuration.GetSection(EmailSettings.SectionName));
+            builder.Services.AddSingleton<IEmailTemplateProvider, EmailTemplateProvider>();
+            builder.Services.AddScoped<IEmailService, SmtpEmailService>();
 
             builder.Services.AddSingleton<IAmazonS3>(sp =>
             {
@@ -248,6 +256,7 @@ namespace Koralytics.API
             builder.Services.AddValidatorsFromAssemblyContaining<SendAnnouncementValidator>();
             builder.Services.AddValidatorsFromAssemblyContaining<CreateFriendlyMatchValidator>();
             builder.Services.AddScoped<IUserBusinessValidator, UserBusinessValidator>();
+            builder.Services.AddHostedService<NotificationCleanupBackgroundService>();
 
             builder.Services
                 .AddFluentValidationAutoValidation()
@@ -306,6 +315,38 @@ namespace Koralytics.API
                     .WriteTo.File(
                         "Logs/log-.txt",
                         rollingInterval: RollingInterval.Day));
+            var redisSection = builder.Configuration.GetSection("Redis");
+            var redisEnabled = redisSection.GetValue<bool>("Enabled");
+
+            if (redisEnabled)
+            {
+                builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
+                {
+                    var connectionString = redisSection.GetValue<string>("ConnectionString");
+                    if (string.IsNullOrEmpty(connectionString))
+                    {
+                        throw new InvalidOperationException("Redis ConnectionString is missing in appsettings.json.");
+                    }
+
+                    var configuration = ConfigurationOptions.Parse(connectionString, true);
+                    configuration.ResolveDns = true;
+
+                    try
+                    {
+                        return ConnectionMultiplexer.Connect(configuration);
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new InvalidOperationException($"[Redis Fatal] Failed to connect to Redis Cloud at startup: {ex.Message}", ex);
+                    }
+                });
+            }
+            else
+            {
+                throw new InvalidOperationException(
+                    "Redis is currently disabled in configuration, but the Notification system strictly requires it. " +
+                    "Please set 'Redis:Enabled' to true and configure a ConnectionString in appsettings.json.");
+            }
 
             var app = builder.Build();
 
@@ -319,7 +360,7 @@ namespace Koralytics.API
                 {
                     var context = services.GetRequiredService<ApplicationDbContext>();
                     var userManager = services.GetRequiredService<UserManager<User>>();
-                    var roleManager = services.GetRequiredService<RoleManager<Role>>();
+                    var roleManager = services.GetRequiredService<RoleManager<Domain.Entities.Identity.Role>>();
                     await DbInitializer.SeedAsync(context, userManager, roleManager);
                 }
                 catch (Exception ex)

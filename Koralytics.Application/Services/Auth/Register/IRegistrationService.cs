@@ -17,5 +17,9 @@ namespace Koralytics.Application.Services.Auth.Register
         Task CompleteProfileAsScouterAsync(User existingUser, CompleteProfileAsScouterDto profileData);
         Task CompleteProfileAsParentAsync(User existingUser, CompleteProfileAsParentDto profileData);
         Task CompleteProfileAsAcademyAdminAsync(User existingUser, CompleteProfileAsAcademyAdminDto profileData);
+
+        Task SendEmailConfirmationAsync(int userId);
+        Task<bool> ConfirmEmailAsync(int userId, string token);
+        Task<bool> IsEmailConfirmedAsync(int userId);
     }
 }

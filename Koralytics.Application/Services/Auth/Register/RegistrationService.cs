@@ -11,6 +11,7 @@ using Koralytics.Application.Common;
 using Koralytics.Application.DTOs.AuthDTOs.LoginDTOs;
 using Koralytics.Application.DTOs.AuthDTOs.RegisterDTOs;
 using Koralytics.Application.Interfaces;
+using Koralytics.Application.Interfaces.Email;
 using Koralytics.Application.Services.Auth.Token;
 using Koralytics.Application.Validators.UserBusiness;
 using Koralytics.Domain.Entities.Academy;
@@ -23,6 +24,7 @@ using Koralytics.Domain.Enums;
 using Koralytics.Domain.Exceptions;
 
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 using AcademyEntity = Koralytics.Domain.Entities.Academy.Academy;
@@ -40,6 +42,8 @@ namespace Koralytics.Application.Services.Auth.Register
         private readonly IUserBusinessValidator _businessValidator;
         private readonly ILogger<RegistrationService> _logger;
         private readonly IMapper _mapper;
+        private readonly IEmailService _emailService;
+        private readonly IConfiguration _configuration;
 
         public RegistrationService(
             UserManager<User> userManager,
@@ -49,7 +53,9 @@ namespace Koralytics.Application.Services.Auth.Register
             IValidator<BaseRegistrationRequestDto> requestValidator,
             IUserBusinessValidator businessValidator,
             ILogger<RegistrationService> logger,
-            IMapper mapper)
+            IMapper mapper,
+            IEmailService emailService,
+            IConfiguration configuration)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -59,6 +65,8 @@ namespace Koralytics.Application.Services.Auth.Register
             _businessValidator = businessValidator;
             _logger = logger;
             _mapper = mapper;
+            _emailService = emailService;
+            _configuration = configuration;
         }
 
         public async Task<AuthResultDto> RegisterPlayerAsync(RegisterPlayerRequestDto request)
@@ -76,13 +84,13 @@ namespace Koralytics.Application.Services.Auth.Register
             await ExecuteRegistrationInTransactionAsync(async () =>
             {
                 await CreateUserWithRoleAsync(player, request.Password, AuthConstants.Roles.Player);
-                await CreatePlayerSpecificDataAsync(player.Id, request.AcademyId);
                 await _unitOfWork.SaveChangesAsync();
                 return true;
             });
 
             _logger.LogInformation("Player successfully registered. UserId: {userId}", player.Id);
-            return await GenerateAuthResultAsync(player, AuthConstants.Roles.Player, request.AcademyId > 0 ? request.AcademyId : null);
+            await TrySendConfirmationEmailAsync(player.Id);
+            return await GenerateAuthResultAsync(player, AuthConstants.Roles.Player, null);
         }
 
         public async Task<AuthResultDto> RegisterCoachAsync(RegisterCoachRequestDto request)
@@ -95,13 +103,13 @@ namespace Koralytics.Application.Services.Auth.Register
             await ExecuteRegistrationInTransactionAsync(async () =>
             {
                 await CreateUserWithRoleAsync(coach, request.Password, AuthConstants.Roles.Coach);
-                await CreateCoachSpecificDataAsync(coach.Id, request.AcademyId);
                 await _unitOfWork.SaveChangesAsync();
                 return true;
             });
 
             _logger.LogInformation("Coach successfully registered. UserId: {userId}", coach.Id);
-            return await GenerateAuthResultAsync(coach, AuthConstants.Roles.Coach, request.AcademyId > 0 ? request.AcademyId : null);
+            await TrySendConfirmationEmailAsync(coach.Id);
+            return await GenerateAuthResultAsync(coach, AuthConstants.Roles.Coach, null);
         }
 
         public async Task<AuthResultDto> RegisterScouterAsync(RegisterScouterRequestDto request)
@@ -122,6 +130,7 @@ namespace Koralytics.Application.Services.Auth.Register
             });
 
             _logger.LogInformation("Scouter successfully registered. UserId: {userId}", scouter.Id);
+            await TrySendConfirmationEmailAsync(scouter.Id);
             return await GenerateAuthResultAsync(scouter, AuthConstants.Roles.Scouter, null);
         }
 
@@ -144,6 +153,7 @@ namespace Koralytics.Application.Services.Auth.Register
             });
 
             _logger.LogInformation("Parent successfully registered. UserId: {userId}", parent.Id);
+            await TrySendConfirmationEmailAsync(parent.Id);
             return await GenerateAuthResultAsync(parent, AuthConstants.Roles.Parent, null);
         }
 
@@ -151,7 +161,6 @@ namespace Koralytics.Application.Services.Auth.Register
         {
             _logger.LogInformation("Starting academy admin registration for email: {email}", request.Email);
             await ValidateRegistrationRequestAsync(request);
-            await _businessValidator.EnsureAcademyExistsAsync(request.AcademyId);
 
             var academyAdmin = _mapper.Map<AcademyAdmin>(request);
 
@@ -163,7 +172,8 @@ namespace Koralytics.Application.Services.Auth.Register
             });
 
             _logger.LogInformation("Academy admin successfully registered. UserId: {userId}", academyAdmin.Id);
-            return await GenerateAuthResultAsync(academyAdmin, AuthConstants.Roles.AcademyAdmin, request.AcademyId);
+            await TrySendConfirmationEmailAsync(academyAdmin.Id);
+            return await GenerateAuthResultAsync(academyAdmin, AuthConstants.Roles.AcademyAdmin, null);
         }
 
         public async Task CompleteProfileAsPlayerAsync(User existingUser, CompleteProfileAsPlayerDto profileData)
@@ -182,11 +192,6 @@ namespace Koralytics.Application.Services.Auth.Register
                     "INSERT INTO Players (Id, DateOfBirth, PreferredFoot, WeakFootRating, AvailabilityStatus) VALUES ({0}, {1}, {2}, {3}, {4})",
                     existingUser.Id, dob, prefFoot, weakFoot, (int)AvailabilityStatus.Available);
 
-                if (profileData.AcademyId > 0)
-                {
-                    await CreatePlayerSpecificDataAsync(existingUser.Id, profileData.AcademyId.Value);
-                }
-
                 await _unitOfWork.SaveChangesAsync();
                 return true;
             });
@@ -199,11 +204,6 @@ namespace Koralytics.Application.Services.Auth.Register
                 await ReplacePendingProfileRoleAsync(existingUser, AuthConstants.Roles.Coach);
 
                 await _unitOfWork.ExecuteSqlRawAsync("INSERT INTO Coaches (Id) VALUES ({0})", existingUser.Id);
-
-                if (profileData.AcademyId > 0)
-                {
-                    await CreateCoachSpecificDataAsync(existingUser.Id, profileData.AcademyId.Value);
-                }
 
                 await _unitOfWork.SaveChangesAsync();
                 return true;
@@ -242,17 +242,64 @@ namespace Koralytics.Application.Services.Auth.Register
 
         public async Task CompleteProfileAsAcademyAdminAsync(User existingUser, CompleteProfileAsAcademyAdminDto profileData)
         {
-            await _businessValidator.EnsureAcademyExistsAsync(profileData.AcademyId);
-
             await ExecuteRegistrationInTransactionAsync(async () =>
             {
                 await ReplacePendingProfileRoleAsync(existingUser, AuthConstants.Roles.AcademyAdmin);
 
-                await _unitOfWork.ExecuteSqlRawAsync("INSERT INTO AcademyAdmins (Id, AcademyId) VALUES ({0}, {1})", existingUser.Id, profileData.AcademyId);
+                await _unitOfWork.ExecuteSqlRawAsync("INSERT INTO AcademyAdmins (Id, AcademyId) VALUES ({0}, NULL)", existingUser.Id);
 
                 await _unitOfWork.SaveChangesAsync();
                 return true;
             });
+        }
+
+        public async Task SendEmailConfirmationAsync(int userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null) throw new NotFoundException("User not found.");
+
+            if (await _userManager.IsEmailConfirmedAsync(user))
+            {
+                throw new BadRequestException("Email is already confirmed.");
+            }
+
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            var encodedToken = Uri.EscapeDataString(token);
+            
+            var frontendUrl = _configuration["FrontendBaseUrl"] ?? "http://localhost:3000";
+            var separator = frontendUrl.Contains('?') ? "&" : "?";
+            var finalUrl = $"{frontendUrl}/confirm-email{separator}userId={userId}&token={encodedToken}";
+
+            await _emailService.SendAccountConfirmationAsync(user.Email!, user.FirstName ?? user.UserName!, finalUrl);
+        }
+
+        public async Task<bool> ConfirmEmailAsync(int userId, string token)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null) throw new NotFoundException("User not found.");
+
+            var result = await _userManager.ConfirmEmailAsync(user, token);
+            return result.Succeeded;
+        }
+
+        private async Task TrySendConfirmationEmailAsync(int userId)
+        {
+            try
+            {
+                await SendEmailConfirmationAsync(userId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to send confirmation email for user {UserId}", userId);
+            }
+        }
+
+        public async Task<bool> IsEmailConfirmedAsync(int userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null) throw new NotFoundException("User not found.");
+
+            return await _userManager.IsEmailConfirmedAsync(user);
         }
 
         private async Task ReplacePendingProfileRoleAsync(User user, string newRole)
@@ -267,46 +314,6 @@ namespace Koralytics.Application.Services.Auth.Register
             }
         }
 
-        private async Task CreatePlayerSpecificDataAsync(int playerId, int academyId)
-        {
-            if (academyId > 0)
-            {
-                var academy = await _unitOfWork.Repository<AcademyEntity>().GetByIdAsync(academyId);
-                if (academy == null) throw new NotFoundException("Academy not found.");
-
-                await _unitOfWork.Repository<PlayerAcademy>().AddAsync(new PlayerAcademy
-                {
-                    PlayerId = playerId,
-                    AcademyId = academy.Id,
-                    Status = PlayerAcademyStatus.Active,
-                    JoinedAt = DateTime.UtcNow
-                });
-
-                await _unitOfWork.Repository<PlayerSubscription>().AddAsync(new PlayerSubscription
-                {
-                    PlayerId = playerId,
-                    AcademyId = academy.Id,
-                    PaidByUserId = playerId,
-                    Status = SubscriptionStatus.Unpaid
-                });
-            }
-        }
-
-        private async Task CreateCoachSpecificDataAsync(int coachId, int academyId)
-        {
-            if (academyId > 0)
-            {
-                var academy = await _unitOfWork.Repository<AcademyEntity>().GetByIdAsync(academyId);
-                if (academy == null) throw new NotFoundException("Academy not found.");
-
-                await _unitOfWork.Repository<CoachAcademy>().AddAsync(new CoachAcademy
-                {
-                    CoachUserId = coachId,
-                    AcademyId = academy.Id,
-                    JoinedAt = DateTime.UtcNow
-                });
-            }
-        }
 
         private async Task CreateParentSpecificDataAsync(int parentId, int childPlayerId)
         {

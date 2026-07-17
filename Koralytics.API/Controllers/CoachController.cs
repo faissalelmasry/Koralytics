@@ -90,15 +90,18 @@ namespace Koralytics.API.Controllers
         }
 
         /// <summary>
-        /// Returns all notes written by the authenticated coach for a specific player,
-        /// ordered newest-first.
+        /// Returns paginated notes written by the authenticated coach for a specific player,
+        /// ordered newest-first. Defaults: page=1, pageSize=20.
         /// </summary>
         [HttpGet("players/{playerId}/notes")]
         [Authorize(Roles = "Coach")]
-        public async Task<IActionResult> GetPlayerNotes(int playerId)
+        public async Task<IActionResult> GetPlayerNotes(
+            int playerId,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20)
         {
             var coachId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-            var notes = await _coachNoteService.GetPlayerNotesAsync(coachId, playerId);
+            var notes = await _coachNoteService.GetPlayerNotesAsync(coachId, playerId, page, pageSize);
             return Ok(notes);
         }
         /// <summary>

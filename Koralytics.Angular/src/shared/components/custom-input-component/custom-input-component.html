@@ -1,0 +1,45 @@
+<div class="input-field-group" [class.has-error]="errorMessage" [class.is-disabled]="disabled">
+  
+  <div class="input-control-wrapper" [class.focused]="isFocused">
+    
+    <input 
+      [type]="currentInputType"
+      [(ngModel)]="value"
+      (input)="onInput()"
+      (focus)="onFocus()"
+      (blur)="onBlur()"
+      [disabled]="disabled"
+      placeholder=" "
+      autocomplete="one-time-code"
+      name="bfa-secure-field"
+      id="bfa-field"
+      autocorrect="off" 
+      autocapitalize="off" 
+      spellcheck="false"
+      class="custom-field"
+    />
+    
+    <label class="floating-label">{{ label }}</label>
+
+    <button 
+      *ngIf="type === 'password'" 
+      type="button" 
+      (click)="togglePasswordVisibility()" 
+      class="password-toggle-btn"
+    >
+      <svg *ngIf="!showPasswordState" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="eye-icon">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+        <circle cx="12" cy="12" r="3" />
+      </svg>
+      <svg *ngIf="showPasswordState" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="eye-icon">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12c1.388 4.178 5.323 7.178 9.963 7.178 2.115 0 4.098-.613 5.767-1.677M10.745 4.745A10.467 10.467 0 0 1 12 4.5c4.638 0 8.573 3.007 9.963 7.178a10.485 10.485 0 0 1-2.012 3.778m-1.883-1.883A3 3 0 0 0 14 13" />
+        <path stroke-linecap="round" stroke-linejoin="round" d="M22 22 2 2" />
+      </svg>
+    </button>
+
+  </div>
+
+  <span class="error-text-msg" *ngIf="errorMessage && !disabled">
+    {{ errorMessage }}
+  </span>
+</div>

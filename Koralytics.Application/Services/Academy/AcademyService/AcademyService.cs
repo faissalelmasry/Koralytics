@@ -1,9 +1,12 @@
 using AutoMapper;
 
 using Koralytics.Application.DTOs.Academies;
+using Koralytics.Application.DTOs.Academy;
 using Koralytics.Application.Interfaces;
 using Koralytics.Application.Validators.Academies;
 using Koralytics.Domain.Entities.Academy;
+using Koralytics.Domain.Entities.Coach;
+using Koralytics.Domain.Entities.Player;
 using Koralytics.Domain.Entities.SystemAdmin;
 using Koralytics.Domain.Enums;
 using Koralytics.Domain.Exceptions;
@@ -30,10 +33,10 @@ namespace Koralytics.Application.Services.Academy.AcademyService
         }
 
         // ──────────────────────────────────────────────────────────────────────
-        // CreateAcademyAsync
+        // ApproveAcademyAsync
         // Called after SuperAdmin approves an AcademyRequest.
         // ──────────────────────────────────────────────────────────────────────
-        public async Task<AcademyResponseDto> CreateAcademyAsync(CreateAcademyDto dto, int performedByUserId)
+        public async Task<AcademyResponseDto> ApproveAcademyAsync(CreateAcademyDto dto, int performedByUserId)
         {
             _logger.LogInformation("User {UserId} creating academy from AcademyRequest {RequestId}",performedByUserId, dto.AcademyRequestId);
 
@@ -95,6 +98,13 @@ namespace Koralytics.Application.Services.Academy.AcademyService
                     Details = $"Academy Admin {academy.AdminUserId} assigned as admin to academy {academy.Name} by {performedByUserId}"
                 };
                 await _unitOfWork.Repository<RoleAuditLog>().AddAsync(roleAuditLog);
+
+                // Update the AcademyAdmin entity to link to this new Academy
+                var adminUser = await _unitOfWork.Repository<AcademyAdmin>().FindAsync(a => a.Id == academy.AdminUserId);
+                if (adminUser != null)
+                {
+                    adminUser.AcademyId = academy.Id;
+                }
 
                 await _unitOfWork.SaveChangesAsync();
 
@@ -236,15 +246,32 @@ namespace Koralytics.Application.Services.Academy.AcademyService
         // ──────────────────────────────────────────────────────────────────────
         // GetAllAcademiesAsync
         // ──────────────────────────────────────────────────────────────────────
-        public async Task<IEnumerable<AcademyResponseDto>> GetAllAcademiesAsync()
+        public async Task<AcademyListResponseDto> GetAllAcademiesAsync(AcademyListRequestDto request)
         {
-            var academies = await _unitOfWork.Repository<Domain.Entities.Academy.Academy>()
-                .GetQueryableAsNoTracking()
+            var query = _unitOfWork.Repository<Domain.Entities.Academy.Academy>()
+                .GetQueryableAsNoTracking();
+
+            if (!string.IsNullOrWhiteSpace(request.SearchQuery))
+            {
+                var lowerQuery = request.SearchQuery.ToLower();
+                query = query.Where(a => a.Name.ToLower().Contains(lowerQuery));
+            }
+
+            var totalCount = await query.CountAsync();
+
+            var academies = await query
                 .Include(a => a.Admin)
+                .Skip((request.Page - 1) * request.PageSize)
+                .Take(request.PageSize)
                 .ToListAsync();
-            if (academies is null)
-                throw new NotFoundException($"No academies found.");
-            return _mapper.Map<IEnumerable<AcademyResponseDto>>(academies);
+
+            return new AcademyListResponseDto
+            {
+                Academies = _mapper.Map<List<AcademyResponseDto>>(academies),
+                TotalCount = totalCount,
+                Page = request.Page,
+                PageSize = request.PageSize
+            };
         }
 
         // ──────────────────────────────────────────────────────────────────────
@@ -281,12 +308,14 @@ namespace Koralytics.Application.Services.Academy.AcademyService
             if (target.IsMain)
                 throw new BadRequestException("This location is already the main location.");
 
-            // Clear existing main flag
-            var currentMain = await _unitOfWork.Repository<AcademyLocation>()
-                .FindAsync(l => l.AcademyId == academyId && l.IsMain);
+            // Clear existing main flag(s)
+            var currentMains = await _unitOfWork.Repository<AcademyLocation>()
+                .FindAllAsync(l => l.AcademyId == academyId && l.IsMain);
 
-            if (currentMain is not null)
-                currentMain.IsMain = false;
+            foreach (var loc in currentMains)
+            {
+                loc.IsMain = false;
+            }
 
             target.IsMain = true;
             await _unitOfWork.SaveChangesAsync();
@@ -294,6 +323,528 @@ namespace Koralytics.Application.Services.Academy.AcademyService
             _logger.LogInformation(
                 "Location {LocationId} is now the main location for academy {AcademyId}.",
                 locationId, academyId);
+        }
+
+        // ──────────────────────────────────────────────────────────────────────
+        // RequestAcademyAsync
+        // ──────────────────────────────────────────────────────────────────────
+        public async Task<Koralytics.Application.DTOs.SystemAdmin.AcademyRequestResponseDto> RequestAcademyAsync(Koralytics.Application.DTOs.SystemAdmin.CreateAcademyRequestDto dto, int requestedByUserId)
+        {
+            _logger.LogInformation("User {UserId} requesting new academy {AcademyName}", requestedByUserId, dto.AcademyName);
+
+            // Check if user already has an active or pending request
+            var existingRequest = await _unitOfWork.Repository<AcademyRequest>()
+                .ExistsAsync(r => r.RequestedById == requestedByUserId && 
+                             (r.RequestStatus == AcademyRequestStatus.Pending || r.RequestStatus == AcademyRequestStatus.Approved));
+                             
+            if (existingRequest)
+                throw new ConflictException("You already have a pending or approved academy request.");
+
+            var request = _mapper.Map<AcademyRequest>(dto);
+            request.RequestedById = requestedByUserId;
+            request.RequestStatus = AcademyRequestStatus.Pending;
+            request.RequestedAt = DateTime.UtcNow;
+
+            await _unitOfWork.Repository<AcademyRequest>().AddAsync(request);
+            await _unitOfWork.SaveChangesAsync();
+
+            _logger.LogInformation("AcademyRequest {RequestId} created successfully.", request.Id);
+
+            var created = await _unitOfWork.Repository<AcademyRequest>()
+                .GetQueryableAsNoTracking()
+                .Include(r => r.RequestedBy)
+                .FirstOrDefaultAsync(r => r.Id == request.Id);
+
+            return _mapper.Map<Koralytics.Application.DTOs.SystemAdmin.AcademyRequestResponseDto>(created);
+        }
+
+        // ──────────────────────────────────────────────────────────────────────
+        // GetPendingRequestsAsync
+        // ──────────────────────────────────────────────────────────────────────
+        public async Task<IEnumerable<Koralytics.Application.DTOs.SystemAdmin.AcademyRequestResponseDto>> GetPendingRequestsAsync()
+        {
+            var requests = await _unitOfWork.Repository<AcademyRequest>()
+                .GetQueryableAsNoTracking()
+                .Include(r => r.RequestedBy)
+                .Where(r => r.RequestStatus == AcademyRequestStatus.Pending)
+                .ToListAsync();
+
+            return _mapper.Map<IEnumerable<Koralytics.Application.DTOs.SystemAdmin.AcademyRequestResponseDto>>(requests);
+        }
+
+        // ──────────────────────────────────────────────────────────────────────
+        // RejectAcademyRequestAsync
+        // ──────────────────────────────────────────────────────────────────────
+        public async Task RejectAcademyRequestAsync(int requestId, Koralytics.Application.DTOs.SystemAdmin.RejectAcademyRequestDto dto, int performedByUserId)
+        {
+            _logger.LogInformation("User {UserId} rejecting AcademyRequest {RequestId}", performedByUserId, requestId);
+
+            var request = await _unitOfWork.Repository<AcademyRequest>().FindAsync(r => r.Id == requestId);
+            if (request is null)
+                throw new NotFoundException($"AcademyRequest {requestId} not found.");
+
+            if (request.RequestStatus != AcademyRequestStatus.Pending)
+                throw new BadRequestException("Only pending requests can be rejected.");
+
+            request.RequestStatus = AcademyRequestStatus.Rejected;
+            request.RejectedReason = dto.Reason;
+            request.ReviewedById = performedByUserId;
+            request.ReviewedAt = DateTime.UtcNow;
+
+            await _unitOfWork.SaveChangesAsync();
+            _logger.LogInformation("AcademyRequest {RequestId} rejected successfully.", requestId);
+        }
+
+        // ──────────────────────────────────────────────────────────────────────
+        // Admin Management
+        // ──────────────────────────────────────────────────────────────────────
+        public async Task AssignAdminToAcademyAsync(int academyId, int adminUserId, int performedByUserId)
+        {
+            _logger.LogInformation("User {UserId} assigning admin {AdminId} to academy {AcademyId}", performedByUserId, adminUserId, academyId);
+
+            var academy = await _unitOfWork.Repository<Domain.Entities.Academy.Academy>().FindAsync(a => a.Id == academyId);
+            if (academy is null)
+                throw new NotFoundException($"Academy {academyId} not found.");
+
+            var admin = await _unitOfWork.Repository<AcademyAdmin>().FindAsync(a => a.Id == adminUserId);
+            if (admin is null)
+                throw new NotFoundException($"AcademyAdmin with User Id {adminUserId} not found.");
+
+            if (admin.AcademyId == academyId)
+                throw new ConflictException("Admin is already assigned to this academy.");
+
+            admin.AcademyId = academyId;
+            admin.UpdatedById = performedByUserId;
+            admin.UpdatedAt = DateTime.UtcNow;
+
+            await _unitOfWork.SaveChangesAsync();
+        }
+
+        public async Task RemoveAdminFromAcademyAsync(int academyId, int adminUserId, int performedByUserId)
+        {
+            _logger.LogInformation("User {UserId} removing admin {AdminId} from academy {AcademyId}", performedByUserId, adminUserId, academyId);
+
+            var admin = await _unitOfWork.Repository<AcademyAdmin>().FindAsync(a => a.Id == adminUserId);
+            if (admin is null)
+                throw new NotFoundException($"AcademyAdmin with User Id {adminUserId} not found.");
+
+            if (admin.AcademyId != academyId)
+                throw new BadRequestException("Admin is not assigned to this academy.");
+
+            admin.AcademyId = null;
+            admin.UpdatedById = performedByUserId;
+            admin.UpdatedAt = DateTime.UtcNow;
+
+            await _unitOfWork.SaveChangesAsync();
+        }
+
+        // ──────────────────────────────────────────────────────────────────────
+        // RegisterCoachToAcademyAsync
+        // ──────────────────────────────────────────────────────────────────────
+        public async Task RegisterCoachToAcademyAsync(int academyId, int coachUserId, int performedByUserId)
+        {
+            _logger.LogInformation("User {UserId} registering coach {CoachId} to academy {AcademyId}", performedByUserId, coachUserId, academyId);
+
+            var academy = await _unitOfWork.Repository<Domain.Entities.Academy.Academy>().FindAsync(a => a.Id == academyId);
+            if (academy is null)
+                throw new NotFoundException($"Academy {academyId} not found.");
+
+            var coachExists = await _unitOfWork.Repository<Domain.Entities.Coach.Coach>().ExistsAsync(c => c.Id == coachUserId);
+            if (!coachExists)
+                throw new NotFoundException($"Coach with User Id {coachUserId} not found.");
+
+            var alreadyRegistered = await _unitOfWork.Repository<Domain.Entities.Coach.CoachAcademy>()
+                .ExistsAsync(ca => ca.AcademyId == academyId && ca.CoachUserId == coachUserId && ca.LeftAt == null);
+
+            if (alreadyRegistered)
+                throw new ConflictException("Coach is already registered to this academy.");
+
+            var coachAcademy = new Domain.Entities.Coach.CoachAcademy
+            {
+                AcademyId = academyId,
+                CoachUserId = coachUserId,
+                JoinedAt = DateTime.UtcNow,
+                CreatedById = performedByUserId
+            };
+
+            await _unitOfWork.Repository<Domain.Entities.Coach.CoachAcademy>().AddAsync(coachAcademy);
+            await _unitOfWork.SaveChangesAsync();
+        }
+
+        // ──────────────────────────────────────────────────────────────────────
+        // RemoveCoachFromAcademyAsync
+        // ──────────────────────────────────────────────────────────────────────
+        public async Task RemoveCoachFromAcademyAsync(int academyId, int coachUserId, int performedByUserId)
+        {
+            _logger.LogInformation("User {UserId} removing coach {CoachId} from academy {AcademyId}", performedByUserId, coachUserId, academyId);
+
+            var coachAcademy = await _unitOfWork.Repository<Domain.Entities.Coach.CoachAcademy>()
+                .FindAsync(ca => ca.AcademyId == academyId && ca.CoachUserId == coachUserId && ca.LeftAt == null);
+
+            if (coachAcademy is null)
+                throw new NotFoundException($"Active assignment for coach {coachUserId} in academy {academyId} not found.");
+
+            // Cascade: remove the coach from all active team assignments within this academy
+            var teamIds = await _unitOfWork.Repository<Team>()
+                .GetQueryableAsNoTracking()
+                .Where(t => t.AcademyId == academyId)
+                .Select(t => t.Id)
+                .ToListAsync();
+
+            var coachTeamsInAcademy = await _unitOfWork.Repository<CoachTeam>()
+                .FindAllAsync(ct => ct.CoachUserId == coachUserId && teamIds.Contains(ct.TeamId) && ct.RemovedAt == null);
+
+            foreach (var ct in coachTeamsInAcademy)
+            {
+                ct.RemovedAt = DateTime.UtcNow;
+                _unitOfWork.Repository<CoachTeam>().SoftDelete(ct);
+            }
+
+            coachAcademy.LeftAt = DateTime.UtcNow;
+            _unitOfWork.Repository<Domain.Entities.Coach.CoachAcademy>().SoftDelete(coachAcademy);
+            await _unitOfWork.SaveChangesAsync();
+        }
+
+        // ──────────────────────────────────────────────────────────────────────
+        // RegisterPlayerToAcademyAsync
+        // ──────────────────────────────────────────────────────────────────────
+        public async Task RegisterPlayerToAcademyAsync(int academyId, int playerUserId, int performedByUserId)
+        {
+            _logger.LogInformation("User {UserId} registering player {PlayerId} to academy {AcademyId}", performedByUserId, playerUserId, academyId);
+
+            var academy = await _unitOfWork.Repository<Domain.Entities.Academy.Academy>().FindAsync(a => a.Id == academyId);
+            if (academy is null)
+                throw new NotFoundException($"Academy {academyId} not found.");
+
+            var playerExists = await _unitOfWork.Repository<Domain.Entities.Player.Player>().ExistsAsync(p => p.Id == playerUserId);
+            if (!playerExists)
+                throw new NotFoundException($"Player with User Id {playerUserId} not found.");
+
+            var alreadyRegistered = await _unitOfWork.Repository<Domain.Entities.Player.PlayerAcademy>()
+                .ExistsAsync(pa => pa.PlayerId == playerUserId && pa.LeftAt == null);
+
+            if (alreadyRegistered)
+                throw new ConflictException("Player is already registered to an academy.");
+
+            var playerAcademy = new Domain.Entities.Player.PlayerAcademy
+            {
+                AcademyId = academyId,
+                PlayerId = playerUserId,
+                JoinedAt = DateTime.UtcNow,
+                Status = Domain.Enums.PlayerAcademyStatus.Active,
+                CreatedById = performedByUserId
+            };
+            
+
+            await _unitOfWork.Repository<Domain.Entities.Player.PlayerAcademy>().AddAsync(playerAcademy);
+
+            // Create an unpaid subscription for the player at this academy
+            var subscription = new PlayerSubscription
+            {
+                PlayerId = playerUserId,
+                AcademyId = academyId,
+                PaidByUserId = playerUserId,
+                Status = SubscriptionStatus.Unpaid,
+                CreatedById = performedByUserId
+            };
+
+            await _unitOfWork.Repository<PlayerSubscription>().AddAsync(subscription);
+            await _unitOfWork.SaveChangesAsync();
+        }
+
+        // ──────────────────────────────────────────────────────────────────────
+        // RemovePlayerFromAcademyAsync
+        // ──────────────────────────────────────────────────────────────────────
+        public async Task RemovePlayerFromAcademyAsync(int academyId, int playerUserId, int performedByUserId)
+        {
+            _logger.LogInformation("User {UserId} removing player {PlayerId} from academy {AcademyId}", performedByUserId, playerUserId, academyId);
+
+            var playerAcademy = await _unitOfWork.Repository<Domain.Entities.Player.PlayerAcademy>()
+                .FindAsync(pa => pa.AcademyId == academyId && pa.PlayerId == playerUserId && pa.LeftAt == null);
+
+            if (playerAcademy is null)
+                throw new NotFoundException($"Active assignment for player {playerUserId} in academy {academyId} not found.");
+
+            // Cascade: remove the player from all active team assignments within this academy
+            var teamIds = await _unitOfWork.Repository<Team>()
+                .GetQueryableAsNoTracking()
+                .Where(t => t.AcademyId == academyId)
+                .Select(t => t.Id)
+                .ToListAsync();
+
+            var playerTeamsInAcademy = await _unitOfWork.Repository<Domain.Entities.Player.PlayerTeam>()
+                .FindAllAsync(pt => pt.PlayerId == playerUserId && teamIds.Contains(pt.TeamId) && pt.LeftAt == null);
+
+            foreach (var pt in playerTeamsInAcademy)
+            {
+                pt.LeftAt = DateTime.UtcNow;
+                _unitOfWork.Repository<Domain.Entities.Player.PlayerTeam>().SoftDelete(pt);
+            }
+
+            playerAcademy.LeftAt = DateTime.UtcNow;
+            _unitOfWork.Repository<Domain.Entities.Player.PlayerAcademy>().SoftDelete(playerAcademy);
+            await _unitOfWork.SaveChangesAsync();
+        }
+        // ─── Member Join Requests ──────────────────────────────────────────────
+
+        public async Task<IEnumerable<PlayerSearchResponseDto>> SearchAvailablePlayersAsync(string? name, int academyId)
+        {
+            var query = _unitOfWork.Repository<Domain.Entities.Player.Player>()
+                .GetQueryableAsNoTracking()
+                .Where(p => !p.PlayerAcademies.Any(pa => pa.LeftAt == null));
+
+            if (!string.IsNullOrWhiteSpace(name))
+            {
+                var lowerName = name.ToLower();
+                query = query.Where(p => (p.FirstName + " " + p.LastName).ToLower().Contains(lowerName));
+            }
+
+            var players = await query.ToListAsync();
+            return players.Select(p => new PlayerSearchResponseDto
+            {
+                PlayerId = p.Id,
+                FirstName = p.FirstName,
+                LastName = p.LastName,
+                ImageUrl = p.ProfileImageUrl
+            });
+        }
+
+        public async Task<IEnumerable<CoachSearchResponseDto>> SearchCoachesAsync(string? name, int academyId)
+        {
+            // Coach who is not in THIS academy, and doesn't have a pending request to THIS academy.
+            var query = _unitOfWork.Repository<Domain.Entities.Coach.Coach>()
+                .GetQueryableAsNoTracking()
+                .Where(c => !c.CoachAcademies.Any(ca => ca.AcademyId == academyId && ca.LeftAt == null));
+
+            if (!string.IsNullOrWhiteSpace(name))
+            {
+                var lowerName = name.ToLower();
+                query = query.Where(c => (c.FirstName + " " + c.LastName).ToLower().Contains(lowerName));
+            }
+
+            var coaches = await query.ToListAsync();
+            return coaches.Select(c => new CoachSearchResponseDto
+            {
+                CoachId = c.Id,
+                FirstName = c.FirstName,
+                LastName = c.LastName,
+                ImageUrl = c.ProfileImageUrl
+            });
+        }
+
+        public async Task SendPlayerJoinRequestAsync(int academyId, int playerId, int adminUserId)
+        {
+            _logger.LogInformation("Admin {AdminId} sending join request to player {PlayerId} for academy {AcademyId}", adminUserId, playerId, academyId);
+
+            var academy = await _unitOfWork.Repository<Domain.Entities.Academy.Academy>().FindAsync(a => a.Id == academyId);
+            if (academy is null) throw new NotFoundException($"Academy {academyId} not found.");
+
+            var player = await _unitOfWork.Repository<Domain.Entities.Player.Player>().FindAsync(p => p.Id == playerId);
+            if (player is null) throw new NotFoundException($"Player {playerId} not found.");
+
+            // Check if player is already in an academy
+            var alreadyInAcademy = await _unitOfWork.Repository<Domain.Entities.Player.PlayerAcademy>()
+                .ExistsAsync(pa => pa.PlayerId == playerId && pa.LeftAt == null);
+            if (alreadyInAcademy) throw new ConflictException("Player is already registered to an academy.");
+
+            // Check if pending request exists
+            var existingRequest = await _unitOfWork.Repository<AcademyPlayerJoinRequest>()
+                .ExistsAsync(r => r.AcademyId == academyId && r.PlayerId == playerId && r.Status == JoinRequestStatus.Pending);
+            if (existingRequest) throw new ConflictException("A pending join request already exists for this player.");
+
+            var request = new AcademyPlayerJoinRequest
+            {
+                AcademyId = academyId,
+                PlayerId = playerId,
+                Status = JoinRequestStatus.Pending,
+                RequestedAt = DateTime.UtcNow,
+                CreatedById = adminUserId
+            };
+
+            await _unitOfWork.Repository<AcademyPlayerJoinRequest>().AddAsync(request);
+            await _unitOfWork.SaveChangesAsync();
+        }
+
+        public async Task SendCoachJoinRequestAsync(int academyId, int coachId, int adminUserId)
+        {
+            _logger.LogInformation("Admin {AdminId} sending join request to coach {CoachId} for academy {AcademyId}", adminUserId, coachId, academyId);
+
+            var academy = await _unitOfWork.Repository<Domain.Entities.Academy.Academy>().FindAsync(a => a.Id == academyId);
+            if (academy is null) throw new NotFoundException($"Academy {academyId} not found.");
+
+            var coach = await _unitOfWork.Repository<Domain.Entities.Coach.Coach>().FindAsync(c => c.Id == coachId);
+            if (coach is null) throw new NotFoundException($"Coach {coachId} not found.");
+
+            // Check if coach is already in THIS academy
+            var alreadyInAcademy = await _unitOfWork.Repository<Domain.Entities.Coach.CoachAcademy>()
+                .ExistsAsync(ca => ca.AcademyId == academyId && ca.CoachUserId == coachId && ca.LeftAt == null);
+            if (alreadyInAcademy) throw new ConflictException("Coach is already registered to this academy.");
+
+            // Check if pending request exists
+            var existingRequest = await _unitOfWork.Repository<AcademyCoachJoinRequest>()
+                .ExistsAsync(r => r.AcademyId == academyId && r.CoachId == coachId && r.Status == JoinRequestStatus.Pending);
+            if (existingRequest) throw new ConflictException("A pending join request already exists for this coach to this academy.");
+
+            var request = new AcademyCoachJoinRequest
+            {
+                AcademyId = academyId,
+                CoachId =   coachId,
+                Status = JoinRequestStatus.Pending,
+                RequestedAt = DateTime.UtcNow,
+                CreatedById = adminUserId
+            };
+
+            await _unitOfWork.Repository<AcademyCoachJoinRequest>().AddAsync(request);
+            await _unitOfWork.SaveChangesAsync();
+        }
+
+        public async Task RespondToPlayerJoinRequestAsync(int requestId, JoinRequestStatus status, int playerId)
+        {
+            _logger.LogInformation("Player {PlayerId} responding with {Status} to request {RequestId}", playerId, status, requestId);
+
+            var request = await _unitOfWork.Repository<AcademyPlayerJoinRequest>().FindAsync(r => r.Id == requestId);
+            if (request is null) throw new NotFoundException($"Join request {requestId} not found.");
+
+            if (request.PlayerId != playerId) throw new UnauthorizedAccessException("You can only respond to your own join requests.");
+            if (request.Status != JoinRequestStatus.Pending) throw new BadRequestException("This request has already been processed.");
+
+            if (status != JoinRequestStatus.Accepted && status != JoinRequestStatus.Rejected)
+                throw new BadRequestException("Invalid status for response.");
+
+            request.Status = status;
+            request.RespondedAt = DateTime.UtcNow;
+            request.UpdatedById = playerId;
+
+            if (status == JoinRequestStatus.Accepted)
+            {
+                // Register player
+                await RegisterPlayerToAcademyAsync(request.AcademyId, playerId, playerId);
+                
+                // Cancel other pending requests since player can only be in one academy
+                var otherPendingRequests = await _unitOfWork.Repository<AcademyPlayerJoinRequest>()
+                    .FindAllAsync(r => r.PlayerId == playerId && r.Status == JoinRequestStatus.Pending && r.Id != requestId);
+                
+                foreach (var otherReq in otherPendingRequests)
+                {
+                    otherReq.Status = JoinRequestStatus.Cancelled;
+                    otherReq.UpdatedById = playerId;
+                    otherReq.UpdatedAt = DateTime.UtcNow;
+                }
+                
+                await _unitOfWork.SaveChangesAsync();
+            }
+            else
+            {
+                await _unitOfWork.SaveChangesAsync();
+            }
+        }
+
+        public async Task RespondToCoachJoinRequestAsync(int requestId, JoinRequestStatus status, int coachId)
+        {
+            _logger.LogInformation("Coach {CoachId} responding with {Status} to request {RequestId}", coachId, status, requestId);
+
+            var request = await _unitOfWork.Repository<AcademyCoachJoinRequest>().FindAsync(r => r.Id == requestId);
+            if (request is null) throw new NotFoundException($"Join request {requestId} not found.");
+
+            if (request.CoachId != coachId) throw new UnauthorizedAccessException("You can only respond to your own join requests.");
+            if (request.Status != JoinRequestStatus.Pending) throw new BadRequestException("This request has already been processed.");
+
+            if (status != JoinRequestStatus.Accepted && status != JoinRequestStatus.Rejected)
+                throw new BadRequestException("Invalid status for response.");
+
+            request.Status = status;
+            request.RespondedAt = DateTime.UtcNow;
+            request.UpdatedById = coachId;
+
+            if (status == JoinRequestStatus.Accepted)
+            {
+                // Register coach
+                await RegisterCoachToAcademyAsync(request.AcademyId, coachId, coachId);
+            }
+            else
+            {
+                await _unitOfWork.SaveChangesAsync();
+            }
+        }
+
+        public async Task CancelPlayerJoinRequestAsync(int requestId, int adminUserId)
+        {
+            _logger.LogInformation("Admin {AdminId} cancelling player join request {RequestId}", adminUserId, requestId);
+
+            var request = await _unitOfWork.Repository<AcademyPlayerJoinRequest>().FindAsync(r => r.Id == requestId);
+            if (request is null) throw new NotFoundException($"Join request {requestId} not found.");
+
+            if (request.Status != JoinRequestStatus.Pending) throw new BadRequestException("Only pending requests can be cancelled.");
+
+            request.Status = JoinRequestStatus.Cancelled;
+            request.UpdatedById = adminUserId;
+            request.UpdatedAt = DateTime.UtcNow;
+
+            await _unitOfWork.SaveChangesAsync();
+        }
+
+        public async Task CancelCoachJoinRequestAsync(int requestId, int adminUserId)
+        {
+            _logger.LogInformation("Admin {AdminId} cancelling coach join request {RequestId}", adminUserId, requestId);
+
+            var request = await _unitOfWork.Repository<AcademyCoachJoinRequest>().FindAsync(r => r.Id == requestId);
+            if (request is null) throw new NotFoundException($"Join request {requestId} not found.");
+
+            if (request.Status != JoinRequestStatus.Pending) throw new BadRequestException("Only pending requests can be cancelled.");
+
+            request.Status = JoinRequestStatus.Cancelled;
+            request.UpdatedById = adminUserId;
+            request.UpdatedAt = DateTime.UtcNow;
+
+            await _unitOfWork.SaveChangesAsync();
+        }
+
+        public async Task<IEnumerable<AcademyPlayerJoinRequestResponseDto>> GetPendingPlayerRequestsForAcademyAsync(int academyId)
+        {
+            var requests = await _unitOfWork.Repository<AcademyPlayerJoinRequest>()
+                .GetQueryableAsNoTracking()
+                .Include(r => r.Player)
+                .Include(r => r.Academy)
+                .Where(r => r.AcademyId == academyId && r.Status == JoinRequestStatus.Pending)
+                .ToListAsync();
+
+            return _mapper.Map<IEnumerable<AcademyPlayerJoinRequestResponseDto>>(requests);
+        }
+
+        public async Task<IEnumerable<AcademyCoachJoinRequestResponseDto>> GetPendingCoachRequestsForAcademyAsync(int academyId)
+        {
+            var requests = await _unitOfWork.Repository<AcademyCoachJoinRequest>()
+                .GetQueryableAsNoTracking()
+                .Include(r => r.Coach)
+                .Include(r => r.Academy)
+                .Where(r => r.AcademyId == academyId && r.Status == JoinRequestStatus.Pending)
+                .ToListAsync();
+
+            return _mapper.Map<IEnumerable<AcademyCoachJoinRequestResponseDto>>(requests);
+        }
+
+        public async Task<IEnumerable<AcademyPlayerJoinRequestResponseDto>> GetPendingPlayerRequestsForUserAsync(int playerId)
+        {
+            var requests = await _unitOfWork.Repository<AcademyPlayerJoinRequest>()
+                .GetQueryableAsNoTracking()
+                .Include(r => r.Player)
+                .Include(r => r.Academy)
+                .Where(r => r.PlayerId == playerId && r.Status == JoinRequestStatus.Pending)
+                .ToListAsync();
+
+            return _mapper.Map<IEnumerable<AcademyPlayerJoinRequestResponseDto>>(requests);
+        }
+
+        public async Task<IEnumerable<AcademyCoachJoinRequestResponseDto>> GetPendingCoachRequestsForUserAsync(int coachId)
+        {
+            var requests = await _unitOfWork.Repository<AcademyCoachJoinRequest>()
+                .GetQueryableAsNoTracking()
+                .Include(r => r.Coach)
+                .Include(r => r.Academy)
+                .Where(r => r.CoachId == coachId && r.Status == JoinRequestStatus.Pending)
+                .ToListAsync();
+
+            return _mapper.Map<IEnumerable<AcademyCoachJoinRequestResponseDto>>(requests);
         }
     }
 }

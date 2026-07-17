@@ -1,0 +1,65 @@
+<div class="date-field-group" [class.has-error]="errorMessage" [class.is-disabled]="disabled">
+  
+  <div class="date-control-wrapper" [class.opened]="isOpen" (click)="toggleCalendar()">
+    
+    <div class="selected-date-display">
+      {{ value }}
+    </div>
+    
+    <label class="floating-label" [class.raised]="isOpen || value !== ''">
+      {{ label }}
+    </label>
+
+    <!-- Calendar Icon -->
+    <div class="calendar-icon-wrapper">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="calendar-icon">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+      </svg>
+    </div>
+
+  </div>
+
+  <!-- Custom Cyber Calendar Panel -->
+  <div class="calendar-panel" *ngIf="isOpen && !disabled">
+    
+    <div class="calendar-header">
+      <button class="nav-btn" (click)="prevMonth($event)">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" /></svg>
+      </button>
+      
+      <div class="current-month-year">
+        {{ monthNames[viewDate.getMonth()] }} {{ viewDate.getFullYear() }}
+      </div>
+      
+      <button class="nav-btn" (click)="nextMonth($event)">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
+      </button>
+    </div>
+
+    <div class="calendar-grid">
+      <!-- Weekday Labels -->
+      <div *ngFor="let dayName of dayNames" class="weekday-label">
+        {{ dayName }}
+      </div>
+      
+      <!-- Blank days for alignment -->
+      <div *ngFor="let blank of blankDays" class="calendar-day day-blank"></div>
+      
+      <!-- Month Days -->
+      <div 
+        *ngFor="let day of daysInMonth" 
+        class="calendar-day"
+        [class.is-today]="isToday(day)"
+        [class.is-selected]="isSelected(day)"
+        (click)="selectDay(day, $event)"
+      >
+        {{ day }}
+      </div>
+    </div>
+
+  </div>
+
+  <span class="error-text-msg" *ngIf="errorMessage && !disabled">
+    {{ errorMessage }}
+  </span>
+</div>
