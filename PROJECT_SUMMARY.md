@@ -324,6 +324,13 @@ The database context (`ApplicationDbContext`) inherits from `IdentityDbContext<U
 #### Match/ (Youssef's contribution) — **✅ IMPLEMENTED**
 > `GetPlayerReadinessAsync` has been successfully implemented under `MatchAnalyticsService`.
 
+#### Analytics/ (AI Player Search — Youssef & Aly collab) — **✅ IMPLEMENTED**
+**`IAnalyticsService` / `AnalyticsService`**
+- `AiPlayerSearchAsync(request)` → forwards the user's natural-language query to the Langflow AI pipeline (`POST /api/v1/run/{flowId}`) via a named `HttpClient("Langflow")` → extracts the nested text response from Langflow's JSON (`outputs[0].outputs[0].results.message.text`) → returns `AiSearchResponseDto` with the human-readable answer.
+- **Configuration**: `LangflowOptions` (BaseUrl + FlowId) bound from `appsettings.json → Langflow` section.
+- **Error handling**: Connection failures, non-200 responses, and unexpected JSON shapes throw descriptive `InvalidOperationException` caught by the global error handler.
+- **Timeout**: 120s (AI queries involve LLM reasoning + SQL execution).
+
 ---
 
 ## 4. Service Dependency Order
@@ -362,6 +369,7 @@ The presentation and infrastructure are wired together in `Program.cs`.
 * **Email & Notifications**: **SmtpEmailService** handles sending HTML-templated emails (Welcome, Confirm Email, Password Reset, OTP).
 * **External Storage**: **Cloudflare R2** for player highlight video uploads.
 * **AI Provider**: **Claude API** used for all AI report generation, NL querying, and player archetype generation.
+* **AI Pipeline (Langflow)**: **Langflow** (localhost:7860) hosts the NL-to-SQL AI Player Search pipeline. Connected via named `HttpClient("Langflow")` with `LangflowOptions` config binding. Uses Groq (Llama-3) as the LLM agent with a SQL Database Tool against MS SQL Server.
 * **Authentication Providers**: **Google OAuth** integrated for third-party sign-ins, managed via `OAuthProviderFactory`.
 * **Background Services**: **`CardInvalidationList`** registered as `Singleton` + `IHostedService`. **`NotificationCleanupBackgroundService`** manages Redis cache TTL and pruning old notifications. Uses `ConcurrentDictionary` as in-memory dirty-list. On startup it restores pending IDs from DB (`NeedsRecalculation = true`, which is properly indexed for performance); on shutdown it persists the dirty set back to DB. Card recalculation is triggered **on-demand** by scouter services (not by the hosted service loop itself).
 
@@ -410,6 +418,7 @@ The presentation and infrastructure are wired together in `Program.cs`.
 * **AcademyTeamController**: Manages age group and team creation, coach assignment/removal.
 * **`AcademyAnnouncementController`**: Sends announcements and removes players from academy.
 * **`AcademyAnalyticsController`**: Returns coach performance dashboard and subscription status.
+* **`AnalyticsController`**: AI Player Search — `POST api/Analytics/ai-search` accepts a natural-language query (authorized for Scouter/SystemAdmin), forwards it to Langflow, and returns a conversational AI-generated response.
 
 ---
 
@@ -476,6 +485,7 @@ For any AI agent or Developer working on this codebase:
 
 ### YOUSSEF
 **Pages/Components:**
+- **AI Player Search Page** *(✅ Implemented)*: Chat-style NL search interface at `/ai-search`. Scouters type plain English queries → backend forwards to Langflow pipeline → AI generates SQL, queries DB, and returns human-readable answers. Features: example query chips, typing indicator, error banners, responsive design.
 - **Coach Squad Page**: Squad list with FIFA card ratings, Availability status indicators, Player readiness scores, Side by side player comparison.
 - **Training Split Page**: Split players into balanced teams, Display Team A vs Team B, Overall rating balance indicator.
 - **Coach Notes Page**: Write note form (session/match/standalone), Notes list per player, Public/Private toggle.

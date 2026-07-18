@@ -27,6 +27,7 @@ export const routes: Routes = [
     canActivate: [authGuard],
     children: [
       { path: 'dashboard', loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent) },
+      { path: 'ai-search', loadComponent: () => import('./features/ai-search/ai-search.component').then(m => m.AiSearchComponent) },
       { path: 'settings/change-password', loadComponent: () => import('./features/auth/pages/change-password/change-password.component').then(m => m.ChangePasswordComponent) },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]

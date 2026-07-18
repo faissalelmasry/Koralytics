@@ -1,0 +1,143 @@
+<div class="ai-search-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="header-icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2a8 8 0 0 0-8 8c0 3.36 2.07 6.24 5 7.42V19a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1.58c2.93-1.18 5-4.06 5-7.42a8 8 0 0 0-8-8z"/>
+          <path d="M10 22h4"/>
+          <path d="M12 2v2"/>
+          <path d="M4.93 4.93l1.41 1.41"/>
+          <path d="M19.07 4.93l-1.41 1.41"/>
+        </svg>
+      </div>
+      <div>
+        <h1>AI Player Search</h1>
+        <p class="subtitle">Ask anything about your players in plain English</p>
+      </div>
+    </div>
+    <button
+      class="clear-btn"
+      *ngIf="messages.length > 0"
+      (click)="clearChat()"
+      title="Clear conversation">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="3 6 5 6 21 6"/>
+        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+      </svg>
+      Clear
+    </button>
+  </div>
+
+  <!-- Chat Area -->
+  <div class="chat-area">
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="messages.length === 0 && !isLoading">
+      <div class="empty-icon">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/>
+          <path d="m21 21-4.3-4.3"/>
+        </svg>
+      </div>
+      <h2>What would you like to know?</h2>
+      <p>Ask questions about players, drill results, match stats, and more.</p>
+
+      <div class="example-queries">
+        <p class="examples-label">Try an example</p>
+        <div class="examples-grid">
+          <button
+            class="example-chip"
+            *ngFor="let example of exampleQueries"
+            (click)="useExample(example)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+            {{ example }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div class="messages-list" *ngIf="messages.length > 0 || isLoading">
+      <div
+        class="message"
+        *ngFor="let msg of messages"
+        [class.user-message]="msg.role === 'user'"
+        [class.ai-message]="msg.role === 'ai'">
+        <div class="message-avatar">
+          <!-- User avatar -->
+          <svg *ngIf="msg.role === 'user'" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          <!-- AI avatar -->
+          <svg *ngIf="msg.role === 'ai'" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2a8 8 0 0 0-8 8c0 3.36 2.07 6.24 5 7.42V19a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1.58c2.93-1.18 5-4.06 5-7.42a8 8 0 0 0-8-8z"/>
+            <path d="M10 22h4"/>
+          </svg>
+        </div>
+        <div class="message-content">
+          <span class="message-sender">{{ msg.role === 'user' ? 'You' : 'Koralytics AI' }}</span>
+          <div class="message-text" [innerText]="msg.text"></div>
+        </div>
+      </div>
+
+      <!-- Loading indicator -->
+      <div class="message ai-message" *ngIf="isLoading">
+        <div class="message-avatar">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2a8 8 0 0 0-8 8c0 3.36 2.07 6.24 5 7.42V19a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1.58c2.93-1.18 5-4.06 5-7.42a8 8 0 0 0-8-8z"/>
+            <path d="M10 22h4"/>
+          </svg>
+        </div>
+        <div class="message-content">
+          <span class="message-sender">Koralytics AI</span>
+          <div class="typing-indicator">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error -->
+  <div class="error-banner" *ngIf="errorMessage">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="12" y1="8" x2="12" y2="12"/>
+      <line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    <span>{{ errorMessage }}</span>
+    <button class="error-dismiss" (click)="errorMessage = ''">&times;</button>
+  </div>
+
+  <!-- Input Area -->
+  <div class="input-area">
+    <div class="input-wrapper">
+      <textarea
+        id="ai-search-input"
+        [(ngModel)]="query"
+        (keydown)="onKeyDown($event)"
+        placeholder="Ask about your players... (e.g. 'show me left-footed strikers')"
+        rows="1"
+        [disabled]="isLoading"
+        maxlength="500"
+      ></textarea>
+      <button
+        class="send-btn"
+        (click)="onSubmit()"
+        [disabled]="!query.trim() || isLoading"
+        title="Send query">
+        <svg *ngIf="!isLoading" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"/>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+        </svg>
+        <div class="btn-spinner" *ngIf="isLoading"></div>
+      </button>
+    </div>
+    <p class="input-hint">Press Enter to send &bull; Shift+Enter for new line</p>
+  </div>
+</div>
