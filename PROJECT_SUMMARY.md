@@ -2,6 +2,10 @@
 
 > **CRITICAL DIRECTIVE FOR AI/DEVELOPERS:** This document is the definitive source of truth for the entire Koralytics platform. It contains an exhaustive breakdown of the architecture, database schema, domain models, services, and configuration. **This file MUST be updated with every architectural change, new entity, or new core service.**
 
+# Koralytics - Ultimate Project Knowledge Base & Summary
+
+> **CRITICAL DIRECTIVE FOR AI/DEVELOPERS:** This document is the definitive source of truth for the entire Koralytics platform. It contains an exhaustive breakdown of the architecture, database schema, domain models, services, and configuration. **This file MUST be updated with every architectural change, new entity, or new core service.**
+
 ---
 
 ## 1. Project Overview & Architecture
@@ -9,6 +13,7 @@
 It follows **Clean Architecture** and **Domain-Driven Design (DDD)** concepts, separated into four main layers:
 
 - **`Koralytics.API`**: ASP.NET Core Presentation layer. Responsible for routing, HTTP requests, middlewares (Global Error Handling), JWT Authentication, Serilog logging, and Swagger documentation.
+- **`Koralytics.Angular`**: Frontend Angular application. Contains UI layouts, domain modules, and shared components (Navbar, Sidebar, Toast, etc.). Integrates with the API using Angular services.
 - **`Koralytics.Application`**: Business Logic. Contains DTOs, Application Services, Interfaces, AutoMapper Profiles, and FluentValidation validators. Also contains shared response wrappers in `Common/` (e.g., `PagedResult<T>` for paginated results).
 - **`Koralytics.Domain`**: Core domain logic. Contains enterprise models (Entities), Enums, specific Exceptions, and core interfaces (`IRepository`, `IUnitOfWork`).
 - **`Koralytics.Infrastructure`**: Data access and infrastructure implementation. Contains the `ApplicationDbContext`, Migrations, Generic Repository implementation, UnitOfWork implementation, and Db Seeding logic.
@@ -279,17 +284,17 @@ The database context (`ApplicationDbContext`) inherits from `IdentityDbContext<U
 - `GetScoutingReportAsync(scouterId, playerId)` → return existing `ScouterReport` if found; else calls `GenerateScoutingReportAsync` (currently throws until AI is wired) → returns `ScouterReport` entity
 - `VerifyScouterAsync(scouterId)` → validate scouter exists → set `Scouter.IsVerified = true` + `VerifiedAt = DateTime.UtcNow` → return `bool`
 
-#### Notification/
+#### Notification/ *(backed by Redis caching and SignalR via `RealTimeBridge`)*
 **`IAnnouncementNotificationService` / `AnnouncementNotificationService`**
-- `SendAnnouncementAsync(announcement)` → based on TargetType: All (all academy users), Team (players + parents), AgeGroup (all players in age group), Role (all users with that role) → via SignalR for real-time
+- `SendAnnouncementAsync(announcement)` → based on TargetType: All (all academy users), Team (players + parents), AgeGroup (all players in age group), Role (all users with that role) → via SignalR for real-time and caches to Redis.
 
 **`IPlayerNotificationService` / `PlayerNotificationService`**
-- `NotifyPlayerMilestoneAsync(playerId, achievementType)` → send notification to player when milestone reached
-- `NotifyParentAsync(playerId, eventType)` → fetch `ParentPlayer` records → notify each parent via SignalR
-- `NotifySubscriptionGraceAsync(playerId, academyId)` → notify player + parent that subscription in grace period → triggered by scheduled job
+- `NotifyPlayerMilestoneAsync(playerId, achievementType)` → send notification to player when milestone reached and caches to Redis.
+- `NotifyParentAsync(playerId, eventType)` → fetch `ParentPlayer` records → notify each parent via SignalR and caches to Redis.
+- `NotifySubscriptionGraceAsync(playerId, academyId)` → notify player + parent that subscription in grace period → triggered by scheduled job.
 
 **`IScouterNotificationService` / `ScouterNotificationService`**
-- `NotifyScouterFollowersAsync(playerId, eventType)` → when player posts highlight, wins MOTM, or rating improves → fetch all `ScouterFollow` records for this player → notify each scouter via SignalR
+- `NotifyScouterFollowersAsync(playerId, eventType)` → when player posts highlight, wins MOTM, or rating improves → fetch all `ScouterFollow` records for this player → notify each scouter via SignalR and caches to Redis.
 
 ---
 
@@ -353,12 +358,12 @@ The presentation and infrastructure are wired together in `Program.cs`.
 * **Global Error Handling**: Uses ASP.NET Core 8+ `IExceptionHandler` (`GlobalExceptionHandler`) to catch unhandled exceptions and return standardized `ProblemDetails` responses.
 * **Logging**: Uses **Serilog**. Configured to write to Console and rolling log files at `Logs/log-.txt` (RollingInterval.Day).
 * **API Documentation**: Swagger is configured with a Security Definition for JWT Bearer Tokens, allowing authenticated requests directly from the Swagger UI.
-* **Real-Time**: **SignalR** used for push notifications (announcements, player milestones, scouter alerts).
+* **Real-Time & Notifications**: **SignalR** used for real-time push notifications. **Redis** is used for caching notification history and offline retrieval, integrated via `RealTimeBridge`.
 * **Email & Notifications**: **SmtpEmailService** handles sending HTML-templated emails (Welcome, Confirm Email, Password Reset, OTP).
 * **External Storage**: **Cloudflare R2** for player highlight video uploads.
 * **AI Provider**: **Claude API** used for all AI report generation, NL querying, and player archetype generation.
 * **Authentication Providers**: **Google OAuth** integrated for third-party sign-ins, managed via `OAuthProviderFactory`.
-* **Background Services**: **`CardInvalidationList`** registered as `Singleton` + `IHostedService`. Uses `ConcurrentDictionary` as in-memory dirty-list. On startup it restores pending IDs from DB (`NeedsRecalculation = true`, which is properly indexed for performance); on shutdown it persists the dirty set back to DB. Card recalculation is triggered **on-demand** by scouter services (not by the hosted service loop itself).
+* **Background Services**: **`CardInvalidationList`** registered as `Singleton` + `IHostedService`. **`NotificationCleanupBackgroundService`** manages Redis cache TTL and pruning old notifications. Uses `ConcurrentDictionary` as in-memory dirty-list. On startup it restores pending IDs from DB (`NeedsRecalculation = true`, which is properly indexed for performance); on shutdown it persists the dirty set back to DB. Card recalculation is triggered **on-demand** by scouter services (not by the hosted service loop itself).
 
 ### AutoMapper Profiles Currently Registered
 * `RegisterProfile` — Registration DTOs → Domain Entities
@@ -398,6 +403,7 @@ The presentation and infrastructure are wired together in `Program.cs`.
 * **`TournamentController`**: Interface for tournament-related endpoints (create, draw, fixtures, bracket).
 * **`CoachController`**: Interface for coach operations — squad overview, training team split, player comparison, writing/fetching player notes (`GET players/{playerId}/notes?page=1&pageSize=20` returns `PagedResult<CoachNoteDto>`), and granting/revoking/listing temporary squad access (access level and status are now strongly-typed enums: `TempAccessAccessLevel`, `TempAccessStatus`).
 * **`ScouterController`**: Interface for scouter operations — filtered player search, shortlist management (add/remove/get), follow/unfollow/log-view, and AI scouting report generation & verification.
+* **`NotificationController`**: Manages fetching notification history (paginated) for the authenticated user and marking notifications as read, backed by Redis.
 * **DrillsController**: Interface for all drill operations — template CRUD, session management, bulk result logging, drill analytics (squad weak categories, coach bias). JWT claims extracted from token per request.
 * **AcademyController**: Manages academy creation, update, location management, and handling of join requests.
 * **AcademyBadgeController**: Manages creation, retrieval, and deletion of academy badges.
@@ -448,8 +454,8 @@ For any AI agent or Developer working on this codebase:
 
 ### BISHOY
 **Pages/Components:**
-- **Login Page**: Email + password form, Google OAuth button, Remember me.
-- **Register Page**: Role selection (player/coach/scouter/parent/academy admin), Role specific form fields.
+- **Login Page**: Email + password form, Google OAuth button, Remember me. *(Implemented)*
+- **Register Page**: Role selection (player/coach/scouter/parent/academy admin), Role specific form fields. *(Implemented)*
 - **Complete OAuth Profile Page**: Fill missing profile fields after Google login.
 - **Change Password Page**: Old password + new password form.
 - **Academy List Page (Super Admin)**: All academies with status, Create academy button.
@@ -488,6 +494,10 @@ For any AI agent or Developer working on this codebase:
 - ConfirmDialog
 - ToastNotifications (SignalR powered)
 - RoleGuard (protect routes by role)
+- Logo
+- ModalContainer
+- StatusChip
+- FootballPitch
 
 ### Dependency Order
 1. **Bishoy (Auth pages)** → Must finish first (everyone needs login to test their pages).

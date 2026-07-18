@@ -75,6 +75,8 @@ using Koralytics.Application.Services.Scouter.ScouterFollowService;
 using Koralytics.Application.Services.Scouter.ScouterReportService;
 using Koralytics.Application.Services.Scouter.ScouterSearchService;
 using Koralytics.Application.Services.Scouter.ScouterShortlistService;
+using Koralytics.Application.Interfaces.Analytics;
+using Koralytics.Application.Services.Analytics;
 using StackExchange.Redis;
 
 namespace Koralytics.API
@@ -236,6 +238,19 @@ namespace Koralytics.API
             builder.Services.AddScoped<IScouterFollowService, ScouterFollowService>();
             builder.Services.AddScoped<IScouterReportService, ScouterReportService>();
             builder.Services.AddScoped<IStorageService, StorageService>();
+
+            // --- Langflow AI Player Search ---
+            builder.Services.Configure<LangflowOptions>(
+                builder.Configuration.GetSection(LangflowOptions.SectionName));
+            builder.Services.AddHttpClient("Langflow", (sp, client) =>
+            {
+                var langflowBaseUrl = builder.Configuration["Langflow:BaseUrl"]
+                    ?? throw new InvalidOperationException("Langflow:BaseUrl is missing from configuration.");
+                client.BaseAddress = new Uri(langflowBaseUrl);
+                client.Timeout = TimeSpan.FromSeconds(120); // AI queries may take time
+            });
+            builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
+
             builder.Services.AddSignalR();
             builder.Services.AddScoped<IRealTimeBridge, RealTimeBridge>();
             builder.Services.AddScoped<IPlayerNotificationService, PlayerNotificationService>();
