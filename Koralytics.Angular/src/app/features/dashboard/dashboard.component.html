@@ -1,0 +1,23 @@
+<div class="dashboard-container">
+  <div class="welcome-card" *ngIf="authService.currentUser$ | async as user">
+    
+    <div class="avatar-circle">
+      {{ user.fullName ? user.fullName[0].toUpperCase() : 'U' }}
+    </div>
+    
+    <div class="user-info">
+      <h1>Welcome back, <span class="accent-text">{{ user.fullName || user.userName }}</span></h1>
+      <p class="email">{{ user.email }}</p>
+      
+      <div class="roles">
+        <span class="role-badge" *ngFor="let role of user.roles">{{ role }}</span>
+      </div>
+    </div>
+
+    <div class="actions">
+      <app-button variant="slate" routerLink="/settings/change-password">Change Password</app-button>
+      <app-button variant="coral" (click)="logout()">Sign Out</app-button>
+    </div>
+
+  </div>
+</div>

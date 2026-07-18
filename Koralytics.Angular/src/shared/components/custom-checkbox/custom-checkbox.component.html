@@ -1,0 +1,9 @@
+<label class="checkbox-container" [class.disabled]="disabled">
+  <input 
+    type="checkbox" 
+    [checked]="checked" 
+    [disabled]="disabled"
+    (change)="toggle()">
+  <span class="checkmark"></span>
+  <span class="label-text" *ngIf="label">{{ label }}</span>
+</label>

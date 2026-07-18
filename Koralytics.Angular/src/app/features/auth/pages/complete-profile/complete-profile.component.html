@@ -1,0 +1,83 @@
+<div class="auth-card-content">
+  <div class="header">
+    <h2>Complete your profile</h2>
+    <p>We just need a few more details to set up your account.</p>
+  </div>
+
+  <app-stepper [steps]="steps" [currentStep]="currentStep" (stepClick)="onStepClick($event)"></app-stepper>
+
+  <div class="step-content">
+    
+    <!-- Step 1: Role -->
+    <div *ngIf="currentStep === 0" class="role-grid">
+      <div 
+        *ngFor="let role of roles" 
+        class="role-card" 
+        [class.selected]="selectedRole === role.id"
+        (click)="selectRole(role.id)">
+        <div class="role-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="role.icon"/>
+          </svg>
+        </div>
+        <div class="role-info">
+          <h3>{{ role.name }}</h3>
+          <p>{{ role.desc }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Details -->
+    <div *ngIf="currentStep === 1">
+      
+      <div [formGroup]="baseForm" class="form-grid">
+        <app-text-input label="Username" formControlName="userName" [errorMessage]="baseError('userName')" class="full-width"></app-text-input>
+        <app-text-input label="Phone Number" formControlName="phoneNumber" [errorMessage]="baseError('phoneNumber')" class="full-width"></app-text-input>
+      </div>
+
+      <div *ngIf="selectedRole === 'Player'" [formGroup]="playerForm" class="form-grid" style="margin-top: 16px;">
+        <app-date-picker label="Date of Birth" formControlName="dateOfBirth" [errorMessage]="playerError('dateOfBirth')" class="full-width"></app-date-picker>
+        <app-text-input label="Nationality" formControlName="nationality" class="full-width"></app-text-input>
+        <app-select label="Preferred Foot" [options]="footOptions" formControlName="preferredFoot"></app-select>
+        <app-select label="Weak Foot Rating" [options]="ratingOptions" formControlName="weakFootRating"></app-select>
+      </div>
+
+      <div *ngIf="selectedRole === 'Parent'" [formGroup]="parentForm" class="form-grid" style="margin-top: 16px;">
+        <app-text-input label="Child Player ID" type="number" formControlName="childPlayerId" [errorMessage]="parentError('childPlayerId')" class="full-width"></app-text-input>
+        <p class="help-text">You can find the Player ID in the player's dashboard settings.</p>
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="action-buttons">
+    <app-button 
+      *ngIf="currentStep > 0" 
+      type="button" 
+      variant="slate" 
+      (click)="prevStep()"
+      [disabled]="isLoading">
+      Back
+    </app-button>
+    
+    <app-button 
+      *ngIf="currentStep < 1" 
+      type="button" 
+      variant="accent" 
+      (click)="nextStep()"
+      class="full-width-btn">
+      Continue
+    </app-button>
+
+    <app-button 
+      *ngIf="currentStep === 1" 
+      type="button" 
+      variant="accent" 
+      (click)="onSubmit()"
+      [loading]="isLoading">
+      Complete Profile
+    </app-button>
+  </div>
+
+</div>

@@ -360,7 +360,7 @@ namespace Koralytics.Application.Services.Auth.Login
 
             var frontendUrl = _configuration["FrontendBaseUrl"] ?? "http://localhost:3000";
             var separator = frontendUrl.Contains('?') ? "&" : "?";
-            var finalUrl = $"{frontendUrl}/reset-password{separator}email={Uri.EscapeDataString(request.Email)}&token={encodedToken}";
+            var finalUrl = $"{frontendUrl}/auth/reset-password{separator}email={Uri.EscapeDataString(request.Email)}&token={encodedToken}";
 
             await _emailService.SendPasswordResetAsync(user.Email!, user.FirstName ?? user.UserName!, finalUrl);
         }

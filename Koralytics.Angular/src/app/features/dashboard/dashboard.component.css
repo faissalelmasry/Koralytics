@@ -1,0 +1,85 @@
+:host {
+  display: block;
+}
+
+.dashboard-container {
+  display: flex;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+.welcome-card {
+  background: var(--bg-input, rgba(20, 23, 28, 0.6));
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.07));
+  border-radius: 18px;
+  padding: 40px;
+  backdrop-filter: blur(12px);
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 24px;
+}
+
+.avatar-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--accent-lime, #c8ff4d);
+  color: #0a0c0f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 36px;
+  margin-bottom: 8px;
+}
+
+.user-info h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 36px;
+  color: var(--text-light, #f2f3f5);
+  margin: 0 0 8px;
+  letter-spacing: 0.5px;
+}
+
+.accent-text {
+  color: var(--accent-lime, #c8ff4d);
+}
+
+.email {
+  color: var(--text-dim, #8b909a);
+  margin: 0 0 16px;
+  font-size: 14px;
+}
+
+.roles {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.role-badge {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 4px 12px;
+  border-radius: 99px;
+  font-size: 12px;
+  color: var(--text-light, #f2f3f5);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 16px;
+  width: 100%;
+}
+
+.actions app-button {
+  flex: 1;
+}

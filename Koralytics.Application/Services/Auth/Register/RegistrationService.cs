@@ -268,7 +268,7 @@ namespace Koralytics.Application.Services.Auth.Register
             
             var frontendUrl = _configuration["FrontendBaseUrl"] ?? "http://localhost:3000";
             var separator = frontendUrl.Contains('?') ? "&" : "?";
-            var finalUrl = $"{frontendUrl}/confirm-email{separator}userId={userId}&token={encodedToken}";
+            var finalUrl = $"{frontendUrl}/auth/confirm-email{separator}userId={userId}&token={encodedToken}";
 
             await _emailService.SendAccountConfirmationAsync(user.Email!, user.FirstName ?? user.UserName!, finalUrl);
         }

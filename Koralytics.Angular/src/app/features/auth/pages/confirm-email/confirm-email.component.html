@@ -1,0 +1,75 @@
+<div class="auth-card-content text-center">
+  
+  <!-- Awaiting Mode -->
+  <ng-container *ngIf="mode === 'awaiting'">
+    <div class="icon-container pulse-animation">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+      </svg>
+    </div>
+    
+    <div class="header">
+      <h2>Check your inbox</h2>
+      <p>We've sent a confirmation link to your email address. Please click the link to verify your account.</p>
+    </div>
+
+    <div class="action-buttons">
+      <app-button variant="accent" [loading]="isResending" (click)="resendEmail()" class="full-width">
+        Resend Email
+      </app-button>
+    </div>
+  </ng-container>
+
+  <!-- Confirming Mode -->
+  <ng-container *ngIf="mode === 'confirming'">
+    <div class="icon-container spin-animation">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+      </svg>
+    </div>
+    
+    <div class="header">
+      <h2>Verifying your email</h2>
+      <p>Please wait a moment while we verify your account...</p>
+    </div>
+  </ng-container>
+
+  <!-- Success Mode -->
+  <ng-container *ngIf="mode === 'success'">
+    <div class="icon-container success-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+      </svg>
+    </div>
+    
+    <div class="header">
+      <h2>Email verified!</h2>
+      <p>Your account is now fully active. Redirecting to login...</p>
+    </div>
+  </ng-container>
+
+  <!-- Error Mode -->
+  <ng-container *ngIf="mode === 'error'">
+    <div class="icon-container error-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </div>
+    
+    <div class="header">
+      <h2>Verification failed</h2>
+      <p>The confirmation link may be invalid or expired.</p>
+    </div>
+
+    <div class="action-buttons">
+      <app-button variant="accent" routerLink="/auth/login" class="full-width">
+        Back to Login
+      </app-button>
+    </div>
+  </ng-container>
+
+  <div class="footer-text" *ngIf="mode === 'awaiting' || mode === 'error'">
+    <a routerLink="/auth/login">Back to log in</a>
+  </div>
+
+</div>

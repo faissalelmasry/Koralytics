@@ -1,0 +1,62 @@
+/* Shared Styles for Authentication Pages */
+.auth-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.auth-card-content .header h2 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 32px;
+  color: var(--text-light, #f2f3f5);
+  margin: 0 0 8px;
+  letter-spacing: 0.5px;
+}
+
+.auth-card-content .header p {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: var(--text-dim, #8b909a);
+  margin: 0;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.full-width-btn {
+  width: 100%;
+}
+
+.footer-text {
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-dim, #8b909a);
+  margin-top: 8px;
+}
+
+.footer-text a {
+  color: var(--accent-lime, #c8ff4d);
+  text-decoration: none;
+  font-weight: 600;
+  margin-left: 4px;
+  transition: opacity 0.2s ease;
+}
+
+.footer-text a:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}
+
+.password-group {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.password-container {
+  display: flex;
+  flex-direction: column;
+}
