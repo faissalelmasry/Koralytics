@@ -1,7 +1,6 @@
 :host {
   display: block;
   width: 100%;
-  max-width: 400px;
   --bg-input: rgba(20, 23, 28, 0.6); 
   --border-color: rgba(255, 255, 255, 0.07);
   --accent-lime: #c8ff4d;
@@ -71,6 +70,33 @@
   -webkit-box-shadow: 0 0 0 1000px #14171c inset !important;
   -webkit-text-fill-color: var(--text-light) !important;
   transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Hide native browser password reveal icons */
+.custom-field::-ms-reveal,
+.custom-field::-ms-clear {
+  display: none !important;
+}
+
+.custom-field::-webkit-contacts-auto-fill-button,
+.custom-field::-webkit-credentials-auto-fill-button {
+  visibility: hidden;
+  display: none !important;
+  pointer-events: none;
+  height: 0;
+  width: 0;
+  margin: 0;
+}
+
+/* Hide native number input spin buttons */
+.custom-field::-webkit-outer-spin-button,
+.custom-field::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.custom-field[type=number] {
+  -moz-appearance: textfield; /* Firefox */
 }
 
 .custom-field:focus ~ .floating-label,

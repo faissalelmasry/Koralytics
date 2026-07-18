@@ -2,16 +2,20 @@
   
   <div class="date-control-wrapper" [class.opened]="isOpen" (click)="toggleCalendar()">
     
-    <div class="selected-date-display">
-      {{ value }}
-    </div>
+    <input 
+      type="text" 
+      class="selected-date-input" 
+      [value]="value" 
+      (input)="onManualInput($event)" 
+      placeholder="YYYY-MM-DD"
+      [disabled]="disabled">
     
     <label class="floating-label" [class.raised]="isOpen || value !== ''">
       {{ label }}
     </label>
 
     <!-- Calendar Icon -->
-    <div class="calendar-icon-wrapper">
+    <div class="calendar-icon-wrapper" (click)="$event.stopPropagation(); toggleCalendar()">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="calendar-icon">
         <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
       </svg>
@@ -27,8 +31,13 @@
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" /></svg>
       </button>
       
-      <div class="current-month-year">
-        {{ monthNames[viewDate.getMonth()] }} {{ viewDate.getFullYear() }}
+      <div class="current-month-year-dropdowns" (click)="$event.stopPropagation()">
+        <select class="cyber-select" [value]="viewDate.getMonth()" (change)="onMonthChange($event)">
+          <option *ngFor="let m of monthNames; let i = index" [value]="i">{{ m }}</option>
+        </select>
+        <select class="cyber-select" [value]="viewDate.getFullYear()" (change)="onYearChange($event)">
+          <option *ngFor="let y of years" [value]="y">{{ y }}</option>
+        </select>
       </div>
       
       <button class="nav-btn" (click)="nextMonth($event)">

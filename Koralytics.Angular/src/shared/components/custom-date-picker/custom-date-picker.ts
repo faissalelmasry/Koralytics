@@ -1,14 +1,22 @@
-import { Component, Input, Output, EventEmitter, HostListener, ElementRef, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, HostListener, ElementRef, OnInit, forwardRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 @Component({
   selector: 'app-date-picker',
   standalone: true,
   imports: [CommonModule],
   templateUrl: './custom-date-picker.html',
-  styleUrls: ['./custom-date-picker.css']
+  styleUrls: ['./custom-date-picker.css'],
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => CustomDatePicker),
+      multi: true
+    }
+  ]
 })
-export class CustomDatePicker implements OnInit {
+export class CustomDatePicker implements OnInit, ControlValueAccessor {
   @Input() label: string = 'select date';
   @Input() errorMessage: string = '';
   @Input() disabled: boolean = false;
@@ -23,25 +31,61 @@ export class CustomDatePicker implements OnInit {
   viewDate: Date = new Date();
   daysInMonth: number[] = [];
   blankDays: number[] = [];
-  monthNames = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
-  dayNames = ['su', 'mo', 'tu', 'we', 'th', 'fr', 'sa'];
+  monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  dayNames = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+  years: number[] = [];
+
+  onChange: any = () => {};
+  onTouch: any = () => {};
 
   constructor(private elementRef: ElementRef) {}
 
   ngOnInit() {
+    const currentYear = new Date().getFullYear();
+    for (let y = currentYear - 80; y <= currentYear + 10; y++) {
+      this.years.push(y);
+    }
+
     if (this.value) {
       this.viewDate = new Date(this.value);
     }
     this.renderCalendar();
   }
 
+  writeValue(value: any): void {
+    if (value !== undefined && value !== null) {
+      this.value = value;
+      const d = new Date(this.value);
+      if (!isNaN(d.getTime())) {
+        this.viewDate = d;
+      }
+      this.renderCalendar();
+    }
+  }
+
+  registerOnChange(fn: any): void {
+    this.onChange = fn;
+  }
+
+  registerOnTouched(fn: any): void {
+    this.onTouch = fn;
+  }
+
+  setDisabledState?(isDisabled: boolean): void {
+    this.disabled = isDisabled;
+  }
+
   toggleCalendar() {
     if (!this.disabled) {
       this.isOpen = !this.isOpen;
       if (this.isOpen && this.value) {
-        this.viewDate = new Date(this.value);
+        const d = new Date(this.value);
+        if (!isNaN(d.getTime())) {
+          this.viewDate = d;
+        }
       }
       this.renderCalendar();
+      this.onTouch();
     }
   }
 
@@ -68,6 +112,33 @@ export class CustomDatePicker implements OnInit {
     this.renderCalendar();
   }
 
+  onMonthChange(event: any) {
+    this.viewDate = new Date(this.viewDate.getFullYear(), parseInt(event.target.value), 1);
+    this.renderCalendar();
+  }
+
+  onYearChange(event: any) {
+    this.viewDate = new Date(parseInt(event.target.value), this.viewDate.getMonth(), 1);
+    this.renderCalendar();
+  }
+
+  onManualInput(event: any) {
+    const val = event.target.value;
+    this.value = val;
+    this.valueChange.emit(this.value);
+    this.onChange(this.value);
+    this.onTouch();
+    
+    // Auto-update calendar if typing is a valid date (YYYY-MM-DD)
+    if (/^\d{4}-\d{2}-\d{2}$/.test(val)) {
+      const d = new Date(val);
+      if (!isNaN(d.getTime())) {
+        this.viewDate = d;
+        this.renderCalendar();
+      }
+    }
+  }
+
   selectDay(day: number, event: Event) {
     event.stopPropagation();
     const selected = new Date(this.viewDate.getFullYear(), this.viewDate.getMonth(), day);
@@ -77,6 +148,8 @@ export class CustomDatePicker implements OnInit {
     this.value = localSelected.toISOString().split('T')[0];
     
     this.valueChange.emit(this.value);
+    this.onChange(this.value);
+    this.onTouch();
     this.isOpen = false;
   }
 
@@ -90,6 +163,7 @@ export class CustomDatePicker implements OnInit {
   isSelected(day: number): boolean {
     if (!this.value) return false;
     const selected = new Date(this.value);
+    if (isNaN(selected.getTime())) return false;
     return selected.getDate() === day &&
            selected.getMonth() === this.viewDate.getMonth() &&
            selected.getFullYear() === this.viewDate.getFullYear();

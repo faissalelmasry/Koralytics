@@ -1,0 +1,97 @@
+<div class="auth-card-content">
+  <div class="header">
+    <h2>Create account</h2>
+    <p>Join Koralytics to analyze and manage performance.</p>
+  </div>
+
+  <app-stepper [steps]="steps" [currentStep]="currentStep" (stepClick)="onStepClick($event)"></app-stepper>
+
+  <div class="step-content">
+    
+    <!-- Step 1: Role -->
+    <div *ngIf="currentStep === 0" class="role-grid">
+      <div 
+        *ngFor="let role of roles" 
+        class="role-card" 
+        [class.selected]="selectedRole === role.id"
+        (click)="selectRole(role.id)">
+        <div class="role-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="role.icon"/>
+          </svg>
+        </div>
+        <div class="role-info">
+          <h3>{{ role.name }}</h3>
+          <p>{{ role.desc }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Base Details -->
+    <div *ngIf="currentStep === 1" [formGroup]="baseForm" class="form-grid">
+      <app-text-input label="First Name" formControlName="firstName" [errorMessage]="baseError('firstName')"></app-text-input>
+      <app-text-input label="Last Name" formControlName="lastName" [errorMessage]="baseError('lastName')"></app-text-input>
+      <app-text-input label="Username" formControlName="userName" [errorMessage]="baseError('userName')" class="full-width"></app-text-input>
+      <app-text-input label="Email Address" type="email" formControlName="email" [errorMessage]="baseError('email')" class="full-width"></app-text-input>
+      <app-text-input label="Phone Number" formControlName="phoneNumber" [errorMessage]="baseError('phoneNumber')" class="full-width"></app-text-input>
+      
+      <div class="full-width password-container">
+        <app-text-input label="Password" type="password" formControlName="password" [errorMessage]="baseError('password')"></app-text-input>
+        <app-password-strength [password]="baseForm.get('password')?.value || ''"></app-password-strength>
+      </div>
+      
+      <app-text-input label="Confirm Password" type="password" formControlName="confirmPassword" [errorMessage]="baseForm.errors?.['mismatch'] && baseForm.get('confirmPassword')?.touched ? 'Passwords do not match' : baseError('confirmPassword')" class="full-width"></app-text-input>
+    </div>
+
+    <!-- Step 3: Role Specific -->
+    <div *ngIf="currentStep === 2">
+      
+      <div *ngIf="selectedRole === 'Player'" [formGroup]="playerForm" class="form-grid">
+        <app-date-picker label="Date of Birth" formControlName="dateOfBirth" [errorMessage]="playerError('dateOfBirth')" class="full-width"></app-date-picker>
+        <app-text-input label="Nationality" formControlName="nationality" class="full-width"></app-text-input>
+        <app-select label="Preferred Foot" [options]="footOptions" formControlName="preferredFoot"></app-select>
+        <app-select label="Weak Foot Rating" [options]="ratingOptions" formControlName="weakFootRating"></app-select>
+      </div>
+
+      <div *ngIf="selectedRole === 'Parent'" [formGroup]="parentForm" class="form-grid">
+        <app-text-input label="Child Player ID" type="number" formControlName="childPlayerId" [errorMessage]="parentError('childPlayerId')" class="full-width"></app-text-input>
+        <p class="help-text">You can find the Player ID in the player's dashboard settings.</p>
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="action-buttons">
+    <app-button 
+      *ngIf="currentStep > 0" 
+      type="button" 
+      variant="slate" 
+      (click)="prevStep()"
+      [disabled]="isLoading">
+      Back
+    </app-button>
+    
+    <app-button 
+      *ngIf="currentStep < 2 && !(currentStep === 1 && ['Coach', 'Scouter', 'AcademyAdmin'].includes(selectedRole || ''))" 
+      type="button" 
+      variant="accent" 
+      (click)="nextStep()"
+      [class.full-width-btn]="currentStep === 0">
+      Continue
+    </app-button>
+
+    <app-button 
+      *ngIf="currentStep === 2 || (currentStep === 1 && ['Coach', 'Scouter', 'AcademyAdmin'].includes(selectedRole || ''))" 
+      type="button" 
+      variant="accent" 
+      (click)="onSubmit()"
+      [loading]="isLoading">
+      Create Account
+    </app-button>
+  </div>
+
+  <div class="footer-text" *ngIf="currentStep === 0">
+    Already have an account? <a routerLink="/auth/login">Log in</a>
+  </div>
+</div>

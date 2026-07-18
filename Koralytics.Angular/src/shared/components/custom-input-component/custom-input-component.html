@@ -4,15 +4,14 @@
     
     <input 
       [type]="currentInputType"
-      [(ngModel)]="value"
-      (input)="onInput()"
+      [value]="value"
+      (input)="onInput($event)"
       (focus)="onFocus()"
       (blur)="onBlur()"
       [disabled]="disabled"
       placeholder=" "
       autocomplete="one-time-code"
       name="bfa-secure-field"
-      id="bfa-field"
       autocorrect="off" 
       autocapitalize="off" 
       spellcheck="false"

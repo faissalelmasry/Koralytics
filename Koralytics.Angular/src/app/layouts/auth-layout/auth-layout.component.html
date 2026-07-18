@@ -1,0 +1,44 @@
+<div class="loader" *ngIf="showLoader" [class.hide]="isLoaded">
+  <div class="loader-mark">K</div>
+  <div class="loader-name">Koralytics</div>
+  <div class="loader-bar"><span></span></div>
+</div>
+
+<div class="aurora" [class.loaded]="isLoaded">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
+</div>
+<div class="grain-lines"></div>
+
+<app-navbar class="auth-nav" [class.loaded]="isLoaded"></app-navbar>
+
+<main [class.loaded]="isLoaded">
+  <div class="stage">
+    <div class="pitch">
+      <span class="eyebrow">club performance platform</span>
+      <h1>Every rep,<br>every game,<br>one clear <span class="grad-text">picture.</span></h1>
+      <p>Track attendance, performance and retention across every team you manage — in one dashboard.</p>
+      <div class="stat-row">
+        <div>
+          <p>12k+</p>
+          <p>athletes tracked</p>
+        </div>
+        <div>
+          <p>300+</p>
+          <p>clubs onboard</p>
+        </div>
+        <div>
+          <p>98%</p>
+          <p>uptime</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-wrap">
+      <div class="card" id="tiltCard" #tiltCard>
+        <router-outlet></router-outlet>
+      </div>
+    </div>
+  </div>
+</main>

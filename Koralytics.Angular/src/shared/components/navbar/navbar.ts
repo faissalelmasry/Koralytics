@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, HostListener } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
@@ -13,6 +13,12 @@ export class NavbarComponent {
   variant = signal<'primary' | 'icon'>('icon'); 
   
   isSidebarOpen = false;
+  isScrolled = false;
+
+  @HostListener('window:scroll', [])
+  onWindowScroll() {
+    this.isScrolled = window.scrollY > 20;
+  }
 
   toggleSidebar(status: boolean) {
     this.isSidebarOpen = status;
