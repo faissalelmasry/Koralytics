@@ -1,0 +1,131 @@
+:host {
+  display: block;
+}
+
+
+
+.step-content {
+  min-height: 280px;
+  animation: fade .4s ease;
+}
+
+@keyframes fade {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Role Grid */
+.role-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 380px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.role-grid::-webkit-scrollbar {
+  width: 6px;
+}
+.role-grid::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.role-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--bg-input, rgba(20, 23, 28, 0.6));
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.07));
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.role-card:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.role-card.selected {
+  background: rgba(200, 255, 77, 0.05);
+  border-color: var(--accent-lime, #c8ff4d);
+  box-shadow: 0 0 20px rgba(200, 255, 77, 0.1);
+}
+
+.role-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-dim, #8b909a);
+  transition: all 0.25s ease;
+  flex-shrink: 0;
+}
+
+.role-card.selected .role-icon {
+  background: var(--accent-lime, #c8ff4d);
+  color: #0a0c0f;
+}
+
+.role-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.role-info h3 {
+  margin: 0 0 4px;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-light, #f2f3f5);
+  transition: color 0.25s ease;
+}
+
+.role-card.selected .role-info h3 {
+  color: var(--accent-lime, #c8ff4d);
+}
+
+.role-info p {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  color: var(--text-dim, #8b909a);
+}
+
+/* Form Grids */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.full-width {
+  grid-column: 1 / -1;
+}
+
+
+
+.help-text {
+  font-size: 12px;
+  color: var(--text-dim, #8b909a);
+  margin: 0;
+  grid-column: 1 / -1;
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.action-buttons app-button {
+  flex: 1;
+}
+

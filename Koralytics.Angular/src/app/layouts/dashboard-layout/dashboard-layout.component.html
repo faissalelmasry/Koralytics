@@ -1,0 +1,36 @@
+<app-navbar></app-navbar>
+
+<div class="bfa-cyber-pitch-wrapper">
+  
+  <div class="bfa-blob bfa-blob-lime"></div>
+  <div class="bfa-blob bfa-blob-cyan"></div>
+
+  <div class="bfa-pitch-container">
+    <svg viewBox="0 0 1000 600" preserveAspectRatio="none" class="bfa-pitch-svg">
+      <rect x="20" y="20" width="960" height="560" class="pitch-line standard-line"/>
+      <line x1="500" y1="20" x2="500" y2="580" class="pitch-line standard-line"/>
+      <circle cx="500" cy="300" r="90" class="pitch-line dashed-line"/>
+      <circle cx="500" cy="300" r="4" class="pitch-spot"/>
+      <rect x="20" y="150" width="160" height="300" class="pitch-line standard-line"/>
+      <rect x="20" y="220" width="60" height="160" class="pitch-line standard-line"/>
+      <circle cx="180" cy="300" r="4" class="pitch-spot"/>
+      <path d="M 180 250 A 90 90 0 0 1 180 350" class="pitch-line dashed-line"/>
+      <rect x="820" y="150" width="160" height="300" class="pitch-line standard-line"/>
+      <rect x="920" y="220" width="60" height="160" class="pitch-line standard-line"/>
+      <circle cx="820" cy="300" r="4" class="pitch-spot"/>
+      <path d="M 820 250 A 90 90 0 0 0 820 350" class="pitch-line dashed-line"/>
+      <path d="M 20 40 A 20 20 0 0 0 40 20" class="pitch-line standard-line"/>
+      <path d="M 20 560 A 20 20 0 0 1 40 580" class="pitch-line standard-line"/>
+      <path d="M 980 40 A 20 20 0 0 1 960 20" class="pitch-line standard-line"/>
+      <path d="M 980 560 A 20 20 0 0 0 960 580" class="pitch-line standard-line"/>
+    </svg>
+  </div>
+
+  <div class="app-main-layout content-ready">
+    <main class="main-content">
+      <router-outlet></router-outlet>
+    </main>
+    <app-footer></app-footer>
+  </div>
+
+</div>

@@ -38,12 +38,24 @@
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-.selected-date-display {
+.selected-date-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
   color: var(--text-light);
   font-family: 'Inter', sans-serif;
   font-size: 14px;
   font-weight: 500;
   padding-top: 14px;
+  width: 100%;
+}
+.selected-date-input::placeholder {
+  color: var(--text-dim);
+  opacity: 0;
+}
+.date-control-wrapper.opened .selected-date-input::placeholder {
+  opacity: 0.5;
 }
 
 .floating-label {
@@ -123,12 +135,32 @@
   margin-bottom: 16px;
 }
 
-.current-month-year {
+.current-month-year-dropdowns {
+  display: flex;
+  gap: 8px;
+}
+
+.cyber-select {
+  background: rgba(20, 23, 28, 0.8);
+  border: 1px solid var(--border-color);
   color: var(--text-light);
   font-family: 'Inter', sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  text-transform: lowercase;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 6px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.cyber-select:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.cyber-select option {
+  background: #14171c;
+  color: var(--text-light);
 }
 
 .nav-btn {

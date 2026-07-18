@@ -1,0 +1,14 @@
+<div class="stepper-container">
+  <ng-container *ngFor="let step of steps; let i = index; let last = last">
+    <div class="step" [class.active]="i === currentStep" [class.completed]="i < currentStep" (click)="onStepClick(i)">
+      <div class="step-indicator">
+        <span *ngIf="i >= currentStep">{{ i + 1 }}</span>
+        <svg *ngIf="i < currentStep" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </div>
+      <div class="step-label">{{ step }}</div>
+    </div>
+    <div class="step-connector" *ngIf="!last" [class.completed]="i < currentStep"></div>
+  </ng-container>
+</div>

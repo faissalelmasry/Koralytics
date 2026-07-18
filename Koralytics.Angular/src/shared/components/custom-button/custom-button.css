@@ -100,7 +100,7 @@
 
 /* Pressed Click State */
 .custom-btn:active {
-  transform: scale(0.95) translateY(0) !important;
+  transform: scale(0.98) !important;
 }
 
 /* ---------- Custom Icon Spinner Mechanics ---------- */

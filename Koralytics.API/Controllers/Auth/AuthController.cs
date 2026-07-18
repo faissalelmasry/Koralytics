@@ -111,7 +111,7 @@ namespace Koralytics.API.Controllers.Auth
             }
 
             _cookieService.SetAuthCookies(Response, result.AuthResult!.Tokens);
-            return OkResponse(result.AuthResult.User, "OAuth login successful");
+            return OkResponse(result, "OAuth login successful");
         }
 
         [Authorize]

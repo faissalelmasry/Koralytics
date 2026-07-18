@@ -25,19 +25,14 @@ export class CustomButtonComponent {
     const px = (e.clientX - rect.left) / rect.width;
     const py = (e.clientY - rect.top) / rect.height;
     
-    const rotateY = (px - 0.5) * 20; // 3leina el-angle le transitions a2wa
-    const rotateX = (0.5 - py) * 20; 
-
     const btn = this.btnElement.nativeElement;
-    btn.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px) scale(1.03)`;
     btn.style.setProperty('--mx', `${px * 100}%`);
     btn.style.setProperty('--my', `${py * 100}%`);
   }
 
   @HostListener('mouseleave')
   onMouseLeave() {
-    const btn = this.btnElement.nativeElement;
-    btn.style.transform = 'rotateX(0deg) rotateY(0deg) translateY(0) scale(1)';
+    // Reset properties if needed
   }
 
   // ---------- Dynamic Ripple Click ----------
