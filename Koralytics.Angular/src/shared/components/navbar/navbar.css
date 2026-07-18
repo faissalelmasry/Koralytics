@@ -21,7 +21,6 @@ header {
   justify-content: space-between;
   padding: 8px clamp(20px, 5vw, 64px);
   
-  /* Transparent initial state */
   background: transparent;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
@@ -29,20 +28,15 @@ header {
   
   opacity: 0; 
   animation: fadeDown .6s ease forwards;
-  transition: background 0.3s ease, backdrop-filter 0.3s ease, border-color 0.3s ease, padding 0.3s ease;
-}
-
-header.scrolled {
-  background: rgba(10, 12, 15, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--card-border);
-  padding: 8px clamp(20px, 5vw, 64px);
 }
 
 @media (max-width: 768px) {
-  nav {
-    display: none !important;
+  header {
+    padding: 8px clamp(12px, 3vw, 24px);
+  }
+  nav a {
+    font-size: 12px;
+    margin-left: 12px;
   }
   .logo-wrapper img {
     max-height: 48px;
@@ -64,7 +58,6 @@ header.scrolled {
   max-height: 94px; 
   width: auto;
   display: block;
-  mix-blend-mode: screen;
 }
 
 .floating-sidebar-trigger {
@@ -91,7 +84,6 @@ header.scrolled {
   max-height: 32px;
   width: auto;
   display: block;
-  mix-blend-mode: screen;
   transition: transform 0.5s cubic-bezier(.2, .8, .2, 1), filter 0.3s ease;
 }
 
@@ -101,7 +93,7 @@ header.scrolled {
 }
 
 .floating-sidebar-trigger.sidebar-open {
-  left: 300px; 
+  left: min(300px, 85vw); 
 }
 
 .floating-sidebar-trigger.sidebar-open .trigger-icon {
@@ -122,7 +114,7 @@ nav a:hover::after, nav a.active::after { transform: scaleX(1); }
 
 .sidebar-backdrop {
   position: fixed; inset: 0; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(4px);
-  z-index: 999; opacity: 0; pointer-events: none; transition: opacity 0.4s cubic-bezier(.2, .8, .2, 1);
+  z-index: 1199; opacity: 0; pointer-events: none; transition: opacity 0.4s cubic-bezier(.2, .8, .2, 1);
 }
 .sidebar-backdrop.active { opacity: 1; pointer-events: auto; }
 
@@ -131,21 +123,22 @@ nav a:hover::after, nav a.active::after { transform: scaleX(1); }
   top: 0; 
   left: 0; 
   bottom: 0;
-  width: 300px;
-  background: linear-gradient(180deg, rgba(20, 23, 28, 0.95), rgba(10, 12, 15, 0.98));
+  width: min(300px, 85vw);
+  background: linear-gradient(180deg, rgba(20, 23, 28, 0.98), rgba(10, 12, 15, 0.99));
   border-right: 1px solid var(--card-border); 
   box-shadow: 40px 0 60px rgba(0, 0, 0, 0.5);
-  z-index: 1000; 
+  z-index: 1200; 
   display: flex; 
   flex-direction: column; 
   padding: 24px;
+  overflow-y: auto;
   transform: translateX(-100%); 
   transition: transform 0.4s cubic-bezier(.2, .8, .2, 1);
 }
 .sidebar-container.open { transform: translateX(0); }
 
 .sidebar-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 48px; }
-.sidebar-logo { max-height: 40px; width: auto; mix-blend-mode: screen; }
+.sidebar-logo { max-height: 40px; width: auto; }
 
 .close-btn {
   background: none; border: none; color: var(--text-dim); font-size: 32px; cursor: pointer; line-height: 1;
@@ -156,6 +149,7 @@ nav a:hover::after, nav a.active::after { transform: scaleX(1); }
 .sidebar-nav { display: flex; flex-direction: column; gap: 24px; }
 .sidebar-nav a {
   font-size: 18px; color: var(--text-dim); text-decoration: none; font-family: 'Inter', sans-serif;
-  text-transform: lowercase; margin-left: 0; transition: padding-left 0.25s ease, color 0.25s ease;
+  text-transform: lowercase; margin-left: 0; width: 100%;
+  transition: padding-left 0.25s ease, color 0.25s ease;
 }
 .sidebar-nav a:hover, .sidebar-nav a.active { color: var(--text); padding-left: 8px; }

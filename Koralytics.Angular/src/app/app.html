@@ -1,3 +1,8 @@
+<app-football-pitch></app-football-pitch>
+<app-loading-spinner *ngIf="loading" [fullScreen]="true" size="lg"></app-loading-spinner>
 <app-toast-container></app-toast-container>
 <app-modal-container></app-modal-container>
-<router-outlet></router-outlet>
+
+<div class="app-router-wrapper">
+  <router-outlet></router-outlet>
+</div>

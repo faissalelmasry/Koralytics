@@ -1,15 +1,6 @@
 <div class="loader" *ngIf="showLoader" [class.hide]="isLoaded">
-  <div class="loader-mark">K</div>
-  <div class="loader-name">Koralytics</div>
-  <div class="loader-bar"><span></span></div>
+  <app-loading-spinner size="lg"></app-loading-spinner>
 </div>
-
-<div class="aurora" [class.loaded]="isLoaded">
-  <div class="blob b1"></div>
-  <div class="blob b2"></div>
-  <div class="blob b3"></div>
-</div>
-<div class="grain-lines"></div>
 
 <app-navbar class="auth-nav" [class.loaded]="isLoaded"></app-navbar>
 
