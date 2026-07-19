@@ -27,10 +27,11 @@
   </div>
 
   <div class="app-main-layout content-ready">
-    <main class="main-content">
+    <main class="main-content" scrollReveal direction="bottom">
+      <app-player-card scrollReveal direction="bottom"></app-player-card>
       <router-outlet></router-outlet>
     </main>
-    <app-footer></app-footer>
+    <app-footer scrollReveal direction="bottom" [delay]="200"></app-footer>
   </div>
 
 </div>

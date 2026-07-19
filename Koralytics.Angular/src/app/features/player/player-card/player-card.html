@@ -1,0 +1,105 @@
+@if (isLoading) {
+  <div class="card-loading" style="display:flex;align-items:center;justify-content:center;width:300px;height:460px;">
+    <div class="loading-spinner" style="width:36px;height:36px;border:3px solid rgba(255,255,255,0.1);border-top-color:var(--tier-neon, #c8ff4d);border-radius:50%;animation:spin .8s linear infinite;"></div>
+  </div>
+}
+@else if (error) {
+  <div class="card-error" style="display:flex;align-items:center;justify-content:center;width:300px;height:460px;color:#8b909a;font-family:'Inter',sans-serif;font-size:14px;">
+    {{ error }}
+  </div>
+}
+@else if (player) {
+<div class="scene">
+   <div #cardElement 
+        class="card3d" 
+        [class.tier-base]="tierClass === 'tier-base'"
+        [class.tier-gold]="tierClass === 'tier-gold'"
+        [class.tier-elite]="tierClass === 'tier-elite'"
+        [class.flipped]="isFlipped"
+        (click)="toggleFlip()"
+        (mousemove)="onMouseMove($event)"
+        (mouseleave)="onMouseLeave()">
+
+    <!-- FRONT FACE -->
+    <div class="face front">
+      <div class="top-row">
+        <div class="rating-block">
+          <div class="rating">{{ animatedRating }}</div>
+          <div class="position">{{ player.position }}</div>
+        </div>
+        <div class="crest app-logo"></div>
+      </div>
+
+      <div class="photo-wrap">
+        @if (player.profileImageUrl) {
+          <img [src]="player.profileImageUrl" [alt]="player.playerName" class="photo-img" />
+        } @else {
+          <div class="photo">{{ getInitials(player.playerName) }}</div>
+        }
+      </div>
+
+      <div class="name-band">{{ player.playerName | uppercase }}</div>
+
+      @if (isGK) {
+        <div class="gk-stat-block">
+          <div class="gk-label">GOALKEEEPING</div>
+          <div class="stat-top">
+            <span class="num">0</span>
+            <span class="label">GKP</span>
+          </div>
+          <div class="stat-bar gk-stat-bar">
+            <span class="fill"></span>
+          </div>
+        </div>
+      } 
+      @else {
+        <div class="stats-grid">
+          @for (stat of statsList; track stat.label) {
+            <div class="stat">
+              <div class="stat-top">
+                <span class="num">0</span>
+                <span class="label">{{ stat.label }}</span>
+              </div>
+              <div class="stat-bar">
+                <span class="fill"></span>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <div class="bottom-row">
+        <div class="foot-stars" [attr.aria-label]="'Weak foot rating ' + player.weakFootRating + ' out of 5'">
+          @for (star of stars; track star) {
+            <i [class.on]="star <= player.weakFootRating">&#9733;</i>
+          }
+        </div>
+        <span>{{ player.preferredFoot }}-Foot</span>
+      </div>
+    </div>
+
+    <div class="face back">
+      <h3>{{ player.playerName }}</h3>
+      <p class="sub">{{ player.position }} · Overall-Rating <span>{{ player.overallRating | number:'1.0-0' }}</span></p>
+      
+      <div class="info-row"><span>Classification</span><span>{{ player.transferClassification }}</span></div>
+      @if (player.archetypePlayerName) {
+        <div class="info-row"><span>Play-Style</span><span>{{ player.archetypePlayerName }}</span></div>
+      }
+      @else {
+        <div class="info-row"><span>Play-Style</span><span>Under Evaluation...</span></div>
+      }
+      <div class="info-row"><span>Weak-Foot</span><span>{{ player.weakFootRating }} / 5</span></div>
+      <div class="info-row"><span>Preferred-Foot</span><span>{{ player.preferredFoot }}</span></div>
+      
+    </div>
+
+  </div>
+</div>
+}
+
+<style>
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+</style>

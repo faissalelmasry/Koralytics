@@ -16,7 +16,7 @@ import { FootballPitch } from "../shared/components/football-pitch/football-pitc
     ModalContainerComponent,
     LoadingSpinnerComponent,
     FootballPitch
-  ],
+],
   templateUrl: './app.html',
   styleUrls: ['./app.css']
 })

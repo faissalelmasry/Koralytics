@@ -142,6 +142,34 @@ namespace Koralytics.Application.Services.Player.PlayerCardService
             return null;
         }
 
+        public async Task<List<MiniPlayerCardDto?>> GetMiniPlayerCardsAsync(int[] playerIds)
+        {
+            _logger.LogInformation("Fetching mini player cards for {Count} players", playerIds.Length);
+
+            if (playerIds.Length == 0)
+                return new List<MiniPlayerCardDto?>();
+
+            var cards = await _unitOfWork.Repository<PlayerCard>()
+                .GetQueryableAsNoTracking()
+                .Where(pc => playerIds.Contains(pc.PlayerId))
+                .Select(pc => new MiniPlayerCardDto
+                {
+                    PlayerId = pc.PlayerId,
+                    FullName = pc.Player.FirstName + " " + pc.Player.LastName,
+                    Position = pc.Player.PlayerPositions
+                        .Where(pp => pp.IsPrimary)
+                        .Select(pp => pp.Position)
+                        .FirstOrDefault() ?? string.Empty,
+                    ProfileImageUrl = pc.Player.ProfileImageUrl,
+                    OverallRating = pc.OverallRating
+                })
+                .ToDictionaryAsync(pc => pc.PlayerId);
+
+            return playerIds
+                .Select(id => cards.TryGetValue(id, out var card) ? card : null)
+                .ToList();
+        }
+
         private async Task<PlayerCardDto?> ProjectPlayerCardDtoAsync(int playerId)
         {
             var data = await _unitOfWork.Repository<PlayerCard>()
