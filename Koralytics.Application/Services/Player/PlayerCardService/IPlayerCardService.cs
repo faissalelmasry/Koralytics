@@ -7,5 +7,6 @@ namespace Koralytics.Application.Services.Player.PlayerCardService
         Task<PlayerCardDto> GetPlayerCardAsync(int playerId);
         Task RecalculatePlayerCardAsync(int playerId);
         Task<TransferRateDto?> GetDrillToMatchTransferRateAsync(int playerId);
+        Task<List<MiniPlayerCardDto?>> GetMiniPlayerCardsAsync(int[] playerIds);
     }
 }

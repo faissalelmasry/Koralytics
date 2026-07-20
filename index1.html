@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Player Cards Design Preview</title>
+  <!-- فونت Bebas Neue عشان الأرقام والأسماء تطلع زي فيفا -->
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+  <style>
+    /* ===================================================
+       🎨 إعداد تدرجات الألوان لكل فئة (Tiers)
+       =================================================== */
+
+    /* 1️⃣ التقييم تحت الـ 70 (الرمادي السايبير الأصلي) */
+    .card3d.tier-base {
+      --tier-bg-glow-1: rgba(200, 255, 77, 0.12);
+      --tier-bg-glow-2: rgba(106, 92, 255, 0.15);
+      --tier-neon: #c8ff4d;
+      --tier-border: rgba(42, 47, 56, 0.8);
+      --tier-bar-speed: #ff6a5c;
+    }
+
+    /* 2️⃣ التقييم من 70 لـ 79 (اللون الذهبي/المسفر الشيك) */
+    .card3d.tier-gold {
+      --tier-bg-glow-1: rgba(255, 215, 0, 0.22);
+      --tier-bg-glow-2: rgba(255, 165, 0, 0.08);
+      --tier-neon: #ffd700;
+      --tier-border: rgba(255, 215, 0, 0.35);
+      --tier-bar-speed: #ffa500;
+    }
+
+    /* 3️⃣ التقييم 80 فما فوق (اللون الأسطوري المائل للأورانج) */
+    .card3d.tier-elite {
+      --tier-bg-glow-1: rgba(255, 94, 0, 0.28);
+      --tier-bg-glow-2: rgba(255, 230, 0, 0.12);
+      --tier-neon: #ff6a00;
+      --tier-border: rgba(255, 94, 0, 0.5);
+      --tier-bar-speed: #ff3300;
+    }
+
+    /* ===================================================
+       🛠️ التنسيق الأساسي للمعاينة
+       =================================================== */
+    body {
+      background-color: #0a0c10;
+      margin: 0;
+      padding: 40px 20px;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      gap: 30px;
+    }
+
+    h1 {
+      color: #fff;
+      font-family: 'Bebas Neue', sans-serif;
+      letter-spacing: 2px;
+      margin-bottom: 10px;
+    }
+
+    .cards-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 40px;
+    }
+
+    .scene {
+      width: 320px;
+      height: 460px;
+      perspective: 1200px;
+    }
+
+    .card3d {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+      cursor: pointer;
+    }
+
+    .card3d.flipped {
+      transform: rotateY(180deg) !important;
+    }
+
+    .face {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 24px;
+      padding: 24px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .front {
+      background:
+        radial-gradient(140% 90% at 15% 0%, var(--tier-bg-glow-1), transparent 55%),
+        radial-gradient(120% 90% at 100% 100%, var(--tier-bg-glow-2), transparent 55%),
+        linear-gradient(160deg, #14171c, #0e1013 70%);
+      border: 1px solid var(--tier-border);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.1);
+      color: #fff;
+    }
+
+    .back {
+      background: #111418;
+      border: 1px solid #22252a;
+      transform: rotateY(180deg);
+      color: #fff;
+      justify-content: center;
+    }
+
+    .top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .rating-block {
+      display: flex;
+      flex-direction: column;
+      line-height: 1;
+    }
+
+    .rating {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 54px;
+      font-weight: bold;
+      color: var(--tier-neon);
+      transition: color 0.4s ease;
+    }
+
+    .position {
+      font-size: 16px;
+      font-weight: 800;
+      color: #8b909a;
+      letter-spacing: 1px;
+    }
+
+    .app-logo {
+      width: 40px;
+      height: 40px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 50%;
+      border: 1px dashed rgba(255,255,255,0.2);
+    }
+
+    .photo-wrap {
+      width: 100px;
+      height: 100px;
+      margin: 10px auto;
+      position: relative;
+    }
+
+    .photo {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: #1a1d24;
+      border: 2px solid var(--tier-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      font-weight: bold;
+      color: #fff;
+      transition: border-color 0.4s ease;
+    }
+
+    .name-band {
+      text-align: center;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 26px;
+      letter-spacing: 1px;
+      margin-bottom: 15px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px 20px;
+      margin-bottom: 15px;
+    }
+
+    .stat-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 2px;
+    }
+
+    .stat .num {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--tier-neon);
+    }
+
+    .stat .label {
+      font-size: 11px;
+      color: #8b909a;
+      font-weight: 600;
+    }
+
+    .stat-bar {
+      height: 4px;
+      background: #23272f;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .stat-bar .fill {
+      display: block;
+      height: 100%;
+      background: linear-gradient(90deg, var(--tier-neon), var(--tier-bar-speed));
+      border-radius: 2px;
+      transition: width 1s ease-out;
+    }
+
+    /* 🥅 ستايل الحارس الخاص (GK) */
+    .gk-stat-block {
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      margin-bottom: 15px;
+    }
+
+    .gk-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: #8b909a;
+      letter-spacing: 2px;
+      margin-bottom: 4px;
+      text-align: center;
+    }
+
+    .gk-stat-block .num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 36px;
+      color: var(--tier-neon);
+    }
+
+    .gk-stat-block .label {
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .gk-stat-bar {
+      height: 6px;
+    }
+
+    .gk-stat-bar .fill {
+      background: linear-gradient(90deg, #6a5cff, var(--tier-neon)) !important;
+      transition: width 1s ease-out;
+    }
+
+    .bottom-row {
+      margin-top: auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: #8b909a;
+    }
+
+    .foot-stars {
+      color: #2a2f38;
+    }
+
+    .foot-stars span.on {
+      color: var(--tier-neon);
+    }
+
+    .flip-hint, .back-note {
+      text-align: center;
+      font-size: 10px;
+      color: #4e535e;
+      margin-top: 8px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .back h3 { margin: 0 0 5px 0; font-size: 22px; text-align: center;}
+    .back .sub { text-align: center; color: #8b909a; margin-bottom: 20px; font-size: 14px;}
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #1a1d24;
+      font-size: 14px;
+    }
+    .info-row span:first-child { color: #8b909a; }
+  </style>
+</head>
+<body>
+
+  <h1>Player Card Tiers Preview</h1>
+
+  <div class="cards-container">
+
+    <!-- 1️⃣ كارت اللاعب العادي - تحت 70 (اللون الأصلي السايبير) -->
+    <div class="scene">
+      <div class="card3d tier-base">
+        <div class="face front">
+          <div class="top-row">
+            <div class="rating-block">
+              <div class="rating">64</div>
+              <div class="position">CB</div>
+            </div>
+            <div class="crest app-logo"></div>
+          </div>
+          <div class="photo-wrap">
+            <div class="photo">AM</div>
+          </div>
+          <div class="name-band">AHMED MOSTAFA</div>
+          <div class="stats-grid">
+            <div class="stat"><div class="stat-top"><span class="num">55</span><span class="label">PAC</span></div><div class="stat-bar"><span class="fill" style="width: 55%;"></span></div></div>
+            <div class="stat"><div class="stat-top"><span class="num">50</span><span class="label">DRI</span></div><div class="stat-bar"><span class="fill" style="width: 50%;"></span></div></div>
+            <div class="stat"><div class="stat-top"><span class="num">42</span><span class="label">SHO</span></div><div class="stat-bar"><span class="fill" style="width: 42%;"></span></div></div>
+            <div class="stat"><div class="stat-top"><span class="num">68</span><span class="label">DEF</span></div><div class="stat-bar"><span class="fill" style="width: 68%;"></span></div></div>
+            <div class="stat"><div class="stat-top"><span class="num">58</span><span class="label">PAS</span></div><div class="stat-bar"><span class="fill" style="width: 58%;"></span></div></div>
+            <div class="stat"><div class="stat-top"><span class="num">70</span><span class="label">PHY</span></div><div class="stat-bar"><span class="fill" style="width: 70%;"></span></div></div>
+          </div>
+          <div class="bottom-row">
+            <div class="foot-stars"><span class="on">★</span><span class="on">★</span><span>★</span><span>★</span><span>★</span></div>
+            <span>Right foot</span>
+          </div>
+          <div class="flip-hint">Click to flip</div>
+        </div>
+        <div class="face back">
+          <h3>Ahmed Mostafa</h3>
+          <p class="sub">CB · Overall rating 64</p>
+          <div class="info-row"><span>Classification</span><span>Developing</span></div>
+          <div class="info-row"><span>Weak foot</span><span>2 / 5</span></div>
+          <div class="info-row"><span>Preferred foot</span><span>Right</span></div>
+          <p class="back-note">Click to flip back</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2️⃣ كارت اللاعب العادي - من 70 لـ 79 (اللون الذهبي المسفر) -->
+    <div class="scene">
+      <div class="card3d tier-gold">
+        <div class="face front">
+          <div class="top-row">
+            <div class="rating-block">
+              <div class="rating">74</div>
+              <div class="position">ST</div>
+            </div>
+            <div class="crest app-logo"></div>
+          </div>
+          <div class="photo-wrap">
+            <div class="photo">OK</div>
+          </div>
+          <div class="name-band">OMAR KHALED</div>
+          <div class="stats-grid">
+            <div class="stat"><div class="stat-top"><span class="num">70</span><span class="label">PAC</span></div><div class="stat-bar"><span class="fill" style="width: 70%;"></span></div></div>
+            <div class="stat"><div class="stat-top"><span class="num">64</span><span class="label">DRI</span></div><div class="stat-bar"><span class="fill" style="width: 64%;"></span></div></div>
+            <div class="stat"><div class="stat-top"><span class="num">71</span><span class="label">SHO</span></div><div class="stat-bar"><span class="fill" style="width: 71%;"></span></div></div>
+            <div class="stat"><div class="stat-top"><span class="num">80</span><span class="label">DEF</span></div><div class="stat-bar"><span class="fill" style="width: 80%;"></span></div></div>
+            <div class="stat"><div class="stat-top"><span class="num">79</span><span class="label">PAS</span></div><div class="stat-bar"><span class="fill" style="width: 79%;"></span></div></div>
+            <div class="stat"><div class="stat-top"><span class="num">80</span><span class="label">PHY</span></div><div class="stat-bar"><span class="fill" style="width: 80%;"></span></div></div>
+          </div>
+          <div class="bottom-row">
+            <div class="foot-stars"><span class="on">★</span><span class="on">★</span><span>★</span><span>★</span><span>★</span></div>
+            <span>Right foot</span>
+          </div>
+          <div class="flip-hint">Click to flip</div>
+        </div>
+        <div class="face back">
+          <h3>Omar Khaled</h3>
+          <p class="sub">ST · Overall rating 74</p>
+          <div class="info-row"><span>Classification</span><span>Developing</span></div>
+          <div class="info-row"><span>Weak foot</span><span>2 / 5</span></div>
+          <div class="info-row"><span>Preferred foot</span><span>Right</span></div>
+          <p class="back-note">Click to flip back</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3️⃣ كارت حارس المرمى - فوق 80 (اللون الأورانج الأسطوري + إحصائية واحدة عريضة للـ GK) -->
+    <div class="scene">
+      <div class="card3d tier-elite">
+        <div class="face front">
+          <div class="top-row">
+            <div class="rating-block">
+              <div class="rating">85</div>
+              <div class="position">GK</div>
+            </div>
+            <div class="crest app-logo"></div>
+          </div>
+          <div class="photo-wrap">
+            <div class="photo">CM</div>
+          </div>
+          <div class="name-band">CAPTAIN MOSTAFA</div>
+          
+          <!-- عرض بار الحارس فقط وإخفاء الشبكة العادية -->
+          <div class="gk-stat-block">
+            <div class="gk-label">GOALKEEPING</div>
+            <div class="stat-top">
+              <span class="num">88</span>
+              <span class="label">GKP</span>
+            </div>
+            <div class="stat-bar gk-stat-bar">
+              <span class="fill" style="width: 88%;"></span>
+            </div>
+          </div>
+
+          <div class="bottom-row">
+            <div class="foot-stars"><span class="on">★</span><span class="on">★</span><span class="on">★</span><span class="on">★</span><span>★</span></div>
+            <span>Left foot</span>
+          </div>
+          <div class="flip-hint">Click to flip</div>
+        </div>
+        <div class="face back">
+          <h3>Captain Mostafa</h3>
+          <p class="sub">GK · Overall rating 85</p>
+          <div class="info-row"><span>Classification</span><span>Elite</span></div>
+          <div class="info-row"><span>Weak foot</span><span>4 / 5</span></div>
+          <div class="info-row"><span>Preferred foot</span><span>Left</span></div>
+          <p class="back-note">Click to flip back</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- جافا سكريبت لتشغيل تأثير الـ 3D والقلب عند الضغط -->
+  <script>
+    document.querySelectorAll('.card3d').forEach(card => {
+      // الـ Flip عند الضغط
+      card.addEventListener('click', () => {
+        card.classList.toggle('flipped');
+      });
+
+      // حركة الـ 3D Parallax عند تحريك الماوس
+      card.addEventListener('mousemove', (e) => {
+        if (card.classList.contains('flipped')) return;
+        const rect = card.getBoundingClientRect();
+        const px = (e.clientX - rect.left) / rect.width;
+        const py = (e.clientY - rect.top) / rect.height;
+        const rotateY = (px - 0.5) * 15;
+        const rotateX = (0.5 - py) * 15;
+        card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+      });
+
+      // إعادة الكارت لوضعه الطبيعي عند خروج الماوس
+      card.addEventListener('mouseleave', () => {
+        if (card.classList.contains('flipped')) return;
+        card.style.transform = 'rotateX(0deg) rotateY(0deg) scale(1)';
+      });
+    });
+  </script>
+</body>
+</html>

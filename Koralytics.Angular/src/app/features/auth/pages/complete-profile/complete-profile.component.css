@@ -7,6 +7,8 @@
 .step-content {
   min-height: 280px;
   animation: fade .4s ease;
+  position: relative;
+  z-index: 2;
 }
 
 @keyframes fade {
@@ -121,6 +123,8 @@
   justify-content: space-between;
   gap: 16px;
   margin-top: 8px;
+  position: relative;
+  z-index: 1;
 }
 
 .action-buttons app-button {

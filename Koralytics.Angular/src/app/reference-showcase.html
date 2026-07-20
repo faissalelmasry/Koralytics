@@ -44,14 +44,15 @@
     <!-- Showcase Control Panel -->
     <div class="showcase-container" style="max-width: 600px; margin: 40px auto; display: flex; flex-direction: column; gap: 24px; padding: 0 20px;">
       
-      <!-- Search Bar -->
-      <app-search-bar 
-        placeholderText="search players, tactics, or clubs..." 
-        (searchChange)="mySearch = $event">
-      </app-search-bar>
+      <div scrollReveal direction="bottom">
+        <app-search-bar 
+          placeholderText="search players, tactics, or clubs..." 
+          (searchChange)="mySearch = $event">
+        </app-search-bar>
+      </div>
 
       <!-- Text Inputs Form Block -->
-      <div class="inputs-row" style="display: flex; flex-direction: column; gap: 16px;">
+      <div scrollReveal direction="bottom" [delay]="100" class="inputs-row" style="display: flex; flex-direction: column; gap: 16px;">
         <app-text-input 
           label="player name" 
           placeholder="e.g. mohamed salah"
@@ -67,86 +68,106 @@
       </div>
 
       <!-- Action Buttons -->
-      <div class="buttons-test-zone" style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;">
+      <div scrollReveal direction="bottom" [delay]="150" class="buttons-test-zone" style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;">
         <app-button variant="accent">Log in</app-button>
         <app-button variant="coral">Delete Club</app-button>
         <app-button variant="cyan">analyze tactics</app-button>
         <app-button variant="slate">view database</app-button>
         <app-button variant="coral" (click)="quickModalTest()">Delete Club</app-button>
       </div>
-      <app-file-upload
-  accept="video/mp4,video/mkv"
-  [maxFileSizeMb]="100"
-  [isUploading]="isFootageUploading"
-  [uploadProgress]="uploadProgressValue"
-  (fileSelected)="onMatchFootageSelected($event)">
-</app-file-upload>
-<!-- بروفايل دائري لعيب -->
-<app-image-upload
-  [maxFileSizeMb]="3"
-  [isUploading]="isAvatarUploading"
-  aspectRatio="circle"
-  (imageSelected)="onPlayerAvatarSelected($event)">
-</app-image-upload>
+      <div scrollReveal direction="bottom" [delay]="200">
+        <app-file-upload
+          accept="video/mp4,video/mkv"
+          [maxFileSizeMb]="100"
+          [isUploading]="isFootageUploading"
+          [uploadProgress]="uploadProgressValue"
+          (fileSelected)="onMatchFootageSelected($event)">
+        </app-file-upload>
+      </div>
 
-<app-image-upload
-  [maxFileSizeMb]="3"
-  [isUploading]="isAvatarUploading"
-  aspectRatio="square"
-  (imageSelected)="onPlayerAvatarSelected($event)">
-</app-image-upload>
-      <app-empty-state 
-  title="no players registered" 
-  description="there are no squad profiles inside this academy database yet.">
-</app-empty-state>
+      <div scrollReveal direction="bottom" [delay]="250">
+        <app-image-upload
+          [maxFileSizeMb]="3"
+          [isUploading]="isAvatarUploading"
+          aspectRatio="circle"
+          (imageSelected)="onPlayerAvatarSelected($event)">
+        </app-image-upload>
+      </div>
 
-<app-filter-panel (filterChange)="onFilterChanged($event)"></app-filter-panel>
+      <div scrollReveal direction="bottom" [delay]="280">
+        <app-image-upload
+          [maxFileSizeMb]="3"
+          [isUploading]="isAvatarUploading"
+          aspectRatio="square"
+          (imageSelected)="onPlayerAvatarSelected($event)">
+        </app-image-upload>
+      </div>
 
-<app-data-table 
-  [columns]="tableColumns" 
-  [data]="playersData"
-  (actionClick)="handleTableAction($event)">
-</app-data-table>
+      <div scrollReveal direction="bottom" [delay]="320">
+        <app-empty-state 
+          title="no players registered" 
+          description="there are no squad profiles inside this academy database yet.">
+        </app-empty-state>
+      </div>
 
-<app-pagination
-  [totalItems]="playersData.length"
-  [pageSize]="pageSize"
-  [currentPage]="currentPage"
-  (pageChange)="onPageChanged($event)">
-</app-pagination>
+      <div scrollReveal direction="bottom" [delay]="360">
+        <app-filter-panel (filterChange)="onFilterChanged($event)"></app-filter-panel>
+      </div>
 
-<app-status-chip label="active roster" type="success"></app-status-chip>
+      <div scrollReveal direction="bottom" [delay]="420">
+        <app-data-table 
+          [columns]="tableColumns" 
+          [data]="playersData"
+          (actionClick)="handleTableAction($event)">
+        </app-data-table>
+      </div>
 
-<app-status-chip label="injured" type="danger"></app-status-chip>
+      <div scrollReveal direction="bottom" [delay]="480">
+        <app-pagination
+          [totalItems]="playersData.length"
+          [pageSize]="pageSize"
+          [currentPage]="currentPage"
+          (pageChange)="onPageChanged($event)">
+        </app-pagination>
+      </div>
 
-<app-status-chip label="live video tracking" type="info" [pulse]="true"></app-status-chip>
+      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <span scrollReveal direction="bottom" [delay]="540"><app-status-chip label="active roster" type="success"></app-status-chip></span>
+        <span scrollReveal direction="bottom" [delay]="570"><app-status-chip label="injured" type="danger"></app-status-chip></span>
+        <span scrollReveal direction="bottom" [delay]="600"><app-status-chip label="live video tracking" type="info" [pulse]="true"></app-status-chip></span>
+      </div>
 
+      <div scrollReveal direction="bottom" [delay]="650">
+        <app-select 
+          label="preferred position" 
+          [options]="[
+            { value: 'lw', label: 'left winger' },
+            { value: 'st', label: 'striker' },
+            { value: 'rw', label: 'right winger' },
+            { value: 'cm', label: 'central midfielder' }
+          ]"
+          [(value)]="selectedPosition">
+        </app-select>
+      </div>
 
-      <app-select 
-        label="preferred position" 
-        [options]="[
-          { value: 'lw', label: 'left winger' },
-          { value: 'st', label: 'striker' },
-          { value: 'rw', label: 'right winger' },
-          { value: 'cm', label: 'central midfielder' }
-        ]"
-        [(value)]="selectedPosition">
-      </app-select>
+      <div scrollReveal direction="bottom" [delay]="700">
+        <app-date-picker 
+          label="player date of birth" 
+          [(value)]="playerBirthDate">
+        </app-date-picker>
+      </div>
 
-      <app-date-picker 
-        label="player date of birth" 
-        [(value)]="playerBirthDate">
-      </app-date-picker>
-
-      <app-toggle 
-        label="enable real-time video analysis tracking" 
-        [(checked)]="isAiAnalysisEnabled">
-      </app-toggle>
+      <div scrollReveal direction="bottom" [delay]="750">
+        <app-toggle 
+          label="enable real-time video analysis tracking" 
+          [(checked)]="isAiAnalysisEnabled">
+        </app-toggle>
+      </div>
     </div>
 
     <!-- Main Routing Area -->
     <main class="main-content">
-      <div style="padding: 40px; display: flex; justify-content: center;">
+      <div style="padding: 40px; display: flex; justify-content: center;" scrollReveal direction="bottom" [delay]="800">
         <button 
           (click)="triggerFakeTest()" 
           style="
@@ -168,7 +189,7 @@
 
 
     <!-- Footer Component -->
-    <app-footer></app-footer>
+    <app-footer scrollReveal direction="bottom" [delay]="850"></app-footer>
 
   </div>
 </div>

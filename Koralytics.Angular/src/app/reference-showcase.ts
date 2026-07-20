@@ -21,6 +21,7 @@ import { Pagination } from "../shared/components/pagination/pagination";
 import { FileUpload } from "../shared/components/file-upload/file-upload";
 import { ImageUpload } from "../shared/components/image-upload/image-upload";
 import { FilterState, FilterPanel } from '../shared/components/filter-panel/filter-panel';
+import { ScrollRevealDirective } from '../shared/directives/scroll-reveal.directive';
 
 @Component({
   selector: 'app-root',
@@ -45,7 +46,8 @@ import { FilterState, FilterPanel } from '../shared/components/filter-panel/filt
     Pagination,
     FileUpload,
     ImageUpload,
-    FilterPanel
+    FilterPanel,
+    ScrollRevealDirective
 ],
   templateUrl: './reference-showcase.html',
   styleUrls: ['./reference-showcase.css']

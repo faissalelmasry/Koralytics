@@ -221,7 +221,7 @@ main.loaded .stat-row div {
   box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.6);
   transform-style: preserve-3d;
   transition: transform .25s cubic-bezier(.2, .8, .2, 1), box-shadow .25s ease;
-  overflow: visible;
+  overflow: hidden;
 }
 
 .card::before {
