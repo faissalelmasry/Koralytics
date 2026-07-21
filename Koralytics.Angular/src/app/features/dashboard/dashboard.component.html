@@ -1,4 +1,6 @@
 <div class="dashboard-container" scrollReveal direction="bottom">
+  <app-player-card scrollReveal direction="bottom"></app-player-card>
+
   <div class="welcome-card" *ngIf="authService.currentUser$ | async as user" scrollReveal direction="bottom">
     
     <div class="avatar-circle">

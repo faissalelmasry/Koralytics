@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, AfterViewInit, ElementRef, ViewChild, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, OnInit, AfterViewInit, ElementRef, ViewChild, inject, ChangeDetectorRef, HostBinding } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PlayerCardModel } from '../../../../core/models/Player/player-card-model';
 import { PlayerCardService } from '../../../../core/services/player/player-card.service';
@@ -17,6 +17,13 @@ export class PlayerCardComponent implements OnInit, AfterViewInit {
   private cdr = inject(ChangeDetectorRef);
 
   @Input() player?: PlayerCardModel;
+  @Input() autoLoad: boolean = true;
+  @Input() compact: boolean = false;
+  @Input() cardWidth: number = 260;
+  @Input() cardHeight: number = 380;
+
+  @HostBinding('style.width.px')  get hostWidth()  { return this.cardWidth; }
+  @HostBinding('style.height.px') get hostHeight() { return this.cardHeight; }
 
   @ViewChild('cardElement') cardElement!: ElementRef<HTMLDivElement>;
 
@@ -50,7 +57,7 @@ export class PlayerCardComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit() {
-    if (this.player) return;
+    if (this.player || !this.autoLoad) return;
 
     const token = this.tokenStorage.getAccessToken();
     if (!token) return;
