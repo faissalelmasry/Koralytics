@@ -20,6 +20,9 @@ import { CustomInputComponent } from '../../../../shared/components/custom-input
 import { CustomToggle } from '../../../../shared/components/custom-toggle/custom-toggle';
 import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state';
+import { NavbarComponent } from '../../../../shared/components/navbar/navbar';
+import { Footer } from '../../../../shared/components/footer/footer';
+
 @Component({
   selector: 'app-drill-template-list',
   templateUrl: './drill-template-list.component.html',
@@ -36,7 +39,9 @@ import { EmptyStateComponent } from '../../../../shared/components/empty-state/e
     CustomInputComponent,
     CustomToggle,
     LoadingSpinnerComponent,
-    EmptyStateComponent
+    EmptyStateComponent,
+    NavbarComponent,
+    Footer
   ],
 })
 export class DrillTemplateListComponent implements OnInit, OnDestroy {

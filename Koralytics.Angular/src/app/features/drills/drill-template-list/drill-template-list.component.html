@@ -1,5 +1,4 @@
 <div class="drills-page">
-
   <!-- PAGE HEADER -->
   <div class="drills-header">
     <div class="header-left">
@@ -8,10 +7,10 @@
         <span class="eyebrow-text">tactical engine</span>
       </div>
       <h1 class="header-title">drill templates</h1>
-      <p class="header-subtitle">manage and deploy training drill protocols for your academy</p>
+      <p class="header-subtitle">Manage And Deploy Training Drill Protocols For Your Academy</p>
     </div>
     <div class="header-right">
-      <app-button variant="accent" (click)="openCreateForm()">+ new drill template</app-button>
+      <app-button variant="accent" (click)="openCreateForm()">+ New Drill Template</app-button>
     </div>
   </div>
 
@@ -89,13 +88,10 @@
         <div class="card-header-right">
           <span class="badge" [ngClass]="getVisibilityClass(drill)">{{ getVisibilityLabel(drill) }}</span>
           @if (drill.academyId !== null && drill.createdById === currentUserId) {
-            <div class="card-share-toggle">
-              <app-toggle 
-                label="share" 
-                [checked]="drill.isShared" 
-                (checkedChange)="onShareTemplate(drill)">
-              </app-toggle>
-            </div>
+          <div class="card-share-toggle">
+            <app-toggle label="Share" [checked]="drill.isShared" (checkedChange)="onShareTemplate(drill)">
+            </app-toggle>
+          </div>
           }
         </div>
       </div>
@@ -112,22 +108,23 @@
         </div>
         <div class="meta-item">
           <span class="meta-icon">🏠</span>
-          <span class="meta-value">{{ drill.academyId !== null ? (drill.academyName || 'unknown academy') : 'koralytics global' }}</span>
+          <span class="meta-value">{{ drill.academyId !== null ? (drill.academyName || 'unknown academy') : 'koralytics
+            global' }}</span>
         </div>
       </div>
 
       <div class="card-actions">
-        <app-button variant="slate" (click)="openEditForm(drill)">edit</app-button>
-        <app-button variant="coral" (click)="onDeleteTemplate(drill)">delete</app-button>
+        <app-button variant="slate" (click)="openEditForm(drill)">Edit</app-button>
+        <app-button variant="coral" (click)="onDeleteTemplate(drill)">Delete</app-button>
       </div>
     </div>
     }
   </div>
   } @else {
   <!-- EMPTY STATE -->
-  <app-empty-state title="no drill templates found"
-    description="no templates match your current filters. create one to get started." actionText="+ create drill template"
-    (actionClick)="openCreateForm()">
+  <app-empty-state title="No Drill Templates Found"
+    description="No templates match your current filters. Create one to get started."
+    actionText="+ Create Drill Template" (actionClick)="openCreateForm()">
   </app-empty-state>
   }
 
@@ -155,7 +152,7 @@
       <label class="form-label">Template Name</label>
       <input type="text" formControlName="name" class="form-input" placeholder="e.g. High Press Transition" />
       @if (drillForm.get('name')?.invalid && drillForm.get('name')?.touched) {
-        <span class="field-error">Name is required</span>
+      <span class="field-error">Name is required</span>
       }
     </div>
 
@@ -164,11 +161,11 @@
       <select formControlName="categoryId" class="form-native-select">
         <option [ngValue]="null" disabled>Select a category...</option>
         @for (cat of categories; track cat.id) {
-          <option [ngValue]="cat.id">{{ cat.name }}</option>
+        <option [ngValue]="cat.id">{{ cat.name }}</option>
         }
       </select>
       @if (drillForm.get('categoryId')?.invalid && drillForm.get('categoryId')?.touched) {
-        <span class="field-error">Category is required</span>
+      <span class="field-error">Category is required</span>
       }
     </div>
 
@@ -177,11 +174,11 @@
       <select formControlName="difficultyLevel" class="form-native-select">
         <option [ngValue]="null" disabled>Select difficulty...</option>
         @for (diff of difficultyLevels; track diff) {
-          <option [ngValue]="diff">{{ diff }}</option>
+        <option [ngValue]="diff">{{ diff }}</option>
         }
       </select>
       @if (drillForm.get('difficultyLevel')?.invalid && drillForm.get('difficultyLevel')?.touched) {
-        <span class="field-error">Difficulty is required</span>
+      <span class="field-error">Difficulty is required</span>
       }
     </div>
 
@@ -190,11 +187,11 @@
       <select formControlName="drillMode" class="form-native-select">
         <option [ngValue]="null" disabled>Select drill mode...</option>
         @for (mode of drillModes; track mode) {
-          <option [ngValue]="mode">{{ mode }}</option>
+        <option [ngValue]="mode">{{ mode }}</option>
         }
       </select>
       @if (drillForm.get('drillMode')?.invalid && drillForm.get('drillMode')?.touched) {
-        <span class="field-error">Drill mode is required</span>
+      <span class="field-error">Drill mode is required</span>
       }
     </div>
 
@@ -204,11 +201,7 @@
 
     <div class="panel-actions">
       <app-button variant="slate" type="button" (click)="closeForm()">Cancel</app-button>
-      <app-button
-        variant="accent"
-        type="submit"
-        [loading]="isSaving"
-        [disabled]="drillForm.invalid">
+      <app-button variant="accent" type="submit" [loading]="isSaving" [disabled]="drillForm.invalid">
         {{ isEditing ? 'Save Changes' : 'Create Template' }}
       </app-button>
     </div>

@@ -64,7 +64,7 @@
   font-family: 'Inter', sans-serif;
   font-size: 14px;
   font-weight: 500;
-  text-transform: lowercase;
+  text-transform: capitalize;
   transition: color 0.2s ease;
 }
 
