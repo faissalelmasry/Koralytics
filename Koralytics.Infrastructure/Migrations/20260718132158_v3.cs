@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Koralytics.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class @new : Migration
+    public partial class v3 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -35,6 +35,7 @@ namespace Koralytics.Infrastructure.Migrations
                     FirstName = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
                     LastName = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
                     ProfileImageUrl = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    GoogleId = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -411,6 +412,35 @@ namespace Koralytics.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "RefreshTokens",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    Token = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    JtiId = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ExpiresAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    RevokedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ReplacedByToken = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    RevokedReason = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DeviceInfo = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IpAddress = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RefreshTokens", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_RefreshTokens_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Scouters",
                 columns: table => new
                 {
@@ -451,7 +481,7 @@ namespace Koralytics.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false),
-                    AcademyId = table.Column<int>(type: "int", nullable: false)
+                    AcademyId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -699,6 +729,52 @@ namespace Koralytics.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "AcademyCoachJoinRequests",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    AcademyId = table.Column<int>(type: "int", nullable: false),
+                    CoachId = table.Column<int>(type: "int", nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    RequestedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    RespondedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatedById = table.Column<int>(type: "int", nullable: true),
+                    CreatedByUserId = table.Column<int>(type: "int", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    UpdatedById = table.Column<int>(type: "int", nullable: true),
+                    UpdatedByUserId = table.Column<int>(type: "int", nullable: true),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AcademyCoachJoinRequests", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AcademyCoachJoinRequests_Academies_AcademyId",
+                        column: x => x.AcademyId,
+                        principalTable: "Academies",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_AcademyCoachJoinRequests_AspNetUsers_CreatedByUserId",
+                        column: x => x.CreatedByUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_AcademyCoachJoinRequests_AspNetUsers_UpdatedByUserId",
+                        column: x => x.UpdatedByUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_AcademyCoachJoinRequests_Coaches_CoachId",
+                        column: x => x.CoachId,
+                        principalTable: "Coaches",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "CoachAcademies",
                 columns: table => new
                 {
@@ -746,8 +822,8 @@ namespace Koralytics.Infrastructure.Migrations
                     CoachUserId = table.Column<int>(type: "int", nullable: false),
                     GrantedToUserId = table.Column<int>(type: "int", nullable: false),
                     ExpiresAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    AccessLevel = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    AccessLevel = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedById = table.Column<int>(type: "int", nullable: true),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false)
@@ -820,6 +896,52 @@ namespace Koralytics.Infrastructure.Migrations
                         principalTable: "DrillCategories",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AcademyPlayerJoinRequests",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    AcademyId = table.Column<int>(type: "int", nullable: false),
+                    PlayerId = table.Column<int>(type: "int", nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    RequestedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    RespondedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatedById = table.Column<int>(type: "int", nullable: true),
+                    CreatedByUserId = table.Column<int>(type: "int", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    UpdatedById = table.Column<int>(type: "int", nullable: true),
+                    UpdatedByUserId = table.Column<int>(type: "int", nullable: true),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AcademyPlayerJoinRequests", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AcademyPlayerJoinRequests_Academies_AcademyId",
+                        column: x => x.AcademyId,
+                        principalTable: "Academies",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_AcademyPlayerJoinRequests_AspNetUsers_CreatedByUserId",
+                        column: x => x.CreatedByUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_AcademyPlayerJoinRequests_AspNetUsers_UpdatedByUserId",
+                        column: x => x.UpdatedByUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_AcademyPlayerJoinRequests_Players_PlayerId",
+                        column: x => x.PlayerId,
+                        principalTable: "Players",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -2121,6 +2243,7 @@ namespace Koralytics.Infrastructure.Migrations
                     AssistPlayerId = table.Column<int>(type: "int", nullable: true),
                     EventType = table.Column<int>(type: "int", nullable: false),
                     Minute = table.Column<int>(type: "int", nullable: false),
+                    IsHomeSide = table.Column<bool>(type: "bit", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedById = table.Column<int>(type: "int", nullable: true),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false),
@@ -2181,6 +2304,7 @@ namespace Koralytics.Infrastructure.Migrations
                     TeamId = table.Column<int>(type: "int", nullable: false),
                     IsStarting = table.Column<bool>(type: "bit", nullable: false),
                     JerseyNumber = table.Column<int>(type: "int", nullable: true),
+                    IsHomeSide = table.Column<bool>(type: "bit", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedById = table.Column<int>(type: "int", nullable: true),
                     CreatedByUserId = table.Column<int>(type: "int", nullable: true),
@@ -2276,6 +2400,67 @@ namespace Koralytics.Infrastructure.Migrations
                         name: "FK_MatchPlayerRatings_Players_PlayerId",
                         column: x => x.PlayerId,
                         principalTable: "Players",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "MatchRequests",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    RequesterTeamId = table.Column<int>(type: "int", nullable: false),
+                    TargetTeamId = table.Column<int>(type: "int", nullable: false),
+                    RequesterCoachId = table.Column<int>(type: "int", nullable: false),
+                    Format = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ProposedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Location = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
+                    Status = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ResolvedByCoachId = table.Column<int>(type: "int", nullable: true),
+                    ResolvedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    MatchId = table.Column<int>(type: "int", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatedById = table.Column<int>(type: "int", nullable: true),
+                    CreatedByUserId = table.Column<int>(type: "int", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MatchRequests", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_MatchRequests_AspNetUsers_CreatedByUserId",
+                        column: x => x.CreatedByUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_MatchRequests_AspNetUsers_RequesterCoachId",
+                        column: x => x.RequesterCoachId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_MatchRequests_AspNetUsers_ResolvedByCoachId",
+                        column: x => x.ResolvedByCoachId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_MatchRequests_Matches_MatchId",
+                        column: x => x.MatchId,
+                        principalTable: "Matches",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_MatchRequests_Teams_RequesterTeamId",
+                        column: x => x.RequesterTeamId,
+                        principalTable: "Teams",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_MatchRequests_Teams_TargetTeamId",
+                        column: x => x.TargetTeamId,
+                        principalTable: "Teams",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -2451,6 +2636,26 @@ namespace Koralytics.Infrastructure.Migrations
                 column: "CreatedByUserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_AcademyCoachJoinRequests_AcademyId",
+                table: "AcademyCoachJoinRequests",
+                column: "AcademyId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AcademyCoachJoinRequests_CoachId",
+                table: "AcademyCoachJoinRequests",
+                column: "CoachId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AcademyCoachJoinRequests_CreatedByUserId",
+                table: "AcademyCoachJoinRequests",
+                column: "CreatedByUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AcademyCoachJoinRequests_UpdatedByUserId",
+                table: "AcademyCoachJoinRequests",
+                column: "UpdatedByUserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_AcademyLocations_AcademyId",
                 table: "AcademyLocations",
                 column: "AcademyId");
@@ -2463,6 +2668,26 @@ namespace Koralytics.Infrastructure.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_AcademyLocations_UpdatedByUserId",
                 table: "AcademyLocations",
+                column: "UpdatedByUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AcademyPlayerJoinRequests_AcademyId",
+                table: "AcademyPlayerJoinRequests",
+                column: "AcademyId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AcademyPlayerJoinRequests_CreatedByUserId",
+                table: "AcademyPlayerJoinRequests",
+                column: "CreatedByUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AcademyPlayerJoinRequests_PlayerId",
+                table: "AcademyPlayerJoinRequests",
+                column: "PlayerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AcademyPlayerJoinRequests_UpdatedByUserId",
+                table: "AcademyPlayerJoinRequests",
                 column: "UpdatedByUserId");
 
             migrationBuilder.CreateIndex(
@@ -2896,7 +3121,15 @@ namespace Koralytics.Infrastructure.Migrations
                 name: "IX_MatchLineups_MatchId_PlayerId_TeamId",
                 table: "MatchLineups",
                 columns: new[] { "MatchId", "PlayerId", "TeamId" },
-                unique: true);
+                unique: true,
+                filter: "[IsHomeSide] IS NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MatchLineups_MatchId_PlayerId_TeamId_IsHomeSide",
+                table: "MatchLineups",
+                columns: new[] { "MatchId", "PlayerId", "TeamId", "IsHomeSide" },
+                unique: true,
+                filter: "[IsHomeSide] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_MatchLineups_PlayerId",
@@ -2959,6 +3192,41 @@ namespace Koralytics.Infrastructure.Migrations
                 name: "IX_MatchPlayerRatings_UpdatedByUserId",
                 table: "MatchPlayerRatings",
                 column: "UpdatedByUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MatchRequests_CreatedByUserId",
+                table: "MatchRequests",
+                column: "CreatedByUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MatchRequests_MatchId",
+                table: "MatchRequests",
+                column: "MatchId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MatchRequests_RequesterCoachId",
+                table: "MatchRequests",
+                column: "RequesterCoachId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MatchRequests_RequesterTeamId",
+                table: "MatchRequests",
+                column: "RequesterTeamId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MatchRequests_ResolvedByCoachId",
+                table: "MatchRequests",
+                column: "ResolvedByCoachId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MatchRequests_Status",
+                table: "MatchRequests",
+                column: "Status");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MatchRequests_TargetTeamId",
+                table: "MatchRequests",
+                column: "TargetTeamId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ParentPlayers_CreatedByUserId",
@@ -3058,6 +3326,11 @@ namespace Koralytics.Infrastructure.Migrations
                 column: "CreatedByUserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_PlayerCards_NeedsRecalculation",
+                table: "PlayerCards",
+                column: "NeedsRecalculation");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_PlayerCards_PlayerId",
                 table: "PlayerCards",
                 column: "PlayerId",
@@ -3153,6 +3426,22 @@ namespace Koralytics.Infrastructure.Migrations
                 name: "IX_PlayerTeams_TeamId",
                 table: "PlayerTeams",
                 column: "TeamId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RefreshTokens_JtiId",
+                table: "RefreshTokens",
+                column: "JtiId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RefreshTokens_Token",
+                table: "RefreshTokens",
+                column: "Token",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RefreshTokens_UserId",
+                table: "RefreshTokens",
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_RoleAuditLogs_AcademyId",
@@ -3512,6 +3801,12 @@ namespace Koralytics.Infrastructure.Migrations
                 name: "AcademyBadges");
 
             migrationBuilder.DropTable(
+                name: "AcademyCoachJoinRequests");
+
+            migrationBuilder.DropTable(
+                name: "AcademyPlayerJoinRequests");
+
+            migrationBuilder.DropTable(
                 name: "AcademyRequests");
 
             migrationBuilder.DropTable(
@@ -3557,6 +3852,9 @@ namespace Koralytics.Infrastructure.Migrations
                 name: "MatchPlayerCategoryRatings");
 
             migrationBuilder.DropTable(
+                name: "MatchRequests");
+
+            migrationBuilder.DropTable(
                 name: "ParentPlayers");
 
             migrationBuilder.DropTable(
@@ -3588,6 +3886,9 @@ namespace Koralytics.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "PlayerTeams");
+
+            migrationBuilder.DropTable(
+                name: "RefreshTokens");
 
             migrationBuilder.DropTable(
                 name: "RoleAuditLogs");

@@ -1,0 +1,241 @@
+<div class="drills-page">
+
+  <!-- PAGE HEADER -->
+  <div class="drills-header">
+    <div class="header-left">
+      <div class="header-eyebrow">
+        <span class="eyebrow-dot"></span>
+        <span class="eyebrow-text">tactical engine</span>
+      </div>
+      <h1 class="header-title">drill templates</h1>
+      <p class="header-subtitle">manage and deploy training drill protocols for your academy</p>
+    </div>
+    <div class="header-right">
+      <app-button variant="accent" (click)="openCreateForm()">+ new drill template</app-button>
+    </div>
+  </div>
+
+  <!-- STATS STRIP -->
+  <div class="stats-strip">
+    <div class="stat-item">
+      <span class="stat-value">{{ totalItems }}</span>
+      <span class="stat-label">total templates</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item">
+      <span class="stat-value coral">{{ advancedCount }}</span>
+      <span class="stat-label">advanced</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item">
+      <span class="stat-value cyan">{{ sharedCount }}</span>
+      <span class="stat-label">shared</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item">
+      <span class="stat-value accent">{{ visibleTemplates.length }}</span>
+      <span class="stat-label">showing</span>
+    </div>
+  </div>
+
+  <!-- FILTER BAR -->
+  <div class="filter-bar">
+    <div class="filter-search">
+      <app-search-bar placeholderText="search drill templates..." (searchChange)="onSearch($event)">
+      </app-search-bar>
+    </div>
+
+    <div class="filter-controls">
+      <div class="filter-select-wrapper">
+        <app-select label="Category" [options]="categoryOptions" [value]="selectedCategoryId ?? 0"
+          (valueChange)="onCategoryChange($event)">
+        </app-select>
+      </div>
+
+      <div class="filter-toggle-wrapper">
+        <app-toggle label="Shared Only" [checked]="showSharedOnly" (checkedChange)="onToggleShared($event)">
+        </app-toggle>
+      </div>
+    </div>
+  </div>
+
+  <!-- ERROR BANNER -->
+  @if (errorMessage) {
+  <div class="error-banner">{{ errorMessage }}</div>
+  }
+
+  <!-- LOADING STATE -->
+  @if (isLoading) {
+  <div class="loading-wrapper">
+    <app-loading-spinner size="lg"></app-loading-spinner>
+  </div>
+  }
+
+  <!-- DRILL CARDS GRID -->
+  @if (!isLoading) {
+  @if (visibleTemplates.length > 0) {
+  <div class="drills-grid">
+    @for (drill of visibleTemplates; track drill.id; let i = $index) {
+    <div class="drill-card" [class]="getDifficultyClass(drill.difficultyLevel)"
+      [style.animation-delay]="(i * 55) + 'ms'">
+
+      <div class="card-glow-bar"></div>
+
+      <div class="card-header">
+        <div class="card-title-block">
+          <span class="card-category-badge">{{ getCategoryLabel(drill) }}</span>
+          <h3 class="card-title">{{ drill.name }}</h3>
+        </div>
+        <div class="card-header-right">
+          <span class="badge" [ngClass]="getVisibilityClass(drill)">{{ getVisibilityLabel(drill) }}</span>
+          @if (drill.academyId !== null && drill.createdById === currentUserId) {
+            <div class="card-share-toggle">
+              <app-toggle 
+                label="share" 
+                [checked]="drill.isShared" 
+                (checkedChange)="onShareTemplate(drill)">
+              </app-toggle>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="difficulty-block" [class]="getDifficultyClass(drill.difficultyLevel)">
+        <span class="difficulty-bars">{{ getDifficultyBars(drill.difficultyLevel) }}</span>
+        <span class="difficulty-label">{{ getDifficultyLabel(drill.difficultyLevel) }}</span>
+      </div>
+
+      <div class="card-meta">
+        <div class="meta-item">
+          <span class="meta-icon">🎮</span>
+          <span class="meta-value">{{ getDrillModeLabel(drill.drillMode) }}</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-icon">🏠</span>
+          <span class="meta-value">{{ drill.academyId !== null ? (drill.academyName || 'unknown academy') : 'koralytics global' }}</span>
+        </div>
+      </div>
+
+      <div class="card-actions">
+        <app-button variant="slate" (click)="openEditForm(drill)">edit</app-button>
+        <app-button variant="coral" (click)="onDeleteTemplate(drill)">delete</app-button>
+      </div>
+    </div>
+    }
+  </div>
+  } @else {
+  <!-- EMPTY STATE -->
+  <app-empty-state title="no drill templates found"
+    description="no templates match your current filters. create one to get started." actionText="+ create drill template"
+    (actionClick)="openCreateForm()">
+  </app-empty-state>
+  }
+
+  <!-- PAGINATION -->
+  <app-pagination [totalItems]="totalItems" [pageSize]="filter.pageSize" [currentPage]="filter.pageNumber"
+    (pageChange)="changePage($event)">
+  </app-pagination>
+  }
+</div>
+
+<!-- SLIDE-IN FORM -->
+<div class="form-overlay" [class.open]="isFormOpen" (click)="closeForm()"></div>
+
+<div class="form-panel" [class.open]="isFormOpen">
+  <div class="panel-header">
+    <div>
+      <h4 class="panel-eyebrow">{{ isEditing ? 'Edit' : 'Create' }}</h4>
+      <h2 class="panel-title">Drill Template</h2>
+    </div>
+    <button class="panel-close" (click)="closeForm()">×</button>
+  </div>
+
+  <form [formGroup]="drillForm" (ngSubmit)="onSubmitForm()" class="panel-form">
+    <div class="form-group">
+      <label class="form-label">Template Name</label>
+      <input type="text" formControlName="name" class="form-input" placeholder="e.g. High Press Transition" />
+      @if (drillForm.get('name')?.invalid && drillForm.get('name')?.touched) {
+        <span class="field-error">Name is required</span>
+      }
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Category</label>
+      <select formControlName="categoryId" class="form-native-select">
+        <option [ngValue]="null" disabled>Select a category...</option>
+        @for (cat of categories; track cat.id) {
+          <option [ngValue]="cat.id">{{ cat.name }}</option>
+        }
+      </select>
+      @if (drillForm.get('categoryId')?.invalid && drillForm.get('categoryId')?.touched) {
+        <span class="field-error">Category is required</span>
+      }
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Difficulty Level</label>
+      <select formControlName="difficultyLevel" class="form-native-select">
+        <option [ngValue]="null" disabled>Select difficulty...</option>
+        @for (diff of difficultyLevels; track diff) {
+          <option [ngValue]="diff">{{ diff }}</option>
+        }
+      </select>
+      @if (drillForm.get('difficultyLevel')?.invalid && drillForm.get('difficultyLevel')?.touched) {
+        <span class="field-error">Difficulty is required</span>
+      }
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Drill Mode</label>
+      <select formControlName="drillMode" class="form-native-select">
+        <option [ngValue]="null" disabled>Select drill mode...</option>
+        @for (mode of drillModes; track mode) {
+          <option [ngValue]="mode">{{ mode }}</option>
+        }
+      </select>
+      @if (drillForm.get('drillMode')?.invalid && drillForm.get('drillMode')?.touched) {
+        <span class="field-error">Drill mode is required</span>
+      }
+    </div>
+
+    @if (formError) {
+    <div class="form-error-banner">⚠ {{ formError }}</div>
+    }
+
+    <div class="panel-actions">
+      <app-button variant="slate" type="button" (click)="closeForm()">Cancel</app-button>
+      <app-button
+        variant="accent"
+        type="submit"
+        [loading]="isSaving"
+        [disabled]="drillForm.invalid">
+        {{ isEditing ? 'Save Changes' : 'Create Template' }}
+      </app-button>
+    </div>
+  </form>
+</div>
+
+<!-- CONFIRM MODAL -->
+@if (confirmModal.isOpen) {
+<div class="confirm-overlay" (click)="closeConfirm()"></div>
+<div class="confirm-modal">
+  <div class="confirm-content">
+    <h3 class="confirm-title">{{ confirmModal.title }}</h3>
+    <p class="confirm-message">{{ confirmModal.message }}</p>
+  </div>
+  <div class="confirm-actions">
+    <app-button variant="slate" (click)="closeConfirm()">Cancel</app-button>
+    <app-button variant="coral" (click)="executeConfirm()">{{ confirmModal.confirmText }}</app-button>
+  </div>
+</div>
+}
+
+<!-- TOAST NOTIFICATION -->
+@if (toastMessage) {
+<div class="toast-container">
+  <div class="toast" [ngClass]="'toast-' + toastType">
+    <span class="toast-icon">{{ toastType === 'success' ? '✅' : '❌' }}</span>
+    <span class="toast-text">{{ toastMessage }}</span>
+  </div>
+</div>
+}
