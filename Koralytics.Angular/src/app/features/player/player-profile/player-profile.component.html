@@ -1,0 +1,220 @@
+<app-navbar></app-navbar>
+
+<div class="profile-page">
+  @if (isLoading) {
+    <div class="loading-state">
+      <app-loading-spinner size="lg"></app-loading-spinner>
+      <p>Loading profile...</p>
+    </div>
+  }
+  @else if (error) {
+    <div class="error-state">
+      <div class="error-icon">!</div>
+      <p>{{ error }}</p>
+    </div>
+  }
+  @else if (profile) {
+    <div class="profile-container"
+      [class.tier-gold]="tierClass === 'tier-gold'"
+      [class.tier-elite]="tierClass === 'tier-elite'"
+      [class.tier-base]="tierClass === 'tier-base'">
+
+      <!-- =============== 1. HERO BANNER =============== -->
+      <div class="hero-banner" scrollReveal direction="bottom" [delay]="0">
+        <div class="player-identity">
+          <div class="avatar-circle">{{ initials }}</div>
+          <div>
+            <h1>{{ fullName }}</h1>
+            <div class="meta-pills">
+              <span class="pill">{{ academyName }}</span>
+              @for (team of profile.teams; track team.teamId) {
+                <span class="pill">{{ team.teamName }} @if (team.ageGroupName) { / {{ team.ageGroupName }} }</span>
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="bio-quick-list">
+          <div class="bio-item">
+            <span class="bio-lbl">Status</span>
+            <span class="bio-val" [class]="statusClass">{{ statusLabel }}</span>
+          </div>
+          <div class="bio-item">
+            <span class="bio-lbl">Age / Foot</span>
+            <span class="bio-val">{{ profile.age }} Yrs / {{ preferredFoot }}</span>
+          </div>
+          <div class="bio-item">
+            <span class="bio-lbl">Nationality</span>
+            <span class="bio-val">{{ profile.nationality ?? 'N/A' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- =============== 2. MAIN GRID =============== -->
+      <div class="main-grid">
+
+        <!-- FIFA Player Card -->
+        <div class="card-col" scrollReveal direction="left" [delay]="100">
+          <app-player-card
+            [player]="profile.playerCard ?? undefined"
+            [autoLoad]="false"
+            [compact]="true"
+            [cardWidth]="240"
+            [cardHeight]="380">
+          </app-player-card>
+        </div>
+
+        <!-- Tactical Pitch Panel -->
+        <div class="pitch-panel" scrollReveal direction="bottom" [delay]="200">
+          <div class="panel-header">
+            <span>Position Overview</span>
+          </div>
+
+          <div class="pitch-container">
+            <div class="pitch-lines">
+              <div class="pitch-line-half"></div>
+              <div class="pitch-center-circle"></div>
+              <div class="pitch-box left"></div>
+              <div class="pitch-box right"></div>
+            </div>
+
+            <div class="heatmap-overlay"></div>
+
+            @for (pos of profile.positions; track pos.position) {
+              <div
+                class="pos-pin"
+                [class.primary]="pos.isPrimary"
+                [style.top]="getPosPinStyle(pos.position).top"
+                [style.left]="getPosPinStyle(pos.position).left">
+                {{ pos.position }}{{ pos.isPrimary ? ' ★' : '' }}
+              </div>
+            }
+          </div>
+
+          <div class="filter-bar">
+            <span>Primary: <strong>{{ primaryPosition }}</strong></span>
+            @if (secondaryPositions.length) {
+              <span>Also: {{ secondaryPositions.join(', ') }}</span>
+            }
+          </div>
+        </div>
+
+        <!-- Radar Chart Panel -->
+        <div class="radar-panel" scrollReveal direction="right" [delay]="300">
+          <div class="panel-header">
+            <span>Attributes Radar</span>
+          </div>
+
+          <div class="radar-container">
+            @if (profile.playerCard) {
+              <canvas #radarCanvas></canvas>
+            }
+            @else {
+              <div class="radar-empty">
+                <span>No attribute data available</span>
+              </div>
+            }
+          </div>
+
+          <button class="archetype-reveal-btn" (click)="openArchetypeOverlay()">
+            <span class="btn-spark">⚡</span> Reveal Archetype
+          </button>
+        </div>
+
+      </div>
+
+      <!-- =============== 3. KPI GRID =============== -->
+      <div
+        #countersSection
+        class="kpi-grid"
+        scrollReveal direction="bottom"
+        [delay]="400">
+
+        <div class="kpi-card">
+          <div class="kpi-header">Matches Played</div>
+          <div class="kpi-value">{{ animatedCounters.matches }}</div>
+          <div class="kpi-sub">Across all competitions</div>
+        </div>
+
+        <div class="kpi-card highlight">
+          <div class="kpi-header">Goals Scored</div>
+          <div class="kpi-value">{{ animatedCounters.goals }}</div>
+          <div class="kpi-sub">{{ goalsPerMatch }} Avg / Game</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-header">Assists</div>
+          <div class="kpi-value">{{ animatedCounters.assists }}</div>
+          <div class="kpi-sub">{{ assistsPerMatch }} Avg / Game</div>
+        </div>
+
+        <div class="kpi-card highlight">
+          <div class="kpi-header">Man of Match</div>
+          <div class="kpi-value">{{ animatedCounters.motms }}</div>
+          <div class="kpi-sub">{{ motmPercentage }}% Match Impact</div>
+        </div>
+
+      </div>
+
+      <!-- =============== 4. COMPETITION BREAKDOWN =============== -->
+      <div class="breakdown-section" scrollReveal direction="bottom" [delay]="520">
+        <div class="panel-header" style="margin-bottom:20px;">Match Performance Breakdown</div>
+
+        <div class="breakdown-grid">
+          @for (comp of competitionBreakdown; track comp.label; let i = $index) {
+            <div class="comp-box" [class]="'comp-hover-' + i">
+              <div class="comp-name">
+                <span class="comp-icon" [style.background]="comp.iconColor"></span>
+                {{ comp.label }}
+              </div>
+              <div class="comp-stats-row"><span>Matches</span><strong>{{ comp.stats.matches }}</strong></div>
+              <div class="comp-stats-row"><span>Goals</span><strong>{{ comp.stats.goals }}</strong></div>
+              <div class="comp-stats-row"><span>Assists</span><strong>{{ comp.stats.assists }}</strong></div>
+              <div class="comp-stats-row"><span>MOTM</span><strong>{{ comp.stats.motMs }}</strong></div>
+            </div>
+          }
+        </div>
+      </div>
+
+    </div>
+  }
+</div>
+
+<!-- =============== ARCHETYPE PACK OVERLAY =============== -->
+@if (showArchetypeOverlay) {
+  <div
+    class="pack-overlay"
+    [style.--tier-neon]="tierNeon"
+    [style.--tier-glow]="'color-mix(in srgb, ' + tierNeon + ' 22%, transparent)'"
+    [style.--tier-border-glow]="'color-mix(in srgb, ' + tierNeon + ' 40%, transparent)'"
+    [style.--tier-bg-glow]="'color-mix(in srgb, ' + tierNeon + ' 14%, transparent)'"
+    (click)="closeArchetypeOverlay()">
+
+    <button class="close-pack-btn" (click)="closeArchetypeOverlay()" aria-label="Close">✕</button>
+
+    <div class="pack-spotlight"></div>
+
+    <div class="pack-card-container"
+      (click)="$event.stopPropagation(); flipArchetypeCard()"
+      [attr.aria-label]="isCardFlipped ? 'Archetype revealed' : 'Tap to reveal archetype'">
+      <div class="pack-card-inner" [class.flipped]="isCardFlipped">
+
+        <div class="card-face card-face-back">
+          <div class="mystery-logo">KORALYTICS</div>
+          <div class="tap-hint">TAP TO REVEAL</div>
+        </div>
+
+        <div class="card-face card-face-front">
+          <div class="archetype-badge-icon">⚽</div>
+          <div class="arch-label">PLAYER ARCHETYPE</div>
+          <div class="arch-title">{{ archetypeLabel }}</div>
+          <div class="arch-subline">AI-powered playing style analysis</div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+}
+
+<app-footer scrollReveal direction="bottom" [delay]="200"></app-footer>

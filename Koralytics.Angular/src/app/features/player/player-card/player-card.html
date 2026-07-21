@@ -16,6 +16,7 @@
         [class.tier-gold]="tierClass === 'tier-gold'"
         [class.tier-elite]="tierClass === 'tier-elite'"
         [class.flipped]="isFlipped"
+        [class.compact]="compact"
         (click)="toggleFlip()"
         (mousemove)="onMouseMove($event)"
         (mouseleave)="onMouseLeave()">
