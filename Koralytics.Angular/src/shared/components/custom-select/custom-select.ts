@@ -32,7 +32,8 @@ export class CustomSelect {
     return selected ? selected.label : '';
   }
 
-  toggleDropdown() {
+  toggleDropdown(event: MouseEvent) {
+    event.stopPropagation();
     if (!this.disabled) {
       this.isOpen = !this.isOpen;
     }
