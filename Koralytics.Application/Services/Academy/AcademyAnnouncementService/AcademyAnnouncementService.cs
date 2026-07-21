@@ -1,7 +1,9 @@
 using AutoMapper;
 
 using Koralytics.Application.DTOs.Academies;
+using Koralytics.Application.DTOs.Notification;
 using Koralytics.Application.Interfaces;
+using Koralytics.Application.Interfaces.Notification;
 using Koralytics.Domain.Entities.Academy;
 using Koralytics.Domain.Entities.Coach;
 using Koralytics.Domain.Entities.Player;
@@ -18,15 +20,19 @@ namespace Koralytics.Application.Services.Academy.AcademyAnnouncementService
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly ILogger<AcademyAnnouncementService> _logger;
+        private readonly IAnnouncementNotificationService _announcementNotificationService;
 
         public AcademyAnnouncementService(
             IUnitOfWork unitOfWork,
             IMapper mapper,
-            ILogger<AcademyAnnouncementService> logger)
+            ILogger<AcademyAnnouncementService> logger,
+            IAnnouncementNotificationService announcementNotificationService
+            )
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _logger = logger;
+            _announcementNotificationService = announcementNotificationService;
         }
 
         // ──────────────────────────────────────────────────────────────────────
@@ -34,7 +40,7 @@ namespace Koralytics.Application.Services.Academy.AcademyAnnouncementService
         // Validates TargetType → ensures TargetId references an entity in the academy.
         // TODO: Trigger NotificationService.SendAnnouncementAsync() once implemented.
         // ──────────────────────────────────────────────────────────────────────
-        public async Task<AnnouncementResponseDto> SendAnnouncementAsync(int academyId, SendAnnouncementDto dto, int sentByUserId)
+        public async Task<AnnouncementResponseDto> SendAnnouncementAsync(int academyId,CreateAnnouncementDto dto, int sentByUserId,bool isSystemAdmin = false,CancellationToken cancellationToken = default)
         {
             _logger.LogInformation(
                 "User {UserId} sending announcement to academy {AcademyId} — TargetType={TargetType}",
@@ -45,8 +51,26 @@ namespace Koralytics.Application.Services.Academy.AcademyAnnouncementService
                 .FindAsync(a => a.Id == academyId && !a.IsDeleted)
                 ?? throw new NotFoundException($"Academy with Id {academyId} not found.");
 
-            // Validate TargetId references an entity within this academy
-            await ValidateTargetAsync(academyId, dto.TargetType, dto.TargetId);
+            string mappedRole = string.Empty;
+            if (dto.TargetType == AnnouncementTargetType.Role)
+            {
+                mappedRole = dto.TargetId switch
+                {
+                    4 => "Player",
+                    5 => "Parent",
+                    6 => "Coach",
+                    _ => throw new BadRequestException($"Role ID {dto.TargetId} is not supported for live notifications.")
+                };
+            }
+            dto.Role = mappedRole;
+
+            // Send Notification via Notification Service with isSystemAdmin flag
+            await _announcementNotificationService.SendAnnouncementNotificationAsync(
+                academyId,
+                sentByUserId,
+                dto,
+                isSystemAdmin,
+                cancellationToken);
 
             var announcement = new AcademyAnnouncement
             {
@@ -65,10 +89,6 @@ namespace Koralytics.Application.Services.Academy.AcademyAnnouncementService
             _logger.LogInformation(
                 "Announcement '{Title}' (Id={Id}) created for academy {AcademyId}.",
                 announcement.Title, announcement.Id, academyId);
-
-            // TODO: Call NotificationService.SendAnnouncementAsync(announcement) when the notification module is implemented.
-            // NotificationService should fan-out push/email notifications to all recipients determined by TargetType .
-             
 
             // Build response (fetch sender name)
             var sender = await _unitOfWork.Repository<Domain.Entities.Identity.User>()

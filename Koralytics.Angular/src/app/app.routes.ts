@@ -43,6 +43,16 @@ export const routes: Routes = [
     loadComponent: () => import('./features/player/player-profile/player-profile.component').then(m => m.PlayerProfileComponent),
     canActivate: [authGuard]
   },
+  {
+    path: 'profile-views-analytics/:playerId',
+    loadComponent: () => import('./features/ProfileViewsAnalyticsPage/profile-views-analytics/profile-views-analytics').then(m => m.ProfileViewsAnalytics),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'academy-announcement/:academyId',
+    loadComponent: () => import('./features/notification/pages/academy-announcement/academy-announcement').then(m => m.AcademyAnnouncement),
+    canActivate: [authGuard]
+  },
   { path: 'referenceshowcase', loadComponent: () => import('./reference-showcase').then(m => m.App) },
   { path: '**', redirectTo: 'auth/login' }
 ];

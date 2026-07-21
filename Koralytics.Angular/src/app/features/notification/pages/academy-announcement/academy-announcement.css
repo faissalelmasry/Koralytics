@@ -1,0 +1,290 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  color: #ffffff;
+  position: relative;
+  z-index: 50;
+  --tier-neon: #c8ff4d;
+  --tier-glow: rgba(200, 255, 77, 0.2);
+  --tier-border-glow: rgba(200, 255, 77, 0.4);
+  --tier-bg-glow: rgba(200, 255, 77, 0.12);
+  --error-color: #ff6a5c;
+}
+
+.aa-page {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 110px 30px 20px;
+  font-family: 'Inter', sans-serif;
+}
+
+/* ---------- Hero Banner ---------- */
+.hero-banner {
+  background: linear-gradient(135deg, #11141a 0%, #0c0e12 100%);
+  border: 1px solid #1e232d;
+  border-radius: 20px;
+  padding: 20px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.3s ease;
+}
+
+.hero-banner:hover {
+  border-color: #383e4a;
+}
+
+.hero-banner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, var(--tier-neon), transparent 70%);
+}
+
+.aa-identity {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.aa-icon-circle {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--tier-glow) 0%, #171b22 100%);
+  border: 2px solid var(--tier-neon);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: var(--tier-neon);
+  flex-shrink: 0;
+  box-shadow: 0 0 15px var(--tier-glow);
+  animation: avatarPulse 3s infinite ease-in-out;
+}
+
+@keyframes avatarPulse {
+  0%, 100% { box-shadow: 0 0 10px var(--tier-glow); border-color: var(--tier-neon); }
+  50% { box-shadow: 0 0 25px var(--tier-neon); border-color: #ffffff; }
+}
+
+.aa-identity h1 {
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.1;
+  margin: 0 0 4px;
+  font-family: 'Inter', sans-serif;
+}
+
+.meta-pills {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.pill {
+  background: #181c24;
+  border: 1px solid #272d3a;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  color: #e2e8f0;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+}
+
+.pill.gold {
+  background: var(--tier-bg-glow);
+  border-color: var(--tier-border-glow);
+  color: var(--tier-neon);
+}
+
+.header-sub {
+  color: #808897;
+  font-size: 13px;
+  margin: 0;
+  padding-left: 76px;
+}
+
+/* ---------- Generic Panel ---------- */
+.aa-panel {
+  background: #11141a;
+  border: 1px solid #1e232d;
+  border-radius: 18px;
+  overflow: visible !important; /* حل مشكلة قص القائمة المنسدلة */
+  position: relative;
+  z-index: 500;
+  transition: border-color 0.3s ease;
+}
+
+.aa-panel:hover {
+  border-color: #383e4a;
+}
+
+.panel-header {
+  padding: 16px 20px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #808897;
+  text-transform: uppercase;
+  font-family: 'Inter', sans-serif;
+  border-bottom: 1px solid #1e232d;
+}
+
+/* ---------- Compose Form ---------- */
+.aa-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 20px;
+}
+
+.aa-target-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+  align-items: start;
+}
+
+/* Custom textarea, styled to match the shared app-text-input look */
+.textarea-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.textarea-label {
+  color: #808897;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: lowercase;
+  letter-spacing: 0.3px;
+  padding-left: 2px;
+}
+
+.aa-textarea {
+  width: 100%;
+  min-height: 120px;
+  resize: vertical;
+  background: #0d0f14;
+  border: 1px solid #1e232d;
+  border-radius: 12px;
+  padding: 14px 16px;
+  color: #f2f3f5;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  outline: none;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  box-sizing: border-box;
+}
+
+.aa-textarea::placeholder {
+  color: #808897;
+  text-transform: lowercase;
+}
+
+.aa-textarea:hover {
+  border-color: #383e4a;
+}
+
+.aa-textarea:focus {
+  border-color: var(--tier-neon);
+  box-shadow: 0 0 20px var(--tier-glow);
+}
+
+.textarea-field-group.has-error .aa-textarea {
+  border-color: var(--error-color);
+  box-shadow: 0 0 20px rgba(255, 106, 92, 0.1);
+}
+
+.textarea-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px;
+}
+
+.error-text-msg {
+  color: var(--error-color);
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: lowercase;
+}
+
+.char-count {
+  color: #808897;
+  font-size: 12px;
+  font-weight: 500;
+  margin-left: auto;
+}
+
+/* ---------- Feedback Banners ---------- */
+.aa-banner {
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: lowercase;
+}
+
+.aa-banner-error {
+  background: rgba(255, 106, 92, 0.08);
+  border: 1px solid rgba(255, 106, 92, 0.25);
+  color: var(--error-color);
+}
+
+.aa-banner-success {
+  background: var(--tier-bg-glow);
+  border: 1px solid var(--tier-border-glow);
+  color: var(--tier-neon);
+}
+
+.aa-form-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* ---------- Shared dropdown z-index/overflow fix ---------- */
+.custom-select-dropdown,
+.dropdown-menu,
+ul[role="listbox"],
+.options-container {
+  background: #11141a !important;
+  border: 1px solid rgba(200, 255, 77, 0.3) !important;
+  max-height: 240px !important;
+  overflow-y: auto !important;
+  z-index: 999999 !important;
+  position: absolute !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8) !important;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 768px) {
+  .aa-page {
+    padding: 90px 16px 16px;
+  }
+
+  .hero-banner {
+    padding: 18px 20px;
+  }
+
+  .header-sub {
+    padding-left: 0;
+  }
+
+  .aa-target-row {
+    grid-template-columns: 1fr;
+  }
+}

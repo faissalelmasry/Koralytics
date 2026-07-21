@@ -1,5 +1,6 @@
 using Koralytics.API.Controllers.BaseController;
 using Koralytics.Application.DTOs.Academies;
+using Koralytics.Application.DTOs.Notification;
 using Koralytics.Application.Services.Academy.AcademyAnnouncementService;
 
 using Microsoft.AspNetCore.Authorization;
@@ -24,11 +25,20 @@ namespace Koralytics.API.Controllers.Academies
 
         [HttpPost("{academyId}/announcements")]
         //[Authorize(Roles = "Admin,Coach")]
-        public async Task<IActionResult> SendAnnouncement(int academyId, [FromBody] SendAnnouncementDto dto)
+        public async Task<IActionResult> SendAnnouncement(int academyId, [FromBody] CreateAnnouncementDto dto)
         {
             var userId = GetCurrentUserId();
-            var result = await _academyAnnouncementService.SendAnnouncementAsync(academyId, dto, userId);
-            return OkResponse(result, "Announcement sent successfully.");
+
+            var isSystemAdmin = User.IsInRole("SystemAdmin");
+
+            await _academyAnnouncementService.SendAnnouncementAsync(
+                academyId,
+                dto,
+                 userId,
+                isSystemAdmin: isSystemAdmin
+            );
+
+            return OkResponse("Announcement sent successfully.");
         }
 
         [HttpGet("{academyId}/announcements")]

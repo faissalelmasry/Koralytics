@@ -1,0 +1,52 @@
+<div class="aa-history-section">
+  <div class="aa-history-header">
+    <h4>sent announcements</h4>
+    <app-status-chip
+      *ngIf="!isLoading && announcements.length > 0"
+      [label]="announcements.length + ' total'"
+      type="info">
+    </app-status-chip>
+  </div>
+
+  <div class="aa-loading-zone" *ngIf="isLoading">
+    <app-loading-spinner size="lg"></app-loading-spinner>
+  </div>
+
+  <app-empty-state
+    *ngIf="!isLoading && announcements.length === 0"
+    title="no announcements yet"
+    description="messages you send to your academy will show up here.">
+  </app-empty-state>
+
+  <div class="aa-announcement-list" *ngIf="!isLoading && announcements.length > 0">
+    <div
+      class="aa-announcement-card"
+      *ngFor="let announcement of paginatedAnnouncements; let i = index"
+      [style.--animation-order]="i">
+
+      <div class="announcement-card-top">
+        <h5 class="announcement-title">{{ announcement.title }}</h5>
+        <app-status-chip
+          [label]="getTargetTypeLabel(announcement)"
+          [type]="getTargetTypeChip(announcement.targetType)">
+        </app-status-chip>
+      </div>
+
+      <p class="announcement-body">{{ announcement.body }}</p>
+
+      <div class="announcement-meta">
+        <span class="meta-sender">sent by {{ announcement.sentByFullName || 'Academy Staff' }}</span>
+        <span class="meta-dot">•</span>
+        <span class="meta-date">{{ announcement.createdAt | date: 'MMM d, y, h:mm a' }}</span>
+      </div>
+    </div>
+
+    <!-- Shared Pagination Component -->
+    <app-pagination
+      [totalItems]="announcements.length"
+      [pageSize]="pageSize"
+      [currentPage]="currentPage"
+      (pageChange)="onPageChange($event)">
+    </app-pagination>
+  </div>
+</div>
