@@ -19,20 +19,20 @@ namespace Koralytics.API.Controllers
         private readonly IPlayerTransferService _playerTransferService;
         private readonly IPlayerCardService _playerCardService;
         private readonly IPlayerProfileService _playerProfileService;
-        //private readonly IStorageService _storageService;
+        private readonly IStorageService _storageService;
         private readonly IPlayerGoalService _playerGoalService;
 
         public PlayerController(
             IPlayerTransferService playerTransferService,
             IPlayerCardService playerCardService,
             IPlayerProfileService playerProfileService,
-            //IStorageService storageService,
+            IStorageService storageService,
             IPlayerGoalService playerGoalService)
         {
             _playerTransferService = playerTransferService;
             _playerCardService = playerCardService;
             _playerProfileService = playerProfileService;
-            //_storageService = storageService;
+            _storageService = storageService;
             _playerGoalService = playerGoalService;
         }
         [HttpPatch("{playerId}/availability")]
@@ -205,8 +205,8 @@ namespace Koralytics.API.Controllers
             if (requesterId != playerId)
                 return Forbid();
 
-            //var result = await _storageService.UploadHighlightAsync(playerId, academyId, file, title);
-            return CreatedAtAction(nameof(GetHighlights), new { playerId }/*, result*/);
+            var result = await _storageService.UploadHighlightAsync(playerId, academyId, file, title);
+            return CreatedAtAction(nameof(GetHighlights), new { playerId }, result);
         }
 
         [HttpDelete("{playerId}/highlights/{highlightId}")]
@@ -217,7 +217,7 @@ namespace Koralytics.API.Controllers
             if (requesterId != playerId)
                 return Forbid();
 
-            //await _storageService.DeleteHighlightAsync(highlightId, playerId);
+            await _storageService.DeleteHighlightAsync(highlightId, playerId);
             return NoContent();
         }
 
@@ -229,7 +229,7 @@ namespace Koralytics.API.Controllers
             if (requesterId != playerId)
                 return Forbid();
 
-            //await _storageService.PinHighlightAsync(highlightId, playerId);
+            await _storageService.PinHighlightAsync(highlightId, playerId);
             return NoContent();
         }
 
@@ -237,8 +237,8 @@ namespace Koralytics.API.Controllers
         [Authorize]
         public async Task<IActionResult> GetHighlights(int playerId)
         {
-            //var highlights = await _storageService.GetHighlightsAsync(playerId);
-            return Ok(/*highlights*/);
+            var highlights = await _storageService.GetHighlightsAsync(playerId);
+            return Ok(highlights);
         }
         [HttpPost("{playerId}/goals")]
         [Authorize(Roles = "Coach,AcademyAdmin")]

@@ -404,6 +404,8 @@ The presentation and infrastructure are wired together in `Program.cs`.
 * **AcademyTeamController**: Manages age group and team creation, coach assignment/removal.
 * **`AcademyAnnouncementController`**: Sends announcements and removes players from academy.
 * **`AcademyAnalyticsController`**: Returns coach performance dashboard and subscription status.
+* **`MatchController`**: Interface for match-related operations (requests, events, analytics).
+* **`NotificationController`**: Interface for push notifications and SignalR endpoints.
 
 ---
 
@@ -478,6 +480,12 @@ For any AI agent or Developer working on this codebase:
 - **Match Request Page**: Send friendly match request form, Incoming requests list (accept/decline), Outgoing requests list, Cancel request button.
 - **Player Readiness Page**: Readiness percentage per player, Last 3 sessions scores display, Availability status display.
 
+### Frontend Core Services (Angular)
+- **Bishoy (Auth)**: `auth.service.ts`, `google-auth.service.ts`, `token-storage.service.ts`
+- **Rawan (Scouting)**: `scouter.service.ts`
+- **Aly (Academy)**: `AcademyAnnouncementService.ts`
+- **Shared Utilities**: `modal.ts`, `toast.ts`
+
 ### Shared Components (everyone uses)
 - Navbar + Sidebar (role based menu)
 - PlayerCardMini (small FIFA card used in lists)
@@ -485,11 +493,21 @@ For any AI agent or Developer working on this codebase:
 - SearchBar
 - LoadingSpinner
 - ErrorBoundary
-- ConfirmDialog
-- ToastNotifications (SignalR powered)
+- ConfirmDialog (powered by `modal.ts`)
+- ToastNotifications (SignalR powered, utilizes `toast.ts`)
 - RoleGuard (protect routes by role)
 
 ### Dependency Order
 1. **Bishoy (Auth pages)** → Must finish first (everyone needs login to test their pages).
 2. **Faissal (Player Card component)** → Must finish before Rawan (uses PlayerCardMini in search results), Youssef (uses it in squad page), and Adham (uses it in tournament squad).
 3. **Rawan (Notifications/SignalR)** → Must finish before Faissal (needs it for live match updates), and everyone else (needs toast notifications).
+
+---
+
+## 9. Recent Updates (Changelog)
+- **Git Ignore Updates**: Added `appsettings.json` and `appsettings.*.json` to `.gitignore` to prevent tracking of local configuration and connection strings.
+- **Frontend Core Services (Angular)**: 
+  - Implemented SignalR integrations (`signalrservice.ts`, `notificationservice.ts`).
+  - Added player-related Angular services (`player-card.service.ts`, `player-profile.service.ts`).
+  - Added HTTP Error utilities (`http-error.util.ts`).
+- **Frontend Pages/Templates**: Pulled initial HTML prototypes for player profiles, cards, and login pages (e.g., `PlayerProfile1.html`, `login9.html`, `player-card (1).html`).

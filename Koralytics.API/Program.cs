@@ -235,7 +235,7 @@ namespace Koralytics.API
             builder.Services.AddScoped<IScouterShortlistService, ScouterShortlistService>();
             builder.Services.AddScoped<IScouterFollowService, ScouterFollowService>();
             builder.Services.AddScoped<IScouterReportService, ScouterReportService>();
-            //builder.Services.AddScoped<IStorageService, StorageService>();
+            builder.Services.AddScoped<IStorageService, StorageService>();
             builder.Services.AddSignalR();
             builder.Services.AddScoped<IRealTimeBridge, RealTimeBridge>();
             builder.Services.AddScoped<IPlayerNotificationService, PlayerNotificationService>();

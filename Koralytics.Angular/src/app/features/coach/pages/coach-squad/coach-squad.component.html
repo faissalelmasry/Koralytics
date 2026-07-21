@@ -1,0 +1,158 @@
+<div class="page-container">
+  <div class="page-header">
+    <h1 class="page-title">Squad <span class="accent">Overview</span></h1>
+    <p class="page-subtitle" *ngIf="squad()">{{ squad()!.teamName }}</p>
+  </div>
+
+  <!-- Compare Action Bar -->
+  <div class="action-bar" *ngIf="squad()?.players?.length">
+    <span class="selection-hint" *ngIf="!canCompare()">
+      Select 2 players to compare
+    </span>
+    <button
+      class="btn-compare"
+      [disabled]="!canCompare()"
+      (click)="openComparison()">
+      ⚔️ Compare Players
+    </button>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-state" *ngIf="loading()">
+    <div class="spinner"></div>
+    <p>Loading squad...</p>
+  </div>
+
+  <!-- Error -->
+  <div class="error-state" *ngIf="error()">
+    <p>{{ error() }}</p>
+    <button class="btn-retry" (click)="loadSquad()">Retry</button>
+  </div>
+
+  <!-- Squad Grid -->
+  <div class="squad-grid" *ngIf="squad() && !loading()">
+    <div
+      class="player-card"
+      *ngFor="let player of squad()!.players"
+      [class.selected]="isSelected(player.playerId)"
+      (click)="togglePlayerSelection(player.playerId)">
+      <!-- Card Header -->
+      <div class="card-header">
+        <div class="player-avatar">
+          <img
+            *ngIf="player.profileImageUrl"
+            [src]="player.profileImageUrl"
+            [alt]="player.fullName" />
+          <span *ngIf="!player.profileImageUrl" class="avatar-initial">
+            {{ player.fullName[0] }}
+          </span>
+        </div>
+        <div class="player-info">
+          <h3 class="player-name">{{ player.fullName }}</h3>
+          <span class="player-position">{{ player.primaryPosition }}</span>
+        </div>
+        <div class="overall-rating">
+          <span class="rating-number">{{ player.overallRating | number:'1.0-0' }}</span>
+        </div>
+      </div>
+
+      <!-- Status Chips -->
+      <div class="status-row">
+        <span class="status-chip" [ngClass]="getAvailabilityClass(player.availabilityStatus)">
+          {{ player.availabilityStatus }}
+        </span>
+        <span
+          class="readiness-chip"
+          *ngIf="readinessMap()[player.playerId] as readiness"
+          [style.borderColor]="getReadinessColor(readiness.readinessScore)">
+          <span
+            class="readiness-dot"
+            [style.background]="getReadinessColor(readiness.readinessScore)">
+          </span>
+          {{ readiness.readinessScore }}%
+        </span>
+      </div>
+
+      <!-- Category Ratings -->
+      <div class="ratings-grid">
+        <div class="rating-item">
+          <span class="rating-label">PAC</span>
+          <span class="rating-value">{{ player.paceRating | number:'1.0-0' }}</span>
+        </div>
+        <div class="rating-item">
+          <span class="rating-label">SHO</span>
+          <span class="rating-value">{{ player.shootingRating | number:'1.0-0' }}</span>
+        </div>
+        <div class="rating-item">
+          <span class="rating-label">PAS</span>
+          <span class="rating-value">{{ player.passingRating | number:'1.0-0' }}</span>
+        </div>
+        <div class="rating-item">
+          <span class="rating-label">DRI</span>
+          <span class="rating-value">{{ player.dribblingRating | number:'1.0-0' }}</span>
+        </div>
+        <div class="rating-item">
+          <span class="rating-label">DEF</span>
+          <span class="rating-value">{{ player.defendingRating | number:'1.0-0' }}</span>
+        </div>
+        <div class="rating-item">
+          <span class="rating-label">PHY</span>
+          <span class="rating-value">{{ player.physicalRating | number:'1.0-0' }}</span>
+        </div>
+      </div>
+
+      <!-- Foot & Style -->
+      <div class="meta-row">
+        <span class="meta-tag">{{ player.preferredFoot }} foot</span>
+        <span class="meta-tag" *ngIf="player.playStyleTag">{{ player.playStyleTag }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="squad() && !squad()!.players.length && !loading()">
+    <p>No players found in this squad.</p>
+  </div>
+
+  <!-- Comparison Modal -->
+  <div class="modal-backdrop" *ngIf="showCompareModal" (click)="closeComparison()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Player Comparison</h2>
+        <button class="modal-close" (click)="closeComparison()">×</button>
+      </div>
+
+      <div class="comparison-body" *ngIf="comparison() as cmp">
+        <div class="compare-column">
+          <div class="compare-avatar">
+            <span class="avatar-initial large">{{ cmp.playerA.fullName[0] }}</span>
+          </div>
+          <h3>{{ cmp.playerA.fullName }}</h3>
+          <span class="compare-position">{{ cmp.playerA.primaryPosition }}</span>
+          <div class="compare-overall">{{ cmp.playerA.overallRating | number:'1.0-0' }}</div>
+        </div>
+
+        <div class="compare-bars">
+          <div class="bar-row" *ngFor="let cat of ['paceRating','shootingRating','passingRating','dribblingRating','defendingRating','physicalRating']">
+            <div class="bar-left" [style.width.%]="(cmp.playerA[cat] / 100) * 100">
+              <span>{{ cmp.playerA[cat] | number:'1.0-0' }}</span>
+            </div>
+            <span class="bar-label">{{ cat.replace('Rating','') | uppercase }}</span>
+            <div class="bar-right" [style.width.%]="(cmp.playerB[cat] / 100) * 100">
+              <span>{{ cmp.playerB[cat] | number:'1.0-0' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="compare-column">
+          <div class="compare-avatar">
+            <span class="avatar-initial large">{{ cmp.playerB.fullName[0] }}</span>
+          </div>
+          <h3>{{ cmp.playerB.fullName }}</h3>
+          <span class="compare-position">{{ cmp.playerB.primaryPosition }}</span>
+          <div class="compare-overall">{{ cmp.playerB.overallRating | number:'1.0-0' }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
