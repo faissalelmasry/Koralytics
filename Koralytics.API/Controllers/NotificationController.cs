@@ -17,7 +17,7 @@ namespace Koralytics.API.Controllers
         private readonly IAnnouncementNotificationService _announcementService;
         private readonly IPlayerNotificationService _playerNotificationService;
         private readonly IScouterNotificationService _scouterNotificationService;
-        private readonly IRealTimeBridge _realTimeBridge; 
+        private readonly IRealTimeBridge _realTimeBridge; // Injected to manage Redis operations directly
 
         public NotificationController(
             IAnnouncementNotificationService announcementService,
@@ -47,7 +47,7 @@ namespace Koralytics.API.Controllers
                 return Unauthorized("User identity validation failed.");
             }
 
-            
+            // Fetches ordered, paginated notifications from Redis cache (Hash + ZSET)
             var notifications = await _realTimeBridge.GetNotificationsAsync(currentUserId, skip, take, HttpContext.RequestAborted);
             return Ok(notifications);
         }
@@ -67,7 +67,7 @@ namespace Koralytics.API.Controllers
                 return Unauthorized("User identity validation failed.");
             }
 
-          
+            // Updates IsRead to true inside the Redis Hash, keeping the ZSET score intact
             await _realTimeBridge.MarkAsReadAsync(currentUserId, notificationId, HttpContext.RequestAborted);
             return NoContent();
         }
@@ -86,9 +86,9 @@ namespace Koralytics.API.Controllers
                 return Unauthorized("User identity validation failed.");
             }
 
-           
+            
             await _realTimeBridge.DeleteExpiredNotificationsAsync(currentUserId, HttpContext.RequestAborted);
-            return Ok(new { Message = "Expired notifications purged successfully." });
+            return Ok(new { message = "Expired notifications purged successfully." });
         }
 
         #endregion
@@ -100,6 +100,13 @@ namespace Koralytics.API.Controllers
         /// Restricted to academy staff; the service layer additionally verifies the
         /// caller is actually a member of THIS specific academy (role claim alone
         /// can't prove that).
+        ///
+        /// NOTE: this is a direct, no-persistence path used to test the real-time
+        /// (SignalR + Redis) dispatch pipeline in isolation. It does NOT create an
+        /// AcademyAnnouncement history row. Production announcement creation goes
+        /// through AcademyAnnouncementService.SendAnnouncementAsync instead, which
+        /// persists the announcement first and then calls this same dispatch logic
+        /// internally. Do not wire the frontend to this endpoint directly.
         /// </summary>
         /// <param name="academyId">The hosting tenant academy identifier.</param>
         /// <param name="body">The announcement metadata targeting payload requirements.</param>
@@ -109,7 +116,6 @@ namespace Koralytics.API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-     
         public async Task<IActionResult> SendAcademyAnnouncement([FromRoute] int academyId, [FromBody] CreateAnnouncementDto body)
         {
             var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -117,14 +123,16 @@ namespace Koralytics.API.Controllers
             {
                 return Unauthorized("User identity validation failed.");
             }
-           
+
             var isSystemAdmin = User.IsInRole("SystemAdmin");
+
+            
             await _announcementService.SendAnnouncementNotificationAsync(
                 academyId,
                 currentUserId,
                 body,
-                isSystemAdmin, 
-                HttpContext.RequestAborted);
+                isSystemAdmin: isSystemAdmin,
+                cancellationToken: HttpContext.RequestAborted);
 
             return Accepted();
         }
@@ -133,13 +141,7 @@ namespace Koralytics.API.Controllers
 
         #region 3. Player & Parent Engagement
 
-        // These endpoints represent system/staff-triggered notifications (milestones,
-        // parent alerts, subscription grace) rather than actions an arbitrary player
-        // should be able to invoke against any other player's account. Previously they
-        // had no authorization beyond [Authorize] at the controller level, meaning any
-        // authenticated user could target any playerId. Locking to Admin/Coach as a
-
-
+       
         /// <summary>
         /// Triggers a milestone real-time broadcast to a specific player connection room.
         /// </summary>
@@ -153,7 +155,7 @@ namespace Koralytics.API.Controllers
         public async Task<IActionResult> NotifyPlayerMilestone([FromRoute] int playerId, [FromQuery] string achievementType)
         {
             await _playerNotificationService.NotifyPlayerMilestoneAsync(playerId, achievementType, HttpContext.RequestAborted);
-            return Ok(new { Message = "Milestone notification dispatched successfully." });
+            return Ok(new { message = "Milestone notification dispatched successfully." });
         }
 
         /// <summary>
@@ -168,7 +170,7 @@ namespace Koralytics.API.Controllers
         public async Task<IActionResult> NotifyPlayerParents([FromRoute] int playerId, [FromQuery] string eventType)
         {
             await _playerNotificationService.NotifyParentAsync(playerId, eventType, HttpContext.RequestAborted);
-            return Ok(new { Message = "Parent notifications dispatched successfully." });
+            return Ok(new { message = "Parent notifications dispatched successfully." });
         }
 
         /// <summary>
@@ -184,7 +186,7 @@ namespace Koralytics.API.Controllers
         public async Task<IActionResult> TriggerSubscriptionGraceNotification([FromRoute] int playerId, [FromRoute] int academyId)
         {
             await _playerNotificationService.NotifySubscriptionGraceAsync(playerId, academyId, HttpContext.RequestAborted);
-            return Ok(new { Message = "Subscription grace period alerts successfully broadcasted." });
+            return Ok(new { message = "Subscription grace period alerts successfully broadcasted." });
         }
 
         #endregion
@@ -204,7 +206,7 @@ namespace Koralytics.API.Controllers
         public async Task<IActionResult> NotifyScouterFollowers([FromRoute] int playerId, [FromQuery] string eventType)
         {
             await _scouterNotificationService.NotifyScouterFollowersAsync(playerId, eventType, HttpContext.RequestAborted);
-            return Ok(new { Message = "Scouter feed updates dispatched successfully." });
+            return Ok(new { message = "Scouter feed updates dispatched successfully." });
         }
 
         #endregion

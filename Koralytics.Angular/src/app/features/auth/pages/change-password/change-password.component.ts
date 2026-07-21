@@ -7,11 +7,12 @@ import { ToastService } from '../../../../../core/services/Toast/toast';
 import { CustomInputComponent } from '../../../../../shared/components/custom-input-component/custom-input-component';
 import { CustomButtonComponent } from '../../../../../shared/components/custom-button/custom-button';
 import { PasswordStrengthComponent } from '../../../../../shared/components/password-strength/password-strength.component';
+import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
 
 @Component({
   selector: 'app-change-password',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, CustomInputComponent, CustomButtonComponent, PasswordStrengthComponent],
+  imports: [CommonModule, ReactiveFormsModule, CustomInputComponent, CustomButtonComponent, PasswordStrengthComponent, ScrollRevealDirective],
   templateUrl: './change-password.component.html',
   styleUrls: ['./change-password.component.css']
 })

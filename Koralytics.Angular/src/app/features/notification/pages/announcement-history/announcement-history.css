@@ -1,0 +1,126 @@
+:host {
+  display: block;
+  width: 100%;
+  --tier-neon: #c8ff4d;
+  --tier-glow: rgba(200, 255, 77, 0.2);
+  --tier-border-glow: rgba(200, 255, 77, 0.4);
+  --tier-bg-glow: rgba(200, 255, 77, 0.12);
+}
+
+.aa-history-section {
+  display: flex;
+  flex-direction: column;
+  background: #11141a;
+  border: 1px solid #1e232d;
+  border-radius: 18px;
+  overflow: hidden;
+  font-family: 'Inter', sans-serif;
+  transition: border-color 0.3s ease;
+}
+
+.aa-history-section:hover {
+  border-color: #383e4a;
+}
+
+/* ---------- History Header ---------- */
+.aa-history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #1e232d;
+}
+
+.aa-history-header h4 {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #808897;
+  text-transform: uppercase;
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+}
+
+.aa-loading-zone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}
+
+/* ---------- Announcement List & Cards ---------- */
+.aa-announcement-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+}
+
+.aa-announcement-card {
+  background: #0d0f14;
+  border: 1px solid #1e232d;
+  border-radius: 14px;
+  padding: 18px 20px;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease, box-shadow 0.3s ease;
+  animation: aaCardFadeIn 0.4s ease backwards;
+  animation-delay: calc(var(--animation-order) * 0.05s);
+}
+
+@keyframes aaCardFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.aa-announcement-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--tier-border-glow);
+  box-shadow: 0 10px 25px var(--tier-glow);
+}
+
+/* ---------- Card Content ---------- */
+.announcement-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.announcement-title {
+  color: #f2f3f5;
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -0.2px;
+}
+
+.announcement-body {
+  color: #c7cbd1;
+  font-size: 13.5px;
+  line-height: 1.6;
+  margin: 0 0 12px 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.announcement-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #808897;
+  font-size: 12px;
+  text-transform: lowercase;
+}
+
+.meta-dot {
+  opacity: 0.5;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 768px) {
+  .announcement-card-top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}

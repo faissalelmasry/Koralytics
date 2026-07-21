@@ -1,7 +1,7 @@
 <app-navbar></app-navbar>
 
 <div class="bfa-cyber-pitch-wrapper">
-  
+   
   <div class="bfa-blob bfa-blob-lime"></div>
   <div class="bfa-blob bfa-blob-cyan"></div>
 
@@ -27,10 +27,10 @@
   </div>
 
   <div class="app-main-layout content-ready">
-    <main class="main-content">
+    <main class="main-content" scrollReveal direction="bottom">
       <router-outlet></router-outlet>
     </main>
-    <app-footer></app-footer>
+    <app-footer scrollReveal direction="bottom" [delay]="200"></app-footer>
   </div>
 
 </div>

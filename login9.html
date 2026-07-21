@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Trible A | Gymnastic" />
+    <!-- Normalize File -->
+    <link rel="stylesheet" href="style/normalize.css" />
+    <!-- slider css -->
+    <link rel="stylesheet" href="style/swiper-bundle.min.css" />
+    <!-- Web Fonts File -->
+    <link
+      rel="stylesheet"
+      href="https://site-assets.fontawesome.com/releases/v6.5.1/css/all.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://site-assets.fontawesome.com/releases/v6.5.1/css/sharp-thin.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://site-assets.fontawesome.com/releases/v6.5.1/css/sharp-solid.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://site-assets.fontawesome.com/releases/v6.5.1/css/sharp-regular.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://site-assets.fontawesome.com/releases/v6.5.1/css/sharp-light.css"
+    />
+    <!-- CSS Main File -->
+    <link rel="stylesheet" href="style/signup.css" />
+    <!-- Font Faamily -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Dosis:wght@200..800&display=swap"
+      rel="stylesheet"
+    />
+    <title>Trible A | Gymnastic | Account</title>
+  </head>
+  <body>
+    <div class="loading">
+      <div class="animation">
+        <div class="one"></div>
+        <div class="two"></div>
+        <div class="three"></div>
+      </div>
+    </div>
+
+    <div class="header">
+      <div class="time">
+        <i class="fa-solid fa-futbol"></i>
+        <p>Curva Hagz</p>
+      </div>
+      <div class="social-media">
+        <a href=""><i class="fa-brands fa-facebook-f"></i></a>
+        <a href=""><i class="fa-brands fa-instagram"></i></a>
+        <a href=""><i class="fa-brands fa-linkedin-in"></i></a>
+      </div>
+    </div>
+
+    <div class="landing-page">
+      <div class="container">
+        <div class="nav">
+          <div class="logo">
+            <i class="fa-solid fa-futbol"></i>
+            <p>Curva <span>Hagz</span></p>
+          </div>
+          <div class="links">
+            <ul id="menu">
+              <i class="fa-regular fa-circle-xmark" onclick="closemenu()"></i>
+              <a href="index.html"><li>home</li></a>
+              <a href="about.html"><li>about us</li></a>
+              <a href="contact.html"><li>contact</li></a>
+              <a href="#"><li>classes</li></a>
+            </ul>
+            <i class="fa-solid fa-bars" onclick="openmenu()"></i>
+            <a href="login.html" class="profile-button">login</a>
+          </div>
+        </div>
+        <div class="content reveal reveal-bottom">
+          <h1>log in</h1>
+        </div>
+      </div>
+    </div>
+
+    <div class="form signup">
+      <div class="container">
+        <div class="form-out">
+          <h3>Log in</h3>
+          <form action="#">
+            <div class="form-cont">
+              <div class="pages">
+                <div class="page">
+                  <div class="row">
+                    <div class="field full-width">
+                      <label for="signup-email">email</label>
+                      <input
+                        type="email"
+                        name="signup-email"
+                        id="signup-email"
+                        placeholder="Enter your email"
+                      />
+                      <span class="validation">error</span>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="field full-width">
+                      <label for="pass-2">password</label>
+                      <div class="pass-feild">
+                        <input
+                          type="password"
+                          name="signup-password"
+                          id="pass-2"
+                          placeholder="Password"
+                        />
+                        <i class="fa-solid fa-eye-slash eye" id="eye-2"></i>
+                      </div>
+                      <span class="validation">error</span>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="field full-width">
+                      <input type="submit" class="submit" value="Submit" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div class="container">
+        <div class="about reveal reveal-left">
+          <div class="logo">
+            <i class="fa-solid fa-futbol"></i>
+            <p>Curva <span>Hagz</span></p>
+          </div>
+          <div class="info">
+            <p>
+              Welcome to Triple A, where your fitness journey begins! At Triple
+              A. Join us today and unleash your full potential at Triple A!
+            </p>
+            <div class="location">
+              <i class="fa-solid fa-location-dot"></i>
+              <p>FCI-KFSU-KFS-EGY</p>
+            </div>
+            <div class="phone">
+              <i class="fa-solid fa-phone"></i>
+              <p>(+20) 127 489 2442</p>
+            </div>
+          </div>
+        </div>
+        <div class="quick-links reveal reveal-left">
+          <h3>quick links</h3>
+          <div class="link">
+            <i class="fa-solid fa-angle-right"></i>
+            <a href="index.html">home</a>
+          </div>
+          <div class="link">
+            <i class="fa-solid fa-angle-right"></i>
+            <a href="about.html">about us</a>
+          </div>
+          <div class="link">
+            <i class="fa-solid fa-angle-right"></i>
+            <a href="contact.html">contact</a>
+          </div>
+          <div class="link">
+            <i class="fa-solid fa-angle-right"></i>
+            <a href="#">classes</a>
+          </div>
+        </div>
+        <div class="useful-links reveal reveal-right">
+          <h3>useful links</h3>
+          <div class="link">
+            <i class="fa-solid fa-angle-right"></i>
+            <a href="#">privacy policy</a>
+          </div>
+          <div class="link">
+            <i class="fa-solid fa-angle-right"></i>
+            <a href="#">term & conditions</a>
+          </div>
+          <div class="link">
+            <i class="fa-solid fa-angle-right"></i>
+            <a href="#">elements</a>
+          </div>
+          <div class="link">
+            <i class="fa-solid fa-angle-right"></i>
+            <a href="#">support</a>
+          </div>
+        </div>
+        <div class="newsletter reveal reveal-right">
+          <h3>newsletter</h3>
+          <p>
+            Stay informed and inspired with our newsletter, exciting updates,
+            and special offers delivered straight to your inbox.
+          </p>
+          <form action="#">
+            <input
+              type="email"
+              name="email"
+              id="email"
+              placeholder="Email Address"
+              autocomplete="on"
+            />
+            <input type="submit" value="subscribe" />
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <p>copyright &copy; curva hagz a 2025 all rights reserved</p>
+      <div class="social-media">
+        <a href=""><i class="fa-brands fa-facebook-f"></i></a>
+        <a href=""><i class="fa-brands fa-instagram"></i></a>
+        <a href=""><i class="fa-brands fa-linkedin-in"></i></a>
+      </div>
+    </footer>
+
+    <script src="script/signup.js"></script>
+  </body>
+</html>

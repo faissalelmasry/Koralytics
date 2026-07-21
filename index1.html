@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Koralytics - Player Profile</title>
+  <!-- Google Fonts for Gaming / FIFA Vibe -->
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0a0c10;
+      --card-bg: #14171c;
+      --card-border: #23272f;
+      --text-main: #ffffff;
+      --text-muted: #8b909a;
+      
+      /* Dynamic Gold Tier based on 73.88 Rating */
+      --tier-neon: #ffd700;
+      --tier-glow: rgba(255, 215, 0, 0.15);
+      --tier-border-glow: rgba(255, 215, 0, 0.3);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      padding: 30px;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+    }
+
+    .koralytics-container {
+      max-width: 1200px;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 30px;
+    }
+
+    /* ==========================================
+       LEFT COLUMN: THE 3D CARD & QUICK INFO
+       ========================================== */
+    .left-col {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Player Card Styling */
+    .card3d {
+      background:
+        radial-gradient(140% 90% at 15% 0%, var(--tier-glow), transparent 55%),
+        linear-gradient(160deg, #14171c, #0e1013 70%);
+      border: 1px solid var(--tier-border-glow);
+      border-radius: 24px;
+      padding: 24px;
+      position: relative;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .rating {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 58px;
+      line-height: 1;
+      color: var(--tier-neon);
+    }
+
+    .position {
+      font-weight: 800;
+      color: var(--text-muted);
+      font-size: 16px;
+    }
+
+    .avatar-wrapper {
+      width: 110px;
+      height: 110px;
+      margin: 15px auto;
+      border-radius: 50%;
+      border: 2px solid var(--tier-border-glow);
+      background: #1a1d24;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      font-weight: 800;
+      color: var(--tier-neon);
+      box-shadow: 0 0 20px var(--tier-glow);
+    }
+
+    .card-name {
+      text-align: center;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 28px;
+      letter-spacing: 1.5px;
+      margin-bottom: 20px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px 20px;
+      margin-bottom: 20px;
+    }
+
+    .stat-item .top {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+
+    .stat-item .val { font-weight: 700; color: var(--tier-neon); }
+    .stat-item .lbl { color: var(--text-muted); font-weight: 600; }
+
+    .bar {
+      height: 4px;
+      background: #23272f;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .bar .fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--tier-neon), #ffa500);
+      border-radius: 2px;
+    }
+
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-muted);
+      border-top: 1px solid rgba(255,255,255,0.05);
+      padding-top: 12px;
+    }
+
+    /* Side Widget: Quick Bio */
+    .widget-box {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 20px;
+    }
+
+    .widget-title {
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 15px;
+    }
+
+    .info-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+    }
+
+    .info-row span:first-child { color: var(--text-muted); }
+    .info-row span:last-child { font-weight: 700; }
+
+    .badge-status {
+      background: rgba(34, 197, 94, 0.15);
+      color: #4ade80;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+
+    /* ==========================================
+       RIGHT COLUMN: DASHBOARD & METRICS
+       ========================================== */
+    .right-col {
+      display: flex;
+      flex-direction: column;
+      gap: 25px;
+    }
+
+    /* Header Banner */
+    .profile-header {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 25px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header-info h1 {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 5px;
+    }
+
+    .header-sub {
+      color: var(--text-muted);
+      font-size: 14px;
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+
+    .dot-sep { width: 5px; height: 5px; background: var(--text-muted); border-radius: 50%; }
+
+    /* Total Stats Counter Grid */
+    .counters-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 15px;
+    }
+
+    .counter-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .counter-card.highlight {
+      border-color: var(--tier-border-glow);
+      background: radial-gradient(100% 100% at 50% 0%, var(--tier-glow), var(--card-bg));
+    }
+
+    .counter-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 42px;
+      line-height: 1;
+      color: var(--text-main);
+      margin-bottom: 4px;
+    }
+
+    .counter-card.highlight .counter-num {
+      color: var(--tier-neon);
+    }
+
+    .counter-lbl {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    /* Competition Breakdown Table / Grid */
+    .breakdown-section {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 25px;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .breakdown-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+    }
+
+    .comp-box {
+      background: #0f1115;
+      border: 1px solid #1c2027;
+      border-radius: 14px;
+      padding: 18px;
+    }
+
+    .comp-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .comp-icon {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--tier-neon);
+    }
+
+    .comp-stats-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      margin-bottom: 8px;
+      color: var(--text-muted);
+    }
+
+    .comp-stats-row strong {
+      color: var(--text-main);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="koralytics-container">
+
+    <!-- ================= LEFT COLUMN ================= -->
+    <div class="left-col">
+
+      <!-- 1. Koralytics Dynamic Player Card (Gold Tier) -->
+      <div class="card3d">
+        <div class="card-top">
+          <div class="rating">74</div>
+          <div class="position">ST</div>
+        </div>
+
+        <div class="avatar-wrapper">
+          OK
+        </div>
+
+        <div class="card-name">OMAR KHALED</div>
+
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="top"><span class="val">70</span><span class="lbl">PAC</span></div>
+            <div class="bar"><div class="fill" style="width: 70%;"></div></div>
+          </div>
+          <div class="stat-item">
+            <div class="top"><span class="val">64</span><span class="lbl">DRI</span></div>
+            <div class="bar"><div class="fill" style="width: 63.5%;"></div></div>
+          </div>
+          <div class="stat-item">
+            <div class="top"><span class="val">71</span><span class="lbl">SHO</span></div>
+            <div class="bar"><div class="fill" style="width: 70.9%;"></div></div>
+          </div>
+          <div class="stat-item">
+            <div class="top"><span class="val">80</span><span class="lbl">DEF</span></div>
+            <div class="bar"><div class="fill" style="width: 80%;"></div></div>
+          </div>
+          <div class="stat-item">
+            <div class="top"><span class="val">79</span><span class="lbl">PAS</span></div>
+            <div class="bar"><div class="fill" style="width: 79.4%;"></div></div>
+          </div>
+          <div class="stat-item">
+            <div class="top"><span class="val">80</span><span class="lbl">PHY</span></div>
+            <div class="bar"><div class="fill" style="width: 79.5%;"></div></div>
+          </div>
+        </div>
+
+        <div class="card-footer">
+          <span>★★☆☆☆ (Weak Foot)</span>
+          <span>Right Foot</span>
+        </div>
+      </div>
+
+      <!-- 2. Personal Bio Widget -->
+      <div class="widget-box">
+        <div class="widget-title">Player Overview</div>
+        <div class="info-list">
+          <div class="info-row">
+            <span>Status</span>
+            <span class="badge-status">Available</span>
+          </div>
+          <div class="info-row">
+            <span>Age</span>
+            <span>18 Yrs</span>
+          </div>
+          <div class="info-row"><span>Classification</span><span>Developing</span></div>
+          <div class="info-row">
+            <span>Archetype</span>
+            <span style="color: var(--text-muted); font-weight: normal;">Unique Style</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ================= RIGHT COLUMN ================= -->
+    <div class="right-col">
+
+      <!-- 1. Profile Header Banner -->
+      <div class="profile-header">
+        <div class="header-info">
+          <h1>Omar Khaled</h1>
+          <div class="header-sub">
+            <span>Al Ahly Academy</span>
+            <span class="dot-sep"></span>
+            <span>U17 Team A (U17)</span>
+            <span class="dot-sep"></span>
+            <span style="color: var(--tier-neon);">Striker (ST)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Total Career Stats (Key Performance Indicators) -->
+      <div class="counters-grid">
+        <div class="counter-card">
+          <div class="counter-num">4</div>
+          <div class="counter-lbl">Total Matches</div>
+        </div>
+        <div class="counter-card highlight">
+          <div class="counter-num">5</div>
+          <div class="counter-lbl">Total Goals</div>
+        </div>
+        <div class="counter-card">
+          <div class="counter-num">0</div>
+          <div class="counter-lbl">Total Assists</div>
+        </div>
+        <div class="counter-card highlight">
+          <div class="counter-num">2</div>
+          <div class="counter-lbl">Man of Match</div>
+        </div>
+      </div>
+
+      <!-- 3. Competition Stats Breakdown -->
+      <div class="breakdown-section">
+        <div class="section-header">
+          <div class="widget-title" style="margin-bottom:0;">Match Performance Breakdown</div>
+        </div>
+
+        <div class="breakdown-grid">
+
+          <!-- Session Stats -->
+          <div class="comp-box">
+            <div class="comp-name">
+              <span class="comp-icon" style="background: #3b82f6;"></span>
+              Training Sessions
+            </div>
+            <div class="comp-stats-row"><span>Matches</span><strong>1</strong></div>
+            <div class="comp-stats-row"><span>Goals</span><strong>1</strong></div>
+            <div class="comp-stats-row"><span>Assists</span><strong>0</strong></div>
+            <div class="comp-stats-row"><span>MOTM</span><strong>0</strong></div>
+          </div>
+
+          <!-- Friendly Stats -->
+          <div class="comp-box">
+            <div class="comp-name">
+              <span class="comp-icon" style="background: #eab308;"></span>
+              Friendly Matches
+            </div>
+            <div class="comp-stats-row"><span>Matches</span><strong>2</strong></div>
+            <div class="comp-stats-row"><span>Goals</span><strong>3</strong></div>
+            <div class="comp-stats-row"><span>Assists</span><strong>0</strong></div>
+            <div class="comp-stats-row"><span>MOTM</span><strong>2</strong></div>
+          </div>
+
+          <!-- Tournament Stats -->
+          <div class="comp-box">
+            <div class="comp-name">
+              <span class="comp-icon" style="background: #ec4899;"></span>
+              Tournaments
+            </div>
+            <div class="comp-stats-row"><span>Matches</span><strong>1</strong></div>
+            <div class="comp-stats-row"><span>Goals</span><strong>1</strong></div>
+            <div class="comp-stats-row"><span>Assists</span><strong>0</strong></div>
+            <div class="comp-stats-row"><span>MOTM</span><strong>0</strong></div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+</body>
+</html>

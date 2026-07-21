@@ -11,3 +11,36 @@ html, body {
 *, *::before, *::after {
   box-sizing: border-box;
 }
+
+/* ============================================
+   Scroll Reveal Animations
+   ============================================ */
+[scrollReveal] {
+  opacity: 0;
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+[scrollReveal][data-reveal-direction="bottom"] {
+  transform: translateY(40px);
+}
+
+[scrollReveal][data-reveal-direction="left"] {
+  transform: translateX(-40px);
+}
+
+[scrollReveal][data-reveal-direction="right"] {
+  transform: translateX(40px);
+}
+
+[scrollReveal].revealed {
+  opacity: 1;
+  transform: translate(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [scrollReveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

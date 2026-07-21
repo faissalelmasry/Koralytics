@@ -1,0 +1,130 @@
+<app-navbar></app-navbar>
+
+<div class="pva-page">
+
+  @if (isLoading()) {
+    <div class="loading-state">
+      <app-loading-spinner size="lg"></app-loading-spinner>
+      <p>Loading analytics...</p>
+    </div>
+  }
+  @else if (errorMessage()) {
+    <div class="error-state">
+      <div class="error-icon">!</div>
+      <p>{{ errorMessage() }}</p>
+      <button class="retry-btn" (click)="loadAnalytics()">Retry</button>
+    </div>
+  }
+  @else if (analytics(); as data) {
+    <div class="pva-container">
+
+      <!-- =============== HERO BANNER =============== -->
+      <div class="hero-banner" scrollReveal direction="bottom" [delay]="0">
+        <div class="pva-identity">
+          <div class="pva-icon-circle">👁</div>
+          <div>
+            <h1>Profile Views Analytics</h1>
+            <div class="meta-pills">
+              <span class="pill gold">Live Tracking</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bio-quick-list">
+          <div class="bio-item">
+            <span class="bio-lbl">Total Views</span>
+            <span class="bio-val">{{ data.totalViewsCount }}</span>
+          </div>
+          <div class="bio-item">
+            <span class="bio-lbl">Unique Scouts</span>
+            <span class="bio-val">{{ uniqueRecentScouters() }}</span>
+          </div>
+          <div class="bio-item">
+            <span class="bio-lbl">This Week</span>
+            <span class="bio-val">{{ recentViewsThisWeek() }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- =============== KPI GRID =============== -->
+      <div class="kpi-grid" scrollReveal direction="bottom" [delay]="100">
+
+        <div class="kpi-card highlight">
+          <div class="kpi-header">Total Views</div>
+          <div class="kpi-value">{{ data.totalViewsCount }}</div>
+          <div class="kpi-sub">All-time profile views</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-header">Unique Scouts</div>
+          <div class="kpi-value">{{ uniqueRecentScouters() }}</div>
+          <div class="kpi-sub">From recent activity</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-header">Views This Week</div>
+          <div class="kpi-value">{{ recentViewsThisWeek() }}</div>
+          <div class="kpi-sub">Last 7 days</div>
+        </div>
+
+      </div>
+
+      <!-- =============== VIEWS OVER TIME CHART =============== -->
+      <div class="chart-panel" scrollReveal direction="bottom" [delay]="200">
+        <div class="panel-header">
+          <span>Views Over Time</span>
+        </div>
+        <div class="chart-canvas-wrapper">
+          <canvas #monthlyChartCanvas></canvas>
+        </div>
+      </div>
+
+      <!-- =============== RECENT VIEWER ACTIVITY =============== -->
+      @if (data.recentViews && data.recentViews.length) {
+        <div class="activity-panel" scrollReveal direction="bottom" [delay]="300">
+          <div class="panel-header">
+            <span>Recent Viewer Activity</span>
+          </div>
+
+          <div class="cyber-table-responsive-container">
+            <table class="cyber-data-table">
+              <thead>
+                <tr>
+                  <th>Scout</th>
+                  <th>Viewed At</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (viewer of data.recentViews; track viewer.scouterId + viewer.viewedAt; let i = $index) {
+                  <tr [style.--animation-order]="i">
+                    <td data-label="scout">
+                      <span class="cell-text">{{ viewer.scouterName }}</span>
+                      @if (viewer.isScouterVerified) {
+                        <span class="verified-badge" title="Verified scouter">✓</span>
+                      }
+                    </td>
+                    <td data-label="viewed at">
+                      <span class="cell-text">{{ viewer.viewedAt | date: 'MMM d, y, h:mm a' }}</span>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+      @else {
+        <div scrollReveal direction="bottom" [delay]="300">
+          <app-empty-state
+            title="no viewer activity yet"
+            description="no scouts, clubs or agents have viewed this profile in the selected range.">
+          </app-empty-state>
+        </div>
+      }
+
+    </div>
+  }
+
+</div>
+
+<!-- <app-footer scrollReveal direction="bottom" [delay]="200"></app-footer> -->
