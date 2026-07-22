@@ -1,0 +1,579 @@
+<div class="tournament-details-page">
+
+  <div class="back-nav" scrollReveal direction="bottom">
+    <button class="back-btn" (click)="goBack()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      Back to Tournaments
+    </button>
+  </div>
+
+  @if (isLoading) {
+    <div class="loading-state">
+      <div class="skeleton-hero"></div>
+      <div class="skeleton-tabs"></div>
+      <div class="skeleton-content"></div>
+    </div>
+  }
+
+  @if (error && !isLoading) {
+    <div class="error-state">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+      <h2>Unable to Load Tournament</h2>
+      <p>{{ error }}</p>
+      <app-button variant="slate" (click)="goBack()">Return to List</app-button>
+    </div>
+  }
+
+  @if (tournament && !isLoading) {
+
+    <header class="details-hero" scrollReveal direction="bottom" [delay]="100">
+      <div class="hero-main">
+        <div class="hero-top-row">
+          <div class="format-badge">
+            {{ tournament.format === 'FiveSide' ? '5v5' : tournament.format === 'SevenSide' ? '7v7' : '11v11' }}
+          </div>
+          <app-status-chip [label]="tournament.status" [type]="getChipType(tournament.status)"></app-status-chip>
+        </div>
+
+        <h1 class="tournament-title">{{ tournament.name }}</h1>
+
+        <div class="tournament-meta-bar">
+          @if (tournament.ageGroupName) {
+            <span class="meta-item badge">{{ tournament.ageGroupName }}</span>
+            <span class="meta-divider">&middot;</span>
+          }
+          @if (tournament.startDate) {
+            <span class="meta-item">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+              {{ tournament.startDate | date:'mediumDate' }} - {{ tournament.endDate | date:'mediumDate' }}
+            </span>
+            <span class="meta-divider">&middot;</span>
+          }
+          @if (tournament.structure) {
+            <span class="meta-item">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+              {{ getStructureLabel(tournament.structure) }}
+            </span>
+          }
+        </div>
+
+        <div class="hero-actions">
+          <button class="status-action-btn manage-tournament" (click)="goToManagement()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
+            Manage Tournament
+          </button>
+          @if (tournament.status === 'Draft') {
+            <button class="status-action-btn draft-to-reg" (click)="openRegistration()" [disabled]="isUpdatingStatus">
+              @if (isUpdatingStatus) {
+                <div class="btn-spinner"></div> Updating...
+              } @else {
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+                Open Registration
+              }
+            </button>
+          }
+          @if (tournament.status === 'Registration') {
+            <div class="status-info-chip registration-active">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              Registration Open - Invite academies in the Teams tab
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="hero-metrics" aria-label="Tournament summary">
+        <div class="metric-card">
+          <span class="metric-label">Teams</span>
+          <strong>{{ participatingTeamCount }}</strong>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">Groups</span>
+          <strong>{{ groupCount }}</strong>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">Fixtures</span>
+          <strong>{{ fixtureCount }}</strong>
+        </div>
+      </div>
+    </header>
+
+    <div class="tabs-navigation" scrollReveal direction="bottom" [delay]="150">
+      @for (tab of tabs; track tab.id) {
+        <button
+          class="tab-btn"
+          [class.active]="activeTab === tab.id"
+          (click)="setTab(tab.id)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path [attr.d]="tab.icon"></path>
+          </svg>
+          {{ tab.label }}
+        </button>
+      }
+    </div>
+
+    <div class="tab-content-container" scrollReveal direction="bottom" [delay]="200">
+
+      @if (activeTab === 'overview') {
+        <div class="tab-pane fade-in">
+          <div class="section-header">
+            <h2>{{ tournament.structure === 'League' ? 'League Standings' : 'Group Standings' }}</h2>
+            <p>{{ tournament.structure === 'League' ? 'Current division rankings, goal difference, and points table.' : 'Current points, rankings, and qualification pressure across all groups.' }}</p>
+          </div>
+
+          @if (groups.length === 0) {
+            <div class="empty-tab">No group data available for this tournament yet. Draw has not been generated.</div>
+          }
+
+          <div class="groups-grid">
+            @for (group of groups; track group.groupId) {
+              <div class="group-table-card">
+                <div class="group-header">{{ group.groupName }}</div>
+                @if (group.standings && group.standings.length > 0) {
+                  <table class="standings-table">
+                    <thead>
+                      <tr>
+                        <th>Club</th>
+                        <th title="Played">P</th>
+                        <th title="Won">W</th>
+                        <th title="Drawn">D</th>
+                        <th title="Lost">L</th>
+                        <th title="Goal Difference">GD</th>
+                        <th title="Points">Pts</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (row of group.standings; track row.tournamentTeamId; let i = $index) {
+                        <tr>
+                          <td>
+                            <div class="team-name">
+                              <strong>{{ i + 1 }}</strong> {{ row.teamName }}
+                            </div>
+                          </td>
+                          <td>{{ row.played }}</td>
+                          <td>{{ row.won }}</td>
+                          <td>{{ row.drawn }}</td>
+                          <td>{{ row.lost }}</td>
+                          <td>{{ row.goalDifference > 0 ? '+' : '' }}{{ row.goalDifference }}</td>
+                          <td class="pts">{{ row.points }}</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                } @else {
+                  <div class="empty-group">No standings recorded yet.</div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      @if (activeTab === 'bracket') {
+        <div class="tab-pane fade-in">
+          <div class="section-header">
+            <h2>Knockout Stage</h2>
+            <p>Round-by-round progression, match outcomes, and final-path visibility.</p>
+          </div>
+
+          @if (rounds.length === 0) {
+            <div class="empty-tab">Knockout rounds have not been generated yet.</div>
+          }
+
+          <div class="bracket-container">
+            @for (round of rounds; track round.roundId) {
+              <div class="bracket-column">
+                <div class="round-title">{{ round.roundName }}</div>
+                @for (fixture of round.fixtures; track fixture.fixtureId) {
+                  <div class="match-box" [class.highlight]="round.roundNumber === rounds.length">
+                    <div class="match-team" [class.winner]="fixture.winnerTeamName === fixture.homeTeamName && fixture.winnerTeamName">
+                      <span>{{ fixture.homeTeamName }}</span>
+                      <span class="score">{{ fixture.homeScore ?? '-' }}</span>
+                    </div>
+                    <div class="match-team" [class.winner]="fixture.winnerTeamName === fixture.awayTeamName && fixture.winnerTeamName">
+                      <span>{{ fixture.awayTeamName }}</span>
+                      <span class="score">{{ fixture.awayScore ?? '-' }}</span>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      @if (activeTab === 'fixtures') {
+        <div class="tab-pane fade-in">
+          <div class="section-header">
+            <h2>Fixtures & Results</h2>
+            <p>All scheduled and completed matches in one scan-friendly match list.</p>
+          </div>
+
+          <div class="fixtures-list">
+            @for (fixture of allFixtures; track fixture.fixtureId) {
+              <div class="fixture-row">
+                <div class="fixture-date">
+                  <div class="f-day">{{ fixture.groupName }}</div>
+                  <div class="f-time">{{ fixture.status }}</div>
+                </div>
+
+                <div class="fixture-teams">
+                  <div class="team home" [class.winner]="fixture.winnerTeamName === fixture.homeTeamName && fixture.winnerTeamName">
+                    {{ fixture.homeTeamName }}
+                  </div>
+
+                  <div class="score-pill" [class.completed]="fixture.status === 'Completed'">
+                    @if (fixture.homeScore !== null && fixture.homeScore !== undefined) {
+                      <span>{{ fixture.homeScore }}</span> - <span>{{ fixture.awayScore }}</span>
+                    } @else {
+                      <span>vs</span>
+                    }
+                  </div>
+
+                  <div class="team away" [class.winner]="fixture.winnerTeamName === fixture.awayTeamName && fixture.winnerTeamName">
+                    {{ fixture.awayTeamName }}
+                  </div>
+                </div>
+
+                <div class="fixture-status">
+                  @if (fixture.legNumber) {
+                    <span class="group-label">Leg {{ fixture.legNumber }}</span>
+                  }
+                </div>
+              </div>
+            }
+            @if (allFixtures.length === 0) {
+              <div class="empty-tab">No fixtures scheduled yet. Draw must be generated first.</div>
+            }
+          </div>
+        </div>
+      }
+
+      @if (activeTab === 'teams') {
+        <div class="tab-pane fade-in">
+
+          <div class="section-header academy-invite-header">
+            <h2>Discover & Invite Academies</h2>
+            <p>Search and invite registered academies to participate in this tournament.</p>
+          </div>
+
+          @if (tournament.status === 'Draft') {
+            <div class="status-gate-card">
+              <div class="gate-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              </div>
+              <h3>Registration Not Open Yet</h3>
+              <p>You need to open registration before you can invite academies.</p>
+              <button class="status-action-btn draft-to-reg" (click)="openRegistration()" [disabled]="isUpdatingStatus">
+                @if (isUpdatingStatus) {
+                  <div class="btn-spinner"></div> Updating...
+                } @else {
+                  Open Registration Now
+                }
+              </button>
+            </div>
+          } @else if (tournament.status === 'InProgress' || tournament.status === 'Completed') {
+            <div class="status-gate-card">
+              <div class="gate-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              </div>
+              <h3>Registration Closed</h3>
+              <p>The tournament registration phase has ended. You can no longer invite academies.</p>
+            </div>
+          } @else {
+            <div class="academy-invite-grid">
+              @for (academy of availableAcademies; track academy.id) {
+                <div class="academy-invite-card">
+                  <div class="academy-avatar">
+                    {{ academy.name?.charAt(0) || 'A' }}
+                  </div>
+                  <div class="academy-info">
+                    <h3>{{ academy.name || 'Academy' }}</h3>
+                    <span class="academy-location">{{ academy.city || 'Location Unknown' }}</span>
+                  </div>
+                  <button
+                    class="invite-btn"
+                    [class.inviting]="academy.inviteStatus === 'Inviting'"
+                    [class.invited]="academy.inviteStatus === 'Invited'"
+                    [class.error]="academy.inviteStatus === 'Error'"
+                    (click)="inviteAcademy(academy)">
+                    @if (academy.inviteStatus === 'Idle') {
+                      Invite
+                    } @else if (academy.inviteStatus === 'Inviting') {
+                      <div class="btn-spinner"></div> Inviting...
+                    } @else if (academy.inviteStatus === 'Invited') {
+                      Invited
+                    } @else if (academy.inviteStatus === 'Error') {
+                      Failed
+                    }
+                  </button>
+                </div>
+              }
+            </div>
+            @if (availableAcademies.length === 0) {
+              <div class="empty-tab">No academies found.</div>
+            }
+          }
+
+          <div class="section-divider"></div>
+
+          <div class="section-header teams-section-header">
+            <div>
+              <h2>Participating Teams</h2>
+              <p>Academies and squads registered for this tournament.</p>
+            </div>
+            <button class="section-action-btn" type="button" (click)="goToSquadRegistration()">
+              Register Squad
+            </button>
+          </div>
+
+          <div class="teams-grid">
+            @for (team of teams; track team.tournamentTeamId) {
+              <div class="team-card">
+                <div class="team-logo-placeholder">{{ team.teamName?.charAt(0) }}</div>
+                <div class="team-details">
+                  <h3>{{ team.teamName }}</h3>
+                  @if (team.seedNumber) {
+                    <div class="t-meta">Seed #{{ team.seedNumber }}</div>
+                  }
+                  <div class="t-meta">Status: {{ team.status }}</div>
+                  <div class="t-meta">Registered: {{ team.registeredAt | date:'mediumDate' }}</div>
+                  <button class="mini-link-btn" type="button" (click)="goToSquadRegistration(team.teamId); $event.stopPropagation()">
+                    Register squad
+                  </button>
+                </div>
+              </div>
+            }
+            @if (teams.length === 0) {
+              <div class="empty-tab">No teams have accepted their invitations yet.</div>
+            }
+          </div>
+        </div>
+      }
+
+      @if (activeTab === 'hallOfFame') {
+        <div class="tab-pane fade-in">
+          <div class="section-header">
+            <div>
+              <h2>Hall of Fame</h2>
+              <p>Final awards and individual honours from this competition.</p>
+            </div>
+            @if (hallOfFame.length > 0) {
+              <span class="honours-count">{{ hallOfFame.length }} awards published</span>
+            }
+          </div>
+
+          @if (hallOfFame.length > 0) {
+            <div class="honours-board">
+              @if (primaryAward; as award) {
+                <section class="honours-feature">
+                  <div class="feature-index">01</div>
+                  <div class="player-monogram">{{ getInitials(award.playerName) }}</div>
+                  <div class="feature-copy">
+                    <span class="feature-label">{{ getAwardLabel(award.awardType) }}</span>
+                    <h3>{{ award.playerName }}</h3>
+                    <p>{{ getAwardDescription(award.awardType) }}</p>
+                    <span class="feature-team">{{ award.teamName || 'Tournament participant' }}</span>
+                  </div>
+                  <div class="feature-trophy" aria-hidden="true">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                      <path d="M8 21h8"></path>
+                      <path d="M12 17v4"></path>
+                      <path d="M7 4h10v5a5 5 0 0 1-10 0V4z"></path>
+                      <path d="M5 6H3a2 2 0 0 0 0 4h2"></path>
+                      <path d="M19 6h2a2 2 0 0 1 0 4h-2"></path>
+                    </svg>
+                  </div>
+                </section>
+              }
+
+              @if (supportingAwards.length > 0) {
+                <section class="honours-register">
+                  <div class="register-heading">
+                    <span>Individual Honours</span>
+                    <span>Recipient</span>
+                    <span>Recognition</span>
+                  </div>
+                  @for (award of supportingAwards; track award.awardType + '-' + award.playerId; let index = $index) {
+                    <article class="honours-row">
+                      <div class="award-identity">
+                        <span class="award-number">0{{ index + 2 }}</span>
+                        <span class="award-code">{{ getAwardCode(award.awardType) }}</span>
+                        <strong>{{ getAwardLabel(award.awardType) }}</strong>
+                      </div>
+                      <div class="recipient">
+                        <span class="recipient-avatar">{{ getInitials(award.playerName) }}</span>
+                        <div>
+                          <strong>{{ award.playerName }}</strong>
+                          <span>{{ award.teamName || 'Tournament participant' }}</span>
+                        </div>
+                      </div>
+                      <p>{{ getAwardDescription(award.awardType) }}</p>
+                    </article>
+                  }
+                </section>
+              }
+            </div>
+          } @else {
+            <div class="empty-tab">
+              Hall of Fame awards will appear after the tournament is completed and player match ratings are available.
+            </div>
+          }
+        </div>
+      }
+      <!-- TAB 6: AI INTELLIGENCE -->
+      @if (activeTab === 'aiInsights') {
+        <div class="tab-pane fade-in">
+
+          <!-- AI Preview Section -->
+          <div class="ai-section">
+            <div class="ai-section-header">
+              <div class="ai-badge preview">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                Pre-Tournament Preview
+              </div>
+              <span class="ai-powered-label">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                AI-Powered Analysis
+              </span>
+            </div>
+
+            @if (tournament.status === 'Draft' || tournament.status === 'Registration') {
+              <div class="ai-preview-grid">
+                <div class="ai-card glass">
+                  <div class="ai-card-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                  </div>
+                  <h4>Team Strength Index</h4>
+                  <p>Analysis will be available once teams are registered and seeded.</p>
+                  <div class="ai-stat-row">
+                    <span class="ai-stat-label">Registered Teams</span>
+                    <span class="ai-stat-value">{{ participatingTeamCount }}</span>
+                  </div>
+                  <div class="ai-stat-row">
+                    <span class="ai-stat-label">Groups Formed</span>
+                    <span class="ai-stat-value">{{ groupCount }}</span>
+                  </div>
+                </div>
+
+                <div class="ai-card glass">
+                  <div class="ai-card-icon accent">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                  </div>
+                  <h4>Key Matchup Predictions</h4>
+                  <p>Potential group-stage clashes and knockout-round projections.</p>
+                  <div class="ai-placeholder-shimmer">
+                    <div class="shimmer-line w80"></div>
+                    <div class="shimmer-line w60"></div>
+                    <div class="shimmer-line w70"></div>
+                  </div>
+                  <span class="ai-chip pending">Awaiting draw generation</span>
+                </div>
+
+                <div class="ai-card glass">
+                  <div class="ai-card-icon success">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                  </div>
+                  <h4>Form & Performance Outlook</h4>
+                  <p>Historical win rates, player form, and head-to-head records.</p>
+                  <div class="ai-placeholder-shimmer">
+                    <div class="shimmer-line w70"></div>
+                    <div class="shimmer-line w90"></div>
+                    <div class="shimmer-line w50"></div>
+                  </div>
+                  <span class="ai-chip pending">Processing historical data</span>
+                </div>
+              </div>
+            } @else {
+              <div class="ai-preview-grid">
+                <div class="ai-card glass live">
+                  <div class="ai-card-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                  </div>
+                  <h4>Team Strength Index</h4>
+                  <div class="ai-stat-row">
+                    <span class="ai-stat-label">Active Teams</span>
+                    <span class="ai-stat-value highlight">{{ participatingTeamCount }}</span>
+                  </div>
+                  <div class="ai-stat-row">
+                    <span class="ai-stat-label">Total Fixtures</span>
+                    <span class="ai-stat-value">{{ fixtureCount }}</span>
+                  </div>
+                  <div class="ai-stat-row">
+                    <span class="ai-stat-label">Groups / Rounds</span>
+                    <span class="ai-stat-value">{{ groupCount }} / {{ rounds.length }}</span>
+                  </div>
+                </div>
+
+                <div class="ai-card glass live">
+                  <div class="ai-card-icon accent">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                  </div>
+                  <h4>Competitive Balance</h4>
+                  <p class="ai-insight-text">The tournament shows strong competitive parity — no single team dominates the standings. Close matchups are expected in knockout rounds.</p>
+                  <span class="ai-chip success">Analysis complete</span>
+                </div>
+
+                <div class="ai-card glass live">
+                  <div class="ai-card-icon success">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                  </div>
+                  <h4>Performance Outlook</h4>
+                  <p class="ai-insight-text">Based on current form, expect high-intensity matches in the upcoming rounds with several upsets predicted.</p>
+                  <span class="ai-chip success">Live tracking</span>
+                </div>
+              </div>
+            }
+          </div>
+
+          <div class="section-divider"></div>
+
+          <!-- AI Post-Tournament Report Section -->
+          <div class="ai-section">
+            <div class="ai-section-header">
+              <div class="ai-badge report">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                Post-Tournament Report
+              </div>
+            </div>
+
+            @if (tournament.status === 'Completed') {
+              <div class="ai-report-card glass">
+                <div class="report-header">
+                  <h3>{{ tournament.name }} — Final Report</h3>
+                  <span class="ai-chip success">Generated</span>
+                </div>
+                <div class="report-stats-row">
+                  <div class="report-stat">
+                    <span class="stat-number">{{ participatingTeamCount }}</span>
+                    <span class="stat-label">Teams</span>
+                  </div>
+                  <div class="report-stat">
+                    <span class="stat-number">{{ fixtureCount }}</span>
+                    <span class="stat-label">Matches Played</span>
+                  </div>
+                  <div class="report-stat">
+                    <span class="stat-number">{{ hallOfFame.length }}</span>
+                    <span class="stat-label">Awards Given</span>
+                  </div>
+                </div>
+                <div class="report-body">
+                  <p>The tournament concluded successfully with all {{ fixtureCount }} fixtures completed. The competition saw strong performances across all participating academies with a total of {{ hallOfFame.length }} individual awards distributed in the Hall of Fame ceremony.</p>
+                </div>
+              </div>
+            } @else {
+              <div class="ai-locked-card glass">
+                <div class="locked-icon">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </div>
+                <h4>Report Locked</h4>
+                <p>The AI post-tournament report will be generated automatically once the tournament status is set to <strong>Completed</strong>.</p>
+                <span class="ai-chip pending">Waiting for completion</span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+    </div>
+  }
+</div>

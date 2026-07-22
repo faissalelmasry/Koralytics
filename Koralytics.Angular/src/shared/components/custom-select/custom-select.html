@@ -6,7 +6,7 @@
       {{ selectedLabel }}
     </div>
     
-    <label class="floating-label" [class.raised]="isOpen || value !== null && value !== ''">
+    <label class="floating-label" [class.raised]="isOpen || (selectedLabel ? true : false)">
       {{ label }}
     </label>
 

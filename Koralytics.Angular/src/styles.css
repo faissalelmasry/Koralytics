@@ -22,7 +22,7 @@ html, body {
 
 [scrollReveal].revealed {
   opacity: 1;
-  transform: translate(0);
+  transform: none;
 }
 
 [scrollReveal][data-reveal-direction="bottom"] {

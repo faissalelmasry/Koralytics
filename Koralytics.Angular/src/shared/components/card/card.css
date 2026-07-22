@@ -1,0 +1,108 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.card {
+  border-radius: 16px;
+  background: #111418;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  position: relative;
+  overflow: hidden;
+  font-family: 'Inter', sans-serif;
+  transition: 
+    transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), 
+    box-shadow 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), 
+    border-color 0.3s ease;
+}
+
+/* VARIANTS */
+.card.elevated {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.card.elevated.hoverable:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6), 0 0 1px rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.card.outlined {
+  background: transparent;
+  border: 1.5px solid rgba(255, 255, 255, 0.08);
+}
+
+.card.outlined.hoverable:hover {
+  border-color: rgba(200, 255, 77, 0.4);
+  box-shadow: 0 0 15px rgba(200, 255, 77, 0.1);
+}
+
+.card.flat {
+  background: #14171c;
+  border-color: transparent;
+}
+
+.card.flat.hoverable:hover {
+  background: #1c2027;
+  border-color: rgba(255, 255, 255, 0.04);
+}
+
+.card.clickable {
+  cursor: pointer;
+}
+
+.card.clickable:active {
+  transform: scale(0.99);
+}
+
+.card-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.card-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #f2f3f5;
+  letter-spacing: -0.3px;
+}
+
+.card-subtitle {
+  margin: 6px 0 0 0;
+  font-size: 0.88rem;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+.card-body {
+  padding: 24px;
+  color: #d1d5db;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.card-footer {
+  padding: 16px 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  background: rgba(0, 0, 0, 0.15);
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(11, 13, 16, 0.8);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  transition: opacity 0.3s ease;
+}

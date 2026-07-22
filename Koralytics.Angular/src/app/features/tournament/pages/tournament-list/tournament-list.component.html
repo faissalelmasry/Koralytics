@@ -1,0 +1,139 @@
+<div class="tournament-list-page">
+  <header class="workspace-header" scrollReveal direction="bottom">
+    <div>
+      <span class="eyebrow">Competition Hub</span>
+      <h1>Tournaments</h1>
+      <p>Create, monitor, and manage academy competitions from one operational workspace.</p>
+    </div>
+    <app-button variant="accent" routerLink="/tournament/create">
+      <span class="button-inline">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        New Tournament
+      </span>
+    </app-button>
+  </header>
+
+  <section class="kpi-strip" scrollReveal direction="bottom" [delay]="80">
+    <div class="kpi-card">
+      <span>Total</span>
+      <strong>{{ totalCount }}</strong>
+    </div>
+    <div class="kpi-card">
+      <span>In Progress</span>
+      <strong>{{ activeCount }}</strong>
+    </div>
+    <div class="kpi-card">
+      <span>Registration</span>
+      <strong>{{ registrationCount }}</strong>
+    </div>
+    <div class="kpi-card">
+      <span>Completed</span>
+      <strong>{{ completedCount }}</strong>
+    </div>
+  </section>
+
+  <section class="toolbar" scrollReveal direction="bottom" [delay]="120">
+    <div class="search-box">
+      <app-search-bar
+        placeholderText="Search tournaments or age groups"
+        (searchChange)="onSearchChange($event)">
+      </app-search-bar>
+    </div>
+
+    <div class="select-filters">
+      <app-select
+        label="Format"
+        [options]="formatOptions"
+        [value]="selectedFormat"
+        (valueChange)="onFormatChange($event)">
+      </app-select>
+
+      <app-select
+        label="Structure"
+        [options]="structureOptions"
+        [value]="selectedStructure"
+        (valueChange)="onStructureChange($event)">
+      </app-select>
+
+      <app-select
+        label="Status"
+        [options]="statusOptions"
+        [value]="selectedStatus"
+        (valueChange)="onStatusChange($event)">
+      </app-select>
+    </div>
+  </section>
+
+  <div class="results-line" scrollReveal direction="bottom" [delay]="140">
+    <span><strong>{{ filteredTournaments.length }}</strong> tournaments found</span>
+    @if (hasActiveFilters()) {
+      <button class="clear-filters-btn" type="button" (click)="clearFilters()">
+        Clear filters
+      </button>
+    }
+  </div>
+
+  @if (isLoading) {
+    <div class="table-surface">
+      @for (i of [1, 2, 3, 4]; track i) {
+        <div class="skeleton-row"></div>
+      }
+    </div>
+  }
+
+  @if (!isLoading && paginatedTournaments.length > 0) {
+    <section class="table-surface" scrollReveal direction="bottom" [delay]="160">
+      <div class="table-header">
+        <span>Tournament</span>
+        <span>Format</span>
+        <span>Structure</span>
+        <span>Dates</span>
+        <span>Status</span>
+        <span></span>
+      </div>
+
+      @for (item of paginatedTournaments; track item.id) {
+        <button class="table-row" type="button" (click)="goToDetails(item.id)">
+          <span class="name-cell">
+            <strong>{{ item.name }}</strong>
+            <small>{{ item.ageGroupName }}</small>
+          </span>
+          <span>{{ getFormatLabel(item.format) }}</span>
+          <span>{{ getStructureLabel(item.structure) }}</span>
+          <span>{{ item.startDate | date:'MMM d' }} - {{ item.endDate | date:'MMM d, y' }}</span>
+          <span>
+            <app-status-chip [label]="item.status" [type]="getChipType(item.status)"></app-status-chip>
+          </span>
+          <span class="open-cell">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </span>
+        </button>
+      }
+    </section>
+
+    <div class="pagination-container" scrollReveal direction="bottom" [delay]="100">
+      <app-pagination
+        [totalItems]="filteredTournaments.length"
+        [pageSize]="pageSize"
+        [currentPage]="currentPage"
+        (pageChange)="onPageChange($event)">
+      </app-pagination>
+    </div>
+  }
+
+  @if (!isLoading && paginatedTournaments.length === 0) {
+    <div class="empty-state-wrap" scrollReveal direction="bottom" [delay]="150">
+      <app-empty-state
+        title="No tournaments found"
+        description="No tournaments match your current filters."
+        actionText="Reset filters"
+        (actionClick)="clearFilters(); loadTournaments()">
+      </app-empty-state>
+    </div>
+  }
+</div>

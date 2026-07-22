@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, HostListener, ElementRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, HostListener, HostBinding, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 export interface SelectOption {
@@ -24,6 +24,11 @@ export class CustomSelect {
   @Output() valueChange = new EventEmitter<any>();
 
   isOpen: boolean = false;
+
+  @HostBinding('class.is-open')
+  get isOpenClass(): boolean {
+    return this.isOpen;
+  }
 
   constructor(private elementRef: ElementRef) {}
 

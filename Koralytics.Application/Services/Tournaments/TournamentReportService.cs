@@ -1,4 +1,4 @@
-﻿using Koralytics.Application.DTOs.Tournament;
+using Koralytics.Application.DTOs.Tournament;
 using Koralytics.Application.DTOs.Tournaments;
 using Koralytics.Application.Interfaces;
 using Koralytics.Application.Interfaces.Tournament;
@@ -13,6 +13,7 @@ using TournamentGroupEntity = Koralytics.Domain.Entities.Tournamet.TournamentGro
 using TournamentHallOfFameEntity = Koralytics.Domain.Entities.Tournamet.TournamentHallOfFame;
 using TournamentRoundEntity = Koralytics.Domain.Entities.Tournamet.TournamentRound;
 using TournamentStandingEntity = Koralytics.Domain.Entities.Tournamet.TournamentStanding;
+using TournamentSquadEntity = Koralytics.Domain.Entities.Tournamet.TournamentSquad;
 
 namespace Koralytics.Application.Services.Tournaments
 {
@@ -118,6 +119,48 @@ namespace Koralytics.Application.Services.Tournaments
                 Groups = await GetGroupStandingsAsync(tournamentId),
                 Rounds = await GetRoundsAsync(tournamentId)
             };
+        }
+
+        public async Task<List<HallOfFameDto>> GetHallOfFameAsync(int tournamentId)
+        {
+            var tournamentExists = await _unitOfWork.Repository<TournamentEntity>()
+                .ExistsAsync(t => t.Id == tournamentId);
+
+            if (!tournamentExists)
+                throw new NotFoundException(
+                    $"Tournament with Id {tournamentId} not found");
+
+            var squads = await _unitOfWork.Repository<TournamentSquadEntity>()
+                .GetQueryableAsNoTracking()
+                .Include(s => s.Team)
+                .Where(s => s.TournamentId == tournamentId)
+                .Select(s => new
+                {
+                    s.PlayerId,
+                    TeamName = s.Team.Name
+                })
+                .ToListAsync();
+
+            var teamByPlayerId = squads
+                .GroupBy(s => s.PlayerId)
+                .ToDictionary(g => g.Key, g => g.First().TeamName);
+
+            var awards = await _unitOfWork.Repository<TournamentHallOfFameEntity>()
+                .GetQueryableAsNoTracking()
+                .Include(h => h.Player)
+                .Where(h => h.TournamentId == tournamentId)
+                .OrderBy(h => h.AwardType)
+                .ToListAsync();
+
+            return awards.Select(award => new HallOfFameDto
+            {
+                PlayerId = award.PlayerId,
+                PlayerName = $"{award.Player.FirstName} {award.Player.LastName}",
+                AwardType = award.AwardType,
+                TeamName = teamByPlayerId.TryGetValue(award.PlayerId, out var teamName)
+                    ? teamName
+                    : string.Empty
+            }).ToList();
         }
 
         // ─────────────────────────────────────────────────────────────
