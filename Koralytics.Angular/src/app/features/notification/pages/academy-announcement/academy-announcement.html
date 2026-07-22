@@ -1,0 +1,104 @@
+<app-navbar></app-navbar>
+
+<div class="aa-page">
+
+  <!-- =============== HERO BANNER =============== -->
+  <div class="hero-banner" scrollReveal direction="bottom" [delay]="0">
+    <div class="aa-identity">
+      <div class="aa-icon-circle">📢</div>
+      <div>
+        <h1>Academy Announcements</h1>
+        <div class="meta-pills">
+          <span class="pill gold">Broadcast Center</span>
+        </div>
+      </div>
+    </div>
+    <p class="header-sub">Broadcast updates to your teams, age groups, or specific roles</p>
+  </div>
+
+  <!-- =============== COMPOSE PANEL =============== -->
+  <div class="aa-panel aa-compose-panel" scrollReveal direction="bottom" [delay]="100">
+    <div class="panel-header">
+      <span>New Announcement</span>
+    </div>
+
+    <form class="aa-form" [formGroup]="announcementForm" (ngSubmit)="onSendAnnouncement()">
+
+      <app-text-input
+        label="title"
+        formControlName="title"
+        [errorMessage]="titleError">
+      </app-text-input>
+
+      <div class="textarea-field-group" [class.has-error]="bodyError">
+        <label class="textarea-label" for="aa-body">message body</label>
+        <textarea
+          id="aa-body"
+          class="aa-textarea"
+          rows="5"
+          maxlength="1000"
+          formControlName="body"
+          placeholder="write the announcement message...">
+        </textarea>
+        <div class="textarea-footer">
+          <span class="error-text-msg" *ngIf="bodyError">{{ bodyError }}</span>
+          <span class="char-count">{{ announcementForm.get('body')?.value?.length || 0 }}/1000</span>
+        </div>
+      </div>
+
+      <div class="aa-target-row">
+
+        <app-select
+          label="send to"
+          [options]="targetTypeOptions"
+          [value]="selectedTargetType()"
+          (valueChange)="onTargetTypeChange($event)">
+        </app-select>
+
+        <app-text-input
+          *ngIf="selectedTargetType() === AnnouncementTargetType.Team || selectedTargetType() === AnnouncementTargetType.AgeGroup"
+          [label]="selectedTargetType() === AnnouncementTargetType.Team ? 'team id' : 'age group id'"
+          type="number"
+          formControlName="targetId"
+          [errorMessage]="targetIdError">
+        </app-text-input>
+
+        <app-select
+          *ngIf="selectedTargetType() === AnnouncementTargetType.Role"
+          label="role"
+          [options]="roleOptions"
+          [value]="announcementForm.get('role')?.value"
+          [errorMessage]="roleError"
+          (valueChange)="onRoleChange($event)">
+        </app-select>
+
+      </div>
+
+      <!-- Feedback Banners -->
+      <div class="aa-banner aa-banner-error" *ngIf="errorMessage()">
+        {{ errorMessage() }}
+      </div>
+      <div class="aa-banner aa-banner-success" *ngIf="successMessage()">
+        {{ successMessage() }}
+      </div>
+
+      <div class="aa-form-actions">
+        <app-button type="submit" variant="accent" [loading]="isSubmitting()">
+          send announcement
+        </app-button>
+      </div>
+
+    </form>
+  </div>
+
+  <!-- Sent Announcements History (Child Component) -->
+  <div scrollReveal direction="bottom" [delay]="200">
+    <app-announcement-history
+      [announcements]="announcements()"
+      [isLoading]="isLoading()">
+    </app-announcement-history>
+  </div>
+
+</div>
+
+<app-footer scrollReveal direction="bottom" [delay]="200"></app-footer>

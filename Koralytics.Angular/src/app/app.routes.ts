@@ -3,6 +3,7 @@ import { AuthLayoutComponent } from './layouts/auth-layout/auth-layout.component
 import { DashboardLayoutComponent } from './layouts/dashboard-layout/dashboard-layout.component';
 import { authGuard } from '../core/guards/auth.guard';
 import { guestGuard } from '../core/guards/guest.guard';
+import { roleGuard } from '../core/guards/role.guard';
 
 export const routes: Routes = [
   { path: 'confirm-email', redirectTo: 'auth/confirm-email' },
@@ -27,6 +28,7 @@ export const routes: Routes = [
     canActivate: [authGuard],
     children: [
       { path: 'dashboard', loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent) },
+      { path: 'drills', loadComponent: () => import('./features/drills/drill-template-list/drill-template-list.component').then(m => m.DrillTemplateListComponent) },
       { path: 'settings/change-password', loadComponent: () => import('./features/auth/pages/change-password/change-password.component').then(m => m.ChangePasswordComponent) },
       { path: 'tournament/list', loadComponent: () => import('./features/tournament/pages/tournament-list/tournament-list.component').then(m => m.TournamentListComponent) },
       { path: 'tournament/create', loadComponent: () => import('./features/tournament/pages/tournament-manage/tournament-manage.component').then(m => m.TournamentManageComponent) },
@@ -36,6 +38,27 @@ export const routes: Routes = [
       { path: 'tournament/:id/squad-registration', loadComponent: () => import('./features/tournament/pages/squad-registration/squad-registration.component').then(m => m.SquadRegistrationComponent) },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
+  },
+  {
+    path: 'player/profile',
+    loadComponent: () => import('./features/player/player-profile/player-profile.component').then(m => m.PlayerProfileComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Player'] }
+  },
+  {
+    path: 'player/profile/:playerId',
+    loadComponent: () => import('./features/player/player-profile/player-profile.component').then(m => m.PlayerProfileComponent),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'profile-views-analytics/:playerId',
+    loadComponent: () => import('./features/ProfileViewsAnalyticsPage/profile-views-analytics/profile-views-analytics').then(m => m.ProfileViewsAnalytics),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'academy-announcement/:academyId',
+    loadComponent: () => import('./features/notification/pages/academy-announcement/academy-announcement').then(m => m.AcademyAnnouncement),
+    canActivate: [authGuard]
   },
   { path: 'referenceshowcase', loadComponent: () => import('./reference-showcase').then(m => m.App) },
   { path: '**', redirectTo: 'auth/login' }

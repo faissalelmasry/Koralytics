@@ -18,7 +18,7 @@
   font-weight: 700;
   font-size: 14px;
   letter-spacing: 0.5px;
-  text-transform: lowercase;
+  text-transform: capitalize;
   cursor: pointer;
   outline: none;
   transform-style: preserve-3d;

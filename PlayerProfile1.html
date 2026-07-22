@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Koralytics - Pitch & Card Hybrid Profile</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg-dark: #08090c;
+      --panel-bg: #11141a;
+      --panel-border: #1e232d;
+      --text-main: #ffffff;
+      --text-muted: #808897;
+      --accent-gold: #ffd700;
+      --accent-green: #22c55e;
+      --pitch-green: #0b2415;
+      --pitch-line: rgba(255, 255, 255, 0.2);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      padding: 25px;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .koralytics-dashboard {
+      max-width: 1180px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* ==========================================
+       1. HERO HEADER BANNER
+       ========================================== */
+    .hero-banner {
+      background: linear-gradient(135deg, #11141a 0%, #0c0e12 100%);
+      border: 1px solid var(--panel-border);
+      border-radius: 20px;
+      padding: 20px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-banner::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 2px;
+      background: linear-gradient(90deg, var(--accent-gold), transparent 70%);
+    }
+
+    .player-identity {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .avatar-circle {
+      width: 60px; height: 60px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,215,0,0.15) 0%, #171b22 100%);
+      border: 2px solid var(--accent-gold);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; font-weight: 800; color: var(--accent-gold);
+    }
+
+    .player-identity h1 {
+      font-size: 26px; font-weight: 800; line-height: 1.1; margin-bottom: 4px;
+    }
+
+    .meta-pills {
+      display: flex; gap: 8px; align-items: center;
+    }
+
+    .pill {
+      background: #181c24; border: 1px solid #272d3a;
+      padding: 3px 10px; border-radius: 20px; font-size: 11px; color: #e2e8f0; font-weight: 600;
+    }
+
+    .pill.gold {
+      background: rgba(255, 215, 0, 0.1); border-color: rgba(255, 215, 0, 0.3); color: var(--accent-gold);
+    }
+
+    .bio-quick-list {
+      display: flex; gap: 20px; background: rgba(0,0,0,0.3); padding: 10px 18px; border-radius: 12px;
+    }
+
+    .bio-item { display: flex; flex-direction: column; }
+    .bio-lbl { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+    .bio-val { font-size: 13px; font-weight: 700; color: #fff; }
+
+    /* ==========================================
+       2. MAIN SECTION: CARD + PITCH + RADAR
+       ========================================== */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 240px 1fr 300px;
+      gap: 20px;
+      align-items: stretch;
+    }
+
+    /* --- FIFA STYLE PLAYER CARD --- */
+    .fifa-card {
+      background: linear-gradient(145deg, #1c212b 0%, #0d0f14 100%);
+      border: 2px solid var(--accent-gold);
+      border-radius: 18px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      align-items: flex-start;
+    }
+
+    .card-ovr {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 42px;
+      line-height: 0.9;
+      color: var(--accent-gold);
+      text-align: center;
+    }
+
+    .card-pos {
+      font-size: 14px; font-weight: 800; color: #fff; text-transform: uppercase;
+    }
+
+    .card-face {
+      width: 85px; height: 85px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,215,0,0.1) 0%, #171b22 100%);
+      border: 2px solid rgba(255,215,0,0.3);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px; font-weight: 800; color: var(--accent-gold);
+      margin: 10px 0 12px 0;
+    }
+
+    .card-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px;
+      letter-spacing: 1px;
+      color: #fff;
+      margin-bottom: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      width: 100%;
+      text-align: center;
+      padding-bottom: 4px;
+    }
+
+    .card-stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px 12px;
+      width: 100%;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .card-stat { display: flex; gap: 4px; color: var(--text-muted); }
+    .card-stat strong { color: #fff; }
+
+    /* --- COMPACT TACTICAL PITCH --- */
+    .pitch-panel {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 18px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    /* Compact Aspect-Ratio Pitch */
+    .pitch-container {
+      background: var(--pitch-green);
+      border: 2px solid #143d22;
+      border-radius: 14px;
+      height: 220px; /* طول متناسق ومش طويل بالعرض */
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 0 0 25px rgba(0,0,0,0.8);
+    }
+
+    .pitch-lines { position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; }
+    .pitch-line-half { position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; background: var(--pitch-line); }
+    .pitch-center-circle { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 70px; height: 70px; border: 2px solid var(--pitch-line); border-radius: 50%; }
+    .pitch-box-left { position: absolute; left: 0; top: 22%; bottom: 22%; width: 40px; border: 2px solid var(--pitch-line); border-left: none; }
+    .pitch-box-right { position: absolute; right: 0; top: 22%; bottom: 22%; width: 40px; border: 2px solid var(--pitch-line); border-right: none; }
+
+    .heatmap-overlay {
+      position: absolute; width: 100%; height: 100%;
+      background: radial-gradient(circle at 76% 50%, rgba(255,215,0,0.2) 0%, transparent 40%);
+      pointer-events: none;
+    }
+
+    /* Compact Position Pins */
+    .pos-pin {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      padding: 5px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      z-index: 10;
+      background: #0d0f14;
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .pos-pin.st { top: 50%; left: 76%; }
+    .pos-pin.lw { top: 28%; left: 65%; }
+    .pos-pin.cam { top: 50%; left: 54%; }
+
+    .pos-pin:hover, .pos-pin.active {
+      background: var(--accent-gold);
+      color: #000;
+      border-color: var(--accent-gold);
+      box-shadow: 0 0 12px rgba(255,215,0,0.6);
+      transform: translate(-50%, -50%) scale(1.1);
+    }
+
+    .filter-bar {
+      background: #0d0f14;
+      border: 1px solid var(--panel-border);
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .filter-bar strong { color: var(--accent-gold); }
+
+    /* --- RADAR PANEL --- */
+    .radar-panel {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 18px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .radar-container {
+      width: 100%;
+      height: 200px;
+      position: relative;
+    }
+
+    /* ==========================================
+       3. DYNAMIC KPI CARDS
+       ========================================== */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 15px;
+    }
+
+    .kpi-card {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      padding: 18px;
+      transition: transform 0.2s ease;
+    }
+
+    .kpi-card:hover { transform: translateY(-3px); }
+
+    .kpi-header { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+    .kpi-value { font-family: 'Bebas Neue', sans-serif; font-size: 42px; line-height: 1; margin: 8px 0 2px 0; color: #fff; }
+    .kpi-card.highlight .kpi-value { color: var(--accent-gold); }
+    .kpi-sub { font-size: 11px; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+
+  <div class="koralytics-dashboard">
+
+    <!-- 1. HEADER BANNER -->
+    <div class="hero-banner">
+      <div class="player-identity">
+        <div class="avatar-circle">OK</div>
+        <div>
+          <h1>Omar Khaled</h1>
+          <div class="meta-pills">
+            <span class="pill">Al Ahly Academy</span>
+            <span class="pill">U17 / U19</span>
+            <span class="pill gold">⚡ Complete Target-Man</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bio-quick-list">
+        <div class="bio-item">
+          <span class="bio-lbl">Status</span>
+          <span class="bio-val" style="color: var(--accent-green);">Active</span>
+        </div>
+        <div class="bio-item">
+          <span class="bio-lbl">Age / Foot</span>
+          <span class="bio-val">18 Yrs / Right</span>
+        </div>
+        <div class="bio-item">
+          <span class="bio-lbl">Height</span>
+          <span class="bio-val">185 cm</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. MAIN GRID (CARD + PITCH + RADAR) -->
+    <div class="main-grid">
+
+      <!-- FIFA PLAYER CARD -->
+      <div class="fifa-card">
+        <div class="card-top">
+          <div class="card-ovr">
+            74<br><span class="card-pos">ST</span>
+          </div>
+          <span style="font-size: 18px;">🇪🇬</span>
+        </div>
+
+        <div class="card-face">OK</div>
+        <div class="card-name">O. KHALED</div>
+
+        <div class="card-stats-grid">
+          <div class="card-stat"><strong>70</strong> PAC</div>
+          <div class="card-stat"><strong>79</strong> PAS</div>
+          <div class="card-stat"><strong>71</strong> SHO</div>
+          <div class="card-stat"><strong>64</strong> DRI</div>
+          <div class="card-stat"><strong>80</strong> DEF</div>
+          <div class="card-stat"><strong>80</strong> PHY</div>
+        </div>
+      </div>
+
+      <!-- COMPACT TACTICAL PITCH -->
+      <div class="pitch-panel">
+        <div class="panel-header">
+          <span>Tactical Position Filter</span>
+          <span style="font-size: 10px; color: var(--text-muted); text-transform: none;">Click pins to inspect</span>
+        </div>
+
+        <div class="pitch-container">
+          <div class="pitch-lines">
+            <div class="pitch-line-half"></div>
+            <div class="pitch-center-circle"></div>
+            <div class="pitch-box-left"></div>
+            <div class="pitch-box-right"></div>
+          </div>
+          
+          <div class="heatmap-overlay"></div>
+
+          <!-- Position Pins -->
+          <div class="pos-pin st active" onclick="filterStats('ST', 4, 5, '1.25', 'Striker (Main Role)')">ST ★</div>
+          <div class="pos-pin lw" onclick="filterStats('LW', 2, 1, '0.50', 'Left Wing')">LW</div>
+          <div class="pos-pin cam" onclick="filterStats('CAM', 1, 0, '0.00', 'Attacking Midfielder')">CAM</div>
+        </div>
+
+        <div class="filter-bar">
+          <span>Active Role: <strong id="selectedPosLabel">Striker (Main Role)</strong></span>
+          <span>Pitch Hub</span>
+        </div>
+      </div>
+
+      <!-- RADAR CHART -->
+      <div class="radar-panel">
+        <div class="panel-header">
+          <span>Attributes Radar</span>
+        </div>
+
+        <div class="radar-container">
+          <canvas id="hybridRadarChart"></canvas>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 3. DYNAMIC KPI GRID -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-header">Matches Played</div>
+        <div class="kpi-value" id="kpiMatches">4</div>
+        <div class="kpi-sub">In Selected Position</div>
+      </div>
+      <div class="kpi-card highlight">
+        <div class="kpi-header">Goals Scored</div>
+        <div class="kpi-value" id="kpiGoals">5</div>
+        <div class="kpi-sub" id="kpiRatio">1.25 Avg / Game</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-header">Assists / Passes</div>
+        <div class="kpi-value">0</div>
+        <div class="kpi-sub">2 Chances Created</div>
+      </div>
+      <div class="kpi-card highlight">
+        <div class="kpi-header">Man of Match</div>
+        <div class="kpi-value">2</div>
+        <div class="kpi-sub">50% Match Impact</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Radar Chart & JS Logic -->
+  <script>
+    const ctx = document.getElementById('hybridRadarChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'radar',
+      data: {
+        labels: ['PAC', 'DRI', 'SHO', 'DEF', 'PAS', 'PHY'],
+        datasets: [{
+          data: [70, 64, 71, 80, 79, 80],
+          backgroundColor: 'rgba(255, 215, 0, 0.25)',
+          borderColor: '#ffd700',
+          borderWidth: 2,
+          pointBackgroundColor: '#ffd700',
+          pointRadius: 2.5
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          r: {
+            angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
+            grid: { color: 'rgba(255, 255, 255, 0.1)' },
+            pointLabels: {
+              color: '#808897',
+              font: { size: 9, weight: '700' }
+            },
+            ticks: { display: false },
+            suggestedMin: 30,
+            suggestedMax: 90
+          }
+        }
+      }
+    });
+
+    function filterStats(posName, matches, goals, ratio, label) {
+      document.querySelectorAll('.pos-pin').forEach(pin => pin.classList.remove('active'));
+      event.target.classList.add('active');
+
+      document.getElementById('selectedPosLabel').innerText = label;
+      document.getElementById('kpiMatches').innerText = matches;
+      document.getElementById('kpiGoals').innerText = goals;
+      document.getElementById('kpiRatio').innerText = `${ratio} Avg / Game`;
+    }
+  </script>
+
+</body>
+</html>

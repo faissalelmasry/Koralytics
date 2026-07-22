@@ -4,11 +4,12 @@ import { RouterModule } from '@angular/router';
 import { AuthService } from '../../../core/services/auth/auth.service';
 import { CustomButtonComponent } from '../../../shared/components/custom-button/custom-button';
 import { ScrollRevealDirective } from '../../../shared/directives/scroll-reveal.directive';
+import { PlayerCardComponent } from '../player/player-card/player-card';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, CustomButtonComponent, ScrollRevealDirective],
+  imports: [CommonModule, RouterModule, CustomButtonComponent, ScrollRevealDirective, PlayerCardComponent],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css']
 })

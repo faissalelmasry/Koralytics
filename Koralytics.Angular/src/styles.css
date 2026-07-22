@@ -37,6 +37,11 @@ html, body {
   transform: translateX(40px);
 }
 
+[scrollReveal].revealed {
+  opacity: 1;
+  transform: translate(0);
+}
+
 @media (prefers-reduced-motion: reduce) {
   [scrollReveal] {
     opacity: 1;
