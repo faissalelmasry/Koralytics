@@ -20,6 +20,11 @@ html, body {
   transition: opacity 0.8s ease, transform 0.8s ease;
 }
 
+[scrollReveal].revealed {
+  opacity: 1;
+  transform: none;
+}
+
 [scrollReveal][data-reveal-direction="bottom"] {
   transform: translateY(40px);
 }

@@ -30,6 +30,12 @@ export const routes: Routes = [
       { path: 'dashboard', loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent) },
       { path: 'drills', loadComponent: () => import('./features/drills/drill-template-list/drill-template-list.component').then(m => m.DrillTemplateListComponent) },
       { path: 'settings/change-password', loadComponent: () => import('./features/auth/pages/change-password/change-password.component').then(m => m.ChangePasswordComponent) },
+      { path: 'tournament/list', loadComponent: () => import('./features/tournament/pages/tournament-list/tournament-list.component').then(m => m.TournamentListComponent) },
+      { path: 'tournament/create', loadComponent: () => import('./features/tournament/pages/tournament-manage/tournament-manage.component').then(m => m.TournamentManageComponent) },
+      { path: 'tournament/manage/:id', loadComponent: () => import('./features/tournament/pages/tournament-manage/tournament-manage.component').then(m => m.TournamentManageComponent) },
+      { path: 'tournament/manage', redirectTo: 'tournament/list', pathMatch: 'full' },
+      { path: 'tournament/details/:id', loadComponent: () => import('./features/tournament/pages/tournament-details/tournament-details.component').then(m => m.TournamentDetailsComponent) },
+      { path: 'tournament/:id/squad-registration', loadComponent: () => import('./features/tournament/pages/squad-registration/squad-registration.component').then(m => m.SquadRegistrationComponent) },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   },

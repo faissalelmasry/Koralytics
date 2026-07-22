@@ -22,6 +22,10 @@ import { FileUpload } from "../shared/components/file-upload/file-upload";
 import { ImageUpload } from "../shared/components/image-upload/image-upload";
 import { FilterState, FilterPanel } from '../shared/components/filter-panel/filter-panel';
 import { ScrollRevealDirective } from '../shared/directives/scroll-reveal.directive';
+import { RatingDisplayComponent } from '../shared/components/rating-display/rating-display';
+import { CardComponent } from '../shared/components/card/card';
+import { ChartComponent } from '../shared/components/chart/chart';
+import { ConfirmDialogComponent } from '../shared/components/confirm-dialog/confirm-dialog';
 
 @Component({
   selector: 'app-root',
@@ -47,7 +51,11 @@ import { ScrollRevealDirective } from '../shared/directives/scroll-reveal.direct
     FileUpload,
     ImageUpload,
     FilterPanel,
-    ScrollRevealDirective
+    ScrollRevealDirective,
+    RatingDisplayComponent,
+    CardComponent,
+    ChartComponent,
+    ConfirmDialogComponent
 ],
   templateUrl: './reference-showcase.html',
   styleUrls: ['./reference-showcase.css']
@@ -55,6 +63,18 @@ import { ScrollRevealDirective } from '../shared/directives/scroll-reveal.direct
 export class App implements OnInit {
   isAppLoading = true;
   mySearch: string = '';
+  isConfirmDialogOpen = false;
+  chartData = {
+    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5'],
+    datasets: [{
+      label: 'Performance Index',
+      data: [6.8, 7.4, 7.9, 8.2, 8.7],
+      borderColor: '#c8ff4d',
+      backgroundColor: 'rgba(200, 255, 77, 0.1)',
+      tension: 0.4,
+      fill: true
+    }]
+  };
   playerName: string = '';
   selectedPosition: string = '';
   playerBirthDate: string = '';

@@ -163,6 +163,61 @@
           [(checked)]="isAiAnalysisEnabled">
         </app-toggle>
       </div>
+
+      <!-- Shared Components Showcase: Rating Display, Card, Chart, Confirm Dialog -->
+      <div scrollReveal direction="bottom" [delay]="770" style="display: flex; flex-direction: column; gap: 20px; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 20px;">
+        <h3 style="color: #f2f3f5; font-size: 1.2rem; font-weight: 700; margin: 0 0 10px 0;">New Shared Components</h3>
+        
+        <!-- RATING DISPLAYS -->
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <h4 style="color: #9ca3af; font-size: 0.9rem; font-weight: 600; margin: 0;">Rating Displays</h4>
+          <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+            <app-rating-display type="star" [value]="8.5" [max]="10"></app-rating-display>
+            <app-rating-display type="circular" [value]="8.7" [max]="10" size="sm" label="Pace"></app-rating-display>
+            <app-rating-display type="gauge" [value]="6.2" [max]="10"></app-rating-display>
+          </div>
+          <app-rating-display type="bar" [value]="7.8" [max]="10" label="Overall Team Rating"></app-rating-display>
+        </div>
+
+        <!-- CARDS -->
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <h4 style="color: #9ca3af; font-size: 0.9rem; font-weight: 600; margin: 0;">Cards</h4>
+          <app-card title="Tactical Analysis Report" subtitle="Tournament performance review" variant="elevated" [hoverable]="true">
+            <div body>
+              <p style="margin: 0; font-size: 0.9rem; color: #d1d5db;">The squad is playing with excellent synergy. Acceleration rates are showing 15% progression compared to last month.</p>
+            </div>
+            <div footer>
+              <app-button variant="slate" style="transform: scale(0.85);" (click)="isConfirmDialogOpen = true">Request Redirection</app-button>
+              <app-button variant="accent" style="transform: scale(0.85);">Export PDF</app-button>
+            </div>
+          </app-card>
+        </div>
+
+        <!-- CHART -->
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <h4 style="color: #9ca3af; font-size: 0.9rem; font-weight: 600; margin: 0;">Chart.js Canvas Wrapper</h4>
+          <app-chart type="line" title="Player Improvement Curve" [data]="chartData"></app-chart>
+        </div>
+
+        <!-- CONFIRM DIALOG TRIGGER -->
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <app-button variant="coral" (click)="isConfirmDialogOpen = true">Test Cyber Confirm Overlay</app-button>
+          
+          <app-confirm-dialog
+            [isOpen]="isConfirmDialogOpen"
+            title="Terminate Active Tournament Session"
+            message="Are you sure you want to completely end the current tournament database? This action will archive all results permanently."
+            [details]="['Participating academy squads will be locked', 'No new match reports can be logged']"
+            level="danger"
+            confirmText="Yes, Complete"
+            cancelText="Abort"
+            [requiresConfirmation]="true"
+            confirmationText="ARCHIVE"
+            (confirm)="isConfirmDialogOpen = false; triggerFakeTest()"
+            (cancel)="isConfirmDialogOpen = false">
+          </app-confirm-dialog>
+        </div>
+      </div>
     </div>
 
     <!-- Main Routing Area -->

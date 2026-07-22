@@ -1,5 +1,4 @@
 
-using global::Koralytics.Application.DTOs.Drill;
 using Koralytics.Application.DTOs.Drill;
 using Koralytics.Application.Common;
 using System.Collections.Generic;
