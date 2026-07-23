@@ -128,4 +128,14 @@ export class CoachSquadComponent implements OnInit {
     this.selectedPlayerA = null;
     this.selectedPlayerB = null;
   }
+
+  /** Safely get a numeric rating from a SquadPlayerDto by property name */
+  getRating(player: SquadPlayerDto, key: string): number {
+    return (player as Record<string, any>)[key] ?? 0;
+  }
+
+  /** Extract the label from a rating key, e.g. 'paceRating' → 'PACE' */
+  getCategoryLabel(key: string): string {
+    return key.replace('Rating', '').toUpperCase();
+  }
 }

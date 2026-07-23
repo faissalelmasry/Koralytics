@@ -134,12 +134,12 @@
 
         <div class="compare-bars">
           <div class="bar-row" *ngFor="let cat of ['paceRating','shootingRating','passingRating','dribblingRating','defendingRating','physicalRating']">
-            <div class="bar-left" [style.width.%]="(cmp.playerA[cat] / 100) * 100">
-              <span>{{ cmp.playerA[cat] | number:'1.0-0' }}</span>
+            <div class="bar-left" [style.width.%]="(getRating(cmp.playerA, cat) / 100) * 100">
+              <span>{{ getRating(cmp.playerA, cat) | number:'1.0-0' }}</span>
             </div>
-            <span class="bar-label">{{ cat.replace('Rating','') | uppercase }}</span>
-            <div class="bar-right" [style.width.%]="(cmp.playerB[cat] / 100) * 100">
-              <span>{{ cmp.playerB[cat] | number:'1.0-0' }}</span>
+            <span class="bar-label">{{ getCategoryLabel(cat) }}</span>
+            <div class="bar-right" [style.width.%]="(getRating(cmp.playerB, cat) / 100) * 100">
+              <span>{{ getRating(cmp.playerB, cat) | number:'1.0-0' }}</span>
             </div>
           </div>
         </div>
