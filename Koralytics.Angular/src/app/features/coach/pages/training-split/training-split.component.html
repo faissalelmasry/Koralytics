@@ -25,8 +25,30 @@
 
   <div class="split-results" *ngIf="splitResult() && !loading()">
     
-    <!-- Team A Column -->
-    <div class="team-column team-a">
+    <!-- Balance Meter -->
+    <div class="balance-meter-container">
+      <div class="balance-header">
+        <h3>Squad Balance</h3>
+        <span class="balance-status" [ngClass]="balanceStatus().toLowerCase()">
+          {{ balanceStatus() === 'Balanced' ? '✓' : (balanceStatus() === 'Warning' ? '⚠' : '✗') }}
+          Δ {{ ratingDifference() | number:'1.1-1' }} — {{ balanceStatus() }}
+        </span>
+      </div>
+      <div class="balance-track">
+        <div class="balance-marker" [style.left.%]="balancePercentage()"></div>
+        <div class="balance-fill team-a-fill" [style.width.%]="balancePercentage()"></div>
+        <div class="balance-fill team-b-fill" [style.width.%]="100 - balancePercentage()"></div>
+      </div>
+      <div class="balance-labels">
+        <span class="team-a-label">Team A</span>
+        <span class="center-label">Ideal Balance</span>
+        <span class="team-b-label">Team B</span>
+      </div>
+    </div>
+    
+    <div class="teams-container">
+      <!-- Team A Column -->
+      <div class="team-column team-a">
       <div class="team-header">
         <div class="team-title">
           <h2>Team A</h2>
@@ -84,6 +106,7 @@
         </div>
       </div>
     </div>
+    </div> <!-- /teams-container -->
 
   </div>
 </div>

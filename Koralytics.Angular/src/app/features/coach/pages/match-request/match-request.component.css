@@ -34,6 +34,7 @@
 }
 
 .tab-btn {
+  position: relative;
   background: transparent;
   border: none;
   color: var(--text-dim, #8b909a);
@@ -43,14 +44,28 @@
   cursor: pointer;
   padding: 8px 16px;
   border-radius: 8px;
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
   align-items: center;
   gap: 8px;
+  overflow: hidden;
+}
+
+.tab-btn::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 2px;
+  background: var(--accent-lime, #c8ff4d);
+  transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .tab-btn:hover { background: rgba(255, 255, 255, 0.05); color: var(--text-light, #f2f3f5); }
 .tab-btn.active { background: rgba(200, 255, 77, 0.1); color: var(--accent-lime, #c8ff4d); }
+.tab-btn.active::after { width: 60%; }
 
 .tab-badge {
   background: #ef5350;
@@ -76,12 +91,25 @@
   border-radius: 16px;
   padding: 24px;
   backdrop-filter: blur(12px);
-  transition: transform 0.2s, border-color 0.2s;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s, box-shadow 0.3s;
+  animation: slideInRequest 0.4s cubic-bezier(0.16, 1, 0.3, 1) backwards;
 }
 
+@keyframes slideInRequest {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.request-card:nth-child(1) { animation-delay: 0.05s; }
+.request-card:nth-child(2) { animation-delay: 0.1s; }
+.request-card:nth-child(3) { animation-delay: 0.15s; }
+.request-card:nth-child(4) { animation-delay: 0.2s; }
+.request-card:nth-child(n+5) { animation-delay: 0.25s; }
+
 .request-card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-4px);
   border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
 
 .request-header {
@@ -161,6 +189,7 @@
   border-radius: 16px;
   padding: 32px;
   backdrop-filter: blur(12px);
+  animation: slideInRequest 0.4s cubic-bezier(0.16, 1, 0.3, 1) backwards;
 }
 
 .compose-card h3 {
@@ -237,10 +266,18 @@
   border-radius: 8px;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.btn-outline-danger:hover { background: rgba(244, 67, 54, 0.1); }
+.btn-outline-danger:hover { 
+  background: rgba(244, 67, 54, 0.1); 
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.15);
+}
+
+.btn-outline-danger:active {
+  transform: translateY(0);
+}
 
 /* Utils */
 .spinner-small {

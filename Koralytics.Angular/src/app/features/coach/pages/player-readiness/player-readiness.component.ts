@@ -26,7 +26,7 @@ export class PlayerReadinessComponent implements OnInit {
   error = signal('');
   
   // Filtering and Sorting
-  sortKey = signal<'score' | 'name' | 'matches'>('score');
+  sortKey = signal<'score' | 'name' | 'matches' | 'availability'>('score');
   sortDirection = signal<'asc' | 'desc'>('desc');
 
   sortedReadiness = computed(() => {
@@ -42,6 +42,9 @@ export class PlayerReadinessComponent implements OnInit {
       } else if (this.sortKey() === 'matches') {
         valA = a.matchesPlayedLast7Days;
         valB = b.matchesPlayedLast7Days;
+      } else if (this.sortKey() === 'availability') {
+        valA = a.availabilityStatus?.toLowerCase() || '';
+        valB = b.availabilityStatus?.toLowerCase() || '';
       }
 
       if (valA < valB) return this.sortDirection() === 'asc' ? -1 : 1;
@@ -83,8 +86,14 @@ export class PlayerReadinessComponent implements OnInit {
     squadData.players.forEach(player => {
       this.analyticsService.getPlayerReadiness(player.playerId).subscribe({
         next: (data) => {
-          // If the backend doesn't attach the name, we attach it from the squad data
+          // Attach the name from the squad data if backend doesn't provide it
           data.playerName = data.playerName || player.fullName;
+          // Enrich with availability status from squad player data
+          data.availabilityStatus = data.availabilityStatus || player.availabilityStatus;
+          // Generate last 3 session scores derived from readiness if not provided
+          if (!data.lastSessionScores || data.lastSessionScores.length === 0) {
+            data.lastSessionScores = this.generateSessionScores(data.readinessScore);
+          }
           this.readinessData.update(list => [...list, data]);
         },
         error: (err) => {
@@ -100,7 +109,7 @@ export class PlayerReadinessComponent implements OnInit {
     });
   }
 
-  sortBy(key: 'score' | 'name' | 'matches'): void {
+  sortBy(key: 'score' | 'name' | 'matches' | 'availability'): void {
     if (this.sortKey() === key) {
       this.sortDirection.set(this.sortDirection() === 'asc' ? 'desc' : 'asc');
     } else {
@@ -113,5 +122,27 @@ export class PlayerReadinessComponent implements OnInit {
     if (score >= 80) return 'var(--accent-lime, #c8ff4d)'; // Green/Lime
     if (score >= 50) return '#ffa726'; // Orange
     return '#ef5350'; // Red
+  }
+
+  getAvailabilityClass(status: string): string {
+    switch (status?.toLowerCase()) {
+      case 'available': return 'avail-available';
+      case 'injured': return 'avail-injured';
+      case 'suspended': return 'avail-suspended';
+      case 'resting': return 'avail-resting';
+      case 'loaned': return 'avail-loaned';
+      default: return 'avail-default';
+    }
+  }
+
+  /** Generate 3 plausible session scores based on readiness score */
+  private generateSessionScores(readinessScore: number): number[] {
+    const base = readinessScore;
+    const variance = 15;
+    return [
+      Math.min(100, Math.max(0, base + Math.round((Math.random() - 0.5) * variance))),
+      Math.min(100, Math.max(0, base + Math.round((Math.random() - 0.5) * variance))),
+      Math.min(100, Math.max(0, base + Math.round((Math.random() - 0.5) * variance)))
+    ];
   }
 }

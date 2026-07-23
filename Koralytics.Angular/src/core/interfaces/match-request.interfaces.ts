@@ -35,4 +35,6 @@ export interface PlayerReadinessDto {
   status: string;
   matchesPlayedLast7Days: number;
   recommendation: string;
+  availabilityStatus?: string;
+  lastSessionScores?: number[];
 }

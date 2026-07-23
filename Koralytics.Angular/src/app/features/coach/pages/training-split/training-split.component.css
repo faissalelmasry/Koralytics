@@ -105,12 +105,20 @@
   margin-bottom: 24px;
 }
 
-/* Split Results */
+/* Split Results Structure */
 .split-results {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+.teams-container {
   display: flex;
   gap: 40px;
   align-items: flex-start;
   position: relative;
+  width: 100%;
 }
 
 .vs-divider {
@@ -137,6 +145,16 @@
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 16px;
   overflow: hidden;
+  animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.team-b {
+  animation-delay: 0.1s;
 }
 
 .team-a { border-top: 4px solid var(--accent-lime, #c8ff4d); }
@@ -191,7 +209,26 @@
   background: rgba(255, 255, 255, 0.03);
   border-radius: 12px;
   transition: background 0.2s;
+  animation: fadeInRow 0.4s ease backwards;
 }
+
+@keyframes fadeInRow {
+  from { opacity: 0; transform: translateX(-10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.player-row:nth-child(1) { animation-delay: 0.1s; }
+.player-row:nth-child(2) { animation-delay: 0.15s; }
+.player-row:nth-child(3) { animation-delay: 0.2s; }
+.player-row:nth-child(4) { animation-delay: 0.25s; }
+.player-row:nth-child(5) { animation-delay: 0.3s; }
+.player-row:nth-child(6) { animation-delay: 0.35s; }
+.player-row:nth-child(7) { animation-delay: 0.4s; }
+.player-row:nth-child(8) { animation-delay: 0.45s; }
+.player-row:nth-child(9) { animation-delay: 0.5s; }
+.player-row:nth-child(10) { animation-delay: 0.55s; }
+.player-row:nth-child(11) { animation-delay: 0.6s; }
+.player-row:nth-child(n+12) { animation-delay: 0.65s; }
 
 .player-row:hover { background: rgba(255, 255, 255, 0.06); }
 
@@ -241,8 +278,95 @@
   border-radius: 8px;
 }
 
+/* Balance Meter */
+.balance-meter-container {
+  background: rgba(20, 23, 28, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 16px;
+  padding: 20px 24px;
+  backdrop-filter: blur(12px);
+  animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+.balance-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.balance-header h3 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 24px;
+  color: var(--text-light, #f2f3f5);
+  margin: 0;
+  letter-spacing: 1px;
+}
+
+.balance-status {
+  font-size: 13px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 8px;
+  text-transform: uppercase;
+}
+
+.balance-status.balanced { background: rgba(200, 255, 77, 0.15); color: var(--accent-lime, #c8ff4d); border: 1px solid rgba(200, 255, 77, 0.3); }
+.balance-status.warning { background: rgba(255, 167, 38, 0.15); color: #ffa726; border: 1px solid rgba(255, 167, 38, 0.3); }
+.balance-status.unbalanced { background: rgba(239, 83, 80, 0.15); color: #ef5350; border: 1px solid rgba(239, 83, 80, 0.3); }
+
+.balance-track {
+  position: relative;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  overflow: hidden;
+  display: flex;
+  margin-bottom: 8px;
+}
+
+.balance-fill {
+  height: 100%;
+  transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.team-a-fill {
+  background: linear-gradient(90deg, rgba(200, 255, 77, 0.5), var(--accent-lime, #c8ff4d));
+}
+
+.team-b-fill {
+  background: linear-gradient(270deg, rgba(0, 188, 212, 0.5), #00bcd4);
+}
+
+.balance-marker {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 4px;
+  background: #fff;
+  border-radius: 2px;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+  transform: translateX(-50%);
+  z-index: 2;
+  transition: left 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.balance-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-dim, #8b909a);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.team-a-label { color: var(--accent-lime, #c8ff4d); }
+.team-b-label { color: #00bcd4; }
+
 @media (max-width: 900px) {
   .split-results { flex-direction: column; gap: 24px; }
+  .teams-container { flex-direction: column; gap: 24px; }
   .vs-divider { display: none; }
   .controls-card { flex-direction: column; align-items: stretch; }
   .btn-primary { width: 100%; }

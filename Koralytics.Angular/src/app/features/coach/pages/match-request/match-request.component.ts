@@ -117,6 +117,14 @@ export class MatchRequestComponent implements OnInit {
     });
   }
 
+  cancelRequest(id: number): void {
+    if (!confirm('Cancel this outgoing match request?')) return;
+    this.matchService.cancelMatchRequest(id).subscribe({
+      next: () => this.loadOutgoing(),
+      error: (err) => alert(err?.error?.message || 'Failed to cancel request.')
+    });
+  }
+
   getStatusClass(status: string): string {
     switch(status.toLowerCase()) {
       case 'pending': return 'status-pending';

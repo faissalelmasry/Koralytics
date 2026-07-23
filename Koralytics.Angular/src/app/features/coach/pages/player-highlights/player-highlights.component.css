@@ -90,7 +90,11 @@
   transition: border-color 0.2s;
 }
 
-.file-input-wrapper:hover { border-color: var(--accent-lime, #c8ff4d); }
+.file-input-wrapper:hover { 
+  border-color: var(--accent-lime, #c8ff4d); 
+  background: rgba(200, 255, 77, 0.05);
+  box-shadow: 0 0 15px rgba(200, 255, 77, 0.1);
+}
 
 .file-input-wrapper input[type="file"] {
   position: absolute;
@@ -146,17 +150,30 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  transition: transform 0.2s, border-color 0.2s;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s, border-color 0.3s;
+  animation: scaleUpCard 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards;
 }
 
+@keyframes scaleUpCard {
+  from { opacity: 0; transform: scale(0.95) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.video-card:nth-child(1) { animation-delay: 0.05s; }
+.video-card:nth-child(2) { animation-delay: 0.1s; }
+.video-card:nth-child(3) { animation-delay: 0.15s; }
+.video-card:nth-child(4) { animation-delay: 0.2s; }
+.video-card:nth-child(n+5) { animation-delay: 0.25s; }
+
 .video-card:hover {
-  transform: translateY(-4px);
-  border-color: rgba(255, 255, 255, 0.1);
+  transform: translateY(-6px);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
 
 .video-card.pinned {
   border-color: var(--accent-lime, #c8ff4d);
-  box-shadow: 0 4px 20px rgba(200, 255, 77, 0.05);
+  box-shadow: 0 4px 20px rgba(200, 255, 77, 0.15);
 }
 
 .video-wrapper {

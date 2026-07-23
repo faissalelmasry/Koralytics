@@ -98,6 +98,12 @@
             <span>{{ req.format }}</span>
           </div>
         </div>
+
+        <div class="request-actions" *ngIf="req.status === 'Pending'">
+          <button class="btn-outline-danger" (click)="cancelRequest(req.id)">
+            Cancel Request
+          </button>
+        </div>
       </div>
     </div>
   </div>

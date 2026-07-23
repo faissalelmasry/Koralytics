@@ -30,6 +30,24 @@ export class TrainingSplitComponent implements OnInit {
   teamAAverage = computed(() => this.calculateAverage(this.splitResult()?.teamA));
   teamBAverage = computed(() => this.calculateAverage(this.splitResult()?.teamB));
 
+  // Balance Indicator
+  ratingDifference = computed(() => Math.abs(this.teamAAverage() - this.teamBAverage()));
+  
+  balanceStatus = computed(() => {
+    const diff = this.ratingDifference();
+    if (diff <= 3.0) return 'Balanced';
+    if (diff <= 6.0) return 'Warning';
+    return 'Unbalanced';
+  });
+
+  balancePercentage = computed(() => {
+    const avgA = this.teamAAverage();
+    const avgB = this.teamBAverage();
+    if (avgA === 0 && avgB === 0) return 50;
+    const total = avgA + avgB;
+    return (avgA / total) * 100;
+  });
+
   ngOnInit(): void {
     // We don't load initially, we wait for the user to trigger the split
   }

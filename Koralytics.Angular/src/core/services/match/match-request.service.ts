@@ -61,4 +61,12 @@ export class MatchRequestService {
       { params }
     );
   }
+
+  /** PATCH /api/Match/request/{requestId}/cancel */
+  cancelMatchRequest(requestId: number): Observable<void> {
+    return this.http.patch<void>(
+      `${this.baseUrl}/request/${requestId}/cancel`,
+      {}
+    );
+  }
 }

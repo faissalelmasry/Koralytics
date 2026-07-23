@@ -39,6 +39,16 @@
   border-radius: 16px;
   padding: 24px;
   backdrop-filter: blur(12px);
+  animation: slideInCard 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+@keyframes slideInCard {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.active-grants-card {
+  animation-delay: 0.1s;
 }
 
 h3 {
@@ -118,6 +128,18 @@ h3 {
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 12px;
+  transition: transform 0.2s, background 0.2s;
+  animation: fadeSlideItem 0.4s ease backwards;
+}
+
+@keyframes fadeSlideItem {
+  from { opacity: 0; transform: translateX(-10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.grant-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+  transform: translateX(4px);
 }
 
 .grant-info {
@@ -169,6 +191,12 @@ h3 {
 .btn-revoke:hover {
   background: #ef5350;
   color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 83, 80, 0.2);
+}
+
+.btn-revoke:active {
+  transform: translateY(0);
 }
 
 /* Utils */
