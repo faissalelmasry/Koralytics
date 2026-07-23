@@ -84,7 +84,7 @@
   font-size: 18px;
   font-weight: 600;
   margin: 0 0 10px 0;
-  text-transform: lowercase;
+  text-transform: capitalize;
   letter-spacing: -0.5px;
 }
 
@@ -94,7 +94,7 @@
   font-size: 14px;
   line-height: 1.5;
   margin: 0;
-  text-transform: lowercase;
+  text-transform: capitalize;
 }
 
 /* Button Zone */
@@ -112,7 +112,7 @@
   padding: 10px 20px;
   border-radius: 8px;
   cursor: pointer;
-  text-transform: lowercase;
+  text-transform: capitalize;
   transition: all 0.25s ease;
   box-shadow: 0 0 15px rgba(200, 255, 77, 0.05);
 }

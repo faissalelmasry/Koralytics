@@ -1,0 +1,83 @@
+<app-navbar></app-navbar>
+
+<div class="page-wrapper">
+
+  <div class="tactical-tag" scrollReveal direction="bottom" [delay]="0">Scout Visibility Analytics</div>
+
+  <div class="header-row" scrollReveal direction="bottom" [delay]="50">
+    <h2 class="section-title">Profile Views</h2>
+  </div>
+
+  @if (isLoading) {
+    <div class="loading-state">
+      <app-loading-spinner size="lg"></app-loading-spinner>
+      <p>Loading scouter analytics...</p>
+    </div>
+  }
+  @else if (error) {
+    <div class="error-state">
+      <div class="error-icon">!</div>
+      <p>{{ error }}</p>
+      <button class="retry-btn" (click)="loadViews()">Retry</button>
+    </div>
+  }
+  @else {
+    <div class="metrics-summary-grid" scrollReveal direction="bottom" [delay]="100">
+      <div class="summary-card">
+        <div class="label">Total Scout Views</div>
+        <div class="value value-glow">{{ displayTotalViews }}</div>
+        <div class="sub-text">Total times scouts viewed this profile</div>
+      </div>
+
+      <div class="summary-card">
+        <div class="label">Recent Activity</div>
+        <div class="value">{{ displayRecentCount }}</div>
+        <div class="sub-text">Scout interactions recorded</div>
+      </div>
+    </div>
+
+    <div class="views-section-title" scrollReveal direction="bottom" [delay]="150">Recent Scout Activity</div>
+
+    @if (!recentViews || recentViews.length === 0) {
+      <div class="empty-radar-card" scrollReveal direction="bottom" [delay]="200">
+        <div class="radar-circle">
+          <svg class="radar-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M2 12h20M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 0v20"/>
+            <circle cx="12" cy="12" r="4"/>
+          </svg>
+        </div>
+        <div class="empty-title">Radar Active & Monitoring</div>
+        <div class="empty-desc">
+          Your profile is currently live in the talent marketplace. When scouts review your profile, their interactions will appear here in real-time.
+        </div>
+      </div>
+    } @else {
+      <div class="view-card-list" scrollReveal direction="bottom" [delay]="200">
+        @for (view of recentViews; track view.scouterId; let i = $index) {
+          <div
+            class="scout-view-card"
+            scrollReveal
+            direction="bottom"
+            [delay]="250 + i * 60">
+            <div class="scout-info">
+              <div class="club-avatar">{{ getAvatarInitials(view.scouterName) }}</div>
+              <div class="scout-details">
+                <div class="scout-name">
+                  {{ view.scouterName || 'Official Scout' }}
+                  @if (view.isScouterVerified) {
+                    <span class="verified-badge" title="Verified Scouter">&#10003;</span>
+                  }
+                </div>
+                <div class="club-name">Verified Club &bull; Talent Evaluator</div>
+              </div>
+            </div>
+            <div class="time-badge">{{ getTimeAgo(view.viewedAt) }}</div>
+          </div>
+        }
+      </div>
+    }
+  }
+
+</div>
+
+<app-footer></app-footer>

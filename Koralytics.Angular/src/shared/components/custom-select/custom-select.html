@@ -1,12 +1,12 @@
 <div class="select-field-group" [class.has-error]="errorMessage" [class.is-disabled]="disabled">
   
-  <div class="select-control-wrapper" [class.opened]="isOpen" (click)="toggleDropdown()">
+  <div class="select-control-wrapper" [class.opened]="isOpen" (click)="toggleDropdown($event)">
     
     <div class="selected-value-display">
       {{ selectedLabel }}
     </div>
     
-    <label class="floating-label" [class.raised]="isOpen || value !== null && value !== ''">
+    <label class="floating-label" [class.raised]="isOpen || (selectedLabel ? true : false)">
       {{ label }}
     </label>
 

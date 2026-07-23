@@ -254,4 +254,8 @@ export class AcademyService {
     return this.http.get<ApiResponse<any>>(`${this.apiUrl}/${academyId}/subscriptions`);
   }
 
+
+  getAcademies(): Observable<any> {
+    return this.http.get<any>(this.apiUrl);
+  }
 }

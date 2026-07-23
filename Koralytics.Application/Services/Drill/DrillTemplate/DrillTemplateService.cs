@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+using AutoMapper;
+using Koralytics.Application.Common;
 using Koralytics.Application.DTOs.Drill;
 using Koralytics.Application.Interfaces;
 using Koralytics.Domain.Entities.Drill;
@@ -44,10 +45,12 @@ namespace Koralytics.Application.Services.Drill.DrillTemplate
             return _mapper.Map<DrillTemplateDto>(template);
         }
 
-        public async Task<IEnumerable<DrillTemplateDto>> GetTemplatesAsync(int academyId, int currentUserId, TemplateFilterDto filter)
+        public async Task<PagedResult<DrillTemplateDto>> GetTemplatesAsync(int academyId, int currentUserId, TemplateFilterDto filter)
         {
             var query = _unitOfWork.Repository<Domain.Entities.Drill.DrillTemplate>()
                 .GetQueryableAsNoTracking()
+                .Include(t => t.DrillCategory) // 🟢 ADDED: Eager load the category entity
+                .Include(t => t.DrillTemplateAcademy) // 🟢 ADDED: Eager load the academy entity
                 .Where(t =>
                     t.AcademyId == null ||
                     (t.AcademyId == academyId && t.IsShared == true) ||
@@ -59,19 +62,29 @@ namespace Koralytics.Application.Services.Drill.DrillTemplate
                 query = query.Where(t => t.Name.Contains(filter.SearchTerm));
             }
 
+            var totalCount = await query.CountAsync();
+
             var pagedTemplates = await query
                 .OrderByDescending(t => t.Id) 
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
                 .ToListAsync();
 
-            return _mapper.Map<IEnumerable<DrillTemplateDto>>(pagedTemplates);
+            return new PagedResult<DrillTemplateDto>
+            {
+                Items = _mapper.Map<IReadOnlyList<DrillTemplateDto>>(pagedTemplates),
+                Page = filter.PageNumber,
+                PageSize = filter.PageSize,
+                TotalCount = totalCount
+            };
         }
 
-        public async Task<IEnumerable<DrillTemplateDto>> GetTemplatesByCategoryAsync(int categoryId, int academyId, int currentUserId, TemplateFilterDto filter)
+        public async Task<PagedResult<DrillTemplateDto>> GetTemplatesByCategoryAsync(int categoryId, int academyId, int currentUserId, TemplateFilterDto filter)
         {
             var query = _unitOfWork.Repository<Domain.Entities.Drill.DrillTemplate>()
                 .GetQueryableAsNoTracking()
+                .Include(t => t.DrillCategory)
+                .Include(t => t.DrillTemplateAcademy)
                 .Where(t =>
                     t.CategoryId == categoryId && (
                         t.AcademyId == null ||
@@ -80,13 +93,26 @@ namespace Koralytics.Application.Services.Drill.DrillTemplate
                     )
                 );
 
+            if (!string.IsNullOrEmpty(filter.SearchTerm))
+            {
+                query = query.Where(t => t.Name.Contains(filter.SearchTerm));
+            }
+
+            var totalCount = await query.CountAsync();
+
             var pagedTemplates = await query
                 .OrderByDescending(t => t.Id)
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
                 .ToListAsync();
 
-            return _mapper.Map<IEnumerable<DrillTemplateDto>>(pagedTemplates);
+            return new PagedResult<DrillTemplateDto>
+            {
+                Items = _mapper.Map<IReadOnlyList<DrillTemplateDto>>(pagedTemplates),
+                Page = filter.PageNumber,
+                PageSize = filter.PageSize,
+                TotalCount = totalCount
+            };
         }
 
         public async Task ShareTemplateAsync(int templateId, int currentUserId, string currentUserRole, int? currentUserAcademyId)
@@ -117,7 +143,7 @@ namespace Koralytics.Application.Services.Drill.DrillTemplate
                     }
                 }
 
-                template.IsShared = true;
+                template.IsShared = !template.IsShared;
                 template.UpdatedById = currentUserId;
 
                 await _unitOfWork.SaveChangesAsync();
@@ -220,6 +246,15 @@ namespace Koralytics.Application.Services.Drill.DrillTemplate
                 .GetQueryable()
                 .Where(t => t.Id == id)
                 .ExecuteDeleteAsync();
+        }
+       
+        public async Task<IEnumerable<DrillCategoryDto>> GetCategoriesAsync()
+        {
+            var categories = await _unitOfWork.Repository<DrillCategory>()
+                .GetQueryableAsNoTracking()
+                .ToListAsync();
+
+            return _mapper.Map<IEnumerable<DrillCategoryDto>>(categories);
         }
     }
 }

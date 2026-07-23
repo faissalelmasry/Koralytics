@@ -3,6 +3,7 @@ using Koralytics.Application.Services.Drill.DrillAnalytic;
 using Koralytics.Application.Services.Drill.DrillResult;
 using Koralytics.Application.Services.Drill.DrillSession;
 using Koralytics.Application.Services.Drill.DrillTemplate;
+using Koralytics.Domain.Entities.Drill;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -81,6 +82,13 @@ namespace Koralytics.API.Controllers.Drill
             var results = await _templateService.GetTemplatesAsync(currentAcademyId, claims.UserId, filter);
 
             return Ok(results);
+        }
+
+        [HttpGet("categories")]
+        public async Task<IActionResult> GetDrillCategories()
+        {
+            var categories = await _templateService.GetCategoriesAsync();
+            return Ok(categories);
         }
 
         [HttpGet("templates/category/{categoryId}")]

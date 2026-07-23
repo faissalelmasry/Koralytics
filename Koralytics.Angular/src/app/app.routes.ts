@@ -28,7 +28,14 @@ export const routes: Routes = [
     canActivate: [authGuard],
     children: [
       { path: 'dashboard', loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent) },
+      { path: 'drills', loadComponent: () => import('./features/drills/drill-template-list/drill-template-list.component').then(m => m.DrillTemplateListComponent) },
       { path: 'settings/change-password', loadComponent: () => import('./features/auth/pages/change-password/change-password.component').then(m => m.ChangePasswordComponent) },
+      { path: 'tournament/list', loadComponent: () => import('./features/tournament/pages/tournament-list/tournament-list.component').then(m => m.TournamentListComponent) },
+      { path: 'tournament/create', loadComponent: () => import('./features/tournament/pages/tournament-manage/tournament-manage.component').then(m => m.TournamentManageComponent) },
+      { path: 'tournament/manage/:id', loadComponent: () => import('./features/tournament/pages/tournament-manage/tournament-manage.component').then(m => m.TournamentManageComponent) },
+      { path: 'tournament/manage', redirectTo: 'tournament/list', pathMatch: 'full' },
+      { path: 'tournament/details/:id', loadComponent: () => import('./features/tournament/pages/tournament-details/tournament-details.component').then(m => m.TournamentDetailsComponent) },
+      { path: 'tournament/:id/squad-registration', loadComponent: () => import('./features/tournament/pages/squad-registration/squad-registration.component').then(m => m.SquadRegistrationComponent) },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   },
@@ -48,6 +55,46 @@ export const routes: Routes = [
     path: 'player/profile/:playerId',
     loadComponent: () => import('./features/player/player-profile/player-profile.component').then(m => m.PlayerProfileComponent),
     canActivate: [authGuard]
+  },
+  {
+    path: 'player/timeline',
+    loadComponent: () => import('./features/player/player-match-timeline/player-match-timeline.component').then(m => m.PlayerMatchTimelineComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Player'] }
+  },
+  {
+    path: 'player/timeline/:playerId',
+    loadComponent: () => import('./features/player/player-match-timeline/player-match-timeline.component').then(m => m.PlayerMatchTimelineComponent),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'player/drill-timeline',
+    loadComponent: () => import('./features/player/player-drill-timeline/player-drill-timeline.component').then(m => m.PlayerDrillTimelineComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Player'] }
+  },
+  {
+    path: 'player/drill-timeline/:playerId',
+    loadComponent: () => import('./features/player/player-drill-timeline/player-drill-timeline.component').then(m => m.PlayerDrillTimelineComponent),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'player/team-events',
+    loadComponent: () => import('./features/player/player-team-events/player-team-events.component').then(m => m.PlayerTeamEventsComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Player'] }
+  },
+  {
+    path: 'player/scouter-views',
+    loadComponent: () => import('./features/player/player-scouter-views/player-scouter-views.component').then(m => m.PlayerScouterViewsComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Player'] }
+  },
+  {
+    path: 'player/academy-comparison',
+    loadComponent: () => import('./features/player/player-academy-comparison/player-academy-comparison.component').then(m => m.PlayerAcademyComparisonComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Player'] }
   },
   {
     path: 'profile-views-analytics/:playerId',

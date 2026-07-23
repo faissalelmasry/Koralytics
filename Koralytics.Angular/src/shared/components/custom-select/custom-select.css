@@ -1,5 +1,6 @@
 :host {
   display: block;
+  position: relative;
   width: 100%;
   max-width: 400px;
   --bg-input: rgba(20, 23, 28, 0.6); 
@@ -9,6 +10,10 @@
   --text-light: #f2f3f5;
   --error-color: #ff6a5c;
   --bg-dropdown: #14171c;
+}
+
+:host(.is-open) {
+  z-index: 100;
 }
 
 .select-field-group {

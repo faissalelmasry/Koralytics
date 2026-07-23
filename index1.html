@@ -3,481 +3,424 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Koralytics - Player Profile</title>
-  <!-- Google Fonts for Gaming / FIFA Vibe -->
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <title>Koralytics - Pro Match Timeline</title>
   <style>
+    /* ==========================================
+       KORALYTICS DARK PRO THEME
+       ========================================== */
     :root {
       --bg-dark: #0a0c10;
-      --card-bg: #14171c;
-      --card-border: #23272f;
-      --text-main: #ffffff;
-      --text-muted: #8b909a;
-      
-      /* Dynamic Gold Tier based on 73.88 Rating */
-      --tier-neon: #ffd700;
-      --tier-glow: rgba(255, 215, 0, 0.15);
-      --tier-border-glow: rgba(255, 215, 0, 0.3);
+      --panel-bg: rgba(18, 22, 29, 0.75);
+      --accent-gold: #facc15;
+      --accent-gold-glow: rgba(250, 204, 21, 0.4);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --win-color: #22c55e;  /* أخضر للفوز */
+      --draw-color: #eab308; /* أصفر للتعادل */
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
 
     body {
       background-color: var(--bg-dark);
       color: var(--text-main);
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      padding: 30px;
-      min-height: 100vh;
+      padding: 40px 20px;
       display: flex;
       justify-content: center;
     }
 
-    .koralytics-container {
-      max-width: 1200px;
+    .timeline-container {
       width: 100%;
-      display: grid;
-      grid-template-columns: 340px 1fr;
-      gap: 30px;
+      max-width: 800px;
     }
 
-    /* ==========================================
-       LEFT COLUMN: THE 3D CARD & QUICK INFO
-       ========================================== */
-    .left-col {
+    /* Header */
+    .timeline-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .timeline-header h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-count {
+      background: rgba(250, 204, 21, 0.1);
+      border: 1px solid var(--accent-gold);
+      color: var(--accent-gold);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      box-shadow: 0 0 10px rgba(250, 204, 21, 0.2);
+    }
+
+    /* Stream Line */
+    .timeline-stream {
+      position: relative;
       display: flex;
       flex-direction: column;
+      gap: 24px;
+    }
+
+    .timeline-stream::before {
+      content: '';
+      position: absolute;
+      left: 110px;
+      top: 15px;
+      bottom: 15px;
+      width: 2px;
+      background: linear-gradient(180deg, var(--accent-gold) 0%, rgba(255, 255, 255, 0.05) 100%);
+    }
+
+    /* Timeline Item */
+    .timeline-item {
+      display: flex;
+      align-items: flex-start;
       gap: 20px;
     }
 
-    /* Player Card Styling */
-    .card3d {
-      background:
-        radial-gradient(140% 90% at 15% 0%, var(--tier-glow), transparent 55%),
-        linear-gradient(160deg, #14171c, #0e1013 70%);
-      border: 1px solid var(--tier-border-glow);
-      border-radius: 24px;
-      padding: 24px;
-      position: relative;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
-    }
-
-    .card-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-    }
-
-    .rating {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 58px;
-      line-height: 1;
-      color: var(--tier-neon);
-    }
-
-    .position {
-      font-weight: 800;
-      color: var(--text-muted);
-      font-size: 16px;
-    }
-
-    .avatar-wrapper {
-      width: 110px;
-      height: 110px;
-      margin: 15px auto;
-      border-radius: 50%;
-      border: 2px solid var(--tier-border-glow);
-      background: #1a1d24;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 36px;
-      font-weight: 800;
-      color: var(--tier-neon);
-      box-shadow: 0 0 20px var(--tier-glow);
-    }
-
-    .card-name {
-      text-align: center;
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 28px;
-      letter-spacing: 1.5px;
-      margin-bottom: 20px;
-    }
-
-    .stats-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px 20px;
-      margin-bottom: 20px;
-    }
-
-    .stat-item .top {
-      display: flex;
-      justify-content: space-between;
-      font-size: 13px;
-      margin-bottom: 4px;
-    }
-
-    .stat-item .val { font-weight: 700; color: var(--tier-neon); }
-    .stat-item .lbl { color: var(--text-muted); font-weight: 600; }
-
-    .bar {
-      height: 4px;
-      background: #23272f;
-      border-radius: 2px;
-      overflow: hidden;
-    }
-
-    .bar .fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--tier-neon), #ffa500);
-      border-radius: 2px;
-    }
-
-    .card-footer {
-      display: flex;
-      justify-content: space-between;
-      font-size: 12px;
-      color: var(--text-muted);
-      border-top: 1px solid rgba(255,255,255,0.05);
-      padding-top: 12px;
-    }
-
-    /* Side Widget: Quick Bio */
-    .widget-box {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 20px;
-      padding: 20px;
-    }
-
-    .widget-title {
-      font-size: 12px;
-      font-weight: 800;
-      letter-spacing: 1.5px;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      margin-bottom: 15px;
-    }
-
-    .info-list {
+    /* Left Side: Meta */
+    .timeline-meta {
+      width: 100px;
+      text-align: right;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 4px;
+      padding-top: 4px;
     }
 
-    .info-row {
-      display: flex;
-      justify-content: space-between;
-      font-size: 14px;
+    .match-date {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-main);
     }
 
-    .info-row span:first-child { color: var(--text-muted); }
-    .info-row span:last-child { font-weight: 700; }
-
-    .badge-status {
-      background: rgba(34, 197, 94, 0.15);
-      color: #4ade80;
-      padding: 4px 10px;
-      border-radius: 20px;
-      font-size: 12px;
+    .match-badge {
+      font-size: 0.7rem;
       font-weight: 700;
-      border: 1px solid rgba(34, 197, 94, 0.3);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .match-badge.session { color: #60a5fa; }
+    .match-badge.official { color: var(--accent-gold); }
+
+    /* Center Node */
+    .timeline-node {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #1f2937;
+      border: 2px solid var(--border-color);
+      z-index: 2;
+      margin-top: 18px;
+      flex-shrink: 0;
+      transition: all 0.3s ease;
+    }
+
+    .timeline-node.is-motm {
+      background: var(--accent-gold);
+      border-color: #fff;
+      box-shadow: 0 0 14px var(--accent-gold);
+      transform: scale(1.2);
     }
 
     /* ==========================================
-       RIGHT COLUMN: DASHBOARD & METRICS
+       🔥 PRO CARD DESIGN & TRICKS
        ========================================== */
-    .right-col {
-      display: flex;
-      flex-direction: column;
-      gap: 25px;
-    }
-
-    /* Header Banner */
-    .profile-header {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 20px;
-      padding: 25px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .header-info h1 {
-      font-size: 32px;
-      font-weight: 800;
-      letter-spacing: -0.5px;
-      margin-bottom: 5px;
-    }
-
-    .header-sub {
-      color: var(--text-muted);
-      font-size: 14px;
-      display: flex;
-      gap: 15px;
-      align-items: center;
-    }
-
-    .dot-sep { width: 5px; height: 5px; background: var(--text-muted); border-radius: 50%; }
-
-    /* Total Stats Counter Grid */
-    .counters-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 15px;
-    }
-
-    .counter-card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 16px;
-      padding: 20px;
-      text-align: center;
+    .timeline-card {
+      flex: 1;
+      background: var(--panel-bg);
+      border: 1px solid var(--border-color);
+      padding: 18px;
+      
+      /* Glassmorphism Effect */
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      
+      /* 🔲 Trick 1: Tactical Chamfered Corner Cut (قصة أركان تكتيكية) */
+      clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%);
+      border-radius: 8px 0 8px 8px;
+      
       position: relative;
       overflow: hidden;
+      transition: all 0.3s ease;
     }
 
-    .counter-card.highlight {
-      border-color: var(--tier-border-glow);
-      background: radial-gradient(100% 100% at 50% 0%, var(--tier-glow), var(--card-bg));
+    /* 🟢 Trick 2: Match Outcome Border Bar (شريط الفوز/التعادل) */
+    .timeline-card.outcome-win {
+      border-left: 4px solid var(--win-color);
     }
 
-    .counter-num {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 42px;
-      line-height: 1;
-      color: var(--text-main);
-      margin-bottom: 4px;
+    .timeline-card.outcome-draw {
+      border-left: 4px solid var(--draw-color);
     }
 
-    .counter-card.highlight .counter-num {
-      color: var(--tier-neon);
+    /* 🎴 Trick 3: Hologram Light Sweep on Hover (لمعة هولوجرام متزحلقة) */
+    .timeline-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -150%;
+      width: 60%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(250, 204, 21, 0.12), transparent);
+      transform: skewX(-20deg);
+      transition: all 0.6s ease;
     }
 
-    .counter-lbl {
-      font-size: 11px;
+    .timeline-card:hover::before {
+      left: 150%;
+    }
+
+    .timeline-card:hover {
+      border-color: rgba(255, 255, 255, 0.25);
+      transform: translateY(-3px);
+    }
+
+    /* 🌟 Trick 4: MOTM Pulse Glow Animation (نبض ذهبي حي للـ MOTM) */
+    @keyframes goldPulse {
+      0% { box-shadow: 0 0 8px rgba(250, 204, 21, 0.15); border-color: rgba(250, 204, 21, 0.4); }
+      50% { box-shadow: 0 0 22px rgba(250, 204, 21, 0.45); border-color: rgba(250, 204, 21, 0.8); }
+      100% { box-shadow: 0 0 8px rgba(250, 204, 21, 0.15); border-color: rgba(250, 204, 21, 0.4); }
+    }
+
+    .timeline-card.motm-glow {
+      animation: goldPulse 2.8s infinite ease-in-out;
+    }
+
+    /* Card Elements */
+    .card-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .match-teams {
       font-weight: 700;
-      color: var(--text-muted);
+      font-size: 1.05rem;
+      letter-spacing: 0.3px;
+    }
+
+    .vs-divider {
+      color: var(--accent-gold);
+      font-size: 0.75rem;
+      margin: 0 6px;
+      font-style: italic;
+    }
+
+    .score-pill {
+      background: #000;
+      border: 1px solid var(--border-color);
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-family: 'Courier New', Courier, monospace;
+      color: var(--accent-gold);
       letter-spacing: 1px;
-      text-transform: uppercase;
+      box-shadow: inset 0 0 8px rgba(0,0,0,0.8);
     }
 
-    /* Competition Breakdown Table / Grid */
-    .breakdown-section {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 20px;
-      padding: 25px;
-    }
-
-    .section-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-
-    .breakdown-grid {
+    /* Stats Grid */
+    .stats-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 15px;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      background: rgba(0, 0, 0, 0.45);
+      padding: 10px 14px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.03);
     }
 
-    .comp-box {
-      background: #0f1115;
-      border: 1px solid #1c2027;
-      border-radius: 14px;
-      padding: 18px;
-    }
-
-    .comp-name {
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--text-main);
-      margin-bottom: 12px;
+    .stat-box {
       display: flex;
-      align-items: center;
-      gap: 8px;
+      flex-direction: column;
+      gap: 2px;
     }
 
-    .comp-icon {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--tier-neon);
-    }
-
-    .comp-stats-row {
-      display: flex;
-      justify-content: space-between;
-      font-size: 13px;
-      margin-bottom: 8px;
+    .stat-box .label {
+      font-size: 0.62rem;
       color: var(--text-muted);
+      font-weight: 800;
+      letter-spacing: 0.5px;
     }
 
-    .comp-stats-row strong {
-      color: var(--text-main);
+    .stat-box .value {
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    /* ⚽ Trick 5: LED Neon Glow للأهداف والأرقام المميزة */
+    .stat-box .highlight-gold {
+      color: var(--accent-gold);
+      text-shadow: 0 0 10px var(--accent-gold-glow);
+    }
+
+    .rating-badge {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 2px 6px;
+      border-radius: 4px;
+      width: fit-content;
+    }
+
+    .rating-badge.high {
+      background: var(--accent-gold);
+      color: #000;
+      font-weight: 800;
+      box-shadow: 0 0 10px var(--accent-gold-glow);
+    }
+
+    /* MOTM Tag & Coach Note */
+    .motm-banner {
+      margin-top: 12px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: var(--accent-gold);
+      letter-spacing: 0.8px;
+      text-shadow: 0 0 8px var(--accent-gold-glow);
+    }
+
+    .coach-note {
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px dashed var(--border-color);
+      font-size: 0.85rem;
+    }
+
+    .coach-note .note-title {
+      font-weight: 700;
+      color: var(--accent-gold);
+      margin-right: 4px;
+    }
+
+    .coach-note p {
+      display: inline;
+      color: var(--text-muted);
+      font-style: italic;
     }
   </style>
 </head>
 <body>
 
-  <div class="koralytics-container">
-
-    <!-- ================= LEFT COLUMN ================= -->
-    <div class="left-col">
-
-      <!-- 1. Koralytics Dynamic Player Card (Gold Tier) -->
-      <div class="card3d">
-        <div class="card-top">
-          <div class="rating">74</div>
-          <div class="position">ST</div>
-        </div>
-
-        <div class="avatar-wrapper">
-          OK
-        </div>
-
-        <div class="card-name">OMAR KHALED</div>
-
-        <div class="stats-grid">
-          <div class="stat-item">
-            <div class="top"><span class="val">70</span><span class="lbl">PAC</span></div>
-            <div class="bar"><div class="fill" style="width: 70%;"></div></div>
-          </div>
-          <div class="stat-item">
-            <div class="top"><span class="val">64</span><span class="lbl">DRI</span></div>
-            <div class="bar"><div class="fill" style="width: 63.5%;"></div></div>
-          </div>
-          <div class="stat-item">
-            <div class="top"><span class="val">71</span><span class="lbl">SHO</span></div>
-            <div class="bar"><div class="fill" style="width: 70.9%;"></div></div>
-          </div>
-          <div class="stat-item">
-            <div class="top"><span class="val">80</span><span class="lbl">DEF</span></div>
-            <div class="bar"><div class="fill" style="width: 80%;"></div></div>
-          </div>
-          <div class="stat-item">
-            <div class="top"><span class="val">79</span><span class="lbl">PAS</span></div>
-            <div class="bar"><div class="fill" style="width: 79.4%;"></div></div>
-          </div>
-          <div class="stat-item">
-            <div class="top"><span class="val">80</span><span class="lbl">PHY</span></div>
-            <div class="bar"><div class="fill" style="width: 79.5%;"></div></div>
-          </div>
-        </div>
-
-        <div class="card-footer">
-          <span>★★☆☆☆ (Weak Foot)</span>
-          <span>Right Foot</span>
-        </div>
-      </div>
-
-      <!-- 2. Personal Bio Widget -->
-      <div class="widget-box">
-        <div class="widget-title">Player Overview</div>
-        <div class="info-list">
-          <div class="info-row">
-            <span>Status</span>
-            <span class="badge-status">Available</span>
-          </div>
-          <div class="info-row">
-            <span>Age</span>
-            <span>18 Yrs</span>
-          </div>
-          <div class="info-row"><span>Classification</span><span>Developing</span></div>
-          <div class="info-row">
-            <span>Archetype</span>
-            <span style="color: var(--text-muted); font-weight: normal;">Unique Style</span>
-          </div>
-        </div>
-      </div>
-
+  <div class="timeline-container">
+    
+    <!-- Header -->
+    <div class="timeline-header">
+      <h2>Player Match Timeline</h2>
+      <span class="badge-count">2 Events</span>
     </div>
 
-    <!-- ================= RIGHT COLUMN ================= -->
-    <div class="right-col">
+    <!-- Timeline Stream -->
+    <div class="timeline-stream">
 
-      <!-- 1. Profile Header Banner -->
-      <div class="profile-header">
-        <div class="header-info">
-          <h1>Omar Khaled</h1>
-          <div class="header-sub">
-            <span>Al Ahly Academy</span>
-            <span class="dot-sep"></span>
-            <span>U17 Team A (U17)</span>
-            <span class="dot-sep"></span>
-            <span style="color: var(--tier-neon);">Striker (ST)</span>
+      <!-- Item 1: Official Match (Win + MOTM Glow) -->
+      <div class="timeline-item">
+        <div class="timeline-meta">
+          <span class="match-date">Jul 20, 2026</span>
+          <span class="match-badge official">Official</span>
+        </div>
+        
+        <div class="timeline-node is-motm"></div>
+
+        <!-- أضيفت كلاسات outcome-win و motm-glow -->
+        <div class="timeline-card outcome-win motm-glow">
+          <div class="card-top-row">
+            <div class="match-teams">
+              <span>Ahly SC</span>
+              <span class="vs-divider">VS</span>
+              <span>Zamalek SC</span>
+            </div>
+            <div class="score-pill">2 - 1</div>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-box">
+              <span class="label">MINS</span>
+              <span class="value">90'</span>
+            </div>
+            <div class="stat-box">
+              <span class="label">GOALS</span>
+              <span class="value highlight-gold">1</span>
+            </div>
+            <div class="stat-box">
+              <span class="label">ASSISTS</span>
+              <span class="value highlight-gold">1</span>
+            </div>
+            <div class="stat-box">
+              <span class="label">RATING</span>
+              <span class="value"><span class="rating-badge high">8.8</span></span>
+            </div>
+          </div>
+
+          <div class="motm-banner">
+            🔥 MAN OF THE MATCH
+          </div>
+
+          <div class="coach-note">
+            <span class="note-title">Coach Note:</span>
+            <p>"Outstanding tactical awareness and superb pressing in second half."</p>
           </div>
         </div>
       </div>
 
-      <!-- 2. Total Career Stats (Key Performance Indicators) -->
-      <div class="counters-grid">
-        <div class="counter-card">
-          <div class="counter-num">4</div>
-          <div class="counter-lbl">Total Matches</div>
-        </div>
-        <div class="counter-card highlight">
-          <div class="counter-num">5</div>
-          <div class="counter-lbl">Total Goals</div>
-        </div>
-        <div class="counter-card">
-          <div class="counter-num">0</div>
-          <div class="counter-lbl">Total Assists</div>
-        </div>
-        <div class="counter-card highlight">
-          <div class="counter-num">2</div>
-          <div class="counter-lbl">Man of Match</div>
-        </div>
-      </div>
-
-      <!-- 3. Competition Stats Breakdown -->
-      <div class="breakdown-section">
-        <div class="section-header">
-          <div class="widget-title" style="margin-bottom:0;">Match Performance Breakdown</div>
+      <!-- Item 2: Session Match (Draw Outcome) -->
+      <div class="timeline-item">
+        <div class="timeline-meta">
+          <span class="match-date">Jul 15, 2026</span>
+          <span class="match-badge session">Session</span>
         </div>
 
-        <div class="breakdown-grid">
+        <div class="timeline-node"></div>
 
-          <!-- Session Stats -->
-          <div class="comp-box">
-            <div class="comp-name">
-              <span class="comp-icon" style="background: #3b82f6;"></span>
-              Training Sessions
+        <!-- أضيفت كلاس outcome-draw -->
+        <div class="timeline-card outcome-draw">
+          <div class="card-top-row">
+            <div class="match-teams">
+              <span>Home Side</span>
+              <span class="vs-divider">VS</span>
+              <span>Away Side</span>
             </div>
-            <div class="comp-stats-row"><span>Matches</span><strong>1</strong></div>
-            <div class="comp-stats-row"><span>Goals</span><strong>1</strong></div>
-            <div class="comp-stats-row"><span>Assists</span><strong>0</strong></div>
-            <div class="comp-stats-row"><span>MOTM</span><strong>0</strong></div>
+            <div class="score-pill">3 - 3 (4 - 2 pen)</div>
           </div>
 
-          <!-- Friendly Stats -->
-          <div class="comp-box">
-            <div class="comp-name">
-              <span class="comp-icon" style="background: #eab308;"></span>
-              Friendly Matches
+          <div class="stats-grid">
+            <div class="stat-box">
+              <span class="label">MINS</span>
+              <span class="value">45'</span>
             </div>
-            <div class="comp-stats-row"><span>Matches</span><strong>2</strong></div>
-            <div class="comp-stats-row"><span>Goals</span><strong>3</strong></div>
-            <div class="comp-stats-row"><span>Assists</span><strong>0</strong></div>
-            <div class="comp-stats-row"><span>MOTM</span><strong>2</strong></div>
+            <div class="stat-box">
+              <span class="label">GOALS</span>
+              <span class="value">0</span>
+            </div>
+            <div class="stat-box">
+              <span class="label">ASSISTS</span>
+              <span class="value highlight-gold">2</span>
+            </div>
+            <div class="stat-box">
+              <span class="label">RATING</span>
+              <span class="value"><span class="rating-badge">7.1</span></span>
+            </div>
           </div>
 
-          <!-- Tournament Stats -->
-          <div class="comp-box">
-            <div class="comp-name">
-              <span class="comp-icon" style="background: #ec4899;"></span>
-              Tournaments
-            </div>
-            <div class="comp-stats-row"><span>Matches</span><strong>1</strong></div>
-            <div class="comp-stats-row"><span>Goals</span><strong>1</strong></div>
-            <div class="comp-stats-row"><span>Assists</span><strong>0</strong></div>
-            <div class="comp-stats-row"><span>MOTM</span><strong>0</strong></div>
+          <div class="coach-note">
+            <span class="note-title">Coach Note:</span>
+            <p>"Good link-up play, needs to work on long-range passing precision."</p>
           </div>
-
         </div>
       </div>
 

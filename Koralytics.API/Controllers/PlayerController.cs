@@ -86,37 +86,32 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpGet("{playerId}/timeline/drills")]
-        [Authorize(Roles = "Player")]
+        [Authorize]
         public async Task<IActionResult> GetDrillTimeline(
             int playerId,
             [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 20)
+            [FromQuery] int pageSize = 20,
+            [FromQuery] DateTime? dateFrom = null,
+            [FromQuery] DateTime? dateTo = null)
         {
-            var requesterId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-
-            if (requesterId != playerId)
-                return Forbid();
-
             var timeline = await _playerProfileService.GetDrillTimelineAsync(
-                playerId, page, pageSize);
+                playerId, page, pageSize, dateFrom, dateTo);
 
             return Ok(timeline);
         }
 
         [HttpGet("{playerId}/timeline/matches")]
-        [Authorize(Roles = "Player")]
+        [Authorize]
         public async Task<IActionResult> GetMatchTimeline(
             int playerId,
             [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 20)
+            [FromQuery] int pageSize = 20,
+            [FromQuery] string? matchType = null,
+            [FromQuery] DateTime? dateFrom = null,
+            [FromQuery] DateTime? dateTo = null)
         {
-            var requesterId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-
-            if (requesterId != playerId)
-                return Forbid();
-
             var timeline = await _playerProfileService.GetMatchTimelineAsync(
-                playerId, page, pageSize);
+                playerId, page, pageSize, matchType, dateFrom, dateTo);
 
             return Ok(timeline);
         }
@@ -137,6 +132,27 @@ namespace Koralytics.API.Controllers
                 playerId, page, pageSize);
 
             return Ok(timeline);
+        }
+
+        [HttpGet("{playerId}/team/scheduled")]
+        [Authorize(Roles = "Player")]
+        public async Task<IActionResult> GetTeamScheduledEvents(
+            int playerId,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20,
+            [FromQuery] string? eventType = null,
+            [FromQuery] DateTime? dateFrom = null,
+            [FromQuery] DateTime? dateTo = null)
+        {
+            var requesterId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+            if (requesterId != playerId)
+                return Forbid();
+
+            var result = await _playerProfileService.GetTeamScheduledEventsAsync(
+                playerId, page, pageSize, eventType, dateFrom, dateTo);
+
+            return Ok(result);
         }
 
         [HttpPost("{playerId}/card/recalculate")]
@@ -163,6 +179,23 @@ namespace Koralytics.API.Controllers
 
             if (requesterId != playerId)
                 return Forbid();
+
+            var comparison = await _playerProfileService.GetPlayerVsAcademyAverageAsync(
+                playerId, academyId);
+            return Ok(comparison);
+        }
+
+        [HttpGet("academy-comparison")]
+        [Authorize(Roles = "Player")]
+        public async Task<IActionResult> GetCurrentPlayerAcademyComparison()
+        {
+            var playerId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+            var academyIdStr = User.FindFirstValue("AcademyId")
+                               ?? User.FindFirstValue("academyId");
+
+            if (string.IsNullOrEmpty(academyIdStr) || !int.TryParse(academyIdStr, out var academyId))
+                return BadRequest(new { message = "No academy association found for current user." });
 
             var comparison = await _playerProfileService.GetPlayerVsAcademyAverageAsync(
                 playerId, academyId);

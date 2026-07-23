@@ -1,4 +1,4 @@
-﻿using Koralytics.API.Controllers.BaseController;
+using Koralytics.API.Controllers.BaseController;
 using Koralytics.Application.DTOs.Tournament;
 using Koralytics.Application.Interfaces.Tournament;
 using Koralytics.Application.Interfaces.Tournaments;
@@ -30,6 +30,23 @@ namespace Koralytics.API.Controllers
             _tournamentReportService = tournamentReportService;
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetTournaments()
+        {
+            var result = await _tournamentService.GetAllAsync();
+            return OkResponse(result);
+        }
+
+        [HttpGet("{tournamentId}")]
+        public async Task<IActionResult> GetTournament(int tournamentId)
+        {
+            var result = await _tournamentService.GetByIdAsync(tournamentId);
+
+            if (result is null)
+                return NotFound(new { message = $"Tournament with Id {tournamentId} not found" });
+
+            return OkResponse(result);
+        }
         [HttpPost]
         //[Authorize(Roles = "SuperAdmin")]
         public async Task<IActionResult> CreateTournament(
@@ -41,7 +58,7 @@ namespace Koralytics.API.Controllers
 
             return CreatedResponse(
                 result,
-                nameof(GetBracket),
+                nameof(GetTournament),
                 new { tournamentId = result.Id },
                 "Tournament created successfully");
         }
@@ -65,7 +82,6 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpPost("{tournamentId}/squad/{teamId}")]
-        //[Authorize(Roles = "Coach")]
         public async Task<IActionResult> RegisterSquad(
             int tournamentId,
             int teamId,
@@ -76,8 +92,18 @@ namespace Koralytics.API.Controllers
             return NoContentResponse("Squad registered successfully");
         }
 
+        [HttpGet("{tournamentId}/squad/{teamId}/players")]
+        public async Task<IActionResult> GetRegisteredPlayerIds(
+            int tournamentId, int teamId)
+        {
+            var result = await _tournamentService
+                .GetRegisteredPlayerIdsAsync(tournamentId, teamId);
+            return OkResponse(result);
+        }
+
         [HttpPost("{tournamentId}/seeding")]
         //[Authorize(Roles = "SuperAdmin")]
+
         public async Task<IActionResult> GenerateSeeding(int tournamentId)
         {
             await _tournamentDrawService.GenerateSeedingAsync(tournamentId);
@@ -90,15 +116,6 @@ namespace Koralytics.API.Controllers
         {
             await _tournamentDrawService.GenerateDrawAsync(tournamentId);
             return NoContentResponse("Draw generated successfully");
-        }
-
-        [HttpPut("groups/{groupId}/standings/{matchId}")]
-        //[Authorize(Roles = "Coach")]
-        public async Task<IActionResult> UpdateStandings(
-            int groupId, int matchId)
-        {
-            await _tournamentFixtureService.UpdateStandingsAsync(groupId, matchId);
-            return NoContentResponse("Standings updated successfully");
         }
 
         [HttpPost("{tournamentId}/rounds/{roundId}/advance")]
@@ -116,6 +133,21 @@ namespace Koralytics.API.Controllers
         {
             var result = await _tournamentReportService
                 .GetBracketAsync(tournamentId);
+            return OkResponse(result);
+        }
+
+        [HttpGet("{tournamentId}/teams")]
+        public async Task<IActionResult> GetTeams(int tournamentId)
+        {
+            var result = await _tournamentService.GetTeamsAsync(tournamentId);
+            return OkResponse(result);
+        }
+
+        [HttpGet("{tournamentId}/hall-of-fame")]
+        public async Task<IActionResult> GetHallOfFame(int tournamentId)
+        {
+            var result = await _tournamentReportService
+                .GetHallOfFameAsync(tournamentId);
             return OkResponse(result);
         }
 
@@ -142,7 +174,7 @@ namespace Koralytics.API.Controllers
         }
       
         [HttpPut("{tournamentId}/status")]
-        [Authorize(Roles = "SuperAdmin")]
+        //[Authorize(Roles = "SuperAdmin")]
         public async Task<IActionResult> UpdateStatus(
             int tournamentId, [FromBody] TournamentStatus status)
         {
