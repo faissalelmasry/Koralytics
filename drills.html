@@ -2,623 +2,371 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Koralytics - Drill Sessions</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        /* ==========================================
-           CSS VARIABLES (Koralytics Theme)
-        ========================================== */
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Koralytics - Animated Circular Drill</title>
+
         :root {
-            --bg-base: #090b0f;
-            --bg-panel: #12151c;
-            --bg-panel-hover: #161a23;
-            --border-color: #232836;
+            --bg-card: rgba(15, 17, 21, 0.7);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --accent-lime: #c8ff4d;
+            --accent-cyan: #00e5ff;
+            --accent-purple: #b388ff;
+            --text-light: #f2f3f5;
+            --text-dim: #8b909a;
 
-            --text-main: #ffffff;
-            --text-muted: #8b909a;
-
-            --accent-lime: #b4f213;
-            --accent-lime-dim: rgba(180, 242, 19, 0.15);
-
-            --cyan: #00f0ff;
-            --cyan-dim: rgba(0, 240, 255, 0.15);
-
-            --coral: #ff4d4d;
-            --coral-dim: rgba(255, 77, 77, 0.15);
-
-            --warning: #ffaa00;
-            --warning-dim: rgba(255, 170, 0, 0.15);
-
-            --success: #00e676;
-            --success-dim: rgba(0, 230, 118, 0.15);
-
-            --font-main: 'Inter', sans-serif;
+            /* Intensity Colors */
+            --intensity-high: #ff5722;
+            /* Red-Orange */
+            --intensity-med: #c8ff4d;
+            /* Lime Green */
+            --intensity-low: #ffeb3b;
+            /* Yellow */
         }
 
-        /* ==========================================
-           RESET & BASE
-        ========================================== */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: var(--font-main);
-            background-color: var(--bg-base);
-            color: var(--text-main);
-            padding: 40px;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        .sessions-page {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        /* ==========================================
-           HEADER
-        ========================================== */
-        .page-header {
+        .dashboard-container {
             display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            margin-bottom: 30px;
+            justify-content: center;
+            padding: 60px 20px;
+            min-height: 100vh;
         }
 
-        .header-eyebrow {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
-        }
-
-        .eyebrow-dot {
-            width: 8px;
-            height: 8px;
-            background-color: var(--accent-lime);
-            border-radius: 50%;
-            box-shadow: 0 0 10px var(--accent-lime);
-        }
-
-        .eyebrow-text {
-            color: var(--accent-lime);
-            font-size: 11px;
-            text-transform: uppercase;
-            font-weight: 700;
-            letter-spacing: 1px;
-        }
-
-        .header-title {
-            font-size: 42px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: -1px;
-            margin-bottom: 4px;
-        }
-
-        .header-subtitle {
-            color: var(--text-muted);
-            font-size: 14px;
-        }
-
-        .btn-accent {
-            background-color: var(--accent-lime);
-            color: #000;
-            border: none;
-            padding: 12px 24px;
-            font-size: 14px;
-            font-weight: 700;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-transform: capitalize;
-        }
-
-        .btn-accent:hover {
-            box-shadow: 0 0 15px var(--accent-lime-dim);
-            transform: translateY(-2px);
-        }
-
-        /* ==========================================
-           STATS STRIP
-        ========================================== */
-        .stats-strip {
-            display: flex;
-            background-color: var(--bg-panel);
+        .welcome-card {
+            background: var(--bg-card);
             border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 20px 40px;
-            margin-bottom: 30px;
-            justify-content: space-between;
-        }
-
-        .stat-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            flex: 1;
-        }
-
-        .stat-value {
-            font-size: 32px;
-            font-weight: 800;
-            color: var(--text-main);
-            margin-bottom: 4px;
-        }
-
-        .stat-value.cyan {
-            color: var(--cyan);
-        }
-
-        .stat-value.warning {
-            color: var(--warning);
-        }
-
-        .stat-value.success {
-            color: var(--success);
-        }
-
-        .stat-label {
-            font-size: 11px;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            font-weight: 600;
-            letter-spacing: 1px;
-        }
-
-        .stat-divider {
-            width: 1px;
-            background-color: var(--border-color);
-        }
-
-        /* ==========================================
-           FILTER BAR
-        ========================================== */
-        .filter-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-        }
-
-        .search-input {
-            width: 300px;
-            background-color: var(--bg-panel);
-            border: 1px solid var(--border-color);
-            color: var(--text-main);
-            padding: 12px 16px;
-            border-radius: 8px;
-            font-size: 14px;
-            outline: none;
-        }
-
-        .search-input:focus {
-            border-color: var(--cyan);
-        }
-
-        .filter-controls {
-            display: flex;
-            gap: 16px;
-        }
-
-        .native-select {
-            background-color: var(--bg-panel);
-            color: var(--text-main);
-            border: 1px solid var(--border-color);
-            padding: 12px 16px;
-            border-radius: 8px;
-            font-size: 14px;
-            outline: none;
-            cursor: pointer;
-            min-width: 150px;
-        }
-
-        /* ==========================================
-           SESSIONS GRID & CARDS
-        ========================================== */
-        .sessions-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-            gap: 24px;
-        }
-
-        .session-card {
-            background-color: var(--bg-panel);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 24px;
+            border-radius: 24px;
+            padding: 48px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 24px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            max-width: 1000px;
+            width: 100%;
+            text-align: left;
             position: relative;
-            overflow: hidden;
+        }
+
+        .accent-text {
+            color: var(--accent-lime);
+            text-shadow: 0 0 15px rgba(200, 255, 77, 0.3);
+        }
+
+        .roles {
             display: flex;
-            flex-direction: column;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .role-badge {
+            padding: 4px 12px;
+            border-radius: 99px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            backdrop-filter: blur(4px);
+        }
+
+        /* Color-coded category badges */
+        .badge-possession {
+            background: rgba(200, 255, 77, 0.1);
+            color: var(--accent-lime);
+            border: 1px solid rgba(200, 255, 77, 0.2);
+        }
+
+        .badge-attacking {
+            background: rgba(0, 229, 255, 0.1);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(0, 229, 255, 0.2);
+        }
+
+        .badge-tactical {
+            background: rgba(179, 136, 255, 0.1);
+            color: var(--accent-purple);
+            border: 1px solid rgba(179, 136, 255, 0.2);
+        }
+
+        .badge-neutral {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-light);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+            margin-top: auto;
+            /* Pushes buttons to the bottom of the card */
+        }
+
+        /* Buttons */
+        .mock-btn-accent {
+            background-color: var(--accent-lime);
+            color: #050505;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(200, 255, 77, 0.2);
+        }
+
+        .mock-btn-accent:hover {
+            background-color: #d4ff70;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(200, 255, 77, 0.4);
+        }
+
+        .mock-btn-slate {
+            background-color: rgba(255, 255, 255, 0.03);
+            color: var(--text-light);
+            border: 1px solid var(--border-color);
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-weight: 500;
+            font-size: 13px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .mock-btn-slate:hover {
+            background-color: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .mock-input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border-color);
+            color: var(--text-light);
+            padding: 16px 20px;
+            border-radius: 12px;
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            box-sizing: border-box;
             transition: all 0.3s ease;
         }
 
-        .session-card:hover {
-            border-color: #384056;
-            background-color: var(--bg-panel-hover);
-            transform: translateY(-4px);
+        .mock-input:focus {
+            outline: none;
+            border-color: var(--accent-lime);
+            background: rgba(0, 0, 0, 0.6);
+            box-shadow: 0 0 0 4px rgba(200, 255, 77, 0.1);
         }
 
-        /* Top Glow Bar based on Status */
-        .card-glow-bar {
+        /* Animations */
+        @keyframes slideUpFade {
+            from {
+                opacity: 0;
+                transform: translateY(40px) scale(0.98);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Drill Cards */
+        .drill-card {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            opacity: 0;
+            animation: slideUpFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Subtle overlay gradient that shifts on hover */
+        .drill-card::before {
+            content: '';
             position: absolute;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 3px;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(800px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255, 255, 255, 0.06), transparent 40%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            pointer-events: none;
         }
 
-        .status-scheduled .card-glow-bar {
-            background-color: var(--cyan);
-            box-shadow: 0 0 15px var(--cyan);
+        .drill-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 20px rgba(200, 255, 77, 0.05);
         }
 
-        .status-inprogress .card-glow-bar {
-            background-color: var(--warning);
-            box-shadow: 0 0 15px var(--warning);
+        .drill-card:hover::before {
+            opacity: 1;
         }
 
-        .status-completed .card-glow-bar {
-            background-color: var(--success);
-            box-shadow: 0 0 15px var(--success);
+        /* Stagger Delays */
+        .drill-card:nth-child(1) {
+            animation-delay: 0.1s;
         }
 
-        .status-cancelled .card-glow-bar {
-            background-color: var(--coral);
-            box-shadow: 0 0 15px var(--coral);
+        .drill-card:nth-child(2) {
+            animation-delay: 0.2s;
         }
 
-        /* Header (Date & Badge) */
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 20px;
+        .drill-card:nth-child(3) {
+            animation-delay: 0.3s;
         }
 
-        .session-date {
-            font-size: 20px;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-            display: flex;
-            flex-direction: column;
+        .drill-card:nth-child(4) {
+            animation-delay: 0.4s;
         }
 
-        .session-time {
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--text-muted);
-            margin-top: 4px;
-        }
-
-        .badge {
-            font-size: 10px;
-            font-weight: 700;
-            text-transform: uppercase;
-            padding: 4px 10px;
-            border-radius: 4px;
-            letter-spacing: 1px;
-        }
-
-        .badge-cyan {
-            background-color: var(--cyan-dim);
-            color: var(--cyan);
-            border: 1px solid var(--cyan);
-        }
-
-        .badge-warning {
-            background-color: var(--warning-dim);
-            color: var(--warning);
-            border: 1px solid var(--warning);
-        }
-
-        .badge-success {
-            background-color: var(--success-dim);
-            color: var(--success);
-            border: 1px solid var(--success);
-        }
-
-        .badge-coral {
-            background-color: var(--coral-dim);
-            color: var(--coral);
-            border: 1px solid var(--coral);
-        }
-
-        /* Body (Team & Type) */
-        .card-body {
-            margin-bottom: 24px;
-            flex-grow: 1;
-        }
-
-        .team-name {
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 8px;
-            color: var(--text-main);
-        }
-
-        .session-type {
-            display: inline-block;
-            background-color: #1c212b;
-            color: #d1d5db;
-            font-size: 12px;
-            font-weight: 600;
-            padding: 4px 8px;
-            border-radius: 4px;
-            margin-bottom: 16px;
-        }
-
-        .session-meta {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .meta-row {
+        /* Custom Intensity LED Bars */
+        .intensity-container {
             display: flex;
             align-items: center;
             gap: 8px;
-            font-size: 13px;
-            color: var(--text-muted);
-            font-weight: 500;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 4px 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
         }
 
-        /* Actions */
-        .card-actions {
-            display: flex;
-            gap: 10px;
-            border-top: 1px solid var(--border-color);
-            padding-top: 20px;
+        .intensity-bars {
+            font-size: 14px;
+            letter-spacing: -1px;
         }
 
-        .btn-full {
-            flex: 1;
-            padding: 10px;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: 600;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            border: none;
+        .intensity-high {
+            color: var(--intensity-high);
+            text-shadow: 0 0 10px rgba(255, 87, 34, 0.6);
         }
 
-        .btn-primary {
-            background-color: var(--cyan-dim);
-            color: var(--cyan);
-            border: 1px solid var(--cyan);
+        .intensity-med {
+            color: var(--intensity-med);
+            text-shadow: 0 0 10px rgba(200, 255, 77, 0.6);
         }
 
-        .btn-primary:hover {
-            background-color: var(--cyan);
-            color: #000;
-        }
-
-        .btn-secondary {
-            background-color: transparent;
-            color: var(--text-muted);
-            border: 1px solid var(--border-color);
-        }
-
-        .btn-secondary:hover {
-            background-color: #2a3040;
-            color: var(--text-main);
+        .intensity-low {
+            color: var(--intensity-low);
+            text-shadow: 0 0 10px rgba(255, 235, 59, 0.6);
         }
     </style>
 </head>
 
 <body>
 
-    <div class="sessions-page">
+    <div class="dashboard-container">
+        <div class="welcome-card">
 
-        <!-- PAGE HEADER -->
-        <header class="page-header">
-            <div class="header-left">
-                <div class="header-eyebrow">
-                    <span class="eyebrow-dot"></span>
-                    <span class="eyebrow-text">Field Management</span>
+            <!-- Header Section -->
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; flex-wrap: wrap; gap: 20px;">
+                <div>
+                    <h1
+                        style="font-family: 'Bebas Neue', sans-serif; font-size: 42px; color: var(--text-light); margin: 0; letter-spacing: 1px;">
+                        Drill <span class="accent-text">Templates</span>
+                    </h1>
+                    <p style="color: var(--text-dim); margin: 8px 0 0; font-size: 15px;">Design, manage, and deploy
+                        tactical routines.</p>
                 </div>
-                <h1 class="header-title">Drill Sessions</h1>
-                <p class="header-subtitle">Schedule, manage, and execute training routines for your academy</p>
+                <button class="mock-btn-accent">+ Create New Drill</button>
             </div>
-            <div class="header-right">
-                <button class="btn-accent">+ Schedule Session</button>
+
+            <!-- Search Section -->
+            <div style="margin-bottom: 40px;">
+                <input type="text" class="mock-input" placeholder="Search by name, focus, or category...">
             </div>
-        </header>
 
-        <!-- STATS STRIP -->
-        <section class="stats-strip">
-            <div class="stat-item">
-                <span class="stat-value">24</span>
-                <span class="stat-label">Total Sessions</span>
-            </div>
-            <div class="stat-divider"></div>
-            <div class="stat-item">
-                <span class="stat-value cyan">3</span>
-                <span class="stat-label">Scheduled</span>
-            </div>
-            <div class="stat-divider"></div>
-            <div class="stat-item">
-                <span class="stat-value warning">1</span>
-                <span class="stat-label">In Progress</span>
-            </div>
-            <div class="stat-divider"></div>
-            <div class="stat-item">
-                <span class="stat-value success">19</span>
-                <span class="stat-label">Completed</span>
-            </div>
-        </section>
+            <!-- Drill List Grid -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px;">
 
-        <!-- FILTER BAR -->
-        <section class="filter-bar">
-            <input type="text" class="search-input" placeholder="Search sessions...">
-
-            <div class="filter-controls">
-                <select class="native-select">
-                    <option value="0">All Teams</option>
-                    <option value="1">Alexandria Elite U-19</option>
-                    <option value="2">Cairo Youth Academy</option>
-                    <option value="3">U-15 Development</option>
-                </select>
-
-                <select class="native-select">
-                    <option value="null">All Statuses</option>
-                    <option value="0">Scheduled</option>
-                    <option value="1">In Progress</option>
-                    <option value="2">Completed</option>
-                </select>
-            </div>
-        </section>
-
-        <!-- SESSIONS GRID -->
-        <section class="sessions-grid">
-
-            <!-- CARD 1: IN PROGRESS -->
-            <article class="session-card status-inprogress">
-                <div class="card-glow-bar"></div>
-                <div class="card-header">
-                    <div class="session-date">
-                        TODAY
-                        <span class="session-time">04:00 PM - 06:00 PM</span>
+                <!-- Card 1: High Intensity (Red-Orange) -->
+                <div class="drill-card">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
+                        <h3
+                            style="font-family: 'Bebas Neue', sans-serif; font-size: 26px; margin: 0; letter-spacing: 0.5px;">
+                            Rondo 4v2</h3>
+                        <span class="role-badge badge-possession">Possession</span>
                     </div>
-                    <span class="badge badge-warning">IN PROGRESS</span>
-                </div>
-                <div class="card-body">
-                    <h3 class="team-name">Alexandria Elite U-19</h3>
-                    <span class="session-type">Training</span>
-                    <div class="session-meta">
-                        <div class="meta-row"><span>📍</span> Main Pitch - North</div>
-                        <div class="meta-row"><span>📋</span> 4 Drills Planned</div>
-                    </div>
-                </div>
-                <div class="card-actions">
-                    <button class="btn-full btn-primary">Enter Session</button>
-                </div>
-            </article>
-
-            <!-- CARD 2: SCHEDULED -->
-            <article class="session-card status-scheduled">
-                <div class="card-glow-bar"></div>
-                <div class="card-header">
-                    <div class="session-date">
-                        24 JUL 2026
-                        <span class="session-time">09:00 AM - 11:30 AM</span>
-                    </div>
-                    <span class="badge badge-cyan">SCHEDULED</span>
-                </div>
-                <div class="card-body">
-                    <h3 class="team-name">Cairo Youth Academy</h3>
-                    <span class="session-type">Match Prep</span>
-                    <div class="session-meta">
-                        <div class="meta-row"><span>📍</span> Indoor Turf A</div>
-                        <div class="meta-row"><span>📋</span> 3 Drills Planned</div>
-                    </div>
-                </div>
-                <div class="card-actions">
-                    <button class="btn-full btn-secondary">Edit Details</button>
-                    <button class="btn-full btn-primary">View Plan</button>
-                </div>
-            </article>
-
-            <!-- CARD 3: SCHEDULED -->
-            <article class="session-card status-scheduled">
-                <div class="card-glow-bar"></div>
-                <div class="card-header">
-                    <div class="session-date">
-                        25 JUL 2026
-                        <span class="session-time">05:00 PM - 06:30 PM</span>
-                    </div>
-                    <span class="badge badge-cyan">SCHEDULED</span>
-                </div>
-                <div class="card-body">
-                    <h3 class="team-name">Alexandria Elite U-19</h3>
-                    <span class="session-type">Recovery</span>
-                    <div class="session-meta">
-                        <div class="meta-row"><span>📍</span> Gym & Pool Area</div>
-                        <div class="meta-row"><span>📋</span> 1 Drill Planned</div>
-                    </div>
-                </div>
-                <div class="card-actions">
-                    <button class="btn-full btn-secondary">Edit Details</button>
-                    <button class="btn-full btn-primary">View Plan</button>
-                </div>
-            </article>
-
-            <!-- CARD 4: COMPLETED -->
-            <article class="session-card status-completed">
-                <div class="card-glow-bar"></div>
-                <div class="card-header">
-                    <div class="session-date">
-                        20 JUL 2026
-                        <span class="session-time">10:00 AM - 12:00 PM</span>
-                    </div>
-                    <span class="badge badge-success">COMPLETED</span>
-                </div>
-                <div class="card-body">
-                    <h3 class="team-name">U-15 Development</h3>
-                    <span class="session-type">Training</span>
-                    <div class="session-meta">
-                        <div class="meta-row"><span>📍</span> Training Pitch B</div>
-                        <div class="meta-row"><span>👥</span> 18/22 Players Attended</div>
-                    </div>
-                </div>
-                <div class="card-actions">
-                    <button class="btn-full btn-secondary">View Report</button>
-                </div>
-            </article>
-
-            <!-- CARD 5: COMPLETED -->
-            <article class="session-card status-completed">
-                <div class="card-glow-bar"></div>
-                <div class="card-header">
-                    <div class="session-date">
-                        18 JUL 2026
-                        <span class="session-time">04:00 PM - 06:00 PM</span>
-                    </div>
-                    <span class="badge badge-success">COMPLETED</span>
-                </div>
-                <div class="card-body">
-                    <h3 class="team-name">Alexandria Elite U-19</h3>
-                    <span class="session-type">Match Prep</span>
-                    <div class="session-meta">
-                        <div class="meta-row"><span>📍</span> Main Pitch</div>
-                        <div class="meta-row"><span>👥</span> 22/22 Players Attended</div>
-                    </div>
-                </div>
-                <div class="card-actions">
-                    <button class="btn-full btn-secondary">View Report</button>
-                </div>
-            </article>
-
-            <!-- CARD 6: CANCELLED -->
-            <article class="session-card status-cancelled">
-                <div class="card-glow-bar"></div>
-                <div class="card-header">
-                    <div class="session-date">
-                        15 JUL 2026
-                        <span class="session-time">09:00 AM - 11:00 AM</span>
-                    </div>
-                    <span class="badge badge-coral">CANCELLED</span>
-                </div>
-                <div class="card-body">
-                    <h3 class="team-name">Cairo Youth Academy</h3>
-                    <span class="session-type">Training</span>
-                    <div class="session-meta">
-                        <div class="meta-row" style="color: var(--coral);"><span>⚠️</span> Cancelled due to heavy rain
+                    <p style="color: var(--text-dim); font-size: 14px; margin: 0; line-height: 1.6;">
+                        Classic passing and pressing drill focusing on quick decision making in tight spaces under heavy
+                        pressure.
+                    </p>
+                    <div class="roles" style="gap: 12px; margin-top: 4px;">
+                        <span class="role-badge badge-neutral">15 MIN</span>
+                        <div class="intensity-container">
+                            <span style="font-size: 10px; font-weight: 700; color: var(--text-dim);">HIGH</span>
+                            <span class="intensity-bars intensity-high">▰▰▰</span>
                         </div>
                     </div>
+                    <div class="actions">
+                        <button class="mock-btn-slate" style="flex: 1;">Edit</button>
+                        <button class="mock-btn-slate" style="flex: 1;">View</button>
+                    </div>
                 </div>
-                <div class="card-actions">
-                    <button class="btn-full btn-secondary">View Details</button>
-                </div>
-            </article>
 
-        </section>
+                <!-- Card 2: Medium Intensity (Lime/Green) -->
+                <div class="drill-card">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
+                        <h3
+                            style="font-family: 'Bebas Neue', sans-serif; font-size: 26px; margin: 0; letter-spacing: 0.5px;">
+                            Overload Attack</h3>
+                        <span class="role-badge badge-attacking">Attacking</span>
+                    </div>
+                    <p style="color: var(--text-dim); font-size: 14px; margin: 0; line-height: 1.6;">
+                        Building attacks from the wings with a 3v2 advantage in the final third. Focus on crossing
+                        accuracy.
+                    </p>
+                    <div class="roles" style="gap: 12px; margin-top: 4px;">
+                        <span class="role-badge badge-neutral">20 MIN</span>
+                        <div class="intensity-container">
+                            <span style="font-size: 10px; font-weight: 700; color: var(--text-dim);">MED</span>
+                            <span class="intensity-bars intensity-med">▰▰▱</span>
+                        </div>
+                    </div>
+                    <div class="actions">
+                        <button class="mock-btn-slate" style="flex: 1;">Edit</button>
+                        <button class="mock-btn-slate" style="flex: 1;">View</button>
+                    </div>
+                </div>
+
+                <!-- Card 3: Low Intensity (Yellow) -->
+                <div class="drill-card">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
+                        <h3
+                            style="font-family: 'Bebas Neue', sans-serif; font-size: 26px; margin: 0; letter-spacing: 0.5px;">
+                            Shadow Play</h3>
+                        <span class="role-badge badge-tactical">Tactical</span>
+                    </div>
+                    <p style="color: var(--text-dim); font-size: 14px; margin: 0; line-height: 1.6;">
+                        Uncontested phase of play to memorize movements, build up patterns, and establish defensive
+                        shape.
+                    </p>
+                    <div class="roles" style="gap: 12px; margin-top: 4px;">
+                        <span class="role-badge badge-neutral">10 MIN</span>
+                        <div class="intensity-container">
+                            <span style="font-size: 10px; font-weight: 700; color: var(--text-dim);">LOW</span>
+                            <span class="intensity-bars intensity-low">▰▱▱</span>
+                        </div>
+                    </div>
+                    <div class="actions">
+                        <button class="mock-btn-slate" style="flex: 1;">Edit</button>
+                        <button class="mock-btn-slate" style="flex: 1;">View</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
     </div>
 
 </body>

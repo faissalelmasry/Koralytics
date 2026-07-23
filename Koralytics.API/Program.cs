@@ -51,6 +51,7 @@ using Koralytics.Application.Services.Academy.AcademyService;
 using Koralytics.Application.Services.Academy.AcademyTeamService;
 using Koralytics.Application.Services.Academy.AcademyAnalyticsService;
 using Koralytics.Application.Services.Academy.AcademyAnnouncementService;
+using Koralytics.Application.Services.Academy.AcademyBadgeService;
 using Koralytics.Application.Services.Player.Helpers;
 using Koralytics.Application.Interfaces.Scouter;
 using Koralytics.Application.Interfaces.ScouterInterfaces;
@@ -220,6 +221,7 @@ namespace Koralytics.API
             builder.Services.AddScoped<IAcademyTeamService, AcademyTeamService>();
             builder.Services.AddScoped<IAcademyAnalyticsService, AcademyAnalyticsService>();
             builder.Services.AddScoped<IAcademyAnnouncementService, AcademyAnnouncementService>();
+            builder.Services.AddScoped<IAcademyBadgeService, AcademyBadgeService>();
             builder.Services.AddScoped<ICoachSquadService, CoachSquadService>();
             builder.Services.AddScoped<ICoachNoteService, CoachNoteService>();
             builder.Services.AddScoped<ICoachAccessService, CoachAccessService>();
@@ -253,7 +255,7 @@ namespace Koralytics.API
             builder.Services.AddValidatorsFromAssemblyContaining<AddLocationValidator>();
             builder.Services.AddValidatorsFromAssemblyContaining<CreateAgeGroupValidator>();
             builder.Services.AddValidatorsFromAssemblyContaining<CreateTeamValidator>();
-            builder.Services.AddValidatorsFromAssemblyContaining<SendAnnouncementValidator>();
+            builder.Services.AddValidatorsFromAssemblyContaining<CreateAnnouncementValidator>();
             builder.Services.AddValidatorsFromAssemblyContaining<CreateFriendlyMatchValidator>();
             builder.Services.AddScoped<IUserBusinessValidator, UserBusinessValidator>();
             builder.Services.AddHostedService<NotificationCleanupBackgroundService>();

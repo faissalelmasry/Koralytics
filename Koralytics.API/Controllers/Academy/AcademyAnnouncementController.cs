@@ -11,7 +11,7 @@ using System.Security.Claims;
 namespace Koralytics.API.Controllers.Academies
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/Academy")]
     [Authorize]
     [Produces("application/json")]
     public class AcademyAnnouncementController : ApiBaseController
@@ -24,7 +24,7 @@ namespace Koralytics.API.Controllers.Academies
         }
 
         [HttpPost("{academyId}/announcements")]
-        //[Authorize(Roles = "Admin,Coach")]
+        [Authorize(Roles = "AcademyAdmin,Coach")]
         public async Task<IActionResult> SendAnnouncement(int academyId, [FromBody] CreateAnnouncementDto dto)
         {
             var userId = GetCurrentUserId();
@@ -42,30 +42,12 @@ namespace Koralytics.API.Controllers.Academies
         }
 
         [HttpGet("{academyId}/announcements")]
-        //[Authorize(Roles = "Admin,Coach,Player")]
-        public async Task<IActionResult> GetAnnouncements(int academyId)
+        [Authorize(Roles = "AcademyAdmin,Coach,Player,Parent")]
+        public async Task<IActionResult> GetAnnouncements(int academyId, [FromQuery] Koralytics.Application.DTOs.Common.PaginationRequestDto request)
         {
-            var result = await _academyAnnouncementService.GetAnnouncementsAsync(academyId);
+            var result = await _academyAnnouncementService.GetAnnouncementsAsync(academyId, request);
             return OkResponse(result, "Announcements retrieved successfully.");
         }
 
-        [HttpDelete("{academyId}/players/{playerId}")]
-        //[Authorize(Roles = "Coach")]
-        public async Task<IActionResult> RemovePlayer(int academyId, int playerId, [FromQuery] string reason = "Unpaid subscription")
-        {
-            var userId = GetCurrentUserId();
-            await _academyAnnouncementService.RemovePlayerAsync(academyId, playerId, userId, reason);
-            return NoContentResponse("Player removed from academy successfully.");
-        }
-
-        private int GetCurrentUserId()
-        {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
-            {
-                throw new UnauthorizedAccessException("Invalid user token");
-            }
-            return userId;
-        }
     }
 }

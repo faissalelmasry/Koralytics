@@ -1,0 +1,87 @@
+<div class="matrix-card">
+  <div class="hud-header">
+    <div>
+      <div class="hud-title">
+        Training vs Match Transfer Rate
+        <span class="hud-status">Live</span>
+      </div>
+    </div>
+
+    @if (transferClassification) {
+      <div class="archetype-pill" [style.color]="nodeColor" [style.border-color]="nodeColor" [style.background]="'color-mix(in srgb, ' + nodeColor + ' 8%, transparent)'">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-8l1-8z"/><circle cx="12" cy="12" r="9" stroke-dasharray="2 2"/></svg>
+        {{ transferClassification }}
+      </div>
+    }
+  </div>
+
+  <div class="canvas-container">
+    <div class="heatmap-quadrants">
+      <div class="quad-bg bg-gamer"></div>
+      <div class="quad-bg bg-winner"></div>
+      <div class="quad-bg bg-dev"></div>
+      <div class="quad-bg bg-hero"></div>
+    </div>
+
+    <div class="target-ring ring-1"></div>
+    <div class="target-ring ring-2"></div>
+    <div class="crosshair-v"></div>
+    <div class="crosshair-h"></div>
+
+    <div class="category-badge badge-gamer">
+      <div class="badge-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M13 2L3 14h9l-1 8 10-12h-8l1-8z"/></svg>
+      </div>
+      <span class="badge-text">Elite</span>
+    </div>
+
+    <div class="category-badge badge-winner">
+      <div class="badge-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="12" x2="21" y2="12"/><circle cx="12" cy="12" r="3"/></svg>
+      </div>
+      <span class="badge-text">Match Hero</span>
+    </div>
+
+    <div class="category-badge badge-dev">
+      <div class="badge-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+      </div>
+      <span class="badge-text">Developing</span>
+    </div>
+
+    <div class="category-badge badge-hero">
+      <div class="badge-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 22V2l14 5-14 5"/><path d="M4 17a5 5 0 0 1 5 5"/></svg>
+      </div>
+      <span class="badge-text">Practice Hero</span>
+    </div>
+
+    <div
+      class="player-node-wrapper"
+      [style.left]="nodeLeft"
+      [style.top]="nodeTop">
+      <div class="radar-pulse-node" [style.background]="nodeColor" [style.box-shadow]="'0 0 20px ' + classificationGlow"></div>
+      <div class="player-card-popup" [style.border-color]="nodeColor">
+        <div class="p-name" [style.color]="nodeColor">{{ transferClassification || 'Player' }}</div>
+        <div class="p-metrics">Drill: <span [style.color]="nodeColor">{{ drillIndex }}</span> &bull; Match: <span [style.color]="nodeColor">{{ matchIndex }}</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hud-footer">
+    <div class="footer-stat-box">
+      <div class="stat-lbl">Drill Index</div>
+      <div class="stat-val" style="color: var(--color-blue);">{{ drillIndex }} / 100</div>
+    </div>
+
+    <div class="footer-stat-box">
+      <div class="stat-lbl">Transfer Efficiency</div>
+      <div class="stat-val" [style.color]="efficiencyColor">{{ transferEfficiency }}</div>
+    </div>
+
+    <div class="footer-stat-box">
+      <div class="stat-lbl">Match Index</div>
+      <div class="stat-val" style="color: var(--color-green);">{{ matchIndex }} / 100</div>
+    </div>
+  </div>
+</div>

@@ -15,7 +15,7 @@
 
   display: block;
   min-height: 100vh;
-  background: var(--bg);
+  background: transparent;
   color: var(--text);
   font-family: 'Inter', sans-serif;
   overflow-x: hidden;

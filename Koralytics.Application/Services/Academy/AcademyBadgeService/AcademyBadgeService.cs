@@ -64,13 +64,13 @@ namespace Koralytics.Application.Services.Academy.AcademyBadgeService
             return _mapper.Map<IEnumerable<AcademyBadgeResponseDto>>(badges);
         }
 
-        public async Task DeleteBadgeAsync(int badgeId, int performedByUserId)
+        public async Task DeleteBadgeAsync(int academyId, int badgeId, int performedByUserId)
         {
-            _logger.LogInformation("User {UserId} deleting badge {BadgeId}", performedByUserId, badgeId);
+            _logger.LogInformation("User {UserId} deleting badge {BadgeId} in academy {AcademyId}", performedByUserId, badgeId, academyId);
 
-            var badge = await _unitOfWork.Repository<AcademyBadge>().FindAsync(b => b.Id == badgeId);
+            var badge = await _unitOfWork.Repository<AcademyBadge>().FindAsync(b => b.Id == badgeId && b.AcademyId == academyId);
             if (badge is null)
-                throw new NotFoundException($"Badge {badgeId} not found.");
+                throw new NotFoundException($"Badge {badgeId} not found in academy {academyId}.");
 
             _unitOfWork.Repository<AcademyBadge>().SoftDelete(badge);
             await _unitOfWork.SaveChangesAsync();

@@ -17,6 +17,7 @@ export interface AuthResponseDto {
   email: string;
   fullName: string;
   roles: string[];
+  academyId?: number;
 }
 
 export interface AuthResultDto {

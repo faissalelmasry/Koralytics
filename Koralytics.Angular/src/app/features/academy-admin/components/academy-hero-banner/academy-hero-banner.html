@@ -1,0 +1,31 @@
+<div class="hero-banner" *ngIf="academy">
+  <div class="academy-identity">
+    <div class="avatar-circle">
+      <img *ngIf="academy.logoUrl" [src]="academy.logoUrl" alt="Academy Logo" />
+      <span *ngIf="!academy.logoUrl">{{ initials }}</span>
+    </div>
+    <div>
+      <h1>{{ academy.name }}</h1>
+      <div class="meta-pills">
+        <span class="pill active-badge">Active</span>
+        <span class="pill" *ngIf="academy.contactEmail">{{ academy.contactEmail }}</span>
+        <span class="pill" *ngIf="academy.contactPhone">{{ academy.contactPhone }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="bio-quick-list">
+    <div class="bio-item">
+      <span class="bio-lbl">Created</span>
+      <span class="bio-val">{{ academy.createdAt | date:'mediumDate' }}</span>
+    </div>
+    <div class="bio-item">
+      <span class="bio-lbl">Locations</span>
+      <span class="bio-val">{{ academy.locationCount }}</span>
+    </div>
+    <div class="bio-item">
+      <span class="bio-lbl">Total Members</span>
+      <span class="bio-val">{{ membersCount }}</span>
+    </div>
+  </div>
+</div>

@@ -1178,6 +1178,93 @@ namespace Koralytics.Infrastructure.Seeding
                 });
                 await context.SaveChangesAsync();
             }
+
+            // ===== ADDITIONAL SEED DATA FOR AL AHLY ACADEMY DASHBOARD TESTING =====
+            var testAcademy = await context.Academies.FirstOrDefaultAsync(a => a.Name == "Al Ahly Academy");
+            if (testAcademy != null && !await context.AcademyBadges.AnyAsync(b => b.AcademyId == testAcademy.Id))
+            {
+                var mainAdminUser = await userManager.FindByEmailAsync("admin@koralytics.com");
+
+                // 1. Seed Badges
+                context.AcademyBadges.AddRange(
+                    new AcademyBadge { AcademyId = testAcademy.Id, BadgeType = AcademyBadgeType.Premium, AwardedAt = DateTime.UtcNow },
+                    new AcademyBadge { AcademyId = testAcademy.Id, BadgeType = AcademyBadgeType.TopPerformer, AwardedAt = DateTime.UtcNow },
+                    new AcademyBadge { AcademyId = testAcademy.Id, BadgeType = AcademyBadgeType.Verified, AwardedAt = DateTime.UtcNow }
+                );
+
+                // 2. Extra Admin
+                if (await userManager.FindByEmailAsync("admin2@test.com") == null)
+                {
+                    var extraAdmin = new User
+                    {
+                        UserName = "admin2@test.com", Email = "admin2@test.com", EmailConfirmed = true,
+                        FirstName = "Second", LastName = "Admin", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow, CreatedById = mainAdminUser!.Id
+                    };
+                    await userManager.CreateAsync(extraAdmin, "Admin@123456");
+                    await userManager.AddToRoleAsync(extraAdmin, "AcademyAdmin");
+                    await context.Database.ExecuteSqlRawAsync("INSERT INTO AcademyAdmins (Id, AcademyId) VALUES ({0}, {1})", extraAdmin.Id, testAcademy.Id);
+                }
+
+                // 3. Extra Coach
+                if (await userManager.FindByEmailAsync("coach2@test.com") == null)
+                {
+                    var extraCoach = new User
+                    {
+                        UserName = "coach2@test.com", Email = "coach2@test.com", EmailConfirmed = true,
+                        FirstName = "Hossam", LastName = "Hassan", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow, CreatedById = mainAdminUser!.Id
+                    };
+                    await userManager.CreateAsync(extraCoach, "Coach@123456");
+                    await userManager.AddToRoleAsync(extraCoach, "Coach");
+                    await context.Database.ExecuteSqlRawAsync("INSERT INTO Coaches (Id) VALUES ({0})", extraCoach.Id);
+                    context.CoachAcademies.Add(new CoachAcademy { CoachUserId = extraCoach.Id, AcademyId = testAcademy.Id, JoinedAt = DateTime.UtcNow });
+                }
+
+                // 4. Pending Coach Request
+                if (await userManager.FindByEmailAsync("pendingcoach@test.com") == null)
+                {
+                    var pendingCoach = new User
+                    {
+                        UserName = "pendingcoach@test.com", Email = "pendingcoach@test.com", EmailConfirmed = true,
+                        FirstName = "Pending", LastName = "Coach", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow, CreatedById = mainAdminUser!.Id
+                    };
+                    await userManager.CreateAsync(pendingCoach, "Coach@123456");
+                    await userManager.AddToRoleAsync(pendingCoach, "Coach");
+                    await context.Database.ExecuteSqlRawAsync("INSERT INTO Coaches (Id) VALUES ({0})", pendingCoach.Id);
+                    context.AcademyCoachJoinRequests.Add(new AcademyCoachJoinRequest { AcademyId = testAcademy.Id, CoachId = pendingCoach.Id, Status = JoinRequestStatus.Pending, RequestedAt = DateTime.UtcNow });
+                }
+
+                // 5. Extra Player
+                if (await userManager.FindByEmailAsync("player4@test.com") == null)
+                {
+                    var extraPlayer = new User
+                    {
+                        UserName = "player4@test.com", Email = "player4@test.com", EmailConfirmed = true,
+                        FirstName = "Ziad", LastName = "Tarek", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow, CreatedById = mainAdminUser!.Id
+                    };
+                    await userManager.CreateAsync(extraPlayer, "Player@123456");
+                    await userManager.AddToRoleAsync(extraPlayer, "Player");
+                    await context.Database.ExecuteSqlRawAsync("INSERT INTO Players (Id, DateOfBirth, PreferredFoot, WeakFootRating, AvailabilityStatus) VALUES ({0}, {1}, {2}, {3}, {4})",
+                        extraPlayer.Id, new DateTime(2008, 5, 5), (int)PreferredFoot.Right, 3, (int)AvailabilityStatus.Available);
+                    context.PlayerAcademies.Add(new PlayerAcademy { PlayerId = extraPlayer.Id, AcademyId = testAcademy.Id, JoinedAt = DateTime.UtcNow, Status = PlayerAcademyStatus.Active });
+                }
+
+                // 6. Pending Player Request
+                if (await userManager.FindByEmailAsync("pendingplayer@test.com") == null)
+                {
+                    var pendingPlayer = new User
+                    {
+                        UserName = "pendingplayer@test.com", Email = "pendingplayer@test.com", EmailConfirmed = true,
+                        FirstName = "Pending", LastName = "Player", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow, CreatedById = mainAdminUser!.Id
+                    };
+                    await userManager.CreateAsync(pendingPlayer, "Player@123456");
+                    await userManager.AddToRoleAsync(pendingPlayer, "Player");
+                    await context.Database.ExecuteSqlRawAsync("INSERT INTO Players (Id, DateOfBirth, PreferredFoot, WeakFootRating, AvailabilityStatus) VALUES ({0}, {1}, {2}, {3}, {4})",
+                        pendingPlayer.Id, new DateTime(2009, 1, 1), (int)PreferredFoot.Right, 2, (int)AvailabilityStatus.Available);
+                    context.AcademyPlayerJoinRequests.Add(new AcademyPlayerJoinRequest { AcademyId = testAcademy.Id, PlayerId = pendingPlayer.Id, Status = JoinRequestStatus.Pending, RequestedAt = DateTime.UtcNow });
+                }
+
+                await context.SaveChangesAsync();
+            }
         }
     }
 }

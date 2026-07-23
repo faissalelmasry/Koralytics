@@ -4,6 +4,7 @@ using Koralytics.Application.DTOs.Academies;
 using Koralytics.Application.Interfaces;
 using Koralytics.Domain.Entities.Academy;
 using Koralytics.Domain.Entities.Coach;
+using Koralytics.Domain.Entities.Player;
 using Koralytics.Domain.Exceptions;
 
 using Microsoft.EntityFrameworkCore;
@@ -241,11 +242,42 @@ namespace Koralytics.Application.Services.Academy.AcademyTeamService
                 .GetQueryableAsNoTracking()
                 .Include(t => t.AgeGroup)
                 .Include(t => t.Location)
-                //.Include(t=>t.Coach)
                 .Where(t => t.AcademyId == academyId )
                 .ToListAsync();
 
-            return _mapper.Map<IEnumerable<TeamResponseDto>>(teams);
+            var teamIds = teams.Select(t => t.Id).ToList();
+
+            var coachTeams = await _unitOfWork.Repository<CoachTeam>()
+                .GetQueryableAsNoTracking()
+                .Include(ct => ct.Coach)
+                .Where(ct => teamIds.Contains(ct.TeamId) && ct.RemovedAt == null)
+                .ToListAsync();
+
+            var playerTeams = await _unitOfWork.Repository<PlayerTeam>()
+                .GetQueryableAsNoTracking()
+                .Include(pt => pt.Player)
+                .Where(pt => teamIds.Contains(pt.TeamId) && pt.LeftAt == null)
+                .ToListAsync();
+
+            var dtos = _mapper.Map<IEnumerable<TeamResponseDto>>(teams).ToList();
+            foreach (var dto in dtos)
+            {
+                dto.Coaches = coachTeams.Where(c => c.TeamId == dto.Id).Select(c => new CoachTeamAssignmentDto
+                {
+                    CoachId = c.CoachUserId,
+                    CoachFullName = c.Coach != null ? $"{c.Coach.FirstName} {c.Coach.LastName}" : string.Empty,
+                    AssignedAt = c.AssignedAt
+                }).ToList();
+
+                dto.Players = playerTeams.Where(p => p.TeamId == dto.Id).Select(p => new PlayerTeamDto
+                {
+                    PlayerId = p.PlayerId,
+                    PlayerFullName = p.Player != null ? $"{p.Player.FirstName} {p.Player.LastName}" : string.Empty,
+                    JoinedAt = p.JoinedAt
+                }).ToList();
+            }
+
+            return dtos;
         }
 
         
@@ -256,11 +288,11 @@ namespace Koralytics.Application.Services.Academy.AcademyTeamService
         public async Task<IEnumerable<AgeGroupResponseDto>> GetAgeGroupsByAcademyAsync(int academyId)
         {
             _ = await _unitOfWork.Repository<Domain.Entities.Academy.Academy>()
-                .FindAsNoTrackingAsync(a => a.Id == academyId && !a.IsDeleted)
+                .FindAsNoTrackingAsync(a => a.Id == academyId)
                 ?? throw new NotFoundException($"Academy with Id {academyId} not found.");
 
             var groups = await _unitOfWork.Repository<AgeGroup>()
-                .FindAllAsNoTrackingAsync(ag => ag.AcademyId == academyId && !ag.IsDeleted);
+                .FindAllAsNoTrackingAsync(ag => ag.AcademyId == academyId);
 
             return _mapper.Map<IEnumerable<AgeGroupResponseDto>>(groups);
         }
@@ -287,11 +319,12 @@ namespace Koralytics.Application.Services.Academy.AcademyTeamService
             if (!playerAcademy)
                 throw new BadRequestException($"Player {playerUserId} does not belong to the same academy as team {teamId}.");
 
-            var alreadyAssigned = await _unitOfWork.Repository<Domain.Entities.Player.PlayerTeam>()
-                .ExistsAsync(pt => pt.PlayerId == playerUserId && pt.TeamId == teamId && pt.LeftAt == null);
+            // Player can only be in one team at a time across the system (or at least within this academy)
+            var alreadyAssignedToAnyTeam = await _unitOfWork.Repository<Domain.Entities.Player.PlayerTeam>()
+                .ExistsAsync(pt => pt.PlayerId == playerUserId && pt.LeftAt == null);
 
-            if (alreadyAssigned)
-                throw new ConflictException($"Player {playerUserId} is already actively assigned to team {teamId}.");
+            if (alreadyAssignedToAnyTeam)
+                throw new ConflictException($"Player {playerUserId} is already actively assigned to a team.");
 
             var playerTeam = new Domain.Entities.Player.PlayerTeam
             {

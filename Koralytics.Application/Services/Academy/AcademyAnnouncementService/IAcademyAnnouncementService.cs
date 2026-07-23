@@ -13,15 +13,7 @@ namespace Koralytics.Application.Services.Academy.AcademyAnnouncementService
         Task<AnnouncementResponseDto> SendAnnouncementAsync(int academyId, CreateAnnouncementDto dto,  int sentByUserId, bool isSystemAdmin = false, CancellationToken cancellationToken = default);
 
         /// <summary>Gets all announcements for a given academy (newest first).</summary>
-        Task<IEnumerable<AnnouncementResponseDto>> GetAnnouncementsAsync(int academyId);
+        Task<Koralytics.Application.DTOs.Common.PagedResponseDto<AnnouncementResponseDto>> GetAnnouncementsAsync(int academyId, Koralytics.Application.DTOs.Common.PaginationRequestDto request);
 
-        /// <summary>
-        /// Removes a player from the academy by setting PlayerAcademy.LeftAt = UtcNow.
-        /// Business rules:
-        ///   - Player's subscription must be Unpaid or Grace with expired grace period.
-        ///   - The requesting coach must currently coach the player's active team.
-        /// Logs the action to RoleAuditLog.
-        /// </summary>
-        Task RemovePlayerAsync(int academyId, int playerId, int coachUserId, string reason);
     }
 }

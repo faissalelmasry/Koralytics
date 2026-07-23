@@ -178,6 +178,8 @@ namespace Koralytics.Application.Services.Player.PlayerCardService
                 .Select(pc => new
                 {
                     pc.OverallRating,
+                    pc.OverallTrainingAvg,
+                    pc.OverallTournamentAvg,
                     pc.TransferClassification,
                     pc.Player.FirstName,
                     pc.Player.LastName,
@@ -203,6 +205,8 @@ namespace Koralytics.Application.Services.Player.PlayerCardService
                 PlayerName = $"{data.FirstName} {data.LastName}",
                 Position = data.PrimaryPosition ?? string.Empty,
                 OverallRating = data.OverallRating,
+                OverallTrainingAvg = data.OverallTrainingAvg,
+                OverallTournamentAvg = data.OverallTournamentAvg,
                 TransferClassification = data.TransferClassification.ToString(),
                 PreferredFoot = data.PreferredFoot,
                 WeakFootRating = data.WeakFootRating,
@@ -391,6 +395,8 @@ namespace Koralytics.Application.Services.Player.PlayerCardService
             {
                 PlayerName = $"{player.FirstName} {player.LastName}",
                 OverallRating = card.OverallRating,
+                OverallTrainingAvg = card.OverallTrainingAvg,
+                OverallTournamentAvg = card.OverallTournamentAvg,
                 TransferClassification = card.TransferClassification.ToString(),
                 Position = player.PlayerPositions
                     .FirstOrDefault(p => p.IsPrimary)?.Position ?? string.Empty,
