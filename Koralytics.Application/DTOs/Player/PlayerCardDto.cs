@@ -23,6 +23,8 @@ namespace Koralytics.Application.DTOs.Player
         public decimal? PhysicalRating { get; set; }
         public decimal? GoalkeepingRating { get; set; }
 
+        public decimal OverallTrainingAvg { get; set; }
+        public decimal OverallTournamentAvg { get; set; }
         public string TransferClassification { get; set; } = string.Empty;
         public string? ArchetypePlayerName { get; set; }  
         public string? PlayStyleTag { get; set; }         

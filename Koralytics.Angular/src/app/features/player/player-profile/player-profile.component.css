@@ -2,7 +2,6 @@
   display: block;
   min-height: 100vh;
   color: #ffffff;
-  background-color: #06080a;
 }
 
 /* ===================================================
@@ -220,9 +219,58 @@
 
 .card-col {
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: var(--panel-height);
+  height: auto;
+  gap: 4px;
+}
+
+/* ===================================================
+   No-Card Placeholder
+   =================================================== */
+.no-card-placeholder {
+  width: 240px;
+  height: 380px;
+  border: 2px dashed rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  background: linear-gradient(160deg, #0f1115 0%, #14171c 100%);
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: var(--panel-height);
+  gap: 10px;
+  padding: 24px 20px;
+  text-align: center;
+  transition: border-color 0.3s ease;
+}
+
+.no-card-placeholder:hover {
+  border-color: var(--tier-border-glow);
+}
+
+.no-card-icon {
+  font-size: 36px;
+  margin-bottom: 4px;
+  animation: avatarPulse 3s infinite ease-in-out;
+  color: var(--tier-neon);
+}
+
+.no-card-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  letter-spacing: 1.5px;
+  color: #ffffff;
+  margin: 0;
+}
+
+.no-card-sub {
+  font-size: 11px;
+  font-family: 'Inter', sans-serif;
+  color: #808897;
+  margin: 0 0 4px;
+  line-height: 1.5;
 }
 
 /* ===================================================
@@ -399,6 +447,62 @@
   height: 100% !important;
 }
 
+.gk-rating-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 20px 24px;
+  height: 100%;
+}
+
+.gk-rating-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #808897;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.gk-rating-value {
+  font-family: 'Oswald', 'Inter', sans-serif;
+  font-size: 4rem;
+  font-weight: 700;
+  line-height: 1;
+  transition: color 0.3s;
+}
+
+.gk-rating-value.tier-base { color: #c8ff4d; text-shadow: 0 0 18px rgba(200, 255, 77, 0.3); }
+.gk-rating-value.tier-gold { color: #ffd700; text-shadow: 0 0 18px rgba(255, 215, 0, 0.3); }
+.gk-rating-value.tier-elite { color: #ff6a00; text-shadow: 0 0 18px rgba(255, 94, 0, 0.3); }
+
+.gk-bar-track {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.gk-bar-fill {
+  height: 100%;
+  border-radius: 10px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--tier-neon) 30%, transparent), var(--tier-neon));
+  box-shadow: 0 0 10px var(--tier-glow);
+  transition: width 1s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.gk-rating-scale {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: #4a505e;
+}
+
 .radar-empty {
   width: 100%;
   height: 100%;
@@ -411,64 +515,15 @@
 }
 
 /* ===================================================
-   Archetype Reveal Button
+   2.5. TRANSFER CANVAS SECTION
    =================================================== */
-.archetype-reveal-btn {
-  background: linear-gradient(135deg, var(--tier-bg-glow), transparent);
-  border: 1px solid var(--tier-border-glow);
-  color: var(--tier-neon);
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 800;
-  font-family: 'Inter', sans-serif;
-  letter-spacing: 0.3px;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 0 10px var(--tier-glow);
-  margin-top: 12px;
-  position: relative;
-  overflow: hidden;
-}
-
-.archetype-reveal-btn::after {
-  content: '';
-  position: absolute;
-  top: -50%; left: -60%;
-  width: 30%; height: 200%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
-  transform: rotate(35deg);
-  animation: sweepShimmer 4s infinite ease-in-out;
-}
-
-@keyframes sweepShimmer {
-  0% { left: -60%; }
-  30%, 100% { left: 140%; }
-}
-
-.archetype-reveal-btn:hover {
-  background: var(--tier-neon);
-  color: #06080a;
-  transform: scale(1.05);
-  box-shadow: 0 0 22px var(--tier-neon);
-}
-
-.btn-spark {
-  font-size: 13px;
-  transition: transform 0.3s ease;
-}
-
-.archetype-reveal-btn:hover .btn-spark {
-  transform: rotate(20deg) scale(1.2);
+.canvas-section {
+  margin-top: 4px;
 }
 
 /* ===================================================
-   3. KPI GRID
-   =================================================== */
+    3. KPI GRID
+    =================================================== */
 .kpi-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -893,7 +948,7 @@
     transition: none;
   }
 
-  .archetype-reveal-btn:hover {
-    transform: none;
+  .no-card-icon {
+    animation: none;
   }
 }

@@ -54,18 +54,43 @@
       <div class="main-grid">
 
         <!-- FIFA Player Card -->
-        <div class="card-col" scrollReveal direction="left" [delay]="100">
-          <app-player-card
-            [player]="profile.playerCard ?? undefined"
-            [autoLoad]="false"
-            [compact]="true"
-            [cardWidth]="240"
-            [cardHeight]="380">
-          </app-player-card>
+        <div class="card-col" scrollReveal direction="bottom" [delay]="50">
+          @if (profile.playerCard) {
+            <app-player-card
+              [player]="profile.playerCard"
+              [autoLoad]="false"
+              [compact]="true"
+              [cardWidth]="240"
+              [cardHeight]="380">
+            </app-player-card>
+            <app-button
+              variant="slate"
+              [shimmer]="true"
+              [loading]="isFetchingCard"
+              (click)="fetchPlayerCard()"
+              style="margin-top:12px; width:100%;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+              &nbsp;Update Card
+            </app-button>
+          }
+          @else {
+            <div class="no-card-placeholder">
+              <div class="no-card-icon">&#9889;</div>
+              <p class="no-card-title">No Card Yet</p>
+              <p class="no-card-sub">Generate your FIFA-style player card to see your ratings and stats</p>
+              <app-button
+                [variant]="tierButtonVariant"
+                [shimmer]="true"
+                [loading]="isFetchingCard"
+                (click)="fetchPlayerCard()">
+                Generate Card
+              </app-button>
+            </div>
+          }
         </div>
 
         <!-- Tactical Pitch Panel -->
-        <div class="pitch-panel" scrollReveal direction="bottom" [delay]="200">
+        <div class="pitch-panel" scrollReveal direction="bottom" [delay]="120">
           <div class="panel-header">
             <span>Position Overview</span>
           </div>
@@ -100,14 +125,26 @@
         </div>
 
         <!-- Radar Chart Panel -->
-        <div class="radar-panel" scrollReveal direction="right" [delay]="300">
+        <div class="radar-panel" scrollReveal direction="bottom" [delay]="190">
           <div class="panel-header">
             <span>Attributes Radar</span>
           </div>
 
           <div class="radar-container">
             @if (profile.playerCard) {
-              <canvas #radarCanvas></canvas>
+              @if (isGK && profile.playerCard.goalkeepingRating != null && profile.playerCard.goalkeepingRating > 0) {
+                <div class="gk-rating-bar">
+                  <div class="gk-rating-label">Goalkeeping Rating</div>
+                  <div class="gk-rating-value" [class.tier-gold]="tierClass === 'tier-gold'" [class.tier-elite]="tierClass === 'tier-elite'" [class.tier-base]="tierClass === 'tier-base'">{{ profile.playerCard.goalkeepingRating | number:'1.0-0' }}</div>
+                  <div class="gk-bar-track">
+                    <div class="gk-bar-fill" [style.width.%]="profile.playerCard.goalkeepingRating"></div>
+                  </div>
+                  <div class="gk-rating-scale"><span>0</span><span>50</span><span>100</span></div>
+                </div>
+              }
+              @else {
+                <canvas #radarCanvas></canvas>
+              }
             }
             @else {
               <div class="radar-empty">
@@ -116,12 +153,28 @@
             }
           </div>
 
-          <button class="archetype-reveal-btn" (click)="openArchetypeOverlay()">
-            <span class="btn-spark">⚡</span> Reveal Archetype
-          </button>
+          <app-button
+            [variant]="tierButtonVariant"
+            [shimmer]="true"
+            (click)="openArchetypeOverlay()"
+            style="margin-top:12px; display:block;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-8l1-8z"/></svg>
+            &nbsp;Reveal Archetype
+          </app-button>
         </div>
 
       </div>
+
+      <!-- =============== 2.5. TRANSFER CANVAS =============== -->
+      @if (profile.playerCard) {
+        <div class="canvas-section" scrollReveal direction="bottom" [delay]="260">
+          <app-transfer-canvas
+            [overallTrainingAvg]="profile.playerCard.overallTrainingAvg"
+            [overallTournamentAvg]="profile.playerCard.overallTournamentAvg"
+            [transferClassification]="profile.playerCard.transferClassification">
+          </app-transfer-canvas>
+        </div>
+      }
 
       <!-- =============== 3. KPI GRID =============== -->
       <div
@@ -157,12 +210,22 @@
       </div>
 
       <!-- =============== 4. COMPETITION BREAKDOWN =============== -->
-      <div class="breakdown-section" scrollReveal direction="bottom" [delay]="520">
-        <div class="panel-header" style="margin-bottom:20px;">Match Performance Breakdown</div>
+      <div class="breakdown-section">
+        <div class="panel-header" style="margin-bottom:20px; display: flex; justify-content: space-between; align-items: center;">
+          <span>Match Performance Breakdown</span>
+          @if (isOwnProfile) {
+            <app-button [variant]="tierButtonVariant" (click)="goToTimeline()">View Full Timeline</app-button>
+          }
+        </div>
 
         <div class="breakdown-grid">
           @for (comp of competitionBreakdown; track comp.label; let i = $index) {
-            <div class="comp-box" [class]="'comp-hover-' + i">
+            <div
+              class="comp-box"
+              [class]="'comp-hover-' + i"
+              scrollReveal direction="bottom"
+              [delay]="i * 80"
+              [once]="true">
               <div class="comp-name">
                 <span class="comp-icon" [style.background]="comp.iconColor"></span>
                 {{ comp.label }}

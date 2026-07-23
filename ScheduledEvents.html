@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Koralytics - Scheduled Pipeline</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-dark: #08090c;
+      --card-bg: #12161f;
+      --card-bg-hover: #161b27;
+      --border-color: rgba(255, 255, 255, 0.06);
+      
+      --color-green: #a3e635;
+      --color-yellow: #facc15;
+      --glow-yellow: rgba(250, 204, 21, 0.35);
+      --color-blue: #38bdf8;
+      --glow-blue: rgba(56, 189, 248, 0.35);
+
+      --text-main: #f3f4f6;
+      --text-muted: #6b7280;
+      
+      --font-display: 'Oswald', sans-serif;
+      --font-body: 'Inter', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font-body); }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      padding: 40px 20px;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .koralytics-wrapper {
+      width: 100%;
+      max-width: 850px;
+    }
+
+    .tactical-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--color-green);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .tactical-tag::before {
+      content: '';
+      width: 7px;
+      height: 7px;
+      background: var(--color-green);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--color-green);
+      animation: pulseDot 1.8s infinite ease-in-out;
+    }
+
+    .section-title {
+      font-family: var(--font-display);
+      font-size: 2.2rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 24px;
+    }
+
+    .koralytics-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* CARD CONTAINER */
+    .koralytics-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                  border-color 0.35s ease,
+                  background-color 0.35s ease,
+                  box-shadow 0.35s ease;
+
+      opacity: 0;
+      animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* LEFT ACCENT BORDERS */
+    .card-match { border-left: 5px solid var(--color-yellow); }
+    .card-session { border-left: 5px solid var(--color-blue); }
+
+    /* HOVER LIGHT BEAM */
+    .koralytics-card::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -50%;
+      width: 200%;
+      height: 2px;
+      opacity: 0;
+      transition: opacity 0.4s ease, transform 0.6s ease;
+      transform: translateX(-30%);
+    }
+
+    .koralytics-card:hover {
+      background: var(--card-bg-hover);
+      border-color: rgba(255, 255, 255, 0.18);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 30px -8px rgba(0, 0, 0, 0.6);
+    }
+
+    .koralytics-card:hover::after { 
+      opacity: 1; 
+      transform: translateX(0%); 
+    }
+
+    .card-match::after { background: linear-gradient(90deg, transparent, var(--color-yellow), transparent); }
+    .card-session::after { background: linear-gradient(90deg, transparent, var(--color-blue), transparent); }
+
+    .card-left-info { display: flex; flex-direction: column; gap: 6px; }
+    .meta-header { display: flex; align-items: center; gap: 10px; }
+
+    .meta-date {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .card-title {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: #fff;
+    }
+
+    .card-subtitle { font-size: 0.82rem; color: var(--text-muted); }
+
+    /* BADGES */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.65rem;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 6px;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+    }
+
+    .badge-match { 
+      background: rgba(250, 204, 21, 0.15); 
+      color: var(--color-yellow); 
+      border: 1px solid rgba(250, 204, 21, 0.35); 
+    }
+
+    .badge-session { 
+      background: rgba(56, 189, 248, 0.15); 
+      color: var(--color-blue); 
+      border: 1px solid rgba(56, 189, 248, 0.35); 
+    }
+
+    .stats-block {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 10px 18px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .stat-pill { display: flex; flex-direction: column; align-items: center; }
+    .stat-pill .lbl { font-size: 0.58rem; font-weight: 700; color: var(--text-muted); letter-spacing: 1px; }
+    .stat-pill .val { font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; }
+
+    .color-yellow { color: var(--color-yellow); text-shadow: 0 0 10px var(--glow-yellow); }
+    .color-blue { color: var(--color-blue); text-shadow: 0 0 10px var(--glow-blue); }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulseDot {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.6); opacity: 0.3; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="koralytics-wrapper">
+    <div class="tactical-tag">Tactical Pipeline</div>
+    <h2 class="section-title">Scheduled Events</h2>
+
+    <div id="scheduled-events-container" class="koralytics-grid"></div>
+  </div>
+
+  <script>
+    const apiPayload = {
+      "events": [
+        {
+          "eventType": "Match",
+          "date": "2026-07-27T20:37:25.579745",
+          "matchId": 11,
+          "matchType": "Friendly",
+          "homeTeamName": "U17 Team A",
+          "awayTeamName": "U17 Team B",
+          "sessionId": null,
+          "sessionType": null,
+          "teamId": 1,
+          "teamName": "U17 Main Squad",
+          "notes": null
+        },
+        {
+          "eventType": "Session",
+          "date": "2026-07-28T10:00:00.000000",
+          "matchId": null,
+          "matchType": null,
+          "homeTeamName": null,
+          "awayTeamName": null,
+          "sessionId": 4,
+          "sessionType": "Tactical Drill",
+          "teamId": 1,
+          "teamName": "U17 Main Squad",
+          "notes": "High pressing & positioning"
+        }
+      ],
+      "totalCount": 2,
+      "page": 1,
+      "pageSize": 20
+    };
+
+    function renderScheduledPipeline(data) {
+      const container = document.getElementById('scheduled-events-container');
+      if (!container) return;
+
+      container.innerHTML = data.events.map((event, index) => {
+        const dateObj = new Date(event.date);
+        const formattedDate = dateObj.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }).toUpperCase();
+        const formattedTime = dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        const animationDelay = (index * 0.15).toFixed(2);
+
+        if (event.eventType === 'Match') {
+          return `
+            <div class="koralytics-card card-match" style="animation-delay: ${animationDelay}s;">
+              <div class="card-left-info">
+                <div class="meta-header">
+                  <!-- FOOTBALL ICON FOR MATCH -->
+                  <span class="badge badge-match">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20M2 12h20"/></svg>
+                    MATCH • ${event.matchType || 'FRIENDLY'}
+                  </span>
+                  <span class="meta-date">${formattedDate} • ${formattedTime}</span>
+                </div>
+                <div class="card-title">${event.homeTeamName} <span style="color:var(--text-muted); font-size: 1rem;">VS</span> ${event.awayTeamName}</div>
+                <div class="card-subtitle">${event.teamName}</div>
+              </div>
+
+              <div class="stats-block">
+                <div class="stat-pill">
+                  <span class="lbl">TYPE</span>
+                  <span class="val color-yellow">MATCH</span>
+                </div>
+              </div>
+            </div>
+          `;
+        } else {
+          return `
+            <div class="koralytics-card card-session" style="animation-delay: ${animationDelay}s;">
+              <div class="card-left-info">
+                <div class="meta-header">
+                  <!-- CORNER FLAG ICON FOR SESSION -->
+                  <span class="badge badge-session">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+                    SESSION • ${event.sessionType || 'DRILL'}
+                  </span>
+                  <span class="meta-date">${formattedDate} • ${formattedTime}</span>
+                </div>
+                <div class="card-title">${event.sessionType || 'Training Session'}</div>
+                <div class="card-subtitle">${event.teamName} ${event.notes ? '• ' + event.notes : ''}</div>
+              </div>
+
+              <div class="stats-block">
+                <div class="stat-pill">
+                  <span class="lbl">TYPE</span>
+                  <span class="val color-blue">SESSION</span>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+      }).join('');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderScheduledPipeline(apiPayload);
+    });
+  </script>
+</body>
+</html>
