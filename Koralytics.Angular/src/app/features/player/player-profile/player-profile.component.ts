@@ -1,13 +1,16 @@
 import { Component, OnInit, AfterViewInit, OnDestroy, inject, ElementRef, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Chart, registerables } from 'chart.js';
 import { NavbarComponent } from '../../../../shared/components/navbar/navbar';
 import { Footer } from '../../../../shared/components/footer/footer';
 import { PlayerCardComponent } from '../player-card/player-card';
+import { TransferCanvasComponent } from '../transfer-canvas/transfer-canvas.component';
 import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner';
 import { ScrollRevealDirective } from '../../../../shared/directives/scroll-reveal.directive';
+import { CustomButtonComponent } from '../../../../shared/components/custom-button/custom-button';
 import { PlayerProfileService } from '../../../../core/services/player/player-profile.service';
+import { PlayerCardService } from '../../../../core/services/player/player-card.service';
 import { TokenStorageService } from '../../../../core/services/auth/token-storage.service';
 import { PlayerProfileModel } from '../../../../core/models/Player/player-profile-model';
 
@@ -16,7 +19,7 @@ Chart.register(...registerables);
 @Component({
   selector: 'app-player-profile',
   standalone: true,
-  imports: [CommonModule, NavbarComponent, Footer, PlayerCardComponent, LoadingSpinnerComponent, ScrollRevealDirective],
+  imports: [CommonModule, NavbarComponent, Footer, PlayerCardComponent, TransferCanvasComponent, LoadingSpinnerComponent, ScrollRevealDirective, CustomButtonComponent],
   templateUrl: './player-profile.component.html',
   styleUrls: ['./player-profile.component.css']
 })
@@ -24,7 +27,9 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
 
   // ── Dependency injection ────────────────────────────────────
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private profileService = inject(PlayerProfileService);
+  private playerCardService = inject(PlayerCardService);
   private tokenStorage = inject(TokenStorageService);
   private cdr = inject(ChangeDetectorRef);
 
@@ -35,8 +40,10 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
   // ── State ───────────────────────────────────────────────────
   profile: PlayerProfileModel | null = null;
   isLoading = false;
+  isFetchingCard = false;
   error = '';
   playerId: number | null = null;
+  loggedInUserId: number | null = null;
 
   // ── Archetype overlay ───────────────────────────────────────
   showArchetypeOverlay = false;
@@ -92,28 +99,36 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
 
   // ── Lifecycle ───────────────────────────────────────────────
   ngOnInit() {
+    const token = this.tokenStorage.getAccessToken();
+    if (token) {
+      const decoded = this.decodeTokenPayload(token);
+      if (decoded) {
+        this.loggedInUserId = decoded.userId;
+      }
+    }
+
     const paramId = this.route.snapshot.paramMap.get('playerId');
 
     if (paramId) {
       this.playerId = Number(paramId);
       this.loadProfile(this.playerId);
-    } else {
-      const token = this.tokenStorage.getAccessToken();
-      if (!token) {
-        this.error = 'Authentication required';
-        return;
-      }
-      const decoded = this.decodeTokenPayload(token);
-      if (!decoded) {
-        this.error = 'Invalid session';
-        return;
-      }
-      this.playerId = decoded.userId;
+    } else if (this.loggedInUserId) {
+      this.playerId = this.loggedInUserId;
       this.loadProfile(this.playerId);
+    } else {
+      this.error = 'Authentication required';
     }
   }
 
   ngAfterViewInit() {}
+
+  goToTimeline() {
+    if (this.playerId) {
+      this.router.navigate(['/player/timeline', this.playerId]);
+    } else {
+      this.router.navigate(['/player/timeline']);
+    }
+  }
 
   ngOnDestroy() {
     this.observer?.disconnect();
@@ -138,6 +153,27 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
     this.isCardFlipped = false;
   }
 
+  fetchPlayerCard() {
+    if (!this.playerId || this.isFetchingCard) return;
+    this.isFetchingCard = true;
+
+    this.playerCardService.getPlayerCard(this.playerId).subscribe({
+      next: (card) => {
+        if (this.profile) {
+          this.profile.playerCard = card;
+        }
+        this.isFetchingCard = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.isFetchingCard = false;
+        this.error = err?.status === 404
+          ? 'Unable to generate player card'
+          : 'Failed to fetch player card';
+      }
+    });
+  }
+
   // ── Position pin helper ─────────────────────────────────────
   getPosPinStyle(pos: string): { top: string; left: string } {
     return this.posPinMap[pos] ?? this.posPinMap[pos.toUpperCase()] ?? { top: '50%', left: '54%' };
@@ -151,11 +187,22 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
     return 'tier-base';
   }
 
+  get isOwnProfile(): boolean {
+    return this.loggedInUserId !== null && this.loggedInUserId === this.playerId;
+  }
+
   get tierNeon(): string {
     const rating = this.profile?.playerCard?.overallRating ?? 0;
     if (rating >= 80) return '#ff6a00';
     if (rating >= 70) return '#ffd700';
     return '#c8ff4d';
+  }
+
+  get tierButtonVariant(): 'accent' | 'amber' | 'gold' {
+    const rating = this.profile?.playerCard?.overallRating ?? 0;
+    if (rating >= 80) return 'amber';
+    if (rating >= 70) return 'gold';
+    return 'accent';
   }
 
   get fullName(): string {
@@ -170,6 +217,10 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
 
   get primaryPosition(): string {
     return this.profile?.positions.find(p => p.isPrimary)?.position ?? '';
+  }
+
+  get isGK(): boolean {
+    return this.primaryPosition?.toUpperCase() === 'GK';
   }
 
   get secondaryPositions(): string[] {
@@ -280,6 +331,7 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
   // ── Radar chart ─────────────────────────────────────────────
   private initRadarChart() {
     if (this.chartInitialized || !this.radarCanvas || !this.profile?.playerCard) return;
+    if (this.isGK) return;
 
     const card = this.profile.playerCard;
     const ctx = this.radarCanvas.nativeElement.getContext('2d');

@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Koralytics - Animated Performance Hub</title>
+  
+  <!-- Fonts Matching Koralytics Design System -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ==========================================
+       KORALYTICS EXACT DESIGN SYSTEM VARIABLES
+       ========================================== */
+    :root {
+      --bg-dark: #08090c;
+      --card-bg: #12161f;
+      --card-bg-hover: #161b27;
+      --border-color: rgba(255, 255, 255, 0.06);
+      
+      /* Dynamic Neon Colors */
+      --color-green: #a3e635;
+      --glow-green: rgba(163, 230, 53, 0.25);
+      
+      --color-yellow: #facc15;
+      --glow-yellow: rgba(250, 204, 21, 0.25);
+
+      --color-red: #f87171;
+      --glow-red: rgba(248, 113, 113, 0.25);
+
+      --text-main: #f3f4f6;
+      --text-muted: #6b7280;
+      
+      --font-display: 'Oswald', sans-serif;
+      --font-body: 'Inter', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font-body); }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      padding: 40px 20px;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .koralytics-wrapper {
+      width: 100%;
+      max-width: 850px;
+    }
+
+    /* Subtitle Tag Above Header + Pulsing Dot */
+    .tactical-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--color-green);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+      animation: fadeIn 0.8s ease-out forwards;
+    }
+
+    .tactical-tag::before {
+      content: '';
+      width: 7px;
+      height: 7px;
+      background: var(--color-green);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--color-green);
+      animation: pulseDot 1.8s infinite ease-in-out;
+    }
+
+    /* Header Title */
+    .section-title {
+      font-family: var(--font-display);
+      font-size: 2.2rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      line-height: 1;
+      margin-bottom: 24px;
+      animation: fadeIn 0.8s ease-out 0.1s forwards;
+      opacity: 0;
+    }
+
+    /* Section Divider Headings */
+    .group-label {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      margin: 32px 0 14px 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      animation: fadeIn 0.8s ease-out 0.2s forwards;
+      opacity: 0;
+    }
+
+    .group-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border-color);
+    }
+
+    /* General Cards Grid */
+    .koralytics-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* ==========================================
+       CARD STYLES & ANIMATIONS
+       ========================================== */
+    .koralytics-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      
+      /* Smooth Hover Transitions */
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                  border-color 0.3s ease,
+                  background-color 0.3s ease,
+                  box-shadow 0.3s ease;
+
+      /* Entrance Animation Base */
+      opacity: 0;
+      animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* Staggered Delay for Entrance Animation */
+    .koralytics-grid .koralytics-card:nth-child(1) { animation-delay: 0.25s; }
+    .koralytics-grid .koralytics-card:nth-child(2) { animation-delay: 0.35s; }
+    .koralytics-grid .koralytics-card:nth-child(3) { animation-delay: 0.45s; }
+    .koralytics-grid .koralytics-card:nth-child(4) { animation-delay: 0.55s; }
+
+    /* Animated Hover Glow Bar */
+    .koralytics-card::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -50%;
+      width: 200%;
+      height: 2px;
+      opacity: 0;
+      transition: opacity 0.4s ease, transform 0.6s ease;
+      transform: translateX(-30%);
+    }
+
+    .koralytics-card:hover {
+      background: var(--card-bg-hover);
+      border-color: rgba(255, 255, 255, 0.15);
+      transform: translateY(-4px);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+    }
+
+    .koralytics-card:hover::after {
+      opacity: 1;
+      transform: translateX(0%);
+    }
+
+    /* Top Line Glows */
+    .card-green::after { background: linear-gradient(90deg, transparent, var(--color-green), transparent); }
+    .card-yellow::after { background: linear-gradient(90deg, transparent, var(--color-yellow), transparent); }
+    .card-red::after { background: linear-gradient(90deg, transparent, var(--color-red), transparent); }
+
+    /* 🌟 MAN OF THE MATCH SPECIAL STYLING & ANIMATION */
+    .koralytics-card.motm-card {
+      border: 1px solid rgba(163, 230, 53, 0.35) !important;
+      box-shadow: inset 0 0 15px rgba(163, 230, 53, 0.04);
+    }
+
+    .motm-ribbon {
+      position: absolute;
+      top: -10px;
+      right: 24px;
+      background: var(--color-green);
+      color: #08090c;
+      font-family: var(--font-display);
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      padding: 3px 12px;
+      border-radius: 4px;
+      box-shadow: 0 0 12px var(--glow-green);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      z-index: 2;
+      animation: pulseGlow 2s infinite ease-in-out;
+    }
+
+    .motm-ribbon .star-icon {
+      font-size: 0.75rem;
+      line-height: 1;
+      display: inline-block;
+      animation: rotateStar 4s infinite linear;
+    }
+
+    /* Card Content Left */
+    .card-left-info {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .meta-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .meta-date {
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .card-title {
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: #fff;
+      display: flex;
+      align-items: center;
+    }
+
+    .card-subtitle {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    /* Badges for Matches */
+    .badge {
+      font-size: 0.6rem;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      transition: transform 0.2s ease;
+    }
+    
+    .koralytics-card:hover .badge {
+      transform: scale(1.05);
+    }
+
+    .badge.win { background: rgba(163, 230, 53, 0.15); color: var(--color-green); border: 1px solid rgba(163, 230, 53, 0.3); }
+    .badge.draw { background: rgba(250, 204, 21, 0.15); color: var(--color-yellow); border: 1px solid rgba(250, 204, 21, 0.3); }
+    .badge.loss { background: rgba(248, 113, 113, 0.15); color: var(--color-red); border: 1px solid rgba(248, 113, 113, 0.3); }
+
+    /* Right Block Container */
+    .stats-block {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      background: rgba(0, 0, 0, 0.35);
+      padding: 10px 18px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      transition: border-color 0.3s ease;
+    }
+
+    .koralytics-card:hover .stats-block {
+      border-color: rgba(255, 255, 255, 0.08);
+    }
+
+    /* Match Stat Items */
+    .stat-pill {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .stat-pill .lbl {
+      font-size: 0.58rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+    }
+
+    .stat-pill .val {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    /* Rating / Score Box */
+    .rating-box {
+      border-left: 1px solid rgba(255, 255, 255, 0.08);
+      padding-left: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+
+    .rating-num {
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      font-weight: 700;
+      line-height: 1;
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .koralytics-card:hover .rating-num {
+      transform: scale(1.1);
+    }
+
+    /* Dynamic Color Classes */
+    .score-green { color: var(--color-green); }
+    .score-yellow { color: var(--color-yellow); }
+    .score-red { color: var(--color-red); }
+
+    /* Drill Segment Indicators */
+    .segments-box {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+    }
+
+    .segments {
+      display: flex;
+      gap: 3px;
+    }
+
+    .segment {
+      width: 12px;
+      height: 6px;
+      border-radius: 2px;
+      background: rgba(255, 255, 255, 0.1);
+      transition: transform 0.2s ease;
+    }
+
+    .segment.active-green { background: var(--color-green); box-shadow: 0 0 6px var(--glow-green); }
+    .segment.active-yellow { background: var(--color-yellow); box-shadow: 0 0 6px var(--glow-yellow); }
+    .segment.active-red { background: var(--color-red); box-shadow: 0 0 6px var(--glow-red); }
+
+    /* ==========================================
+       KEYFRAME ANIMATIONS DEFINITIONS
+       ========================================== */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes pulseDot {
+      0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+      50% {
+        transform: scale(1.5);
+        opacity: 0.4;
+      }
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% {
+        box-shadow: 0 0 10px var(--glow-green);
+      }
+      50% {
+        box-shadow: 0 0 20px var(--color-green);
+      }
+    }
+
+    @keyframes rotateStar {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="koralytics-wrapper">
+    
+    <div class="tactical-tag">Tactical Engine</div>
+    <h2 class="section-title">Player Performance Hub</h2>
+
+    <!-- MATCHES SECTION -->
+    <div class="group-label">Match Performances</div>
+
+    <div class="koralytics-grid">
+
+      <!-- Match 1: MOTM + Win -->
+      <div class="koralytics-card card-green motm-card">
+        <div class="motm-ribbon">
+          <span class="star-icon">★</span> MAN OF THE MATCH
+        </div>
+
+        <div class="card-left-info">
+          <div class="meta-header">
+            <span class="badge win">WIN</span>
+            <span class="meta-date">JUL 20, 2026 • HOME</span>
+          </div>
+          <div class="card-title">
+            <span>Al Ahly vs Zamalek</span>
+            <span class="score-green" style="margin-left: 8px;">2 - 1</span>
+          </div>
+          <div class="card-subtitle">Egyptian Premier League</div>
+        </div>
+
+        <div class="stats-block">
+          <div class="stat-pill"><span class="lbl">MINS</span><span class="val">90'</span></div>
+          <div class="stat-pill"><span class="lbl">GOALS</span><span class="val score-green">1</span></div>
+          <div class="stat-pill"><span class="lbl">ASSISTS</span><span class="val score-green">1</span></div>
+
+          <div class="rating-box">
+            <span class="stat-pill"><span class="lbl">RATING</span></span>
+            <span class="rating-num score-green">8.8</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Match 2: Draw -->
+      <div class="koralytics-card card-yellow">
+        <div class="card-left-info">
+          <div class="meta-header">
+            <span class="badge draw">DRAW</span>
+            <span class="meta-date">JUL 15, 2026 • AWAY</span>
+          </div>
+          <div class="card-title">
+            <span>Pyramids FC vs Al Ahly</span>
+            <span class="score-yellow" style="margin-left: 8px;">0 - 0</span>
+          </div>
+          <div class="card-subtitle">Egyptian Premier League</div>
+        </div>
+
+        <div class="stats-block">
+          <div class="stat-pill"><span class="lbl">MINS</span><span class="val">60'</span></div>
+          <div class="stat-pill"><span class="lbl">GOALS</span><span class="val">0</span></div>
+          <div class="stat-pill"><span class="lbl">ASSISTS</span><span class="val score-yellow">1</span></div>
+
+          <div class="rating-box">
+            <span class="stat-pill"><span class="lbl">RATING</span></span>
+            <span class="rating-num score-yellow">7.1</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Match 3: Loss -->
+      <div class="koralytics-card card-red">
+        <div class="card-left-info">
+          <div class="meta-header">
+            <span class="badge loss">LOSS</span>
+            <span class="meta-date">JUL 10, 2026 • AWAY</span>
+          </div>
+          <div class="card-title">
+            <span>Future FC vs Al Ahly</span>
+            <span class="score-red" style="margin-left: 8px;">2 - 1</span>
+          </div>
+          <div class="card-subtitle">Egyptian Premier League</div>
+        </div>
+
+        <div class="stats-block">
+          <div class="stat-pill"><span class="lbl">MINS</span><span class="val">90'</span></div>
+          <div class="stat-pill"><span class="lbl">GOALS</span><span class="val">0</span></div>
+          <div class="stat-pill"><span class="lbl">ASSISTS</span><span class="val">0</span></div>
+
+          <div class="rating-box">
+            <span class="stat-pill"><span class="lbl">RATING</span></span>
+            <span class="rating-num score-red">6.2</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- DRILLS SECTION -->
+    <div class="group-label">Training Drills Log</div>
+
+    <div class="koralytics-grid">
+
+      <div class="koralytics-card card-green">
+        <div class="card-left-info">
+          <div class="meta-header">
+            <span class="meta-date">PHYSICAL • SESSION #2 • JUL 09</span>
+          </div>
+          <div class="card-title">Agility Ladder Drill</div>
+          <div class="card-subtitle">Regular Session</div>
+        </div>
+
+        <div class="stats-block">
+          <div class="segments-box">
+            <span class="stat-pill"><span class="lbl">SCORE 9/10</span></span>
+            <div class="segments">
+              <div class="segment active-green"></div>
+              <div class="segment active-green"></div>
+              <div class="segment active-green"></div>
+            </div>
+          </div>
+          <div class="rating-box">
+            <span class="rating-num score-green">9</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="koralytics-card card-yellow">
+        <div class="card-left-info">
+          <div class="meta-header">
+            <span class="meta-date">SPEED • SESSION #2 • JUL 09</span>
+          </div>
+          <div class="card-title">Sprint Test Drill</div>
+          <div class="card-subtitle">Regular Session</div>
+        </div>
+
+        <div class="stats-block">
+          <div class="segments-box">
+            <span class="stat-pill"><span class="lbl">SCORE 7/10</span></span>
+            <div class="segments">
+              <div class="segment active-yellow"></div>
+              <div class="segment active-yellow"></div>
+              <div class="segment"></div>
+            </div>
+          </div>
+          <div class="rating-box">
+            <span class="rating-num score-yellow">7</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+</body>
+</html>

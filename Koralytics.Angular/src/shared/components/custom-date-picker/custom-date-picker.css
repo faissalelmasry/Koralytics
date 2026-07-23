@@ -118,6 +118,7 @@
   top: 62px;
   left: 0;
   width: 100%;
+  min-width: 280px;
   background: var(--bg-calendar);
   border: 1px solid var(--border-color);
   border-radius: 12px;
@@ -126,6 +127,7 @@
   padding: 16px;
   box-sizing: border-box;
   user-select: none;
+  overflow: visible;
 }
 
 .calendar-header {

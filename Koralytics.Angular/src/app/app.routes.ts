@@ -51,6 +51,46 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
+    path: 'player/timeline',
+    loadComponent: () => import('./features/player/player-match-timeline/player-match-timeline.component').then(m => m.PlayerMatchTimelineComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Player'] }
+  },
+  {
+    path: 'player/timeline/:playerId',
+    loadComponent: () => import('./features/player/player-match-timeline/player-match-timeline.component').then(m => m.PlayerMatchTimelineComponent),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'player/drill-timeline',
+    loadComponent: () => import('./features/player/player-drill-timeline/player-drill-timeline.component').then(m => m.PlayerDrillTimelineComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Player'] }
+  },
+  {
+    path: 'player/drill-timeline/:playerId',
+    loadComponent: () => import('./features/player/player-drill-timeline/player-drill-timeline.component').then(m => m.PlayerDrillTimelineComponent),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'player/team-events',
+    loadComponent: () => import('./features/player/player-team-events/player-team-events.component').then(m => m.PlayerTeamEventsComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Player'] }
+  },
+  {
+    path: 'player/scouter-views',
+    loadComponent: () => import('./features/player/player-scouter-views/player-scouter-views.component').then(m => m.PlayerScouterViewsComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Player'] }
+  },
+  {
+    path: 'player/academy-comparison',
+    loadComponent: () => import('./features/player/player-academy-comparison/player-academy-comparison.component').then(m => m.PlayerAcademyComparisonComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Player'] }
+  },
+  {
     path: 'profile-views-analytics/:playerId',
     loadComponent: () => import('./features/ProfileViewsAnalyticsPage/profile-views-analytics/profile-views-analytics').then(m => m.ProfileViewsAnalytics),
     canActivate: [authGuard]
