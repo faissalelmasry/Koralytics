@@ -21,7 +21,6 @@ import {
 import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state';
 import { NavbarComponent } from '../../../../shared/components/navbar/navbar';
-import { Footer } from '../../../../shared/components/footer/footer';
 import { ScrollRevealDirective } from '../../../../shared/directives/scroll-reveal.directive';
 
 
@@ -57,7 +56,6 @@ Chart.register(
     LoadingSpinnerComponent,
     EmptyStateComponent,
     NavbarComponent,
-    Footer,
     ScrollRevealDirective,
   ],
   templateUrl: './profile-views-analytics.html',

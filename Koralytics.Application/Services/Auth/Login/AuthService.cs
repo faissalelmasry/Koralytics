@@ -121,7 +121,8 @@ namespace Koralytics.Application.Services.Auth.Login
             // Reload roles from UserManager so they're always up-to-date
             var roles = (await _userManager.GetRolesAsync(user)).ToList();
 
-            var response = BuildAuthResponse(user, roles, tokens.AccessToken, tokens.RefreshToken, tokens.AccessTokenExpiresAt, tokens.RefreshTokenExpiresAt);
+            var academyId = await GetAcademyIdAsync(user, roles);
+            var response = BuildAuthResponse(user, roles, academyId, tokens.AccessToken, tokens.RefreshToken, tokens.AccessTokenExpiresAt, tokens.RefreshTokenExpiresAt);
 
             _logger.LogInformation("Tokens refreshed for user: {userId} ({email})", user.Id, user.Email);
             return new AuthResultDto(response, tokens);
@@ -297,13 +298,13 @@ namespace Koralytics.Application.Services.Auth.Login
             var roles = preFetchedRoles ?? (await _userManager.GetRolesAsync(user)).ToList();
             var academyId = await GetAcademyIdAsync(user, roles);
             var tokens = await _tokenService.GenerateTokenPairAsync(user, roles, academyId);
-            var response = BuildAuthResponse(user, roles, tokens.AccessToken, tokens.RefreshToken, tokens.AccessTokenExpiresAt, tokens.RefreshTokenExpiresAt);
+            var response = BuildAuthResponse(user, roles, academyId, tokens.AccessToken, tokens.RefreshToken, tokens.AccessTokenExpiresAt, tokens.RefreshTokenExpiresAt);
             
             _logger.LogInformation("Successful authentication for user: {userId} ({email}), roles: {roles}", user.Id, user.Email, string.Join(", ", roles));
             return new AuthResultDto(response, tokens);
         }
 
-        private static AuthResponseDto BuildAuthResponse(User user, IList<string> roles, string accessToken, string refreshToken, DateTime accessExpiresAt, DateTime refreshExpiresAt)
+        private static AuthResponseDto BuildAuthResponse(User user, IList<string> roles, int? academyId, string accessToken, string refreshToken, DateTime accessExpiresAt, DateTime refreshExpiresAt)
         {
             return new AuthResponseDto
             {
@@ -315,6 +316,7 @@ namespace Koralytics.Application.Services.Auth.Login
                 UserName = user.UserName ?? string.Empty,
                 Email = user.Email ?? string.Empty,
                 FullName = string.Join(' ', new[] { user.FirstName, user.LastName }.Where(x => !string.IsNullOrWhiteSpace(x))),
+                AcademyId = academyId,
                 Roles = roles
             };
         }

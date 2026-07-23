@@ -1,0 +1,216 @@
+<div class="section-container fade-in">
+  <div class="section-header" style="flex-direction: column; align-items: flex-start; gap: 16px;">
+    <div class="header-content">
+      <h3>Teams & Age Groups</h3>
+      <p class="subtitle">Manage academy teams and organize age brackets</p>
+    </div>
+    
+    <!-- Tab Switchers styled as buttons -->
+    <div style="display: flex; gap: 12px; margin-top: 8px;">
+      <app-button 
+        [variant]="activeTab === 'teams' ? 'accent' : 'slate'" 
+        size="small"
+        (click)="switchTab('teams')">
+        Manage Teams
+      </app-button>
+      <app-button 
+        [variant]="activeTab === 'ageGroups' ? 'accent' : 'slate'" 
+        size="small"
+        (click)="switchTab('ageGroups')">
+        Manage Age Groups
+      </app-button>
+    </div>
+  </div>
+
+  <!-- ================= TEAMS TAB ================= -->
+  <div class="tab-content" *ngIf="activeTab === 'teams'">
+    
+    <div class="search-panel">
+      <h4>Create New Team</h4>
+      <form [formGroup]="teamForm" (ngSubmit)="onCreateTeam()" class="search-form" style="display: flex; gap: 16px; align-items: flex-end; margin-top: 16px; flex-wrap: wrap;">
+        <div style="flex: 2; min-width: 200px;">
+          <app-text-input
+            label="Team Name"
+            type="text"
+            placeholder="e.g. U16 A Team"
+            formControlName="name">
+          </app-text-input>
+        </div>
+
+        <div style="flex: 1; min-width: 200px;">
+          <app-select
+             label="Age Group"
+             placeholder="Select Age Group"
+             [options]="ageGroupOptions"
+             [value]="teamForm.value.ageGroupId"
+             (valueChange)="teamForm.patchValue({ ageGroupId: $event })">
+          </app-select>
+        </div>
+
+        <div style="flex: 1; min-width: 200px;">
+          <app-select
+             label="Location"
+             placeholder="Select Location"
+             [options]="locationOptions"
+             [value]="teamForm.value.locationId"
+             (valueChange)="teamForm.patchValue({ locationId: $event })">
+          </app-select>
+        </div>
+
+        <div class="form-actions">
+          <app-button
+            type="submit"
+            variant="accent"
+            [disabled]="teamForm.invalid || isAddingTeam || locations.length === 0 || ageGroups.length === 0">
+            {{ isAddingTeam ? 'Creating...' : 'Create Team' }}
+          </app-button>
+        </div>
+      </form>
+      <div *ngIf="locations.length === 0 || ageGroups.length === 0" class="warning-text" style="color: #ffb84d; font-size: 12px; margin-top: 12px;">
+        Please ensure you have at least one Age Group and Location created first.
+      </div>
+    </div>
+
+    <div class="table-container" *ngIf="!isLoading && teams.length > 0" style="margin-top: 24px;">
+      <app-data-table
+        [columns]="teamColumns"
+        [data]="paginatedTeams"
+        [expandable]="true"
+        (actionClick)="onTeamAction($event)">
+        
+        <ng-template #expandedRowTemplate let-team>
+          <div class="team-management-panel" style="display: flex; gap: 24px; color: #f2f3f5; width: 100%; box-sizing: border-box;">
+            <!-- Coaches Section -->
+            <div style="flex: 1; background: rgba(255,255,255,0.02); padding: 16px; border-radius: 8px; display: flex; flex-direction: column;">
+              <h5 style="margin-top: 0; margin-bottom: 16px; color: #c8ff4d; font-size: 14px; text-transform: uppercase;">Assigned Coaches</h5>
+              <div *ngIf="team.coaches?.length > 0; else noCoaches" class="cyber-scrollbar" style="margin-bottom: 16px; max-height: 200px; overflow-y: auto; padding-right: 8px;">
+                <div *ngFor="let c of team.coaches" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 14px; background: rgba(0,0,0,0.2); padding: 8px 12px; border-radius: 6px;">
+                  <span>{{ c.coachFullName || c.firstName + ' ' + c.lastName || c.fullName }}</span>
+                  <app-button variant="coral" (click)="onRemoveCoach(team.id, c.coachId || c.id)" style="transform: scale(0.6); transform-origin: right center;">Remove</app-button>
+                </div>
+              </div>
+              <ng-template #noCoaches>
+                <p style="font-size: 13px; color: #7b8293; margin-bottom: 16px;">No coaches assigned yet.</p>
+              </ng-template>
+              
+              <div style="display: flex; gap: 8px; align-items: flex-end; margin-top: auto;">
+                <div style="flex: 1;">
+                  <app-select
+                    label="Coach"
+                    placeholder="Select Coach"
+                    [options]="getAvailableCoachesForTeam(team)"
+                    [value]="selectedCoachToAssign[team.id]"
+                    (valueChange)="selectedCoachToAssign[team.id] = $event">
+                  </app-select>
+                </div>
+                <app-button variant="accent" size="small" [disabled]="!selectedCoachToAssign[team.id]" (click)="onAssignCoach(team.id, selectedCoachToAssign[team.id]); selectedCoachToAssign[team.id] = null">Assign</app-button>
+              </div>
+            </div>
+
+            <!-- Players Section -->
+            <div style="flex: 1; background: rgba(255,255,255,0.02); padding: 16px; border-radius: 8px; display: flex; flex-direction: column;">
+              <h5 style="margin-top: 0; margin-bottom: 16px; color: #c8ff4d; font-size: 14px; text-transform: uppercase;">Assigned Players</h5>
+              <div *ngIf="team.players?.length > 0; else noPlayers" class="cyber-scrollbar" style="margin-bottom: 16px; max-height: 200px; overflow-y: auto; padding-right: 8px;">
+                <div *ngFor="let p of team.players" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 14px; background: rgba(0,0,0,0.2); padding: 8px 12px; border-radius: 6px;">
+                  <span>{{ p.playerFullName || p.firstName + ' ' + p.lastName || p.fullName }}</span>
+                  <app-button variant="coral" (click)="onRemovePlayer(team.id, p.playerId || p.id)" style="transform: scale(0.6); transform-origin: right center;">Remove</app-button>
+                </div>
+              </div>
+              <ng-template #noPlayers>
+                <p style="font-size: 13px; color: #7b8293; margin-bottom: 16px;">No players assigned yet.</p>
+              </ng-template>
+
+              <div style="display: flex; gap: 8px; align-items: flex-end; margin-top: auto;">
+                <div style="flex: 1;">
+                  <app-select
+                    label="Player"
+                    placeholder="Select Player"
+                    [options]="getAvailablePlayersForTeam(team)"
+                    [value]="selectedPlayerToAssign[team.id]"
+                    (valueChange)="selectedPlayerToAssign[team.id] = $event">
+                  </app-select>
+                </div>
+                <app-button variant="accent" size="small" [disabled]="!selectedPlayerToAssign[team.id]" (click)="onAssignPlayer(team.id, selectedPlayerToAssign[team.id]); selectedPlayerToAssign[team.id] = null">Assign</app-button>
+              </div>
+            </div>
+          </div>
+        </ng-template>
+      </app-data-table>
+
+      <app-pagination
+        *ngIf="totalTeamsCount > pageSizeTeams"
+        [totalItems]="totalTeamsCount"
+        [pageSize]="pageSizeTeams"
+        [currentPage]="pageNumberTeams"
+        (pageChange)="onPageChangeTeams($event)">
+      </app-pagination>
+    </div>
+
+    <div class="empty-state" *ngIf="!isLoading && teams.length === 0" style="margin-top: 24px; text-align: center; color: #7b8293;">
+      <p>No teams found in this academy.</p>
+    </div>
+  </div>
+
+  <!-- ================= AGE GROUPS TAB ================= -->
+  <div class="tab-content" *ngIf="activeTab === 'ageGroups'">
+    
+    <div class="search-panel">
+      <h4>Create New Age Group</h4>
+      <form [formGroup]="ageGroupForm" (ngSubmit)="onCreateAgeGroup()" class="search-form" style="display: flex; gap: 16px; align-items: flex-end; margin-top: 16px; flex-wrap: wrap;">
+        <div style="flex: 2; min-width: 200px;">
+          <app-text-input
+            formControlName="name"
+            placeholder="e.g. Under 16"
+            type="text"
+            label="Group Name">
+          </app-text-input>
+        </div>
+
+        <div style="flex: 1; min-width: 120px;">
+          <app-text-input
+            formControlName="minAge"
+            type="number"
+            label="Min Age">
+          </app-text-input>
+        </div>
+
+        <div style="flex: 1; min-width: 120px;">
+          <app-text-input
+            formControlName="maxAge"
+            type="number"
+            label="Max Age">
+          </app-text-input>
+        </div>
+
+        <div class="form-actions">
+          <app-button
+            type="submit"
+            variant="accent"
+            [disabled]="ageGroupForm.invalid || isAddingAgeGroup">
+            {{ isAddingAgeGroup ? 'Adding...' : 'Add Age Group' }}
+          </app-button>
+        </div>
+      </form>
+    </div>
+
+    <div class="table-container" *ngIf="!isLoading && ageGroups.length > 0" style="margin-top: 24px;">
+      <app-data-table
+        [columns]="ageGroupColumns"
+        [data]="paginatedAgeGroups"
+        (actionClick)="onAgeGroupAction($event)">
+      </app-data-table>
+
+      <app-pagination
+        *ngIf="totalAgeGroupsCount > pageSizeAgeGroups"
+        [totalItems]="totalAgeGroupsCount"
+        [pageSize]="pageSizeAgeGroups"
+        [currentPage]="pageNumberAgeGroups"
+        (pageChange)="onPageChangeAgeGroups($event)">
+      </app-pagination>
+    </div>
+
+    <div class="empty-state" *ngIf="!isLoading && ageGroups.length === 0" style="margin-top: 24px; text-align: center; color: #7b8293;">
+      <p>No age groups found in this academy.</p>
+    </div>
+  </div>
+</div>

@@ -1,12 +1,13 @@
 using FluentValidation;
 using Koralytics.Application.DTOs.Academies;
+using Koralytics.Application.DTOs.Notification;
 using Koralytics.Domain.Enums;
 
 namespace Koralytics.Application.Validators.Academies
 {
-    public class SendAnnouncementValidator : AbstractValidator<SendAnnouncementDto>
+    public class CreateAnnouncementValidator : AbstractValidator<CreateAnnouncementDto>
     {
-        public SendAnnouncementValidator()
+        public CreateAnnouncementValidator()
         {
             RuleFor(x => x.Title)
                 .NotEmpty().WithMessage("Announcement title is required.")

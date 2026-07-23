@@ -39,6 +39,12 @@ export const routes: Routes = [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   },
+  { 
+    path: 'academy-admin/dashboard', 
+    loadComponent: () => import('./features/academy-admin/pages/academy-admin-dashboard/academy-admin-dashboard.component').then(m => m.AcademyAdminDashboardComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['AcademyAdmin'] }
+  },
   {
     path: 'player/profile',
     loadComponent: () => import('./features/player/player-profile/player-profile.component').then(m => m.PlayerProfileComponent),

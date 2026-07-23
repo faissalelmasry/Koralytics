@@ -1,0 +1,78 @@
+<div class="section-container fade-in">
+  <div class="section-header">
+    <div class="header-content">
+      <h3>Manage Players</h3>
+      <p class="subtitle">Invite players and manage academy members</p>
+    </div>
+  </div>
+
+  <div class="search-panel">
+    <form [formGroup]="searchForm" (ngSubmit)="onSearch()" class="search-form">
+      <app-text-input label="Search Players" type="text" placeholder="Search by name or email"
+        formControlName="searchTerm">
+      </app-text-input>
+
+      <div class="form-actions">
+        <app-button type="submit" variant="accent" [disabled]="isSearching">
+          {{ isSearching ? 'Searching...' : 'Search' }}
+        </app-button>
+      </div>
+    </form>
+
+    <div class="search-results" *ngIf="searchResults.length > 0">
+      <h4>Search Results</h4>
+      <div class="user-card" *ngFor="let user of searchResults">
+        <div class="user-info">
+          <div class="avatar-small">{{ user.firstName?.charAt(0) || user.fullName?.charAt(0) || 'P' }}</div>
+          <div class="user-details">
+            <span class="user-name">{{ user.firstName }} {{ user.lastName }}</span>
+            <span class="user-email">{{ user.email || 'Player' }}</span>
+          </div>
+        </div>
+        <app-button variant="accent" size="small"
+          [disabled]="isSending || isUserPending(user.playerId || user.userId || user.id) || isUserMember(user.playerId || user.userId || user.id)"
+          (click)="onSendRequest(user.playerId || user.userId || user.id)">
+          {{ isUserMember(user.playerId || user.userId || user.id) ? 'Already Member' : (isUserPending(user.playerId ||
+          user.userId || user.id) ? 'Pending' : 'Send Request') }}
+        </app-button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pending Requests -->
+  <div class="pending-section" *ngIf="pendingRequests.length > 0">
+    <h4>Pending Join Requests</h4>
+    <div class="user-card pending-card" *ngFor="let req of pendingRequests">
+      <div class="user-info">
+        <div class="status-indicator">⏳</div>
+        <div class="user-details">
+          <span class="user-name">{{ req.playerName || req.fullName || 'Player Request' }}</span>
+          <span class="user-email">Sent on {{ req.requestedAt | date:'short' }}</span>
+        </div>
+      </div>
+      <app-button variant="slate" size="small" (click)="onCancelRequest(req.id)">
+        Cancel
+      </app-button>
+    </div>
+  </div>
+
+  <div class="loading-state" *ngIf="isLoading">
+    <app-loading-spinner size="lg"></app-loading-spinner>
+    <p>Loading members...</p>
+  </div>
+
+  <!-- Active Members -->
+  <div class="table-container" *ngIf="!isLoading && membersData && membersData.items.length > 0">
+    <app-data-table [columns]="tableColumns" [data]="membersData.items" (actionClick)="onActionClick($event)">
+    </app-data-table>
+
+    <!-- Pagination -->
+    <app-pagination *ngIf="membersData.totalCount > pageSize" [totalItems]="membersData.totalCount"
+      [pageSize]="pageSize" [currentPage]="pageNumber" (pageChange)="onPageChange($event)">
+    </app-pagination>
+  </div>
+
+  <div class="empty-state" *ngIf="!isLoading && (!membersData || membersData.items.length === 0)">
+    <p>No active players found.</p>
+  </div>
+</div>
