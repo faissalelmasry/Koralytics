@@ -470,20 +470,44 @@ For any AI agent or Developer working on this codebase:
 - **Announcements Page (Academy Admin)**: Send announcement form, Target type selector (All/Team/AgeGroup/Role), Announcements history list.
 - **Profile Views Analytics Page**: Monthly view count chart, List of scouters who viewed.
 
-### YOUSSEF
-**Pages/Components:**
-- **Coach Squad Page**: Squad list with FIFA card ratings, Availability status indicators, Player readiness scores, Side by side player comparison.
-- **Training Split Page**: Split players into balanced teams, Display Team A vs Team B, Overall rating balance indicator.
-- **Coach Notes Page**: Write note form (session/match/standalone), Notes list per player, Public/Private toggle.
-- **Temp Access Page**: Grant access form (user + expiry date), Active access grants list, Revoke access button.
-- **Player Highlights Page**: Video gallery, Pin highlight button, Upload highlight form, Delete highlight button.
-- **Match Request Page**: Send friendly match request form, Incoming requests list (accept/decline), Outgoing requests list, Cancel request button.
-- **Player Readiness Page**: Readiness percentage per player, Last 3 sessions scores display, Availability status display.
+### YOUSSEF — ✅ ALL 7 PAGES IMPLEMENTED
+**Pages/Components (all standalone Angular components under `src/app/features/coach/pages/`):**
+- **Coach Squad Page** (`coach-squad/`): ✅ Squad list with FIFA card ratings, Availability status indicators (color-coded chips), Player readiness scores inline per player, Side by side player comparison modal with per-category bar chart.
+- **Training Split Page** (`training-split/`): ✅ Session selector, Split players into balanced teams (snake-draft), Display Team A vs Team B in two columns, Overall rating balance indicator.
+- **Coach Notes Page** (`coach-notes/`): ✅ Player selector from squad, Write note form (text, public/private toggle, optional session/match link), Paginated notes list per player (newest-first), "Load More" pagination.
+- **Temp Access Page** (`temp-access/`): ✅ Grant access form (user ID + access level dropdown + expiry date picker), Active access grants list, Revoke button with confirmation dialog.
+- **Player Highlights Page** (`player-highlights/`): ✅ Video gallery grid with `<video>` player, Upload highlight form (file picker + title input, 50MB limit), Pin/Unpin button (pinned shown first with ⭐ badge), Delete button with confirmation.
+- **Match Request Page** (`match-request/`): ✅ Three-tab layout: Send Request (form with opponent team, format, date, location), Incoming Requests (accept/decline), Outgoing Requests (status badges).
+- **Player Readiness Page** (`player-readiness/`): ✅ Sortable table (by name/score/matches), SVG radial progress gauges color-coded per score, Matches in last 7 days counter, Recommendation text per player.
+
+**Frontend Services (Angular, under `src/core/services/`):**
+- `coach/coach-squad.service.ts` — `getSquad()`, `splitTrainingTeams()`, `compareSquadPlayers()`
+- `coach/coach-note.service.ts` — `writeNote()`, `getPlayerNotes()` (paginated)
+- `coach/coach-access.service.ts` — `grantTempAccess()`, `revokeTempAccess()`, `getActiveGrants()`
+- `player/player-highlight.service.ts` — `uploadHighlight()` (multipart/form-data), `deleteHighlight()`, `pinHighlight()`, `getHighlights()`
+- `match/match-request.service.ts` — `requestFriendlyMatch()`, `acceptMatchRequest()`, `declineMatchRequest()`, `getIncomingRequests()`, `getOutgoingRequests()`
+- `match/match-analytics.service.ts` — `getPlayerReadiness()`
+
+**TypeScript Interfaces (under `src/core/interfaces/`):**
+- `coach.interfaces.ts` — `SquadOverviewDto`, `SquadPlayerDto`, `TrainingTeamSplitDto`, `SquadComparisonDto`, `CoachNoteDto`, `WriteNoteDto`, `GrantTempAccessDto`, `TempAccessDto`, `PagedResult<T>`
+- `match-request.interfaces.ts` — `CreateMatchRequestDto`, `MatchRequestResponseDto`, `PlayerReadinessDto`
+- `highlight.interfaces.ts` — `PlayerHighlightDto`
+
+**Routing:** All 7 routes added to `app.routes.ts` inside dashboard layout with `roleGuard` (Coach, Coach+Player for highlights, Coach+AcademyAdmin for match requests).
+
+**Navigation:** Coach links added to navbar (desktop nav + sidebar). Section only visible for Coach role users. Sidebar groups links into "Coach" and "Media" sections.
+
+> [!WARNING]
+> **Known Remaining Gaps (Youssef's frontend):**
+> 1. **Hardcoded IDs**: All 7 components use hardcoded `coachId = 0` and `teamId = 1` instead of reading from JWT auth claims. The `AuthService` currently stores `userId` but the `User` model doesn't have `teamId` or `academyId`. These need to be either decoded from the JWT or fetched from a `/me` endpoint.
+> 2. **Training Split session selector**: Uses mock session data (`availableSessions` array). Needs integration with Aly's DrillSession service to fetch real coach sessions.
+> 3. **Temp Access user search**: Currently takes a raw user ID number input. Could use a search/autocomplete component to find users by name.
 
 ### Frontend Core Services (Angular)
 - **Bishoy (Auth)**: `auth.service.ts`, `google-auth.service.ts`, `token-storage.service.ts`
 - **Rawan (Scouting)**: `scouter.service.ts`
 - **Aly (Academy)**: `AcademyAnnouncementService.ts`
+- **Youssef (Coach/Match/Storage)**: `coach-squad.service.ts`, `coach-note.service.ts`, `coach-access.service.ts`, `player-highlight.service.ts`, `match-request.service.ts`, `match-analytics.service.ts`
 - **Shared Utilities**: `modal.ts`, `toast.ts`
 
 ### Shared Components (everyone uses)
@@ -505,6 +529,16 @@ For any AI agent or Developer working on this codebase:
 ---
 
 ## 9. Recent Updates (Changelog)
+- **[2026-07-23] Youssef's Frontend — Full Implementation**: 
+  - ✅ Implemented all 7 Angular pages (coach-squad, training-split, coach-notes, temp-access, player-highlights, match-request, player-readiness) with full `.ts`, `.html`, `.css` files.
+  - ✅ Implemented 6 Angular services (`coach-squad`, `coach-note`, `coach-access`, `player-highlight`, `match-request`, `match-analytics`).
+  - ✅ Created 3 TypeScript interface files (`coach.interfaces.ts`, `match-request.interfaces.ts`, `highlight.interfaces.ts`).
+  - ✅ Added all 7 routes to `app.routes.ts` with lazy loading and role guards.
+  - ✅ Added coach navigation links to navbar (desktop + sidebar).
+  - ✅ Fixed TS7053 build error in coach-squad comparison modal (string indexing on SquadPlayerDto).
+  - ✅ Installed missing npm dependencies (`chart.js`, `@microsoft/signalr`) — pre-existing gaps from other team members.
+  - ✅ Backend `IStorageService` is already uncommented and wired in `PlayerController.cs` + `Program.cs`.
+  - ✅ Build passes with 0 errors.
 - **Git Ignore Updates**: Added `appsettings.json` and `appsettings.*.json` to `.gitignore` to prevent tracking of local configuration and connection strings.
 - **Frontend Core Services (Angular)**: 
   - Implemented SignalR integrations (`signalrservice.ts`, `notificationservice.ts`).
