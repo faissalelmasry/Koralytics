@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Koralytics.Application.DTOs.Drill;
 using Koralytics.Application.Interfaces;
 using Koralytics.Domain.Entities.Coach;
@@ -6,6 +6,10 @@ using Koralytics.Domain.Entities.Drill;
 using Microsoft.EntityFrameworkCore;
 using DrillSessionEntity = Koralytics.Domain.Entities.Drill.DrillSession;
 using Koralytics.Application.Services.Player.Helpers;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Koralytics.Application.Services.Drill.DrillSession
 {
@@ -14,6 +18,7 @@ namespace Koralytics.Application.Services.Drill.DrillSession
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly CardInvalidationList _invalidationList;
+
         public DrillSessionService(IUnitOfWork unitOfWork, IMapper mapper, CardInvalidationList invalidationList)
         {
             _unitOfWork = unitOfWork;
@@ -89,12 +94,22 @@ namespace Koralytics.Application.Services.Drill.DrillSession
             return _mapper.Map<DrillDto>(drill);
         }
 
-        public async Task<IEnumerable<DrillSessionDto>> GetCoachSessionsAsync(int currentCoachId, int currentAcademyId, SessionFilterDto filter)
+        // 🟢 MODIFIED: Accepts Role to conditionally bypass coach restriction
+        public async Task<Koralytics.Application.Common.PagedResult<DrillSessionDto>> GetCoachSessionsAsync(int currentUserId, string currentUserRole, int currentAcademyId, SessionFilterDto filter)
         {
             var query = _unitOfWork.Repository<DrillSessionEntity>()
                 .GetQueryable()
+                .Include(s => s.DrillSessionCoach) // 🟢 Pulls the User data
+                .Include(s => s.DrillSessionTeam)  // 🟢 Pulls the Team data
                 .AsNoTracking()
-                .Where(s => s.CoachId == currentCoachId && s.AcademyId == currentAcademyId);
+                .Where(s => s.AcademyId == currentAcademyId);
+
+            bool isAdmin = string.Equals(currentUserRole, "AcademyAdmin", StringComparison.OrdinalIgnoreCase);
+
+            if (!isAdmin)
+            {
+                query = query.Where(s => s.CoachId == currentUserId);
+            }
 
             if (filter.TeamId.HasValue)
             {
@@ -116,22 +131,46 @@ namespace Koralytics.Application.Services.Drill.DrillSession
                 query = query.Where(s => s.SessionDate <= filter.ToDate.Value);
             }
 
+            if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
+            {
+                query = query.Where(s => s.Notes != null && s.Notes.Contains(filter.SearchTerm));
+            }
+
+            int totalCount = await query.CountAsync();
+
             var sessions = await query
                 .OrderByDescending(s => s.SessionDate)
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
                 .ToListAsync();
 
-            return _mapper.Map<IEnumerable<DrillSessionDto>>(sessions);
+            var dtos = _mapper.Map<IEnumerable<DrillSessionDto>>(sessions).ToList();
+
+            return new Koralytics.Application.Common.PagedResult<DrillSessionDto>
+            {
+                Items = dtos,
+                Page = filter.PageNumber,
+                PageSize = filter.PageSize,
+                TotalCount = totalCount
+            };
         }
 
-        public async Task<DrillSessionDetailsDto> GetSessionByIdAsync(int sessionId, int currentCoachId)
+        public async Task<DrillSessionDetailsDto> GetSessionByIdAsync(int sessionId, int currentUserId, string currentUserRole, int currentAcademyId)
         {
-            var session = await _unitOfWork.Repository<DrillSessionEntity>()
+            var query = _unitOfWork.Repository<DrillSessionEntity>()
                 .GetQueryable()
                 .Include(s => s.SessionDrills)
                 .AsNoTracking()
-                .FirstOrDefaultAsync(s => s.Id == sessionId && s.CoachId == currentCoachId);
+                .Where(s => s.Id == sessionId && s.AcademyId == currentAcademyId);
+
+            bool isAdmin = string.Equals(currentUserRole, "AcademyAdmin", StringComparison.OrdinalIgnoreCase);
+
+            if (!isAdmin)
+            {
+                query = query.Where(s => s.CoachId == currentUserId);
+            }
+
+            var session = await query.FirstOrDefaultAsync();
 
             if (session == null)
             {
@@ -153,11 +192,10 @@ namespace Koralytics.Application.Services.Drill.DrillSession
             }
 
             session.SessionDate = dto.SessionDate;
-
             session.Type = dto.Type;
             session.Status = dto.Status;
-
             session.Notes = dto.Notes;
+            session.Location = dto.Location; // Ensure Location is updated
             session.UpdatedById = currentCoachId;
 
             await _unitOfWork.SaveChangesAsync();
@@ -198,6 +236,7 @@ namespace Koralytics.Application.Services.Drill.DrillSession
                 throw new KeyNotFoundException($"Session with ID {sessionId} was not found or you do not have permission to delete it.");
             }
         }
+
         public async Task CompleteSessionAsync(int sessionId, int currentCoachId)
         {
             // 1. Fetch the session and the attendance sheet in one go
@@ -211,8 +250,6 @@ namespace Koralytics.Application.Services.Drill.DrillSession
                 throw new KeyNotFoundException($"Drill Session with ID {sessionId} was not found or you do not have permission.");
             }
 
-            // Optional: Prevent them from ending it twice
-            // (Assuming '2' or whatever number represents Completed in your SessionStatus enum)
             if (session.Status == Domain.Enums.SessionStatus.Completed)
             {
                 throw new InvalidOperationException("This session is already marked as completed.");

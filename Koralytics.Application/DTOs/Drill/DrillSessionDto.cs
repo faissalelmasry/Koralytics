@@ -13,6 +13,9 @@ namespace Koralytics.Application.DTOs.Drill
         public int AcademyId { get; set; }
         public int TeamId { get; set; }
         public int CoachId { get; set; }
+        public string? Location { get; set; }
+        public string? CoachName { get; set; }
+        public string? TeamName { get; set; }
         public DateTime SessionDate { get; set; }
         public SessionType Type { get; set; }
         public SessionStatus Status { get; set; }

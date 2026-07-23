@@ -12,6 +12,7 @@ public class DrillSessionDetailsDto
         public int AcademyId { get; set; }
         public int TeamId { get; set; }
         public int CoachId { get; set; }
+        public string? Location { get; set; }
         public DateTime SessionDate { get; set; }
         public SessionType Type { get; set; }     // 🟢 FIXED
         public SessionStatus Status { get; set; } // 🟢 ADDED MISSING PROPERTY

@@ -121,6 +121,15 @@ namespace Koralytics.Infrastructure.Context
             builder.Entity<Scouter>().ToTable("Scouters");
             builder.Entity<Parent>().ToTable("Parents");
             builder.Entity<AcademyAdmin>().ToTable("AcademyAdmins");
+
+            // The DrillSessions.Status column is nvarchar in the DB (storing "0", "1", etc.)
+            // This converter ensures EF Core queries use the integer STRING ("0") not the enum name ("Scheduled").
+            builder.Entity<DrillSession>()
+                .Property(s => s.Status)
+                .HasConversion(
+                    v => ((int)v).ToString(),       // enum -> "0", "1", "2"
+                    v => (Domain.Enums.SessionStatus)int.Parse(v)); // "0" -> Scheduled
+
             builder.ApplyGlobalQueryFilters();
         }
     }

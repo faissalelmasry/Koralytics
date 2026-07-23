@@ -12,6 +12,7 @@ namespace Koralytics.Application.DTOs.Drill
         public DateTime SessionDate { get; set; }
         public SessionType Type { get; set; }
         public SessionStatus Status { get; set; }
+        public string? Location { get; set; }
         public string? Notes { get; set; }
     }
 }

@@ -1,0 +1,112 @@
+<p>drill-session-create.component works!</p>
+<div class="create-page">
+    <header class="page-header">
+        <div class="header-eyebrow">
+            <span class="eyebrow-dot"></span>
+            <span class="eyebrow-text">Session Planner</span>
+        </div>
+        <h1 class="header-title">Schedule Session</h1>
+        <p class="header-subtitle">Configure pitch details and select the expected squad</p>
+    </header>
+
+    @if (errorMessage) {
+    <div class="error-banner">⚠️ {{ errorMessage }}</div>
+    }
+
+    <form [formGroup]="sessionForm" (ngSubmit)="onSubmit()" class="form-grid">
+
+        <!-- LEFT COLUMN: SESSION DETAILS -->
+        <section class="form-panel details-panel">
+            <h2 class="panel-title">Session Details</h2>
+
+            <div class="form-group">
+                <label>Target Squad (Team)</label>
+                <select class="native-input" formControlName="teamId">
+                    <option value="" disabled>Select a team...</option>
+                    @for (team of availableTeams; track team.id) {
+                    <option [value]="team.id">{{ team.name }}</option>
+                    }
+                </select>
+                @if (sessionForm.get('teamId')?.touched && sessionForm.get('teamId')?.invalid) {
+                <span class="error-text">Team selection is required.</span>
+                }
+            </div>
+
+            <div class="row-group">
+                <div class="form-group half">
+                    <label>Date</label>
+                    <input type="date" class="native-input" formControlName="sessionDate">
+                </div>
+                <div class="form-group half">
+                    <label>Time</label>
+                    <input type="time" class="native-input" formControlName="sessionTime">
+                </div>
+            </div>
+
+            <div class="row-group">
+                <div class="form-group half">
+                    <label>Session Type</label>
+                    <select class="native-input" formControlName="type">
+                        @for (opt of sessionTypes; track opt.value) {
+                        <option [value]="opt.value">{{ opt.label }}</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group half">
+                    <label>Location / Pitch</label>
+                    <input type="text" class="native-input" formControlName="location"
+                        placeholder="e.g., Main Pitch - North">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Tactical Notes</label>
+                <textarea class="native-input textarea" formControlName="notes" rows="4"
+                    placeholder="Enter tactical objectives or gear requirements..."></textarea>
+            </div>
+        </section>
+
+        <!-- RIGHT COLUMN: ROSTER SELECTION -->
+        <section class="form-panel roster-panel">
+            <div class="roster-header">
+                <h2 class="panel-title">Expected Squad</h2>
+                @if (availablePlayers.length > 0) {
+                <div class="roster-actions">
+                    <button type="button" class="btn-text" (click)="selectAllPlayers()">Select All</button>
+                    <span class="divider">|</span>
+                    <button type="button" class="btn-text" (click)="deselectAllPlayers()">Clear</button>
+                </div>
+                }
+            </div>
+
+            <div class="roster-list">
+                @if (availablePlayers.length === 0) {
+                <div class="empty-roster">
+                    <p>Select a team to load the roster.</p>
+                </div>
+                } @else {
+                @for (player of availablePlayers; track player.id) {
+                <div class="player-row" [class.selected]="player.selected" (click)="togglePlayerSelection(player)">
+                    <div class="checkbox-custom">
+                        @if (player.selected) { <span class="checkmark">✓</span> }
+                    </div>
+                    <div class="player-info">
+                        <span class="player-name">{{ player.name }}</span>
+                        <span class="player-pos">{{ player.position }}</span>
+                    </div>
+                </div>
+                }
+                }
+            </div>
+        </section>
+
+        <!-- BOTTOM ACTION BAR -->
+        <div class="action-bar">
+            <button type="button" class="btn-secondary" (click)="cancel()">Cancel</button>
+            <button type="submit" class="btn-primary" [disabled]="isSubmitting || sessionForm.invalid">
+                {{ isSubmitting ? 'Scheduling...' : 'Schedule Session' }}
+            </button>
+        </div>
+
+    </form>
+</div>

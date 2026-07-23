@@ -14,7 +14,7 @@ namespace Koralytics.API.Controllers.Drill
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize] 
+    [Authorize]
     public class DrillsController : ControllerBase
     {
         private readonly IDrillTemplateService _templateService;
@@ -39,7 +39,7 @@ namespace Koralytics.API.Controllers.Drill
         // ==========================================
         private (int UserId, string Role, int? AcademyId) GetCurrentUserClaims()
         {
-            // 1. Extract User ID (Usually stored in ClaimTypes.NameIdentifier or "id")
+            // 1. Extract User ID
             var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("id") ?? User.FindFirstValue("uid");
             if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int userId))
             {
@@ -49,7 +49,7 @@ namespace Koralytics.API.Controllers.Drill
             // 2. Extract Role
             var role = User.FindFirstValue(ClaimTypes.Role) ?? User.FindFirstValue("role") ?? string.Empty;
 
-            // 3. Extract AcademyId (Custom claim)
+            // 3. Extract AcademyId
             var academyIdString = User.FindFirstValue("AcademyId") ?? User.FindFirstValue("academyId");
             int? academyId = null;
             if (!string.IsNullOrEmpty(academyIdString) && int.TryParse(academyIdString, out int parsedAcademyId))
@@ -110,6 +110,7 @@ namespace Koralytics.API.Controllers.Drill
 
             return Ok(new { message = "Template successfully shared with the academy." });
         }
+
         [HttpGet("templates/{id}")]
         public async Task<IActionResult> GetTemplateById(int id)
         {
@@ -148,8 +149,58 @@ namespace Koralytics.API.Controllers.Drill
             int currentAcademyId = claims.AcademyId ?? 0;
 
             var result = await _sessionService.CreateSessionAsync(dto, claims.UserId, currentAcademyId);
+            return CreatedAtAction(nameof(GetSessionById), new { sessionId = result.Id }, result);
+        }
 
+            [HttpGet("sessions")]
+            public async Task<IActionResult> GetCoachSessions([FromQuery] SessionFilterDto filter)
+            {
+                var claims = GetCurrentUserClaims();
+                int currentAcademyId = claims.AcademyId ?? 0;
+
+                // 🟢 Use built-in ASP.NET Role checking
+                bool isAdmin = User.IsInRole("AcademyAdmin") || User.IsInRole("Admin") || User.IsInRole("SystemAdmin");
+                string roleToPass = isAdmin ? "AcademyAdmin" : "Coach";
+
+                var results = await _sessionService.GetCoachSessionsAsync(claims.UserId, roleToPass, currentAcademyId, filter);
+                return Ok(results);
+            }
+ 
+
+        [HttpGet("sessions/{sessionId}")]
+        public async Task<IActionResult> GetSessionById(int sessionId)
+        {
+            var claims = GetCurrentUserClaims();
+            int currentAcademyId = claims.AcademyId ?? 0;
+
+            // 🟢 UPDATED: Passing claims.Role and currentAcademyId to the service
+            var result = await _sessionService.GetSessionByIdAsync(sessionId, claims.UserId, claims.Role, currentAcademyId);
             return Ok(result);
+        }
+
+        [HttpPut("sessions/{sessionId}")]
+        public async Task<IActionResult> UpdateSession(int sessionId, [FromBody] UpdateDrillSessionDto dto)
+        {
+            var claims = GetCurrentUserClaims();
+            var result = await _sessionService.UpdateSessionAsync(sessionId, dto, claims.UserId);
+            return Ok(result);
+        }
+
+        [HttpDelete("sessions/{sessionId}")]
+        public async Task<IActionResult> DeleteSession(int sessionId)
+        {
+            var claims = GetCurrentUserClaims();
+            await _sessionService.DeleteSessionAsync(sessionId, claims.UserId);
+            return NoContent();
+        }
+
+        [HttpPatch("sessions/{sessionId}/complete")]
+        public async Task<IActionResult> CompleteSession(int sessionId)
+        {
+            var claims = GetCurrentUserClaims();
+            await _sessionService.CompleteSessionAsync(sessionId, claims.UserId);
+
+            return Ok(new { message = "Session marked as completed. Analytics cache invalidated." });
         }
 
         [HttpPost("sessions/{sessionId}/drills")]
@@ -157,36 +208,6 @@ namespace Koralytics.API.Controllers.Drill
         {
             var claims = GetCurrentUserClaims();
             var result = await _sessionService.AddDrillToSessionAsync(sessionId, dto, claims.UserId);
-
-            return Ok(result);
-        }
-
-        [HttpGet("sessions")]
-        public async Task<IActionResult> GetCoachSessions([FromQuery] SessionFilterDto filter)
-        {
-            var claims = GetCurrentUserClaims();
-            int currentAcademyId = claims.AcademyId ?? 0;
-
-            var results = await _sessionService.GetCoachSessionsAsync(claims.UserId, currentAcademyId, filter);
-
-            return Ok(results);
-        }
-
-        [HttpGet("sessions/{id}")]
-        public async Task<IActionResult> GetSessionById(int id)
-        {
-            var claims = GetCurrentUserClaims();
-            var result = await _sessionService.GetSessionByIdAsync(id, claims.UserId);
-
-            return Ok(result);
-        }
-
-        [HttpPut("sessions/{id}")]
-        public async Task<IActionResult> UpdateSession(int id, [FromBody] UpdateDrillSessionDto dto)
-        {
-            var claims = GetCurrentUserClaims();
-            var result = await _sessionService.UpdateSessionAsync(id, dto, claims.UserId);
-
             return Ok(result);
         }
 
@@ -195,31 +216,20 @@ namespace Koralytics.API.Controllers.Drill
         {
             var claims = GetCurrentUserClaims();
             await _sessionService.RemoveDrillFromSessionAsync(sessionId, drillId, claims.UserId);
-
             return NoContent();
         }
 
-        [HttpDelete("sessions/{id}")]
-        public async Task<IActionResult> DeleteSession(int id)
+        // ==========================================
+        // 3. ATTENDANCE & RESULTS ENDPOINTS
+        // ==========================================
+
+        [HttpGet("sessions/{sessionId}/attendance")]
+        public async Task<IActionResult> GetSessionAttendance(int sessionId)
         {
             var claims = GetCurrentUserClaims();
-            await _sessionService.DeleteSessionAsync(id, claims.UserId);
-
-            return NoContent();
+            var roster = await _resultService.GetSessionAttendanceAsync(sessionId, claims.UserId);
+            return Ok(roster);
         }
-        [HttpPatch("sessions/{sessionId}/complete")]
-        public async Task<IActionResult> CompleteSession(int sessionId)
-        {
-            var claims = GetCurrentUserClaims();
-
-            await _sessionService.CompleteSessionAsync(sessionId, claims.UserId);
-
-            return Ok(new { message = "Session completed successfully. Player cards queued for recalculation." });
-        }
-
-        // ==========================================
-        // 3. RESULT & ATTENDANCE ENDPOINTS (/api/drills/results)
-        // ==========================================
 
         [HttpPut("sessions/{sessionId}/attendance")]
         public async Task<IActionResult> MarkAttendance(int sessionId, [FromBody] UpdateSessionAttendanceDto dto)
@@ -228,6 +238,14 @@ namespace Koralytics.API.Controllers.Drill
             await _resultService.MarkAttendanceAsync(sessionId, dto, claims.UserId);
 
             return Ok(new { message = "Attendance updated successfully." });
+        }
+
+        [HttpGet("sessions/{sessionId}/drills/{drillId}/results")]
+        public async Task<IActionResult> GetDrillResults(int sessionId, int drillId)
+        {
+            var claims = GetCurrentUserClaims();
+            var existingResults = await _resultService.GetDrillResultsAsync(sessionId, drillId, claims.UserId);
+            return Ok(existingResults);
         }
 
         [HttpPost("sessions/{sessionId}/drills/{drillId}/results")]
@@ -250,22 +268,6 @@ namespace Koralytics.API.Controllers.Drill
             return Ok(result);
         }
 
-        [HttpGet("sessions/{sessionId}/attendance")]
-        public async Task<IActionResult> GetSessionAttendance(int sessionId)
-        {
-            var claims = GetCurrentUserClaims();
-            var roster = await _resultService.GetSessionAttendanceAsync(sessionId, claims.UserId);
-            return Ok(roster);
-        }
-
-        [HttpGet("sessions/{sessionId}/drills/{drillId}/results")]
-        public async Task<IActionResult> GetDrillResults(int sessionId, int drillId)
-        {
-            var claims = GetCurrentUserClaims();
-            var existingResults = await _resultService.GetDrillResultsAsync(sessionId, drillId, claims.UserId);
-            return Ok(existingResults);
-        }
-
         // ====================================================================
         // 4. ANALYTICS ENDPOINTS
         // ====================================================================
@@ -283,7 +285,7 @@ namespace Koralytics.API.Controllers.Drill
             // 1. Extract Identity
             var claims = GetCurrentUserClaims();
 
-            // 2. Delegate to Service (The Service handles all security and math)
+            // 2. Delegate to Service
             var biasReport = await _analyticsService.DetectCoachBiasAsync(
                 targetCoachId: coachId,
                 academyId: claims.AcademyId ?? 0,

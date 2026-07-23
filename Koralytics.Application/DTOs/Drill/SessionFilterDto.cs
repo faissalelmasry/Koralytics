@@ -1,4 +1,4 @@
-﻿using Koralytics.Domain.Enums;
+using Koralytics.Domain.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,5 +18,6 @@ namespace Koralytics.Application.DTOs.Drill
         public DateTime? FromDate { get; set; }
         public DateTime? ToDate { get; set; }
         public SessionStatus? Status { get; set; }
+        public string? SearchTerm { get; set; }
     }
 }

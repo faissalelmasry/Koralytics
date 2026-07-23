@@ -1,0 +1,133 @@
+<div class="sessions-page">
+
+    <!-- PAGE HEADER -->
+    <header class="page-header">
+        <div class="header-left">
+            <div class="header-eyebrow">
+                <span class="eyebrow-dot"></span>
+                <span class="eyebrow-text">Field Management</span>
+            </div>
+            <h1 class="header-title">Drill Sessions</h1>
+            <p class="header-subtitle">Schedule, manage, and execute training routines for your academy</p>
+        </div>
+        <div class="header-right">
+            <button class="btn-accent" (click)="openCreateSession()">+ Schedule Session</button>
+        </div>
+    </header>
+
+    <!-- STATS STRIP -->
+    <section class="stats-strip">
+        <div class="stat-item">
+            <span class="stat-value">{{ totalItems }}</span>
+            <span class="stat-label">Total Sessions</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+            <span class="stat-value cyan">{{ scheduledCount }}</span>
+            <span class="stat-label">Scheduled</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+            <span class="stat-value warning">{{ inProgressCount }}</span>
+            <span class="stat-label">In Progress</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+            <span class="stat-value success">{{ completedCount }}</span>
+            <span class="stat-label">Completed</span>
+        </div>
+    </section>
+
+    <!-- FILTER BAR -->
+    <section class="filter-bar">
+        <input type="month" class="native-select" style="min-width: 180px;" (change)="onMonthChange($event)" title="Filter by month">
+
+        <div class="filter-controls">
+            <!-- 🟢 FIXED: DYNAMIC TEAMS DROPDOWN -->
+            <select class="native-select" (change)="onTeamChange($event)">
+                <option value="0">All Teams</option>
+                @for (team of availableTeams; track team.id) {
+                <option [value]="team.id">{{ team.name }}</option>
+                }
+            </select>
+
+            <!-- Status Filter Dropdown: values must match the numeric SessionStatus enum -->
+            <select class="native-select" [(ngModel)]="selectedStatus" (ngModelChange)="onStatusChange($event)">
+                <option value="">All Statuses</option>
+                <option value="0">Scheduled</option>
+                <option value="1">In Progress</option>
+                <option value="2">Completed</option>
+                <option value="3">Cancelled</option>
+            </select>
+
+        </div>
+    </section>
+
+    <!-- ERROR / LOADING STATES -->
+    @if (errorMessage) {
+    <div class="error-banner">{{ errorMessage }}</div>
+    }
+
+    @if (isLoading) {
+    <div class="loading-wrapper">
+        <p class="loading-text">Loading training sessions...</p>
+    </div>
+    }
+
+    <!-- SESSIONS GRID -->
+    @if (!isLoading) {
+    @if (sessions.length > 0) {
+    <div class="sessions-grid">
+        @for (session of sessions; track session.id; let i = $index) {
+        <article class="session-card" [class]="getStatusClass(session.status)">
+            <div class="card-glow-bar"></div>
+
+            <div class="card-header">
+                <div class="session-date">
+                    {{ session.sessionDate | date:'dd MMM yyyy' }}
+                    <span class="session-time">{{ session.sessionDate | date:'shortTime' }}</span>
+                </div>
+                <span class="badge" [class]="getBadgeClass(session.status)">
+                    {{ getStatusLabel(session.status) }}
+                </span>
+            </div>
+
+            <div class="card-body">
+                <h3 class="team-name">{{ session.teamName || 'Team ID: #' + session.teamId }}</h3>
+                <span class="session-type">{{ getSessionTypeLabel(session.type) }}</span>
+
+                <div class="session-meta">
+                    <div class="meta-row" style="color: #00f0ff;">
+                        <span>👤</span> Coach: {{ session.coachName || 'ID: ' + session.coachId }}
+                    </div>
+                    <div class="meta-row"><span>📍</span> {{ session.location || 'Main Pitch' }}</div>
+                    <div class="meta-row"><span>📝</span> {{ session.notes || 'No notes specified.' }}</div>
+                </div>
+            </div>
+
+            <div class="card-actions">
+                @if (session.status === SessionStatus.Completed) {
+                <button class="btn-full btn-secondary" (click)="viewSessionDetails(session.id)">View Report</button>
+                } @else {
+                <button class="btn-full btn-secondary" (click)="viewSessionDetails(session.id)">Edit Details</button>
+                <button class="btn-full btn-primary" (click)="viewSessionDetails(session.id)">Enter Session</button>
+                }
+            </div>
+        </article>
+        }
+    </div>
+    } @else {
+    <!-- EMPTY STATE -->
+    <div class="empty-state">
+        <div class="empty-icon">📅</div>
+        <h3 class="empty-title">No training sessions found</h3>
+        <button class="btn-accent" (click)="openCreateSession()">+ Schedule Session</button>
+    </div>
+    }
+
+    <!-- PAGINATION -->
+    <app-pagination [totalItems]="totalItems" [pageSize]="filter.pageSize" [currentPage]="filter.pageNumber"
+        (pageChange)="changePage($event)">
+    </app-pagination>
+    }
+</div>

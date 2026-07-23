@@ -21,7 +21,11 @@ namespace Koralytics.Application.Mappings.Drills
             CreateMap<DrillCategory, DrillCategoryDto>();
 
             CreateMap<CreateDrillSessionDto, DrillSession>();
-            CreateMap<DrillSession, DrillSessionDto>();
+            CreateMap<DrillSession, DrillSessionDto>()
+                .ForMember(dest => dest.CoachName, opt => opt.MapFrom(src =>
+                    src.DrillSessionCoach != null ? src.DrillSessionCoach.FirstName + " " + src.DrillSessionCoach.LastName : "Unknown Coach"))
+                .ForMember(dest => dest.TeamName, opt => opt.MapFrom(src =>
+                    src.DrillSessionTeam != null ? src.DrillSessionTeam.Name : "Unknown Team"));
 
             CreateMap<DrillSession, DrillSessionDetailsDto>();
             CreateMap<AddSessionDrillDto, Koralytics.Domain.Entities.Drill.Drill>();
