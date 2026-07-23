@@ -20,7 +20,11 @@ namespace Koralytics.Application.Mappings.Academies
                     opt => opt.MapFrom(src =>
                         src.Admin != null
                             ? $"{src.Admin.FirstName} {src.Admin.LastName}"
-                            : string.Empty));
+                            : string.Empty))
+                .ForMember(dest => dest.CreatedAt,
+                    opt => opt.MapFrom(src => src.CreatedAt))
+                .ForMember(dest => dest.LocationCount,
+                    opt => opt.MapFrom(src => src.AcademyLocations.Count));
 
             // ── AcademyLocation ──────────────────────────────────────────────
             CreateMap<AddLocationDto, AcademyLocation>();
@@ -39,9 +43,8 @@ namespace Koralytics.Application.Mappings.Academies
                 .ForMember(dest => dest.LocationName,
                     opt => opt.MapFrom(src =>
                         src.Location != null ? src.Location.Name : string.Empty))
-                .ForMember(dest => dest.CoachName,
-                                    opt => opt.MapFrom(src =>
-                                    src.Coach != null ? $"{src.Coach.FirstName} {src.Coach.LastName}" : string.Empty));
+                .ForMember(dest => dest.Coaches, opt => opt.Ignore())
+                .ForMember(dest => dest.Players, opt => opt.Ignore());
 
 
             // ── AcademyAnnouncement ──────────────────────────────────────────

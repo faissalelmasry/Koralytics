@@ -43,6 +43,31 @@ namespace Koralytics.Application.DTOs.Academies
 
     // ─── Response DTOs ───────────────────────────────────────────────────────
 
+    public class AcademyMemberResponseDto
+    {
+        public int UserId { get; set; }
+        public string FullName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Role { get; set; } = string.Empty; // e.g., "Player", "Coach"
+        public string? Position { get; set; }
+        public string? SquadStatus { get; set; }
+        public DateTime JoinedAt { get; set; }
+    }
+
+    public class AcademyAdminResponseDto
+    {
+        public int UserId { get; set; }
+        public string FullName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public bool IsOwner { get; set; }
+    }
+
+    public class UpdatePlayerSubscriptionDto
+    {
+        public SubscriptionStatus Status { get; set; }
+        public DateTime? GraceUntil { get; set; }
+    }
+
     public class AcademyResponseDto
     {
         public int Id { get; set; }
@@ -54,6 +79,8 @@ namespace Koralytics.Application.DTOs.Academies
         public AcademyStatus Status { get; set; }
         public int AdminUserId { get; set; }
         public string AdminFullName { get; set; } = string.Empty;
+        public DateTime CreatedAt { get; set; }
+        public int LocationCount { get; set; }
     }
 
     public class AcademyListResponseDto

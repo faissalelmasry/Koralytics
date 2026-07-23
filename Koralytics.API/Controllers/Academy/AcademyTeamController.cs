@@ -10,7 +10,7 @@ using System.Security.Claims;
 namespace Koralytics.API.Controllers.Academies
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/Academy")]
     [Authorize]
     [Produces("application/json")]
     public class AcademyTeamController : ApiBaseController
@@ -23,7 +23,7 @@ namespace Koralytics.API.Controllers.Academies
         }
 
         [HttpPost("{academyId}/age-groups")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "AcademyAdmin,Coach")]
         public async Task<IActionResult> CreateAgeGroup(int academyId, [FromBody] CreateAgeGroupDto dto)
         {
             var userId = GetCurrentUserId();
@@ -32,7 +32,7 @@ namespace Koralytics.API.Controllers.Academies
         }
 
         [HttpGet("{academyId}/age-groups")]
-        //[Authorize(Roles = "Admin,Coach")]
+        [Authorize(Roles = "AcademyAdmin,Coach,Player,Parent")]
         public async Task<IActionResult> GetAgeGroups(int academyId)
         {
             var result = await _academyTeamService.GetAgeGroupsByAcademyAsync(academyId);
@@ -40,7 +40,7 @@ namespace Koralytics.API.Controllers.Academies
         }
 
         [HttpPost("{academyId}/teams")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "AcademyAdmin,Coach")]
         public async Task<IActionResult> CreateTeam(int academyId, [FromBody] CreateTeamDto dto)
         {
             var userId = GetCurrentUserId();
@@ -49,7 +49,7 @@ namespace Koralytics.API.Controllers.Academies
         }
 
         [HttpGet("{academyId}/teams")]
-        //[Authorize(Roles = "Admin,Coach")]
+        [Authorize(Roles = "AcademyAdmin,Coach,Player,Parent")]
         public async Task<IActionResult> GetTeams(int academyId)
         {
             var result = await _academyTeamService.GetTeamsByAcademyAsync(academyId);
@@ -57,7 +57,7 @@ namespace Koralytics.API.Controllers.Academies
         }
 
         [HttpPost("teams/{teamId}/coaches/{coachId}")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "AcademyAdmin")]
         public async Task<IActionResult> AssignCoachToTeam(int teamId, int coachId)
         {
             var userId = GetCurrentUserId();
@@ -66,7 +66,7 @@ namespace Koralytics.API.Controllers.Academies
         }
 
         [HttpDelete("teams/{teamId}/coaches/{coachId}")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "AcademyAdmin")]
         public async Task<IActionResult> RemoveCoachFromTeam(int teamId, int coachId)
         {
             var userId = GetCurrentUserId();
@@ -75,7 +75,7 @@ namespace Koralytics.API.Controllers.Academies
         }
 
         [HttpPost("teams/{teamId}/players/{playerId}")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "AcademyAdmin,Coach")]
         public async Task<IActionResult> AssignPlayerToTeam(int teamId, int playerId)
         {
             var userId = GetCurrentUserId();
@@ -84,7 +84,7 @@ namespace Koralytics.API.Controllers.Academies
         }
 
         [HttpDelete("teams/{teamId}/players/{playerId}")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "AcademyAdmin,Coach")]
         public async Task<IActionResult> RemovePlayerFromTeam(int teamId, int playerId)
         {
             var userId = GetCurrentUserId();
@@ -92,14 +92,5 @@ namespace Koralytics.API.Controllers.Academies
             return NoContentResponse("Player removed from team successfully.");
         }
 
-        private int GetCurrentUserId()
-        {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
-            {
-                throw new UnauthorizedAccessException("Invalid user token");
-            }
-            return userId;
-        }
     }
 }

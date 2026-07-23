@@ -1,0 +1,135 @@
+:host {
+  display: block;
+}
+
+.hero-banner {
+  background: linear-gradient(135deg, #11141a 0%, #0c0e12 100%);
+  border: 1px solid #1e232d;
+  border-radius: 20px;
+  padding: 20px 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.3s ease;
+  --theme-neon: #3b82f6;
+  --theme-glow: rgba(59, 130, 246, 0.2);
+}
+
+.hero-banner:hover {
+  border-color: #383e4a;
+}
+
+.hero-banner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, var(--theme-neon), transparent 70%);
+}
+
+.academy-identity {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.avatar-circle {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--theme-glow) 0%, #171b22 100%);
+  border: 2px solid var(--theme-neon);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--theme-neon);
+  font-family: 'Inter', sans-serif;
+  flex-shrink: 0;
+  box-shadow: 0 0 15px var(--theme-glow);
+  overflow: hidden;
+}
+
+.avatar-circle img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.academy-identity h1 {
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1.1;
+  margin: 0 0 4px;
+  font-family: 'Inter', sans-serif;
+  color: #fff;
+}
+
+.meta-pills {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.pill {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  color: #c0c6d4;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pill.active-badge {
+  background: rgba(200, 255, 77, 0.1);
+  border-color: rgba(200, 255, 77, 0.3);
+  color: #c8ff4d;
+}
+
+.bio-quick-list {
+  display: flex;
+  gap: 32px;
+}
+
+.bio-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.bio-lbl {
+  font-size: 11px;
+  color: #7b8293;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.bio-val {
+  font-size: 14px;
+  color: #e2e8f0;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .hero-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
+  
+  .bio-quick-list {
+    width: 100%;
+    justify-content: space-between;
+  }
+}

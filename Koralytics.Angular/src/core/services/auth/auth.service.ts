@@ -221,7 +221,8 @@ export class AuthService {
       email: data.email,
       userName: data.userName,
       fullName: data.fullName,
-      roles: data.roles
+      roles: data.roles,
+      academyId: data.academyId
     };
     this.tokenStorage.saveUser(user, rememberMe);
     this.currentUserSubject.next(user);
@@ -236,6 +237,10 @@ export class AuthService {
 
   public isLoggedIn(): boolean {
     return !!this.tokenStorage.getAccessToken();
+  }
+
+  public getCurrentUserValue(): User | null {
+    return this.currentUserSubject.value;
   }
 
   public getUserRoles(): string[] {

@@ -1,0 +1,99 @@
+<app-navbar></app-navbar>
+
+<div class="profile-page">
+  <!-- Loading State -->
+  <div class="preloader-overlay" *ngIf="isLoading">
+    <app-loading-spinner size="lg"></app-loading-spinner>
+    <p>Loading academy dashboard...</p>
+  </div>
+
+  <!-- Content Ready -->
+  <ng-container *ngIf="!isLoading">
+
+    <!-- Has Academy (Scrolling Single Page) -->
+    <div class="profile-container" *ngIf="hasAcademy">
+
+      <!-- =============== 1. HERO BANNER =============== -->
+      <app-academy-hero-banner *ngIf="academyDetails" [academy]="academyDetails" [membersCount]="totalMembersCount">
+      </app-academy-hero-banner>
+
+      <!-- =============== 2. BADGES =============== -->
+      <app-academy-badges-section scrollReveal direction="bottom" [delay]="100" *ngIf="currentUser?.academyId" [academyId]="currentUser!.academyId!">
+      </app-academy-badges-section>
+
+      <!-- =============== 3. MANAGE ADMINS =============== -->
+      <app-academy-admins-section scrollReveal direction="bottom" [delay]="200" *ngIf="currentUser?.academyId" [academyId]="currentUser!.academyId!">
+      </app-academy-admins-section>
+
+      <!-- =============== 4. MANAGE COACHES =============== -->
+      <app-academy-coaches-section scrollReveal direction="bottom" [delay]="300" *ngIf="currentUser?.academyId" [academyId]="currentUser!.academyId!">
+      </app-academy-coaches-section>
+
+      <!-- =============== 5. MANAGE PLAYERS =============== -->
+      <app-academy-members scrollReveal direction="bottom" [delay]="400" *ngIf="currentUser?.academyId" [academyId]="currentUser!.academyId!">
+      </app-academy-members>
+
+      <!-- =============== 6. TEAMS & AGE GROUPS =============== -->
+      <app-academy-teams-section scrollReveal direction="bottom" [delay]="500" *ngIf="currentUser?.academyId" [academyId]="currentUser!.academyId!">
+      </app-academy-teams-section>
+
+      <!-- =============== 7. COMMUNICATIONS & SUBSCRIPTIONS =============== -->
+      <app-academy-comm-subs-section scrollReveal direction="bottom" [delay]="600" *ngIf="currentUser?.academyId" [academyId]="currentUser!.academyId!">
+      </app-academy-comm-subs-section>
+
+    </div>
+
+    <!-- No Academy Flow -->
+    <div class="no-academy-wrapper" *ngIf="!hasAcademy">
+
+      <!-- Pending Request -->
+      <div class="glass-card pending-card fade-in" *ngIf="pendingRequest">
+        <div class="status-icon pending">⏳</div>
+        <h2>Academy Request Pending</h2>
+        <p>Your request to create <strong class="highlight-text">{{ pendingRequest.academyName }}</strong> is currently
+          being reviewed by system administrators.</p>
+        <div class="info-row">
+          <span>Status:</span>
+          <span class="badge pending-badge">Pending Review</span>
+        </div>
+        <div class="info-row">
+          <span>Submitted on:</span>
+          <span>{{ pendingRequest.requestedAt | date:'medium' }}</span>
+        </div>
+      </div>
+
+      <!-- Request Form -->
+      <div class="glass-card request-card fade-in" *ngIf="!pendingRequest">
+        <div class="card-header">
+          <h2>Request an Academy</h2>
+          <p>Create a new academy to manage teams, players, and coaches.</p>
+        </div>
+
+        <form [formGroup]="requestForm" (ngSubmit)="onRequestAcademy()" class="request-form">
+          <app-text-input label="Academy Name" type="text" placeholder="E.g. Elite Football Academy"
+            formControlName="academyName">
+          </app-text-input>
+
+          <app-text-input label="Contact Person Name" type="text" placeholder="Your Name"
+            formControlName="contactPersonName">
+          </app-text-input>
+
+          <app-text-input label="Contact Email" type="email" placeholder="contact@academy.com"
+            formControlName="contactEmail">
+          </app-text-input>
+
+          <app-text-input label="Contact Phone" type="text" placeholder="+1 234 567 890" formControlName="contactPhone">
+          </app-text-input>
+
+          <app-text-input label="Location" type="text" placeholder="City, Country" formControlName="location">
+          </app-text-input>
+
+          <app-button type="submit" variant="accent" [disabled]="requestForm.invalid || isLoading">
+            Submit Request
+          </app-button>
+        </form>
+      </div>
+
+    </div>
+  </ng-container>
+</div>

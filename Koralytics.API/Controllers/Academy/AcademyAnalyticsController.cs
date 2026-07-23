@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Koralytics.API.Controllers.Academies
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/Academy")]
     [Authorize]
     [Produces("application/json")]
     public class AcademyAnalyticsController : ApiBaseController
@@ -20,7 +20,7 @@ namespace Koralytics.API.Controllers.Academies
         }
 
         [HttpGet("{academyId}/coaches")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "AcademyAdmin,Coach")]
         public async Task<IActionResult> GetCoachPerformance(int academyId)
         {
             var result = await _academyAnalyticsService.GetCoachPerformanceDashboardAsync(academyId);
@@ -28,7 +28,7 @@ namespace Koralytics.API.Controllers.Academies
         }
 
         [HttpGet("{academyId}/subscriptions")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "AcademyAdmin,Coach")]
         public async Task<IActionResult> GetSubscriptionStatus(int academyId)
         {
             var result = await _academyAnalyticsService.GetSubscriptionStatusAsync(academyId);

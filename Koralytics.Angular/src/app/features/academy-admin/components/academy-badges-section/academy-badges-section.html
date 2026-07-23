@@ -1,0 +1,27 @@
+<div class="section-container fade-in">
+  <div class="section-header">
+    <h3>Academy Badges</h3>
+  </div>
+
+  <div class="badges-grid" *ngIf="!isLoading && badges.length > 0">
+    <div class="badge-card" *ngFor="let badge of badges">
+      <div class="badge-icon-container">
+        <span class="badge-icon">{{ getBadgeIcon(badge.badgeType) }}</span>
+      </div>
+      <div class="badge-info">
+        <h4>{{ getBadgeName(badge.badgeType) }}</h4>
+        <span class="badge-date">Awarded {{ badge.awardedAt | date:'mediumDate' }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="empty-state" *ngIf="!isLoading && badges.length === 0">
+    <div class="empty-icon">🏅</div>
+    <p>No badges earned yet.</p>
+  </div>
+
+  <div class="loading-state" *ngIf="isLoading">
+    <app-loading-spinner size="lg"></app-loading-spinner>
+    <p>Loading badges...</p>
+  </div>
+</div>
