@@ -8,6 +8,14 @@
     <a routerLink="/about" routerLinkActive="active">about</a>
     <a routerLink="/clubs" routerLinkActive="active">clubs</a>
     <a routerLink="/contact" routerLinkActive="active">contact</a>
+    
+    <!-- Coach Links (Desktop) -->
+    <ng-container *ngIf="isCoach">
+      <a routerLink="/coach/squad" routerLinkActive="active">squad</a>
+      <a routerLink="/coach/training-split" routerLinkActive="active">training</a>
+      <a routerLink="/coach/notes" routerLinkActive="active">notes</a>
+      <a routerLink="/coach/highlights" routerLinkActive="active">highlights</a>
+    </ng-container>
   </nav>
 </header>
 
@@ -32,10 +40,42 @@
 
   <div class="sidebar-content">
     <nav class="sidebar-nav">
+      <a routerLink="/dashboard" routerLinkActive="active" (click)="toggleSidebar(false)" *ngIf="isLoggedIn">dashboard</a>
+
+      <!-- Coach Section -->
+      <div class="sidebar-section" *ngIf="isCoach">
+        <span class="section-label">Coach</span>
+        <a routerLink="/coach/squad" routerLinkActive="active" (click)="toggleSidebar(false)">squad overview</a>
+        <a routerLink="/coach/training-split" routerLinkActive="active" (click)="toggleSidebar(false)">training split</a>
+        <a routerLink="/coach/notes" routerLinkActive="active" (click)="toggleSidebar(false)">player notes</a>
+        <a routerLink="/coach/access" routerLinkActive="active" (click)="toggleSidebar(false)">temp access</a>
+        <a routerLink="/coach/readiness" routerLinkActive="active" (click)="toggleSidebar(false)">player readiness</a>
+        <a routerLink="/coach/match-requests" routerLinkActive="active" (click)="toggleSidebar(false)">match requests</a>
+      </div>
+
+      <!-- Player/Coach Highlights -->
+      <div class="sidebar-section" *ngIf="isCoach || isPlayer">
+        <span class="section-label">Media</span>
+        <a routerLink="/coach/highlights" routerLinkActive="active" (click)="toggleSidebar(false)">highlights</a>
+      </div>
+
+      <!-- General Links -->
       <a routerLink="/home" routerLinkActive="active" (click)="toggleSidebar(false)">home</a>
       <a routerLink="/about" routerLinkActive="active" (click)="toggleSidebar(false)">about</a>
       <a routerLink="/clubs" routerLinkActive="active" (click)="toggleSidebar(false)">clubs</a>
       <a routerLink="/contact" routerLinkActive="active" (click)="toggleSidebar(false)">contact</a>
+      
+      <!-- Coach Links (Sidebar) -->
+      <ng-container *ngIf="isCoach">
+        <div class="sidebar-section-title" style="color: var(--accent-lime, #c8ff4d); margin-top: 16px; padding-left: 12px; font-family: 'Bebas Neue'; letter-spacing: 1px;">COACH HUB</div>
+        <a routerLink="/coach/squad" routerLinkActive="active" (click)="toggleSidebar(false)">squad overview</a>
+        <a routerLink="/coach/training-split" routerLinkActive="active" (click)="toggleSidebar(false)">training split</a>
+        <a routerLink="/coach/notes" routerLinkActive="active" (click)="toggleSidebar(false)">player notes</a>
+        <a routerLink="/coach/readiness" routerLinkActive="active" (click)="toggleSidebar(false)">player readiness</a>
+        <a routerLink="/coach/highlights" routerLinkActive="active" (click)="toggleSidebar(false)">highlights</a>
+        <a routerLink="/coach/match-requests" routerLinkActive="active" (click)="toggleSidebar(false)">match requests</a>
+        <a routerLink="/coach/access" routerLinkActive="active" (click)="toggleSidebar(false)">temp access</a>
+      </ng-container>
     </nav>
   </div>
 </aside>

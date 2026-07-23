@@ -29,6 +29,48 @@ export const routes: Routes = [
     children: [
       { path: 'dashboard', loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent) },
       { path: 'settings/change-password', loadComponent: () => import('./features/auth/pages/change-password/change-password.component').then(m => m.ChangePasswordComponent) },
+      {
+        path: 'coach/squad',
+        loadComponent: () => import('./features/coach/pages/coach-squad/coach-squad.component').then(m => m.CoachSquadComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['Coach'] }
+      },
+      {
+        path: 'coach/training-split',
+        loadComponent: () => import('./features/coach/pages/training-split/training-split.component').then(m => m.TrainingSplitComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['Coach'] }
+      },
+      {
+        path: 'coach/notes',
+        loadComponent: () => import('./features/coach/pages/coach-notes/coach-notes.component').then(m => m.CoachNotesComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['Coach'] }
+      },
+      {
+        path: 'coach/access',
+        loadComponent: () => import('./features/coach/pages/temp-access/temp-access.component').then(m => m.TempAccessComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['Coach'] }
+      },
+      {
+        path: 'coach/highlights',
+        loadComponent: () => import('./features/coach/pages/player-highlights/player-highlights.component').then(m => m.PlayerHighlightsComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['Coach', 'Player'] }
+      },
+      {
+        path: 'coach/match-requests',
+        loadComponent: () => import('./features/coach/pages/match-request/match-request.component').then(m => m.MatchRequestComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['Coach', 'AcademyAdmin'] }
+      },
+      {
+        path: 'coach/readiness',
+        loadComponent: () => import('./features/coach/pages/player-readiness/player-readiness.component').then(m => m.PlayerReadinessComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['Coach'] }
+      },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   },

@@ -1,0 +1,77 @@
+<div class="page-container">
+  <div class="page-header">
+    <h1 class="page-title">Player <span class="accent">Highlights</span></h1>
+    <p class="page-subtitle">Manage and showcase top moments stored in the cloud.</p>
+  </div>
+
+  <!-- Upload Section -->
+  <div class="upload-section">
+    <h3>Upload New Highlight</h3>
+    <div class="upload-form">
+      <div class="form-group flex-1">
+        <label for="highlightTitle">Highlight Title</label>
+        <input type="text" id="highlightTitle" class="glass-input" [(ngModel)]="highlightTitle" placeholder="e.g. Great free kick against City FC">
+      </div>
+      
+      <div class="form-group">
+        <label for="highlightFile">Video File (MP4, MOV)</label>
+        <div class="file-input-wrapper">
+          <input type="file" id="highlightFile" (change)="onFileSelected($event)" accept="video/mp4,video/quicktime,video/x-msvideo,video/x-matroska,video/webm">
+          <span class="file-name">{{ selectedFile ? selectedFile.name : 'Choose file...' }}</span>
+        </div>
+      </div>
+      
+      <button class="btn-primary" [disabled]="!selectedFile || uploading()" (click)="uploadHighlight()">
+        <span *ngIf="!uploading()">Upload</span>
+        <span *ngIf="uploading()" class="spinner-small"></span>
+      </button>
+    </div>
+    
+    <div class="alert error" *ngIf="uploadError()">{{ uploadError() }}</div>
+  </div>
+
+  <!-- Gallery Section -->
+  <div class="gallery-section">
+    <h3>Highlight Gallery</h3>
+    
+    <div class="loading-state" *ngIf="loading()">
+      <span class="spinner-small"></span> Loading highlights...
+    </div>
+
+    <div class="error-state" *ngIf="error()">
+      <p>{{ error() }}</p>
+      <button class="btn-outline" (click)="loadHighlights()">Retry</button>
+    </div>
+
+    <div class="empty-state" *ngIf="!loading() && highlights().length === 0">
+      <p>No highlights uploaded yet.</p>
+    </div>
+
+    <div class="video-grid" *ngIf="highlights().length > 0">
+      
+      <div class="video-card" *ngFor="let h of highlights()" [class.pinned]="h.isPinned">
+        
+        <div class="video-wrapper">
+          <video [src]="h.videoUrl" controls preload="metadata"></video>
+          <div class="pinned-badge" *ngIf="h.isPinned">⭐ Pinned</div>
+        </div>
+        
+        <div class="video-info">
+          <h4>{{ h.title || 'Untitled Highlight' }}</h4>
+          <span class="upload-date">{{ h.uploadedAt | date:'mediumDate' }}</span>
+        </div>
+        
+        <div class="video-actions">
+          <button class="btn-action pin" (click)="pinHighlight(h.id)" [disabled]="h.isPinned">
+            {{ h.isPinned ? 'Pinned' : 'Pin to Top' }}
+          </button>
+          <button class="btn-action delete" (click)="deleteHighlight(h.id)">
+            Delete
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>

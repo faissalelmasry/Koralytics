@@ -1,0 +1,75 @@
+<div class="page-container">
+  <div class="page-header">
+    <h1 class="page-title">Temporary <span class="accent">Access</span></h1>
+    <p class="page-subtitle">Grant assistant coaches or analysts temporary access to your squad data.</p>
+  </div>
+
+  <div class="layout-grid">
+    
+    <!-- Left: Grant Form -->
+    <div class="grant-form-card">
+      <h3>Grant New Access</h3>
+      
+      <div class="form-group">
+        <label for="userId">User ID</label>
+        <input type="number" id="userId" class="glass-input" [(ngModel)]="newGrant.grantedToUserId" placeholder="Enter Coach/Analyst ID">
+        <span class="hint">In a real app, this would be a searchable dropdown.</span>
+      </div>
+
+      <div class="form-group">
+        <label for="accessLevel">Access Level</label>
+        <select id="accessLevel" class="glass-input" [(ngModel)]="newGrant.accessLevel">
+          <option value="ReadOnly">Read Only</option>
+          <option value="FullSquad">Full Squad (Edit Notes/Tactics)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="expiry">Expiry Date</label>
+        <input type="date" id="expiry" class="glass-input" [(ngModel)]="newGrant.expiresAt">
+      </div>
+
+      <button class="btn-primary" [disabled]="submitting() || !newGrant.grantedToUserId" (click)="grantAccess()">
+        <span *ngIf="!submitting()">Grant Access</span>
+        <span *ngIf="submitting()" class="spinner-small"></span>
+      </button>
+
+      <div class="alert success" *ngIf="successMsg()">{{ successMsg() }}</div>
+      <div class="alert error" *ngIf="grantError()">{{ grantError() }}</div>
+    </div>
+
+    <!-- Right: Active Grants List -->
+    <div class="active-grants-card">
+      <h3>Active Grants</h3>
+      
+      <div class="loading-state" *ngIf="loading()">
+        <span class="spinner-small"></span> Loading grants...
+      </div>
+
+      <div class="error-state" *ngIf="error()">
+        <p>{{ error() }}</p>
+      </div>
+
+      <div class="empty-state" *ngIf="!loading() && activeGrants().length === 0">
+        <p>No active temporary access grants.</p>
+      </div>
+
+      <div class="grants-list" *ngIf="activeGrants().length > 0">
+        <div class="grant-item" *ngFor="let grant of activeGrants()">
+          <div class="grant-info">
+            <span class="grant-name">{{ grant.grantedToFullName || 'User ID: ' + grant.grantedToUserId }}</span>
+            <div class="grant-meta">
+              <span class="badge level" [class.full]="grant.accessLevel === 'FullSquad'">{{ grant.accessLevel }}</span>
+              <span class="expiry-text">Expires: {{ grant.expiresAt | date:'mediumDate' }}</span>
+            </div>
+          </div>
+          
+          <button class="btn-revoke" (click)="revokeAccess(grant.id)" title="Revoke Access">
+            Revoke
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

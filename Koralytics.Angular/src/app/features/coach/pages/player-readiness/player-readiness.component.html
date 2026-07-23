@@ -1,0 +1,76 @@
+<div class="page-container">
+  <div class="page-header">
+    <h1 class="page-title">Match <span class="accent">Readiness</span></h1>
+    <p class="page-subtitle">Track player fatigue and physical readiness before matches.</p>
+  </div>
+
+  <div class="loading-state" *ngIf="loading()">
+    <span class="spinner-large"></span>
+    <p>Calculating squad readiness...</p>
+  </div>
+
+  <div class="error-state" *ngIf="error()">
+    <p>{{ error() }}</p>
+    <button class="btn-outline" (click)="loadData()">Retry</button>
+  </div>
+
+  <div class="readiness-card" *ngIf="!loading() && sortedReadiness().length > 0">
+    <table class="readiness-table">
+      <thead>
+        <tr>
+          <th (click)="sortBy('name')" class="sortable">
+            Player Name 
+            <span class="sort-icon" *ngIf="sortKey() === 'name'">{{ sortDirection() === 'asc' ? '↑' : '↓' }}</span>
+          </th>
+          <th (click)="sortBy('score')" class="sortable text-center">
+            Readiness Score
+            <span class="sort-icon" *ngIf="sortKey() === 'score'">{{ sortDirection() === 'asc' ? '↑' : '↓' }}</span>
+          </th>
+          <th (click)="sortBy('matches')" class="sortable text-center">
+            Matches (7 Days)
+            <span class="sort-icon" *ngIf="sortKey() === 'matches'">{{ sortDirection() === 'asc' ? '↑' : '↓' }}</span>
+          </th>
+          <th>Recommendation</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of sortedReadiness()">
+          <td class="player-name-cell">
+            <div class="avatar-initial">{{ item.playerName[0] }}</div>
+            <span class="name-text">{{ item.playerName }}</span>
+          </td>
+          
+          <td class="score-cell text-center">
+            <div class="score-wrapper">
+              <svg class="radial-progress" viewBox="0 0 36 36">
+                <path
+                  class="circle-bg"
+                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                />
+                <path
+                  class="circle"
+                  [attr.stroke-dasharray]="item.readinessScore + ', 100'"
+                  [style.stroke]="getScoreColor(item.readinessScore)"
+                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                />
+                <text x="18" y="20.35" class="percentage">{{ item.readinessScore }}</text>
+              </svg>
+            </div>
+          </td>
+
+          <td class="matches-cell text-center">
+            <span class="match-count" [class.high-fatigue]="item.matchesPlayedLast7Days >= 3">
+              {{ item.matchesPlayedLast7Days }}
+            </span>
+          </td>
+
+          <td class="recommendation-cell">
+            <div class="rec-box" [style.borderLeftColor]="getScoreColor(item.readinessScore)">
+              {{ item.recommendation || item.status }}
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

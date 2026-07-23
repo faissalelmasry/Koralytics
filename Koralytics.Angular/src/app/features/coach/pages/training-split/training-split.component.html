@@ -1,0 +1,89 @@
+<div class="page-container">
+  <div class="page-header">
+    <h1 class="page-title">Training <span class="accent">Split</span></h1>
+    <p class="page-subtitle">Automatically divide your squad into balanced teams for training sessions.</p>
+  </div>
+
+  <div class="controls-card">
+    <div class="input-group">
+      <label for="sessionSelect">Select Training Session</label>
+      <select id="sessionSelect" [(ngModel)]="selectedSessionId" class="glass-input">
+        <option *ngFor="let session of availableSessions" [value]="session.id">
+          {{ session.title }} - {{ session.date | date:'shortDate' }}
+        </option>
+      </select>
+    </div>
+    <button class="btn-primary" (click)="generateSplit()" [disabled]="loading()">
+      <span *ngIf="!loading()">⚔️ Split Teams</span>
+      <span *ngIf="loading()" class="spinner-small"></span>
+    </button>
+  </div>
+
+  <div class="error-state" *ngIf="error()">
+    <p>{{ error() }}</p>
+  </div>
+
+  <div class="split-results" *ngIf="splitResult() && !loading()">
+    
+    <!-- Team A Column -->
+    <div class="team-column team-a">
+      <div class="team-header">
+        <div class="team-title">
+          <h2>Team A</h2>
+          <span class="player-count">{{ splitResult()!.teamA.length }} Players</span>
+        </div>
+        <div class="team-stats">
+          <span class="stat-label">AVG Rating</span>
+          <div class="stat-value">{{ teamAAverage() | number:'1.1-1' }}</div>
+        </div>
+      </div>
+      
+      <div class="player-list">
+        <div class="player-row" *ngFor="let p of splitResult()!.teamA">
+          <div class="player-avatar">
+            <span class="avatar-initial">{{ p.fullName[0] }}</span>
+          </div>
+          <div class="player-details">
+            <span class="player-name">{{ p.fullName }}</span>
+            <span class="player-pos">{{ p.primaryPosition }}</span>
+          </div>
+          <div class="player-rating">
+            {{ p.overallRating | number:'1.0-0' }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="vs-divider">VS</div>
+
+    <!-- Team B Column -->
+    <div class="team-column team-b">
+      <div class="team-header">
+        <div class="team-title">
+          <h2>Team B</h2>
+          <span class="player-count">{{ splitResult()!.teamB.length }} Players</span>
+        </div>
+        <div class="team-stats">
+          <span class="stat-label">AVG Rating</span>
+          <div class="stat-value">{{ teamBAverage() | number:'1.1-1' }}</div>
+        </div>
+      </div>
+      
+      <div class="player-list">
+        <div class="player-row" *ngFor="let p of splitResult()!.teamB">
+          <div class="player-avatar">
+            <span class="avatar-initial">{{ p.fullName[0] }}</span>
+          </div>
+          <div class="player-details">
+            <span class="player-name">{{ p.fullName }}</span>
+            <span class="player-pos">{{ p.primaryPosition }}</span>
+          </div>
+          <div class="player-rating">
+            {{ p.overallRating | number:'1.0-0' }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

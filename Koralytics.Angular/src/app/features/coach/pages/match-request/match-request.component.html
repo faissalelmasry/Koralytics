@@ -1,0 +1,148 @@
+<div class="page-container">
+  <div class="page-header">
+    <h1 class="page-title">Match <span class="accent">Requests</span></h1>
+    <p class="page-subtitle">Schedule friendly matches with other academies and manage incoming invitations.</p>
+  </div>
+
+  <div class="tabs-container">
+    <button class="tab-btn" [class.active]="activeTab() === 'incoming'" (click)="setTab('incoming')">
+      Incoming Requests
+      <span class="tab-badge" *ngIf="incomingRequests().length > 0">{{ incomingRequests().length }}</span>
+    </button>
+    <button class="tab-btn" [class.active]="activeTab() === 'outgoing'" (click)="setTab('outgoing')">
+      Sent Requests
+    </button>
+    <button class="tab-btn" [class.active]="activeTab() === 'new'" (click)="setTab('new')">
+      + Propose Match
+    </button>
+  </div>
+
+  <div class="tab-content" *ngIf="activeTab() === 'incoming'">
+    <div class="loading-state" *ngIf="loading()">
+      <span class="spinner-small"></span> Loading incoming requests...
+    </div>
+
+    <div class="empty-state" *ngIf="!loading() && incomingRequests().length === 0">
+      <p>No incoming match requests.</p>
+    </div>
+
+    <div class="request-list" *ngIf="!loading() && incomingRequests().length > 0">
+      <div class="request-card" *ngFor="let req of incomingRequests()">
+        <div class="request-header">
+          <div class="request-teams">
+            <span class="team-name">{{ req.requesterTeamName }}</span>
+            <span class="vs">vs</span>
+            <span class="team-name my-team">Your Team</span>
+          </div>
+          <span class="status-badge" [ngClass]="getStatusClass(req.status)">{{ req.status }}</span>
+        </div>
+        
+        <div class="request-details">
+          <div class="detail-item">
+            <span class="detail-icon">📅</span>
+            <span>{{ req.proposedDate | date:'medium' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-icon">📍</span>
+            <span>{{ req.location || 'TBD' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-icon">⚽</span>
+            <span>{{ req.format }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-icon">👤</span>
+            <span>Coach: {{ req.requesterCoachName }}</span>
+          </div>
+        </div>
+
+        <div class="request-actions" *ngIf="req.status === 'Pending'">
+          <button class="btn-primary" (click)="acceptRequest(req.id)">Accept</button>
+          <button class="btn-outline-danger" (click)="declineRequest(req.id)">Decline</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-content" *ngIf="activeTab() === 'outgoing'">
+    <div class="loading-state" *ngIf="loading()">
+      <span class="spinner-small"></span> Loading sent requests...
+    </div>
+
+    <div class="empty-state" *ngIf="!loading() && outgoingRequests().length === 0">
+      <p>No outgoing match requests.</p>
+    </div>
+
+    <div class="request-list" *ngIf="!loading() && outgoingRequests().length > 0">
+      <div class="request-card" *ngFor="let req of outgoingRequests()">
+        <div class="request-header">
+          <div class="request-teams">
+            <span class="team-name my-team">Your Team</span>
+            <span class="vs">vs</span>
+            <span class="team-name">{{ req.targetTeamName }}</span>
+          </div>
+          <span class="status-badge" [ngClass]="getStatusClass(req.status)">{{ req.status }}</span>
+        </div>
+        
+        <div class="request-details">
+          <div class="detail-item">
+            <span class="detail-icon">📅</span>
+            <span>{{ req.proposedDate | date:'medium' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-icon">📍</span>
+            <span>{{ req.location || 'TBD' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-icon">⚽</span>
+            <span>{{ req.format }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-content" *ngIf="activeTab() === 'new'">
+    <div class="compose-card">
+      <h3>Propose Friendly Match</h3>
+      
+      <div class="form-row">
+        <div class="form-group half">
+          <label for="targetTeam">Opponent Team ID</label>
+          <input type="number" id="targetTeam" class="glass-input" [(ngModel)]="newRequest.targetTeamId" placeholder="Enter Team ID">
+        </div>
+        <div class="form-group half">
+          <label for="format">Match Format</label>
+          <select id="format" class="glass-input" [(ngModel)]="newRequest.format">
+            <option value="11v11">11 v 11</option>
+            <option value="9v9">9 v 9</option>
+            <option value="7v7">7 v 7</option>
+            <option value="5v5">5 v 5</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group half">
+          <label for="date">Proposed Date & Time</label>
+          <input type="datetime-local" id="date" class="glass-input" [(ngModel)]="newRequest.proposedDate">
+        </div>
+        <div class="form-group half">
+          <label for="location">Location (Optional)</label>
+          <input type="text" id="location" class="glass-input" [(ngModel)]="newRequest.location" placeholder="e.g. Academy Main Pitch">
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-primary" [disabled]="submitting() || !newRequest.targetTeamId || !newRequest.proposedDate" (click)="sendRequest()">
+          <span *ngIf="!submitting()">Send Match Request</span>
+          <span *ngIf="submitting()" class="spinner-small"></span>
+        </button>
+      </div>
+
+      <div class="alert success" *ngIf="successMsg()">{{ successMsg() }}</div>
+      <div class="alert error" *ngIf="submitError()">{{ submitError() }}</div>
+    </div>
+  </div>
+
+</div>
