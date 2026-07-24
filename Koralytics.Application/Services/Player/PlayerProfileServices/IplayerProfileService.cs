@@ -16,5 +16,8 @@ namespace Koralytics.Application.Services.Player.PlayerProfileServices
             int playerId, int year, int month);
         Task<TeamScheduledEventsResponseDto> GetTeamScheduledEventsAsync(int playerId, int page = 1, int pageSize = 20,
             string? eventType = null, DateTime? dateFrom = null, DateTime? dateTo = null);
+        Task AddPlayerPositionAsync(int playerId, string position, bool isPrimary);
+        Task UpdatePrimaryPositionAsync(int playerId, string position);
+        Task RemovePlayerPositionAsync(int playerId, string position);
     }
 }

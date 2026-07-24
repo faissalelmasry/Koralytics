@@ -4364,7 +4364,7 @@ namespace Koralytics.Infrastructure.Migrations
                     b.HasOne("Koralytics.Domain.Entities.Player.Player", "Player")
                         .WithMany("PlayerPositions")
                         .HasForeignKey("PlayerId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("CreatedByUser");
