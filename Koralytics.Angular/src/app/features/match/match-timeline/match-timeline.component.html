@@ -1,0 +1,45 @@
+<div class="match-hub-wrapper">
+
+  <div class="hero-scoreboard">
+    <div class="team-box home">{{ matchInfo.homeTeam }}</div>
+    <div class="score-center">
+      <div class="score-digits">{{ matchInfo.homeScore }} - {{ matchInfo.awayScore }}</div>
+      @if (isCompleted) { <span class="ft-badge">FULL TIME</span> }
+      @if (isLive) { <span class="ft-badge live">LIVE</span> }
+    </div>
+    <div class="team-box away">{{ matchInfo.awayTeam }}</div>
+  </div>
+
+  <div class="nav-tabs-container">
+    <button class="tab-btn" [class.active]="selectedTab === 'timeline'" (click)="selectTab('timeline')">
+      Match Timeline
+    </button>
+    <button class="tab-btn" [class.active]="selectedTab === 'lineups'" (click)="selectTab('lineups')">
+      Lineups &amp; Tactics
+    </button>
+  </div>
+
+  <div class="swipe-viewport">
+    <div class="swipe-track" [style.transform]="trackTransform">
+
+      <div class="slide-page">
+        <app-match-timeline-events [events]="timelineEvents" />
+      </div>
+
+      <div class="slide-page">
+        <app-match-lineups
+          [homeName]="matchInfo.homeTeam"
+          homeFormation="4-3-3"
+          [homeStarters]="formationHome"
+          [homeBench]="homeBench"
+          [awayName]="matchInfo.awayTeam"
+          awayFormation="3-4-3"
+          [awayStarters]="formationAway"
+          [awayBench]="awayBench"
+        />
+      </div>
+
+    </div>
+  </div>
+
+</div>

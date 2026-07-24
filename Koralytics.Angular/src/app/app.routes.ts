@@ -41,8 +41,19 @@ export const routes: Routes = [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   },
-  { 
-    path: 'academy-admin/dashboard', 
+  {
+    path: 'coach/matches',
+    loadComponent: () => import('./features/match/pages/coach-match-list/coach-match-list.component').then(m => m.CoachMatchListComponent),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'academy/matches',
+    loadComponent: () => import('./features/match/pages/academy-match-list/academy-match-list.component').then(m => m.AcademyMatchListComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['AcademyAdmin', 'SuperAdmin'] }
+  },
+  {
+    path: 'academy-admin/dashboard',
     loadComponent: () => import('./features/academy-admin/pages/academy-admin-dashboard/academy-admin-dashboard.component').then(m => m.AcademyAdminDashboardComponent),
     canActivate: [authGuard, roleGuard],
     data: { roles: ['AcademyAdmin'] }

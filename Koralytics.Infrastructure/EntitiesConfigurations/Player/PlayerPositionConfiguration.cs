@@ -14,7 +14,7 @@ namespace Koralytics.Infrastructure.EntitiesConfigurations.Player
             builder.HasOne(pp => pp.Player)
                 .WithMany(p => p.PlayerPositions)
                 .HasForeignKey(pp => pp.PlayerId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

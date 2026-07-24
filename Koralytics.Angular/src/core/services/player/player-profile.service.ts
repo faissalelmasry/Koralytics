@@ -8,6 +8,7 @@ import { DrillTimelineDto } from '../../models/Player/drill-timeline-model';
 import { TeamScheduledEventsResponseDto } from '../../models/Player/scheduled-event-model';
 import { ProfileViewsResponse } from '../../models/Player/profile-views-model';
 import { PlayerVsAcademyModel } from '../../models/Player/player-vs-academy-model';
+import { AddPlayerPositionDto, UpdatePrimaryPositionDto, RemovePlayerPositionDto } from '../../models/Player/player-profile-model';
 
 @Injectable({
   providedIn: 'root'
@@ -97,5 +98,17 @@ export class PlayerProfileService {
 
   getPlayerVsAcademyAverage(): Observable<PlayerVsAcademyModel> {
     return this.http.get<PlayerVsAcademyModel>(`${this.apiUrl}/Player/academy-comparison`);
+  }
+
+  addPlayerPosition(playerId: number, dto: AddPlayerPositionDto): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/Player/${playerId}/positions`, dto);
+  }
+
+  updatePrimaryPosition(playerId: number, dto: UpdatePrimaryPositionDto): Observable<void> {
+    return this.http.patch<void>(`${this.apiUrl}/Player/${playerId}/positions/primary`, dto);
+  }
+
+  removePlayerPosition(playerId: number, dto: RemovePlayerPositionDto): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/Player/${playerId}/positions`, { body: dto });
   }
 }
