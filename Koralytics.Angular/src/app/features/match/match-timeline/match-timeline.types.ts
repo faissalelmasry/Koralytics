@@ -4,6 +4,7 @@ export interface TimelineEvent {
   minute: number;
   eventType: string;
   eventSubtext: string;
+  rawType: string;
   side: 'home' | 'away';
   player: MiniPlayerCardModel;
   accentColor: string;

@@ -11,6 +11,7 @@ namespace Koralytics.Application.DTOs.Match
         public int TeamId { get; set; }
         public bool IsStarting { get; set; }
         public int? JerseyNumber { get; set; }
+        public string? PositionInMatch { get; set; }
     }
 
     public class LineupResponseDto
@@ -24,5 +25,6 @@ namespace Koralytics.Application.DTOs.Match
         public bool IsStarting { get; set; }
         public int? JerseyNumber { get; set; }
         public bool? IsHomeSide { get; set; }
+        public string? PositionInMatch { get; set; }
     }
 }

@@ -1,13 +1,27 @@
 <div class="match-hub-wrapper">
 
   <div class="hero-scoreboard">
-    <div class="team-box home">{{ matchInfo.homeTeam }}</div>
+    <div class="team-box home">
+      <div class="team-text">
+        <span class="team-name">{{ matchInfo.homeTeam }}</span>
+        @if (matchInfo.homeAcademy) {
+          <span class="academy-sub">{{ matchInfo.homeAcademy }}</span>
+        }
+      </div>
+    </div>
     <div class="score-center">
       <div class="score-digits">{{ matchInfo.homeScore }} - {{ matchInfo.awayScore }}</div>
       @if (isCompleted) { <span class="ft-badge">FULL TIME</span> }
       @if (isLive) { <span class="ft-badge live">LIVE</span> }
     </div>
-    <div class="team-box away">{{ matchInfo.awayTeam }}</div>
+    <div class="team-box away">
+      <div class="team-text">
+        <span class="team-name">{{ matchInfo.awayTeam }}</span>
+        @if (matchInfo.awayAcademy) {
+          <span class="academy-sub">{{ matchInfo.awayAcademy }}</span>
+        }
+      </div>
+    </div>
   </div>
 
   <div class="nav-tabs-container">
@@ -22,21 +36,29 @@
   <div class="swipe-viewport">
     <div class="swipe-track" [style.transform]="trackTransform">
 
-      <div class="slide-page">
-        <app-match-timeline-events [events]="timelineEvents" />
+      <div class="slide-page left-page">
+        @if (eventsLoaded && timelineEvents.length === 0) {
+          <app-empty-state title="No Match Events" description="Timeline events have not been recorded for this match." />
+        } @else {
+          <app-match-timeline-events [events]="timelineEvents" />
+        }
       </div>
 
-      <div class="slide-page">
-        <app-match-lineups
-          [homeName]="matchInfo.homeTeam"
-          homeFormation="4-3-3"
-          [homeStarters]="formationHome"
-          [homeBench]="homeBench"
-          [awayName]="matchInfo.awayTeam"
-          awayFormation="3-4-3"
-          [awayStarters]="formationAway"
-          [awayBench]="awayBench"
-        />
+      <div class="slide-page right-page">
+        @if (lineupsLoaded && homeStarters.length === 0 && awayStarters.length === 0) {
+          <app-empty-state title="No Lineups Available" description="Lineups have not been submitted for this match." />
+        } @else {
+          <app-match-lineups
+            [homeName]="matchInfo.homeTeam"
+            [homeFormation]="displayHomeFormation"
+            [homeStarters]="formationHome"
+            [homeBench]="homeBench"
+            [awayName]="matchInfo.awayTeam"
+            [awayFormation]="displayAwayFormation"
+            [awayStarters]="formationAway"
+            [awayBench]="awayBench"
+          />
+        }
       </div>
 
     </div>

@@ -1,0 +1,53 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  --card-bg: #12161f;
+  --border-color: rgba(255, 255, 255, 0.06);
+  --text-muted: #6b7280;
+  --color-red: #f87171;
+  font-family: 'Inter', sans-serif;
+  color: #f3f4f6;
+}
+
+.page-wrapper {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 120px 20px 40px 20px;
+  min-height: 100vh;
+}
+
+.loading-state,
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  text-align: center;
+}
+
+.loading-state p,
+.error-state p {
+  margin-top: 15px;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.error-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(248, 113, 113, 0.12);
+  border: 2px solid rgba(248, 113, 113, 0.3);
+  color: var(--color-red);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin-bottom: 12px;
+}

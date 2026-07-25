@@ -40,8 +40,6 @@
 }
 
 .team-box {
-  font-size: 16px;
-  font-weight: 800;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -55,6 +53,23 @@
 .team-box.away {
   justify-content: flex-start;
   text-align: left;
+}
+
+.team-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.team-name {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.academy-sub {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-top: 2px;
 }
 
 .score-center {
@@ -131,12 +146,43 @@
 .swipe-track {
   display: flex;
   width: 200%;
-  transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .slide-page {
   width: 50%;
   flex-shrink: 0;
+  transition: opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.slide-page.left-page {
+  animation: slideFadeIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.slide-page.right-page {
+  animation: slideFadeInRight 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes slideFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideFadeInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 /* ---- REDUCED MOTION ---- */
@@ -148,5 +194,26 @@
 
   .ft-badge {
     animation: none;
+  }
+
+  .fade-in-content {
+    animation: none;
+  }
+}
+
+/* ---- CONTENT FADE IN ---- */
+
+.fade-in-content {
+  animation: contentFadeIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes contentFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

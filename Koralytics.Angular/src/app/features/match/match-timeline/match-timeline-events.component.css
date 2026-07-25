@@ -14,7 +14,7 @@
   padding: 24px 16px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
   position: relative;
   backdrop-filter: blur(20px);
 }
@@ -39,7 +39,7 @@
 .timeline-event-box {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--card-border);
   padding: 10px 14px;
@@ -57,13 +57,15 @@
 
 .timeline-event-box.home {
   justify-content: flex-end;
-  text-align: right;
   margin-right: 10px;
+}
+
+.timeline-event-box.home .event-label-group {
+  text-align: right;
 }
 
 .timeline-event-box.away {
   justify-content: flex-start;
-  text-align: left;
   margin-left: 10px;
 }
 
@@ -72,20 +74,45 @@
   pointer-events: none;
 }
 
-.event-details {
-  display: flex;
-  flex-direction: column;
-}
-
-.event-type-badge {
-  font-size: 11px;
-  font-weight: 800;
+.event-icon {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
+  border-radius: 10px;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.01));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.2);
 }
 
-.event-subtext {
+.event-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.event-label-group {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.event-type-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.event-player-name {
+  font-size: 13px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 0.3px;
+  margin-top: 2px;
+}
+
+.event-assist {
   font-size: 10px;
   color: var(--text-muted);
   margin-top: 2px;

@@ -234,7 +234,8 @@ namespace Koralytics.Application.Services.Match
                         TeamId = session.TeamId,
                         IsStarting = player.IsStarting,
                         JerseyNumber = player.JerseyNumber,
-                        IsHomeSide = true
+                        IsHomeSide = true,
+                        PositionInMatch = player.PositionInMatch
                     };
                     await _unitOfWork.Repository<MatchLineupEntity>().AddAsync(lineup);
                 }
@@ -248,7 +249,8 @@ namespace Koralytics.Application.Services.Match
                         TeamId = session.TeamId,
                         IsStarting = player.IsStarting,
                         JerseyNumber = player.JerseyNumber,
-                        IsHomeSide = false
+                        IsHomeSide = false,
+                        PositionInMatch = player.PositionInMatch
                     };
                     await _unitOfWork.Repository<MatchLineupEntity>().AddAsync(lineup);
                 }

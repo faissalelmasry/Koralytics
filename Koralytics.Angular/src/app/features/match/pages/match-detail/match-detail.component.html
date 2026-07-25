@@ -1,0 +1,21 @@
+<app-navbar></app-navbar>
+
+<div class="page-wrapper">
+
+  @if (isLoading) {
+    <div class="loading-state">
+      <app-loading-spinner size="lg"></app-loading-spinner>
+      <p>Loading match details...</p>
+    </div>
+  } @else if (error) {
+    <div class="error-state">
+      <div class="error-icon">!</div>
+      <p>{{ error }}</p>
+    </div>
+  } @else {
+    <app-match-timeline [matchId]="matchId" [matchInfo]="matchInfo" />
+  }
+
+</div>
+
+<app-footer></app-footer>

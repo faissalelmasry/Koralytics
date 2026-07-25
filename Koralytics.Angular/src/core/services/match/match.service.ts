@@ -57,4 +57,16 @@ export class MatchService {
 
     return this.http.get<ApiResponse<MatchListDto>>(`${this.apiUrl}/academy`, { params });
   }
+
+  getMatch(matchId: number): Observable<ApiResponse<any>> {
+    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/${matchId}`);
+  }
+
+  getMatchTimeline(matchId: number): Observable<ApiResponse<any>> {
+    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/${matchId}/timeline`);
+  }
+
+  getLineup(matchId: number): Observable<ApiResponse<any>> {
+    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/${matchId}/lineup`);
+  }
 }

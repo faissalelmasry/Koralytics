@@ -47,6 +47,11 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
+    path: 'match/:id',
+    loadComponent: () => import('./features/match/pages/match-detail/match-detail.component').then(m => m.MatchDetailComponent),
+    canActivate: [authGuard]
+  },
+  {
     path: 'academy/matches',
     loadComponent: () => import('./features/match/pages/academy-match-list/academy-match-list.component').then(m => m.AcademyMatchListComponent),
     canActivate: [authGuard, roleGuard],

@@ -1,13 +1,17 @@
 <div class="timeline-container">
-  @for (event of events; track event.minute) {
+  @for (event of eventsWithIcons; track event.minute) {
     <div class="timeline-row">
       @if (event.side === 'home') {
         <div class="timeline-event-box home">
-          <div class="event-details">
-            <span class="event-type-badge" [style.color]="event.accentColor">{{ event.eventType }}</span>
-            <span class="event-subtext">{{ event.eventSubtext }}</span>
-          </div>
           <app-mini-player-card [player]="event.player" size="xs" />
+          <div class="event-label-group">
+            <span class="event-type-label" [style.color]="getLabelColor(event.rawType)">{{ event.eventType }}</span>
+            <span class="event-player-name">{{ event.player.fullName }}</span>
+            @if (event.eventSubtext) {
+              <span class="event-assist">{{ event.eventSubtext }}</span>
+            }
+          </div>
+          <div class="event-icon" [innerHTML]="event.iconSvg"></div>
         </div>
       } @else {
         <div class="timeline-event-box empty"></div>
@@ -17,11 +21,15 @@
 
       @if (event.side === 'away') {
         <div class="timeline-event-box away">
-          <app-mini-player-card [player]="event.player" size="xs" />
-          <div class="event-details">
-            <span class="event-type-badge" [style.color]="event.accentColor">{{ event.eventType }}</span>
-            <span class="event-subtext">{{ event.eventSubtext }}</span>
+          <div class="event-icon" [innerHTML]="event.iconSvg"></div>
+          <div class="event-label-group">
+            <span class="event-type-label" [style.color]="getLabelColor(event.rawType)">{{ event.eventType }}</span>
+            <span class="event-player-name">{{ event.player.fullName }}</span>
+            @if (event.eventSubtext) {
+              <span class="event-assist">{{ event.eventSubtext }}</span>
+            }
           </div>
+          <app-mini-player-card [player]="event.player" size="xs" />
         </div>
       } @else {
         <div class="timeline-event-box empty"></div>

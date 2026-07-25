@@ -330,5 +330,6 @@ namespace Koralytics.API.Controllers
             await _playerProfileService.RemovePlayerPositionAsync(playerId, dto.Position);
             return NoContent();
         }
+
     }
 }

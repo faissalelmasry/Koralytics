@@ -3,62 +3,70 @@
     class="subtab-btn"
     [class.active]="selectedTeam === 'home'"
     (click)="selectTeam('home')"
-  >{{ homeName }} ({{ homeFormation }})</button>
+  >{{ homeName }} ({{ homeFormation || '-' }})</button>
   <button
     class="subtab-btn"
     [class.active]="selectedTeam === 'away'"
     (click)="selectTeam('away')"
-  >{{ awayName }} ({{ awayFormation }})</button>
+  >{{ awayName }} ({{ awayFormation || '-' }})</button>
 </div>
 
 <div class="lineups-wrapper">
 
   <div class="pitch-view-container" [class.hidden]="selectedTeam !== 'home'">
-    <div class="full-pitch">
-      <div class="pitch-center-line"></div>
-      <div class="pitch-center-circle"></div>
+    @if (homeFormation && homeFormation !== '-') {
+      <div class="full-pitch">
+        <div class="pitch-center-line"></div>
+        <div class="pitch-center-circle"></div>
 
-      @for (row of homeStarters; track $index) {
-        <div class="formation-row">
-          @for (player of row; track player.playerId) {
-            <app-mini-player-card [player]="player" size="sm" [float]="true" />
-          }
-        </div>
-      }
-    </div>
-
-    <div class="bench-card">
-      <div class="bench-title">Substitutes Bench ({{ homeName }})</div>
-      <div class="bench-flex">
-        @for (player of homeBench; track player.playerId) {
-          <app-mini-player-card [player]="player" size="sm" />
+        @for (row of homeStarters; track $index) {
+          <div class="formation-row">
+            @for (player of row; track player.playerId) {
+              <app-mini-player-card [player]="player" size="sm" [float]="true" />
+            }
+          </div>
         }
       </div>
-    </div>
+
+      <div class="bench-card">
+        <div class="bench-title">Substitutes Bench ({{ homeName }})</div>
+        <div class="bench-flex">
+          @for (player of homeBench; track player.playerId) {
+            <app-mini-player-card [player]="player" size="sm" />
+          }
+        </div>
+      </div>
+    } @else {
+      <app-empty-state title="No Lineup" [description]="homeName + ' has no lineup submitted for this match.'" />
+    }
   </div>
 
   <div class="pitch-view-container" [class.hidden]="selectedTeam !== 'away'">
-    <div class="full-pitch">
-      <div class="pitch-center-line"></div>
-      <div class="pitch-center-circle"></div>
+    @if (awayFormation && awayFormation !== '-') {
+      <div class="full-pitch">
+        <div class="pitch-center-line"></div>
+        <div class="pitch-center-circle"></div>
 
-      @for (row of awayStarters; track $index) {
-        <div class="formation-row">
-          @for (player of row; track player.playerId) {
-            <app-mini-player-card [player]="player" size="sm" [float]="true" />
-          }
-        </div>
-      }
-    </div>
-
-    <div class="bench-card">
-      <div class="bench-title">Substitutes Bench ({{ awayName }})</div>
-      <div class="bench-flex">
-        @for (player of awayBench; track player.playerId) {
-          <app-mini-player-card [player]="player" size="sm" />
+        @for (row of awayStarters; track $index) {
+          <div class="formation-row">
+            @for (player of row; track player.playerId) {
+              <app-mini-player-card [player]="player" size="sm" [float]="true" />
+            }
+          </div>
         }
       </div>
-    </div>
+
+      <div class="bench-card">
+        <div class="bench-title">Substitutes Bench ({{ awayName }})</div>
+        <div class="bench-flex">
+          @for (player of awayBench; track player.playerId) {
+            <app-mini-player-card [player]="player" size="sm" />
+          }
+        </div>
+      </div>
+    } @else {
+      <app-empty-state title="No Lineup" [description]="awayName + ' has no lineup submitted for this match.'" />
+    }
   </div>
 
 </div>

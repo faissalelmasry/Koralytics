@@ -21,5 +21,7 @@ namespace Koralytics.Application.DTOs.Match
         public int? HomePenaltyScore { get; set; }
         public int? AwayPenaltyScore { get; set; }
         public int? WinningTeamId { get; set; }
+        public string? Formation { get; set; }
+        public string? AwayFormation { get; set; }
     }
 }
