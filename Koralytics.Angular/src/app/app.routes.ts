@@ -115,11 +115,6 @@ export const routes: Routes = [
     data: { roles: ['Player'] }
   },
   {
-    path: 'profile-views-analytics/:playerId',
-    loadComponent: () => import('./features/ProfileViewsAnalyticsPage/profile-views-analytics/profile-views-analytics').then(m => m.ProfileViewsAnalytics),
-    canActivate: [authGuard]
-  },
-  {
     path: 'academy-announcement/:academyId',
     loadComponent: () => import('./features/notification/pages/academy-announcement/academy-announcement').then(m => m.AcademyAnnouncement),
     canActivate: [authGuard]

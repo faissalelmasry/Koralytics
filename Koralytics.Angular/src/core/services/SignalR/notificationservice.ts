@@ -74,6 +74,3 @@ export class NotificationService {
     );
   }
 }
-//TODO: fix scouter controller
-//TODO: add scouter service and scouter components logic
-//TODO: add player profile analytics components logic

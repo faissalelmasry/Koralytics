@@ -9,7 +9,7 @@ namespace Koralytics.Application.DTOs.Player
 {
     public class PlayerCardDto
     {
-
+        public int PlayerId { get; set; }
         public string PlayerName { get; set; } = string.Empty;
         public string Position { get; set; } = string.Empty;  // "GK" or "Field"
 
