@@ -45,6 +45,7 @@ namespace Koralytics.Application.DTOs.Academies
         public int PlayerId { get; set; }
         public string PlayerFullName { get; set; } = string.Empty;
         public DateTime JoinedAt { get; set; }
+        public string? Position { get; set; }
     }
 
     public class CoachTeamAssignmentDto

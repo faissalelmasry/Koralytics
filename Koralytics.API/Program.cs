@@ -148,6 +148,14 @@ namespace Koralytics.API
                             {
                                 context.Token = accessToken;
                             }
+                            // Priority 3: access_token query parameter — used for SignalR connections.
+                            var accessTokenQuery = context.Request.Query["access_token"];
+                            var path = context.HttpContext.Request.Path;
+                            if (!string.IsNullOrEmpty(accessTokenQuery) && path.StartsWithSegments("/hubs"))
+                            {
+                                context.Token = accessTokenQuery;
+                                return Task.CompletedTask;
+                            }
 
                             return Task.CompletedTask;
                         }
@@ -240,7 +248,7 @@ namespace Koralytics.API
             builder.Services.AddScoped<IScouterShortlistService, ScouterShortlistService>();
             builder.Services.AddScoped<IScouterFollowService, ScouterFollowService>();
             builder.Services.AddScoped<IScouterReportService, ScouterReportService>();
-            //builder.Services.AddScoped<IStorageService, StorageService>();
+            builder.Services.AddScoped<IStorageService, StorageService>();
             builder.Services.AddSignalR();
             builder.Services.AddScoped<IRealTimeBridge, RealTimeBridge>();
             builder.Services.AddScoped<IPlayerNotificationService, PlayerNotificationService>();

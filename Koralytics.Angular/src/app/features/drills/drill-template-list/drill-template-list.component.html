@@ -4,10 +4,10 @@
     <div class="header-left">
       <div class="header-eyebrow">
         <span class="eyebrow-dot"></span>
-        <span class="eyebrow-text">tactical engine</span>
+        <span class="eyebrow-text">TACTICAL ENGINE</span>
       </div>
-      <h1 class="header-title">drill templates</h1>
-      <p class="header-subtitle">Manage And Deploy Training Drill Protocols For Your Academy</p>
+      <h1 class="header-title">Drill Templates</h1>
+      <p class="header-subtitle">Manage and deploy training drill protocols for your academy</p>
     </div>
     <div class="header-right">
       <app-button variant="accent" (click)="openCreateForm()">+ New Drill Template</app-button>
@@ -18,22 +18,22 @@
   <div class="stats-strip">
     <div class="stat-item">
       <span class="stat-value">{{ totalItems }}</span>
-      <span class="stat-label">total templates</span>
+      <span class="stat-label">Total Templates</span>
     </div>
     <div class="stat-divider"></div>
     <div class="stat-item">
       <span class="stat-value coral">{{ advancedCount }}</span>
-      <span class="stat-label">advanced</span>
+      <span class="stat-label">Advanced</span>
     </div>
     <div class="stat-divider"></div>
     <div class="stat-item">
       <span class="stat-value cyan">{{ sharedCount }}</span>
-      <span class="stat-label">shared</span>
+      <span class="stat-label">Shared</span>
     </div>
     <div class="stat-divider"></div>
     <div class="stat-item">
       <span class="stat-value accent">{{ visibleTemplates.length }}</span>
-      <span class="stat-label">showing</span>
+      <span class="stat-label">Showing</span>
     </div>
   </div>
 
@@ -101,15 +101,19 @@
         <span class="difficulty-label">{{ getDifficultyLabel(drill.difficultyLevel) }}</span>
       </div>
 
-      <div class="card-meta">
-        <div class="meta-item">
-          <span class="meta-icon">🎮</span>
-          <span class="meta-value">{{ getDrillModeLabel(drill.drillMode) }}</span>
+      <div class="session-meta">
+        <div class="meta-row" style="color: #00f0ff;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+          </svg>
+          Mode: {{ getDrillModeLabel(drill.drillMode) }}
         </div>
-        <div class="meta-item">
-          <span class="meta-icon">🏠</span>
-          <span class="meta-value">{{ drill.academyId !== null ? (drill.academyName || 'unknown academy') : 'koralytics
-            global' }}</span>
+        <div class="meta-row">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+            <polyline points="9 22 9 12 15 12 15 22" />
+          </svg>
+          Scope: {{ drill.academyId !== null ? (drill.academyName || 'Academy Template') : 'Koralytics Global' }}
         </div>
       </div>
 
@@ -157,46 +161,42 @@
     </div>
 
     <div class="form-group">
-      <label class="form-label">Category</label>
-      <select formControlName="categoryId" class="form-native-select">
-        <option [ngValue]="null" disabled>Select a category...</option>
-        @for (cat of categories; track cat.id) {
-        <option [ngValue]="cat.id">{{ cat.name }}</option>
-        }
-      </select>
+      <app-select label="Category" placeholder="Select a category..." [options]="formCategoryOptions"
+        [value]="drillForm.get('categoryId')?.value" (valueChange)="onFormCategoryChange($event)">
+      </app-select>
       @if (drillForm.get('categoryId')?.invalid && drillForm.get('categoryId')?.touched) {
       <span class="field-error">Category is required</span>
       }
     </div>
 
-    <div class="form-group">
-      <label class="form-label">Difficulty Level</label>
-      <select formControlName="difficultyLevel" class="form-native-select">
-        <option [ngValue]="null" disabled>Select difficulty...</option>
-        @for (diff of difficultyLevels; track diff) {
-        <option [ngValue]="diff">{{ diff }}</option>
-        }
-      </select>
+    <div class="form-group mt-3">
+      <app-select label="Difficulty Level" placeholder="Select difficulty..." [options]="difficultyOptions"
+        [value]="drillForm.get('difficultyLevel')?.value" (valueChange)="onFormDifficultyChange($event)">
+      </app-select>
       @if (drillForm.get('difficultyLevel')?.invalid && drillForm.get('difficultyLevel')?.touched) {
       <span class="field-error">Difficulty is required</span>
       }
     </div>
 
-    <div class="form-group">
-      <label class="form-label">Drill Mode</label>
-      <select formControlName="drillMode" class="form-native-select">
-        <option [ngValue]="null" disabled>Select drill mode...</option>
-        @for (mode of drillModes; track mode) {
-        <option [ngValue]="mode">{{ mode }}</option>
-        }
-      </select>
+    <div class="form-group mt-3">
+      <app-select label="Drill Mode" placeholder="Select drill mode..." [options]="drillModeOptions"
+        [value]="drillForm.get('drillMode')?.value" (valueChange)="onFormModeChange($event)">
+      </app-select>
       @if (drillForm.get('drillMode')?.invalid && drillForm.get('drillMode')?.touched) {
       <span class="field-error">Drill mode is required</span>
       }
     </div>
 
     @if (formError) {
-    <div class="form-error-banner">⚠ {{ formError }}</div>
+    <div class="form-error-banner">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        style="margin-right: 6px;">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+        <line x1="12" y1="9" x2="12" y2="13" />
+        <line x1="12" y1="17" x2="12.01" y2="17" />
+      </svg>
+      {{ formError }}
+    </div>
     }
 
     <div class="panel-actions">

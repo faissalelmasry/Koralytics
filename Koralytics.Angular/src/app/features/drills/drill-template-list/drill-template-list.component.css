@@ -45,12 +45,11 @@
    PAGE WRAPPER
 ───────────────────────────────────────────────── */
 .drills-page {
-  padding: 40px clamp(20px, 5vw, 60px);
-  max-width: 1400px;
+  max-width: 1200px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 30px;
   font-family: 'Inter', sans-serif;
 }
 
@@ -90,13 +89,14 @@
 }
 
 .header-title {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: clamp(42px, 6vw, 72px);
-  letter-spacing: 2px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 42px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  text-transform: uppercase;
   color: var(--text-light);
   margin: 0;
-  line-height: 1;
-  text-transform: capitalize;
+  line-height: 1.1;
 }
 
 .header-subtitle {
@@ -131,11 +131,12 @@
 }
 
 .stat-value {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 36px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 800;
+  font-size: 32px;
   line-height: 1;
   color: var(--text-light);
-  letter-spacing: 1px;
+  letter-spacing: -0.5px;
 }
 
 .stat-value.accent {
@@ -237,8 +238,8 @@
 ───────────────────────────────────────────────── */
 .drills-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 22px;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 24px;
 }
 
 /* ─────────────────────────────────────────────────
@@ -248,8 +249,8 @@
   position: relative;
   background: var(--bg-card);
   border: 1px solid var(--border-card);
-  border-radius: 20px;
-  padding: 28px;
+  border-radius: 12px;
+  padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -274,7 +275,7 @@
   left: 0;
   right: 0;
   height: 3px;
-  border-radius: 20px 20px 0 0;
+  border-radius: 12px 12px 0 0;
 }
 
 .drill-card.difficulty-advanced .card-glow-bar {
@@ -344,13 +345,13 @@
 }
 
 .card-title {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 22px;
-  letter-spacing: 0.8px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: -0.3px;
   color: var(--text-light);
   margin: 0;
-  line-height: 1.1;
-  text-transform: capitalize;
+  line-height: 1.3;
 }
 
 .card-badges,
@@ -468,28 +469,21 @@
 /* ─────────────────────────────────────────────────
    CARD META
 ───────────────────────────────────────────────── */
-.card-meta {
+.session-meta {
   display: flex;
-  gap: 18px;
-  flex-wrap: wrap;
-  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+  margin-bottom: 16px;
 }
 
-.meta-item {
+.meta-row {
   display: flex;
   align-items: center;
-  gap: 6px;
-}
-
-.meta-icon {
+  gap: 8px;
   font-size: 13px;
-  opacity: 0.55;
-}
-
-.meta-value {
-  font-size: 12px;
+  color: #8b909a;
   font-weight: 500;
-  color: var(--text-dim);
 }
 
 /* ─────────────────────────────────────────────────
@@ -531,9 +525,10 @@
 }
 
 .empty-title {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 32px;
-  letter-spacing: 1.5px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 800;
+  font-size: 24px;
+  letter-spacing: -0.5px;
   color: var(--text-light);
   margin: 0;
 }
@@ -615,9 +610,10 @@
 }
 
 .panel-title {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 34px;
-  letter-spacing: 1px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 800;
+  font-size: 28px;
+  letter-spacing: -0.5px;
   color: var(--text-light);
   margin: 0;
 }
@@ -864,11 +860,12 @@
 }
 
 .confirm-title {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 24px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 800;
+  font-size: 22px;
   color: var(--text-light);
   margin: 0 0 12px 0;
-  letter-spacing: 1px;
+  letter-spacing: -0.3px;
 }
 
 .confirm-message {

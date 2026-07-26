@@ -1,0 +1,119 @@
+<div class="page-container">
+  <div class="page-header">
+    <h1 class="page-title">Player <span class="accent">Notes</span></h1>
+    <p class="page-subtitle">Private tactical evaluations and feedback for your squad.</p>
+  </div>
+
+  <div class="layout-grid">
+    
+    <!-- Left Sidebar: Player List -->
+    <div class="player-sidebar">
+      <div class="sidebar-header">
+        <h3>Squad Players</h3>
+      </div>
+      
+      <div class="player-list" *ngIf="squad()">
+        <button 
+          class="player-item" 
+          *ngFor="let p of squad()!.players"
+          [class.active]="p.playerId === selectedPlayerId"
+          (click)="selectPlayer(p.playerId)">
+          <div class="player-avatar">
+            <span class="avatar-initial">{{ p.fullName[0] }}</span>
+          </div>
+          <div class="player-info">
+            <span class="player-name">{{ p.fullName }}</span>
+            <span class="player-pos">{{ p.primaryPosition }}</span>
+          </div>
+        </button>
+      </div>
+      
+      <div class="loading-state" *ngIf="!squad()">
+        <span class="spinner-small"></span> Loading squad...
+      </div>
+    </div>
+
+    <!-- Right Content: Notes Area -->
+    <div class="notes-content" *ngIf="selectedPlayerId">
+      
+      <!-- Compose Note Card -->
+      <div class="compose-card">
+        <h3>Write a Note</h3>
+        
+        <div class="form-group">
+          <textarea 
+            class="glass-textarea" 
+            [(ngModel)]="newNote.note"
+            placeholder="Type your feedback or tactical observation here..."
+            rows="4">
+          </textarea>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group half">
+            <label>Link to Session (Optional)</label>
+            <input type="number" class="glass-input" [(ngModel)]="newNote.sessionId" placeholder="Session ID">
+          </div>
+          <div class="form-group half">
+            <label>Link to Match (Optional)</label>
+            <input type="number" class="glass-input" [(ngModel)]="newNote.matchId" placeholder="Match ID">
+          </div>
+        </div>
+
+        <div class="compose-actions">
+          <label class="toggle-label">
+            <input type="checkbox" [(ngModel)]="newNote.isPublic">
+            <span class="toggle-text">Visible to Player</span>
+          </label>
+          
+          <button class="btn-primary" [disabled]="submittingNote() || !newNote.note.trim()" (click)="submitNote()">
+            <span *ngIf="!submittingNote()">Post Note</span>
+            <span *ngIf="submittingNote()" class="spinner-small"></span>
+          </button>
+        </div>
+        
+        <div class="alert success" *ngIf="successMsg()">{{ successMsg() }}</div>
+        <div class="alert error" *ngIf="error()">{{ error() }}</div>
+      </div>
+
+      <!-- Notes History -->
+      <div class="notes-history">
+        <h3 class="history-title">Previous Notes</h3>
+        
+        <div class="loading-state" *ngIf="loadingNotes() && notes().length === 0">
+          <span class="spinner-small"></span> Loading history...
+        </div>
+
+        <div class="empty-state" *ngIf="!loadingNotes() && notes().length === 0">
+          <p>No notes recorded for this player yet.</p>
+        </div>
+
+        <div class="note-list" *ngIf="notes().length > 0">
+          <div class="note-card" *ngFor="let note of notes()">
+            <div class="note-header">
+              <span class="note-date">{{ note.createdAt | date:'mediumDate' }} - {{ note.createdAt | date:'shortTime' }}</span>
+              <span class="badge" [class.public]="note.isPublic" [class.private]="!note.isPublic">
+                {{ note.isPublic ? 'Public' : 'Private' }}
+              </span>
+            </div>
+            
+            <p class="note-text">{{ note.note }}</p>
+            
+            <div class="note-links" *ngIf="note.sessionId || note.matchId">
+              <span class="link-tag" *ngIf="note.sessionId">🎯 Session #{{ note.sessionId }}</span>
+              <span class="link-tag" *ngIf="note.matchId">⚽ Match #{{ note.matchId }}</span>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn-load-more" *ngIf="hasNextPage" (click)="loadMore()" [disabled]="loadingNotes()">
+          <span *ngIf="!loadingNotes()">Load Older Notes</span>
+          <span *ngIf="loadingNotes()">Loading...</span>
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+</div>

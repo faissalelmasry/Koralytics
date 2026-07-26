@@ -1,4 +1,4 @@
-﻿using Koralytics.Application.DTOs.Drill;
+using Koralytics.Application.DTOs.Drill;
 using Koralytics.Application.Services.Drill.DrillAnalytic;
 using Koralytics.Application.Services.Drill.DrillResult;
 using Koralytics.Application.Services.Drill.DrillSession;
@@ -173,8 +173,10 @@ namespace Koralytics.API.Controllers.Drill
             var claims = GetCurrentUserClaims();
             int currentAcademyId = claims.AcademyId ?? 0;
 
-            // 🟢 UPDATED: Passing claims.Role and currentAcademyId to the service
-            var result = await _sessionService.GetSessionByIdAsync(sessionId, claims.UserId, claims.Role, currentAcademyId);
+            bool isAdmin = User.IsInRole("AcademyAdmin") || User.IsInRole("Admin") || User.IsInRole("SystemAdmin");
+            string roleToPass = isAdmin ? "AcademyAdmin" : "Coach";
+
+            var result = await _sessionService.GetSessionByIdAsync(sessionId, claims.UserId, roleToPass, currentAcademyId);
             return Ok(result);
         }
 
@@ -227,7 +229,12 @@ namespace Koralytics.API.Controllers.Drill
         public async Task<IActionResult> GetSessionAttendance(int sessionId)
         {
             var claims = GetCurrentUserClaims();
-            var roster = await _resultService.GetSessionAttendanceAsync(sessionId, claims.UserId);
+            int currentAcademyId = claims.AcademyId ?? 0;
+
+            bool isAdmin = User.IsInRole("AcademyAdmin") || User.IsInRole("Admin") || User.IsInRole("SystemAdmin");
+            string roleToPass = isAdmin ? "AcademyAdmin" : "Coach";
+
+            var roster = await _resultService.GetSessionAttendanceAsync(sessionId, claims.UserId, roleToPass, currentAcademyId);
             return Ok(roster);
         }
 
@@ -244,7 +251,12 @@ namespace Koralytics.API.Controllers.Drill
         public async Task<IActionResult> GetDrillResults(int sessionId, int drillId)
         {
             var claims = GetCurrentUserClaims();
-            var existingResults = await _resultService.GetDrillResultsAsync(sessionId, drillId, claims.UserId);
+            int currentAcademyId = claims.AcademyId ?? 0;
+
+            bool isAdmin = User.IsInRole("AcademyAdmin") || User.IsInRole("Admin") || User.IsInRole("SystemAdmin");
+            string roleToPass = isAdmin ? "AcademyAdmin" : "Coach";
+
+            var existingResults = await _resultService.GetDrillResultsAsync(sessionId, drillId, claims.UserId, roleToPass, currentAcademyId);
             return Ok(existingResults);
         }
 
@@ -285,12 +297,15 @@ namespace Koralytics.API.Controllers.Drill
             // 1. Extract Identity
             var claims = GetCurrentUserClaims();
 
+            bool isAdmin = User.IsInRole("AcademyAdmin") || User.IsInRole("Admin") || User.IsInRole("SystemAdmin");
+            string roleToPass = isAdmin ? "AcademyAdmin" : claims.Role;
+
             // 2. Delegate to Service
             var biasReport = await _analyticsService.DetectCoachBiasAsync(
                 targetCoachId: coachId,
                 academyId: claims.AcademyId ?? 0,
                 currentUserId: claims.UserId,
-                currentUserRole: claims.Role
+                currentUserRole: roleToPass
             );
 
             // 3. Return

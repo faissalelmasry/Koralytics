@@ -11,14 +11,17 @@ import {
     DrillDto
 } from '../../interfaces/drill-session.model';
 import { environment } from '../../../environments/environment';
+
 @Injectable({
     providedIn: 'root'
 })
 export class DrillSessionService {
     private http = inject(HttpClient);
+    private readonly baseUrl = `${environment.apiUrl}/api/drills`;
     private readonly apiUrl = `${environment.apiUrl}/api/drills/sessions`;
+
     // ==========================================
-    // SESSION CRUD ENDPOINTS
+    // 1. SESSION CRUD ENDPOINTS
     // ==========================================
 
     getCoachSessions(filter: SessionFilterDto): Observable<DrillSessionDto[]> {
@@ -63,7 +66,7 @@ export class DrillSessionService {
     }
 
     // ==========================================
-    // DRILLS INSIDE A SESSION (The Planner)
+    // 2. DRILLS & ATTENDANCE INSIDE SESSION
     // ==========================================
 
     addDrillToSession(sessionId: number, dto: AddSessionDrillDto): Observable<DrillDto> {
@@ -72,5 +75,49 @@ export class DrillSessionService {
 
     removeDrillFromSession(sessionId: number, drillId: number): Observable<void> {
         return this.http.delete<void>(`${this.apiUrl}/${sessionId}/drills/${drillId}`);
+    }
+
+    // Fetch session attendance sheet
+    getSessionAttendance(sessionId: number): Observable<any[]> {
+        return this.http.get<any[]>(`${this.apiUrl}/${sessionId}/attendance`);
+    }
+
+    // Update session attendance sheet
+    updateAttendance(sessionId: number, dto: any): Observable<any> {
+        return this.http.put(`${this.apiUrl}/${sessionId}/attendance`, dto);
+    }
+
+    // Fetch drill results
+    getDrillResults(sessionId: number, drillId: number): Observable<any[]> {
+        return this.http.get<any[]>(`${this.apiUrl}/${sessionId}/drills/${drillId}/results`);
+    }
+
+    // Submit performance results for players
+    submitDrillResults(sessionId: number, drillId: number, dto: any): Observable<any> {
+        return this.http.post(`${this.apiUrl}/${sessionId}/drills/${drillId}/results`, dto);
+    }
+
+    // ==========================================
+    // 3. CATEGORIES & ANALYTICS ENDPOINTS
+    // ==========================================
+
+    // Fetch all drill categories for filter dropdowns
+    getCategories(): Observable<any[]> {
+        return this.http.get<any[]>(`${this.baseUrl}/categories`);
+    }
+
+    // Fetch single player progression over time for a specific category
+    getPlayerProgression(playerId: number, categoryId: number): Observable<any> {
+        return this.http.get<any>(`${this.baseUrl}/players/${playerId}/progression/category/${categoryId}`);
+    }
+
+    // Fetch squad weak categories summary
+    getSquadWeakCategories(teamId: number): Observable<any[]> {
+        return this.http.get<any[]>(`${this.baseUrl}/analytics/teams/${teamId}/weak-categories`);
+    }
+
+    // Calculate and detect coach bias / trust index
+    getCoachBiasReport(coachId: number): Observable<any> {
+        return this.http.post<any>(`${this.baseUrl}/coaches/${coachId}/bias/calculate`, {});
     }
 }

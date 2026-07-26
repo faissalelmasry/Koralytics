@@ -1,0 +1,134 @@
+<div class="analytics-page">
+
+    <!-- TOP NAVIGATION BAR -->
+    <div class="top-nav-bar">
+        <button class="btn-back" (click)="goBack()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            <span>Back to Drill Sessions</span>
+        </button>
+    </div>
+
+    <!-- PAGE HEADER -->
+    <header class="page-header flex-between">
+        <div>
+            <div class="header-eyebrow">
+                <span class="eyebrow-dot"></span>
+                <span class="eyebrow-text">Squad Diagnostics</span>
+            </div>
+            <h1 class="header-title">Weak Categories Analysis</h1>
+            <p class="header-subtitle">Identify performance gaps and generate automated session remedies.</p>
+        </div>
+
+        <!-- TEAM FILTER DROPDOWN -->
+        <div class="filter-box">
+            <app-select
+                label="Selected Squad / Team"
+                placeholder="Select Team"
+                [options]="teamOptions"
+                [value]="selectedTeamId"
+                (valueChange)="onTeamSelect($event)">
+            </app-select>
+        </div>
+    </header>
+
+    @if (isLoading) {
+    <div class="loading-state text-center py-5">
+        <app-loading-spinner size="lg"></app-loading-spinner>
+        <p class="loading-text mt-3">Analyzing squad drill ratings and aggregating weak metrics...</p>
+    </div>
+    } @else if (errorMessage) {
+    <div class="error-banner flex-align">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        {{ errorMessage }}
+    </div>
+    } @else {
+
+    <div class="analytics-grid">
+
+        <!-- LEFT COLUMN: SQUAD WEAKNESS BAR CHART -->
+        <section class="panel chart-panel">
+            <div class="panel-header flex-between">
+                <div>
+                    <h2>Category Performance Spectrum</h2>
+                    <p class="helper-text">Sorted from lowest performing category to highest.</p>
+                </div>
+            </div>
+
+            @if (categoriesPerformance.length > 0) {
+            <div class="bars-container mt-3">
+                @for (item of categoriesPerformance; track item.categoryName) {
+                <div class="bar-row">
+                    <div class="bar-info flex-between">
+                        <span class="category-name">{{ item.categoryName }}</span>
+                        <span class="score-badge" [class]="getScoreClass(item.averageScore)">
+                            Avg: {{ item.averageScore }} / 10
+                        </span>
+                    </div>
+
+                    <div class="bar-track">
+                        <div class="bar-fill" [style.width]="getBarWidth(item.averageScore)"
+                            [style.background-color]="getBarColor(item.averageScore)">
+                        </div>
+                    </div>
+                </div>
+                }
+            </div>
+            } @else {
+            <div class="empty-state">
+                <p>No drill performance records found for this team yet.</p>
+            </div>
+            }
+        </section>
+
+        <!-- RIGHT COLUMN: AUTOMATED SESSION PLANNER SUGGESTIONS -->
+        <section class="panel suggestions-panel">
+            <div class="panel-header flex-between">
+                <div>
+                    <h2>Recommended Remedial Drills</h2>
+                    <p class="helper-text">Suggested drills to fix identified squad weaknesses.</p>
+                </div>
+                <button class="btn-accent-small" (click)="scheduleSuggestedSession()">+ Schedule Session</button>
+            </div>
+
+            <div class="suggestions-list mt-3">
+                @for (sug of suggestions; track sug.categoryName) {
+                <div class="suggestion-card" [class]="sug.priority.toLowerCase()">
+                    <div class="card-top flex-between">
+                        <h3 class="sug-category">{{ sug.categoryName }}</h3>
+                        <app-status-chip
+                            [label]="sug.priority + ' PRIORITY'"
+                            [type]="getPriorityChipType(sug.priority)">
+                        </app-status-chip>
+                    </div>
+
+                    <p class="sug-focus">{{ sug.recommendedFocus }}</p>
+
+                    <div class="suggested-drills-box mt-2">
+                        <span class="drills-label">Suggested Drill Templates:</span>
+                        <ul class="drills-list">
+                            @for (drillName of sug.suggestedDrills; track $index) {
+                            <li>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#00f0ff" stroke-width="2" style="margin-right: 6px;">
+                                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                                </svg>
+                                {{ drillName }}
+                            </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+                }
+            </div>
+        </section>
+
+    </div>
+
+    }
+</div>

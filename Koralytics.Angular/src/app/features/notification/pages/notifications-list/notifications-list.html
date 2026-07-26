@@ -1,1 +1,56 @@
-<p>notifications-list works!</p>
+<app-navbar></app-navbar>
+<div class="notifications-page">
+
+  <div class="notif-header">
+    <h1>Notifications</h1>
+    @if (unreadCount() > 0) {
+      <span class="unread-pill">{{ unreadCount() }} unread</span>
+    }
+  </div>
+
+  @if (isLoading()) {
+    <div class="loading-state">
+      <p>Loading notifications...</p>
+    </div>
+  }
+  @else if (notifications().length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">✓</div>
+      <p>You're all caught up -- no notifications yet.</p>
+    </div>
+  }
+  @else {
+    <div class="notif-list-panel">
+      @for (notif of notifications(); track notif.id) {
+        <div class="notif-item" [class.unread]="!notif.isRead">
+          <span class="notif-dot"></span>
+          <div class="notif-body">
+            @if (notif.title) {
+              <p class="notif-title">{{ notif.title }}</p>
+            }
+            <p class="notif-message">{{ notif.content }}</p>
+            <span class="notif-time">{{ notif.sentAt | date: 'MMM d, y, h:mm a' }}</span>
+          </div>
+          @if (!notif.isRead) {
+            <button class="mark-read-btn" (click)="markAsRead(notif.id)">
+              Mark read
+            </button>
+          }
+        </div>
+      }
+    </div>
+
+    @if (hasMore()) {
+      <button class="load-more-btn" [disabled]="isLoadingMore()" (click)="loadMore()">
+        @if (isLoadingMore()) {
+          <span class="spinner-dot"></span>
+          <span>Loading more...</span>
+        }
+        @else {
+          <span>Load More</span>
+        }
+      </button>
+    }
+  }
+
+</div>

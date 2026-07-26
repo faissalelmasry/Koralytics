@@ -1,4 +1,3 @@
-<p>drill-session-create.component works!</p>
 <div class="create-page">
     <header class="page-header">
         <div class="header-eyebrow">
@@ -10,7 +9,14 @@
     </header>
 
     @if (errorMessage) {
-    <div class="error-banner">⚠️ {{ errorMessage }}</div>
+    <div class="error-banner flex-align">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        {{ errorMessage }}
+    </div>
     }
 
     <form [formGroup]="sessionForm" (ngSubmit)="onSubmit()" class="form-grid">
@@ -18,24 +24,26 @@
         <!-- LEFT COLUMN: SESSION DETAILS -->
         <section class="form-panel details-panel">
             <h2 class="panel-title">Session Details</h2>
-
+            
             <div class="form-group">
-                <label>Target Squad (Team)</label>
-                <select class="native-input" formControlName="teamId">
-                    <option value="" disabled>Select a team...</option>
-                    @for (team of availableTeams; track team.id) {
-                    <option [value]="team.id">{{ team.name }}</option>
-                    }
-                </select>
+                <app-select
+                    label="Target Squad (Team)"
+                    placeholder="Select a team..."
+                    [options]="teamOptions"
+                    [value]="sessionForm.get('teamId')?.value"
+                    (valueChange)="onTeamChangeCustom($event)">
+                </app-select>
                 @if (sessionForm.get('teamId')?.touched && sessionForm.get('teamId')?.invalid) {
                 <span class="error-text">Team selection is required.</span>
                 }
             </div>
 
-            <div class="row-group">
+            <div class="row-group mt-3">
                 <div class="form-group half">
-                    <label>Date</label>
-                    <input type="date" class="native-input" formControlName="sessionDate">
+                    <app-date-picker
+                        label="Date"
+                        formControlName="sessionDate">
+                    </app-date-picker>
                 </div>
                 <div class="form-group half">
                     <label>Time</label>
@@ -43,14 +51,15 @@
                 </div>
             </div>
 
-            <div class="row-group">
+            <div class="row-group mt-3">
                 <div class="form-group half">
-                    <label>Session Type</label>
-                    <select class="native-input" formControlName="type">
-                        @for (opt of sessionTypes; track opt.value) {
-                        <option [value]="opt.value">{{ opt.label }}</option>
-                        }
-                    </select>
+                    <app-select
+                        label="Session Type"
+                        placeholder="Select type..."
+                        [options]="typeOptions"
+                        [value]="sessionForm.get('type')?.value"
+                        (valueChange)="onTypeChangeCustom($event)">
+                    </app-select>
                 </div>
                 <div class="form-group half">
                     <label>Location / Pitch</label>
@@ -59,7 +68,7 @@
                 </div>
             </div>
 
-            <div class="form-group">
+            <div class="form-group mt-3">
                 <label>Tactical Notes</label>
                 <textarea class="native-input textarea" formControlName="notes" rows="4"
                     placeholder="Enter tactical objectives or gear requirements..."></textarea>
@@ -68,7 +77,7 @@
 
         <!-- RIGHT COLUMN: ROSTER SELECTION -->
         <section class="form-panel roster-panel">
-            <div class="roster-header">
+            <div class="roster-header flex-between">
                 <h2 class="panel-title">Expected Squad</h2>
                 @if (availablePlayers.length > 0) {
                 <div class="roster-actions">
@@ -102,10 +111,10 @@
 
         <!-- BOTTOM ACTION BAR -->
         <div class="action-bar">
-            <button type="button" class="btn-secondary" (click)="cancel()">Cancel</button>
-            <button type="submit" class="btn-primary" [disabled]="isSubmitting || sessionForm.invalid">
-                {{ isSubmitting ? 'Scheduling...' : 'Schedule Session' }}
-            </button>
+            <app-button variant="slate" (click)="cancel()">Cancel</app-button>
+            <app-button variant="accent" [loading]="isSubmitting" [disabled]="sessionForm.invalid || isSubmitting" (click)="onSubmit()">
+                Schedule Session
+            </app-button>
         </div>
 
     </form>

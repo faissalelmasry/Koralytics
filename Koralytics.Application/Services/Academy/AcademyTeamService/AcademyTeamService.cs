@@ -256,6 +256,7 @@ namespace Koralytics.Application.Services.Academy.AcademyTeamService
             var playerTeams = await _unitOfWork.Repository<PlayerTeam>()
                 .GetQueryableAsNoTracking()
                 .Include(pt => pt.Player)
+                    .ThenInclude(p => p.PlayerPositions) 
                 .Where(pt => teamIds.Contains(pt.TeamId) && pt.LeftAt == null)
                 .ToListAsync();
 
@@ -273,7 +274,13 @@ namespace Koralytics.Application.Services.Academy.AcademyTeamService
                 {
                     PlayerId = p.PlayerId,
                     PlayerFullName = p.Player != null ? $"{p.Player.FirstName} {p.Player.LastName}" : string.Empty,
-                    JoinedAt = p.JoinedAt
+                    JoinedAt = p.JoinedAt,
+                    Position = p.Player != null
+                        ? p.Player.PlayerPositions
+                            .Where(pos => pos.IsPrimary)
+                            .Select(pos => pos.Position)
+                            .FirstOrDefault() ?? "N/A"
+                        : "N/A"
                 }).ToList();
             }
 

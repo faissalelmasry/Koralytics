@@ -12,6 +12,7 @@ import { AuthService } from '../../../core/services/auth/auth.service';
 })
 export class NavbarComponent {
   private authService = inject(AuthService);
+
   variant = signal<'primary' | 'icon'>('icon'); 
   
   isSidebarOpen = false;
@@ -28,5 +29,21 @@ export class NavbarComponent {
 
   toggleSidebar(status: boolean) {
     this.isSidebarOpen = status;
+  }
+
+  get isLoggedIn(): boolean {
+    return this.authService.isLoggedIn();
+  }
+
+  get isCoach(): boolean {
+    return this.authService.getUserRoles().includes('Coach');
+  }
+
+  get isPlayer(): boolean {
+    return this.authService.getUserRoles().includes('Player');
+  }
+
+  get isAcademyAdmin(): boolean {
+    return this.authService.getUserRoles().includes('AcademyAdmin');
   }
 }
