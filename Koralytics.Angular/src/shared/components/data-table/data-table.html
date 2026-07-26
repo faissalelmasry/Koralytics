@@ -42,7 +42,10 @@
             <!-- Case 4: Action Buttons -->
             <ng-container *ngIf="col.type === 'action'">
               <div class="table-actions-hub">
-                <button class="btn-table-action btn-view" *ngIf="!row.hideAnalyze" (click)="onAction(row, 'view')">
+                <button class="btn-table-action btn-view" *ngIf="row.showSetMain && !row.isMain" (click)="onAction(row, 'setMain')">
+                  set main
+                </button>
+                <button class="btn-table-action btn-view" *ngIf="!row.hideAnalyze && !row.showSetMain" (click)="onAction(row, 'view')">
                   analyze
                 </button>
                 <button class="btn-table-action btn-delete" *ngIf="!row.hideDelete" (click)="onAction(row, 'delete')">

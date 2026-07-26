@@ -1,0 +1,161 @@
+<div class="section-container fade-in">
+  <div class="section-header">
+    <div class="header-content">
+      <h3>Active Academies Directory</h3>
+      <p class="subtitle">Browse all registered academies, inspect teams, staff, locations, badges, and subscription statuses</p>
+    </div>
+
+    <div class="search-box">
+      <input 
+        type="text" 
+        [(ngModel)]="searchQuery" 
+        (keyup.enter)="onSearch()" 
+        placeholder="Search academies..." />
+      <button class="btn-search" (click)="onSearch()">Search</button>
+    </div>
+  </div>
+
+  <div class="loading-state" *ngIf="isLoading">
+    <app-loading-spinner size="lg"></app-loading-spinner>
+    <p>Loading academies...</p>
+  </div>
+
+  <!-- Academies List Table with Expandable Rows -->
+  <div class="cyber-table-responsive-container" *ngIf="!isLoading && academies.length > 0">
+    <table class="cyber-data-table">
+      <thead>
+        <tr>
+          <th style="width: 40px;"></th>
+          <th>Academy Name</th>
+          <th>Founded</th>
+          <th>Owner / Admin</th>
+          <th>Status</th>
+          <th class="text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody *ngFor="let acad of academies">
+        <!-- Main Academy Row -->
+        <tr [class.expanded-row]="expandedAcademyId() === acad.id" (click)="toggleExpand(acad.id)" style="cursor: pointer;">
+          <td class="text-center">
+            <span class="expand-icon" [class.rotated]="expandedAcademyId() === acad.id">▸</span>
+          </td>
+          <td>
+            <div class="academy-name-cell">
+              <img [src]="acad.logoUrl || 'images/logo/primary/logo-primary-dark.png'" alt="logo" class="mini-logo" />
+              <div>
+                <span class="academy-title">{{ acad.name }}</span>
+                <span class="academy-id">ID: #{{ acad.id }}</span>
+              </div>
+            </div>
+          </td>
+          <td><span class="cell-text">{{ acad.foundedDate | date:'mediumDate' }}</span></td>
+          <td>
+            <span class="cell-text">{{ acad.adminFullName || acad.adminEmail || 'Owner' }}</span>
+          </td>
+          <td (click)="$event.stopPropagation()">
+            <div class="status-cell">
+              <span class="status-badge" [ngClass]="getStatusClass(acad.status)">
+                {{ getStatusLabel(acad.status) }}
+              </span>
+            </div>
+          </td>
+          <td class="text-right" (click)="$event.stopPropagation()">
+            <div class="action-buttons">
+              <app-button variant="accent" size="sm" (click)="openStatusModal(acad)">
+                Status
+              </app-button>
+              <app-button variant="slate" size="sm" (click)="toggleExpand(acad.id)">
+                {{ expandedAcademyId() === acad.id ? 'Collapse' : 'Inspect' }}
+              </app-button>
+            </div>
+          </td>
+        </tr>
+
+        <!-- Expanded Detail Panel Row -->
+        <tr *ngIf="expandedAcademyId() === acad.id" class="detail-row">
+          <td colspan="6" class="detail-cell">
+            <app-academy-detail-panel [academyId]="acad.id"></app-academy-detail-panel>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="empty-state" *ngIf="!isLoading && academies.length === 0">
+    <div class="empty-icon">🏢</div>
+    <h4>No Academies Found</h4>
+    <p>We couldn't find any academies matching your criteria.</p>
+  </div>
+
+  <!-- Pagination Controls -->
+  <div class="pagination-footer" *ngIf="!isLoading && totalCount > pageSize">
+    <app-pagination
+      [totalItems]="totalCount"
+      [pageSize]="pageSize"
+      [currentPage]="pageNumber"
+      (pageChange)="onPageChange($event)">
+    </app-pagination>
+  </div>
+</div>
+
+<!-- Academy Status Management Modal -->
+<div class="modal-backdrop" *ngIf="showStatusModal" (click)="closeStatusModal()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h4>Manage Academy Status</h4>
+      <button class="btn-close" (click)="closeStatusModal()">&times;</button>
+    </div>
+
+    <div class="modal-body">
+      <p class="helper-text">Select the current operational status for <strong>{{ selectedAcademyForStatus?.name }}</strong>:</p>
+
+      <div class="status-options">
+        <!-- Active -->
+        <div 
+          class="status-card" 
+          [class.selected]="selectedStatus === 'Active'" 
+          [class.active-status]="selectedStatus === 'Active'"
+          (click)="selectStatusOption('Active')">
+          <div class="status-card-icon">🟢</div>
+          <div class="status-card-content">
+            <h6>Active</h6>
+            <p>Academy is fully operational and visible across Koralytics.</p>
+          </div>
+        </div>
+
+        <!-- Suspended -->
+        <div 
+          class="status-card" 
+          [class.selected]="selectedStatus === 'Suspended'" 
+          [class.suspended-status]="selectedStatus === 'Suspended'"
+          (click)="selectStatusOption('Suspended')">
+          <div class="status-card-icon">🟡</div>
+          <div class="status-card-content">
+            <h6>Suspended</h6>
+            <p>Temporarily restrict platform access while under review or payment grace.</p>
+          </div>
+        </div>
+
+        <!-- Inactive -->
+        <div 
+          class="status-card" 
+          [class.selected]="selectedStatus === 'Inactive'" 
+          [class.inactive-status]="selectedStatus === 'Inactive'"
+          (click)="selectStatusOption('Inactive')">
+          <div class="status-card-icon">🔴</div>
+          <div class="status-card-content">
+            <h6>Inactive</h6>
+            <p>Deactivate this academy account and hide its public directory listing.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <app-button variant="slate" (click)="closeStatusModal()">Cancel</app-button>
+      <app-button variant="accent" (click)="onSaveStatus()" [disabled]="isUpdatingStatus">
+        {{ isUpdatingStatus ? 'Updating Status...' : 'Save Changes' }}
+      </app-button>
+    </div>
+  </div>
+</div>

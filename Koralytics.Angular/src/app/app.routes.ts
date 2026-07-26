@@ -132,6 +132,12 @@ export const routes: Routes = [
     data: { roles: ['AcademyAdmin'] }
   },
   {
+    path: 'system-admin/dashboard',
+    loadComponent: () => import('./features/system-admin/pages/system-admin-dashboard/system-admin-dashboard.component').then(m => m.SystemAdminDashboardComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['SystemAdmin'] }
+  },
+  {
     path: 'player/profile',
     loadComponent: () => import('./features/player/player-profile/player-profile.component').then(m => m.PlayerProfileComponent),
     canActivate: [authGuard, roleGuard],

@@ -186,6 +186,36 @@ namespace Koralytics.Application.Services.Academy.AcademyService
         }
 
         // ──────────────────────────────────────────────────────────────────────
+        // UpdateAcademyStatusAsync
+        // ──────────────────────────────────────────────────────────────────────
+        public async Task<AcademyResponseDto> UpdateAcademyStatusAsync(int academyId, UpdateAcademyStatusDto dto, int performedByUserId)
+        {
+            _logger.LogInformation(
+                "User {UserId} updating status for academy {AcademyId} to {Status}", performedByUserId, academyId, dto.Status);
+
+            var academy = await _unitOfWork.Repository<Domain.Entities.Academy.Academy>()
+                .FindAsync(a => a.Id == academyId);
+
+            if (academy is null)
+                throw new NotFoundException($"Academy with Id {academyId} not found.");
+
+            academy.Status = dto.Status;
+            academy.UpdatedById = performedByUserId;
+            academy.UpdatedAt = DateTime.UtcNow;
+
+            await _unitOfWork.SaveChangesAsync();
+
+            _logger.LogInformation("Academy {AcademyId} status updated to {Status} successfully.", academyId, dto.Status);
+
+            var updated = await _unitOfWork.Repository<Domain.Entities.Academy.Academy>()
+                .GetQueryableAsNoTracking()
+                .Include(a => a.Admin)
+                .FirstOrDefaultAsync(a => a.Id == academyId);
+
+            return _mapper.Map<AcademyResponseDto>(updated!);
+        }
+
+        // ──────────────────────────────────────────────────────────────────────
         // AddLocationAsync
         // Automatically sets IsMain = true when it is the first location.
         // ──────────────────────────────────────────────────────────────────────
@@ -339,6 +369,39 @@ namespace Koralytics.Application.Services.Academy.AcademyService
         }
 
         // ──────────────────────────────────────────────────────────────────────
+        // DeleteLocationAsync
+        // ──────────────────────────────────────────────────────────────────────
+        public async Task DeleteLocationAsync(int academyId, int locationId, int performedByUserId)
+        {
+            _logger.LogInformation(
+                "User {UserId} deleting location {LocationId} for academy {AcademyId}",
+                performedByUserId, locationId, academyId);
+
+            var target = await _unitOfWork.Repository<AcademyLocation>()
+                .FindAsync(l => l.Id == locationId && l.AcademyId == academyId);
+
+            if (target is null)
+                throw new NotFoundException($"Location {locationId} not found in academy {academyId}.");
+
+            if (target.IsMain)
+            {
+                // Can't delete main location unless it's the only one
+                var otherLocations = await _unitOfWork.Repository<AcademyLocation>()
+                    .FindAllAsync(l => l.AcademyId == academyId && l.Id != locationId);
+                
+                if (otherLocations.Any())
+                {
+                    throw new BadRequestException("Cannot delete the main location while other locations exist. Please set another location as main first.");
+                }
+            }
+
+            _unitOfWork.Repository<AcademyLocation>().SoftDelete(target);
+            await _unitOfWork.SaveChangesAsync();
+
+            _logger.LogInformation("Location {LocationId} deleted.", locationId);
+        }
+
+        // ──────────────────────────────────────────────────────────────────────
         // RequestAcademyAsync
         // ──────────────────────────────────────────────────────────────────────
         public async Task<Koralytics.Application.DTOs.SystemAdmin.AcademyRequestResponseDto> RequestAcademyAsync(Koralytics.Application.DTOs.SystemAdmin.CreateAcademyRequestDto dto, int requestedByUserId)
@@ -436,6 +499,13 @@ namespace Koralytics.Application.Services.Academy.AcademyService
         public async Task RemoveAdminFromAcademyAsync(int academyId, int adminUserId, int performedByUserId)
         {
             _logger.LogInformation("User {UserId} removing admin {AdminId} from academy {AcademyId}", performedByUserId, adminUserId, academyId);
+
+            var academy = await _unitOfWork.Repository<Domain.Entities.Academy.Academy>().FindAsync(a => a.Id == academyId);
+            if (academy is null)
+                throw new NotFoundException($"Academy {academyId} not found.");
+
+            if (academy.AdminUserId != performedByUserId)
+                throw new UnauthorizedAccessException("Only the academy owner can remove admins.");
 
             var admin = await _unitOfWork.Repository<AcademyAdmin>().FindAsync(a => a.Id == adminUserId);
             if (admin is null)
@@ -645,6 +715,37 @@ namespace Koralytics.Application.Services.Academy.AcademyService
             });
         }
 
+        public async Task<IEnumerable<AdminSearchResponseDto>> SearchAvailableAdminsAsync(string? name, int academyId)
+        {
+            // Admin who is not in ANY academy, and doesn't have a pending request to THIS academy.
+            var query = _unitOfWork.Repository<Domain.Entities.Academy.AcademyAdmin>()
+                .GetQueryableAsNoTracking()
+                .Where(a => a.AcademyId == null);
+
+            if (!string.IsNullOrWhiteSpace(name))
+            {
+                var lowerName = name.ToLower();
+                query = query.Where(a => (a.FirstName + " " + a.LastName).ToLower().Contains(lowerName));
+            }
+
+            var admins = await query.ToListAsync();
+            
+            // Filter out those with a pending request to this academy
+            var pendingRequestAdminIds = await _unitOfWork.Repository<AcademyAdminJoinRequest>()
+                .GetQueryableAsNoTracking()
+                .Where(r => r.AcademyId == academyId && r.Status == JoinRequestStatus.Pending)
+                .Select(r => r.AdminId)
+                .ToListAsync();
+
+            return admins.Where(a => !pendingRequestAdminIds.Contains(a.Id)).Select(a => new AdminSearchResponseDto
+            {
+                AdminId = a.Id,
+                FirstName = a.FirstName,
+                LastName = a.LastName,
+                ImageUrl = a.ProfileImageUrl
+            });
+        }
+
         public async Task SendPlayerJoinRequestAsync(int academyId, int playerId, int adminUserId)
         {
             _logger.LogInformation("Admin {AdminId} sending join request to player {PlayerId} for academy {AcademyId}", adminUserId, playerId, academyId);
@@ -708,6 +809,39 @@ namespace Koralytics.Application.Services.Academy.AcademyService
             };
 
             await _unitOfWork.Repository<AcademyCoachJoinRequest>().AddAsync(request);
+            await _unitOfWork.SaveChangesAsync();
+        }
+
+        public async Task SendAdminJoinRequestAsync(int academyId, int adminUserId, int performedByUserId)
+        {
+            _logger.LogInformation("Admin {PerformedById} sending join request to admin {AdminUserId} for academy {AcademyId}", performedByUserId, adminUserId, academyId);
+
+            var academy = await _unitOfWork.Repository<Domain.Entities.Academy.Academy>().FindAsync(a => a.Id == academyId);
+            if (academy is null) throw new NotFoundException($"Academy {academyId} not found.");
+
+            if (academy.AdminUserId != performedByUserId) throw new UnauthorizedAccessException("Only the academy owner can send admin join requests.");
+
+            var admin = await _unitOfWork.Repository<AcademyAdmin>().FindAsync(a => a.Id == adminUserId);
+            if (admin is null) throw new NotFoundException($"AcademyAdmin {adminUserId} not found.");
+
+            // Check if admin is already in THIS academy
+            if (admin.AcademyId == academyId) throw new ConflictException("Admin is already registered to this academy.");
+
+            // Check if pending request exists
+            var existingRequest = await _unitOfWork.Repository<AcademyAdminJoinRequest>()
+                .ExistsAsync(r => r.AcademyId == academyId && r.AdminId == adminUserId && r.Status == JoinRequestStatus.Pending);
+            if (existingRequest) throw new ConflictException("A pending join request already exists for this admin to this academy.");
+
+            var request = new AcademyAdminJoinRequest
+            {
+                AcademyId = academyId,
+                AdminId = adminUserId,
+                Status = JoinRequestStatus.Pending,
+                RequestedAt = DateTime.UtcNow,
+                CreatedById = performedByUserId
+            };
+
+            await _unitOfWork.Repository<AcademyAdminJoinRequest>().AddAsync(request);
             await _unitOfWork.SaveChangesAsync();
         }
 
@@ -780,6 +914,37 @@ namespace Koralytics.Application.Services.Academy.AcademyService
             }
         }
 
+        public async Task RespondToAdminJoinRequestAsync(int requestId, JoinRequestStatus status, int adminId)
+        {
+            _logger.LogInformation("Admin {AdminId} responding with {Status} to request {RequestId}", adminId, status, requestId);
+
+            var request = await _unitOfWork.Repository<AcademyAdminJoinRequest>().FindAsync(r => r.Id == requestId);
+            if (request is null) throw new NotFoundException($"Join request {requestId} not found.");
+
+            if (request.AdminId != adminId) throw new UnauthorizedAccessException("You can only respond to your own join requests.");
+            if (request.Status != JoinRequestStatus.Pending) throw new BadRequestException("This request has already been processed.");
+
+            if (status != JoinRequestStatus.Accepted && status != JoinRequestStatus.Rejected)
+                throw new BadRequestException("Invalid status for response.");
+
+            request.Status = status;
+            request.RespondedAt = DateTime.UtcNow;
+            request.UpdatedById = adminId;
+
+            if (status == JoinRequestStatus.Accepted)
+            {
+                var admin = await _unitOfWork.Repository<AcademyAdmin>().FindAsync(a => a.Id == adminId);
+                if (admin != null)
+                {
+                    admin.AcademyId = request.AcademyId;
+                    admin.UpdatedAt = DateTime.UtcNow;
+                    admin.UpdatedById = adminId;
+                }
+            }
+
+            await _unitOfWork.SaveChangesAsync();
+        }
+
         public async Task CancelPlayerJoinRequestAsync(int requestId, int adminUserId)
         {
             _logger.LogInformation("Admin {AdminId} cancelling player join request {RequestId}", adminUserId, requestId);
@@ -802,6 +967,28 @@ namespace Koralytics.Application.Services.Academy.AcademyService
 
             var request = await _unitOfWork.Repository<AcademyCoachJoinRequest>().FindAsync(r => r.Id == requestId);
             if (request is null) throw new NotFoundException($"Join request {requestId} not found.");
+
+            if (request.Status != JoinRequestStatus.Pending) throw new BadRequestException("Only pending requests can be cancelled.");
+
+            request.Status = JoinRequestStatus.Cancelled;
+            request.UpdatedById = adminUserId;
+            request.UpdatedAt = DateTime.UtcNow;
+
+            await _unitOfWork.SaveChangesAsync();
+        }
+
+        public async Task CancelAdminJoinRequestAsync(int requestId, int adminUserId)
+        {
+            _logger.LogInformation("Admin {AdminId} cancelling admin join request {RequestId}", adminUserId, requestId);
+
+            var request = await _unitOfWork.Repository<AcademyAdminJoinRequest>()
+                .GetQueryable()
+                .Include(r => r.Academy)
+                .FirstOrDefaultAsync(r => r.Id == requestId);
+                
+            if (request is null) throw new NotFoundException($"Join request {requestId} not found.");
+
+            if (request.Academy.AdminUserId != adminUserId) throw new UnauthorizedAccessException("Only the academy owner can cancel admin join requests.");
 
             if (request.Status != JoinRequestStatus.Pending) throw new BadRequestException("Only pending requests can be cancelled.");
 
@@ -836,6 +1023,28 @@ namespace Koralytics.Application.Services.Academy.AcademyService
             return _mapper.Map<IEnumerable<AcademyCoachJoinRequestResponseDto>>(requests);
         }
 
+        public async Task<IEnumerable<AcademyAdminJoinRequestResponseDto>> GetPendingAdminRequestsForAcademyAsync(int academyId)
+        {
+            var requests = await _unitOfWork.Repository<AcademyAdminJoinRequest>()
+                .GetQueryableAsNoTracking()
+                .Include(r => r.Admin)
+                .Include(r => r.Academy)
+                .Where(r => r.AcademyId == academyId && r.Status == JoinRequestStatus.Pending)
+                .ToListAsync();
+
+            return requests.Select(r => new AcademyAdminJoinRequestResponseDto
+            {
+                Id = r.Id,
+                AcademyId = r.AcademyId,
+                AcademyName = r.Academy.Name,
+                AdminId = r.AdminId,
+                AdminFullName = (r.Admin.FirstName + " " + r.Admin.LastName).Trim(),
+                Status = r.Status,
+                RequestedAt = r.RequestedAt,
+                RespondedAt = r.RespondedAt
+            });
+        }
+
         public async Task<IEnumerable<AcademyPlayerJoinRequestResponseDto>> GetPendingPlayerRequestsForUserAsync(int playerId)
         {
             var requests = await _unitOfWork.Repository<AcademyPlayerJoinRequest>()
@@ -858,6 +1067,31 @@ namespace Koralytics.Application.Services.Academy.AcademyService
                 .ToListAsync();
 
             return _mapper.Map<IEnumerable<AcademyCoachJoinRequestResponseDto>>(requests);
+        }
+
+        public async Task<IEnumerable<AcademyAdminJoinRequestResponseDto>> GetPendingAdminRequestsForUserAsync(int adminId)
+        {
+            var requests = await _unitOfWork.Repository<AcademyAdminJoinRequest>()
+                .GetQueryableAsNoTracking()
+                .Include(r => r.Admin)
+                .Include(r => r.Academy)
+                    .ThenInclude(a => a.Admin)
+                .Where(r => r.AdminId == adminId && r.Status == JoinRequestStatus.Pending)
+                .ToListAsync();
+
+            return requests.Select(r => new AcademyAdminJoinRequestResponseDto
+            {
+                Id = r.Id,
+                AcademyId = r.AcademyId,
+                AcademyName = r.Academy.Name,
+                AdminId = r.AdminId,
+                AdminFullName = (r.Admin.FirstName + " " + r.Admin.LastName).Trim(),
+                Status = r.Status,
+                RequestedAt = r.RequestedAt,
+                RespondedAt = r.RespondedAt,
+                RequestedById = r.Academy.AdminUserId,
+                RequestedByFullName = r.Academy.Admin != null ? (r.Academy.Admin.FirstName + " " + r.Academy.Admin.LastName).Trim() : ""
+            });
         }
 
         public async Task<Koralytics.Application.DTOs.Common.PagedResponseDto<AcademyMemberResponseDto>> GetAcademyMembersAsync(int academyId, Koralytics.Application.DTOs.Common.PaginationRequestDto request)

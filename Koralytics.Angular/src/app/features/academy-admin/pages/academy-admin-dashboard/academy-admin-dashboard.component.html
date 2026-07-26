@@ -22,7 +22,7 @@
       </app-academy-badges-section>
 
       <!-- =============== 3. MANAGE ADMINS =============== -->
-      <app-academy-admins-section scrollReveal direction="bottom" [delay]="200" *ngIf="currentUser?.academyId" [academyId]="currentUser!.academyId!">
+      <app-academy-admins-section scrollReveal direction="bottom" [delay]="200" *ngIf="currentUser?.academyId" [academyId]="currentUser!.academyId!" [isOwner]="academyDetails?.adminUserId === currentUser?.userId">
       </app-academy-admins-section>
 
       <!-- =============== 4. MANAGE COACHES =============== -->
@@ -37,7 +37,11 @@
       <app-academy-teams-section scrollReveal direction="bottom" [delay]="500" *ngIf="currentUser?.academyId" [academyId]="currentUser!.academyId!">
       </app-academy-teams-section>
 
-      <!-- =============== 7. COMMUNICATIONS & SUBSCRIPTIONS =============== -->
+      <!-- =============== 7. LOCATIONS =============== -->
+      <app-academy-locations-section scrollReveal direction="bottom" [delay]="550" *ngIf="currentUser?.academyId" [academyId]="currentUser!.academyId!">
+      </app-academy-locations-section>
+
+      <!-- =============== 8. COMMUNICATIONS & SUBSCRIPTIONS =============== -->
       <app-academy-comm-subs-section scrollReveal direction="bottom" [delay]="600" *ngIf="currentUser?.academyId" [academyId]="currentUser!.academyId!">
       </app-academy-comm-subs-section>
 
@@ -45,6 +49,29 @@
 
     <!-- No Academy Flow -->
     <div class="no-academy-wrapper" *ngIf="!hasAcademy">
+
+      <!-- Pending Invitations -->
+      <div class="pending-invitations-section" *ngIf="myPendingAdminRequests.length > 0">
+        <h3 style="color: #fff; margin-bottom: 16px; font-weight: 600;">Academy Invitations</h3>
+        <div class="glass-card fade-in" *ngFor="let req of myPendingAdminRequests" style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; border-color: rgba(59, 130, 246, 0.3);">
+          <div class="req-info" style="display: flex; flex-direction: column; gap: 4px;">
+            <div style="font-size: 16px; font-weight: 600; color: #fff;">{{ req.academyName }}</div>
+            <div style="font-size: 12px; color: #7b8293;">Invited by: {{ req.requestedByFullName }}</div>
+          </div>
+          <div class="req-actions" style="display: flex; gap: 12px;">
+            <app-button 
+              variant="accent" 
+              (click)="respondToAdminRequest(req.id, true)">
+              Accept
+            </app-button>
+            <app-button 
+              variant="coral" 
+              (click)="respondToAdminRequest(req.id, false)">
+              Reject
+            </app-button>
+          </div>
+        </div>
+      </div>
 
       <!-- Pending Request -->
       <div class="glass-card pending-card fade-in" *ngIf="pendingRequest">

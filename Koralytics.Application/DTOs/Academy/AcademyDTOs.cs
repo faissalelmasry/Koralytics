@@ -27,6 +27,11 @@ namespace Koralytics.Application.DTOs.Academies
         public string? SecondaryColor { get; set; }
     }
 
+    public class UpdateAcademyStatusDto
+    {
+        public AcademyStatus Status { get; set; }
+    }
+
     public class AddLocationDto
     {
         public string Name { get; set; } = string.Empty;

@@ -1,0 +1,57 @@
+:host {
+  display: block;
+  position: relative;
+  z-index: 10;
+  min-height: 100vh;
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+}
+
+.profile-page {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 110px 30px 20px;
+  position: relative;
+  z-index: 10;
+}
+
+.preloader-overlay {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 50vh;
+  gap: 16px;
+  color: #3b82f6;
+}
+
+.profile-container {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.glass-card {
+  background: rgba(17, 20, 26, 1);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.fade-in {
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

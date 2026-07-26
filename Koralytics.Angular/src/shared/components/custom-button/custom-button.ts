@@ -12,6 +12,7 @@ export class CustomButtonComponent {
  @Input() type: 'button' | 'submit' = 'button';
   // El-Alwan el-gdeda monasba jdan lil-site dashboard style
   @Input() variant: 'accent' | 'coral' | 'cyan' | 'slate' | 'amber' | 'gold' = 'accent'; 
+  @Input() size: 'sm' | 'small' | 'md' | 'medium' | 'lg' | 'large' = 'md'; // Supports sm, small, md, medium, lg, large
   @Input() loading: boolean = false;
   @Input() disabled: boolean = false;
   @Input() shimmer: boolean = false;

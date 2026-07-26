@@ -86,7 +86,9 @@
               <div *ngIf="team.coaches?.length > 0; else noCoaches" class="cyber-scrollbar" style="margin-bottom: 16px; max-height: 200px; overflow-y: auto; padding-right: 8px;">
                 <div *ngFor="let c of team.coaches" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 14px; background: rgba(0,0,0,0.2); padding: 8px 12px; border-radius: 6px;">
                   <span>{{ c.coachFullName || c.firstName + ' ' + c.lastName || c.fullName }}</span>
-                  <app-button variant="coral" (click)="onRemoveCoach(team.id, c.coachId || c.id)" style="transform: scale(0.6); transform-origin: right center;">Remove</app-button>
+                  <button class="btn-table-action btn-delete" (click)="onRemoveCoach(team.id, c.coachId || c.id)">
+                    &times;
+                  </button>
                 </div>
               </div>
               <ng-template #noCoaches>
@@ -113,7 +115,9 @@
               <div *ngIf="team.players?.length > 0; else noPlayers" class="cyber-scrollbar" style="margin-bottom: 16px; max-height: 200px; overflow-y: auto; padding-right: 8px;">
                 <div *ngFor="let p of team.players" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 14px; background: rgba(0,0,0,0.2); padding: 8px 12px; border-radius: 6px;">
                   <span>{{ p.playerFullName || p.firstName + ' ' + p.lastName || p.fullName }}</span>
-                  <app-button variant="coral" (click)="onRemovePlayer(team.id, p.playerId || p.id)" style="transform: scale(0.6); transform-origin: right center;">Remove</app-button>
+                  <button class="btn-table-action btn-delete" (click)="onRemovePlayer(team.id, p.playerId || p.id)">
+                    &times;
+                  </button>
                 </div>
               </div>
               <ng-template #noPlayers>

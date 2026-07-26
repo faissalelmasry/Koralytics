@@ -1,0 +1,371 @@
+:host {
+  display: block;
+}
+
+.section-container {
+  background: rgba(17, 20, 26, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 24px;
+  backdrop-filter: blur(10px);
+}
+
+.section-header {
+  margin-bottom: 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.header-content h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.subtitle {
+  margin: 4px 0 0 0;
+  font-size: 13px;
+  color: #7b8293;
+}
+
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.search-box {
+  display: flex;
+  gap: 8px;
+}
+
+.search-box input {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 8px 14px;
+  color: #fff;
+  font-size: 13px;
+  width: 220px;
+}
+
+.btn-filter {
+  background: #3b82f6;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.select-box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.select-box label {
+  font-size: 12px;
+  color: #7b8293;
+}
+
+.select-box select {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #fff;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+.cyber-table-responsive-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.cyber-data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.cyber-data-table th {
+  text-align: left;
+  padding: 12px 16px;
+  font-size: 12px;
+  text-transform: uppercase;
+  color: #7b8293;
+  font-weight: 600;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.cyber-data-table td {
+  padding: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+  vertical-align: middle;
+  color: #e2e8f0;
+  font-size: 14px;
+}
+
+.user-info-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar-circle {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: #fff;
+  font-size: 14px;
+}
+
+.user-fullname {
+  display: block;
+  font-weight: 600;
+  color: #fff;
+}
+
+.user-id {
+  display: block;
+  font-size: 11px;
+  color: #7b8293;
+}
+
+.roles-hub {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.role-chip {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.role-chip.systemadmin {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
+
+.role-chip.academyadmin {
+  background: rgba(139, 92, 246, 0.15);
+  color: #a78bfa;
+}
+
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.status-badge.active {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+}
+
+.status-badge.inactive {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
+
+.table-actions-hub {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.btn-action {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.btn-roles {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.btn-deactivate {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.btn-activate {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.btn-delete {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.btn-action:hover {
+  transform: translateY(-1px);
+}
+
+/* Modals */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(6, 8, 10, 0.8);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-card {
+  background: #11141a;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 500px;
+  padding: 24px;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+}
+
+.modal-header h4 {
+  margin: 0;
+  color: #fff;
+  font-size: 18px;
+}
+
+.btn-close {
+  background: none;
+  border: none;
+  color: #7b8293;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.helper-text {
+  font-size: 13px;
+  color: #a0aab5;
+  margin-bottom: 16px;
+}
+
+.roles-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.role-checkbox-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.role-checkbox-card.selected {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+.role-desc strong {
+  display: block;
+  color: #fff;
+  font-size: 14px;
+}
+
+.role-desc small {
+  color: #7b8293;
+  font-size: 12px;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.pagination-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.page-info {
+  font-size: 13px;
+  color: #7b8293;
+}
+
+.page-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-page {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.btn-page:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.empty-state, .loading-state {
+  text-align: center;
+  padding: 48px;
+  color: #7b8293;
+}

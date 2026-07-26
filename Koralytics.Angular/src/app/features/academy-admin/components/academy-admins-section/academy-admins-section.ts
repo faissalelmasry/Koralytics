@@ -1,6 +1,6 @@
 import { Component, Input, OnInit, inject, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { AcademyService } from '../../../../../core/services/academy/academy.service';
 import { ToastService } from '../../../../../core/services/Toast/toast';
 import { AcademyAdminResponseDto } from '../../../../../core/interfaces/academy.models';
@@ -19,17 +19,22 @@ import { LoadingSpinnerComponent } from '../../../../../shared/components/loadin
 })
 export class AcademyAdminsSectionComponent implements OnInit, OnChanges {
   @Input() academyId!: number;
+  @Input() isOwner: boolean = false; // from dashboard
   
   private academyService = inject(AcademyService);
   private toast = inject(ToastService);
   private fb = inject(FormBuilder);
   
   admins: AcademyAdminResponseDto[] = [];
-  isLoading = true;
-  isAdding = false;
+  pendingRequests: any[] = [];
+  searchResults: any[] = [];
   
-  addAdminForm = this.fb.nonNullable.group({
-    userId: [null as number | null, [Validators.required, Validators.min(1)]]
+  isLoading = true;
+  isSearching = false;
+  isSending = false;
+  
+  searchForm = this.fb.nonNullable.group({
+    searchTerm: ['']
   });
 
   tableColumns: TableColumn[] = [
@@ -43,19 +48,20 @@ export class AcademyAdminsSectionComponent implements OnInit, OnChanges {
   totalCount = 0;
 
   ngOnInit() {
-    this.loadAdmins();
+    this.loadData();
   }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['academyId'] && !changes['academyId'].isFirstChange()) {
-      this.loadAdmins();
+      this.loadData();
     }
   }
 
-  loadAdmins() {
+  loadData() {
     if (!this.academyId) return;
     
     this.isLoading = true;
+    
     this.academyService.getAcademyAdmins(this.academyId, { pageNumber: this.pageNumber, pageSize: this.pageSize }).subscribe({
       next: (res) => {
         if (res.isSuccess && res.data) {
@@ -64,7 +70,7 @@ export class AcademyAdminsSectionComponent implements OnInit, OnChanges {
             return { 
               ...m, 
               adminRole: m.isOwner ? 'owner' : 'admin',
-              hideDelete: m.isOwner,
+              hideDelete: m.isOwner || !this.isOwner, // Only owner can remove others
               hideAnalyze: m.isOwner
             };
           });
@@ -75,43 +81,95 @@ export class AcademyAdminsSectionComponent implements OnInit, OnChanges {
         this.isLoading = false;
       }
     });
+
+    if (this.isOwner) {
+      this.academyService.getPendingAdminRequests(this.academyId).subscribe({
+        next: (res) => {
+          if (res.isSuccess && res.data) {
+            this.pendingRequests = res.data;
+          }
+        }
+      });
+    }
   }
 
-  onAddAdmin() {
-    if (this.addAdminForm.invalid) {
-      this.addAdminForm.markAllAsTouched();
-      return;
-    }
+  onSearch() {
+    if (!this.isOwner) return;
 
-    const userId = this.addAdminForm.getRawValue().userId;
-    if (!userId) return;
+    const term = this.searchForm.getRawValue().searchTerm;
+    if (term === undefined || term === null) return;
 
-    this.isAdding = true;
-    this.academyService.assignAdmin(this.academyId, userId).subscribe({
+    this.isSearching = true;
+    this.academyService.searchAdmins(this.academyId, term).subscribe({
       next: (res) => {
-        this.isAdding = false;
-        if (res.isSuccess) {
-          this.toast.show('Admin assigned successfully', 'success');
-          this.addAdminForm.reset();
-          this.loadAdmins();
-        } else {
-          this.toast.show(res.message || 'Error assigning admin', 'error');
+        this.isSearching = false;
+        if (res.isSuccess && res.data) {
+          this.searchResults = res.data;
         }
       },
       error: () => {
-        this.isAdding = false;
-        this.toast.show('Error assigning admin', 'error');
+        this.isSearching = false;
       }
     });
   }
 
+  onSendRequest(adminId: number) {
+    if (!this.isOwner) return;
+
+    this.isSending = true;
+    this.academyService.sendAdminJoinRequest(this.academyId, adminId).subscribe({
+      next: (res) => {
+        this.isSending = false;
+        if (res.isSuccess) {
+          this.toast.show('Admin join request sent!', 'success');
+          this.loadData(); // Reload pending requests
+          this.searchResults = [];
+          this.searchForm.reset();
+        } else {
+          this.toast.show(res.message || 'Error sending request', 'error');
+        }
+      },
+      error: (err) => {
+        this.isSending = false;
+        this.toast.show(err.error?.detail || err.error?.message || 'Error sending request', 'error');
+      }
+    });
+  }
+
+  onCancelRequest(requestId: number) {
+    if (!this.isOwner) return;
+
+    if (confirm('Are you sure you want to cancel this request?')) {
+      this.academyService.cancelAdminJoinRequest(requestId).subscribe({
+        next: (res: any) => {
+          if (res.isSuccess) {
+            this.toast.show('Request cancelled', 'success');
+            this.loadData();
+          } else {
+            this.toast.show(res.message || 'Error cancelling request', 'error');
+          }
+        }
+      });
+    }
+  }
+
+  isUserPending(userId: number): boolean {
+    return this.pendingRequests.some(r => r.adminId === userId);
+  }
+
+  isUserMember(userId: number): boolean {
+    return this.admins.some(m => m.userId === userId);
+  }
+
   onRemoveAdmin(adminId: number) {
+    if (!this.isOwner) return;
+
     if (confirm('Are you sure you want to remove this admin?')) {
       this.academyService.removeAdmin(this.academyId, adminId).subscribe({
         next: (res) => {
           if (res.isSuccess) {
             this.toast.show('Admin removed successfully', 'success');
-            this.loadAdmins();
+            this.loadData();
           } else {
             this.toast.show(res.message || 'Error removing admin', 'error');
           }
@@ -133,6 +191,6 @@ export class AcademyAdminsSectionComponent implements OnInit, OnChanges {
 
   onPageChange(page: number) {
     this.pageNumber = page;
-    this.loadAdmins();
+    this.loadData();
   }
 }

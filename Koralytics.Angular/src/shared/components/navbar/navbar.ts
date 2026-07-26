@@ -18,6 +18,10 @@ export class NavbarComponent {
   isSidebarOpen = false;
   isScrolled = false;
 
+  get isSystemAdmin(): boolean {
+    return this.authService.getUserRoles().includes('SystemAdmin');
+  }
+
   @HostListener('window:scroll', [])
   onWindowScroll() {
     this.isScrolled = window.scrollY > 20;
