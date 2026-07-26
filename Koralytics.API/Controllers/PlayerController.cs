@@ -288,5 +288,48 @@ namespace Koralytics.API.Controllers
             var result = await _playerGoalService.UpdatePlayerGoalAsync(goalId, dto);
             return Ok(result);
         }
+
+        [HttpPost("{playerId}/positions")]
+        [Authorize(Roles = "Player,Coach,AcademyAdmin")]
+        public async Task<IActionResult> AddPlayerPosition(int playerId, [FromBody] AddPlayerPositionDto dto)
+        {
+            var requesterId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var requesterRole = User.FindFirstValue(ClaimTypes.Role)!;
+
+            if (requesterRole == "Player" && requesterId != playerId)
+                return Forbid();
+
+            await _playerProfileService.AddPlayerPositionAsync(playerId, dto.Position, dto.IsPrimary);
+            return NoContent();
+        }
+
+        [HttpPatch("{playerId}/positions/primary")]
+        [Authorize(Roles = "Player,Coach,AcademyAdmin")]
+        public async Task<IActionResult> UpdatePrimaryPosition(int playerId, [FromBody] UpdatePrimaryPositionDto dto)
+        {
+            var requesterId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var requesterRole = User.FindFirstValue(ClaimTypes.Role)!;
+
+            if (requesterRole == "Player" && requesterId != playerId)
+                return Forbid();
+
+            await _playerProfileService.UpdatePrimaryPositionAsync(playerId, dto.Position);
+            return NoContent();
+        }
+
+        [HttpDelete("{playerId}/positions")]
+        [Authorize(Roles = "Player,Coach,AcademyAdmin")]
+        public async Task<IActionResult> RemovePlayerPosition(int playerId, [FromBody] RemovePlayerPositionDto dto)
+        {
+            var requesterId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var requesterRole = User.FindFirstValue(ClaimTypes.Role)!;
+
+            if (requesterRole == "Player" && requesterId != playerId)
+                return Forbid();
+
+            await _playerProfileService.RemovePlayerPositionAsync(playerId, dto.Position);
+            return NoContent();
+        }
+
     }
 }

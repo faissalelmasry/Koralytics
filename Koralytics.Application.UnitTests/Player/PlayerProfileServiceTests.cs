@@ -1,6 +1,7 @@
 using AutoMapper;
 using Koralytics.Application.DTOs.Player;
 using Koralytics.Application.Interfaces;
+using Koralytics.Application.Services.Player.Helpers;
 using Koralytics.Application.Services.Player.PlayerCardService;
 using Koralytics.Application.Services.Player.PlayerProfileServices;
 using Koralytics.Domain.Entities.Academy;
@@ -27,6 +28,7 @@ namespace Koralytics.Application.UnitTests.Player
         private readonly Mock<IPlayerCardService> _playerCardServiceMock;
         private readonly Mock<IMapper> _mapperMock;
         private readonly Mock<ILogger<PlayerProfileService>> _loggerMock;
+        private readonly Mock<ICardInvalidationList> _cardInvalidationListMock;
         private readonly PlayerProfileService _service;
 
         public PlayerProfileServiceTests()
@@ -35,12 +37,13 @@ namespace Koralytics.Application.UnitTests.Player
             _playerCardServiceMock = new();
             _mapperMock = new();
             _loggerMock = new();
+            _cardInvalidationListMock = new();
 
             _service = new PlayerProfileService(
                 _unitOfWorkMock.Object,
-                _playerCardServiceMock.Object,
                 _loggerMock.Object,
-                _mapperMock.Object);
+                _mapperMock.Object,
+                _cardInvalidationListMock.Object);
         }
 
         // ================================================================
@@ -800,6 +803,292 @@ namespace Koralytics.Application.UnitTests.Player
             _mapperMock
                 .Setup(m => m.Map<PlayerProfileDto>(It.IsAny<PlayerEntity>()))
                 .Returns(new PlayerProfileDto());
+        }
+
+        // ================================================================
+        // AddPlayerPositionAsync
+        // ================================================================
+
+        [Fact]
+        public async Task AddPlayerPositionAsync_PlayerNotFound_ThrowsNotFoundException()
+        {
+            var players = new List<PlayerEntity>();
+            var playerRepo = new Mock<IRepository<PlayerEntity>>();
+            playerRepo.Setup(r => r.GetQueryable()).Returns(players.BuildMock());
+            _unitOfWorkMock.Setup(u => u.Repository<PlayerEntity>()).Returns(playerRepo.Object);
+
+            await Assert.ThrowsAsync<NotFoundException>(() =>
+                _service.AddPlayerPositionAsync(1, "ST", false));
+        }
+
+        [Fact]
+        public async Task AddPlayerPositionAsync_DuplicatePosition_ThrowsInvalidOperationException()
+        {
+            var player = new PlayerEntity
+            {
+                Id = 1,
+                FirstName = "Test",
+                LastName = "Player",
+                DateOfBirth = new DateTime(2008, 1, 1),
+                PlayerPositions = new List<PlayerPosition>
+                {
+                    new() { PlayerId = 1, Position = "ST", IsPrimary = true },
+                },
+            };
+            var players = new List<PlayerEntity> { player };
+            var playerRepo = new Mock<IRepository<PlayerEntity>>();
+            playerRepo.Setup(r => r.GetQueryable()).Returns(players.BuildMock());
+            _unitOfWorkMock.Setup(u => u.Repository<PlayerEntity>()).Returns(playerRepo.Object);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                _service.AddPlayerPositionAsync(1, "ST", false));
+        }
+
+        [Fact]
+        public async Task AddPlayerPositionAsync_AddsPosition_NoInvalidationWhenNotPrimary()
+        {
+            var player = new PlayerEntity
+            {
+                Id = 1,
+                FirstName = "Test",
+                LastName = "Player",
+                DateOfBirth = new DateTime(2008, 1, 1),
+                PlayerPositions = new List<PlayerPosition>
+                {
+                    new() { PlayerId = 1, Position = "ST", IsPrimary = true },
+                },
+            };
+            var players = new List<PlayerEntity> { player };
+            var playerRepo = new Mock<IRepository<PlayerEntity>>();
+            playerRepo.Setup(r => r.GetQueryable()).Returns(players.BuildMock());
+            _unitOfWorkMock.Setup(u => u.Repository<PlayerEntity>()).Returns(playerRepo.Object);
+
+            await _service.AddPlayerPositionAsync(1, "LW", false);
+
+            Assert.Equal(2, player.PlayerPositions.Count);
+            Assert.True(player.PlayerPositions.First(pp => pp.Position == "ST").IsPrimary);
+            Assert.False(player.PlayerPositions.First(pp => pp.Position == "LW").IsPrimary);
+            _unitOfWorkMock.Verify(u => u.SaveChangesAsync(), Times.Once);
+            _cardInvalidationListMock.Verify(c => c.Invalidate(It.IsAny<int>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task AddPlayerPositionAsync_AddsPrimaryPosition_UnsetsExistingAndInvalidates()
+        {
+            var player = new PlayerEntity
+            {
+                Id = 1,
+                FirstName = "Test",
+                LastName = "Player",
+                DateOfBirth = new DateTime(2008, 1, 1),
+                PlayerPositions = new List<PlayerPosition>
+                {
+                    new() { PlayerId = 1, Position = "ST", IsPrimary = true },
+                    new() { PlayerId = 1, Position = "CAM", IsPrimary = false },
+                },
+            };
+            var players = new List<PlayerEntity> { player };
+            var playerRepo = new Mock<IRepository<PlayerEntity>>();
+            playerRepo.Setup(r => r.GetQueryable()).Returns(players.BuildMock());
+            _unitOfWorkMock.Setup(u => u.Repository<PlayerEntity>()).Returns(playerRepo.Object);
+
+            await _service.AddPlayerPositionAsync(1, "GK", true);
+
+            Assert.Equal(3, player.PlayerPositions.Count);
+            Assert.False(player.PlayerPositions.First(pp => pp.Position == "ST").IsPrimary);
+            Assert.False(player.PlayerPositions.First(pp => pp.Position == "CAM").IsPrimary);
+            Assert.True(player.PlayerPositions.First(pp => pp.Position == "GK").IsPrimary);
+            _unitOfWorkMock.Verify(u => u.SaveChangesAsync(), Times.Once);
+            _cardInvalidationListMock.Verify(c => c.Invalidate(1), Times.Once);
+        }
+
+        // ================================================================
+        // UpdatePrimaryPositionAsync
+        // ================================================================
+
+        [Fact]
+        public async Task UpdatePrimaryPositionAsync_PlayerNotFound_ThrowsNotFoundException()
+        {
+            var players = new List<PlayerEntity>();
+            var playerRepo = new Mock<IRepository<PlayerEntity>>();
+            playerRepo.Setup(r => r.GetQueryable()).Returns(players.BuildMock());
+            _unitOfWorkMock.Setup(u => u.Repository<PlayerEntity>()).Returns(playerRepo.Object);
+
+            await Assert.ThrowsAsync<NotFoundException>(() =>
+                _service.UpdatePrimaryPositionAsync(1, "ST"));
+        }
+
+        [Fact]
+        public async Task UpdatePrimaryPositionAsync_PositionNotFound_ThrowsInvalidOperationException()
+        {
+            var player = new PlayerEntity
+            {
+                Id = 1,
+                FirstName = "Test",
+                LastName = "Player",
+                DateOfBirth = new DateTime(2008, 1, 1),
+                PlayerPositions = new List<PlayerPosition>
+                {
+                    new() { PlayerId = 1, Position = "ST", IsPrimary = true },
+                },
+            };
+            var players = new List<PlayerEntity> { player };
+            var playerRepo = new Mock<IRepository<PlayerEntity>>();
+            playerRepo.Setup(r => r.GetQueryable()).Returns(players.BuildMock());
+            _unitOfWorkMock.Setup(u => u.Repository<PlayerEntity>()).Returns(playerRepo.Object);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                _service.UpdatePrimaryPositionAsync(1, "CB"));
+        }
+
+        [Fact]
+        public async Task UpdatePrimaryPositionAsync_AlreadyPrimary_NoOp()
+        {
+            var player = new PlayerEntity
+            {
+                Id = 1,
+                FirstName = "Test",
+                LastName = "Player",
+                DateOfBirth = new DateTime(2008, 1, 1),
+                PlayerPositions = new List<PlayerPosition>
+                {
+                    new() { PlayerId = 1, Position = "ST", IsPrimary = true },
+                    new() { PlayerId = 1, Position = "LW", IsPrimary = false },
+                },
+            };
+            var players = new List<PlayerEntity> { player };
+            var playerRepo = new Mock<IRepository<PlayerEntity>>();
+            playerRepo.Setup(r => r.GetQueryable()).Returns(players.BuildMock());
+            _unitOfWorkMock.Setup(u => u.Repository<PlayerEntity>()).Returns(playerRepo.Object);
+
+            await _service.UpdatePrimaryPositionAsync(1, "ST");
+
+            Assert.True(player.PlayerPositions.First(pp => pp.Position == "ST").IsPrimary);
+            Assert.False(player.PlayerPositions.First(pp => pp.Position == "LW").IsPrimary);
+            _unitOfWorkMock.Verify(u => u.SaveChangesAsync(), Times.Never);
+            _cardInvalidationListMock.Verify(c => c.Invalidate(It.IsAny<int>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task UpdatePrimaryPositionAsync_SwapsPrimaryAndInvalidates()
+        {
+            var player = new PlayerEntity
+            {
+                Id = 1,
+                FirstName = "Test",
+                LastName = "Player",
+                DateOfBirth = new DateTime(2008, 1, 1),
+                PlayerPositions = new List<PlayerPosition>
+                {
+                    new() { PlayerId = 1, Position = "ST", IsPrimary = true },
+                    new() { PlayerId = 1, Position = "LW", IsPrimary = false },
+                    new() { PlayerId = 1, Position = "RW", IsPrimary = false },
+                },
+            };
+            var players = new List<PlayerEntity> { player };
+            var playerRepo = new Mock<IRepository<PlayerEntity>>();
+            playerRepo.Setup(r => r.GetQueryable()).Returns(players.BuildMock());
+            _unitOfWorkMock.Setup(u => u.Repository<PlayerEntity>()).Returns(playerRepo.Object);
+
+            await _service.UpdatePrimaryPositionAsync(1, "LW");
+
+            Assert.False(player.PlayerPositions.First(pp => pp.Position == "ST").IsPrimary);
+            Assert.True(player.PlayerPositions.First(pp => pp.Position == "LW").IsPrimary);
+            Assert.False(player.PlayerPositions.First(pp => pp.Position == "RW").IsPrimary);
+            _unitOfWorkMock.Verify(u => u.SaveChangesAsync(), Times.Once);
+            _cardInvalidationListMock.Verify(c => c.Invalidate(1), Times.Once);
+        }
+
+        // ================================================================
+        // RemovePlayerPositionAsync
+        // ================================================================
+
+        [Fact]
+        public async Task RemovePlayerPositionAsync_PlayerNotFound_ThrowsNotFoundException()
+        {
+            var players = new List<PlayerEntity>();
+            var playerRepo = new Mock<IRepository<PlayerEntity>>();
+            playerRepo.Setup(r => r.GetQueryable()).Returns(players.BuildMock());
+            _unitOfWorkMock.Setup(u => u.Repository<PlayerEntity>()).Returns(playerRepo.Object);
+
+            await Assert.ThrowsAsync<NotFoundException>(() =>
+                _service.RemovePlayerPositionAsync(1, "ST"));
+        }
+
+        [Fact]
+        public async Task RemovePlayerPositionAsync_PositionNotFound_ThrowsInvalidOperationException()
+        {
+            var player = new PlayerEntity
+            {
+                Id = 1,
+                FirstName = "Test",
+                LastName = "Player",
+                DateOfBirth = new DateTime(2008, 1, 1),
+                PlayerPositions = new List<PlayerPosition>
+                {
+                    new() { PlayerId = 1, Position = "ST", IsPrimary = true },
+                },
+            };
+            var players = new List<PlayerEntity> { player };
+            var playerRepo = new Mock<IRepository<PlayerEntity>>();
+            playerRepo.Setup(r => r.GetQueryable()).Returns(players.BuildMock());
+            _unitOfWorkMock.Setup(u => u.Repository<PlayerEntity>()).Returns(playerRepo.Object);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                _service.RemovePlayerPositionAsync(1, "CB"));
+        }
+
+        [Fact]
+        public async Task RemovePlayerPositionAsync_PrimaryPosition_ThrowsInvalidOperationException()
+        {
+            var player = new PlayerEntity
+            {
+                Id = 1,
+                FirstName = "Test",
+                LastName = "Player",
+                DateOfBirth = new DateTime(2008, 1, 1),
+                PlayerPositions = new List<PlayerPosition>
+                {
+                    new() { PlayerId = 1, Position = "ST", IsPrimary = true },
+                    new() { PlayerId = 1, Position = "LW", IsPrimary = false },
+                },
+            };
+            var players = new List<PlayerEntity> { player };
+            var playerRepo = new Mock<IRepository<PlayerEntity>>();
+            playerRepo.Setup(r => r.GetQueryable()).Returns(players.BuildMock());
+            _unitOfWorkMock.Setup(u => u.Repository<PlayerEntity>()).Returns(playerRepo.Object);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                _service.RemovePlayerPositionAsync(1, "ST"));
+        }
+
+        [Fact]
+        public async Task RemovePlayerPositionAsync_RemovesSecondarySuccessfully()
+        {
+            var player = new PlayerEntity
+            {
+                Id = 1,
+                FirstName = "Test",
+                LastName = "Player",
+                DateOfBirth = new DateTime(2008, 1, 1),
+                PlayerPositions = new List<PlayerPosition>
+                {
+                    new() { PlayerId = 1, Position = "ST", IsPrimary = true },
+                    new() { PlayerId = 1, Position = "LW", IsPrimary = false },
+                    new() { PlayerId = 1, Position = "RW", IsPrimary = false },
+                },
+            };
+            var players = new List<PlayerEntity> { player };
+            var playerRepo = new Mock<IRepository<PlayerEntity>>();
+            playerRepo.Setup(r => r.GetQueryable()).Returns(players.BuildMock());
+            _unitOfWorkMock.Setup(u => u.Repository<PlayerEntity>()).Returns(playerRepo.Object);
+
+            await _service.RemovePlayerPositionAsync(1, "RW");
+
+            Assert.Equal(2, player.PlayerPositions.Count);
+            Assert.DoesNotContain(player.PlayerPositions, pp => pp.Position == "RW");
+            Assert.True(player.PlayerPositions.First(pp => pp.Position == "ST").IsPrimary);
+            _unitOfWorkMock.Verify(u => u.SaveChangesAsync(), Times.Once);
         }
     }
 }

@@ -7,6 +7,8 @@ namespace Koralytics.Application.DTOs.Match
         public int AwayTeamId { get; set; }
         public string HomeTeamName { get; set; } = string.Empty;
         public string AwayTeamName { get; set; } = string.Empty;
+        public string HomeTeamAcademyName { get; set; } = string.Empty;
+        public string AwayTeamAcademyName { get; set; } = string.Empty;
         public int? TournamentId { get; set; }
         public int? SessionId { get; set; }
         public string Type { get; set; } = string.Empty;
@@ -19,5 +21,7 @@ namespace Koralytics.Application.DTOs.Match
         public int? HomePenaltyScore { get; set; }
         public int? AwayPenaltyScore { get; set; }
         public int? WinningTeamId { get; set; }
+        public string? Formation { get; set; }
+        public string? AwayFormation { get; set; }
     }
 }

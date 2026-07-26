@@ -9,6 +9,8 @@ import { TransferCanvasComponent } from '../transfer-canvas/transfer-canvas.comp
 import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner';
 import { ScrollRevealDirective } from '../../../../shared/directives/scroll-reveal.directive';
 import { CustomButtonComponent } from '../../../../shared/components/custom-button/custom-button';
+import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog';
+import { CustomToggle } from '../../../../shared/components/custom-toggle/custom-toggle';
 import { PlayerProfileService } from '../../../../core/services/player/player-profile.service';
 import { PlayerCardService } from '../../../../core/services/player/player-card.service';
 import { TokenStorageService } from '../../../../core/services/auth/token-storage.service';
@@ -19,7 +21,7 @@ Chart.register(...registerables);
 @Component({
   selector: 'app-player-profile',
   standalone: true,
-  imports: [CommonModule, NavbarComponent, Footer, PlayerCardComponent, TransferCanvasComponent, LoadingSpinnerComponent, ScrollRevealDirective, CustomButtonComponent],
+  imports: [CommonModule, NavbarComponent, Footer, PlayerCardComponent, TransferCanvasComponent, LoadingSpinnerComponent, ScrollRevealDirective, CustomButtonComponent, ConfirmDialogComponent, CustomToggle],
   templateUrl: './player-profile.component.html',
   styleUrls: ['./player-profile.component.css']
 })
@@ -48,6 +50,37 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
   // ── Archetype overlay ───────────────────────────────────────
   showArchetypeOverlay = false;
   isCardFlipped = false;
+
+  // ── Position modal ──────────────────────────────────────────
+  showPositionModal = false;
+  modalMode: 'ADD' | 'UPDATE_PRIMARY' | 'REMOVE' = 'ADD';
+  selectedPosition: string | null = null;
+  setAsPrimaryCheck = false;
+  isSavingPosition = false;
+  positionError = '';
+
+  // ── Confirm dialog ──────────────────────────────────────────
+  showConfirmDialog = false;
+  confirmTitle = '';
+  confirmMessage = '';
+  confirmActionText = 'Confirm';
+  private pendingConfirmMode: 'ADD' | 'UPDATE_PRIMARY' | 'REMOVE' | null = null;
+
+  // ── All pitch positions for the modal selector ──────────────
+  readonly allPitchPositions = [
+    { id: 'LW', name: 'LW', top: '22%', left: '78%' },
+    { id: 'ST', name: 'ST', top: '50%', left: '80%' },
+    { id: 'RW', name: 'RW', top: '78%', left: '78%' },
+    { id: 'CAM', name: 'CAM', top: '50%', left: '62%' },
+    { id: 'LM', name: 'LM', top: '20%', left: '50%' },
+    { id: 'CM', name: 'CM', top: '50%', left: '50%' },
+    { id: 'RM', name: 'RM', top: '80%', left: '50%' },
+    { id: 'CDM', name: 'CDM', top: '50%', left: '38%' },
+    { id: 'LB', name: 'LB', top: '20%', left: '22%' },
+    { id: 'CB', name: 'CB', top: '50%', left: '22%' },
+    { id: 'RB', name: 'RB', top: '80%', left: '22%' },
+    { id: 'GK', name: 'GK', top: '50%', left: '8%' },
+  ];
 
   // ── Counter animation ───────────────────────────────────────
   animatedCounters = { matches: 0, goals: 0, assists: 0, motms: 0 };
@@ -279,11 +312,158 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
     return this.profile?.archetypeText ?? 'Under Evaluation...';
   }
 
+  get ownedPositionIds(): string[] {
+    return this.profile?.positions.map(p => p.position.toUpperCase()) ?? [];
+  }
+
+  get primaryPositionId(): string {
+    return this.primaryPosition.toUpperCase();
+  }
+
+  get secondaryPositionIds(): string[] {
+    return this.profile?.positions.filter(p => !p.isPrimary).map(p => p.position.toUpperCase()) ?? [];
+  }
+
+  isPositionSelectable(posId: string): boolean {
+    if (this.modalMode === 'UPDATE_PRIMARY' || this.modalMode === 'REMOVE') {
+      return this.secondaryPositionIds.includes(posId);
+    }
+    return !this.ownedPositionIds.includes(posId);
+  }
+
+  isPositionDisabled(posId: string): boolean {
+    return !this.isPositionSelectable(posId);
+  }
+
+  // ── Position modal actions ──────────────────────────────────
+  openAddPositionModal() {
+    this.positionError = '';
+    this.selectedPosition = null;
+    this.setAsPrimaryCheck = false;
+    this.modalMode = 'ADD';
+    this.showPositionModal = true;
+  }
+
+  openUpdatePrimaryModal() {
+    this.positionError = '';
+    this.selectedPosition = null;
+    this.modalMode = 'UPDATE_PRIMARY';
+    this.showPositionModal = true;
+  }
+
+  openRemovePositionModal() {
+    this.positionError = '';
+    this.selectedPosition = null;
+    this.modalMode = 'REMOVE';
+    this.showPositionModal = true;
+  }
+
+  closePositionModal() {
+    this.showPositionModal = false;
+    this.selectedPosition = null;
+    this.positionError = '';
+  }
+
+  selectPositionNode(posId: string) {
+    if (!this.isPositionSelectable(posId)) return;
+    this.selectedPosition = posId;
+  }
+
+  confirmPositionSelection() {
+    if (!this.selectedPosition || !this.playerId) {
+      this.positionError = 'Please select a position first.';
+      return;
+    }
+
+    this.positionError = '';
+
+    if (this.modalMode === 'ADD') {
+      this.confirmTitle = 'Add Position';
+      this.confirmMessage = `Add "${this.selectedPosition}" to your player profile${this.setAsPrimaryCheck ? ' and set it as your primary position' : ''}?`;
+      this.confirmActionText = 'Add Position';
+    } else if (this.modalMode === 'REMOVE') {
+      this.confirmTitle = 'Remove Position';
+      this.confirmMessage = `Remove "${this.selectedPosition}" from your player profile?`;
+      this.confirmActionText = 'Remove Position';
+    } else {
+      this.confirmTitle = 'Change Primary Position';
+      this.confirmMessage = `Set "${this.selectedPosition}" as your new primary position?`;
+      this.confirmActionText = 'Change Primary';
+    }
+
+    this.pendingConfirmMode = this.modalMode;
+    this.showConfirmDialog = true;
+  }
+
+  onConfirmAction() {
+    this.showConfirmDialog = false;
+
+    if (!this.selectedPosition || !this.playerId || !this.pendingConfirmMode) return;
+
+    this.isSavingPosition = true;
+    this.positionError = '';
+
+    if (this.pendingConfirmMode === 'ADD') {
+      this.profileService.addPlayerPosition(this.playerId, {
+        position: this.selectedPosition,
+        isPrimary: this.setAsPrimaryCheck,
+      }).subscribe({
+        next: () => this.onPositionSaved(),
+        error: (err) => this.onPositionError(err, 'Failed to add position'),
+      });
+    } else if (this.pendingConfirmMode === 'REMOVE') {
+      this.profileService.removePlayerPosition(this.playerId, {
+        position: this.selectedPosition,
+      }).subscribe({
+        next: () => this.onPositionSaved(),
+        error: (err) => this.onPositionError(err, 'Failed to remove position'),
+      });
+    } else {
+      this.profileService.updatePrimaryPosition(this.playerId, {
+        position: this.selectedPosition,
+      }).subscribe({
+        next: () => this.onPositionSaved(),
+        error: (err) => this.onPositionError(err, 'Failed to update primary position'),
+      });
+    }
+  }
+
+  private onPositionSaved() {
+    this.isSavingPosition = false;
+    this.pendingConfirmMode = null;
+    this.closePositionModal();
+    this.reloadProfile();
+  }
+
+  private onPositionError(err: any, fallback: string) {
+    this.isSavingPosition = false;
+    this.pendingConfirmMode = null;
+    this.positionError = err?.error?.message ?? fallback;
+  }
+
+  onCancelAction() {
+    this.showConfirmDialog = false;
+    this.pendingConfirmMode = null;
+  }
+
+  private reloadProfile() {
+    if (this.playerId) {
+      this.loadProfile(this.playerId);
+    }
+  }
+
   // ── Data loading ────────────────────────────────────────────
   private loadProfile(id: number) {
     this.isLoading = true;
     this.error = '';
     this.profile = null;
+
+    if (this.radarChart) {
+      this.radarChart.destroy();
+      this.radarChart = undefined;
+    }
+    this.chartInitialized = false;
+    this.countersAnimated = false;
 
     this.profileService.getPlayerProfile(id).subscribe({
       next: (profile) => {

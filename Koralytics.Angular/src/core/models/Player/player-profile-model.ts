@@ -48,3 +48,16 @@ export interface MatchTypeStatsModel {
   assists: number;
   motMs: number;
 }
+
+export interface AddPlayerPositionDto {
+  position: string;
+  isPrimary: boolean;
+}
+
+export interface UpdatePrimaryPositionDto {
+  position: string;
+}
+
+export interface RemovePlayerPositionDto {
+  position: string;
+}

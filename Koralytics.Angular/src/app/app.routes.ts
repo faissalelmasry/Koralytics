@@ -66,6 +66,24 @@ export const routes: Routes = [
     ]
   },
   {
+    path: 'coach/matches',
+    loadComponent: () => import('./features/match/pages/coach-match-list/coach-match-list.component').then(m => m.CoachMatchListComponent),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'match/:id',
+    loadComponent: () => import('./features/match/pages/match-detail/match-detail.component').then(m => m.MatchDetailComponent),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'academy/matches',
+    loadComponent: () => import('./features/match/pages/academy-match-list/academy-match-list.component').then(m => m.AcademyMatchListComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['AcademyAdmin', 'SuperAdmin'] }
+  },
+  {
+    path: 'academy-admin/dashboard',
+  {
     path: 'academy-admin/dashboard',
     loadComponent: () => import('./features/academy-admin/pages/academy-admin-dashboard/academy-admin-dashboard.component').then(m => m.AcademyAdminDashboardComponent),
     canActivate: [authGuard, roleGuard],
@@ -121,11 +139,6 @@ export const routes: Routes = [
     loadComponent: () => import('./features/player/player-academy-comparison/player-academy-comparison.component').then(m => m.PlayerAcademyComparisonComponent),
     canActivate: [authGuard, roleGuard],
     data: { roles: ['Player'] }
-  },
-  {
-    path: 'profile-views-analytics/:playerId',
-    loadComponent: () => import('./features/ProfileViewsAnalyticsPage/profile-views-analytics/profile-views-analytics').then(m => m.ProfileViewsAnalytics),
-    canActivate: [authGuard]
   },
   {
     path: 'academy-announcement/:academyId',

@@ -1,0 +1,39 @@
+<div class="timeline-container">
+  @for (event of eventsWithIcons; track event.minute) {
+    <div class="timeline-row">
+      @if (event.side === 'home') {
+        <div class="timeline-event-box home">
+          <app-mini-player-card [player]="event.player" size="xs" />
+          <div class="event-label-group">
+            <span class="event-type-label" [style.color]="getLabelColor(event.rawType)">{{ event.eventType }}</span>
+            <span class="event-player-name">{{ event.player.fullName }}</span>
+            @if (event.eventSubtext) {
+              <span class="event-assist">{{ event.eventSubtext }}</span>
+            }
+          </div>
+          <div class="event-icon" [innerHTML]="event.iconSvg"></div>
+        </div>
+      } @else {
+        <div class="timeline-event-box empty"></div>
+      }
+
+      <div class="minute-badge">{{ event.minute }}'</div>
+
+      @if (event.side === 'away') {
+        <div class="timeline-event-box away">
+          <div class="event-icon" [innerHTML]="event.iconSvg"></div>
+          <div class="event-label-group">
+            <span class="event-type-label" [style.color]="getLabelColor(event.rawType)">{{ event.eventType }}</span>
+            <span class="event-player-name">{{ event.player.fullName }}</span>
+            @if (event.eventSubtext) {
+              <span class="event-assist">{{ event.eventSubtext }}</span>
+            }
+          </div>
+          <app-mini-player-card [player]="event.player" size="xs" />
+        </div>
+      } @else {
+        <div class="timeline-event-box empty"></div>
+      }
+    </div>
+  }
+</div>

@@ -1380,6 +1380,9 @@ namespace Koralytics.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Formation")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int?>("HomePenaltyScore")
                         .HasColumnType("int");
 
@@ -1565,6 +1568,9 @@ namespace Koralytics.Infrastructure.Migrations
 
                     b.Property<int>("PlayerId")
                         .HasColumnType("int");
+
+                    b.Property<string>("PositionInMatch")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("TeamId")
                         .HasColumnType("int");
@@ -4367,7 +4373,7 @@ namespace Koralytics.Infrastructure.Migrations
                     b.HasOne("Koralytics.Domain.Entities.Player.Player", "Player")
                         .WithMany("PlayerPositions")
                         .HasForeignKey("PlayerId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("CreatedByUser");

@@ -1,0 +1,128 @@
+:host {
+  display: block;
+
+  --card-bg: rgba(15, 21, 33, 0.85);
+  --card-border: rgba(255, 255, 255, 0.08);
+  --neon-yellow: #facc15;
+  --text-muted: #8391a8;
+}
+
+.team-subtabs {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.lineups-wrapper {
+  position: relative;
+}
+
+.subtab-btn {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  color: var(--text-muted);
+  padding: 8px 20px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: all 0.45s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.subtab-btn.active {
+  border-color: var(--neon-yellow);
+  color: var(--neon-yellow);
+  background: rgba(250, 204, 21, 0.12);
+  box-shadow: 0 0 15px rgba(250, 204, 21, 0.25);
+}
+
+.pitch-view-container {
+  transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
+  opacity: 1;
+  transform: scale(1);
+}
+
+.pitch-view-container.hidden {
+  opacity: 0;
+  transform: scale(0.97);
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+
+.full-pitch {
+  width: 100%;
+  height: 600px;
+  background: radial-gradient(circle at 50% 50%, #122115 0%, #050d08 100%);
+  border: 2px solid rgba(250, 204, 21, 0.3);
+  border-radius: 24px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  padding: 15px 10px;
+  box-shadow: inset 0 0 60px #000, 0 10px 30px rgba(0, 0, 0, 0.8);
+}
+
+.pitch-center-line {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: rgba(250, 204, 21, 0.2);
+}
+
+.pitch-center-circle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 120px;
+  height: 120px;
+  border: 2px solid rgba(250, 204, 21, 0.2);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.formation-row {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 2;
+  width: 100%;
+}
+
+.bench-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 14px;
+  margin-top: 14px;
+}
+
+.bench-title {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.bench-flex {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 5px;
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-mini-player-card {
+    animation: none;
+  }
+}

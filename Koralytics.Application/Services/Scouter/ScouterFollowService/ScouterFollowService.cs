@@ -147,15 +147,16 @@ namespace Koralytics.Application.Services.Scouter.ScouterFollowService
         }
         public async Task<PaginatedResult<PlayerCardDto>> GetFollowedPlayersAsync(int scouterId, int pageNumber = 1, int pageSize = 10, string? searchTerm = null)
         {
-            _logger.LogInformation("Retrieving followed players for ScouterId: {ScouterId}. Parameters -> PageNumber: {Page}, PageSize: {Size}, SearchTerm: '{Term}'", scouterId, pageNumber, pageSize, searchTerm ?? string.Empty);
+            _logger.LogInformation("Retrieving paginated followed players grid for ScouterId: {ScouterId}.", scouterId);
 
             var baseQuery = _unitOfWork.Repository<ScouterFollow>()
                 .GetQueryableAsNoTracking()
+                .Include(sf => sf.Player)
                 .Where(sf => sf.ScouterUserId == scouterId && !sf.IsDeleted);
 
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                baseQuery = baseQuery.Where(sf =>
+                baseQuery = baseQuery.Where(sf => sf.Player != null &&
                     (sf.Player.FirstName + " " + sf.Player.LastName).Contains(searchTerm));
             }
 
@@ -168,11 +169,8 @@ namespace Koralytics.Application.Services.Scouter.ScouterFollowService
                     .AnyAsync(s => s.Id == scouterId && !s.IsDeleted);
 
                 if (!scouterExists)
-                {
                     throw new NotFoundException($"Scouter profile with ID {scouterId} was not found.");
-                }
 
-                _logger.LogInformation("No matching followed players found for Scouter {ScouterId}.", scouterId);
                 return new PaginatedResult<PlayerCardDto>
                 {
                     Items = new List<PlayerCardDto>(),
@@ -182,17 +180,24 @@ namespace Koralytics.Application.Services.Scouter.ScouterFollowService
                 };
             }
 
-            var playerCardQuery = _unitOfWork.Repository<PlayerCard>().GetQueryableAsNoTracking();
-
-            var items = await baseQuery
+            var followedPlayerIds = await baseQuery
                 .OrderByDescending(sf => sf.FollowedAt)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
-                .Select(sf => playerCardQuery.FirstOrDefault(pc => pc.PlayerId == sf.PlayerId))
+                .Select(sf => sf.PlayerId)
+                .ToListAsync();
+
+            var playerCards = await _unitOfWork.Repository<PlayerCard>()
+                .GetQueryableAsNoTracking()
+                .Where(pc => followedPlayerIds.Contains(pc.PlayerId))
                 .ProjectTo<PlayerCardDto>(_mapper.ConfigurationProvider)
                 .ToListAsync();
 
-            _logger.LogInformation("Fetched {Count} player card records successfully for Scouter {ScouterId}.", items.Count, scouterId);
+            var items = followedPlayerIds
+                .Select(id => playerCards.FirstOrDefault(pc => pc.PlayerId == id))
+                .Where(pc => pc != null)
+                .Cast<PlayerCardDto>()
+                .ToList();
 
             return new PaginatedResult<PlayerCardDto>
             {
@@ -202,7 +207,6 @@ namespace Koralytics.Application.Services.Scouter.ScouterFollowService
                 PageSize = pageSize
             };
         }
-
         public async Task<PlayerProfileViewAnalyticsDto> GetProfileViewsAnalyticsAsync(int playerId)
         {
             _logger.LogInformation("Retrieving profile view analytics for PlayerId: {PlayerId}", playerId);
@@ -226,5 +230,7 @@ namespace Koralytics.Application.Services.Scouter.ScouterFollowService
             _logger.LogInformation("Successfully retrieved view stats for Player {PlayerId}. Total Views: {Count}", playerId, analytics.TotalViewsCount);
             return analytics;
         }
+
+      
     }
 }

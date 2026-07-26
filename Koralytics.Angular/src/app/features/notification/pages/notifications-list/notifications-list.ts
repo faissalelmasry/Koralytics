@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -7,13 +7,15 @@ import { CachedNotification } from '../../../../../core/interfaces/CachedNotific
 import { ToastService } from '../../../../../core/services/Toast/toast';
 import { NotificationService } from '../../../../../core/services/SignalR/notificationservice';
 import { extractErrorMessage } from '../../../../../core/utils/http-error.util';
+import { NavbarComponent } from '../../../../../shared/components/navbar/navbar';
+import { TokenStorageService } from '../../../../../core/services/auth/token-storage.service';
 
 
 const PAGE_SIZE = 50;
 
 @Component({
   selector: 'app-notifications-list',
-  imports: [CommonModule],
+  imports: [CommonModule,NavbarComponent],
   templateUrl: './notifications-list.html',
   styleUrl: './notifications-list.css',
 })
@@ -22,24 +24,33 @@ export class NotificationsList implements OnInit {
   private signalRService = inject(SignalRService);
   private toastService = inject(ToastService);
   private destroyRef = inject(DestroyRef);
+  private tokenStorage = inject(TokenStorageService);
 
   public notifications = signal<CachedNotification[]>([]);
   public isLoading = signal<boolean>(true);
   public isLoadingMore = signal<boolean>(false);
   public hasMore = signal<boolean>(true);
 
+  public unreadCount = computed(() => this.notifications().filter((n) => !n.isRead).length);
+
   private currentSkip = 0;
 
   ngOnInit(): void {
     this.loadMyNotifications();
 
-    // notification$ now actually emits (previously the service only showed a
-    // toast and never pushed into this Subject, so live items never arrived
-    // here without a manual refresh).
+    this.signalRService.startConnection(() => this.tokenStorage.getAccessToken() || '');
+
+    this.loadMyNotifications();
     this.signalRService.notification$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((newNotif: CachedNotification) => {
       this.notifications.update((currentList) => [newNotif, ...currentList]);
+
+    });
+    this.destroyRef.onDestroy(() => {
+      this.signalRService.stopConnection();
     });
   }
+
+    
 
   public loadMyNotifications(): void {
     this.isLoading.set(true);

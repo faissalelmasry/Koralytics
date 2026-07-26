@@ -1020,7 +1020,8 @@ namespace Koralytics.Infrastructure.Seeding
                     Type = Domain.Enums.MatchType.Friendly, Format = MatchFormat.ElevenSide,
                     Status = MatchStatus.Completed, MatchDate = DateTime.UtcNow.AddDays(-14),
                     HomeScore = 2, AwayScore = 1, Location = "Test - 11v11 Completed",
-                    WinningTeamId = ahlyTeam.Id, CreatedById = coachUser!.Id,
+                    WinningTeamId = ahlyTeam.Id, Formation = "4-3-3", AwayFormation = "4-4-2",
+                    CreatedById = coachUser!.Id,
                     CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow
                 };
                 context.Matches.Add(matchB);
@@ -1035,15 +1036,18 @@ namespace Koralytics.Infrastructure.Seeding
 
                 // Al Ahly lineup: jersey numbers in order: 1,2,3,4,5,8,10,11,7,9,17
                 var ahlyJerseys = new int?[] { 1, 2, 3, 4, 5, 8, 10, 11, 7, 9, 17 };
+                var ahlyPositions = new[] { "GK", "RB", "CB", "CB", "LB", "CM", "CM", "CAM", "RW", "ST", "LW" };
                 // Zamalek lineup: jersey numbers in order: 1,2,4,5,3,8,10,11,7,9,17
                 var zamJerseys = new int?[] { 1, 2, 4, 5, 3, 8, 10, 11, 7, 9, 17 };
+                var zamPositions = new[] { "GK", "RB", "CB", "CB", "LB", "RM", "CM", "CM", "LM", "ST", "ST" };
 
                 for (int i = 0; i < ahlyPlayers.Count; i++)
                 {
                     context.MatchLineups.Add(new MatchLineup
                     {
                         MatchId = matchB.Id, PlayerId = ahlyPlayers[i].Id, TeamId = ahlyTeam.Id,
-                        IsStarting = true, JerseyNumber = ahlyJerseys[i], IsHomeSide = null
+                        IsStarting = true, JerseyNumber = ahlyJerseys[i], IsHomeSide = null,
+                        PositionInMatch = ahlyPositions[i]
                     });
                 }
                 for (int i = 0; i < zamPlayers.Count; i++)
@@ -1051,7 +1055,8 @@ namespace Koralytics.Infrastructure.Seeding
                     context.MatchLineups.Add(new MatchLineup
                     {
                         MatchId = matchB.Id, PlayerId = zamPlayers[i].Id, TeamId = zamTeam.Id,
-                        IsStarting = true, JerseyNumber = zamJerseys[i], IsHomeSide = null
+                        IsStarting = true, JerseyNumber = zamJerseys[i], IsHomeSide = null,
+                        PositionInMatch = zamPositions[i]
                     });
                 }
                 await context.SaveChangesAsync();
@@ -1202,7 +1207,10 @@ namespace Koralytics.Infrastructure.Seeding
                     };
                     await userManager.CreateAsync(extraAdmin, "Admin@123456");
                     await userManager.AddToRoleAsync(extraAdmin, "AcademyAdmin");
-                    await context.Database.ExecuteSqlRawAsync("INSERT INTO AcademyAdmins (Id, AcademyId) VALUES ({0}, {1})", extraAdmin.Id, testAcademy.Id);
+
+                    var alreadyAdmin = context.AcademyAdmins.Any(a => a.AcademyId == testAcademy.Id);
+                    if (!alreadyAdmin)
+                        await context.Database.ExecuteSqlRawAsync("INSERT INTO AcademyAdmins (Id, AcademyId) VALUES ({0}, {1})", extraAdmin.Id, testAcademy.Id);
                 }
 
                 // 3. Extra Coach

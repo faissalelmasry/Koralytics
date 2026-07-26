@@ -1,0 +1,493 @@
+:host {
+  display: block;
+}
+
+/* ---- TYPE-BASED COLORS ---- */
+
+.match-card {
+  --type-accent: #ff6a00;
+  --type-glow: rgba(255, 106, 0, 0.25);
+}
+
+.match-card.type-tournament {
+  --type-accent: #ff6a00;
+  --type-glow: rgba(255, 106, 0, 0.25);
+}
+
+.match-card.type-session {
+  --type-accent: #c8ff4d;
+  --type-glow: rgba(200, 255, 77, 0.25);
+}
+
+.match-card.type-friendly {
+  --type-accent: #facc15;
+  --type-glow: rgba(250, 204, 21, 0.25);
+}
+
+/* ---- OUTCOME-BASED COLOR OVERRIDES ---- */
+
+.match-card.outcome-win {
+  --outcome-color: #82f768;
+  --outcome-glow: rgba(130, 247, 104, 0.25);
+}
+
+.match-card.outcome-loss {
+  --outcome-color: #f87171;
+  --outcome-glow: rgba(248, 113, 113, 0.25);
+}
+
+.match-card.outcome-draw {
+  --outcome-color: #facc15;
+  --outcome-glow: rgba(250, 204, 21, 0.25);
+}
+
+/* Override type accents with outcome color */
+.match-card.outcome-win,
+.match-card.outcome-loss,
+.match-card.outcome-draw {
+  --type-accent: var(--outcome-color);
+  --type-glow: var(--outcome-glow);
+}
+
+/* Mute type badge when outcome is set */
+.match-card.outcome-win .badge-type,
+.match-card.outcome-loss .badge-type,
+.match-card.outcome-draw .badge-type {
+  background: transparent;
+  color: #6b7280;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Side glow border for coach team */
+.match-card.coach-home { border-left: 3px solid var(--outcome-color); }
+.match-card.coach-away { border-right: 3px solid var(--outcome-color); }
+
+/* When no outcome, keep transparent borders */
+.match-card:not(.coach-home):not(.coach-away) {
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Coach team name in outcome color */
+.match-card.coach-home .team.home { color: var(--outcome-color); }
+.match-card.coach-away .team.away { color: var(--outcome-color); }
+
+/* Hide per-team WIN tags when outcome shows W/L/D badge */
+.match-card.outcome-win .win-tag,
+.match-card.outcome-loss .win-tag,
+.match-card.outcome-draw .win-tag { display: none; }
+
+/* Neutralize opponent winner glow when outcome is set */
+.match-card.outcome-win .team.winner,
+.match-card.outcome-loss .team.winner,
+.match-card.outcome-draw .team.winner {
+  color: #ffffff;
+  text-shadow: none;
+}
+
+/* Status color by outcome */
+.match-card.outcome-win .status-completed { color: #82f768; }
+.match-card.outcome-loss .status-completed { color: #f87171; }
+.match-card.outcome-draw .status-completed { color: #facc15; }
+
+/* Penalty tag colored by outcome */
+.match-card.outcome-win .penalty-tag {
+  color: #82f768;
+  border-color: rgba(130, 247, 104, 0.3);
+  background: rgba(130, 247, 104, 0.15);
+}
+.match-card.outcome-loss .penalty-tag {
+  color: #f87171;
+  border-color: rgba(248, 113, 113, 0.3);
+  background: rgba(248, 113, 113, 0.15);
+}
+.match-card.outcome-draw .penalty-tag {
+  color: #facc15;
+  border-color: rgba(250, 204, 21, 0.3);
+  background: rgba(250, 204, 21, 0.15);
+}
+
+/* ---- CARD ---- */
+
+.match-card {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 18px 20px;
+  display: grid;
+  grid-template-columns: 150px 1fr 140px;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition:
+    transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.35s ease,
+    box-shadow 0.35s ease;
+}
+
+.match-card:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px -8px rgba(0, 0, 0, 0.6);
+}
+
+/* ---- TOP GLOW LINE (drill timeline style) ---- */
+
+.match-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -50%;
+  width: 200%;
+  height: 2px;
+  opacity: 0;
+  transition:
+    opacity 0.4s ease,
+    transform 0.6s ease;
+  transform: translateX(-30%);
+  background: linear-gradient(90deg, transparent, var(--type-glow), transparent);
+}
+
+.match-card:hover::before {
+  opacity: 1;
+  transform: translateX(0%);
+}
+
+/* ---- BOTTOM STATUS BAR ---- */
+
+.match-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: transparent;
+}
+
+.match-card.is-live::after {
+  background: linear-gradient(90deg, transparent, #facc15, transparent);
+}
+
+.match-card.is-completed::after {
+  background: #82f768;
+  opacity: 0.4;
+}
+
+/* Bottom bar colored by outcome — must be after .is-completed to override */
+.match-card.outcome-win::after,
+.match-card.outcome-loss::after,
+.match-card.outcome-draw::after {
+  background: var(--outcome-color);
+  opacity: 0.3;
+}
+
+.match-card.is-scheduled::after {
+  background: #38bdf8;
+  opacity: 0.2;
+}
+
+/* ---- LEFT META ---- */
+
+.match-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.badge-type {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.match-card:hover .badge-type {
+  transform: scale(1.1);
+}
+
+.type-tournament {
+  background: transparent;
+  color: #ff6a00;
+  border: 1px solid rgba(255, 106, 0, 0.3);
+}
+
+.type-session {
+  background: transparent;
+  color: #c8ff4d;
+  border: 1px solid rgba(200, 255, 77, 0.3);
+}
+
+.type-friendly {
+  background: transparent;
+  color: #facc15;
+  border: 1px solid rgba(250, 204, 21, 0.3);
+}
+
+.badge-format {
+  font-size: 10px;
+  font-weight: 800;
+  color: #8e9bb0;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.location-text {
+  font-size: 11px;
+  color: #8e9bb0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+}
+
+.outcome-badge {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.outcome-win {
+  background: rgba(130, 247, 104, 0.15);
+  color: #82f768;
+  border: 1px solid rgba(130, 247, 104, 0.3);
+}
+
+.outcome-loss {
+  background: rgba(248, 113, 113, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(248, 113, 113, 0.3);
+}
+
+.outcome-draw {
+  background: rgba(250, 204, 21, 0.15);
+  color: #facc15;
+  border: 1px solid rgba(250, 204, 21, 0.3);
+}
+
+/* ---- CENTER TEAMS & SCORES ---- */
+
+.match-center {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+}
+
+.team {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.team.home {
+  justify-content: flex-end;
+  text-align: right;
+}
+
+.team.away {
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.team.winner {
+  color: #82f768;
+  text-shadow: 0 0 10px rgba(130, 247, 104, 0.25);
+}
+
+.team-info {
+  display: flex;
+  flex-direction: column;
+  align-items: inherit;
+}
+
+.team.home .team-info {
+  align-items: flex-end;
+}
+
+.team.away .team-info {
+  align-items: flex-start;
+}
+
+.team-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.academy-name {
+  font-size: 10px;
+  font-weight: 500;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+.win-tag {
+  font-size: 9px;
+  font-weight: 800;
+  background: rgba(130, 247, 104, 0.15);
+  color: #82f768;
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.side-label {
+  font-size: 9px;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.score-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 110px;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.match-card:hover .score-box {
+  transform: translateY(-2px);
+}
+
+.main-score {
+  font-family: 'Chakra Petch', sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.vs-badge {
+  font-family: 'Chakra Petch', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #8e9bb0;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  letter-spacing: 1px;
+  transition: border-color 0.35s ease;
+}
+
+.match-card:hover .vs-badge {
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.scheduled-time {
+  font-family: 'Chakra Petch', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #38bdf8;
+  margin-top: 4px;
+}
+
+.penalty-tag {
+  font-size: 9px;
+  font-weight: 800;
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-top: 3px;
+}
+
+/* ---- RIGHT STATUS ---- */
+
+.match-status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.status-badge {
+  font-size: 11px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  letter-spacing: 0.5px;
+}
+
+.status-in-progress {
+  color: #facc15;
+}
+
+.status-completed {
+  color: #82f768;
+}
+
+.status-scheduled {
+  color: #38bdf8;
+}
+
+.pulse-dot {
+  width: 7px;
+  height: 7px;
+  background-color: #facc15;
+  border-radius: 50%;
+  box-shadow: 0 0 0 rgba(250, 204, 21, 0.7);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(250, 204, 21, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 6px rgba(250, 204, 21, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(250, 204, 21, 0);
+  }
+}
+
+.match-date {
+  font-size: 11px;
+  color: #8e9bb0;
+}
+
+/* ---- REDUCED MOTION ---- */
+
+@media (prefers-reduced-motion: reduce) {
+  .match-card {
+    transition: none;
+  }
+
+  .match-card:hover {
+    transform: none;
+  }
+
+  .match-card::before {
+    display: none;
+  }
+
+  .match-card:hover .badge-type {
+    transform: none;
+  }
+
+  .match-card:hover .score-box {
+    transform: none;
+  }
+
+  .pulse-dot {
+    animation: none;
+  }
+}

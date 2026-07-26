@@ -4,6 +4,7 @@ using Koralytics.Application.Interfaces;
 using Koralytics.Application.Interfaces.Match;
 using Koralytics.Application.Interfaces.Tournaments;
 using Koralytics.Domain.Entities.Academy;
+using Koralytics.Domain.Entities.Coach;
 using Koralytics.Domain.Entities.Drill;
 using Koralytics.Domain.Entities.Tournamet;
 using DomainEnums = Koralytics.Domain.Enums;
@@ -64,11 +65,11 @@ namespace Koralytics.Application.Services.Match
 
             await _unitOfWork.Repository<MatchEntity>().AddAsync(match);
             await _unitOfWork.SaveChangesAsync();
-
+            
             var created = await _unitOfWork.Repository<MatchEntity>()
                 .GetQueryableAsNoTracking()
-                .Include(m => m.HomeTeam)
-                .Include(m => m.AwayTeam)
+                .Include(m => m.HomeTeam).ThenInclude(t => t.AgeGroup).ThenInclude(ag => ag.Academy)
+                .Include(m => m.AwayTeam).ThenInclude(t => t.AgeGroup).ThenInclude(ag => ag.Academy)
                 .Include(m => m.WinningTeam)
                 .FirstOrDefaultAsync(m => m.Id == match.Id);
 
@@ -139,8 +140,8 @@ namespace Koralytics.Application.Services.Match
 
             var created = await _unitOfWork.Repository<MatchEntity>()
                 .GetQueryableAsNoTracking()
-                .Include(m => m.HomeTeam)
-                .Include(m => m.AwayTeam)
+                .Include(m => m.HomeTeam).ThenInclude(t => t.AgeGroup).ThenInclude(ag => ag.Academy)
+                .Include(m => m.AwayTeam).ThenInclude(t => t.AgeGroup).ThenInclude(ag => ag.Academy)
                 .Include(m => m.WinningTeam)
                 .FirstOrDefaultAsync(m => m.Id == match.Id);
 
@@ -233,7 +234,8 @@ namespace Koralytics.Application.Services.Match
                         TeamId = session.TeamId,
                         IsStarting = player.IsStarting,
                         JerseyNumber = player.JerseyNumber,
-                        IsHomeSide = true
+                        IsHomeSide = true,
+                        PositionInMatch = player.PositionInMatch
                     };
                     await _unitOfWork.Repository<MatchLineupEntity>().AddAsync(lineup);
                 }
@@ -247,7 +249,8 @@ namespace Koralytics.Application.Services.Match
                         TeamId = session.TeamId,
                         IsStarting = player.IsStarting,
                         JerseyNumber = player.JerseyNumber,
-                        IsHomeSide = false
+                        IsHomeSide = false,
+                        PositionInMatch = player.PositionInMatch
                     };
                     await _unitOfWork.Repository<MatchLineupEntity>().AddAsync(lineup);
                 }
@@ -256,8 +259,8 @@ namespace Koralytics.Application.Services.Match
 
                 var created = await _unitOfWork.Repository<MatchEntity>()
                     .GetQueryableAsNoTracking()
-                    .Include(m => m.HomeTeam)
-                    .Include(m => m.AwayTeam)
+                    .Include(m => m.HomeTeam).ThenInclude(t => t.AgeGroup).ThenInclude(ag => ag.Academy)
+                    .Include(m => m.AwayTeam).ThenInclude(t => t.AgeGroup).ThenInclude(ag => ag.Academy)
                     .Include(m => m.WinningTeam)
                     .FirstOrDefaultAsync(m => m.Id == match.Id);
 
@@ -279,8 +282,8 @@ namespace Koralytics.Application.Services.Match
         {
             var match = await _unitOfWork.Repository<MatchEntity>()
                 .GetQueryableAsNoTracking()
-                .Include(m => m.HomeTeam)
-                .Include(m => m.AwayTeam)
+                .Include(m => m.HomeTeam).ThenInclude(t => t.AgeGroup).ThenInclude(ag => ag.Academy)
+                .Include(m => m.AwayTeam).ThenInclude(t => t.AgeGroup).ThenInclude(ag => ag.Academy)
                 .Include(m => m.WinningTeam)
                 .FirstOrDefaultAsync(m => m.Id == matchId);
 
@@ -328,8 +331,8 @@ namespace Koralytics.Application.Services.Match
 
             var match = await _unitOfWork.Repository<MatchEntity>()
                 .GetQueryable()
-                .Include(m => m.HomeTeam)
-                .Include(m => m.AwayTeam)
+                .Include(m => m.HomeTeam).ThenInclude(t => t.AgeGroup).ThenInclude(ag => ag.Academy)
+                .Include(m => m.AwayTeam).ThenInclude(t => t.AgeGroup).ThenInclude(ag => ag.Academy)
                 .Include(m => m.WinningTeam)
                 .FirstOrDefaultAsync(m => m.Id == matchId);
 
@@ -341,18 +344,21 @@ namespace Koralytics.Application.Services.Match
 
             match.Status = DomainEnums.MatchStatus.Completed;
 
-            if (match.HomeScore > match.AwayScore)
-                match.WinningTeamId = match.HomeTeamId;
-            else if (match.AwayScore > match.HomeScore)
-                match.WinningTeamId = match.AwayTeamId;
-            else if (match.HomePenaltyScore.HasValue && match.AwayPenaltyScore.HasValue)
-                match.WinningTeamId = match.HomePenaltyScore > match.AwayPenaltyScore
-                    ? match.HomeTeamId
-                    : match.HomePenaltyScore < match.AwayPenaltyScore
-                        ? match.AwayTeamId
-                        : null;
-            else
-                match.WinningTeamId = null;
+            if (match.HomeTeamId != match.AwayTeamId)
+            {
+                if (match.HomeScore > match.AwayScore)
+                    match.WinningTeamId = match.HomeTeamId;
+                else if (match.AwayScore > match.HomeScore)
+                    match.WinningTeamId = match.AwayTeamId;
+                else if (match.HomePenaltyScore.HasValue && match.AwayPenaltyScore.HasValue)
+                    match.WinningTeamId = match.HomePenaltyScore > match.AwayPenaltyScore
+                        ? match.HomeTeamId
+                        : match.HomePenaltyScore < match.AwayPenaltyScore
+                            ? match.AwayTeamId
+                            : null;
+                else
+                    match.WinningTeamId = null;
+            }
 
             await _unitOfWork.SaveChangesAsync();
 
@@ -419,8 +425,8 @@ namespace Koralytics.Application.Services.Match
         {
             var query = _unitOfWork.Repository<MatchEntity>()
                 .GetQueryableAsNoTracking()
-                .Include(m => m.HomeTeam)
-                .Include(m => m.AwayTeam)
+                .Include(m => m.HomeTeam).ThenInclude(t => t.AgeGroup).ThenInclude(ag => ag.Academy)
+                .Include(m => m.AwayTeam).ThenInclude(t => t.AgeGroup).ThenInclude(ag => ag.Academy)
                 .Include(m => m.WinningTeam)
                 .Where(m => m.MatchDate >= date.Date && m.MatchDate < date.Date.AddDays(1))
                 .OrderByDescending(m => m.MatchDate);
@@ -450,8 +456,8 @@ namespace Koralytics.Application.Services.Match
 
             var query = _unitOfWork.Repository<MatchEntity>()
                 .GetQueryableAsNoTracking()
-                .Include(m => m.HomeTeam)
-                .Include(m => m.AwayTeam)
+                .Include(m => m.HomeTeam).ThenInclude(t => t.AgeGroup).ThenInclude(ag => ag.Academy)
+                .Include(m => m.AwayTeam).ThenInclude(t => t.AgeGroup).ThenInclude(ag => ag.Academy)
                 .Include(m => m.WinningTeam)
                 .Where(m => m.HomeTeamId == teamId || m.AwayTeamId == teamId);
 
@@ -469,6 +475,118 @@ namespace Koralytics.Application.Services.Match
             return new MatchListResponseDto
             {
                 Matches = _mapper.Map<List<MatchResponseDto>>(matches),
+                TotalCount = totalCount,
+                Page = page,
+                PageSize = pageSize
+            };
+        }
+
+        public async Task<CoachMatchesResponseDto> GetCoachMatchesAsync(int coachId, DomainEnums.MatchStatus? status, DomainEnums.MatchType? type, DateTime? dateFrom, DateTime? dateTo, int page, int pageSize)
+        {
+            var teamIds = await _unitOfWork.Repository<CoachTeam>()
+                .GetQueryableAsNoTracking()
+                .Where(ct => ct.CoachUserId == coachId && ct.RemovedAt == null)
+                .Select(ct => ct.TeamId)
+                .ToListAsync();
+
+            if (teamIds.Count == 0)
+                return new CoachMatchesResponseDto { Matches = [], CoachTeamIds = [], TotalCount = 0, Page = page, PageSize = pageSize };
+
+            var query = _unitOfWork.Repository<MatchEntity>()
+                .GetQueryableAsNoTracking()
+                .Include(m => m.HomeTeam).ThenInclude(t => t.AgeGroup).ThenInclude(ag => ag.Academy)
+                .Include(m => m.AwayTeam).ThenInclude(t => t.AgeGroup).ThenInclude(ag => ag.Academy)
+                .Include(m => m.WinningTeam)
+                .Where(m => teamIds.Contains(m.HomeTeamId) || teamIds.Contains(m.AwayTeamId));
+
+            if (status.HasValue)
+                query = query.Where(m => m.Status == status.Value);
+
+            if (type.HasValue)
+                query = query.Where(m => m.Type == type.Value);
+
+            if (dateFrom.HasValue)
+                query = query.Where(m => m.MatchDate >= dateFrom.Value.Date);
+
+            if (dateTo.HasValue)
+                query = query.Where(m => m.MatchDate < dateTo.Value.Date.AddDays(1));
+
+            query = query.OrderByDescending(m => m.MatchDate);
+
+            var totalCount = await query.CountAsync();
+            var matches = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new CoachMatchesResponseDto
+            {
+                Matches = _mapper.Map<List<MatchResponseDto>>(matches),
+                CoachTeamIds = teamIds,
+                TotalCount = totalCount,
+                Page = page,
+                PageSize = pageSize
+            };
+        }
+
+        public async Task<AcademyMatchesResponseDto> GetAcademyMatchesAsync(
+            int academyId, int? teamId, int? ageGroupId,
+            DomainEnums.MatchStatus? status, DomainEnums.MatchType? type,
+            DateTime? dateFrom, DateTime? dateTo,
+            int page, int pageSize)
+        {
+            var teamsQuery = _unitOfWork.Repository<Team>()
+                .GetQueryableAsNoTracking()
+                .Where(t => t.AcademyId == academyId);
+
+            if (teamId.HasValue)
+                teamsQuery = teamsQuery.Where(t => t.Id == teamId.Value);
+
+            if (ageGroupId.HasValue)
+                teamsQuery = teamsQuery.Where(t => t.AgeGroupId == ageGroupId.Value);
+
+            var teamIds = await teamsQuery.Select(t => t.Id).ToListAsync();
+
+            if (teamIds.Count == 0)
+                return new AcademyMatchesResponseDto { Matches = [], AcademyTeamIds = [], TotalCount = 0, Page = page, PageSize = pageSize };
+
+            var allAcademyTeamIds = await _unitOfWork.Repository<Team>()
+                .GetQueryableAsNoTracking()
+                .Where(t => t.AcademyId == academyId)
+                .Select(t => t.Id)
+                .ToListAsync();
+
+            var query = _unitOfWork.Repository<MatchEntity>()
+                .GetQueryableAsNoTracking()
+                .Include(m => m.HomeTeam).ThenInclude(t => t.AgeGroup).ThenInclude(ag => ag.Academy)
+                .Include(m => m.AwayTeam).ThenInclude(t => t.AgeGroup).ThenInclude(ag => ag.Academy)
+                .Include(m => m.WinningTeam)
+                .Where(m => teamIds.Contains(m.HomeTeamId) || teamIds.Contains(m.AwayTeamId));
+
+            if (status.HasValue)
+                query = query.Where(m => m.Status == status.Value);
+
+            if (type.HasValue)
+                query = query.Where(m => m.Type == type.Value);
+
+            if (dateFrom.HasValue)
+                query = query.Where(m => m.MatchDate >= dateFrom.Value.Date);
+
+            if (dateTo.HasValue)
+                query = query.Where(m => m.MatchDate < dateTo.Value.Date.AddDays(1));
+
+            query = query.OrderByDescending(m => m.MatchDate);
+
+            var totalCount = await query.CountAsync();
+            var matches = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new AcademyMatchesResponseDto
+            {
+                Matches = _mapper.Map<List<MatchResponseDto>>(matches),
+                AcademyTeamIds = allAcademyTeamIds,
                 TotalCount = totalCount,
                 Page = page,
                 PageSize = pageSize

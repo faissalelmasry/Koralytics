@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Koralytics.Application.DTOs.Player;
 using Koralytics.Application.Interfaces;
+using Koralytics.Application.Services.Player.Helpers;
 using Koralytics.Domain.Entities.Academy;
 using Koralytics.Domain.Entities.Drill;
 using Koralytics.Domain.Entities.Match;
@@ -21,15 +22,18 @@ namespace Koralytics.Application.Services.Player.PlayerProfileServices
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<PlayerProfileService> _logger;
         private readonly IMapper _mapper;
+        private readonly ICardInvalidationList _cardInvalidationList;
 
         public PlayerProfileService(
             IUnitOfWork unitOfWork,
             ILogger<PlayerProfileService> logger,
-            IMapper mapper)
+            IMapper mapper,
+            ICardInvalidationList cardInvalidationList)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
             _mapper = mapper;
+            _cardInvalidationList = cardInvalidationList;
         }
 
         public async Task<PlayerProfileDto> GetPlayerProfileAsync(int playerId)
@@ -623,6 +627,104 @@ namespace Koralytics.Application.Services.Player.PlayerProfileServices
                 Page = page,
                 PageSize = pageSize,
             };
+        }
+
+        public async Task AddPlayerPositionAsync(int playerId, string position, bool isPrimary)
+        {
+            _logger.LogInformation("Adding position {Position} (isPrimary={IsPrimary}) for player {PlayerId}", position, isPrimary, playerId);
+
+            var player = await _unitOfWork.Repository<PlayerEntity>()
+                .GetQueryable()
+                .Include(p => p.PlayerPositions)
+                .FirstOrDefaultAsync(p => p.Id == playerId);
+
+            if (player is null)
+                throw new NotFoundException($"Player with id {playerId} was not found");
+
+            if (player.PlayerPositions.Any(pp =>
+                string.Equals(pp.Position, position, StringComparison.OrdinalIgnoreCase)))
+                throw new InvalidOperationException($"Player already has the position '{position}'");
+
+            if (isPrimary)
+            {
+                foreach (var pp in player.PlayerPositions)
+                {
+                    pp.IsPrimary = false;
+                }
+            }
+
+            player.PlayerPositions.Add(new PlayerPosition
+            {
+                PlayerId = playerId,
+                Position = position,
+                IsPrimary = isPrimary,
+            });
+
+            await _unitOfWork.SaveChangesAsync();
+
+            if (isPrimary)
+            {
+                _cardInvalidationList.Invalidate(playerId);
+            }
+        }
+
+        public async Task UpdatePrimaryPositionAsync(int playerId, string position)
+        {
+            _logger.LogInformation("Updating primary position to {Position} for player {PlayerId}", position, playerId);
+
+            var player = await _unitOfWork.Repository<PlayerEntity>()
+                .GetQueryable()
+                .Include(p => p.PlayerPositions)
+                .FirstOrDefaultAsync(p => p.Id == playerId);
+
+            if (player is null)
+                throw new NotFoundException($"Player with id {playerId} was not found");
+
+            var targetPosition = player.PlayerPositions.FirstOrDefault(pp =>
+                string.Equals(pp.Position, position, StringComparison.OrdinalIgnoreCase));
+
+            if (targetPosition is null)
+                throw new InvalidOperationException($"Player does not have the position '{position}'");
+
+            if (targetPosition.IsPrimary)
+                return;
+
+            foreach (var pp in player.PlayerPositions)
+            {
+                pp.IsPrimary = false;
+            }
+
+            targetPosition.IsPrimary = true;
+
+            await _unitOfWork.SaveChangesAsync();
+
+            _cardInvalidationList.Invalidate(playerId);
+        }
+
+        public async Task RemovePlayerPositionAsync(int playerId, string position)
+        {
+            _logger.LogInformation("Removing position {Position} from player {PlayerId}", position, playerId);
+
+            var player = await _unitOfWork.Repository<PlayerEntity>()
+                .GetQueryable()
+                .Include(p => p.PlayerPositions)
+                .FirstOrDefaultAsync(p => p.Id == playerId);
+
+            if (player is null)
+                throw new NotFoundException($"Player with id {playerId} was not found");
+
+            var targetPosition = player.PlayerPositions.FirstOrDefault(pp =>
+                string.Equals(pp.Position, position, StringComparison.OrdinalIgnoreCase));
+
+            if (targetPosition is null)
+                throw new InvalidOperationException($"Player does not have the position '{position}'");
+
+            if (targetPosition.IsPrimary)
+                throw new InvalidOperationException("Cannot remove the primary position. Change your primary position first.");
+
+            player.PlayerPositions.Remove(targetPosition);
+
+            await _unitOfWork.SaveChangesAsync();
         }
     }
 }
