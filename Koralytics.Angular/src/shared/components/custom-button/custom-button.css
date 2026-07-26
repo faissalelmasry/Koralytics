@@ -33,6 +33,30 @@
     border-color 0.3s ease;
 }
 
+/* ---------- Button Sizes ---------- */
+.custom-btn.sm,
+.custom-btn.small {
+  padding: 6px 14px !important;
+  font-size: 12px !important;
+  border-radius: 8px !important;
+  width: auto !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.custom-btn.md,
+.custom-btn.medium {
+  padding: 12px 24px;
+  font-size: 14px;
+}
+
+.custom-btn.lg,
+.custom-btn.large {
+  padding: 16px 32px;
+  font-size: 16px;
+}
+
 /* Radial Shine Overlay */
 .custom-btn::before {
   content: "";

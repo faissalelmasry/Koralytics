@@ -64,6 +64,15 @@ namespace Koralytics.API.Controllers.Academies
             return OkResponse(result, "Academy updated successfully.");
         }
 
+        [HttpPut("{academyId}/status")]
+        [Authorize(Roles = "SystemAdmin")]
+        public async Task<IActionResult> UpdateAcademyStatus(int academyId, [FromBody] UpdateAcademyStatusDto dto)
+        {
+            var userId = GetCurrentUserId();
+            var result = await _academyService.UpdateAcademyStatusAsync(academyId, dto, userId);
+            return OkResponse(result, "Academy status updated successfully.");
+        }
+
         [HttpPost("{academyId}/locations")]
         [Authorize(Roles = "AcademyAdmin,SystemAdmin")]
         public async Task<IActionResult> AddLocation(int academyId, [FromBody] AddLocationDto dto)
@@ -88,6 +97,15 @@ namespace Koralytics.API.Controllers.Academies
             var userId = GetCurrentUserId();
             await _academyService.SetMainLocationAsync(academyId, locationId, userId);
             return NoContentResponse("Location set as main successfully.");
+        }
+
+        [HttpDelete("{academyId}/locations/{locationId}")]
+        [Authorize(Roles = "AcademyAdmin,SystemAdmin")]
+        public async Task<IActionResult> DeleteLocation(int academyId, int locationId)
+        {
+            var userId = GetCurrentUserId();
+            await _academyService.DeleteLocationAsync(academyId, locationId, userId);
+            return NoContentResponse("Location deleted successfully.");
         }
 
         // ─── Academy Requests ──────────────────────────────────────────────────
@@ -236,6 +254,60 @@ namespace Koralytics.API.Controllers.Academies
         {
             var coachId = GetCurrentUserId();
             await _academyService.RespondToCoachJoinRequestAsync(requestId, dto.Status, coachId);
+            return OkResponse<object>(null, "Responded to join request successfully.");
+        }
+
+        // ─── Admin Join Requests ───────────────────────────────────────────────
+
+        [HttpGet("{academyId}/search-admins")]
+        [Authorize(Roles = "AcademyAdmin,SystemAdmin")]
+        public async Task<IActionResult> SearchAdmins(int academyId, [FromQuery] string? name)
+        {
+            var result = await _academyService.SearchAvailableAdminsAsync(name, academyId);
+            return OkResponse(result, "Available admins retrieved successfully.");
+        }
+
+        [HttpPost("{academyId}/send-admin-join-request")]
+        [Authorize(Roles = "AcademyAdmin,SystemAdmin")]
+        public async Task<IActionResult> SendAdminJoinRequest(int academyId, [FromQuery] int adminId)
+        {
+            var currentUserId = GetCurrentUserId();
+            await _academyService.SendAdminJoinRequestAsync(academyId, adminId, currentUserId);
+            return OkResponse<object>(null, "Join request sent to admin successfully.");
+        }
+
+        [HttpGet("{academyId}/pending-admin-requests")]
+        [Authorize(Roles = "AcademyAdmin,SystemAdmin")]
+        public async Task<IActionResult> GetPendingAdminJoinRequestsForAcademy(int academyId)
+        {
+            var result = await _academyService.GetPendingAdminRequestsForAcademyAsync(academyId);
+            return OkResponse(result, "Pending admin join requests retrieved successfully.");
+        }
+
+        [HttpPatch("admin-join-requests/{requestId}/cancel")]
+        [Authorize(Roles = "AcademyAdmin,SystemAdmin")]
+        public async Task<IActionResult> CancelAdminJoinRequest(int requestId)
+        {
+            var adminId = GetCurrentUserId();
+            await _academyService.CancelAdminJoinRequestAsync(requestId, adminId);
+            return OkResponse<object>(null, "Join request cancelled successfully.");
+        }
+
+        [HttpGet("admin-join-requests/my-requests")]
+        [Authorize(Roles = "AcademyAdmin")]
+        public async Task<IActionResult> GetMyPendingAdminRequests()
+        {
+            var adminId = GetCurrentUserId();
+            var result = await _academyService.GetPendingAdminRequestsForUserAsync(adminId);
+            return OkResponse(result, "Your pending join requests retrieved successfully.");
+        }
+
+        [HttpPut("admin-join-requests/{requestId}/respond")]
+        [Authorize(Roles = "AcademyAdmin")]
+        public async Task<IActionResult> RespondToAdminJoinRequest(int requestId, [FromBody] RespondJoinRequestDto dto)
+        {
+            var adminId = GetCurrentUserId();
+            await _academyService.RespondToAdminJoinRequestAsync(requestId, dto.Status, adminId);
             return OkResponse<object>(null, "Responded to join request successfully.");
         }
 

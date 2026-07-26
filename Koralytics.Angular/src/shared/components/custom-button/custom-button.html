@@ -3,7 +3,7 @@
     #btnElement
     [type]="type" 
     [disabled]="disabled || loading"
-    [class]="'custom-btn ' + variant"
+    [class]="'custom-btn ' + variant + ' ' + size"
     [class.loading]="loading"
     [class.shimmer]="shimmer"
     (click)="createRipple($event)">

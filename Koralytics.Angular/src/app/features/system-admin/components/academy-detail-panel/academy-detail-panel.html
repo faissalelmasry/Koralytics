@@ -1,0 +1,118 @@
+<div class="detail-panel">
+  <div class="panel-header">
+    <div class="sub-tabs">
+      <button 
+        [class.active]="activeSubTab === 'members'" 
+        (click)="setSubTab('members')">
+        Members ({{ members.length }})
+      </button>
+      <button 
+        [class.active]="activeSubTab === 'admins'" 
+        (click)="setSubTab('admins')">
+        Admins ({{ admins.length }})
+      </button>
+      <button 
+        [class.active]="activeSubTab === 'locations'" 
+        (click)="setSubTab('locations')">
+        Locations ({{ locations.length }})
+      </button>
+      <button 
+        [class.active]="activeSubTab === 'badges'" 
+        (click)="setSubTab('badges')">
+        Badges ({{ badges.length }})
+      </button>
+      <button 
+        [class.active]="activeSubTab === 'subscriptions'" 
+        (click)="setSubTab('subscriptions')">
+        Subscriptions
+      </button>
+    </div>
+  </div>
+
+  <div class="loading-state" *ngIf="isLoading">
+    <app-loading-spinner size="sm"></app-loading-spinner>
+    <span>Loading academy details...</span>
+  </div>
+
+  <div class="tab-content" *ngIf="!isLoading">
+    <!-- Members Tab -->
+    <div *ngIf="activeSubTab === 'members'">
+      <table class="mini-table" *ngIf="members.length > 0">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Role / Position</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let m of members">
+            <td>{{ m.fullName || m.firstName + ' ' + m.lastName }}</td>
+            <td><span class="badge-chip">{{ m.position || m.role || 'Player' }}</span></td>
+            <td><span class="status-chip active">Active</span></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="empty-sub" *ngIf="members.length === 0">No members registered in this academy yet.</div>
+    </div>
+
+    <!-- Admins Tab -->
+    <div *ngIf="activeSubTab === 'admins'">
+      <table class="mini-table" *ngIf="admins.length > 0">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Role</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let a of admins">
+            <td>{{ a.fullName || a.firstName + ' ' + a.lastName }}</td>
+            <td><span class="badge-chip admin">{{ a.isOwner ? 'Owner' : 'Admin' }}</span></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="empty-sub" *ngIf="admins.length === 0">No admins found.</div>
+    </div>
+
+    <!-- Locations Tab -->
+    <div *ngIf="activeSubTab === 'locations'">
+      <div class="location-list" *ngIf="locations.length > 0">
+        <div class="location-card" *ngFor="let loc of locations">
+          <div class="loc-name">{{ loc.name }} <span class="badge-chip main" *ngIf="loc.isMain">Main</span></div>
+          <div class="loc-address">{{ loc.address }}, {{ loc.city }}</div>
+        </div>
+      </div>
+      <div class="empty-sub" *ngIf="locations.length === 0">No locations listed.</div>
+    </div>
+
+    <!-- Badges Tab -->
+    <div *ngIf="activeSubTab === 'badges'">
+      <div class="badge-list" *ngIf="badges.length > 0">
+        <div class="badge-item" *ngFor="let b of badges">
+          <span class="badge-icon">🏅</span>
+          <div class="badge-info">
+            <strong>{{ getBadgeLabel(b.badgeType) }}</strong>
+            <small>Awarded {{ b.awardedAt | date:'shortDate' }}</small>
+          </div>
+        </div>
+      </div>
+      <div class="empty-sub" *ngIf="badges.length === 0">No badges awarded to this academy.</div>
+    </div>
+
+    <!-- Subscriptions Tab -->
+    <div *ngIf="activeSubTab === 'subscriptions'">
+      <div class="subs-summary" *ngIf="subscriptions">
+        <div class="stat-box">
+          <span class="stat-num">{{ subscriptions.activeCount || 0 }}</span>
+          <span class="stat-label">Active Subscriptions</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-num">{{ subscriptions.expiredCount || 0 }}</span>
+          <span class="stat-label">Expired</span>
+        </div>
+      </div>
+      <div class="empty-sub" *ngIf="!subscriptions">No subscription data available.</div>
+    </div>
+  </div>
+</div>

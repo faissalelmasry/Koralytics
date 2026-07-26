@@ -13,6 +13,7 @@ using Koralytics.Application.Options;
 using Koralytics.Infrastructure.ExternalServices;
 using Koralytics.Application.Interfaces.Tournament;
 using Koralytics.Application.Interfaces.Tournaments;
+using Koralytics.Application.Mappings.SystemAdmin;
 using Koralytics.Application.Mappings.Auth;
 using Koralytics.Application.Mappings.Player;
 using Koralytics.Application.Mappings.Tournaments;
@@ -52,6 +53,7 @@ using Koralytics.Application.Services.Academy.AcademyTeamService;
 using Koralytics.Application.Services.Academy.AcademyAnalyticsService;
 using Koralytics.Application.Services.Academy.AcademyAnnouncementService;
 using Koralytics.Application.Services.Academy.AcademyBadgeService;
+using Koralytics.Application.Services.SystemAdmin.UserManagement;
 using Koralytics.Application.Services.Player.Helpers;
 using Koralytics.Application.Interfaces.Scouter;
 using Koralytics.Application.Interfaces.ScouterInterfaces;
@@ -222,6 +224,7 @@ namespace Koralytics.API
             builder.Services.AddScoped<IAcademyAnalyticsService, AcademyAnalyticsService>();
             builder.Services.AddScoped<IAcademyAnnouncementService, AcademyAnnouncementService>();
             builder.Services.AddScoped<IAcademyBadgeService, AcademyBadgeService>();
+            builder.Services.AddScoped<IUserManagementService, UserManagementService>();
             builder.Services.AddScoped<ICoachSquadService, CoachSquadService>();
             builder.Services.AddScoped<ICoachNoteService, CoachNoteService>();
             builder.Services.AddScoped<ICoachAccessService, CoachAccessService>();
@@ -280,6 +283,7 @@ namespace Koralytics.API
             builder.Services.AddAutoMapper(op => op.AddProfile<PlayerProfile>());
             builder.Services.AddAutoMapper(op => op.AddProfile<MatchProfile>());
             builder.Services.AddAutoMapper(op=>op.AddProfile<ScouterProfile>());
+            builder.Services.AddAutoMapper(op => op.AddProfile<UserManagementProfile>());
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();

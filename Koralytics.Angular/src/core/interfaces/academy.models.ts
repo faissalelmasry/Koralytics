@@ -7,6 +7,8 @@ export interface AcademyResponseDto {
   contactEmail?: string;
   contactPhone?: string;
   createdAt: string;
+  adminUserId: number;
+  adminFullName: string;
   locationCount: number;
 }
 
@@ -61,6 +63,24 @@ export interface AcademyAdminResponseDto {
   isOwner: boolean;
 }
 
+export interface AdminSearchResponseDto {
+  adminId: number;
+  firstName: string;
+  lastName: string;
+  imageUrl?: string;
+}
+
+export interface AcademyAdminJoinRequestResponseDto {
+  id: number;
+  academyId: number;
+  academyName: string;
+  adminId: number;
+  adminFullName: string;
+  status: number;
+  requestedAt: string;
+  respondedAt?: string;
+}
+
 export interface UpdatePlayerSubscriptionDto {
   status: number; // 0=Unpaid, 1=Paid, 2=GracePeriod
   graceUntil?: string;
@@ -82,7 +102,7 @@ export interface CreateAgeGroupDto { name: string; minAge: number; maxAge: numbe
 export interface AgeGroupResponseDto { id: number; academyId: number; name: string; minAge: number; maxAge: number; }
 export interface CreateTeamDto { name: string; ageGroupId: number; locationId: number; }
 export interface TeamResponseDto { id: number; academyId: number; name: string; ageGroupId: number; ageGroupName: string; locationId: number; locationName: string; coaches: any[]; players: any[]; }
-export interface AcademyLocationResponseDto { id: number; name: string; address: string; city: string; country: string; isMainLocation: boolean; }
+export interface AcademyLocationResponseDto { id: number; name: string; address: string; city: string; isMain: boolean; academyId: number; }
 
 export interface CreateAnnouncementDto {
   targetAudience: number; // 0=Everyone, 1=Coaches, 2=Players, 3=Parents

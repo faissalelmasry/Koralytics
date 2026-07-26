@@ -33,7 +33,7 @@
   color: #7b8293;
 }
 
-.add-admin-panel {
+.search-panel, .pending-section {
   background: rgba(255, 255, 255, 0.02);
   border: 1px dashed rgba(255, 255, 255, 0.1);
   border-radius: 12px;
@@ -41,15 +41,43 @@
   margin-bottom: 24px;
 }
 
-.add-form {
+.search-form {
   display: flex;
   gap: 16px;
   align-items: flex-end;
+  margin-bottom: 20px;
 }
 
-.add-form app-text-input {
+.search-form app-text-input {
   flex: 1;
-  max-width: 300px;
+  max-width: 400px;
+}
+
+h4 {
+  margin: 0 0 16px 0;
+  font-size: 14px;
+  color: #e2e8f0;
+  font-weight: 600;
+}
+
+.user-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+  transition: all 0.2s ease;
+}
+
+.user-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.pending-card {
+  border-color: rgba(245, 158, 11, 0.3);
 }
 
 .table-container {
@@ -96,6 +124,10 @@
   font-size: 14px;
 }
 
+.status-indicator {
+  font-size: 20px;
+}
+
 .user-details {
   display: flex;
   flex-direction: column;
@@ -107,7 +139,7 @@
   font-size: 14px;
 }
 
-.user-email {
+.user-email, .date-text {
   font-size: 12px;
   color: #7b8293;
 }

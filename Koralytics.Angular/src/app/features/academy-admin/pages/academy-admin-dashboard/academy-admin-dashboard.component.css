@@ -202,15 +202,18 @@
 /* No Academy Flow */
 .no-academy-wrapper {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 32px;
   min-height: calc(100vh - 80px);
   padding: 20px;
   background: transparent;
 }
 
 .request-card,
-.pending-card {
+.pending-card,
+.pending-invitations-section {
   width: 100%;
   max-width: 500px;
   animation: scaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);

@@ -1,6 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { AuthService } from '../../../../../core/services/auth/auth.service';
 import { AcademyService } from '../../../../../core/services/academy/academy.service';
 import { ToastService } from '../../../../../core/services/Toast/toast';
@@ -19,6 +20,8 @@ import { AcademyCommSubsSectionComponent } from '../../components/academy-comm-s
 import { AcademyResponseDto } from '../../../../../core/interfaces/academy.models';
 import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
 
+import { AcademyLocationsSectionComponent } from '../../components/academy-locations-section/academy-locations-section';
+
 @Component({
   selector: 'app-academy-admin-dashboard',
   standalone: true,
@@ -35,6 +38,7 @@ import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-r
     AcademyCoachesSectionComponent,
     AcademyTeamsSectionComponent,
     AcademyCommSubsSectionComponent,
+    AcademyLocationsSectionComponent,
     LoadingSpinnerComponent,
     ScrollRevealDirective
   ],
@@ -46,6 +50,7 @@ export class AcademyAdminDashboardComponent implements OnInit {
   private academyService = inject(AcademyService);
   private toast = inject(ToastService);
   private fb = inject(FormBuilder);
+  private router = inject(Router);
 
   currentUser = this.authService.getCurrentUserValue();
   
@@ -64,6 +69,8 @@ export class AcademyAdminDashboardComponent implements OnInit {
     location: ['', [Validators.required]]
   });
 
+  myPendingAdminRequests: any[] = [];
+
   ngOnInit() {
     this.checkAcademyStatus();
   }
@@ -73,10 +80,9 @@ export class AcademyAdminDashboardComponent implements OnInit {
       this.hasAcademy = true;
       this.loadAcademyData(this.currentUser.academyId);
     } else {
-      // Check if user has a pending request
+      // Check if user has a pending request to create an academy
       this.academyService.getMyAcademyRequests().subscribe({
         next: (res) => {
-          this.isLoading = false;
           if (res.isSuccess && res.data && res.data.length > 0) {
             const request = res.data[0]; 
             if (request.status === 1) { // Approved
@@ -85,6 +91,16 @@ export class AcademyAdminDashboardComponent implements OnInit {
             } else {
               this.pendingRequest = request;
             }
+          }
+        }
+      });
+      
+      // Check if user has pending invitations to JOIN an academy
+      this.academyService.getMyPendingAdminRequests().subscribe({
+        next: (res) => {
+          this.isLoading = false;
+          if (res.isSuccess && res.data) {
+            this.myPendingAdminRequests = res.data;
           }
         },
         error: () => {
@@ -136,6 +152,28 @@ export class AcademyAdminDashboardComponent implements OnInit {
       error: () => {
         this.isLoading = false;
         this.toast.show('Error submitting request', 'error');
+      }
+    });
+  }
+
+  respondToAdminRequest(requestId: number, accept: boolean) {
+    this.academyService.respondToAdminJoinRequest(requestId, { status: accept ? 2 : 3 }).subscribe({
+      next: (res) => {
+        if (res.isSuccess) {
+          this.toast.show(accept ? 'Request accepted! Please log in again to sync.' : 'Request rejected', 'success');
+          if (accept) {
+            this.authService.logoutAll().subscribe(() => {
+              this.router.navigate(['/login']);
+            });
+          } else {
+            this.myPendingAdminRequests = this.myPendingAdminRequests.filter(r => r.id !== requestId);
+          }
+        } else {
+          this.toast.show(res.message || 'Error responding to request', 'error');
+        }
+      },
+      error: () => {
+        this.toast.show('Error responding to request', 'error');
       }
     });
   }

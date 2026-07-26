@@ -8,6 +8,7 @@
     <a routerLink="/about" routerLinkActive="active">about</a>
     <a routerLink="/clubs" routerLinkActive="active">clubs</a>
     <a routerLink="/contact" routerLinkActive="active">contact</a>
+    <a *ngIf="isSystemAdmin" routerLink="/system-admin/dashboard" routerLinkActive="active" class="admin-link">system admin</a>
   </nav>
 </header>
 
@@ -36,6 +37,7 @@
       <a routerLink="/about" routerLinkActive="active" (click)="toggleSidebar(false)">about</a>
       <a routerLink="/clubs" routerLinkActive="active" (click)="toggleSidebar(false)">clubs</a>
       <a routerLink="/contact" routerLinkActive="active" (click)="toggleSidebar(false)">contact</a>
+      <a *ngIf="isSystemAdmin" routerLink="/system-admin/dashboard" routerLinkActive="active" (click)="toggleSidebar(false)">system admin</a>
     </nav>
   </div>
 </aside>

@@ -49,4 +49,26 @@ namespace Koralytics.Application.DTOs.Academy
         public string LastName { get; set; } = string.Empty;
         public string? ImageUrl { get; set; }
     }
+
+    public class AcademyAdminJoinRequestResponseDto
+    {
+        public int Id { get; set; }
+        public int AcademyId { get; set; }
+        public string AcademyName { get; set; } = string.Empty;
+        public int AdminId { get; set; }
+        public string AdminFullName { get; set; } = string.Empty;
+        public JoinRequestStatus Status { get; set; }
+        public DateTime RequestedAt { get; set; }
+        public DateTime? RespondedAt { get; set; }
+        public int? RequestedById { get; set; }
+        public string RequestedByFullName { get; set; } = string.Empty;
+    }
+
+    public class AdminSearchResponseDto
+    {
+        public int AdminId { get; set; }
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
+        public string? ImageUrl { get; set; }
+    }
 }

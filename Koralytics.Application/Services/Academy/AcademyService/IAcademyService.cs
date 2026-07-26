@@ -22,6 +22,11 @@ namespace Koralytics.Application.Services.Academy.AcademyService
         Task<AcademyResponseDto> UpdateAcademyAsync(int academyId, UpdateAcademyDto dto, int performedByUserId);
 
         /// <summary>
+        /// Updates the status of an academy (e.g. Active, Suspended, Inactive).
+        /// </summary>
+        Task<AcademyResponseDto> UpdateAcademyStatusAsync(int academyId, UpdateAcademyStatusDto dto, int performedByUserId);
+
+        /// <summary>
         /// Adds a new physical location to the academy.
         /// Automatically sets IsMain = true when it is the first location added.
         /// </summary>
@@ -44,6 +49,11 @@ namespace Koralytics.Application.Services.Academy.AcademyService
         /// </summary>
         Task SetMainLocationAsync(int academyId, int locationId, int performedByUserId);
 
+        /// <summary>
+        /// Deletes an academy location.
+        /// </summary>
+        Task DeleteLocationAsync(int academyId, int locationId, int performedByUserId);
+
         // ─── Academy Requests ──────────────────────────────────────────────────
         Task<Koralytics.Application.DTOs.SystemAdmin.AcademyRequestResponseDto> RequestAcademyAsync(Koralytics.Application.DTOs.SystemAdmin.CreateAcademyRequestDto dto, int requestedByUserId);
         Task<IEnumerable<Koralytics.Application.DTOs.SystemAdmin.AcademyRequestResponseDto>> GetPendingRequestsAsync();
@@ -56,20 +66,27 @@ namespace Koralytics.Application.Services.Academy.AcademyService
         Task<IEnumerable<PlayerSearchResponseDto>> SearchAvailablePlayersAsync(string? name, int academyId);
         Task<IEnumerable<CoachSearchResponseDto>> SearchCoachesAsync(string? name, int academyId);
 
+        Task<IEnumerable<AdminSearchResponseDto>> SearchAvailableAdminsAsync(string? name, int academyId);
+
         Task SendPlayerJoinRequestAsync(int academyId, int playerId, int adminUserId);
         Task SendCoachJoinRequestAsync(int academyId, int coachId, int adminUserId);
+        Task SendAdminJoinRequestAsync(int academyId, int adminUserId, int performedByUserId);
 
         Task RespondToPlayerJoinRequestAsync(int requestId, JoinRequestStatus status, int adminUserId);
         Task RespondToCoachJoinRequestAsync(int requestId, JoinRequestStatus status, int adminUserId);
+        Task RespondToAdminJoinRequestAsync(int requestId, JoinRequestStatus status, int adminUserId);
         
         Task CancelPlayerJoinRequestAsync(int requestId, int adminUserId);
         Task CancelCoachJoinRequestAsync(int requestId, int adminUserId);
+        Task CancelAdminJoinRequestAsync(int requestId, int adminUserId);
 
         Task<IEnumerable<AcademyPlayerJoinRequestResponseDto>> GetPendingPlayerRequestsForAcademyAsync(int academyId);
         Task<IEnumerable<AcademyCoachJoinRequestResponseDto>> GetPendingCoachRequestsForAcademyAsync(int academyId);
+        Task<IEnumerable<AcademyAdminJoinRequestResponseDto>> GetPendingAdminRequestsForAcademyAsync(int academyId);
 
         Task<IEnumerable<AcademyPlayerJoinRequestResponseDto>> GetPendingPlayerRequestsForUserAsync(int playerId);
         Task<IEnumerable<AcademyCoachJoinRequestResponseDto>> GetPendingCoachRequestsForUserAsync(int coachId);
+        Task<IEnumerable<AcademyAdminJoinRequestResponseDto>> GetPendingAdminRequestsForUserAsync(int adminId);
 
         // ─── Member Removal ────────────────────────────────────────────────────
         Task RemoveCoachFromAcademyAsync(int academyId, int coachUserId, int performedByUserId);

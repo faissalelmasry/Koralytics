@@ -2,28 +2,68 @@
   <div class="section-header">
     <div class="header-content">
       <h3>Manage Admins</h3>
-      <p class="subtitle">Assign system users to manage the academy</p>
+      <p class="subtitle">Invite and manage academy admins</p>
     </div>
   </div>
 
-  <div class="add-admin-panel">
-    <form [formGroup]="addAdminForm" (ngSubmit)="onAddAdmin()" class="add-form">
+  <div class="search-panel" *ngIf="isOwner">
+    <form [formGroup]="searchForm" (ngSubmit)="onSearch()" class="search-form">
       <app-text-input
-        label="User ID"
-        type="number"
-        placeholder="Enter User ID to assign as admin"
-        formControlName="userId">
+        label="Search Admins"
+        type="text"
+        placeholder="Search by name (leave blank for all)"
+        formControlName="searchTerm">
       </app-text-input>
 
       <div class="form-actions">
         <app-button
           type="submit"
           variant="accent"
-          [disabled]="addAdminForm.invalid || isAdding">
-          {{ isAdding ? 'Assigning...' : 'Assign Admin' }}
+          [disabled]="isSearching">
+          {{ isSearching ? 'Searching...' : 'Search' }}
         </app-button>
       </div>
     </form>
+
+    <div class="search-results" *ngIf="searchResults.length > 0">
+      <h4>Search Results</h4>
+      <div class="user-card" *ngFor="let user of searchResults">
+        <div class="user-info">
+          <div class="avatar-small">{{ user.firstName?.charAt(0) || user.fullName?.charAt(0) || 'A' }}</div>
+          <div class="user-details">
+            <span class="user-name">{{ user.firstName }} {{ user.lastName }}</span>
+            <span class="user-email">Admin</span>
+          </div>
+        </div>
+        <app-button
+          variant="accent"
+          size="small"
+          [disabled]="isSending || isUserPending(user.adminId || user.userId || user.id) || isUserMember(user.adminId || user.userId || user.id)"
+          (click)="onSendRequest(user.adminId || user.userId || user.id)">
+          {{ isUserMember(user.adminId || user.userId || user.id) ? 'Already Admin' : (isUserPending(user.adminId || user.userId || user.id) ? 'Pending' : 'Send Request') }}
+        </app-button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pending Requests -->
+  <div class="pending-section" *ngIf="isOwner && pendingRequests.length > 0">
+    <h4>Pending Join Requests</h4>
+    <div class="user-card pending-card" *ngFor="let req of pendingRequests">
+      <div class="user-info">
+        <div class="status-indicator">⏳</div>
+        <div class="user-details">
+          <span class="user-name">{{ req.adminFullName || req.fullName || 'Admin Request' }}</span>
+          <span class="user-email">Sent on {{ req.requestedAt | date:'short' }}</span>
+        </div>
+      </div>
+      <app-button
+        variant="slate"
+        size="small"
+        (click)="onCancelRequest(req.id)">
+        Cancel
+      </app-button>
+    </div>
   </div>
 
   <div class="loading-state" *ngIf="isLoading">

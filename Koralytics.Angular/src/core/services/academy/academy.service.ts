@@ -48,19 +48,23 @@ export class AcademyService {
 
   // ==================== Academy Dashboard Data ====================
 
-  getAcademyMembers(academyId: number, pagination?: PaginationRequestDto): Observable<ApiResponse<PagedResponseDto<AcademyMemberResponseDto>>> {
+  getAcademyMembers(academyId: number, pagination?: any): Observable<ApiResponse<PagedResponseDto<AcademyMemberResponseDto>>> {
     let params = new HttpParams();
     if (pagination) {
-      if (pagination.pageNumber) params = params.set('pageNumber', pagination.pageNumber.toString());
+      const pageVal = pagination.pageNumber || pagination.page;
+      if (pageVal) params = params.set('pageNumber', pageVal.toString());
       if (pagination.pageSize) params = params.set('pageSize', pagination.pageSize.toString());
     }
     return this.http.get<ApiResponse<PagedResponseDto<AcademyMemberResponseDto>>>(`${this.apiUrl}/${academyId}/members`, { params });
   }
 
-  getAcademyAdmins(academyId: number, pagination?: PaginationRequestDto): Observable<ApiResponse<PagedResponseDto<AcademyAdminResponseDto>>> {
+  getAcademyAdmins(academyId: number, pagination?: any): Observable<ApiResponse<PagedResponseDto<AcademyAdminResponseDto>>> {
     let params = new HttpParams();
-    if (pagination?.pageNumber) params = params.set('pageNumber', pagination.pageNumber.toString());
-    if (pagination?.pageSize) params = params.set('pageSize', pagination.pageSize.toString());
+    if (pagination) {
+      const pageVal = pagination.pageNumber || pagination.page;
+      if (pageVal) params = params.set('pageNumber', pageVal.toString());
+      if (pagination.pageSize) params = params.set('pageSize', pagination.pageSize.toString());
+    }
 
     return this.http.get<ApiResponse<PagedResponseDto<AcademyAdminResponseDto>>>(`${this.apiUrl}/${academyId}/admins`, { params });
   }
@@ -71,6 +75,34 @@ export class AcademyService {
 
   removeAdmin(academyId: number, adminId: number): Observable<ApiResponse<any>> {
     return this.http.delete<ApiResponse<any>>(`${this.apiUrl}/${academyId}/admins/${adminId}`);
+  }
+
+  // ==================== Admin Management ====================
+
+  searchAdmins(academyId: number, name?: string): Observable<ApiResponse<any>> {
+    let params = new HttpParams();
+    if (name) params = params.set('name', name);
+    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/${academyId}/search-admins`, { params });
+  }
+
+  sendAdminJoinRequest(academyId: number, adminId: number): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.apiUrl}/${academyId}/send-admin-join-request?adminId=${adminId}`, {});
+  }
+
+  getPendingAdminRequests(academyId: number): Observable<ApiResponse<any>> {
+    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/${academyId}/pending-admin-requests`);
+  }
+
+  cancelAdminJoinRequest(requestId: number): Observable<ApiResponse<any>> {
+    return this.http.patch<ApiResponse<any>>(`${this.apiUrl}/admin-join-requests/${requestId}/cancel`, {});
+  }
+
+  getMyPendingAdminRequests(): Observable<ApiResponse<any>> {
+    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/admin-join-requests/my-requests`);
+  }
+
+  respondToAdminJoinRequest(requestId: number, dto: { status: number }): Observable<ApiResponse<any>> {
+    return this.http.put<ApiResponse<any>>(`${this.apiUrl}/admin-join-requests/${requestId}/respond`, dto);
   }
 
   // ==================== Coach Management ====================
@@ -156,9 +188,20 @@ export class AcademyService {
   getAllAcademies(request?: any): Observable<ApiResponse<PagedResponseDto<AcademyResponseDto>>> {
     let params = new HttpParams();
     if (request) {
+      const pageVal = request.page || request.pageNumber || request.Page || request.PageNumber;
+      if (pageVal) params = params.set('Page', pageVal.toString());
+
+      const pageSizeVal = request.pageSize || request.PageSize;
+      if (pageSizeVal) params = params.set('PageSize', pageSizeVal.toString());
+
+      const searchVal = request.searchQuery || request.SearchQuery || request.searchTerm || request.SearchTerm;
+      if (searchVal) params = params.set('SearchQuery', searchVal.toString());
+
       Object.keys(request).forEach(key => {
-        if (request[key] !== undefined && request[key] !== null) {
-          params = params.set(key, request[key].toString());
+        if (!['page', 'pageNumber', 'Page', 'PageNumber', 'pageSize', 'PageSize', 'searchQuery', 'SearchQuery', 'searchTerm', 'SearchTerm'].includes(key)) {
+          if (request[key] !== undefined && request[key] !== null) {
+            params = params.set(key, request[key].toString());
+          }
         }
       });
     }
@@ -195,6 +238,10 @@ export class AcademyService {
     return this.http.put<ApiResponse<any>>(`${this.apiUrl}/${academyId}/locations/${locationId}/set-main`, {});
   }
 
+  deleteLocation(academyId: number, locationId: number): Observable<ApiResponse<any>> {
+    return this.http.delete<ApiResponse<any>>(`${this.apiUrl}/${academyId}/locations/${locationId}`);
+  }
+
   // ==================== Team Management ====================
 
   assignCoachToTeam(teamId: number, coachId: number): Observable<ApiResponse<any>> {
@@ -213,7 +260,7 @@ export class AcademyService {
     return this.http.delete<ApiResponse<any>>(`${this.apiUrl}/teams/${teamId}/players/${playerId}`);
   }
 
-  // ==================== My Join Requests (Player/Coach) ====================
+  // ==================== My Join Requests (Player/Coach/Admin) ====================
 
   getMyPendingPlayerRequests(): Observable<ApiResponse<any>> {
     return this.http.get<ApiResponse<any>>(`${this.apiUrl}/player-join-requests/my-requests`);
@@ -237,10 +284,13 @@ export class AcademyService {
     return this.http.post<ApiResponse<any>>(`${this.apiUrl}/${academyId}/announcements`, dto);
   }
 
-  getAnnouncements(academyId: number, pagination?: PaginationRequestDto): Observable<ApiResponse<PagedResponseDto<any>>> {
+  getAnnouncements(academyId: number, pagination?: any): Observable<ApiResponse<PagedResponseDto<any>>> {
     let params = new HttpParams();
-    if (pagination?.pageNumber) params = params.set('pageNumber', pagination.pageNumber.toString());
-    if (pagination?.pageSize) params = params.set('pageSize', pagination.pageSize.toString());
+    if (pagination) {
+      const pageVal = pagination.pageNumber || pagination.page;
+      if (pageVal) params = params.set('pageNumber', pageVal.toString());
+      if (pagination.pageSize) params = params.set('pageSize', pagination.pageSize.toString());
+    }
     return this.http.get<ApiResponse<PagedResponseDto<any>>>(`${this.apiUrl}/${academyId}/announcements`, { params });
   }
 
