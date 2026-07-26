@@ -421,12 +421,13 @@ For any AI agent or Developer working on this codebase:
 
 ## 8. Frontend UI Pages & Components
 
-### FAISSAL
+### FAISSAL — ✅ FRONTEND IMPLEMENTED
 **Pages/Components:**
-- **Player Profile Page**: Full player profile display, FIFA card component, Timeline component (drills/matches/achievements), Player vs academy average chart, Drill to match transfer rate display, Scouter views counter, Professional archetype display.
-- **Player Card Page**: FIFA style card display, Category ratings (Pace, Shooting, Passing...), IsStale indicator + recalculate trigger, Card history.
-- **Match Details Page**: Match info (teams, score, format, date), Live events timeline, Lineup display, Player ratings display, MOTM highlight, AI match report display, AI match preview display.
-- **Match List Page**: Filterable match list (type, status, team, date), Form guide component (W/D/L last 5), Head to head stats.
+- ✅ **Player Profile Page**: Full player profile display, FIFA card component, Timeline component (drills/matches/achievements), Player vs academy average chart, Drill to match transfer rate display, Scouter views counter, Professional archetype display.
+- ✅ **Player Card Page**: FIFA style card display, Category ratings (Pace, Shooting, Passing...), IsStale indicator + recalculate trigger, Card history.
+- ✅ **Match Details Page**: Match info (teams, score, format, date), Live events timeline, Lineup display, Player ratings display, MOTM highlight, AI match report display, AI match preview display.
+- ✅ **Match List Page**: Filterable match list (type, status, team, date), Form guide component (W/D/L last 5), Head to head stats.
+- ✅ **Player Timelines & Comparisons**: Drill timeline, Match timeline, Scheduled events, Scouter views, Transfer canvas, Player vs Academy average.
 - **Live Match Page**: Live score display (SignalR), Real time events feed, Log event form (coach only), Lineup display, Start/End match controls.
 - **Post Match Page**: Submit lineup form, Submit player ratings form (per category), MOTM selection, Minutes played per player.
 
@@ -437,36 +438,35 @@ For any AI agent or Developer working on this codebase:
 - **Tournament Management Page (Super Admin)**: Invite academies, Generate seeding, Generate draw, Advance knockout rounds, Complete tournament, Update tournament status.
 - **Squad Registration Page**: Register players for tournament, View registered squad.
 
-### ALY
+### ALY — ✅ DRILLS FRONTEND IMPLEMENTED
 **Pages/Components:**
-- **Drill Session List Page**: Coach's sessions list, Filterable by date, team, category, Session status indicator.
-- **Drill Session Details Page**: Session info (date, team, coach), Attendance roster, Drills list inside session, Drill results per player, Complete session button.
-- **Create Session Page**: Select team, Mark attendance, Add drills from templates.
-- **Drill Results Page**: Submit bulk drill results, Mode 1 (manual score input), Mode 2 (done/missed counter).
-- **Drill Template List Page**: List templates (system + academy), Filter by category, Share template toggle.
-- **Create/Edit Drill Template Page**: Template name, category, difficulty, mode.
-- **Player Drill Progression Page**: Line chart per category over time, Filter by category.
-- **Squad Weak Categories Page**: Bar chart showing weakest categories, Session planner suggestions.
+- ✅ **Drill Session List Page**: Coach's sessions list, Filterable by date, team, category, Session status indicator.
+- ✅ **Drill Session Details Page**: Session info (date, team, coach), Attendance roster, Drills list inside session, Drill results per player, Complete session button.
+- ✅ **Create Session Page**: Select team, Mark attendance, Add drills from templates.
+- ✅ **Drill Results Page**: Submit bulk drill results, Mode 1 (manual score input), Mode 2 (done/missed counter).
+- ✅ **Drill Template List Page**: List templates (system + academy), Filter by category, Share template toggle.
+- ✅ **Create/Edit Drill Template Page**: Template name, category, difficulty, mode.
+- ✅ **Player Drill Progression Page**: Line chart per category over time, Filter by category.
+- ✅ **Squad Weak Categories Page**: Bar chart showing weakest categories, Session planner suggestions.
+- ✅ **Coach Bias Analytics**: Coach bias reporting dashboard.
 
-### BISHOY
+### BISHOY / ALY — ✅ ACADEMY ADMIN FRONTEND IMPLEMENTED
 **Pages/Components:**
 - **Login Page**: Email + password form, Google OAuth button, Remember me.
 - **Register Page**: Role selection (player/coach/scouter/parent/academy admin), Role specific form fields.
 - **Complete OAuth Profile Page**: Fill missing profile fields after Google login.
 - **Change Password Page**: Old password + new password form.
-- **Academy List Page (Super Admin)**: All academies with status, Create academy button.
-- **Academy Details Page**: Academy info (name, logo, colors), Locations list, Set main location, Add location form.
-- **Academy Teams Page**: Age groups list, Teams per age group, Assign/Remove coach from team, Create age group form, Create team form.
-- **Academy Analytics Page**: Coach performance dashboard, Player improvement rates, Bias scores per coach.
-- **Subscription Status Page**: Paid/Unpaid/Grace period players list, Payment status indicators.
+- ✅ **Academy Admin Dashboard**: Full admin panel for academies.
+- ✅ **Academy Hero Banner & Badges**: Managing academy visuals and badges.
+- ✅ **Academy Details Page (Members, Coaches, Teams, Subscriptions)**: Full UI for managing academy members, teams, and subscriptions.
 
-### RAWAN
+### RAWAN — ✅ SCOUTING & NOTIFICATIONS FRONTEND
 **Pages/Components:**
 - **Scouter Search Page**: Filter based search (position, age, foot, rating range, academy), NL search bar (AI powered), Player card grid results, Pagination.
-- **Scouter Shortlist Page**: Shortlisted players grid, Remove from shortlist, Quick view player card.
-- **Scouter Followed Players Page**: Followed players list, Latest stats per player, Unfollow button.
+- ✅ **Scouter Shortlist Page**: Shortlisted players grid, Remove from shortlist, Quick view player card.
+- ✅ **Scouter Followed Players Page**: Followed players list, Latest stats per player, Unfollow button.
 - **Scouting Report Page**: AI generated report display, Generate new report button, Export as PDF.
-- **Notifications Page**: All notifications list, Real time notifications (SignalR), Mark as read.
+- ✅ **Notifications Page**: All notifications list, Real time notifications (SignalR), Mark as read.
 - **Announcements Page (Academy Admin)**: Send announcement form, Target type selector (All/Team/AgeGroup/Role), Announcements history list.
 - **Profile Views Analytics Page**: Monthly view count chart, List of scouters who viewed.
 
@@ -529,6 +529,11 @@ For any AI agent or Developer working on this codebase:
 ---
 
 ## 9. Recent Updates (Changelog)
+- **[2026-07-26] Massive Frontend Merges**:
+  - ✅ **Faissal**: Added `PlayerVsAcademyAvg` and `PlayerTimelines` pages (drill timeline, match timeline, scheduled events, scouter views, transfer canvas). Completed Match Lists and Match Timeline components.
+  - ✅ **Aly/Bishoy**: Merged all drill pages (`drill-session-create`, `drill-session-details`, `drill-session-list`, `drill-template-list`, `player-drill-progression`, `squad-weak-categories`, `coach-bias-analytics`). Implemented extensive Academy Admin UI (dashboard, members, coaches, teams, subscriptions, badges).
+  - ✅ **Rawan**: Added `notifications-list`, `followed-player`, and `scouter-shortlist` pages.
+  - ✅ **Youssef**: Final frontend fixes and merge alignments.
 - **[2026-07-23] Youssef's Frontend — Full Implementation**: 
   - ✅ Implemented all 7 Angular pages (coach-squad, training-split, coach-notes, temp-access, player-highlights, match-request, player-readiness) with full `.ts`, `.html`, `.css` files.
   - ✅ Implemented 6 Angular services (`coach-squad`, `coach-note`, `coach-access`, `player-highlight`, `match-request`, `match-analytics`).
