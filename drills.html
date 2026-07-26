@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Koralytics - Session Details Preview</title>
+    <style>
+        /* MOCKING THE KORALYTICS DARK THEME */
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #0d1117;
+            color: #ffffff;
+            margin: 0;
+            padding: 50px;
+        }
+
+        .details-page {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .mt-3 {
+            margin-top: 20px;
+        }
+
+        /* HEADER */
+        .page-header {
+            border-bottom: 1px solid #30363d;
+            padding-bottom: 25px;
+            margin-bottom: 30px;
+        }
+
+        .header-eyebrow {
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .eyebrow-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #ff9900;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #ff9900;
+        }
+
+        .text-warning {
+            color: #ff9900;
+        }
+
+        .header-title {
+            font-size: 32px;
+            margin: 0 0 8px 0;
+        }
+
+        .header-subtitle {
+            color: #8b949e;
+            margin: 0;
+            font-size: 15px;
+        }
+
+        .massive-btn {
+            background-color: #ccff00;
+            color: #000;
+            font-weight: bold;
+            font-size: 16px;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 4px 15px rgba(204, 255, 0, 0.2);
+        }
+
+        .massive-btn:hover {
+            background-color: #b3e600;
+            transform: translateY(-2px);
+        }
+
+        /* GRID LAYOUT */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .form-panel {
+            background-color: #161b22;
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid #30363d;
+        }
+
+        .panel-title {
+            margin: 0;
+            font-size: 22px;
+            color: #ffffff;
+        }
+
+        .helper-text {
+            color: #8b949e;
+            font-size: 14px;
+            margin: 8px 0 20px 0;
+        }
+
+        .badge {
+            background-color: rgba(0, 242, 254, 0.1);
+            color: #00f2fe;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            border: 1px solid rgba(0, 242, 254, 0.3);
+        }
+
+        .small-btn {
+            background-color: #00f2fe;
+            color: #000;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* ROSTER (ATTENDANCE) */
+        .player-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #21262d;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            border: 1px solid transparent;
+        }
+
+        .player-name {
+            display: block;
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .player-pos {
+            font-size: 13px;
+            color: #00f2fe;
+            font-weight: bold;
+        }
+
+        .toggle-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .toggle-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .active-green {
+            background-color: rgba(204, 255, 0, 0.15);
+            color: #ccff00;
+            border: 1px solid #ccff00;
+        }
+
+        .active-red {
+            background-color: rgba(255, 71, 87, 0.15);
+            color: #ff4757;
+            border: 1px solid #ff4757;
+        }
+
+        .inactive {
+            background-color: #0d1117;
+            color: #8b949e;
+            border: 1px solid #30363d;
+        }
+
+        /* DRILLS */
+        .drill-card {
+            background: #21262d;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #00f2fe;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .drill-card.completed {
+            border-left-color: #ccff00;
+        }
+
+        .drill-card h3 {
+            margin: 0 0 8px 0;
+            font-size: 18px;
+        }
+
+        .category-badge {
+            background: #0d1117;
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            color: #8b949e;
+            border: 1px solid #30363d;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: #00f2fe;
+            border: 1px solid #00f2fe;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(0, 242, 254, 0.1);
+        }
+
+        .drill-action {
+            text-align: right;
+        }
+
+        .status-text {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .text-success {
+            color: #ccff00;
+        }
+
+        .btn-text {
+            background: transparent;
+            color: #8b949e;
+            border: none;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="details-page">
+
+        <!-- HEADER: Session Info -->
+        <header class="page-header flex-between">
+            <div>
+                <div class="header-eyebrow">
+                    <span class="eyebrow-dot"></span>
+                    <span class="text-warning">IN PROGRESS</span>
+                </div>
+                <h1 class="header-title">U17 Team A - Regular Session</h1>
+                <p class="header-subtitle">01 Aug 2026 • Main Pitch - North • Coach: Ahmed Hassan</p>
+            </div>
+
+            <!-- THE MAGIC BUTTON -->
+            <button class="massive-btn">
+                🏆 Complete Session & Update Player Cards
+            </button>
+        </header>
+
+        <div class="dashboard-grid">
+
+            <!-- LEFT COLUMN: Attendance -->
+            <section class="form-panel roster-panel">
+                <div class="roster-header flex-between">
+                    <h2 class="panel-title">1. Mark Attendance</h2>
+                    <span class="badge">16 / 18 Present</span>
+                </div>
+                <p class="helper-text">Only players marked 'Present' can participate in drills.</p>
+
+                <div class="roster-list mt-3">
+                    <div class="player-row">
+                        <div class="player-info">
+                            <span class="player-name">Mahmoud Fathy</span>
+                            <span class="player-pos">GK</span>
+                        </div>
+                        <div class="toggle-group">
+                            <button class="toggle-btn active-green">Present</button>
+                            <button class="toggle-btn inactive">Absent</button>
+                        </div>
+                    </div>
+
+                    <div class="player-row">
+                        <div class="player-info">
+                            <span class="player-name">Hossam Ghaly</span>
+                            <span class="player-pos">RB</span>
+                        </div>
+                        <div class="toggle-group">
+                            <button class="toggle-btn inactive">Present</button>
+                            <button class="toggle-btn active-red">Absent</button>
+                        </div>
+                    </div>
+
+                    <div class="player-row">
+                        <div class="player-info">
+                            <span class="player-name">Mohamed Shawky</span>
+                            <span class="player-pos">CB</span>
+                        </div>
+                        <div class="toggle-group">
+                            <button class="toggle-btn active-green">Present</button>
+                            <button class="toggle-btn inactive">Absent</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- RIGHT COLUMN: Drills & Results -->
+            <section class="form-panel drills-panel">
+                <div class="drills-header flex-between">
+                    <h2 class="panel-title">2. Session Drills</h2>
+                    <button class="small-btn">+ Add Drill</button>
+                </div>
+                <p class="helper-text">Add drills to this session and record player metrics.</p>
+
+                <div class="drills-list mt-3">
+
+                    <!-- Drill Card: Results Pending -->
+                    <div class="drill-card">
+                        <div class="drill-info">
+                            <h3>100m Sprint Test</h3>
+                            <span class="category-badge">Physical</span>
+                        </div>
+                        <div class="drill-action">
+                            <button class="btn-secondary">📝 Enter Results</button>
+                        </div>
+                    </div>
+
+                    <!-- Drill Card: Results Completed -->
+                    <div class="drill-card completed">
+                        <div class="drill-info">
+                            <h3>Passing Rondo (10 mins)</h3>
+                            <span class="category-badge">Tactical</span>
+                        </div>
+                        <div class="drill-action">
+                            <span class="status-text text-success">✓ Results Saved</span>
+                            <button class="btn-text">Edit</button>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+</body>
+
+</html>

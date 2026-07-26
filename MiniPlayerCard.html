@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Koralytics Mini Player Card</title>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@700;800&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --card-bg-start: #1c1d1a;
+      --card-bg-end: #0b0c0e;
+      --accent-yellow: #facc15;
+      --border-color: rgba(250, 204, 21, 0.3);
+      --text-muted: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: #05070c;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    /* CONTAINER DESIGN FOR MINI CARD */
+    .mini-card-wrapper {
+      width: 100px;
+      height: 135px;
+      background: linear-gradient(145deg, var(--card-bg-start) 0%, var(--card-bg-end) 100%);
+      border: 1.5px solid var(--border-color);
+      border-radius: 14px;
+      position: relative;
+      padding: 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      overflow: hidden;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    /* BACKGROUND DIAGONAL LINES (SAME AS LARGE CARD) */
+    .mini-card-wrapper::before {
+      content: '';
+      position: absolute;
+      top: -50%; left: -50%; width: 200%; height: 200%;
+      background: repeating-linear-gradient(
+        -45deg,
+        transparent,
+        transparent 6px,
+        rgba(255, 255, 255, 0.015) 6px,
+        rgba(255, 255, 255, 0.015) 12px
+      );
+      pointer-events: none;
+    }
+
+    .mini-card-wrapper:hover {
+      transform: translateY(-5px) scale(1.05);
+      border-color: var(--accent-yellow);
+      box-shadow: 0 12px 30px rgba(250, 204, 21, 0.25);
+    }
+
+    /* TOP STATS SECTION (RATING + POSITION + MINI LOGO) */
+    .card-top-bar {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      z-index: 2;
+    }
+
+    .stat-badge {
+      display: flex;
+      flex-direction: column;
+      line-height: 0.9;
+    }
+
+    .overall-rating {
+      font-family: 'Chakra Petch', sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--accent-yellow);
+      letter-spacing: -0.5px;
+    }
+
+    .position-code {
+      font-size: 9px;
+      font-weight: 800;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    /* MINI KORALYTICS LOGO */
+    .mini-logo {
+      width: 16px;
+      height: 16px;
+      border: 1px solid rgba(250, 204, 21, 0.4);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.3);
+    }
+
+    .mini-logo svg {
+      width: 10px;
+      height: 10px;
+      fill: var(--accent-yellow);
+    }
+
+    /* PLAYER AVATAR CIRCLE */
+    .player-avatar-box {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(250, 204, 21, 0.5);
+      background: #11141a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      z-index: 2;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    }
+
+    .player-avatar-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* INITIALS FALLBACK (إللي ظهرت OK في الصورة) */
+    .player-initials {
+      font-family: 'Chakra Petch', sans-serif;
+      font-size: 18px;
+      font-weight: 800;
+      color: #717d93;
+    }
+
+    /* BOTTOM PLAYER NAME */
+    .player-name-box {
+      width: 100%;
+      text-align: center;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 6px;
+      padding: 3px 2px;
+      z-index: 2;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .player-fullname {
+      font-size: 10px;
+      font-weight: 800;
+      color: #ffffff;
+      text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      letter-spacing: 0.3px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- MINI PLAYER CARD COMPONENT -->
+  <div class="mini-card-wrapper">
+    
+    <!-- TOP BAR: OVERALL + POSITION + LOGO -->
+    <div class="card-top-bar">
+      <div class="stat-badge">
+        <span class="overall-rating">74</span>
+        <span class="position-code">ST</span>
+      </div>
+      <div class="mini-logo">
+        <!-- Koralytics Icon -->
+        <svg viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="3" />
+          <path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- AVATAR / PROFILE IMAGE -->
+    <div class="player-avatar-box">
+      <!-- لو فيه صورة -->
+      <!-- <img src="URL_HERE" alt="Omar Khaled"> -->
+      
+      <!-- لو مفيش صورة (Fallback Initials) -->
+      <span class="player-initials">OK</span>
+    </div>
+
+    <!-- PLAYER NAME -->
+    <div class="player-name-box">
+      <div class="player-fullname">OMAR KHALED</div>
+    </div>
+
+  </div>
+
+</body>
+</html>

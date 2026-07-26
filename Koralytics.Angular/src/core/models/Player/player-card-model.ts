@@ -9,6 +9,8 @@ export interface PlayerCardModel {
   passingRating: number;
   physicalRating: number;
   goalkeepingRating: number | null;
+  overallTrainingAvg: number;
+  overallTournamentAvg: number;
   transferClassification: string;
   archetypePlayerName: string | null;
   playStyleTag: string | null;

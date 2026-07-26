@@ -22,6 +22,7 @@ namespace Koralytics.Domain.Entities.Drill
         public int CoachId { get; set; }
         public User? DrillSessionCoach { get; set; }
 
+        public string? Location { get; set; }
         public DateTime SessionDate { get; set; }
 
         public SessionType Type { get; set; }

@@ -14,6 +14,8 @@ namespace Koralytics.Application.DTOs.Drill
     public class PlayerAttendanceDto
     {
         public int PlayerId { get; set; }
+        public string PlayerFullName { get; set; } = string.Empty;
+        public string? Position { get; set; }
         public bool IsPresent { get; set; }
     }
 }

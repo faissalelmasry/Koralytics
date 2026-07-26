@@ -32,11 +32,11 @@
       </button>
       
       <div class="current-month-year-dropdowns" (click)="$event.stopPropagation()">
-        <select class="cyber-select" [value]="viewDate.getMonth()" (change)="onMonthChange($event)">
-          <option *ngFor="let m of monthNames; let i = index" [value]="i">{{ m }}</option>
+        <select class="cyber-select" (change)="onMonthChange($event)">
+          <option *ngFor="let m of monthNames; let i = index" [value]="i.toString()" [selected]="i === viewDate.getMonth()">{{ m }}</option>
         </select>
-        <select class="cyber-select" [value]="viewDate.getFullYear()" (change)="onYearChange($event)">
-          <option *ngFor="let y of years" [value]="y">{{ y }}</option>
+        <select class="cyber-select" (change)="onYearChange($event)">
+          <option *ngFor="let y of years" [value]="y" [selected]="y === viewDate.getFullYear().toString()">{{ y }}</option>
         </select>
       </div>
       

@@ -1,37 +1,39 @@
 ﻿using AutoMapper;
 using Koralytics.Application.DTOs.Player;
 using Koralytics.Application.Interfaces;
-using Koralytics.Application.Services.Player.PlayerCardService;
+using Koralytics.Application.Services.Player.Helpers;
 using Koralytics.Domain.Entities.Academy;
 using Koralytics.Domain.Entities.Drill;
 using Koralytics.Domain.Entities.Match;
 using Koralytics.Domain.Entities.Player;
+using Koralytics.Domain.Enums;
 using Koralytics.Domain.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Linq;
 using PlayerAchievementEntity = Koralytics.Domain.Entities.Player.PlayerAchievement;
 using PlayerEntity = Koralytics.Domain.Entities.Player.Player;
+using MatchEntity = Koralytics.Domain.Entities.Match.Match;
 
 namespace Koralytics.Application.Services.Player.PlayerProfileServices
 {
     public class PlayerProfileService : IPlayerProfileService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IPlayerCardService _playerCardService;
         private readonly ILogger<PlayerProfileService> _logger;
         private readonly IMapper _mapper;
+        private readonly ICardInvalidationList _cardInvalidationList;
 
         public PlayerProfileService(
             IUnitOfWork unitOfWork,
-            IPlayerCardService playerCardService,
             ILogger<PlayerProfileService> logger,
-            IMapper mapper)
+            IMapper mapper,
+            ICardInvalidationList cardInvalidationList)
         {
             _unitOfWork = unitOfWork;
-            _playerCardService = playerCardService;
             _logger = logger;
             _mapper = mapper;
+            _cardInvalidationList = cardInvalidationList;
         }
 
         public async Task<PlayerProfileDto> GetPlayerProfileAsync(int playerId)
@@ -51,11 +53,17 @@ namespace Koralytics.Application.Services.Player.PlayerProfileServices
             if (player is null)
                 throw new NotFoundException($"Player with id {playerId} was not found");
 
-            PlayerCardDto? playerCard = await _playerCardService.GetPlayerCardAsync(playerId);
-            if(playerCard is null)
+            PlayerCardDto? playerCard = null;
+
+            var cardEntity = await _unitOfWork.Repository<PlayerCard>()
+                .GetQueryableAsNoTracking()
+                .Include(pc => pc.CategoryRatings)
+                    .ThenInclude(cr => cr.DrillCategory)
+                .FirstOrDefaultAsync(pc => pc.PlayerId == playerId);
+
+            if (cardEntity is not null)
             {
-                _logger.LogWarning("Player card for player {PlayerId} was not found", playerId);
-                throw new NotFoundException($"PlayerCard with id {playerId} was not found");
+                playerCard = MapPlayerCardToDto(cardEntity, player);
             }
 
             var profile = _mapper.Map<PlayerProfileDto>(player);
@@ -135,8 +143,44 @@ namespace Koralytics.Application.Services.Player.PlayerProfileServices
             return age;
         }
 
+        private static PlayerCardDto MapPlayerCardToDto(PlayerCard card, PlayerEntity player)
+        {
+            var dto = new PlayerCardDto
+            {
+                PlayerName = $"{player.FirstName} {player.LastName}",
+                OverallRating = card.OverallRating,
+                OverallTrainingAvg = card.OverallTrainingAvg,
+                OverallTournamentAvg = card.OverallTournamentAvg,
+                TransferClassification = card.TransferClassification.ToString(),
+                Position = player.PlayerPositions
+                    .FirstOrDefault(p => p.IsPrimary)?.Position ?? string.Empty,
+                PreferredFoot = player.PreferredFoot,
+                WeakFootRating = player.WeakFootRating,
+                ArchetypePlayerName = player.ArchetypePlayerName,
+                PlayStyleTag = player.PlayStyleTag,
+                ProfileImageUrl = player.ProfileImageUrl,
+            };
+
+            foreach (var rating in card.CategoryRatings ?? Enumerable.Empty<PlayerCategoryRating>())
+            {
+                switch (rating.DrillCategory?.Name)
+                {
+                    case "Passing": dto.PassingRating = rating.Score; break;
+                    case "Shooting": dto.ShootingRating = rating.Score; break;
+                    case "Dribbling": dto.DribblingRating = rating.Score; break;
+                    case "Defending": dto.DefendingRating = rating.Score; break;
+                    case "Speed": dto.PaceRating = rating.Score; break;
+                    case "Physical": dto.PhysicalRating = rating.Score; break;
+                    case "GoalKeeping": dto.GoalkeepingRating = rating.Score; break;
+                }
+            }
+
+            return dto;
+        }
+
         public async Task<DrillTimelineDto> GetDrillTimelineAsync(
-            int playerId, int page = 1, int pageSize = 20)
+            int playerId, int page = 1, int pageSize = 20,
+            DateTime? dateFrom = null, DateTime? dateTo = null)
         {
             _logger.LogInformation("Fetching drill timeline for player {PlayerId}", playerId);
 
@@ -149,6 +193,15 @@ namespace Koralytics.Application.Services.Player.PlayerProfileServices
             var baseQuery = _unitOfWork.Repository<DrillResult>()
                 .GetQueryableAsNoTracking()
                 .Where(dr => dr.PlayerId == playerId && dr.Drill != null);
+
+            if (dateFrom.HasValue)
+                baseQuery = baseQuery.Where(dr => dr.Drill!.DrillSession!.SessionDate >= dateFrom.Value);
+
+            if (dateTo.HasValue)
+            {
+                var dateToEnd = dateTo.Value.Date.AddDays(1).AddTicks(-1);
+                baseQuery = baseQuery.Where(dr => dr.Drill!.DrillSession!.SessionDate <= dateToEnd);
+            }
 
             var totalCount = await baseQuery.CountAsync();
 
@@ -182,7 +235,8 @@ namespace Koralytics.Application.Services.Player.PlayerProfileServices
         }
 
         public async Task<MatchTimelineDto> GetMatchTimelineAsync(
-            int playerId, int page = 1, int pageSize = 20)
+            int playerId, int page = 1, int pageSize = 20,
+            string? matchType = null, DateTime? dateFrom = null, DateTime? dateTo = null)
         {
             _logger.LogInformation("Fetching match timeline for player {PlayerId}", playerId);
 
@@ -195,6 +249,18 @@ namespace Koralytics.Application.Services.Player.PlayerProfileServices
             var baseQuery = _unitOfWork.Repository<MatchPlayerRating>()
                 .GetQueryableAsNoTracking()
                 .Where(mpr => mpr.PlayerId == playerId && mpr.Match != null);
+
+            if (!string.IsNullOrWhiteSpace(matchType) && Enum.TryParse<Domain.Enums.MatchType>(matchType, true, out var parsedType))
+                baseQuery = baseQuery.Where(mpr => mpr.Match!.Type == parsedType);
+
+            if (dateFrom.HasValue)
+                baseQuery = baseQuery.Where(mpr => mpr.Match!.MatchDate >= dateFrom.Value);
+
+            if (dateTo.HasValue)
+            {
+                var dateToEnd = dateTo.Value.Date.AddDays(1).AddTicks(-1);
+                baseQuery = baseQuery.Where(mpr => mpr.Match!.MatchDate <= dateToEnd);
+            }
 
             var totalCount = await baseQuery.CountAsync();
 
@@ -301,6 +367,7 @@ namespace Koralytics.Application.Services.Player.PlayerProfileServices
 
             var player = await _unitOfWork.Repository<PlayerEntity>()
                 .GetQueryableAsNoTracking()
+                .Include(p => p.PlayerPositions)
                 .Include(p => p.PlayerTeams.Where(pt => pt.LeftAt == null))
                     .ThenInclude(pt => pt.Team)
                         .ThenInclude(t => t.AgeGroup)
@@ -390,6 +457,22 @@ namespace Koralytics.Application.Services.Player.PlayerProfileServices
                 }
             }
 
+            var isGoalkeeper = player.PlayerPositions
+                .Any(pp => pp.IsPrimary && string.Equals(pp.Position, "GK", StringComparison.OrdinalIgnoreCase));
+
+            if (isGoalkeeper)
+            {
+                categories = categories
+                    .Where(c => string.Equals(c.CategoryName, "Goalkeeping", StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+            }
+            else
+            {
+                categories = categories
+                    .Where(c => !string.Equals(c.CategoryName, "Goalkeeping", StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+            }
+
             return new PlayerVsAcademyAverageDto
             {
                 PlayerId = playerId,
@@ -427,6 +510,221 @@ namespace Koralytics.Application.Services.Player.PlayerProfileServices
                 Month = month,
                 ViewsCount = count,
             };
+        }
+
+        public async Task<TeamScheduledEventsResponseDto> GetTeamScheduledEventsAsync(
+            int playerId, int page = 1, int pageSize = 20,
+            string? eventType = null, DateTime? dateFrom = null, DateTime? dateTo = null)
+        {
+            _logger.LogInformation("Fetching team scheduled events for player {PlayerId}", playerId);
+
+            var playerExists = await _unitOfWork.Repository<PlayerEntity>()
+                .ExistsAsync(p => p.Id == playerId);
+
+            if (!playerExists)
+                throw new NotFoundException($"Player with id {playerId} was not found");
+
+            var teamIds = await _unitOfWork.Repository<PlayerTeam>()
+                .GetQueryableAsNoTracking()
+                .Where(pt => pt.PlayerId == playerId && pt.LeftAt == null)
+                .Select(pt => pt.TeamId)
+                .ToListAsync();
+
+            if (teamIds.Count == 0)
+            {
+                return new TeamScheduledEventsResponseDto
+                {
+                    Events = [],
+                    TotalCount = 0,
+                    Page = page,
+                    PageSize = pageSize,
+                };
+            }
+
+            var now = DateTime.UtcNow;
+
+            var scheduledMatchesRaw = await _unitOfWork.Repository<MatchEntity>()
+                .GetQueryableAsNoTracking()
+                .Where(m => m.Status == MatchStatus.Scheduled
+                    && m.MatchDate > now
+                    && m.Type != Domain.Enums.MatchType.Session
+                    && (teamIds.Contains(m.HomeTeamId) || teamIds.Contains(m.AwayTeamId)))
+                .Select(m => new
+                {
+                    m.Id,
+                    m.MatchDate,
+                    m.Type,
+                    m.HomeTeamId,
+                    m.AwayTeamId,
+                    HomeTeamName = m.HomeTeam.Name,
+                    AwayTeamName = m.AwayTeam.Name,
+                })
+                .ToListAsync();
+
+            var scheduledMatches = scheduledMatchesRaw
+                .Select(m => new TeamScheduledEventDto
+                {
+                    EventType = "Match",
+                    Date = m.MatchDate,
+                    MatchId = m.Id,
+                    MatchType = m.Type.ToString(),
+                    HomeTeamName = m.HomeTeamName,
+                    AwayTeamName = m.AwayTeamName,
+                    TeamId = teamIds.Contains(m.HomeTeamId) ? m.HomeTeamId : m.AwayTeamId,
+                    TeamName = teamIds.Contains(m.HomeTeamId) ? m.HomeTeamName : m.AwayTeamName,
+                })
+                .ToList();
+
+            var scheduledDrills = await _unitOfWork.Repository<DrillSession>()
+                .GetQueryableAsNoTracking()
+                .Include(ds => ds.DrillSessionTeam)
+                .Where(ds => ds.Status == SessionStatus.Scheduled
+                    && ds.SessionDate > now
+                    && teamIds.Contains(ds.TeamId))
+                .Select(ds => new TeamScheduledEventDto
+                {
+                    EventType = "Drill",
+                    Date = ds.SessionDate,
+                    SessionId = ds.Id,
+                    SessionType = ds.Type.ToString(),
+                    TeamId = ds.TeamId,
+                    TeamName = ds.DrillSessionTeam!.Name,
+                    Notes = ds.Notes,
+                })
+                .ToListAsync();
+
+            var combined = scheduledMatches
+                .Concat(scheduledDrills)
+                .OrderBy(e => e.Date)
+                .ToList();
+
+            if (!string.IsNullOrWhiteSpace(eventType))
+            {
+                combined = combined.Where(e =>
+                    string.Equals(e.EventType, eventType, StringComparison.OrdinalIgnoreCase)).ToList();
+            }
+
+            if (dateFrom.HasValue)
+            {
+                combined = combined.Where(e => e.Date >= dateFrom.Value).ToList();
+            }
+
+            if (dateTo.HasValue)
+            {
+                combined = combined.Where(e => e.Date <= dateTo.Value).ToList();
+            }
+
+            var totalCount = combined.Count;
+            var pagedEvents = combined
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            return new TeamScheduledEventsResponseDto
+            {
+                Events = pagedEvents,
+                TotalCount = totalCount,
+                Page = page,
+                PageSize = pageSize,
+            };
+        }
+
+        public async Task AddPlayerPositionAsync(int playerId, string position, bool isPrimary)
+        {
+            _logger.LogInformation("Adding position {Position} (isPrimary={IsPrimary}) for player {PlayerId}", position, isPrimary, playerId);
+
+            var player = await _unitOfWork.Repository<PlayerEntity>()
+                .GetQueryable()
+                .Include(p => p.PlayerPositions)
+                .FirstOrDefaultAsync(p => p.Id == playerId);
+
+            if (player is null)
+                throw new NotFoundException($"Player with id {playerId} was not found");
+
+            if (player.PlayerPositions.Any(pp =>
+                string.Equals(pp.Position, position, StringComparison.OrdinalIgnoreCase)))
+                throw new InvalidOperationException($"Player already has the position '{position}'");
+
+            if (isPrimary)
+            {
+                foreach (var pp in player.PlayerPositions)
+                {
+                    pp.IsPrimary = false;
+                }
+            }
+
+            player.PlayerPositions.Add(new PlayerPosition
+            {
+                PlayerId = playerId,
+                Position = position,
+                IsPrimary = isPrimary,
+            });
+
+            await _unitOfWork.SaveChangesAsync();
+
+            if (isPrimary)
+            {
+                _cardInvalidationList.Invalidate(playerId);
+            }
+        }
+
+        public async Task UpdatePrimaryPositionAsync(int playerId, string position)
+        {
+            _logger.LogInformation("Updating primary position to {Position} for player {PlayerId}", position, playerId);
+
+            var player = await _unitOfWork.Repository<PlayerEntity>()
+                .GetQueryable()
+                .Include(p => p.PlayerPositions)
+                .FirstOrDefaultAsync(p => p.Id == playerId);
+
+            if (player is null)
+                throw new NotFoundException($"Player with id {playerId} was not found");
+
+            var targetPosition = player.PlayerPositions.FirstOrDefault(pp =>
+                string.Equals(pp.Position, position, StringComparison.OrdinalIgnoreCase));
+
+            if (targetPosition is null)
+                throw new InvalidOperationException($"Player does not have the position '{position}'");
+
+            if (targetPosition.IsPrimary)
+                return;
+
+            foreach (var pp in player.PlayerPositions)
+            {
+                pp.IsPrimary = false;
+            }
+
+            targetPosition.IsPrimary = true;
+
+            await _unitOfWork.SaveChangesAsync();
+
+            _cardInvalidationList.Invalidate(playerId);
+        }
+
+        public async Task RemovePlayerPositionAsync(int playerId, string position)
+        {
+            _logger.LogInformation("Removing position {Position} from player {PlayerId}", position, playerId);
+
+            var player = await _unitOfWork.Repository<PlayerEntity>()
+                .GetQueryable()
+                .Include(p => p.PlayerPositions)
+                .FirstOrDefaultAsync(p => p.Id == playerId);
+
+            if (player is null)
+                throw new NotFoundException($"Player with id {playerId} was not found");
+
+            var targetPosition = player.PlayerPositions.FirstOrDefault(pp =>
+                string.Equals(pp.Position, position, StringComparison.OrdinalIgnoreCase));
+
+            if (targetPosition is null)
+                throw new InvalidOperationException($"Player does not have the position '{position}'");
+
+            if (targetPosition.IsPrimary)
+                throw new InvalidOperationException("Cannot remove the primary position. Change your primary position first.");
+
+            player.PlayerPositions.Remove(targetPosition);
+
+            await _unitOfWork.SaveChangesAsync();
         }
     }
 }

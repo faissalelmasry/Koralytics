@@ -12,6 +12,11 @@ namespace Koralytics.Application.Services.Academy.AcademyService
         Task<AcademyResponseDto> ApproveAcademyAsync(CreateAcademyDto dto, int performedByUserId);
 
         /// <summary>
+        /// Retrieves academy creation requests submitted by the current user.
+        /// </summary>
+        Task<IEnumerable<Koralytics.Application.DTOs.SystemAdmin.AcademyRequestResponseDto>> GetMyAcademyRequestsAsync(int userId);
+
+        /// <summary>
         /// Updates mutable academy properties: Name, LogoUrl, PrimaryColor, SecondaryColor.
         /// </summary>
         Task<AcademyResponseDto> UpdateAcademyAsync(int academyId, UpdateAcademyDto dto, int performedByUserId);
@@ -27,6 +32,9 @@ namespace Koralytics.Application.Services.Academy.AcademyService
 
         /// <summary>Gets all academies with pagination and search.</summary>
         Task<AcademyListResponseDto> GetAllAcademiesAsync(AcademyListRequestDto request);
+
+        Task<Koralytics.Application.DTOs.Common.PagedResponseDto<AcademyMemberResponseDto>> GetAcademyMembersAsync(int academyId, Koralytics.Application.DTOs.Common.PaginationRequestDto request);
+        Task<Koralytics.Application.DTOs.Common.PagedResponseDto<AcademyAdminResponseDto>> GetAcademyAdminsAsync(int academyId, Koralytics.Application.DTOs.Common.PaginationRequestDto request);
 
         /// <summary>Gets all locations for an academy.</summary>
         Task<IEnumerable<AcademyLocationResponseDto>> GetLocationsAsync(int academyId);
@@ -66,5 +74,7 @@ namespace Koralytics.Application.Services.Academy.AcademyService
         // ─── Member Removal ────────────────────────────────────────────────────
         Task RemoveCoachFromAcademyAsync(int academyId, int coachUserId, int performedByUserId);
         Task RemovePlayerFromAcademyAsync(int academyId, int playerUserId, int performedByUserId);
+        
+        Task UpdatePlayerSubscriptionAsync(int academyId, int playerId, Koralytics.Application.DTOs.Academies.UpdatePlayerSubscriptionDto dto, int performedByUserId);
     }
 }

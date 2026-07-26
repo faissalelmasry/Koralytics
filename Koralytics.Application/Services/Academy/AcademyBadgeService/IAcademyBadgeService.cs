@@ -8,6 +8,6 @@ namespace Koralytics.Application.Services.Academy.AcademyBadgeService
     {
         Task<AcademyBadgeResponseDto> CreateBadgeAsync(int academyId, CreateAcademyBadgeDto dto, int performedByUserId);
         Task<IEnumerable<AcademyBadgeResponseDto>> GetBadgesByAcademyAsync(int academyId);
-        Task DeleteBadgeAsync(int badgeId, int performedByUserId);
+        Task DeleteBadgeAsync(int academyId, int badgeId, int performedByUserId);
     }
 }

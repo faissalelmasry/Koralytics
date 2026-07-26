@@ -57,4 +57,34 @@ namespace Koralytics.Application.DTOs.Academies
         /// <summary>True if grace period has already expired.</summary>
         public bool IsGraceExpired { get; set; }
     }
+
+    // ─── Analytics Internal Data ─────────────────────────────────────────────
+
+    public class CoachData
+    {
+        public int CoachUserId { get; set; }
+        public decimal BiasScore { get; set; }
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
+    }
+
+    public class CoachTeamData
+    {
+        public int CoachUserId { get; set; }
+        public int TeamId { get; set; }
+        public string TeamName { get; set; } = string.Empty;
+    }
+
+    public class PlayerTeamData
+    {
+        public int TeamId { get; set; }
+        public int PlayerId { get; set; }
+    }
+
+    public class PlayerCardData
+    {
+        public int PlayerId { get; set; }
+        public decimal OverallRating { get; set; }
+        public decimal OverallTrainingAvg { get; set; }
+    }
 }

@@ -12,35 +12,65 @@
 
     <!-- Table Body -->
     <tbody>
-      <tr *ngFor="let row of data; let i = index" [style.--animation-order]="i">
-        <td *ngFor="let col of columns" [attr.data-label]="col.label">
-          
-          <!-- Case 1: Standard Text -->
-          <ng-container *ngIf="!col.type || col.type === 'text'">
-            <span class="cell-text">{{ row[col.key] }}</span>
-          </ng-container>
+      <ng-container *ngFor="let row of data; let i = index">
+        <tr [style.--animation-order]="i">
+          <td *ngFor="let col of columns" [attr.data-label]="col.label">
+            
+            <!-- Case 1: Standard Text -->
+            <ng-container *ngIf="!col.type || col.type === 'text'">
+              <span class="cell-text">{{ row[col.key] }}</span>
+            </ng-container>
 
-          <!-- Case 2: Status/Type Badges -->
-          <ng-container *ngIf="col.type === 'badge'">
-            <span class="cyber-badge" [ngClass]="row[col.key]?.toLowerCase()">
-              {{ row[col.key] }}
-            </span>
-          </ng-container>
+            <!-- Case 2: Status/Type Badges -->
+            <ng-container *ngIf="col.type === 'badge'">
+              <span class="cyber-badge" [ngClass]="(row[col.key] || '').toString().toLowerCase()">
+                {{ row[col.key] }}
+              </span>
+            </ng-container>
 
-          <!-- Case 3: Action Buttons -->
-          <ng-container *ngIf="col.type === 'action'">
-            <div class="table-actions-hub">
-              <button class="btn-table-action btn-view" (click)="onAction(row, 'view')">
-                analyze
-              </button>
-              <button class="btn-table-action btn-delete" (click)="onAction(row, 'delete')">
-                &times;
-              </button>
+            <!-- Case 3: User Info -->
+            <ng-container *ngIf="col.type === 'user'">
+              <div class="user-info">
+                <div class="avatar-small">{{ row[col.key]?.charAt(0) }}</div>
+                <div class="user-details">
+                  <span class="user-name">{{ row[col.key] }}</span>
+                  <span class="user-email">{{ row['email'] }}</span>
+                </div>
+              </div>
+            </ng-container>
+
+            <!-- Case 4: Action Buttons -->
+            <ng-container *ngIf="col.type === 'action'">
+              <div class="table-actions-hub">
+                <button class="btn-table-action btn-view" *ngIf="!row.hideAnalyze" (click)="onAction(row, 'view')">
+                  analyze
+                </button>
+                <button class="btn-table-action btn-delete" *ngIf="!row.hideDelete" (click)="onAction(row, 'delete')">
+                  &times;
+                </button>
+                <button class="btn-table-action btn-expand" *ngIf="expandable" (click)="toggleRow(row)" style="display: inline-flex; align-items: center; justify-content: center; padding: 6px 8px;">
+                  <svg *ngIf="!isRowExpanded(row)" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 16px; height: 16px;">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                  </svg>
+                  <svg *ngIf="isRowExpanded(row)" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 16px; height: 16px;">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5" />
+                  </svg>
+                </button>
+              </div>
+            </ng-container>
+
+          </td>
+        </tr>
+        
+        <!-- Expanded Row Template -->
+        <tr *ngIf="expandable && isRowExpanded(row)" class="expanded-row">
+          <td [attr.colspan]="columns.length">
+            <div class="expanded-row-content">
+              <ng-container *ngTemplateOutlet="expandedRowTemplate; context: { $implicit: row }"></ng-container>
             </div>
-          </ng-container>
-
-        </td>
-      </tr>
+          </td>
+        </tr>
+      </ng-container>
     </tbody>
 
   </table>

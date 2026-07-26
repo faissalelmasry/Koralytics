@@ -33,7 +33,16 @@ export class CustomDatePicker implements OnInit, ControlValueAccessor {
   blankDays: number[] = [];
   monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   dayNames = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
-  years: number[] = [];
+  years: string[] = (() => {
+    const cy = new Date().getFullYear();
+    const start = cy - 80;
+    const end = cy + 10;
+    const result: string[] = [];
+    for (let y = start; y <= end; y++) {
+      result.push(y.toString());
+    }
+    return result;
+  })();
 
   onChange: any = () => {};
   onTouch: any = () => {};
@@ -41,11 +50,6 @@ export class CustomDatePicker implements OnInit, ControlValueAccessor {
   constructor(private elementRef: ElementRef) {}
 
   ngOnInit() {
-    const currentYear = new Date().getFullYear();
-    for (let y = currentYear - 80; y <= currentYear + 10; y++) {
-      this.years.push(y);
-    }
-
     if (this.value) {
       this.viewDate = new Date(this.value);
     }

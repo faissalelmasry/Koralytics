@@ -103,9 +103,10 @@ namespace Koralytics.Domain.Enums
     }
     public enum SessionStatus
     {
-        Scheduled = 1,
-        InProgress = 2,
-        Completed = 3
+        Scheduled = 0,
+        InProgress = 1,
+        Completed = 2,
+        Cancelled = 3
     }
 
     public enum SessionType

@@ -1,4 +1,4 @@
-﻿using Koralytics.Domain.Enums;
+using Koralytics.Domain.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +12,8 @@ namespace Koralytics.Application.DTOs.Drill
         public int Id { get; set; }
         public int SessionId { get; set; }
         public int DrillTemplateId { get; set; }
+        public string? TemplateName { get; set; }
+        public string? CategoryName { get; set; }
         public DrillMode Mode { get; set; }
         public DifficultyLevel DifficultyLevel { get; set; }
         public string? Notes { get; set; }

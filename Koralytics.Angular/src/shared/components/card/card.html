@@ -1,0 +1,29 @@
+<div class="card"
+  [ngClass]="{ 'elevated': variant === 'elevated', 'flat': variant === 'flat', 'outlined': variant === 'outlined', 'clickable': clickable, 'hoverable': hoverable }"
+  (click)="onCardClick()">
+
+  @if (loading) {
+  <div class="loading-overlay">
+    <app-loading-spinner size="md"></app-loading-spinner>
+  </div>
+  }
+
+  @if (title) {
+  <div class="card-header">
+    <h3 class="card-title">{{ title }}</h3>
+    @if (subtitle) {
+    <p class="card-subtitle">{{ subtitle }}</p>
+    }
+  </div>
+  }
+
+  <div class="card-body">
+    <ng-content select="[body]"></ng-content>
+  </div>
+
+  @if (hasFooter()) {
+  <div class="card-footer">
+    <ng-content select="[footer]"></ng-content>
+  </div>
+  }
+</div>

@@ -11,9 +11,10 @@ import { CommonModule } from '@angular/common';
 export class CustomButtonComponent {
  @Input() type: 'button' | 'submit' = 'button';
   // El-Alwan el-gdeda monasba jdan lil-site dashboard style
-  @Input() variant: 'accent' | 'coral' | 'cyan' | 'slate' = 'accent'; 
+  @Input() variant: 'accent' | 'coral' | 'cyan' | 'slate' | 'amber' | 'gold' = 'accent'; 
   @Input() loading: boolean = false;
   @Input() disabled: boolean = false;
+  @Input() shimmer: boolean = false;
 
   @ViewChild('btnElement') btnElement!: ElementRef<HTMLButtonElement>;
 

@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, HostListener, ElementRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, HostListener, HostBinding, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 export interface SelectOption {
@@ -25,6 +25,11 @@ export class CustomSelect {
 
   isOpen: boolean = false;
 
+  @HostBinding('class.is-open')
+  get isOpenClass(): boolean {
+    return this.isOpen;
+  }
+
   constructor(private elementRef: ElementRef) {}
 
   get selectedLabel(): string {
@@ -32,7 +37,8 @@ export class CustomSelect {
     return selected ? selected.label : '';
   }
 
-  toggleDropdown() {
+  toggleDropdown(event: MouseEvent) {
+    event.stopPropagation();
     if (!this.disabled) {
       this.isOpen = !this.isOpen;
     }

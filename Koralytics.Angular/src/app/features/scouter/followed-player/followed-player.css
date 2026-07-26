@@ -1,0 +1,173 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  background-color: #06080a;
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+}
+
+.followed-players-page {
+  --accent-neon: #c8ff4d;
+  --accent-glow: rgba(200, 255, 77, 0.2);
+  --panel-bg: #11141a;
+  --border-color: #1e232d;
+  --text-muted: #8b909a;
+  
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 24px;
+}
+
+/* =========================================
+   Header & Search Layout
+   ========================================= */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.header-titles h1 {
+  font-size: 28px;
+  font-weight: 800;
+  margin: 0 0 8px 0;
+  background: linear-gradient(90deg, #fff, #b7bcc6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.header-titles p {
+  color: var(--text-muted);
+  margin: 0;
+  font-size: 14px;
+}
+
+/* =========================================
+   Loading State Container
+   ========================================= */
+.status-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+  width: 100%;
+}
+
+/* =========================================
+   Grid Layout & Player Card
+   ========================================= */
+.players-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.player-card {
+  background: var(--panel-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.player-card:hover {
+  border-color: #383e4a;
+  transform: translateY(-2px);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.player-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--border-color);
+}
+
+.player-info h4 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* =========================================
+   Stats Grid
+   ========================================= */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  background: #0c0e12;
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.stat-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.stat-value {
+  font-size: 16px;
+  font-weight: 800;
+  font-family: 'Bebas Neue', sans-serif; 
+  letter-spacing: 0.5px;
+}
+
+/* Rating tier colors — mirrors the tier system in player-card.css /
+   player-profile.component.ts (<70 lime, 70-79 gold, 80+ orange), so a
+   followed player's rating reads the same way it does on their own card. */
+.stat-value.tier-base {
+  color: var(--accent-neon);
+  text-shadow: 0 0 8px var(--accent-glow);
+}
+
+.stat-value.tier-gold {
+  color: #ffd700;
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.2);
+}
+
+.stat-value.tier-elite {
+  color: #ff6a00;
+  text-shadow: 0 0 8px rgba(255, 106, 0, 0.2);
+}
+
+/* =========================================
+   Card Actions & Pagination
+   ========================================= */
+.card-actions {
+  display: flex;
+  gap: 10px;
+}
+
+
+.flex-1 {
+  flex: 1;
+}
+
+.load-more-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 32px;
+}

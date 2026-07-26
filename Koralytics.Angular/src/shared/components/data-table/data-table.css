@@ -90,6 +90,14 @@
   background: rgba(255, 184, 77, 0.1);
   color: #ffb84d;
 }
+.cyber-badge.owner {
+  background: rgba(200, 255, 77, 0.1);
+  color: #c8ff4d;
+}
+.cyber-badge.admin {
+  background: rgba(77, 166, 255, 0.1);
+  color: #4da6ff;
+}
 
 /* Action Buttons */
 .table-actions-hub {
@@ -107,6 +115,10 @@
   cursor: pointer;
   transition: all 0.2s;
   text-transform: lowercase;
+}
+
+.btn-table-action:hover {
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .btn-view {
@@ -164,4 +176,39 @@
   .table-actions-hub {
     justify-content: flex-end;
   }
+}
+/* User Info Layout */
+.user-info { display: flex; align-items: center; gap: 12px; }
+.avatar-small { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #ec4899, #be185d); display: flex; align-items: center; justify-content: center; font-weight: 700; color: white; font-size: 16px; text-transform: uppercase; }
+.user-details { display: flex; flex-direction: column; }
+.user-name { font-weight: 600; color: #e2e8f0; font-size: 14px; }
+.user-email { font-size: 12px; color: #7b8293; }
+
+/* Expanded Row Styling */
+.btn-expand {
+  background: rgba(200, 255, 77, 0.1);
+  border: 1px solid rgba(200, 255, 77, 0.2);
+  color: #c8ff4d;
+}
+.btn-expand:hover {
+  background: #c8ff4d;
+  color: #06080a;
+}
+
+.expanded-row {
+  background: rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+.expanded-row td {
+  padding: 0;
+}
+.expanded-row-content {
+  padding: 24px;
+  border-left: 2px solid #c8ff4d;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }

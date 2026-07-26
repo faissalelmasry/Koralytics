@@ -17,5 +17,6 @@ namespace Koralytics.Application.DTOs.Match
         public int PlayerId { get; set; }
         public bool IsStarting { get; set; }
         public int? JerseyNumber { get; set; }
+        public string? PositionInMatch { get; set; }
     }
 }

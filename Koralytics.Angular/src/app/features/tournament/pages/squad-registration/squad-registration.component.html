@@ -1,0 +1,141 @@
+<div class="squad-registration-page">
+  <div class="back-nav" scrollReveal direction="bottom">
+    <button class="back-btn" (click)="goBack()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+      </svg>
+      Back to Tournament
+    </button>
+  </div>
+
+  <header class="page-hero" scrollReveal direction="bottom" [delay]="80">
+    <div>
+      <div class="hero-badge">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        </svg>
+        Squad Registration
+      </div>
+      <h1>{{ tournament?.name || 'Tournament Squad' }}</h1>
+      <p>Select the players who will represent the academy team in this tournament.</p>
+    </div>
+
+    <div class="hero-card">
+      <span>Recommended size</span>
+      <strong>{{ requiredRangeLabel }}</strong>
+    </div>
+  </header>
+
+  @if (isLoading) {
+    <div class="loading-grid">
+      <div class="skeleton-panel"></div>
+      <div class="skeleton-panel tall"></div>
+    </div>
+  } @else {
+    @if (errorMessage) {
+      <div class="message-banner error-banner">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+        <span>{{ errorMessage }}</span>
+      </div>
+    }
+
+    @if (successMessage) {
+      <div class="message-banner success-banner">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg>
+        <span>{{ successMessage }}</span>
+      </div>
+    }
+
+    <div class="registration-shell">
+      <section class="control-panel" scrollReveal direction="bottom" [delay]="120">
+        <div class="panel-header">
+          <h2>Team Selection</h2>
+          <p>Choose the participating team, then confirm the registered squad.</p>
+        </div>
+
+        <app-select
+          label="Participating Team"
+          [options]="teamOptions"
+          [value]="selectedTeamId"
+          (valueChange)="onTeamChange($event)">
+        </app-select>
+
+        <div class="squad-counter">
+          <span>Selected players</span>
+          <strong>{{ selectedCount }}</strong>
+        </div>
+
+        <div class="selection-hint" [class.valid]="canSubmitSquad">
+          {{ selectionHint }}
+        </div>
+
+        <div class="selected-list">
+          @for (player of players; track player.playerId) {
+            @if (isSelected(player.playerId) || registeredPlayerIds.has(player.playerId)) {
+              <div class="selected-row" [class.registered]="registeredPlayerIds.has(player.playerId)">
+                <span>{{ player.fullName || player.FullName }}</span>
+                <strong>{{ registeredPlayerIds.has(player.playerId) ? 'Registered' : 'Selected' }}</strong>
+              </div>
+            }
+          }
+          @if (selectedCount === 0 && registeredPlayerIds.size === 0) {
+            <div class="empty-mini">No players selected yet.</div>
+          }
+        </div>
+
+        <button class="submit-btn" type="button" (click)="submitSquad()" [disabled]="!canSubmitSquad">
+          {{ isSubmitting ? 'Registering...' : 'Register Squad' }}
+        </button>
+      </section>
+
+      <section class="players-panel" scrollReveal direction="bottom" [delay]="160">
+        <div class="panel-header player-header">
+          <div>
+            <h2>{{ selectedTeamName }}</h2>
+            <p>{{ isLoadingPlayers ? 'Loading squad players...' : 'Choose available players for tournament registration.' }}</p>
+          </div>
+          @if (tournament?.status) {
+            <app-status-chip [label]="tournament!.status" type="info"></app-status-chip>
+          }
+        </div>
+
+        @if (teamOptions.length === 0) {
+          <div class="empty-state">No accepted teams are available for this tournament yet.</div>
+        } @else if (isLoadingPlayers) {
+          <div class="player-skeleton-list">
+            @for (item of [1,2,3,4,5]; track item) {
+              <div class="player-skeleton"></div>
+            }
+          </div>
+        } @else {
+          <div class="players-list">
+            @for (player of players; track player.playerId) {
+              <button
+                class="player-row"
+                type="button"
+                [class.selected]="isSelected(player.playerId)"
+                [class.registered]="registeredPlayerIds.has(player.playerId)"
+                (click)="togglePlayer(player.playerId)">
+                <span class="check-indicator">
+                  @if (isSelected(player.playerId) || registeredPlayerIds.has(player.playerId)) {
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"></path></svg>
+                  }
+                </span>
+                <span class="player-avatar">{{ (player.fullName || player.FullName || 'P').charAt(0) }}</span>
+                <span class="player-info">
+                  <strong>{{ player.fullName || player.FullName }}</strong>
+                  <small>{{ player.primaryPosition || player.PrimaryPosition || 'Position pending' }} / {{ player.availabilityStatus || player.AvailabilityStatus || 'Available' }}</small>
+                </span>
+                <span class="rating-pill">{{ player.overallRating || player.OverallRating || 0 }}</span>
+              </button>
+            }
+          </div>
+        }
+      </section>
+    </div>
+  }
+</div>

@@ -1,0 +1,58 @@
+<div class="rating-display" [ngClass]="['size-' + size, 'type-' + type]">
+  
+  <!-- STAR RATING -->
+  @if (type === 'star') {
+    <div class="stars">
+      @for (filled of stars; track $index) {
+        <span class="star" [class.filled]="filled === 1">★</span>
+      }
+      @if (showLabel) {
+        <span class="label">{{ value }}/{{ max }}</span>
+      }
+    </div>
+  }
+
+  <!-- PROGRESS BAR -->
+  @if (type === 'bar') {
+    <div class="bar-container">
+      @if (showLabel) {
+        <div class="bar-label">
+          <span>{{ label }}</span>
+          <span>{{ value }}/{{ max }}</span>
+        </div>
+      }
+      <div class="bar-track">
+        <div class="bar-fill" [style.width.%]="percentage" [ngClass]="'color-' + color"></div>
+      </div>
+    </div>
+  }
+
+  <!-- CIRCULAR -->
+  @if (type === 'circular') {
+    <div class="circular-container">
+      <div class="circular" [style.background]="getCircularGradient()">
+        <div class="inner">
+          <span class="value">{{ value }}</span>
+          <span class="unit">/{{ max }}</span>
+        </div>
+      </div>
+      @if (showLabel && label) {
+        <p class="label">{{ label }}</p>
+      }
+    </div>
+  }
+
+  <!-- GAUGE -->
+  @if (type === 'gauge') {
+    <div class="gauge-container">
+      <div class="gauge-track">
+        <div class="gauge-fill" [style.transform]="'rotate(' + (percentage / 100 * 180 - 90) + 'deg)'">
+          <div class="needle"></div>
+        </div>
+      </div>
+      @if (showLabel) {
+        <span class="value">{{ value }}/{{ max }}</span>
+      }
+    </div>
+  }
+</div>

@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using TournamentEntity = Koralytics.Domain.Entities.Tournamet.Tournament;
 using TournamentGroupEntity = Koralytics.Domain.Entities.Tournamet.TournamentGroup;
 using TournamentTeamEntity = Koralytics.Domain.Entities.Tournamet.TournamentTeam;
@@ -6,6 +6,7 @@ using TournamentSquadEntity = Koralytics.Domain.Entities.Tournamet.TournamentSqu
 using PlayerTeamEntity = Koralytics.Domain.Entities.Player.PlayerTeam;
 using AcademyEntity = Koralytics.Domain.Entities.Academy.Academy;
 using Koralytics.Application.DTOs.Tournament;
+using Koralytics.Application.DTOs.Tournaments;
 using Koralytics.Application.Interfaces;
 using Koralytics.Application.Interfaces.Tournament;
 using Koralytics.Domain.Entities.Academy;
@@ -30,6 +31,62 @@ namespace Koralytics.Application.Services.Tournaments
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _logger = logger;
+        }
+
+        public async Task<IEnumerable<TournamentDto>> GetAllAsync()
+        {
+            var tournaments = await _unitOfWork.Repository<TournamentEntity>()
+                .GetQueryableAsNoTracking()
+                .ToListAsync();
+
+            return _mapper.Map<IEnumerable<TournamentDto>>(tournaments);
+        }
+
+        public async Task<TournamentDto?> GetByIdAsync(int id)
+        {
+            var tournament = await _unitOfWork.Repository<TournamentEntity>()
+                .GetQueryableAsNoTracking()
+                .Include(t => t.AgeGroup)
+                .FirstOrDefaultAsync(t => t.Id == id);
+
+            if (tournament is null)
+                return null;
+
+            return _mapper.Map<TournamentDto>(tournament);
+        }
+
+        public async Task<List<TournamentTeamDto>> GetTeamsAsync(int tournamentId)
+        {
+            var teams = await _unitOfWork.Repository<TournamentTeamEntity>()
+                .GetQueryableAsNoTracking()
+                .Include(tt => tt.Team)
+                .ThenInclude(t => t.AgeGroup)
+                .ThenInclude(ag => ag.Academy)
+                .Where(tt => tt.TournamentId == tournamentId)
+                .Select(tt => new TournamentTeamDto
+                {
+                    TournamentTeamId = tt.Id,
+                    TeamId = tt.TeamId,
+                    TeamName = tt.Team.Name,
+                    AcademyName = tt.Team.AgeGroup.Academy.Name,
+                    Status = tt.Status,
+                    SeedNumber = tt.SeedNumber,
+                    RegisteredAt = tt.RegisteredAt
+                })
+                .ToListAsync();
+
+            return teams;
+        }
+
+        public async Task<List<int>> GetRegisteredPlayerIdsAsync(int tournamentId, int teamId)
+        {
+            var playerIds = await _unitOfWork.Repository<TournamentSquadEntity>()
+                .GetQueryableAsNoTracking()
+                .Where(ts => ts.TournamentId == tournamentId && ts.TeamId == teamId)
+                .Select(ts => ts.PlayerId)
+                .ToListAsync();
+
+            return playerIds;
         }
 
         public async Task<TournamentDto> CreateTournamentAsync(
@@ -133,14 +190,23 @@ namespace Koralytics.Application.Services.Tournaments
                 throw new ConflictException(
                     "This academy is already invited to the tournament");
 
+            var tournamentAgeGroup = await _unitOfWork.Repository<AgeGroup>()
+                .FindAsync(a => a.Id == tournament.AgeGroupId);
+
+            if (tournamentAgeGroup == null)
+                throw new NotFoundException("Tournament age group not found");
+
             var team = await _unitOfWork.Repository<Team>()
-                .FindAsync(t =>
+                .GetQueryable()
+                .Include(t => t.AgeGroup)
+                .FirstOrDefaultAsync(t =>
                     t.AcademyId == academyId &&
-                    t.AgeGroupId == tournament.AgeGroupId);
+                    t.AgeGroup.MinAge == tournamentAgeGroup.MinAge &&
+                    t.AgeGroup.MaxAge == tournamentAgeGroup.MaxAge);
 
             if (team is null)
                 throw new NotFoundException(
-                    $"Academy {academyId} has no team in the tournament's age group");
+                    $"Academy {academyId} has no team matching the tournament's age criteria ({tournamentAgeGroup.MinAge}-{tournamentAgeGroup.MaxAge})");
 
             var tournamentTeam = new TournamentTeamEntity
             {

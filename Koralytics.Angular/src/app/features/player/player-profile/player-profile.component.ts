@@ -1,13 +1,18 @@
 import { Component, OnInit, AfterViewInit, OnDestroy, inject, ElementRef, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Chart, registerables } from 'chart.js';
 import { NavbarComponent } from '../../../../shared/components/navbar/navbar';
 import { Footer } from '../../../../shared/components/footer/footer';
 import { PlayerCardComponent } from '../player-card/player-card';
+import { TransferCanvasComponent } from '../transfer-canvas/transfer-canvas.component';
 import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner';
 import { ScrollRevealDirective } from '../../../../shared/directives/scroll-reveal.directive';
+import { CustomButtonComponent } from '../../../../shared/components/custom-button/custom-button';
+import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog';
+import { CustomToggle } from '../../../../shared/components/custom-toggle/custom-toggle';
 import { PlayerProfileService } from '../../../../core/services/player/player-profile.service';
+import { PlayerCardService } from '../../../../core/services/player/player-card.service';
 import { TokenStorageService } from '../../../../core/services/auth/token-storage.service';
 import { PlayerProfileModel } from '../../../../core/models/Player/player-profile-model';
 
@@ -16,7 +21,7 @@ Chart.register(...registerables);
 @Component({
   selector: 'app-player-profile',
   standalone: true,
-  imports: [CommonModule, NavbarComponent, Footer, PlayerCardComponent, LoadingSpinnerComponent, ScrollRevealDirective],
+  imports: [CommonModule, NavbarComponent, Footer, PlayerCardComponent, TransferCanvasComponent, LoadingSpinnerComponent, ScrollRevealDirective, CustomButtonComponent, ConfirmDialogComponent, CustomToggle],
   templateUrl: './player-profile.component.html',
   styleUrls: ['./player-profile.component.css']
 })
@@ -24,7 +29,9 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
 
   // ── Dependency injection ────────────────────────────────────
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private profileService = inject(PlayerProfileService);
+  private playerCardService = inject(PlayerCardService);
   private tokenStorage = inject(TokenStorageService);
   private cdr = inject(ChangeDetectorRef);
 
@@ -35,12 +42,45 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
   // ── State ───────────────────────────────────────────────────
   profile: PlayerProfileModel | null = null;
   isLoading = false;
+  isFetchingCard = false;
   error = '';
   playerId: number | null = null;
+  loggedInUserId: number | null = null;
 
   // ── Archetype overlay ───────────────────────────────────────
   showArchetypeOverlay = false;
   isCardFlipped = false;
+
+  // ── Position modal ──────────────────────────────────────────
+  showPositionModal = false;
+  modalMode: 'ADD' | 'UPDATE_PRIMARY' | 'REMOVE' = 'ADD';
+  selectedPosition: string | null = null;
+  setAsPrimaryCheck = false;
+  isSavingPosition = false;
+  positionError = '';
+
+  // ── Confirm dialog ──────────────────────────────────────────
+  showConfirmDialog = false;
+  confirmTitle = '';
+  confirmMessage = '';
+  confirmActionText = 'Confirm';
+  private pendingConfirmMode: 'ADD' | 'UPDATE_PRIMARY' | 'REMOVE' | null = null;
+
+  // ── All pitch positions for the modal selector ──────────────
+  readonly allPitchPositions = [
+    { id: 'LW', name: 'LW', top: '22%', left: '78%' },
+    { id: 'ST', name: 'ST', top: '50%', left: '80%' },
+    { id: 'RW', name: 'RW', top: '78%', left: '78%' },
+    { id: 'CAM', name: 'CAM', top: '50%', left: '62%' },
+    { id: 'LM', name: 'LM', top: '20%', left: '50%' },
+    { id: 'CM', name: 'CM', top: '50%', left: '50%' },
+    { id: 'RM', name: 'RM', top: '80%', left: '50%' },
+    { id: 'CDM', name: 'CDM', top: '50%', left: '38%' },
+    { id: 'LB', name: 'LB', top: '20%', left: '22%' },
+    { id: 'CB', name: 'CB', top: '50%', left: '22%' },
+    { id: 'RB', name: 'RB', top: '80%', left: '22%' },
+    { id: 'GK', name: 'GK', top: '50%', left: '8%' },
+  ];
 
   // ── Counter animation ───────────────────────────────────────
   animatedCounters = { matches: 0, goals: 0, assists: 0, motms: 0 };
@@ -92,28 +132,36 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
 
   // ── Lifecycle ───────────────────────────────────────────────
   ngOnInit() {
+    const token = this.tokenStorage.getAccessToken();
+    if (token) {
+      const decoded = this.decodeTokenPayload(token);
+      if (decoded) {
+        this.loggedInUserId = decoded.userId;
+      }
+    }
+
     const paramId = this.route.snapshot.paramMap.get('playerId');
 
     if (paramId) {
       this.playerId = Number(paramId);
       this.loadProfile(this.playerId);
-    } else {
-      const token = this.tokenStorage.getAccessToken();
-      if (!token) {
-        this.error = 'Authentication required';
-        return;
-      }
-      const decoded = this.decodeTokenPayload(token);
-      if (!decoded) {
-        this.error = 'Invalid session';
-        return;
-      }
-      this.playerId = decoded.userId;
+    } else if (this.loggedInUserId) {
+      this.playerId = this.loggedInUserId;
       this.loadProfile(this.playerId);
+    } else {
+      this.error = 'Authentication required';
     }
   }
 
   ngAfterViewInit() {}
+
+  goToTimeline() {
+    if (this.playerId) {
+      this.router.navigate(['/player/timeline', this.playerId]);
+    } else {
+      this.router.navigate(['/player/timeline']);
+    }
+  }
 
   ngOnDestroy() {
     this.observer?.disconnect();
@@ -138,6 +186,27 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
     this.isCardFlipped = false;
   }
 
+  fetchPlayerCard() {
+    if (!this.playerId || this.isFetchingCard) return;
+    this.isFetchingCard = true;
+
+    this.playerCardService.getPlayerCard(this.playerId).subscribe({
+      next: (card) => {
+        if (this.profile) {
+          this.profile.playerCard = card;
+        }
+        this.isFetchingCard = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.isFetchingCard = false;
+        this.error = err?.status === 404
+          ? 'Unable to generate player card'
+          : 'Failed to fetch player card';
+      }
+    });
+  }
+
   // ── Position pin helper ─────────────────────────────────────
   getPosPinStyle(pos: string): { top: string; left: string } {
     return this.posPinMap[pos] ?? this.posPinMap[pos.toUpperCase()] ?? { top: '50%', left: '54%' };
@@ -151,11 +220,22 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
     return 'tier-base';
   }
 
+  get isOwnProfile(): boolean {
+    return this.loggedInUserId !== null && this.loggedInUserId === this.playerId;
+  }
+
   get tierNeon(): string {
     const rating = this.profile?.playerCard?.overallRating ?? 0;
     if (rating >= 80) return '#ff6a00';
     if (rating >= 70) return '#ffd700';
     return '#c8ff4d';
+  }
+
+  get tierButtonVariant(): 'accent' | 'amber' | 'gold' {
+    const rating = this.profile?.playerCard?.overallRating ?? 0;
+    if (rating >= 80) return 'amber';
+    if (rating >= 70) return 'gold';
+    return 'accent';
   }
 
   get fullName(): string {
@@ -170,6 +250,10 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
 
   get primaryPosition(): string {
     return this.profile?.positions.find(p => p.isPrimary)?.position ?? '';
+  }
+
+  get isGK(): boolean {
+    return this.primaryPosition?.toUpperCase() === 'GK';
   }
 
   get secondaryPositions(): string[] {
@@ -228,11 +312,158 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
     return this.profile?.archetypeText ?? 'Under Evaluation...';
   }
 
+  get ownedPositionIds(): string[] {
+    return this.profile?.positions.map(p => p.position.toUpperCase()) ?? [];
+  }
+
+  get primaryPositionId(): string {
+    return this.primaryPosition.toUpperCase();
+  }
+
+  get secondaryPositionIds(): string[] {
+    return this.profile?.positions.filter(p => !p.isPrimary).map(p => p.position.toUpperCase()) ?? [];
+  }
+
+  isPositionSelectable(posId: string): boolean {
+    if (this.modalMode === 'UPDATE_PRIMARY' || this.modalMode === 'REMOVE') {
+      return this.secondaryPositionIds.includes(posId);
+    }
+    return !this.ownedPositionIds.includes(posId);
+  }
+
+  isPositionDisabled(posId: string): boolean {
+    return !this.isPositionSelectable(posId);
+  }
+
+  // ── Position modal actions ──────────────────────────────────
+  openAddPositionModal() {
+    this.positionError = '';
+    this.selectedPosition = null;
+    this.setAsPrimaryCheck = false;
+    this.modalMode = 'ADD';
+    this.showPositionModal = true;
+  }
+
+  openUpdatePrimaryModal() {
+    this.positionError = '';
+    this.selectedPosition = null;
+    this.modalMode = 'UPDATE_PRIMARY';
+    this.showPositionModal = true;
+  }
+
+  openRemovePositionModal() {
+    this.positionError = '';
+    this.selectedPosition = null;
+    this.modalMode = 'REMOVE';
+    this.showPositionModal = true;
+  }
+
+  closePositionModal() {
+    this.showPositionModal = false;
+    this.selectedPosition = null;
+    this.positionError = '';
+  }
+
+  selectPositionNode(posId: string) {
+    if (!this.isPositionSelectable(posId)) return;
+    this.selectedPosition = posId;
+  }
+
+  confirmPositionSelection() {
+    if (!this.selectedPosition || !this.playerId) {
+      this.positionError = 'Please select a position first.';
+      return;
+    }
+
+    this.positionError = '';
+
+    if (this.modalMode === 'ADD') {
+      this.confirmTitle = 'Add Position';
+      this.confirmMessage = `Add "${this.selectedPosition}" to your player profile${this.setAsPrimaryCheck ? ' and set it as your primary position' : ''}?`;
+      this.confirmActionText = 'Add Position';
+    } else if (this.modalMode === 'REMOVE') {
+      this.confirmTitle = 'Remove Position';
+      this.confirmMessage = `Remove "${this.selectedPosition}" from your player profile?`;
+      this.confirmActionText = 'Remove Position';
+    } else {
+      this.confirmTitle = 'Change Primary Position';
+      this.confirmMessage = `Set "${this.selectedPosition}" as your new primary position?`;
+      this.confirmActionText = 'Change Primary';
+    }
+
+    this.pendingConfirmMode = this.modalMode;
+    this.showConfirmDialog = true;
+  }
+
+  onConfirmAction() {
+    this.showConfirmDialog = false;
+
+    if (!this.selectedPosition || !this.playerId || !this.pendingConfirmMode) return;
+
+    this.isSavingPosition = true;
+    this.positionError = '';
+
+    if (this.pendingConfirmMode === 'ADD') {
+      this.profileService.addPlayerPosition(this.playerId, {
+        position: this.selectedPosition,
+        isPrimary: this.setAsPrimaryCheck,
+      }).subscribe({
+        next: () => this.onPositionSaved(),
+        error: (err) => this.onPositionError(err, 'Failed to add position'),
+      });
+    } else if (this.pendingConfirmMode === 'REMOVE') {
+      this.profileService.removePlayerPosition(this.playerId, {
+        position: this.selectedPosition,
+      }).subscribe({
+        next: () => this.onPositionSaved(),
+        error: (err) => this.onPositionError(err, 'Failed to remove position'),
+      });
+    } else {
+      this.profileService.updatePrimaryPosition(this.playerId, {
+        position: this.selectedPosition,
+      }).subscribe({
+        next: () => this.onPositionSaved(),
+        error: (err) => this.onPositionError(err, 'Failed to update primary position'),
+      });
+    }
+  }
+
+  private onPositionSaved() {
+    this.isSavingPosition = false;
+    this.pendingConfirmMode = null;
+    this.closePositionModal();
+    this.reloadProfile();
+  }
+
+  private onPositionError(err: any, fallback: string) {
+    this.isSavingPosition = false;
+    this.pendingConfirmMode = null;
+    this.positionError = err?.error?.message ?? fallback;
+  }
+
+  onCancelAction() {
+    this.showConfirmDialog = false;
+    this.pendingConfirmMode = null;
+  }
+
+  private reloadProfile() {
+    if (this.playerId) {
+      this.loadProfile(this.playerId);
+    }
+  }
+
   // ── Data loading ────────────────────────────────────────────
   private loadProfile(id: number) {
     this.isLoading = true;
     this.error = '';
     this.profile = null;
+
+    if (this.radarChart) {
+      this.radarChart.destroy();
+      this.radarChart = undefined;
+    }
+    this.chartInitialized = false;
+    this.countersAnimated = false;
 
     this.profileService.getPlayerProfile(id).subscribe({
       next: (profile) => {
@@ -280,6 +511,7 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
   // ── Radar chart ─────────────────────────────────────────────
   private initRadarChart() {
     if (this.chartInitialized || !this.radarCanvas || !this.profile?.playerCard) return;
+    if (this.isGK) return;
 
     const card = this.profile.playerCard;
     const ctx = this.radarCanvas.nativeElement.getContext('2d');

@@ -1,12 +1,10 @@
-:host {
+ /* :host {
   display: block;
   min-height: 100vh;
   color: #ffffff;
-  background-color: #06080a;
+ background-color: transparent;
 }
 
-/* Single tier for this page -- no rating/tier concept here, just the
-   lime accent player-profile uses for its base tier. */
 .pva-container {
   --tier-neon: #c8ff4d;
   --tier-glow: rgba(200, 255, 77, 0.2);
@@ -16,7 +14,7 @@
 
 /* ===================================================
    Page Wrapper
-   =================================================== */
+   =================================================== 
 .pva-page {
   max-width: 1180px;
   margin: 0 auto;
@@ -33,7 +31,7 @@
 
 /* ===================================================
    Loading & Error States
-   =================================================== */
+   =================================================== 
 .loading-state,
 .error-state {
   display: flex;
@@ -84,7 +82,7 @@
 
 /* ===================================================
    Hero Banner
-   =================================================== */
+   =================================================== 
 .hero-banner {
   background: linear-gradient(135deg, #11141a 0%, #0c0e12 100%);
   border: 1px solid #1e232d;
@@ -203,7 +201,7 @@
 
 /* ===================================================
    KPI Grid
-   =================================================== */
+   =================================================== 
 .kpi-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -268,7 +266,7 @@
 
 /* ===================================================
    Panels (Chart / Activity Table)
-   =================================================== */
+   =================================================== 
 .chart-panel,
 .activity-panel {
   background: #11141a;
@@ -306,7 +304,7 @@
 
 /* ===================================================
    Recent Viewer Activity Table
-   =================================================== */
+   =================================================== 
 .cyber-table-responsive-container {
   width: 100%;
   overflow-x: auto;
@@ -363,7 +361,7 @@
   font-weight: 700;
 }
 
-/* Responsive collapse for the table */
+/* Responsive collapse for the table 
 @media (max-width: 768px) {
   .cyber-data-table, .cyber-data-table thead, .cyber-data-table tbody,
   .cyber-data-table th, .cyber-data-table td, .cyber-data-table tr {
@@ -398,7 +396,7 @@
 
 /* ===================================================
    Responsive
-   =================================================== */
+   =================================================== 
 @media (max-width: 900px) {
   .hero-banner {
     flex-direction: column;
@@ -440,7 +438,7 @@
 
 /* ===================================================
    Reduced Motion
-   =================================================== */
+   =================================================== 
 @media (prefers-reduced-motion: reduce) {
   .kpi-card:hover,
   .chart-panel:hover,
@@ -459,4 +457,4 @@
   .retry-btn:hover {
     transform: none;
   }
-}
+}   */

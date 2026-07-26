@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Koralytics.Application.DTOs.Drill;
 using Koralytics.Application.Interfaces;
 using Koralytics.Domain.Entities.Drill;
@@ -24,8 +24,13 @@ namespace Koralytics.Application.Services.Drill.DrillResult
             if (session == null) throw new KeyNotFoundException($"Drill Session with ID {sessionId} was not found.");
             if (session.CoachId != currentCoachId) throw new UnauthorizedAccessException("...");
 
-            var drill = await _unitOfWork.Repository<Koralytics.Domain.Entities.Drill.Drill>().GetByIdAsNoTrackingAsync(drillId);
+            var drill = await _unitOfWork.Repository<Koralytics.Domain.Entities.Drill.Drill>()
+                .GetQueryableAsNoTracking()
+                .Include(d => d.DrillTemplate)
+                .FirstOrDefaultAsync(d => d.Id == drillId);
             if (drill == null || drill.SessionId != sessionId) throw new InvalidOperationException("...");
+
+            var actualMode = drill.Mode == 0 && drill.DrillTemplate != null ? drill.DrillTemplate.DrillMode : drill.Mode;
 
             var attendanceSheet = await _unitOfWork.Repository<SessionAttendance>()
                 .FindAllAsNoTrackingAsync(sa => sa.SessionId == sessionId);
@@ -48,11 +53,11 @@ namespace Koralytics.Application.Services.Drill.DrillResult
                 }
 
                 decimal finalScoreCalculated = 0;
-                if (drill.Mode == Koralytics.Domain.Enums.DrillMode.Manual)
+                if (actualMode == Koralytics.Domain.Enums.DrillMode.Manual)
                 {
                     finalScoreCalculated = incomingScore.ManualScore ?? 0;
                 }
-                else if (drill.Mode == Koralytics.Domain.Enums.DrillMode.SuccessOrMissed)
+                else if (actualMode == Koralytics.Domain.Enums.DrillMode.SuccessOrMissed)
                 {
                     int totalAttempts = incomingScore.DoneCount + incomingScore.MissedCount;
                     finalScoreCalculated = totalAttempts > 0 ? ((decimal)incomingScore.DoneCount / totalAttempts) * 10 : 0;
@@ -64,9 +69,9 @@ namespace Koralytics.Application.Services.Drill.DrillResult
                 if (existingResult != null)
                 {
                     // UPDATE
-                    existingResult.ManualScore = drill.Mode == Koralytics.Domain.Enums.DrillMode.Manual ? incomingScore.ManualScore : null;
-                    existingResult.DoneCount = drill.Mode == Koralytics.Domain.Enums.DrillMode.SuccessOrMissed ? incomingScore.DoneCount : 0;
-                    existingResult.MissedCount = drill.Mode == Koralytics.Domain.Enums.DrillMode.SuccessOrMissed ? incomingScore.MissedCount : 0;
+                    existingResult.ManualScore = actualMode == Koralytics.Domain.Enums.DrillMode.Manual ? incomingScore.ManualScore : null;
+                    existingResult.DoneCount = actualMode == Koralytics.Domain.Enums.DrillMode.SuccessOrMissed ? incomingScore.DoneCount : 0;
+                    existingResult.MissedCount = actualMode == Koralytics.Domain.Enums.DrillMode.SuccessOrMissed ? incomingScore.MissedCount : 0;
                     existingResult.FinalScore = Math.Round(finalScoreCalculated, 2);
                     existingResult.CoachNotes = incomingScore.CoachNotes;
                     existingResult.UpdatedById = currentCoachId;
@@ -79,9 +84,9 @@ namespace Koralytics.Application.Services.Drill.DrillResult
                     {
                         DrillId = drillId,
                         PlayerId = incomingScore.PlayerId,
-                        ManualScore = drill.Mode == Koralytics.Domain.Enums.DrillMode.Manual ? incomingScore.ManualScore : null,
-                        DoneCount = drill.Mode == Koralytics.Domain.Enums.DrillMode.SuccessOrMissed ? incomingScore.DoneCount : 0,
-                        MissedCount = drill.Mode == Koralytics.Domain.Enums.DrillMode.SuccessOrMissed ? incomingScore.MissedCount : 0,
+                        ManualScore = actualMode == Koralytics.Domain.Enums.DrillMode.Manual ? incomingScore.ManualScore : null,
+                        DoneCount = actualMode == Koralytics.Domain.Enums.DrillMode.SuccessOrMissed ? incomingScore.DoneCount : 0,
+                        MissedCount = actualMode == Koralytics.Domain.Enums.DrillMode.SuccessOrMissed ? incomingScore.MissedCount : 0,
                         FinalScore = Math.Round(finalScoreCalculated, 2),
                         CoachNotes = incomingScore.CoachNotes,
                         CreatedById = currentCoachId
@@ -171,10 +176,20 @@ namespace Koralytics.Application.Services.Drill.DrillResult
             return response;
         }
 
-        public async Task<IEnumerable<DrillResultDto>> GetDrillResultsAsync(int sessionId, int drillId, int currentCoachId)
+        public async Task<IEnumerable<DrillResultDto>> GetDrillResultsAsync(int sessionId, int drillId, int currentUserId, string currentUserRole, int currentAcademyId)
         {
-            var sessionExists = await _unitOfWork.Repository<DrillSessionEntity>()
-                .ExistsAsync(s => s.Id == sessionId && s.CoachId == currentCoachId);
+            bool isAdmin = string.Equals(currentUserRole, "AcademyAdmin", StringComparison.OrdinalIgnoreCase);
+
+            var query = _unitOfWork.Repository<DrillSessionEntity>()
+                .GetQueryableAsNoTracking()
+                .Where(s => s.Id == sessionId && s.AcademyId == currentAcademyId);
+
+            if (!isAdmin)
+            {
+                query = query.Where(s => s.CoachId == currentUserId);
+            }
+
+            var sessionExists = await query.AnyAsync();
 
             if (!sessionExists)
             {
@@ -187,10 +202,20 @@ namespace Koralytics.Application.Services.Drill.DrillResult
             return _mapper.Map<IEnumerable<DrillResultDto>>(results);
         }
 
-        public async Task<IEnumerable<PlayerAttendanceDto>> GetSessionAttendanceAsync(int sessionId, int currentCoachId)
+        public async Task<IEnumerable<PlayerAttendanceDto>> GetSessionAttendanceAsync(int sessionId, int currentUserId, string currentUserRole, int currentAcademyId)
         {
-            var sessionExists = await _unitOfWork.Repository<DrillSessionEntity>()
-                .ExistsAsync(s => s.Id == sessionId && s.CoachId == currentCoachId);
+            bool isAdmin = string.Equals(currentUserRole, "AcademyAdmin", StringComparison.OrdinalIgnoreCase);
+
+            var query = _unitOfWork.Repository<DrillSessionEntity>()
+                .GetQueryableAsNoTracking()
+                .Where(s => s.Id == sessionId && s.AcademyId == currentAcademyId);
+
+            if (!isAdmin)
+            {
+                query = query.Where(s => s.CoachId == currentUserId);
+            }
+
+            var sessionExists = await query.AnyAsync();
 
             if (!sessionExists)
             {
@@ -198,7 +223,11 @@ namespace Koralytics.Application.Services.Drill.DrillResult
             }
 
             var attendance = await _unitOfWork.Repository<SessionAttendance>()
-                .FindAllAsNoTrackingAsync(sa => sa.SessionId == sessionId);
+                .GetQueryableAsNoTracking()
+                .Include(sa => sa.Player)
+                    .ThenInclude(p => p.PlayerPositions)
+                .Where(sa => sa.SessionId == sessionId)
+                .ToListAsync();
 
             return _mapper.Map<IEnumerable<PlayerAttendanceDto>>(attendance);
         }

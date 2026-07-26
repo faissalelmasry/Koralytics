@@ -22,6 +22,8 @@ namespace Koralytics.Domain.Entities.Match
 
         public bool? IsHomeSide { get; set; }
 
+        public string? PositionInMatch { get; set; }
+
         public Match Match { get; set; } = default!;
 
 

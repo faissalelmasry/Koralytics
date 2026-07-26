@@ -128,7 +128,14 @@ export class LoginComponent implements AfterViewInit {
     this.authService.isEmailConfirmed(userId).subscribe({
       next: (res) => {
         if (res.data?.isConfirmed) {
-          const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
+          const user = this.authService.getCurrentUserValue();
+          let defaultReturnUrl = '/dashboard';
+          
+          if (user?.roles?.includes('AcademyAdmin')) {
+            defaultReturnUrl = '/academy-admin/dashboard';
+          }
+          
+          const returnUrl = this.route.snapshot.queryParams['returnUrl'] || defaultReturnUrl;
           this.router.navigateByUrl(returnUrl);
         } else {
           this.toast.show('Please confirm your email address', 'warning');

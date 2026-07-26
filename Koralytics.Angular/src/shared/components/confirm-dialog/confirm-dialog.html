@@ -1,0 +1,57 @@
+@if (isOpen) {
+  <div class="dialog-overlay">
+    <div class="confirm-dialog" [ngClass]="'level-' + level">
+      
+      <!-- HEADER -->
+      <div class="dialog-header">
+        <h2>{{ title }}</h2>
+        <button class="close-btn" (click)="onCancel()">✕</button>
+      </div>
+
+      <!-- BODY -->
+      <div class="dialog-body">
+        <p class="dialog-message">{{ message }}</p>
+
+        <!-- DETAILS LIST -->
+        @if (details && details.length > 0) {
+          <ul class="details">
+            @for (detail of details; track $index) {
+              <li>{{ detail }}</li>
+            }
+          </ul>
+        }
+
+        <!-- CONFIRMATION INPUT (for critical actions) -->
+        @if (requiresConfirmation) {
+          <div class="confirmation">
+            <p class="confirm-label">
+              Type "<strong>{{ confirmationText }}</strong>" to confirm:
+            </p>
+            <input 
+              type="text" 
+              [(ngModel)]="confirmationInput"
+              placeholder="Type confirmation text"
+              class="confirm-input">
+          </div>
+        }
+      </div>
+
+      <!-- FOOTER -->
+      <div class="dialog-footer">
+        <button 
+          class="btn btn-secondary"
+          (click)="onCancel()">
+          {{ cancelText }}
+        </button>
+        <button 
+          class="btn"
+          [disabled]="isConfirmDisabled"
+          [ngClass]="'level-' + level"
+          (click)="onConfirm()">
+          {{ confirmText }}
+        </button>
+      </div>
+
+    </div>
+  </div>
+}

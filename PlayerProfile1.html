@@ -3,19 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Koralytics - Pitch & Card Hybrid Profile</title>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <title>Koralytics - Pitch Manager</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Chakra+Petch:wght@600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <style>
     :root {
-      --bg-dark: #08090c;
-      --panel-bg: #11141a;
-      --panel-border: #1e232d;
+      --bg-dark: #080a0f;
+      --card-bg: #11151f;
+      --card-border: rgba(255, 255, 255, 0.08);
+      --koralytics-yellow: #facc15;
+      --koralytics-yellow-hover: #eab308;
       --text-main: #ffffff;
-      --text-muted: #808897;
-      --accent-gold: #ffd700;
-      --accent-green: #22c55e;
-      --pitch-green: #0b2415;
+      --text-muted: #8e9bb0;
       --pitch-line: rgba(255, 255, 255, 0.2);
     }
 
@@ -23,431 +23,567 @@
 
     body {
       background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(34, 197, 94, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(147, 51, 234, 0.08) 0%, transparent 40%);
       color: var(--text-main);
       font-family: 'Plus Jakarta Sans', sans-serif;
-      padding: 25px;
+      padding: 24px;
       min-height: 100vh;
       display: flex;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
     }
 
-    .koralytics-dashboard {
-      max-width: 1180px;
+    .koralytics-container {
+      max-width: 1240px;
       width: 100%;
       display: flex;
       flex-direction: column;
       gap: 20px;
     }
 
-    /* ==========================================
-       1. HERO HEADER BANNER
-       ========================================== */
-    .hero-banner {
-      background: linear-gradient(135deg, #11141a 0%, #0c0e12 100%);
-      border: 1px solid var(--panel-border);
-      border-radius: 20px;
-      padding: 20px 28px;
+    /* TOP NAVBAR & HEADER BANNER */
+    .top-nav {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      position: relative;
-      overflow: hidden;
+      padding: 0 8px 10px;
     }
-
-    .hero-banner::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 2px;
-      background: linear-gradient(90deg, var(--accent-gold), transparent 70%);
+    .logo-text {
+      font-family: 'Chakra Petch', sans-serif;
+      font-weight: 700;
+      font-size: 20px;
+      letter-spacing: 2px;
+      color: #82f768;
     }
-
-    .player-identity {
+    .nav-links {
       display: flex;
+      gap: 24px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .nav-links a { color: var(--text-muted); text-decoration: none; }
+
+    .header-banner {
+      background: #11151e;
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 16px 28px;
+      display: flex;
+      justify-content: space-between;
       align-items: center;
-      gap: 16px;
     }
 
+    .player-title-box { display: flex; align-items: center; gap: 16px; }
     .avatar-circle {
-      width: 60px; height: 60px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(255,215,0,0.15) 0%, #171b22 100%);
-      border: 2px solid var(--accent-gold);
+      width: 54px; height: 54px; border-radius: 50%;
+      border: 2px solid var(--koralytics-yellow);
       display: flex; align-items: center; justify-content: center;
-      font-size: 20px; font-weight: 800; color: var(--accent-gold);
+      font-family: 'Chakra Petch', sans-serif; font-weight: 700; color: var(--koralytics-yellow);
+      font-size: 20px;
     }
+    .player-title-box h2 { font-size: 24px; font-weight: 800; display: flex; align-items: center; gap: 10px; }
+    .tags-group { display: flex; gap: 6px; }
+    .tags { font-size: 11px; background: rgba(255,255,255,0.06); padding: 4px 10px; border-radius: 12px; color: #cbd5e1; font-weight: 600; }
+    
+    .meta-stats { display: flex; gap: 32px; font-size: 11px; color: var(--text-muted); text-transform: uppercase; }
+    .meta-stats strong { color: #fff; display: block; font-size: 14px; margin-top: 2px; font-weight: 700; }
 
-    .player-identity h1 {
-      font-size: 26px; font-weight: 800; line-height: 1.1; margin-bottom: 4px;
-    }
-
-    .meta-pills {
-      display: flex; gap: 8px; align-items: center;
-    }
-
-    .pill {
-      background: #181c24; border: 1px solid #272d3a;
-      padding: 3px 10px; border-radius: 20px; font-size: 11px; color: #e2e8f0; font-weight: 600;
-    }
-
-    .pill.gold {
-      background: rgba(255, 215, 0, 0.1); border-color: rgba(255, 215, 0, 0.3); color: var(--accent-gold);
-    }
-
-    .bio-quick-list {
-      display: flex; gap: 20px; background: rgba(0,0,0,0.3); padding: 10px 18px; border-radius: 12px;
-    }
-
-    .bio-item { display: flex; flex-direction: column; }
-    .bio-lbl { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
-    .bio-val { font-size: 13px; font-weight: 700; color: #fff; }
-
-    /* ==========================================
-       2. MAIN SECTION: CARD + PITCH + RADAR
-       ========================================== */
+    /* LAYOUT */
     .main-grid {
       display: grid;
-      grid-template-columns: 240px 1fr 300px;
+      grid-template-columns: 290px 1fr 310px;
       gap: 20px;
       align-items: stretch;
     }
 
-    /* --- FIFA STYLE PLAYER CARD --- */
-    .fifa-card {
-      background: linear-gradient(145deg, #1c212b 0%, #0d0f14 100%);
-      border: 2px solid var(--accent-gold);
-      border-radius: 18px;
-      padding: 18px;
+    .panel-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 20px;
       display: flex;
       flex-direction: column;
-      align-items: center;
+    }
+
+    /* LEFT FUT CARD */
+    .fut-card-wrapper { display: flex; flex-direction: column; gap: 12px; }
+    .fut-card {
+      background: linear-gradient(165deg, #181d28 0%, #0c0f17 100%);
+      border: 1px solid rgba(250, 204, 21, 0.25);
+      border-radius: 20px;
+      padding: 22px;
       position: relative;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-    }
-
-    .card-top {
-      display: flex;
-      justify-content: space-between;
-      width: 100%;
-      align-items: flex-start;
-    }
-
-    .card-ovr {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 42px;
-      line-height: 0.9;
-      color: var(--accent-gold);
       text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     }
+    .fut-rating { position: absolute; top: 18px; left: 18px; font-family: 'Bebas Neue', sans-serif; font-size: 42px; color: var(--koralytics-yellow); line-height: 0.9; text-align: left; }
+    .fut-rating span { font-size: 14px; display: block; font-family: 'Plus Jakarta Sans', sans-serif; color: var(--text-muted); font-weight: 700; }
+    .fut-badge { position: absolute; top: 18px; right: 18px; width: 28px; height: 28px; border: 1px solid rgba(250, 204, 21, 0.3); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--koralytics-yellow); font-family: 'Chakra Petch'; }
+    
+    .fut-avatar { width: 96px; height: 96px; border-radius: 50%; background: #1a202c; border: 2px solid rgba(255,255,255,0.1); margin: 25px auto 12px; display: flex; align-items: center; justify-content: center; font-size: 28px; font-family: 'Chakra Petch'; color: #cbd5e1; font-weight: 700; }
+    .fut-name { font-weight: 800; font-size: 14px; letter-spacing: 1.5px; margin-bottom: 20px; }
+    
+    .fut-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 20px; font-size: 12px; font-weight: 700; color: var(--text-muted); text-align: left; }
+    .fut-stats div span { color: var(--koralytics-yellow); font-size: 13px; font-weight: 800; width: 20px; margin-right: 4px; }
 
-    .card-pos {
-      font-size: 14px; font-weight: 800; color: #fff; text-transform: uppercase;
-    }
+    .fut-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.06); font-size: 10px; color: var(--text-muted); }
 
-    .card-face {
-      width: 85px; height: 85px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(255,215,0,0.1) 0%, #171b22 100%);
-      border: 2px solid rgba(255,215,0,0.3);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 28px; font-weight: 800; color: var(--accent-gold);
-      margin: 10px 0 12px 0;
-    }
+    /* CENTER PITCH SECTION */
+    .pitch-panel { gap: 16px; }
+    .panel-title { font-size: 11px; font-weight: 800; color: var(--text-muted); letter-spacing: 1.2px; text-transform: uppercase; }
 
-    .card-name {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 22px;
-      letter-spacing: 1px;
-      color: #fff;
-      margin-bottom: 10px;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-      width: 100%;
-      text-align: center;
-      padding-bottom: 4px;
-    }
-
-    .card-stats-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 4px 12px;
-      width: 100%;
-      font-size: 12px;
-      font-weight: 700;
-    }
-
-    .card-stat { display: flex; gap: 4px; color: var(--text-muted); }
-    .card-stat strong { color: #fff; }
-
-    /* --- COMPACT TACTICAL PITCH --- */
-    .pitch-panel {
-      background: var(--panel-bg);
-      border: 1px solid var(--panel-border);
-      border-radius: 18px;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      gap: 12px;
-    }
-
-    .panel-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 11px;
-      font-weight: 800;
-      letter-spacing: 1px;
-      color: var(--text-muted);
-      text-transform: uppercase;
-    }
-
-    /* Compact Aspect-Ratio Pitch */
-    .pitch-container {
-      background: var(--pitch-green);
-      border: 2px solid #143d22;
-      border-radius: 14px;
-      height: 220px; /* طول متناسق ومش طويل بالعرض */
+    .pitch-wrapper {
       position: relative;
+      background: radial-gradient(circle at 62% 50%, rgba(250, 204, 21, 0.12) 0%, transparent 45%), #0c1a12;
+      border: 1px solid rgba(34, 197, 94, 0.25);
+      border-radius: 16px;
+      aspect-ratio: 16 / 10;
       overflow: hidden;
-      box-shadow: inset 0 0 25px rgba(0,0,0,0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
     }
+    
+    .p-line { position: absolute; border: 1.5px solid var(--pitch-line); pointer-events: none; }
+    .p-half { top: 0; bottom: 0; left: 50%; width: 0; border-right: none; transform: translateX(-50%); }
+    .p-center-c { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); height: 34%; aspect-ratio: 1 / 1; border: 1.5px solid var(--pitch-line); border-radius: 50%; pointer-events: none; }
+    .p-box { top: 18%; bottom: 18%; width: 14%; }
+    .p-box-l { left: 0; border-left: none; }
+    .p-box-r { right: 0; border-right: none; }
 
-    .pitch-lines { position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; }
-    .pitch-line-half { position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; background: var(--pitch-line); }
-    .pitch-center-circle { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 70px; height: 70px; border: 2px solid var(--pitch-line); border-radius: 50%; }
-    .pitch-box-left { position: absolute; left: 0; top: 22%; bottom: 22%; width: 40px; border: 2px solid var(--pitch-line); border-left: none; }
-    .pitch-box-right { position: absolute; right: 0; top: 22%; bottom: 22%; width: 40px; border: 2px solid var(--pitch-line); border-right: none; }
-
-    .heatmap-overlay {
-      position: absolute; width: 100%; height: 100%;
-      background: radial-gradient(circle at 76% 50%, rgba(255,215,0,0.2) 0%, transparent 40%);
-      pointer-events: none;
-    }
-
-    /* Compact Position Pins */
-    .pos-pin {
+    /* PITCH MARKERS */
+    .pos-marker {
       position: absolute;
       transform: translate(-50%, -50%);
-      padding: 5px 10px;
-      border-radius: 12px;
-      font-size: 11px;
-      font-weight: 800;
-      cursor: pointer;
-      transition: all 0.25s ease;
-      z-index: 10;
-      background: #0d0f14;
-      color: #fff;
-      border: 1px solid rgba(255,255,255,0.2);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-family: 'Chakra Petch', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      z-index: 5;
     }
-
-    .pos-pin.st { top: 50%; left: 76%; }
-    .pos-pin.lw { top: 28%; left: 65%; }
-    .pos-pin.cam { top: 50%; left: 54%; }
-
-    .pos-pin:hover, .pos-pin.active {
-      background: var(--accent-gold);
+    .pos-marker.primary {
+      background: var(--koralytics-yellow);
       color: #000;
-      border-color: var(--accent-gold);
-      box-shadow: 0 0 12px rgba(255,215,0,0.6);
-      transform: translate(-50%, -50%) scale(1.1);
+      box-shadow: 0 0 25px rgba(250, 204, 21, 0.8);
+    }
+    .pos-marker.secondary {
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: #fff;
+      backdrop-filter: blur(4px);
     }
 
-    .filter-bar {
-      background: #0d0f14;
-      border: 1px solid var(--panel-border);
-      padding: 8px 14px;
-      border-radius: 10px;
-      font-size: 11px;
+    .current-pos-info {
+      font-size: 12px;
       color: var(--text-muted);
+      background: #0d1017;
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: 1px solid var(--card-border);
       display: flex;
       justify-content: space-between;
+      align-items: center;
     }
 
-    .filter-bar strong { color: var(--accent-gold); }
-
-    /* --- RADAR PANEL --- */
-    .radar-panel {
-      background: var(--panel-bg);
-      border: 1px solid var(--panel-border);
-      border-radius: 18px;
-      padding: 16px;
+    .btn-action {
+      background: #181d28;
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
       display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-
-    .radar-container {
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
       width: 100%;
-      height: 200px;
+    }
+    .btn-action:hover { background: #222938; }
+    .btn-action.btn-yellow { background: var(--koralytics-yellow); color: #000; border: none; }
+    .btn-action.btn-yellow:hover { background: var(--koralytics-yellow-hover); }
+
+    /* MODAL STYLES */
+    .modal-backdrop {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(5, 7, 10, 0.85);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal-backdrop.active { display: flex; }
+
+    .tactical-modal {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      width: 700px;
+      max-width: 90vw;
+      padding: 24px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+    }
+
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .modal-header h3 { font-size: 18px; font-weight: 800; }
+    .close-btn { background: transparent; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer; }
+
+    .tactical-pitch-overlay {
       position: relative;
-    }
-
-    /* ==========================================
-       3. DYNAMIC KPI CARDS
-       ========================================== */
-    .kpi-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 15px;
-    }
-
-    .kpi-card {
-      background: var(--panel-bg);
-      border: 1px solid var(--panel-border);
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      background: radial-gradient(circle at 50% 50%, rgba(34, 197, 94, 0.08) 0%, transparent 60%), #0c1a12;
+      border: 1px solid rgba(34, 197, 94, 0.25);
       border-radius: 16px;
-      padding: 18px;
-      transition: transform 0.2s ease;
+      overflow: hidden;
+      box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
     }
 
-    .kpi-card:hover { transform: translateY(-3px); }
+    /* NODES */
+    .pitch-node-btn {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      padding: 7px 15px;
+      border-radius: 20px;
+      border: 1.5px solid rgba(255, 255, 255, 0.2);
+      background: rgba(0, 0, 0, 0.65);
+      color: var(--text-muted);
+      font-family: 'Chakra Petch', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+      z-index: 10;
+    }
 
-    .kpi-header { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
-    .kpi-value { font-family: 'Bebas Neue', sans-serif; font-size: 42px; line-height: 1; margin: 8px 0 2px 0; color: #fff; }
-    .kpi-card.highlight .kpi-value { color: var(--accent-gold); }
-    .kpi-sub { font-size: 11px; color: var(--text-muted); }
+    .pitch-node-btn.selectable {
+      border-color: var(--koralytics-yellow);
+      color: #fff;
+    }
+    .pitch-node-btn.selectable:hover {
+      background: var(--koralytics-yellow);
+      color: #000;
+      box-shadow: 0 0 15px rgba(250, 204, 21, 0.5);
+      transform: translate(-50%, -50%) scale(1.15);
+    }
+
+    .pitch-node-btn.selected {
+      background: var(--koralytics-yellow) !important;
+      color: #000 !important;
+      border: none !important;
+      box-shadow: 0 0 20px rgba(250, 204, 21, 0.7);
+    }
+
+    .pitch-node-btn.disabled-node {
+      opacity: 0.2;
+      cursor: not-allowed;
+      border-color: rgba(255, 255, 255, 0.05);
+    }
+
+    .modal-footer { margin-top: 20px; display: flex; justify-content: space-between; align-items: center; }
+    .checkbox-opt { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer; }
+    .checkbox-opt input { accent-color: var(--koralytics-yellow); }
   </style>
 </head>
 <body>
 
-  <div class="koralytics-dashboard">
+  <div class="koralytics-container">
 
-    <!-- 1. HEADER BANNER -->
-    <div class="hero-banner">
-      <div class="player-identity">
-        <div class="avatar-circle">OK</div>
-        <div>
-          <h1>Omar Khaled</h1>
-          <div class="meta-pills">
-            <span class="pill">Al Ahly Academy</span>
-            <span class="pill">U17 / U19</span>
-            <span class="pill gold">⚡ Complete Target-Man</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="bio-quick-list">
-        <div class="bio-item">
-          <span class="bio-lbl">Status</span>
-          <span class="bio-val" style="color: var(--accent-green);">Active</span>
-        </div>
-        <div class="bio-item">
-          <span class="bio-lbl">Age / Foot</span>
-          <span class="bio-val">18 Yrs / Right</span>
-        </div>
-        <div class="bio-item">
-          <span class="bio-lbl">Height</span>
-          <span class="bio-val">185 cm</span>
-        </div>
+    <!-- TOP NAVBAR -->
+    <div class="top-nav">
+      <div class="logo-text">⚡ KORALYTICS</div>
+      <div class="nav-links">
+        <a href="#">home</a>
+        <a href="#">about</a>
+        <a href="#">clubs</a>
+        <a href="#">contact</a>
       </div>
     </div>
 
-    <!-- 2. MAIN GRID (CARD + PITCH + RADAR) -->
+    <!-- HEADER BANNER -->
+    <div class="header-banner">
+      <div class="player-title-box">
+        <div class="avatar-circle">BS</div>
+        <div>
+          <h2>Bernardo Silva</h2>
+          <div class="tags-group" style="margin-top: 4px;">
+            <span class="tags">Manchester City</span>
+            <span class="tags">First Team / Playmaker</span>
+          </div>
+        </div>
+      </div>
+      <div class="meta-stats">
+        <div>STATUS <strong>Active</strong></div>
+        <div>AGE / FOOT <strong>29 Yrs / Left</strong></div>
+        <div>NATIONALITY <strong>Portugal</strong></div>
+      </div>
+    </div>
+
+    <!-- MAIN GRID -->
     <div class="main-grid">
 
-      <!-- FIFA PLAYER CARD -->
-      <div class="fifa-card">
-        <div class="card-top">
-          <div class="card-ovr">
-            74<br><span class="card-pos">ST</span>
+      <!-- LEFT FUT CARD -->
+      <div class="fut-card-wrapper">
+        <div class="fut-card">
+          <div class="fut-rating">88 <span>CAM</span></div>
+          <div class="fut-badge">K</div>
+          <div class="fut-avatar">BS</div>
+          <div class="fut-name">BERNARDO SILVA</div>
+          <div class="fut-stats">
+            <div><span>76</span> PAC</div>
+            <div><span>92</span> DRI</div>
+            <div><span>78</span> SHO</div>
+            <div><span>65</span> DEF</div>
+            <div><span>86</span> PAS</div>
+            <div><span>74</span> PHY</div>
           </div>
-          <span style="font-size: 18px;">🇪🇬</span>
-        </div>
-
-        <div class="card-face">OK</div>
-        <div class="card-name">O. KHALED</div>
-
-        <div class="card-stats-grid">
-          <div class="card-stat"><strong>70</strong> PAC</div>
-          <div class="card-stat"><strong>79</strong> PAS</div>
-          <div class="card-stat"><strong>71</strong> SHO</div>
-          <div class="card-stat"><strong>64</strong> DRI</div>
-          <div class="card-stat"><strong>80</strong> DEF</div>
-          <div class="card-stat"><strong>80</strong> PHY</div>
-        </div>
-      </div>
-
-      <!-- COMPACT TACTICAL PITCH -->
-      <div class="pitch-panel">
-        <div class="panel-header">
-          <span>Tactical Position Filter</span>
-          <span style="font-size: 10px; color: var(--text-muted); text-transform: none;">Click pins to inspect</span>
-        </div>
-
-        <div class="pitch-container">
-          <div class="pitch-lines">
-            <div class="pitch-line-half"></div>
-            <div class="pitch-center-circle"></div>
-            <div class="pitch-box-left"></div>
-            <div class="pitch-box-right"></div>
+          <div class="fut-footer">
+            <span>★ ★ ★ ★ ★</span>
+            <span>Left-Foot</span>
           </div>
-          
-          <div class="heatmap-overlay"></div>
+        </div>
+        <button class="btn-action">🔄 update card</button>
+      </div>
 
-          <!-- Position Pins -->
-          <div class="pos-pin st active" onclick="filterStats('ST', 4, 5, '1.25', 'Striker (Main Role)')">ST ★</div>
-          <div class="pos-pin lw" onclick="filterStats('LW', 2, 1, '0.50', 'Left Wing')">LW</div>
-          <div class="pos-pin cam" onclick="filterStats('CAM', 1, 0, '0.00', 'Attacking Midfielder')">CAM</div>
+      <!-- CENTER POSITION OVERVIEW -->
+      <div class="panel-card pitch-panel">
+        <div class="panel-title">Position Overview</div>
+
+        <!-- MAIN PITCH WRAPPER -->
+        <div class="pitch-wrapper" id="mainPitch">
+          <div class="p-line p-half"></div>
+          <div class="p-center-c"></div>
+          <div class="p-line p-box p-box-l"></div>
+          <div class="p-line p-box p-box-r"></div>
         </div>
 
-        <div class="filter-bar">
-          <span>Active Role: <strong id="selectedPosLabel">Striker (Main Role)</strong></span>
-          <span>Pitch Hub</span>
+        <!-- ACTION BAR BELOW PITCH -->
+        <div class="current-pos-info">
+          <span>Primary: <strong style="color: var(--koralytics-yellow);" id="primaryPosText">CAM</strong></span>
+          <span style="display: flex; gap: 8px;">
+            <button style="background:transparent; border:none; color:var(--text-muted); cursor:pointer; font-size:12px; font-weight:700;" onclick="openUpdatePrimaryModal()">[Change Primary]</button>
+            <button style="background:transparent; border:none; color:var(--koralytics-yellow); cursor:pointer; font-size:12px; font-weight:700;" onclick="openAddPositionModal()">[+ Add Position]</button>
+          </span>
         </div>
       </div>
 
-      <!-- RADAR CHART -->
-      <div class="radar-panel">
-        <div class="panel-header">
-          <span>Attributes Radar</span>
+      <!-- RIGHT RADAR PANEL -->
+      <div class="panel-card radar-panel" style="justify-content: space-between;">
+        <div class="panel-title">Attributes Radar</div>
+        <div style="height: 220px; position: relative;">
+          <canvas id="miniRadar"></canvas>
         </div>
-
-        <div class="radar-container">
-          <canvas id="hybridRadarChart"></canvas>
-        </div>
+        <button class="btn-action btn-yellow">⚡ reveal archetype</button>
       </div>
 
-    </div>
-
-    <!-- 3. DYNAMIC KPI GRID -->
-    <div class="kpi-grid">
-      <div class="kpi-card">
-        <div class="kpi-header">Matches Played</div>
-        <div class="kpi-value" id="kpiMatches">4</div>
-        <div class="kpi-sub">In Selected Position</div>
-      </div>
-      <div class="kpi-card highlight">
-        <div class="kpi-header">Goals Scored</div>
-        <div class="kpi-value" id="kpiGoals">5</div>
-        <div class="kpi-sub" id="kpiRatio">1.25 Avg / Game</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-header">Assists / Passes</div>
-        <div class="kpi-value">0</div>
-        <div class="kpi-sub">2 Chances Created</div>
-      </div>
-      <div class="kpi-card highlight">
-        <div class="kpi-header">Man of Match</div>
-        <div class="kpi-value">2</div>
-        <div class="kpi-sub">50% Match Impact</div>
-      </div>
     </div>
 
   </div>
 
-  <!-- Radar Chart & JS Logic -->
+  <!-- TACTICAL SELECTION MODAL -->
+  <div class="modal-backdrop" id="positionModal">
+    <div class="tactical-modal">
+      <div class="modal-header">
+        <h3 id="modalTitle">Select Position</h3>
+        <button class="close-btn" onclick="closeModal()">✕</button>
+      </div>
+
+      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;" id="modalSubtitle">
+        Select a position on the pitch.
+      </p>
+
+      <!-- INTERACTIVE TACTICAL PITCH SELECTOR -->
+      <div class="tactical-pitch-overlay" id="tacticalPitch">
+        <div class="p-line p-half"></div>
+        <div class="p-center-c"></div>
+        <div class="p-line p-box p-box-l"></div>
+        <div class="p-line p-box p-box-r"></div>
+      </div>
+
+      <div class="modal-footer">
+        <label class="checkbox-opt" id="primaryCheckboxContainer">
+          <input type="checkbox" id="setAsPrimaryCheck"> Set as Primary position immediately
+        </label>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn-action" style="width: auto;" onclick="closeModal()">Cancel</button>
+          <button class="btn-action btn-yellow" style="width: auto;" onclick="savePositionSelection()">Confirm Selection</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
-    const ctx = document.getElementById('hybridRadarChart').getContext('2d');
+    const allPitchPositions = [
+      { id: 'LW', name: 'LW', top: '22%', left: '78%' },
+      { id: 'ST', name: 'ST', top: '50%', left: '80%' },
+      { id: 'RW', name: 'RW', top: '78%', left: '78%' },
+      
+      { id: 'CAM', name: 'CAM', top: '50%', left: '62%' },
+      { id: 'LM', name: 'LM', top: '20%', left: '50%' },
+      { id: 'CM', name: 'CM', top: '50%', left: '50%' },
+      { id: 'RM', name: 'RM', top: '80%', left: '50%' },
+      { id: 'CDM', name: 'CDM', top: '50%', left: '38%' },
+
+      { id: 'LB', name: 'LB', top: '20%', left: '22%' },
+      { id: 'CB', name: 'CB', top: '50%', left: '22%' },
+      { id: 'RB', name: 'RB', top: '80%', left: '22%' },
+      { id: 'GK', name: 'GK', top: '50%', left: '8%' }
+    ];
+
+    // EXAMPLE DATA: Bernardo Silva with MULTIPLE Secondary positions
+    let playerPositions = {
+      primary: 'CAM',
+      secondary: ['RW', 'CM', 'RM', 'LW']
+    };
+
+    let activeModalMode = 'ADD';
+    let tempSelectedPos = null;
+
+    function renderMainPitch() {
+      const pitch = document.getElementById('mainPitch');
+      pitch.querySelectorAll('.pos-marker').forEach(m => m.remove());
+
+      // Render Primary Position
+      const primaryData = allPitchPositions.find(p => p.id === playerPositions.primary);
+      if (primaryData) {
+        const el = document.createElement('div');
+        el.className = 'pos-marker primary';
+        el.style.top = primaryData.top;
+        el.style.left = primaryData.left;
+        el.innerHTML = `${primaryData.name} ★`;
+        pitch.appendChild(el);
+      }
+
+      // Render All Secondary Positions
+      playerPositions.secondary.forEach(secId => {
+        const secData = allPitchPositions.find(p => p.id === secId);
+        if (secData) {
+          const el = document.createElement('div');
+          el.className = 'pos-marker secondary';
+          el.style.top = secData.top;
+          el.style.left = secData.left;
+          el.innerHTML = secData.name;
+          pitch.appendChild(el);
+        }
+      });
+
+      document.getElementById('primaryPosText').innerText = playerPositions.primary;
+    }
+
+    function openAddPositionModal() {
+      activeModalMode = 'ADD';
+      tempSelectedPos = null;
+      document.getElementById('modalTitle').innerText = 'Add New Position';
+      document.getElementById('modalSubtitle').innerText = 'Select any unowned position to add it to your player profile.';
+      document.getElementById('primaryCheckboxContainer').style.display = 'flex';
+      renderTacticalPitch();
+      document.getElementById('positionModal').classList.add('active');
+    }
+
+    function openUpdatePrimaryModal() {
+      activeModalMode = 'UPDATE_PRIMARY';
+      tempSelectedPos = null;
+      document.getElementById('modalTitle').innerText = 'Update Primary Position';
+      document.getElementById('modalSubtitle').innerText = 'Choose one of your existing Secondary Positions to promote it as Primary.';
+      document.getElementById('primaryCheckboxContainer').style.display = 'none';
+      renderTacticalPitch();
+      document.getElementById('positionModal').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('positionModal').classList.remove('active');
+    }
+
+    function renderTacticalPitch() {
+      const pitchOverlay = document.getElementById('tacticalPitch');
+      pitchOverlay.querySelectorAll('.pitch-node-btn').forEach(b => b.remove());
+
+      allPitchPositions.forEach(pos => {
+        const btn = document.createElement('button');
+        btn.className = 'pitch-node-btn';
+        btn.style.top = pos.top;
+        btn.style.left = pos.left;
+
+        const isPrimary = pos.id === playerPositions.primary;
+        const isSecondary = playerPositions.secondary.includes(pos.id);
+
+        if (activeModalMode === 'UPDATE_PRIMARY') {
+          // In Update Primary Mode: ONLY SECONDARY POSITIONS are selectable!
+          if (isSecondary) {
+            btn.classList.add('selectable');
+            btn.innerHTML = `<span>${pos.name}</span>`;
+            btn.onclick = () => selectPositionNode(btn, pos.id);
+          } else {
+            btn.classList.add('disabled-node');
+            btn.innerHTML = `<span>${pos.name}</span>`;
+          }
+        } else {
+          // In Add Mode: ONLY UNOWNED POSITIONS are selectable!
+          if (!isPrimary && !isSecondary) {
+            btn.classList.add('selectable');
+            btn.innerHTML = `<span>${pos.name}</span>`;
+            btn.onclick = () => selectPositionNode(btn, pos.id);
+          } else {
+            btn.classList.add('disabled-node');
+            btn.innerHTML = `<span>${pos.name}</span>`;
+          }
+        }
+
+        pitchOverlay.appendChild(btn);
+      });
+    }
+
+    function selectPositionNode(btnEl, posId) {
+      document.querySelectorAll('#tacticalPitch .pitch-node-btn').forEach(b => b.classList.remove('selected'));
+      btnEl.classList.add('selected');
+      tempSelectedPos = posId;
+    }
+
+    function savePositionSelection() {
+      if (!tempSelectedPos) {
+        alert('Please select a highlighted position first.');
+        return;
+      }
+
+      if (activeModalMode === 'ADD') {
+        const setImmediatePrimary = document.getElementById('setAsPrimaryCheck').checked;
+        if (setImmediatePrimary) {
+          playerPositions.secondary.push(playerPositions.primary);
+          playerPositions.primary = tempSelectedPos;
+        } else {
+          playerPositions.secondary.push(tempSelectedPos);
+        }
+      } else if (activeModalMode === 'UPDATE_PRIMARY') {
+        // Swap: Remove chosen position from secondary, push current primary to secondary, set chosen as new primary
+        playerPositions.secondary = playerPositions.secondary.filter(p => p !== tempSelectedPos);
+        playerPositions.secondary.push(playerPositions.primary);
+        playerPositions.primary = tempSelectedPos;
+      }
+
+      renderMainPitch();
+      closeModal();
+    }
+
+    // CHART CONFIG
+    const ctx = document.getElementById('miniRadar').getContext('2d');
     new Chart(ctx, {
       type: 'radar',
       data: {
         labels: ['PAC', 'DRI', 'SHO', 'DEF', 'PAS', 'PHY'],
         datasets: [{
-          data: [70, 64, 71, 80, 79, 80],
-          backgroundColor: 'rgba(255, 215, 0, 0.25)',
-          borderColor: '#ffd700',
+          data: [76, 92, 78, 65, 86, 74],
+          backgroundColor: 'rgba(250, 204, 21, 0.15)',
+          borderColor: '#facc15',
           borderWidth: 2,
-          pointBackgroundColor: '#ffd700',
-          pointRadius: 2.5
+          pointBackgroundColor: '#facc15'
         }]
       },
       options: {
@@ -456,30 +592,16 @@
         plugins: { legend: { display: false } },
         scales: {
           r: {
-            angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
-            grid: { color: 'rgba(255, 255, 255, 0.1)' },
-            pointLabels: {
-              color: '#808897',
-              font: { size: 9, weight: '700' }
-            },
-            ticks: { display: false },
-            suggestedMin: 30,
-            suggestedMax: 90
+            angleLines: { color: 'rgba(255,255,255,0.08)' },
+            grid: { color: 'rgba(255,255,255,0.08)' },
+            pointLabels: { color: '#8e9bb0', font: { size: 10, weight: '700' } },
+            ticks: { display: false }
           }
         }
       }
     });
 
-    function filterStats(posName, matches, goals, ratio, label) {
-      document.querySelectorAll('.pos-pin').forEach(pin => pin.classList.remove('active'));
-      event.target.classList.add('active');
-
-      document.getElementById('selectedPosLabel').innerText = label;
-      document.getElementById('kpiMatches').innerText = matches;
-      document.getElementById('kpiGoals').innerText = goals;
-      document.getElementById('kpiRatio').innerText = `${ratio} Avg / Game`;
-    }
+    renderMainPitch();
   </script>
-
 </body>
 </html>

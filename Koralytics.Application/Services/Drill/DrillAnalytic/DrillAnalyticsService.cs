@@ -1,4 +1,4 @@
-﻿using Koralytics.Application.DTOs.Drill;
+using Koralytics.Application.DTOs.Drill;
 using Koralytics.Application.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -32,10 +32,23 @@ namespace Koralytics.Application.Services.Drill.DrillAnalytic
 
         public async Task<CoachBiasReportDto> DetectCoachBiasAsync(int targetCoachId, int academyId, int currentUserId, string currentUserRole)
         {
-            // 🛑 THE BOUNCER: Security Check
-            if (currentUserRole == "Coach" && currentUserId != targetCoachId)
+            // 🛑 Security Check: Coaches can only view their own bias reports. Academy Admins can view any coach.
+            if (string.Equals(currentUserRole, "Coach", StringComparison.OrdinalIgnoreCase) && currentUserId != targetCoachId)
             {
                 throw new UnauthorizedAccessException("Coaches can only view their own bias reports. Academy Admins can view any coach.");
+            }
+
+            var coachUser = await _unitOfWork.Repository<Domain.Entities.Coach.Coach>()
+                .GetQueryableAsNoTracking()
+                .FirstOrDefaultAsync(u => u.Id == targetCoachId);
+
+            string coachName = coachUser != null
+                ? $"{coachUser.FirstName} {coachUser.LastName}".Trim()
+                : $"Coach #{targetCoachId}";
+
+            if (string.IsNullOrWhiteSpace(coachName))
+            {
+                coachName = coachUser?.UserName ?? $"Coach #{targetCoachId}";
             }
 
             var cutoffDate = DateTime.UtcNow.AddDays(-30);
@@ -45,16 +58,17 @@ namespace Koralytics.Application.Services.Drill.DrillAnalytic
             // ====================================================================
             var practiceScores = await _unitOfWork.Repository<Domain.Entities.Drill.DrillResult>()
                 .GetQueryableAsNoTracking()
-                .Where(dr => dr.CreatedById == targetCoachId
-                          && dr.Drill.Mode == Koralytics.Domain.Enums.DrillMode.Manual
+                .Where(dr => (dr.CreatedById == targetCoachId || dr.Drill.DrillSession.CoachId == targetCoachId)
+                          && (dr.Drill.Mode == Koralytics.Domain.Enums.DrillMode.Manual || dr.Drill.DrillTemplate.DrillMode == Koralytics.Domain.Enums.DrillMode.Manual)
                           && dr.CreatedAt >= cutoffDate)
-                .GroupBy(dr => dr.PlayerId)
+                .GroupBy(dr => new { dr.PlayerId, dr.Player.FirstName, dr.Player.LastName })
                 .Select(g => new
                 {
-                    PlayerId = g.Key,
+                    g.Key.PlayerId,
+                    PlayerName = (g.Key.FirstName + " " + g.Key.LastName).Trim(),
                     AvgPracticeScore = g.Average(x => x.FinalScore)
                 })
-                .ToListAsync(); // <-- This executes the query and makes it awaitable!
+                .ToListAsync();
 
             var playerIdsToAnalyze = practiceScores.Select(p => p.PlayerId).ToList();
 
@@ -63,6 +77,7 @@ namespace Koralytics.Application.Services.Drill.DrillAnalytic
                 return new CoachBiasReportDto
                 {
                     CoachId = targetCoachId,
+                    CoachName = coachName,
                     TrustPercentage = 100,
                     PlayersAnalyzedCount = 0,
                     Remarks = "Insufficient practice data in the last 30 days."
@@ -72,11 +87,11 @@ namespace Koralytics.Application.Services.Drill.DrillAnalytic
             // ====================================================================
             // 2. FETCH MATCH SCORES (The Objective Reality)
             // ====================================================================
-            var matchScores = await _unitOfWork.Repository<Domain.Entities.Match.MatchPlayerRating>()
+            var matchScores = await _unitOfWork.Repository<Domain.Entities.Match.MatchPlayerCategoryRating>()
                 .GetQueryableAsNoTracking()
-                .Where(mr => playerIdsToAnalyze.Contains(mr.PlayerId)
-                          && mr.CreatedAt >= cutoffDate)
-                .GroupBy(mr => mr.PlayerId)
+                .Where(cr => playerIdsToAnalyze.Contains(cr.MatchPlayerRating.PlayerId)
+                          && cr.MatchPlayerRating.CreatedAt >= cutoffDate)
+                .GroupBy(cr => cr.MatchPlayerRating.PlayerId)
                 .Select(g => new
                 {
                     PlayerId = g.Key,
@@ -89,6 +104,7 @@ namespace Koralytics.Application.Services.Drill.DrillAnalytic
             // ====================================================================
             decimal totalDelta = 0;
             int validPlayerComparisons = 0;
+            var playerComparisons = new List<PlayerBiasComparisonDto>();
 
             foreach (var practice in practiceScores)
             {
@@ -96,9 +112,26 @@ namespace Koralytics.Application.Services.Drill.DrillAnalytic
 
                 if (match != null)
                 {
-                    var delta = Math.Abs(practice.AvgPracticeScore - match.AvgMatchScore);
+                    var practiceAvg = Math.Round(practice.AvgPracticeScore, 2);
+                    var matchAvg = Math.Round(match.AvgMatchScore, 2);
+                    var delta = Math.Round(Math.Abs(practiceAvg - matchAvg), 2);
+
                     totalDelta += delta;
                     validPlayerComparisons++;
+
+                    string status = delta <= 1.0m
+                        ? "Accurate"
+                        : (practiceAvg > matchAvg ? "Over-rated" : "Under-rated");
+
+                    playerComparisons.Add(new PlayerBiasComparisonDto
+                    {
+                        PlayerId = practice.PlayerId,
+                        PlayerName = string.IsNullOrWhiteSpace(practice.PlayerName) ? $"Player #{practice.PlayerId}" : practice.PlayerName,
+                        AvgPracticeScore = practiceAvg,
+                        AvgMatchScore = matchAvg,
+                        Delta = delta,
+                        Status = status
+                    });
                 }
             }
 
@@ -107,6 +140,7 @@ namespace Koralytics.Application.Services.Drill.DrillAnalytic
                 return new CoachBiasReportDto
                 {
                     CoachId = targetCoachId,
+                    CoachName = coachName,
                     TrustPercentage = 100,
                     PlayersAnalyzedCount = 0,
                     Remarks = "Players practiced but played no matches in the last 30 days to compare against."
@@ -123,7 +157,7 @@ namespace Koralytics.Application.Services.Drill.DrillAnalytic
             // ====================================================================
             var coachAcademyRecord = await _unitOfWork.Repository<Domain.Entities.Coach.CoachAcademy>()
                 .GetQueryable()
-                .FirstOrDefaultAsync(ca => ca.CoachUserId == targetCoachId && ca.AcademyId == academyId);
+                .FirstOrDefaultAsync(ca => ca.CoachUserId == targetCoachId && (academyId == 0 || ca.AcademyId == academyId) && ca.LeftAt == null);
 
             if (coachAcademyRecord != null)
             {
@@ -136,9 +170,11 @@ namespace Koralytics.Application.Services.Drill.DrillAnalytic
             return new CoachBiasReportDto
             {
                 CoachId = targetCoachId,
+                CoachName = coachName,
                 TrustPercentage = finalTrustPercentage,
                 PlayersAnalyzedCount = validPlayerComparisons,
-                Remarks = "Trust Index calculated successfully."
+                Remarks = "Trust Index calculated successfully.",
+                PlayerComparisons = playerComparisons
             };
         }
     }

@@ -5,6 +5,7 @@
     [disabled]="disabled || loading"
     [class]="'custom-btn ' + variant"
     [class.loading]="loading"
+    [class.shimmer]="shimmer"
     (click)="createRipple($event)">
     
     <span class="btn-text"><ng-content></ng-content></span>

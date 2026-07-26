@@ -1,0 +1,302 @@
+<div class="sessions-page">
+
+    <!-- PAGE HEADER -->
+    <header class="page-header">
+        <div class="header-left">
+            <div class="header-eyebrow">
+                <span class="eyebrow-dot"></span>
+                <span class="eyebrow-text">Field Management</span>
+            </div>
+            <h1 class="header-title">Drill Sessions</h1>
+            <p class="header-subtitle">Schedule, manage, and execute training routines for your academy</p>
+        </div>
+
+        <!-- Squad Diagnostics + Schedule Session Buttons -->
+        <div class="header-right">
+            <button class="btn-weak-categories" (click)="goToWeakCategories()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="20" x2="18" y2="10"></line>
+                    <line x1="12" y1="20" x2="12" y2="4"></line>
+                    <line x1="6" y1="20" x2="6" y2="14"></line>
+                </svg>
+                <span>Weak Categories</span>
+                <span class="analytics-chip">ANALYTICS</span>
+            </button>
+            @if (!isAdmin) {
+            <button class="btn-accent" (click)="openCreateSession()">+ Schedule Session</button>
+            }
+        </div>
+    </header>
+
+    <!-- STATS STRIP -->
+    <section class="stats-strip">
+        <div class="stat-item">
+            <span class="stat-value">{{ totalItems }}</span>
+            <span class="stat-label">Total Sessions</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+            <span class="stat-value cyan">{{ scheduledCount }}</span>
+            <span class="stat-label">Scheduled</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+            <span class="stat-value warning">{{ inProgressCount }}</span>
+            <span class="stat-label">In Progress</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+            <span class="stat-value success">{{ completedCount }}</span>
+            <span class="stat-label">Completed</span>
+        </div>
+    </section>
+
+    <!-- FILTER BAR -->
+    <section class="filter-bar">
+        <div style="min-width: 200px;">
+            <app-date-picker
+                label="Filter Date"
+                [value]="filterDateStr"
+                (valueChange)="onDatePickerChange($event)">
+            </app-date-picker>
+        </div>
+
+        <div class="filter-controls">
+            <app-select
+                placeholder="All Teams"
+                [options]="teamOptions"
+                [value]="filter.teamId || 0"
+                (valueChange)="onTeamSelect($event)">
+            </app-select>
+
+            <app-select
+                placeholder="All Statuses"
+                [options]="statusOptions"
+                [value]="selectedStatus"
+                (valueChange)="onStatusSelect($event)">
+            </app-select>
+        </div>
+    </section>
+
+    <!-- ERROR / LOADING STATES -->
+    @if (errorMessage) {
+    <div class="error-banner">{{ errorMessage }}</div>
+    }
+
+    @if (isLoading) {
+    <div class="loading-wrapper py-5 text-center">
+        <app-loading-spinner size="lg"></app-loading-spinner>
+        <p class="loading-text mt-3">Loading training sessions...</p>
+    </div>
+    }
+
+    <!-- SESSIONS GRID -->
+    @if (!isLoading) {
+    @if (sessions.length > 0) {
+    <div class="sessions-grid">
+        @for (session of sessions; track session.id; let i = $index) {
+        <article class="session-card" [class]="getStatusClass(session.status)">
+            <div class="card-glow-bar"></div>
+
+            <div class="card-header">
+                <div class="session-date">
+                    {{ session.sessionDate | date:'dd MMM yyyy' }}
+                    <span class="session-time">{{ session.sessionDate | date:'shortTime' }}</span>
+                </div>
+                <app-status-chip
+                    [label]="getStatusLabel(session.status)"
+                    [type]="getStatusChipType(session.status)">
+                </app-status-chip>
+            </div>
+
+            <div class="card-body">
+                <h3 class="team-name">{{ session.teamName || 'Team ID: #' + session.teamId }}</h3>
+                <span class="session-type">{{ getSessionTypeLabel(session.type) }}</span>
+
+                <div class="session-meta">
+                    <div class="meta-row" style="color: #00f0ff;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                            <circle cx="12" cy="7" r="4" />
+                        </svg> Coach: {{ session.coachName || 'ID: ' + session.coachId }}
+                    </div>
+                    <div class="meta-row">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                            <circle cx="12" cy="10" r="3" />
+                        </svg> {{ session.location || 'Main Pitch' }}
+                    </div>
+                    <div class="meta-row">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                            <polyline points="14 2 14 8 20 8" />
+                        </svg> {{ session.notes || 'No notes specified.' }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-actions">
+                @if (session.status === SessionStatus.Completed) {
+                <button class="btn-full btn-secondary" (click)="viewSessionDetails(session.id)">View Report</button>
+                } @else if (session.status === SessionStatus.Cancelled) {
+                <button class="btn-full btn-secondary" style="border-color: #ff4757; color: #ff4757;"
+                    (click)="viewSessionDetails(session.id)">View Cancellation Reason</button>
+                } @else {
+                <button class="btn-full btn-secondary" (click)="openEditModal(session)">Edit Details</button>
+                <button class="btn-full btn-primary" (click)="viewSessionDetails(session.id)">Enter Session</button>
+                <button class="btn-full btn-secondary" style="margin-top: 8px; color: #ff4757; border-color: #ff4757;"
+                    (click)="openCancelModal(session)">Cancel Session</button>
+                }
+            </div>
+        </article>
+        }
+    </div>
+    } @else {
+    <!-- EMPTY STATE -->
+    <div class="empty-state">
+        <div class="empty-icon">
+            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+            </svg>
+        </div>
+        <h3 class="empty-title">No training sessions found</h3>
+        @if (!isAdmin) {
+        <button class="btn-accent" (click)="openCreateSession()">+ Schedule Session</button>
+        }
+    </div>
+    }
+
+    <!-- PAGINATION -->
+    <app-pagination [totalItems]="totalItems" [pageSize]="filter.pageSize" [currentPage]="filter.pageNumber"
+        (pageChange)="changePage($event)">
+    </app-pagination>
+    }
+</div>
+
+<!-- SLIDE-IN EDIT SESSION PANEL -->
+<div class="form-overlay" [class.open]="isEditModalOpen" (click)="closeEditModal()"></div>
+
+<div class="form-panel" [class.open]="isEditModalOpen">
+    <div class="panel-header">
+        <div>
+            <h4 class="panel-eyebrow">Edit Details</h4>
+            <h2 class="panel-title">Drill Session</h2>
+        </div>
+        <button class="panel-close flex-center" (click)="closeEditModal()" title="Close">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+        </button>
+    </div>
+
+    <form (ngSubmit)="saveSessionChanges()" class="panel-form">
+        <div class="form-group">
+            <label class="form-label">Session Date & Time</label>
+            <input type="datetime-local" class="form-input" [(ngModel)]="editSessionData.sessionDate" name="sessionDate"
+                required />
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Location / Pitch</label>
+            <input type="text" class="form-input" placeholder="e.g. Main Pitch - North"
+                [(ngModel)]="editSessionData.location" name="location" />
+        </div>
+
+        <div class="form-group mt-3">
+            <app-select
+                label="Session Status"
+                placeholder="Select status..."
+                [options]="editStatusOptions"
+                [value]="editSessionData.status"
+                (valueChange)="onEditStatusChange($event)">
+            </app-select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Coach Notes / Reason</label>
+            <textarea class="form-input" rows="3" placeholder="Add updates or cancellation reason..."
+                [(ngModel)]="editSessionData.notes" name="notes"></textarea>
+        </div>
+
+        <div class="panel-actions">
+            <app-button variant="slate" type="button" (click)="closeEditModal()">Cancel</app-button>
+            <app-button variant="accent" type="submit" [loading]="isSaving">Save Changes</app-button>
+        </div>
+    </form>
+</div>
+
+<!-- CANCEL SESSION MODAL -->
+@if (isCancelModalOpen) {
+<div class="form-overlay open" (click)="closeCancelModal()"></div>
+
+<div class="form-panel open">
+    <div class="panel-header">
+        <div>
+            <h4 class="panel-eyebrow" style="color: #ff4757;">Session Cancellation</h4>
+            <h2 class="panel-title">Cancel {{ cancelSessionData.teamName }}</h2>
+        </div>
+        <button class="panel-close flex-center" (click)="closeCancelModal()" title="Close">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+        </button>
+    </div>
+
+    <form (ngSubmit)="submitCancelSession()" class="panel-form">
+        <div class="form-group">
+            <label class="form-label">Reason for Cancellation (Required)</label>
+            <textarea 
+                class="form-input" 
+                rows="4" 
+                placeholder="Explain why this training session is being cancelled..."
+                [(ngModel)]="cancelSessionData.reason" 
+                name="cancelReason" 
+                required>
+            </textarea>
+            @if (cancelError) {
+            <span class="field-error" style="color: #ff4757; margin-top: 6px; display: block; font-size: 13px;">
+                {{ cancelError }}
+            </span>
+            }
+        </div>
+
+        <div class="panel-actions mt-4">
+            <app-button variant="slate" type="button" (click)="closeCancelModal()">Dismiss</app-button>
+            <app-button variant="coral" type="submit" [loading]="isCancelling">Confirm Cancellation</app-button>
+        </div>
+    </form>
+</div>
+}
+
+<!-- CONFIRM MODAL -->
+@if (confirmModal.isOpen) {
+<div class="confirm-overlay" (click)="closeConfirm()"></div>
+<div class="confirm-modal">
+    <div class="confirm-content">
+        <h3 class="confirm-title">{{ confirmModal.title }}</h3>
+        <p class="confirm-message">{{ confirmModal.message }}</p>
+    </div>
+    <div class="confirm-actions">
+        <app-button variant="slate" (click)="closeConfirm()">Cancel</app-button>
+        <app-button variant="coral" (click)="executeConfirm()">{{ confirmModal.confirmText }}</app-button>
+    </div>
+</div>
+}
+
+<!-- TOAST NOTIFICATION -->
+@if (toastMessage) {
+<div class="toast-container">
+    <div class="toast" [ngClass]="'toast-' + toastType">
+        <span class="toast-icon">{{ toastType === 'success' ? '✅' : '❌' }}</span>
+        <span class="toast-text">{{ toastMessage }}</span>
+    </div>
+</div>
+}

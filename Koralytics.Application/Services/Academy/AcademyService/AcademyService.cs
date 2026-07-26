@@ -235,12 +235,25 @@ namespace Koralytics.Application.Services.Academy.AcademyService
             var academy = await _unitOfWork.Repository<Domain.Entities.Academy.Academy>()
                 .GetQueryableAsNoTracking()
                 .Include(a => a.Admin)
+                .Include(a => a.AcademyLocations)
                 .FirstOrDefaultAsync(a => a.Id == academyId);
 
             if (academy is null)
                 throw new NotFoundException($"Academy with Id {academyId} not found.");
 
             return _mapper.Map<AcademyResponseDto>(academy);
+        }
+
+        public async Task<IEnumerable<Koralytics.Application.DTOs.SystemAdmin.AcademyRequestResponseDto>> GetMyAcademyRequestsAsync(int userId)
+        {
+            var requests = await _unitOfWork.Repository<Domain.Entities.SystemAdmin.AcademyRequest>()
+                .GetQueryableAsNoTracking()
+                .Include(r => r.RequestedBy)
+                .Where(r => r.RequestedById == userId)
+                .OrderByDescending(r => r.RequestedAt)
+                .ToListAsync();
+
+            return _mapper.Map<IEnumerable<Koralytics.Application.DTOs.SystemAdmin.AcademyRequestResponseDto>>(requests);
         }
 
         // ──────────────────────────────────────────────────────────────────────
@@ -845,6 +858,139 @@ namespace Koralytics.Application.Services.Academy.AcademyService
                 .ToListAsync();
 
             return _mapper.Map<IEnumerable<AcademyCoachJoinRequestResponseDto>>(requests);
+        }
+
+        public async Task<Koralytics.Application.DTOs.Common.PagedResponseDto<AcademyMemberResponseDto>> GetAcademyMembersAsync(int academyId, Koralytics.Application.DTOs.Common.PaginationRequestDto request)
+        {
+            var playersQuery = _unitOfWork.Repository<PlayerAcademy>()
+                .GetQueryableAsNoTracking()
+                .Where(pa => pa.AcademyId == academyId && pa.LeftAt == null)
+                .Select(pa => new AcademyMemberResponseDto
+                {
+                    UserId = pa.PlayerId,
+                    FullName = (pa.Player.FirstName + " " + pa.Player.LastName).Trim(),
+                    Email = pa.Player.Email ?? string.Empty,
+                    Role = "Player",
+                    Position = pa.Player.PlayerPositions.Where(pp => pp.IsPrimary).Select(pp => pp.Position).FirstOrDefault() 
+                               ?? pa.Player.PlayerPositions.Select(pp => pp.Position).FirstOrDefault(),
+                    SquadStatus = pa.Player.AvailabilityStatus == Domain.Enums.AvailabilityStatus.Available ? "Available" :
+                                  pa.Player.AvailabilityStatus == Domain.Enums.AvailabilityStatus.Injured ? "Injured" :
+                                  pa.Player.AvailabilityStatus == Domain.Enums.AvailabilityStatus.Resting ? "Resting" :
+                                  pa.Player.AvailabilityStatus == Domain.Enums.AvailabilityStatus.Suspended ? "Suspended" : "Available",
+                    JoinedAt = pa.JoinedAt
+                });
+
+            var coachesQuery = _unitOfWork.Repository<CoachAcademy>()
+                .GetQueryableAsNoTracking()
+                .Where(ca => ca.AcademyId == academyId && ca.LeftAt == null)
+                .Select(ca => new AcademyMemberResponseDto
+                {
+                    UserId = ca.CoachUserId,
+                    FullName = (ca.Coach.FirstName + " " + ca.Coach.LastName).Trim(),
+                    Email = ca.Coach.Email ?? string.Empty,
+                    Role = "Coach",
+                    Position = null,
+                    SquadStatus = null,
+                    JoinedAt = ca.JoinedAt
+                });
+
+            var combinedQuery = playersQuery.Concat(coachesQuery).OrderByDescending(m => m.JoinedAt);
+
+            var totalCount = await combinedQuery.CountAsync();
+            var items = await combinedQuery
+                .Skip((request.PageNumber - 1) * request.PageSize)
+                .Take(request.PageSize)
+                .ToListAsync();
+
+            return new Koralytics.Application.DTOs.Common.PagedResponseDto<AcademyMemberResponseDto>
+            {
+                Items = items,
+                TotalCount = totalCount,
+                PageNumber = request.PageNumber,
+                PageSize = request.PageSize
+            };
+        }
+
+        public async Task<Koralytics.Application.DTOs.Common.PagedResponseDto<AcademyAdminResponseDto>> GetAcademyAdminsAsync(int academyId, Koralytics.Application.DTOs.Common.PaginationRequestDto request)
+        {
+            var academy = await _unitOfWork.Repository<Domain.Entities.Academy.Academy>()
+                .GetQueryableAsNoTracking()
+                .FirstOrDefaultAsync(a => a.Id == academyId);
+
+            if (academy == null) throw new NotFoundException("Academy not found.");
+
+            var ownerId = academy.AdminUserId;
+
+            var adminsQuery = _unitOfWork.Repository<AcademyAdmin>()
+                .GetQueryableAsNoTracking()
+                .Where(a => a.AcademyId == academyId || a.Id == ownerId)
+                .Select(a => new AcademyAdminResponseDto
+                {
+                    UserId = a.Id,
+                    FullName = (a.FirstName + " " + a.LastName).Trim(),
+                    Email = a.Email ?? string.Empty,
+                    IsOwner = a.Id == ownerId
+                });
+
+            var totalCount = await adminsQuery.CountAsync();
+            var items = await adminsQuery
+                .OrderByDescending(a => a.IsOwner)
+                .ThenBy(a => a.FullName)
+                .Skip((request.PageNumber - 1) * request.PageSize)
+                .Take(request.PageSize)
+                .ToListAsync();
+
+            return new Koralytics.Application.DTOs.Common.PagedResponseDto<AcademyAdminResponseDto>
+            {
+                Items = items,
+                TotalCount = totalCount,
+                PageNumber = request.PageNumber,
+                PageSize = request.PageSize
+            };
+        }
+
+        public async Task UpdatePlayerSubscriptionAsync(int academyId, int playerId, Koralytics.Application.DTOs.Academies.UpdatePlayerSubscriptionDto dto, int performedByUserId)
+        {
+            var isPlayerInAcademy = await _unitOfWork.Repository<PlayerAcademy>()
+                .GetQueryable()
+                .AnyAsync(pa => pa.AcademyId == academyId && pa.PlayerId == playerId && pa.LeftAt == null);
+
+            if (!isPlayerInAcademy) throw new NotFoundException("Player is not currently active in this academy.");
+
+            var subscription = await _unitOfWork.Repository<PlayerSubscription>()
+                .GetQueryable()
+                .FirstOrDefaultAsync(s => s.AcademyId == academyId && s.PlayerId == playerId);
+
+            if (subscription == null)
+            {
+                subscription = new PlayerSubscription
+                {
+                    AcademyId = academyId,
+                    PlayerId = playerId,
+                    CreatedById = performedByUserId,
+                    CreatedAt = DateTime.UtcNow
+                };
+                await _unitOfWork.Repository<PlayerSubscription>().AddAsync(subscription);
+            }
+            
+            subscription.Status = dto.Status;
+            subscription.GraceUntil = dto.GraceUntil;
+
+            if (dto.Status == SubscriptionStatus.Paid)
+            {
+                subscription.PaidAt = DateTime.UtcNow;
+                subscription.PaidByUserId = performedByUserId; // Admin recorded the payment
+            }
+            else
+            {
+                // Unpaid or Grace, clear PaidAt if it was set
+                subscription.PaidAt = null;
+                // If it was newly created and not paid, we still need a valid PaidByUserId due to non-nullable FK.
+                // We will assign the admin who updated it.
+                subscription.PaidByUserId = performedByUserId; 
+            }
+
+            await _unitOfWork.SaveChangesAsync();
         }
     }
 }

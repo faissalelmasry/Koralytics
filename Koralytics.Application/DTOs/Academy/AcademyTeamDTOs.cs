@@ -36,10 +36,16 @@ namespace Koralytics.Application.DTOs.Academies
         public string AgeGroupName { get; set; } = string.Empty;
         public int LocationId { get; set; }
         public string LocationName { get; set; } = string.Empty;
-        public int CoachId { get; set; }
-        public string CoachName { get; set; } = string.Empty;
+        public List<CoachTeamAssignmentDto> Coaches { get; set; } = [];
+        public List<PlayerTeamDto> Players { get; set; } = [];
+    }
 
-        //list of players in the team
+    public class PlayerTeamDto
+    {
+        public int PlayerId { get; set; }
+        public string PlayerFullName { get; set; } = string.Empty;
+        public DateTime JoinedAt { get; set; }
+        public string? Position { get; set; }
     }
 
     public class CoachTeamAssignmentDto

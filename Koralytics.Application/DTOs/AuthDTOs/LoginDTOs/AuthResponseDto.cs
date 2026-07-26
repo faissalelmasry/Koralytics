@@ -10,6 +10,7 @@ namespace Koralytics.Application.DTOs.AuthDTOs.LoginDTOs
         public string UserName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string FullName { get; set; } = string.Empty;
+        public int? AcademyId { get; set; }
         public IList<string> Roles { get; set; } = new List<string>();
     }
 }

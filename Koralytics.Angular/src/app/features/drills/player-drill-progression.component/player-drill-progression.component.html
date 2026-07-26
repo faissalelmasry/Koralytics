@@ -1,0 +1,164 @@
+<div class="progression-page">
+
+    <!-- HEADER -->
+    <header class="page-header flex-between">
+        <div>
+            <div class="header-eyebrow">
+                <span class="eyebrow-dot"></span>
+                <span class="eyebrow-text">PERFORMANCE ANALYTICS</span>
+            </div>
+            <h1 class="header-title">Player Progression</h1>
+            <p class="header-subtitle">Track rating trajectories and historical drill metrics over time.</p>
+        </div>
+
+        <!-- CATEGORY FILTER DROPDOWN -->
+        <div class="filter-box">
+            <app-select
+                label="Category Filter"
+                placeholder="Select Category"
+                [options]="categoryOptions"
+                [value]="selectedCategoryId"
+                (valueChange)="onCategorySelect($event)">
+            </app-select>
+        </div>
+    </header>
+
+    @if (isLoading) {
+    <div class="loading-state text-center py-5">
+        <app-loading-spinner size="lg"></app-loading-spinner>
+        <p class="loading-text mt-3">Calculating performance progression chart...</p>
+    </div>
+    } @else if (errorMessage) {
+    <div class="error-banner flex-align">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        {{ errorMessage }}
+    </div>
+    } @else {
+
+    <!-- KPI SUMMARY STRIP -->
+    <section class="kpi-grid">
+        <div class="kpi-card">
+            <span class="kpi-title">Category</span>
+            <span class="kpi-value cyan">{{ categoryName }}</span>
+        </div>
+        <div class="kpi-card">
+            <span class="kpi-title">Average Rating</span>
+            <span class="kpi-value warning">{{ getAverageScore() }} / 10</span>
+        </div>
+        <div class="kpi-card">
+            <span class="kpi-title">Peak Rating</span>
+            <span class="kpi-value success">{{ getPeakScore() }} / 10</span>
+        </div>
+        <div class="kpi-card">
+            <span class="kpi-title">Drill Samples</span>
+            <span class="kpi-value">{{ progressionData.length }}</span>
+        </div>
+    </section>
+
+    <!-- PURE SVG LINE CHART -->
+    <section class="chart-panel">
+        <div class="panel-header flex-between">
+            <h2>Progression Curve</h2>
+            <span class="chart-legend"><span class="legend-dot"></span> Score Trajectory (0 - 10)</span>
+        </div>
+
+        @if (progressionData.length > 0) {
+        <div class="svg-chart-container">
+            <svg viewBox="0 0 800 280" class="svg-graph">
+                <defs>
+                    <linearGradient id="neonGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#00f2fe" stop-opacity="0.35" />
+                        <stop offset="100%" stop-color="#00f2fe" stop-opacity="0.0" />
+                    </linearGradient>
+                    <filter id="glow">
+                        <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+                        <feMerge>
+                            <feMergeNode in="coloredBlur" />
+                            <feMergeNode in="SourceGraphic" />
+                        </feMerge>
+                    </filter>
+                </defs>
+
+                <!-- Horizontal Grid Lines -->
+                <line x1="40" y1="20" x2="760" y2="20" class="grid-line" />
+                <line x1="40" y1="80" x2="760" y2="80" class="grid-line" />
+                <line x1="40" y1="140" x2="760" y2="140" class="grid-line" />
+                <line x1="40" y1="200" x2="760" y2="200" class="grid-line" />
+                <line x1="40" y1="260" x2="760" y2="260" class="grid-line baseline" />
+
+                <!-- Y-Axis Rating Labels -->
+                <text x="15" y="24" class="axis-label">10</text>
+                <text x="15" y="144" class="axis-label">5</text>
+                <text x="15" y="264" class="axis-label">0</text>
+
+                <!-- Gradient Fill Under Line -->
+                <path [attr.d]="areaPath" fill="url(#neonGradient)" />
+
+                <!-- Main Glowing Line -->
+                <polyline [attr.points]="svgPoints" fill="none" stroke="#00f2fe" stroke-width="3" filter="url(#glow)" />
+
+                <!-- Interactive Data Nodes -->
+                @for (pt of getCoordinates(); track pt.sessionDate) {
+                <g class="chart-node" (mouseenter)="hoveredPoint = pt" (mouseleave)="hoveredPoint = null">
+                    <circle [attr.cx]="pt.x" [attr.cy]="pt.y" r="6" class="node-circle" />
+                    <circle [attr.cx]="pt.x" [attr.cy]="pt.y" r="10" class="node-pulse" />
+                </g>
+                }
+            </svg>
+
+            <!-- HOVER TOOLTIP -->
+            @if (hoveredPoint) {
+            <div class="chart-tooltip" [style.left.px]="hoveredPoint.x" [style.top.px]="hoveredPoint.y - 60">
+                <span class="tooltip-drill">{{ hoveredPoint.drillName }}</span>
+                <span class="tooltip-score">Rating: <strong>{{ hoveredPoint.finalScore }} / 10</strong></span>
+                <span class="tooltip-date">{{ hoveredPoint.sessionDate | date:'dd MMM yyyy' }}</span>
+            </div>
+            }
+        </div>
+        } @else {
+        <div class="empty-chart">
+            <p>No logged performance records for this category yet.</p>
+        </div>
+        }
+    </section>
+
+    <!-- HISTORICAL LOG TABLE -->
+    <section class="table-panel">
+        <h2>Session History Logs</h2>
+        @if (progressionData.length > 0) {
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Drill Name</th>
+                    <th>Rating Score</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (log of progressionData; track $index) {
+                <tr>
+                    <td>{{ log.sessionDate | date:'dd MMM yyyy' }}</td>
+                    <td class="font-bold">{{ log.drillName }}</td>
+                    <td>
+                        <span class="score-pill" [class.high]="log.finalScore >= 7"
+                            [class.med]="log.finalScore >= 4 && log.finalScore < 7" [class.low]="log.finalScore < 4">
+                            {{ log.finalScore }} / 10
+                        </span>
+                    </td>
+                    <td><span class="status-tag">Recorded</span></td>
+                </tr>
+                }
+            </tbody>
+        </table>
+        } @else {
+        <p class="helper-text text-center py-4">No data available for display.</p>
+        }
+    </section>
+
+    }
+</div>

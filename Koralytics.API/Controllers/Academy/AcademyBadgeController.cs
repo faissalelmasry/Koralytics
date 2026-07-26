@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace Koralytics.API.Controllers.Academies
 {
     [ApiController]
-    [Route("api/academies/{academyId}/badges")]
+    [Route("api/Academy/{academyId}/badges")]
     [Authorize]
     [Produces("application/json")]
     public class AcademyBadgeController : ApiBaseController
@@ -22,7 +22,7 @@ namespace Koralytics.API.Controllers.Academies
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin,SystemAdmin")]
+        [Authorize(Roles = "SystemAdmin")]
         public async Task<IActionResult> CreateBadge(int academyId, [FromBody] CreateAcademyBadgeDto dto)
         {
             var userId = GetCurrentUserId();
@@ -36,7 +36,7 @@ namespace Koralytics.API.Controllers.Academies
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin,SystemAdmin,Coach,Player")]
+        [Authorize(Roles = "AcademyAdmin,SystemAdmin,Coach,Player")]
         public async Task<IActionResult> GetBadges(int academyId)
         {
             var result = await _badgeService.GetBadgesByAcademyAsync(academyId);
@@ -44,22 +44,13 @@ namespace Koralytics.API.Controllers.Academies
         }
 
         [HttpDelete("{badgeId}")]
-        [Authorize(Roles = "Admin,SystemAdmin")]
+        [Authorize(Roles = "SystemAdmin")]
         public async Task<IActionResult> DeleteBadge(int academyId, int badgeId)
         {
             var userId = GetCurrentUserId();
-            await _badgeService.DeleteBadgeAsync(badgeId, userId);
+            await _badgeService.DeleteBadgeAsync(academyId, badgeId, userId);
             return NoContentResponse("Badge deleted successfully.");
         }
 
-        private int GetCurrentUserId()
-        {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
-            {
-                throw new System.UnauthorizedAccessException("Invalid user token");
-            }
-            return userId;
-        }
     }
 }

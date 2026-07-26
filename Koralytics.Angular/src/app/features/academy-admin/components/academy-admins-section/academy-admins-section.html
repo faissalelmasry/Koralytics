@@ -1,0 +1,53 @@
+<div class="section-container fade-in">
+  <div class="section-header">
+    <div class="header-content">
+      <h3>Manage Admins</h3>
+      <p class="subtitle">Assign system users to manage the academy</p>
+    </div>
+  </div>
+
+  <div class="add-admin-panel">
+    <form [formGroup]="addAdminForm" (ngSubmit)="onAddAdmin()" class="add-form">
+      <app-text-input
+        label="User ID"
+        type="number"
+        placeholder="Enter User ID to assign as admin"
+        formControlName="userId">
+      </app-text-input>
+
+      <div class="form-actions">
+        <app-button
+          type="submit"
+          variant="accent"
+          [disabled]="addAdminForm.invalid || isAdding">
+          {{ isAdding ? 'Assigning...' : 'Assign Admin' }}
+        </app-button>
+      </div>
+    </form>
+  </div>
+
+  <div class="loading-state" *ngIf="isLoading">
+    <app-loading-spinner size="lg"></app-loading-spinner>
+    <p>Loading admins...</p>
+  </div>
+
+  <div class="table-container" *ngIf="!isLoading && admins.length > 0">
+    <app-data-table
+      [columns]="tableColumns"
+      [data]="admins"
+      (actionClick)="onActionClick($event)">
+    </app-data-table>
+
+    <!-- Pagination -->
+    <app-pagination
+      *ngIf="totalCount > pageSize"
+      [totalItems]="totalCount"
+      [pageSize]="pageSize"
+      [currentPage]="pageNumber"
+      (pageChange)="onPageChange($event)">
+    </app-pagination>
+  </div>
+  <div class="empty-state" *ngIf="!isLoading && admins.length === 0">
+    <p>No admins found.</p>
+  </div>
+</div>

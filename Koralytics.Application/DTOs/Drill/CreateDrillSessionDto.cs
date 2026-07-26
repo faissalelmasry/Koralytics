@@ -14,6 +14,7 @@ namespace Koralytics.Application.DTOs.Drill
         public SessionType Type { get; set; }
         public SessionStatus Status { get; set; }
         public string? Notes { get; set; }
+        public string? Location { get; set; }
 
         // The list of players the coach expects at this session
         public List<int> PlayerIds { get; set; } = new List<int>();

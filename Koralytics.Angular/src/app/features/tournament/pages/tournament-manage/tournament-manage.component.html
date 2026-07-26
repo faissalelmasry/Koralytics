@@ -1,0 +1,293 @@
+<div class="tournament-manage-page">
+  <div class="top-bar" scrollReveal direction="bottom">
+    <button class="back-btn" type="button" (click)="goBack()" aria-label="Go back">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+      </svg>
+    </button>
+
+    <div class="title-block">
+      <span class="eyebrow">{{ isEditMode ? 'Tournament management' : 'Tournament setup' }}</span>
+      <h1>{{ pageTitle }}</h1>
+      <p>{{ pageDescription }}</p>
+    </div>
+  </div>
+
+  @if (!isEditMode) {
+    <form [formGroup]="tournamentForm" (ngSubmit)="onSubmit()" class="create-workspace">
+      <aside class="setup-rail" scrollReveal direction="bottom" [delay]="100">
+        <div class="rail-card">
+          <div class="rail-step active">
+            <span>1</span>
+            <div>
+              <strong>Competition profile</strong>
+              <p>Name, age group, and format.</p>
+            </div>
+          </div>
+          <div class="rail-step">
+            <span>2</span>
+            <div>
+              <strong>Structure rules</strong>
+              <p>Groups, knockout, or league.</p>
+            </div>
+          </div>
+          <div class="rail-step">
+            <span>3</span>
+            <div>
+              <strong>Scheduling window</strong>
+              <p>Operational start and end dates.</p>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <main class="form-stack">
+        @if (errorMessage) {
+          <div class="message-banner error-banner form-error-banner" role="alert" scrollReveal direction="bottom">
+            <span>{{ errorMessage }}</span>
+          </div>
+        }
+
+        <section class="surface" scrollReveal direction="bottom" [delay]="150">
+          <div class="section-heading">
+            <div>
+              <h2>Competition Profile</h2>
+              <p>These fields identify the tournament across invitations, squads, fixtures, and reports.</p>
+            </div>
+            <span class="required-note">Required</span>
+          </div>
+
+          <div class="two-column">
+            <app-text-input
+              label="Tournament Name"
+              placeholder="e.g. Summer Youth Cup 2026"
+              formControlName="name"
+              [errorMessage]="hasError('name')">
+            </app-text-input>
+
+            <app-select
+              label="Age Group"
+              [options]="ageGroupOptions"
+              [value]="getControlValue('ageGroupId')"
+              (valueChange)="setControlValue('ageGroupId', $event)"
+              [errorMessage]="hasError('ageGroupId')">
+            </app-select>
+          </div>
+        </section>
+
+        <section class="surface" scrollReveal direction="bottom" [delay]="200">
+          <div class="section-heading">
+            <div>
+              <h2>Format & Rules</h2>
+              <p>Choose the squad format and the competition path before inviting academies.</p>
+            </div>
+          </div>
+
+          <div class="two-column">
+            <app-select
+              label="Match Format"
+              [options]="formatOptions"
+              [value]="getControlValue('format')"
+              (valueChange)="setControlValue('format', $event)"
+              [errorMessage]="hasError('format')">
+            </app-select>
+
+            <app-select
+              label="Tournament Structure"
+              [options]="structureOptions"
+              [value]="getControlValue('structure')"
+              (valueChange)="setControlValue('structure', $event)"
+              [errorMessage]="hasError('structure')">
+            </app-select>
+          </div>
+
+          <div class="rule-row">
+            <div>
+              <strong>Two-legged knockout matches</strong>
+              <p>Use home and away legs during knockout rounds.</p>
+            </div>
+            <app-toggle
+              label=""
+              [checked]="getControlValue('hasTwoLegs')"
+              (checkedChange)="setControlValue('hasTwoLegs', $event)">
+            </app-toggle>
+          </div>
+        </section>
+
+        <section class="surface" scrollReveal direction="bottom" [delay]="250">
+          <div class="section-heading">
+            <div>
+              <h2>Schedule</h2>
+              <p>The tournament dates are used for planning, status tracking, and match operations.</p>
+            </div>
+          </div>
+
+          <div class="two-column">
+            <div class="native-field">
+              <label>Start Date</label>
+              <input type="date" formControlName="startDate" [class.is-invalid]="hasError('startDate')">
+              <span *ngIf="hasError('startDate')">{{ hasError('startDate') }}</span>
+            </div>
+
+            <div class="native-field">
+              <label>End Date</label>
+              <input type="date" formControlName="endDate" [class.is-invalid]="hasError('endDate')">
+              <span *ngIf="hasError('endDate')">{{ hasError('endDate') }}</span>
+            </div>
+          </div>
+        </section>
+
+        <div class="sticky-actions" scrollReveal direction="bottom" [delay]="300">
+          <button class="ghost-btn" type="button" (click)="goBack()">Discard</button>
+          <button class="primary-btn" type="submit" [disabled]="isSubmitting">
+            {{ isSubmitting ? 'Creating...' : 'Create Tournament' }}
+          </button>
+        </div>
+      </main>
+    </form>
+  } @else {
+    @if (isLoading) {
+      <div class="management-loading">
+        <div class="skeleton-panel"></div>
+        <div class="skeleton-panel short"></div>
+      </div>
+    } @else {
+      <div class="management-shell">
+        <section class="overview-surface" scrollReveal direction="bottom" [delay]="150">
+          <div class="overview-main">
+            <span class="eyebrow">Control center</span>
+            <h2>{{ tournament?.name || 'Tournament' }}</h2>
+            <div class="summary-meta">
+              <span>{{ tournament?.format || 'Format pending' }}</span>
+              <span>{{ tournament?.structure || 'Structure pending' }}</span>
+              <span>{{ tournament?.startDate | date:'mediumDate' }} - {{ tournament?.endDate | date:'mediumDate' }}</span>
+            </div>
+          </div>
+          @if (tournament?.status) {
+            <app-status-chip [label]="tournament!.status" type="info"></app-status-chip>
+          }
+        </section>
+
+        @if (errorMessage) {
+          <div class="message-banner error-banner">
+            <span>{{ errorMessage }}</span>
+          </div>
+        }
+
+        @if (successMessage) {
+          <div class="message-banner success-banner">
+            <span>{{ successMessage }}</span>
+          </div>
+        }
+
+        <div class="ops-layout">
+          <section class="surface status-panel" scrollReveal direction="bottom" [delay]="180">
+            <div class="section-heading">
+              <div>
+                <h2>Status Control</h2>
+                <p>Move the event through its operational lifecycle.</p>
+              </div>
+            </div>
+            <div class="status-control-row">
+              <app-select
+                label="Tournament Status"
+                [options]="statusOptions"
+                [value]="selectedStatus"
+                (valueChange)="setSelectedStatus($event)">
+              </app-select>
+              <button class="primary-btn compact" type="button" (click)="updateStatus()" [disabled]="actionDisabled">
+                {{ activeAction === 'status' ? 'Updating...' : 'Update' }}
+              </button>
+            </div>
+          </section>
+
+          <section class="surface" scrollReveal direction="bottom" [delay]="210">
+            <div class="section-heading">
+              <div>
+                <h2>Academy Invitations</h2>
+                <p>Add eligible academies to the tournament registration pool.</p>
+              </div>
+            </div>
+            <div class="status-control-row">
+              <app-select
+                label="Academy"
+                [options]="availableAcademies"
+                [value]="selectedAcademyId"
+                (valueChange)="setSelectedAcademy($event)">
+              </app-select>
+              <button class="secondary-btn compact" type="button" (click)="inviteSelectedAcademy()" [disabled]="actionDisabled || !selectedAcademyId">
+                {{ activeAction === 'invite' ? 'Inviting...' : 'Invite' }}
+              </button>
+            </div>
+          </section>
+
+          <section class="surface action-grid-panel" scrollReveal direction="bottom" [delay]="240">
+            <div class="section-heading">
+              <div>
+                <h2>Tournament Operations</h2>
+                <p>Run the actions that prepare, progress, and finalize the competition.</p>
+              </div>
+            </div>
+
+            <div class="operation-list">
+              <button class="operation-row" type="button" (click)="generateSeeding()" [disabled]="actionDisabled">
+                <span>
+                  <strong>Generate seeding</strong>
+                  <small>Rank accepted teams before draw creation.</small>
+                </span>
+                <em>{{ activeAction === 'seeding' ? 'Running' : 'Run' }}</em>
+              </button>
+
+              <button class="operation-row accent" type="button" (click)="generateDraw()" [disabled]="actionDisabled">
+                <span>
+                  <strong>Generate draw</strong>
+                  <small>Create groups, fixtures, or bracket structure.</small>
+                </span>
+                <em>{{ activeAction === 'draw' ? 'Running' : 'Run' }}</em>
+              </button>
+
+              <button class="operation-row" type="button" (click)="advanceKnockout()" [disabled]="actionDisabled || !latestRound">
+                <span>
+                  <strong>Advance knockout</strong>
+                  <small>{{ latestRound?.roundName || latestRound?.name || 'No knockout round generated yet' }}</small>
+                </span>
+                <em>{{ activeAction === 'advance' ? 'Running' : 'Run' }}</em>
+              </button>
+
+              <button class="operation-row danger" type="button" (click)="completeTournament()" [disabled]="actionDisabled">
+                <span>
+                  <strong>Complete tournament</strong>
+                  <small>Finalize status and publish Hall of Fame results.</small>
+                </span>
+                <em>{{ activeAction === 'complete' ? 'Running' : 'Complete' }}</em>
+              </button>
+            </div>
+          </section>
+
+          <section class="surface participants-panel" scrollReveal direction="bottom" [delay]="270">
+            <div class="section-heading">
+              <div>
+                <h2>Participants</h2>
+                <p>Teams currently connected to this tournament.</p>
+              </div>
+              <span class="count-pill">{{ teams.length }}</span>
+            </div>
+
+            <div class="participants-list">
+              @for (team of teams; track team.tournamentTeamId) {
+                <div class="participant-row">
+                  <span>{{ team.teamName || 'Team' }}</span>
+                  <strong>{{ team.status || 'Pending' }}</strong>
+                </div>
+              }
+              @if (teams.length === 0) {
+                <div class="empty-mini">No participating teams yet.</div>
+              }
+            </div>
+          </section>
+        </div>
+      </div>
+    }
+  }
+</div>

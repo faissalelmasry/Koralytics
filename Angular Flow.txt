@@ -1,0 +1,256 @@
+FAISSAL
+Pages/Components:
+├── Player Profile Page
+│   → Full player profile display
+│   → FIFA card component
+│   → Timeline component (drills/matches/achievements)
+│   → Player vs academy average chart
+│   → Drill to match transfer rate display
+│   → Scouter views counter
+│   → Professional archetype display
+│
+├── Player Card Page
+│   → FIFA style card display
+│   → Category ratings (Pace, Shooting, Passing...)
+│   → IsStale indicator + recalculate trigger
+│   → Card history
+│
+├── Match Details Page
+│   → Match info (teams, score, format, date)
+│   → Live events timeline
+│   → Lineup display
+│   → Player ratings display
+│   → MOTM highlight
+│   → AI match report display
+│   → AI match preview display
+│
+├── Match List Page
+│   → Filterable match list (type, status, team, date)
+│   → Form guide component (W/D/L last 5)
+│   → Head to head stats
+│
+├── Live Match Page
+│   → Live score display (SignalR)
+│   → Real time events feed
+│   → Log event form (coach only)
+│   → Lineup display
+│   → Start/End match controls
+│
+└── Post Match Page
+    → Submit lineup form
+    → Submit player ratings form (per category)
+    → MOTM selection
+    → Minutes played per player
+
+ADHAM
+Pages/Components:
+├── Tournament List Page
+│   → All tournaments with status filters
+│   → Create tournament form (Super Admin)
+│
+├── Tournament Details Page
+│   → Tournament info (format, structure, dates)
+│   → Participating academies list
+│   → Bracket display (knockout)
+│   → Group standings table (group stage)
+│   → League standings table
+│   → Hall of fame display
+│   → AI tournament preview display
+│   → AI tournament report display
+│
+├── Tournament Management Page (Super Admin)
+│   → Invite academies
+│   → Generate seeding
+│   → Generate draw
+│   → Advance knockout rounds
+│   → Complete tournament
+│   → Update tournament status
+│
+└── Squad Registration Page
+    → Register players for tournament
+    → View registered squad
+
+ALY
+Pages/Components:
+├── Drill Session List Page
+│   → Coach's sessions list
+│   → Filterable by date, team, category
+│   → Session status indicator
+│
+├── Drill Session Details Page
+│   → Session info (date, team, coach)
+│   → Attendance roster
+│   → Drills list inside session
+│   → Drill results per player
+│   → Complete session button
+│
+├── Create Session Page
+│   → Select team
+│   → Mark attendance
+│   → Add drills from templates
+│
+├── Drill Results Page
+│   → Submit bulk drill results
+│   → Mode 1 (manual score input)
+│   → Mode 2 (done/missed counter)
+│
+├── Drill Template List Page
+│   → List templates (system + academy)
+│   → Filter by category
+│   → Share template toggle
+│
+├── Create/Edit Drill Template Page
+│   → Template name, category, difficulty, mode
+│
+├── Player Drill Progression Page
+│   → Line chart per category over time
+│   → Filter by category
+│
+└── Squad Weak Categories Page
+    → Bar chart showing weakest categories
+    → Session planner suggestions
+
+BISHOY
+Pages/Components:
+├── Login Page
+│   → Email + password form
+│   → Google OAuth button
+│   → Remember me
+│
+├── Register Page
+│   → Role selection (player/coach/scouter/parent/academy admin)
+│   → Role specific form fields
+│
+├── Complete OAuth Profile Page
+│   → Fill missing profile fields after Google login
+│
+├── Change Password Page
+│   → Old password + new password form
+│
+├── Academy List Page (Super Admin)
+│   → All academies with status
+│   → Create academy button
+│
+├── Academy Details Page
+│   → Academy info (name, logo, colors)
+│   → Locations list
+│   → Set main location
+│   → Add location form
+│
+├── Academy Teams Page
+│   → Age groups list
+│   → Teams per age group
+│   → Assign/Remove coach from team
+│   → Create age group form
+│   → Create team form
+│
+├── Academy Analytics Page
+│   → Coach performance dashboard
+│   → Player improvement rates
+│   → Bias scores per coach
+│
+└── Subscription Status Page
+    → Paid/Unpaid/Grace period players list
+    → Payment status indicators
+
+RAWAN
+Pages/Components:
+├── Scouter Search Page
+│   → Filter based search (position, age, foot, rating range, academy)
+│   → NL search bar (AI powered)
+│   → Player card grid results
+│   → Pagination
+│
+├── Scouter Shortlist Page
+│   → Shortlisted players grid
+│   → Remove from shortlist
+│   → Quick view player card
+│
+├── Scouter Followed Players Page
+│   → Followed players list
+│   → Latest stats per player
+│   → Unfollow button
+│
+├── Scouting Report Page
+│   → AI generated report display
+│   → Generate new report button
+│   → Export as PDF
+│
+├── Notifications Page
+│   → All notifications list
+│   → Real time notifications (SignalR)
+│   → Mark as read
+│
+├── Announcements Page (Academy Admin)
+│   → Send announcement form
+│   → Target type selector (All/Team/AgeGroup/Role)
+│   → Announcements history list
+│
+└── Profile Views Analytics Page
+    → Monthly view count chart
+    → List of scouters who viewed
+
+YOUSSEF
+Pages/Components:
+├── Coach Squad Page
+│   → Squad list with FIFA card ratings
+│   → Availability status indicators
+│   → Player readiness scores
+│   → Side by side player comparison
+│
+├── Training Split Page
+│   → Split players into balanced teams
+│   → Display Team A vs Team B
+│   → Overall rating balance indicator
+│
+├── Coach Notes Page
+│   → Write note form (session/match/standalone)
+│   → Notes list per player
+│   → Public/Private toggle
+│
+├── Temp Access Page
+│   → Grant access form (user + expiry date)
+│   → Active access grants list
+│   → Revoke access button
+│
+├── Player Highlights Page
+│   → Video gallery
+│   → Pin highlight button
+│   → Upload highlight form
+│   → Delete highlight button
+│
+├── Match Request Page
+│   → Send friendly match request form
+│   → Incoming requests list (accept/decline)
+│   → Outgoing requests list
+│   → Cancel request button
+│
+└── Player Readiness Page
+    → Readiness percentage per player
+    → Last 3 sessions scores display
+    → Availability status display
+
+Shared Components (everyone uses):
+Shared/
+├── Navbar + Sidebar (role based menu)
+├── PlayerCardMini (small FIFA card used in lists)
+├── PaginatedTable
+├── SearchBar
+├── LoadingSpinner
+├── ErrorBoundary
+├── ConfirmDialog
+├── ToastNotifications (SignalR powered)
+└── RoleGuard (protect routes by role)
+
+Dependency order:
+Bishoy (Auth pages) → must finish first
+        ↓ everyone needs login to test their pages
+
+Faissal (Player Card component) → must finish before
+        ↓ Rawan uses PlayerCardMini in search results
+        ↓ Youssef uses it in squad page
+        ↓ Adham uses it in tournament squad
+
+Rawan (Notifications/SignalR) → must finish before
+        ↓ Faissal needs it for live match updates
+        ↓ Everyone needs toast notifications

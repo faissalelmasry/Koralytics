@@ -1,0 +1,51 @@
+<div class="number-input-group" [class.is-disabled]="disabled" [class.has-label]="label">
+  
+  <div class="input-control-wrapper" [class.focused]="isFocused">
+    
+    <input 
+      type="number"
+      [step]="step"
+      [min]="min"
+      [max]="max"
+      [value]="value !== null ? value : ''"
+      (input)="onInput($event)"
+      (focus)="onFocus()"
+      (blur)="onBlur()"
+      [disabled]="disabled"
+      placeholder=" "
+      class="custom-number-field"
+    />
+    
+    @if (label) {
+      <label class="floating-label">{{ label }}</label>
+    }
+
+    <!-- CUSTOM STEPPER BUTTONS -->
+    <div class="stepper-controls" *ngIf="!disabled">
+      <button 
+        type="button" 
+        class="stepper-btn stepper-up" 
+        (click)="increment()" 
+        tabindex="-1"
+        title="Increase value"
+      >
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="18 15 12 9 6 15"></polyline>
+        </svg>
+      </button>
+      
+      <button 
+        type="button" 
+        class="stepper-btn stepper-down" 
+        (click)="decrement()" 
+        tabindex="-1"
+        title="Decrease value"
+      >
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </button>
+    </div>
+
+  </div>
+</div>

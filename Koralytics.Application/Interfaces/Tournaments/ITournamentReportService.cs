@@ -5,5 +5,6 @@ namespace Koralytics.Application.Interfaces.Tournament
     {
         Task CompleteTournamentAsync(int tournamentId);
         Task<BracketDto> GetBracketAsync(int tournamentId);
+        Task<List<HallOfFameDto>> GetHallOfFameAsync(int tournamentId);
     }
 }
