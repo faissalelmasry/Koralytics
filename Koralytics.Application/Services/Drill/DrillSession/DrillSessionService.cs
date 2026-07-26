@@ -75,10 +75,10 @@ namespace Koralytics.Application.Services.Drill.DrillSession
                 throw new UnauthorizedAccessException("You can only add drills to your own scheduled sessions.");
             }
 
-            var templateExists = await _unitOfWork.Repository<Domain.Entities.Drill.DrillTemplate>()
-                .ExistsAsync(t => t.Id == dto.DrillTemplateId);
+            var template = await _unitOfWork.Repository<Domain.Entities.Drill.DrillTemplate>()
+                .GetByIdAsNoTrackingAsync(dto.DrillTemplateId);
 
-            if (!templateExists)
+            if (template == null)
             {
                 throw new KeyNotFoundException($"Drill Template with ID {dto.DrillTemplateId} does not exist.");
             }
@@ -87,6 +87,9 @@ namespace Koralytics.Application.Services.Drill.DrillSession
 
             drill.SessionId = sessionId;
             drill.CreatedById = currentCoachId;
+
+            if (drill.Mode == 0) drill.Mode = template.DrillMode;
+            if (drill.DifficultyLevel == 0) drill.DifficultyLevel = template.DifficultyLevel;
 
             await _unitOfWork.Repository<Domain.Entities.Drill.Drill>().AddAsync(drill);
             await _unitOfWork.SaveChangesAsync();
@@ -159,7 +162,11 @@ namespace Koralytics.Application.Services.Drill.DrillSession
         {
             var query = _unitOfWork.Repository<DrillSessionEntity>()
                 .GetQueryable()
+                .Include(s => s.DrillSessionTeam)
+                .Include(s => s.DrillSessionCoach)
                 .Include(s => s.SessionDrills)
+                    .ThenInclude(d => d.DrillTemplate)
+                        .ThenInclude(dt => dt.DrillCategory)
                 .AsNoTracking()
                 .Where(s => s.Id == sessionId && s.AcademyId == currentAcademyId);
 

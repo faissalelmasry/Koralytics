@@ -36,12 +36,9 @@ import { Footer } from '../../../../shared/components/footer/footer';
     CustomButtonComponent,
     SearchBarComponent,
     CustomSelect,
-    CustomInputComponent,
     CustomToggle,
     LoadingSpinnerComponent,
-    EmptyStateComponent,
-    NavbarComponent,
-    Footer
+    EmptyStateComponent
   ],
 })
 export class DrillTemplateListComponent implements OnInit, OnDestroy {
@@ -101,6 +98,18 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
 
   difficultyLevels = Object.values(DifficultyLevel);
   drillModes = Object.values(DrillMode);
+
+  onFormCategoryChange(val: any): void {
+    this.drillForm.get('categoryId')?.setValue(val ? Number(val) : null);
+  }
+
+  onFormDifficultyChange(val: any): void {
+    this.drillForm.get('difficultyLevel')?.setValue(val || null);
+  }
+
+  onFormModeChange(val: any): void {
+    this.drillForm.get('drillMode')?.setValue(val || null);
+  }
 
   // --- RxJS Subscriptions ---
   private searchSubject = new Subject<string>();

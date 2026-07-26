@@ -31,6 +31,30 @@ export const routes: Routes = [
       { path: 'drills', loadComponent: () => import('./features/drills/drill-template-list/drill-template-list.component').then(m => m.DrillTemplateListComponent) },
       { path: 'drills/sessions', loadComponent: () => import('./features/drills/drill-session-list.component/drill-session-list.component').then(m => m.DrillSessionListComponent) },
       { path: 'drills/sessions/new', loadComponent: () => import('./features/drills/drill-session-create.component/drill-session-create.component').then(m => m.DrillSessionCreateComponent) },
+      { path: 'drills/sessions/:id', loadComponent: () => import('./features/drills/drill-session-details.component/drill-session-details.component').then(m => m.DrillSessionDetailsComponent) },
+
+      { path: 'drills/players/:playerId/progression', loadComponent: () => import('./features/drills/player-drill-progression.component/player-drill-progression.component').then(m => m.PlayerDrillProgressionComponent) },
+      {
+        path: 'drills/analytics/weak-categories',
+        loadComponent: () => import('./features/drills/squad-weak-categories.component/squad-weak-categories.component').then(m => m.SquadWeakCategoriesComponent)
+      },
+      {
+        path: 'drills/analytics/coach-bias',
+        loadComponent: () => import('./features/drills/coach-bias-analytics.component/coach-bias-analytics.component').then(m => m.CoachBiasAnalyticsComponent)
+      },
+      {
+        path: 'drills/analytics/coach-bias/:coachId',
+        loadComponent: () => import('./features/drills/coach-bias-analytics.component/coach-bias-analytics.component').then(m => m.CoachBiasAnalyticsComponent)
+      },
+      {
+        path: 'drills/analytics/coach_bias',
+        loadComponent: () => import('./features/drills/coach-bias-analytics.component/coach-bias-analytics.component').then(m => m.CoachBiasAnalyticsComponent)
+      },
+      {
+        path: 'drills/analytics/coach_bias/:coachId',
+        loadComponent: () => import('./features/drills/coach-bias-analytics.component/coach-bias-analytics.component').then(m => m.CoachBiasAnalyticsComponent)
+      },
+
       { path: 'settings/change-password', loadComponent: () => import('./features/auth/pages/change-password/change-password.component').then(m => m.ChangePasswordComponent) },
       { path: 'tournament/list', loadComponent: () => import('./features/tournament/pages/tournament-list/tournament-list.component').then(m => m.TournamentListComponent) },
       { path: 'tournament/create', loadComponent: () => import('./features/tournament/pages/tournament-manage/tournament-manage.component').then(m => m.TournamentManageComponent) },
@@ -41,8 +65,8 @@ export const routes: Routes = [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   },
-  { 
-    path: 'academy-admin/dashboard', 
+  {
+    path: 'academy-admin/dashboard',
     loadComponent: () => import('./features/academy-admin/pages/academy-admin-dashboard/academy-admin-dashboard.component').then(m => m.AcademyAdminDashboardComponent),
     canActivate: [authGuard, roleGuard],
     data: { roles: ['AcademyAdmin'] }

@@ -65,9 +65,9 @@ export interface CreateDrillSessionDto {
 }
 
 export interface UpdateDrillSessionDto {
-    sessionDate: string;
-    type: SessionType;
-    status: SessionStatus;
+    sessionDate?: string;
+    type?: SessionType;
+    status?: SessionStatus;
     notes?: string | null;
     location?: string | null;
 }

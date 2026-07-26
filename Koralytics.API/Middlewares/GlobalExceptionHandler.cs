@@ -1,4 +1,4 @@
-﻿using Koralytics.Domain.Exceptions;
+using Koralytics.Domain.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,17 +16,20 @@ public sealed class GlobalExceptionHandler(
     {
         LogException(exception);
 
-        var statusCode = exception is BaseBusinessException businessException
-            ? (int)businessException.StatusCode
-            : StatusCodes.Status500InternalServerError;
+        var statusCode = exception switch
+        {
+            BaseBusinessException businessException => (int)businessException.StatusCode,
+            UnauthorizedAccessException => StatusCodes.Status403Forbidden,
+            KeyNotFoundException => StatusCodes.Status404NotFound,
+            InvalidOperationException => StatusCodes.Status400BadRequest,
+            _ => StatusCodes.Status500InternalServerError
+        };
 
         var title = exception is BaseBusinessException businessExceptionTitle
             ? businessExceptionTitle.Title
-            : "Internal Server Error";
+            : exception.GetType().Name;
 
-        var detail = exception is BaseBusinessException
-            ? exception.Message
-            : "An unexpected error occurred.";
+        var detail = exception.Message;
 
         var problemDetails = new ProblemDetails
         {

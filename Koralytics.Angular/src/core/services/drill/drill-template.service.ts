@@ -49,7 +49,9 @@ export class DrillTemplateService {
   // ==========================================
   // TEMPLATES
   // ==========================================
-
+  addDrillToSession(sessionId: number, drillTemplateId: number): Observable<any> {
+    return this.http.post(`${environment.apiUrl}/api/drills/sessions/${sessionId}/drills`, { drillTemplateId });
+  }
   getTemplates(filter: TemplateFilterDto): Observable<PagedResultDto<DrillTemplateDto>> {
     const params = this.buildParams(filter);
     return this.http.get<PagedResultDto<DrillTemplateDto>>(`${this.apiUrl}/templates`, { params });

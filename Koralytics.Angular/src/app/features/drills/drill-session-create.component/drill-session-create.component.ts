@@ -3,13 +3,19 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { DrillSessionService } from '../../../../core/services/drill/drill-session.service';
+import { AcademyService } from '../../../../core/services/academy/academy.service';
+import { AuthService } from '../../../../core/services/auth/auth.service'; // 🟢 Adjusted to your service
 import { CreateDrillSessionDto } from '../../../../core/interfaces/drill-session.model';
 import { SessionType, SessionStatus } from '../../../../core/enums/koralytics.enums';
+
+import { CustomSelect, SelectOption } from '../../../../shared/components/custom-select/custom-select';
+import { CustomButtonComponent } from '../../../../shared/components/custom-button/custom-button';
+import { CustomDatePicker } from '../../../../shared/components/custom-date-picker/custom-date-picker';
 
 @Component({
   selector: 'app-drill-session-create',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, CustomSelect, CustomButtonComponent, CustomDatePicker],
   templateUrl: './drill-session-create.component.html',
   styleUrls: ['./drill-session-create.component.css']
 })
@@ -18,33 +24,62 @@ export class DrillSessionCreateComponent implements OnInit {
   isSubmitting = false;
   errorMessage = '';
 
-  // Enums for the template
   SessionType = SessionType;
 
-  // Convert numeric enum to array for the dropdown
-  sessionTypes = Object.keys(SessionType)
-    .filter(key => isNaN(Number(key)))
-    .map(key => ({
-      value: SessionType[key as keyof typeof SessionType],
-      label: key.replace(/([A-Z])/g, ' $1').trim() // "PreSeason" -> "Pre Season"
-    }));
+  get teamOptions(): SelectOption[] {
+    return this.availableTeams.map(t => ({ value: t.id, label: t.name }));
+  }
 
-  // Mock data for dropdowns (Replace with real service calls later)
-  availableTeams = [
-    { id: 1, name: 'U17 Team A' },
-    { id: 101, name: 'Alexandria Elite U-19' }
-  ];
+  get typeOptions(): SelectOption[] {
+    return [
+      { value: SessionType.PreSeason, label: 'Pre-Season' },
+      { value: SessionType.Regular, label: 'Regular' },
+      { value: SessionType.OffSeason, label: 'Off-Season' },
+      { value: SessionType.SessionMatch, label: 'Match' }
+    ];
+  }
 
+  onTeamChangeCustom(val: any): void {
+    this.sessionForm.get('teamId')?.setValue(val);
+  }
+
+  onTypeChangeCustom(val: any): void {
+    this.sessionForm.get('type')?.setValue(val);
+  }
+
+  fullTeamsData: any[] = [];
+  availableTeams: { id: number; name: string }[] = [];
   availablePlayers: { id: number; name: string; position: string; selected: boolean }[] = [];
+
+  // 🟢 No hardcoded data!
+  currentAcademyId!: number;
 
   constructor(
     private fb: FormBuilder,
     private sessionService: DrillSessionService,
-    private router: Router
+    private academyService: AcademyService,
+    private router: Router,
+    private authService: AuthService // 🟢 Auth Service Injected
   ) { }
 
   ngOnInit(): void {
     this.initForm();
+    this.setDynamicAcademyId(); // Load the ID before making API calls
+  }
+
+  private setDynamicAcademyId(): void {
+    // 🟢 Use your specific method: getCurrentUserValue()
+    const currentUser = this.authService.getCurrentUserValue();
+
+    if (currentUser && currentUser.academyId) {
+      this.currentAcademyId = currentUser.academyId;
+
+      // Once we have the real Academy ID, fetch their specific teams!
+      this.loadAcademyTeams();
+    } else {
+      console.error('Authentication Error: No Academy ID found for this user.');
+      this.errorMessage = 'Could not verify your Academy credentials. Please log in again.';
+    }
   }
 
   private initForm(): void {
@@ -59,7 +94,6 @@ export class DrillSessionCreateComponent implements OnInit {
       notes: ['']
     });
 
-    // Listen for Team selection changes to load the roster
     this.sessionForm.get('teamId')?.valueChanges.subscribe(teamId => {
       if (teamId) {
         this.loadTeamRoster(Number(teamId));
@@ -69,16 +103,34 @@ export class DrillSessionCreateComponent implements OnInit {
     });
   }
 
-  // TODO: Connect this to your real PlayerService to get players by TeamId
+  private loadAcademyTeams(): void {
+    this.academyService.getTeams(this.currentAcademyId).subscribe({
+      next: (res) => {
+        if (res.isSuccess && res.data) {
+          this.fullTeamsData = res.data;
+          this.availableTeams = res.data.map((t: any) => ({
+            id: t.id,
+            name: t.name
+          }));
+        }
+      },
+      error: (err) => console.error('Failed to load teams', err)
+    });
+  }
+
   private loadTeamRoster(teamId: number): void {
-    // Mocking a roster load for the UI
-    this.availablePlayers = [
-      { id: 1, name: 'Youssef Ahmed', position: 'ST', selected: true },
-      { id: 2, name: 'Omar Tarek', position: 'CM', selected: true },
-      { id: 3, name: 'Karim Hassan', position: 'CB', selected: true },
-      { id: 4, name: 'Mahmoud Ali', position: 'GK', selected: true },
-      { id: 5, name: 'Ziad Mohamed', position: 'LW', selected: true }
-    ];
+    const selectedTeam = this.fullTeamsData.find(t => t.id === teamId);
+
+    if (selectedTeam && selectedTeam.players) {
+      this.availablePlayers = selectedTeam.players.map((p: any) => ({
+        id: p.playerId,
+        name: p.playerFullName,
+        position: p.position || "Squad Player",
+        selected: true
+      }));
+    } else {
+      this.availablePlayers = [];
+    }
   }
 
   togglePlayerSelection(player: any): void {
@@ -112,15 +164,13 @@ export class DrillSessionCreateComponent implements OnInit {
     this.errorMessage = '';
 
     const formValue = this.sessionForm.value;
-
-    // Combine Date and Time into a single ISO string
     const dateTimeString = `${formValue.sessionDate}T${formValue.sessionTime}:00`;
 
     const payload: CreateDrillSessionDto = {
       teamId: Number(formValue.teamId),
       sessionDate: new Date(dateTimeString).toISOString(),
       type: Number(formValue.type) as SessionType,
-      status: SessionStatus.Scheduled, // Always defaults to Scheduled (0)
+      status: SessionStatus.Scheduled,
       location: formValue.location,
       notes: formValue.notes,
       playerIds: selectedPlayerIds
@@ -134,8 +184,6 @@ export class DrillSessionCreateComponent implements OnInit {
       error: (err) => {
         this.isSubmitting = false;
         console.error('Full API Error:', err);
-
-        // 🟢 THIS WILL SHOW THE REAL C# ERROR IN THE RED BANNER
         this.errorMessage = err.error?.title || err.error?.message || err.error || 'Failed to schedule the session.';
       }
     });

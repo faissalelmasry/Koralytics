@@ -2,370 +2,368 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Koralytics - Animated Circular Drill</title>
-
-        :root {
-            --bg-card: rgba(15, 17, 21, 0.7);
-            --border-color: rgba(255, 255, 255, 0.08);
-            --accent-lime: #c8ff4d;
-            --accent-cyan: #00e5ff;
-            --accent-purple: #b388ff;
-            --text-light: #f2f3f5;
-            --text-dim: #8b909a;
-
-            /* Intensity Colors */
-            --intensity-high: #ff5722;
-            /* Red-Orange */
-            --intensity-med: #c8ff4d;
-            /* Lime Green */
-            --intensity-low: #ffeb3b;
-            /* Yellow */
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Koralytics - Session Details Preview</title>
+    <style>
+        /* MOCKING THE KORALYTICS DARK THEME */
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #0d1117;
+            color: #ffffff;
+            margin: 0;
+            padding: 50px;
         }
 
-        .dashboard-container {
+        .details-page {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .flex-between {
             display: flex;
-            justify-content: center;
-            padding: 60px 20px;
-            min-height: 100vh;
-        }
-
-        .welcome-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 24px;
-            padding: 48px;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            box-shadow: 0 24px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            max-width: 1000px;
-            width: 100%;
-            text-align: left;
-            position: relative;
-        }
-
-        .accent-text {
-            color: var(--accent-lime);
-            text-shadow: 0 0 15px rgba(200, 255, 77, 0.3);
-        }
-
-        .roles {
-            display: flex;
-            flex-wrap: wrap;
+            justify-content: space-between;
             align-items: center;
         }
 
-        .role-badge {
-            padding: 4px 12px;
-            border-radius: 99px;
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            backdrop-filter: blur(4px);
+        .mt-3 {
+            margin-top: 20px;
         }
 
-        /* Color-coded category badges */
-        .badge-possession {
-            background: rgba(200, 255, 77, 0.1);
-            color: var(--accent-lime);
-            border: 1px solid rgba(200, 255, 77, 0.2);
+        /* HEADER */
+        .page-header {
+            border-bottom: 1px solid #30363d;
+            padding-bottom: 25px;
+            margin-bottom: 30px;
         }
 
-        .badge-attacking {
-            background: rgba(0, 229, 255, 0.1);
-            color: var(--accent-cyan);
-            border: 1px solid rgba(0, 229, 255, 0.2);
-        }
-
-        .badge-tactical {
-            background: rgba(179, 136, 255, 0.1);
-            color: var(--accent-purple);
-            border: 1px solid rgba(179, 136, 255, 0.2);
-        }
-
-        .badge-neutral {
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--text-light);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .actions {
-            display: flex;
-            gap: 12px;
-            width: 100%;
-            margin-top: auto;
-            /* Pushes buttons to the bottom of the card */
-        }
-
-        /* Buttons */
-        .mock-btn-accent {
-            background-color: var(--accent-lime);
-            color: #050505;
-            border: none;
-            padding: 12px 28px;
-            border-radius: 12px;
-            font-weight: 700;
-            cursor: pointer;
-            font-family: 'Inter', sans-serif;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(200, 255, 77, 0.2);
-        }
-
-        .mock-btn-accent:hover {
-            background-color: #d4ff70;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(200, 255, 77, 0.4);
-        }
-
-        .mock-btn-slate {
-            background-color: rgba(255, 255, 255, 0.03);
-            color: var(--text-light);
-            border: 1px solid var(--border-color);
-            padding: 12px 16px;
-            border-radius: 10px;
-            font-weight: 500;
+        .header-eyebrow {
             font-size: 13px;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.2s ease;
-        }
-
-        .mock-btn-slate:hover {
-            background-color: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.2);
-        }
-
-        .mock-input {
-            width: 100%;
-            background: rgba(0, 0, 0, 0.4);
-            border: 1px solid var(--border-color);
-            color: var(--text-light);
-            padding: 16px 20px;
-            border-radius: 12px;
-            font-family: 'Inter', sans-serif;
-            font-size: 15px;
-            box-sizing: border-box;
-            transition: all 0.3s ease;
-        }
-
-        .mock-input:focus {
-            outline: none;
-            border-color: var(--accent-lime);
-            background: rgba(0, 0, 0, 0.6);
-            box-shadow: 0 0 0 4px rgba(200, 255, 77, 0.1);
-        }
-
-        /* Animations */
-        @keyframes slideUpFade {
-            from {
-                opacity: 0;
-                transform: translateY(40px) scale(0.98);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
-
-        /* Drill Cards */
-        .drill-card {
-            background: linear-gradient(145deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 28px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            opacity: 0;
-            animation: slideUpFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            position: relative;
-            overflow: hidden;
-        }
-
-        /* Subtle overlay gradient that shifts on hover */
-        .drill-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: radial-gradient(800px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255, 255, 255, 0.06), transparent 40%);
-            opacity: 0;
-            transition: opacity 0.4s ease;
-            pointer-events: none;
-        }
-
-        .drill-card:hover {
-            transform: translateY(-8px);
-            border-color: rgba(255, 255, 255, 0.15);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 20px rgba(200, 255, 77, 0.05);
-        }
-
-        .drill-card:hover::before {
-            opacity: 1;
-        }
-
-        /* Stagger Delays */
-        .drill-card:nth-child(1) {
-            animation-delay: 0.1s;
-        }
-
-        .drill-card:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-
-        .drill-card:nth-child(3) {
-            animation-delay: 0.3s;
-        }
-
-        .drill-card:nth-child(4) {
-            animation-delay: 0.4s;
-        }
-
-        /* Custom Intensity LED Bars */
-        .intensity-container {
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
             display: flex;
             align-items: center;
             gap: 8px;
-            background: rgba(0, 0, 0, 0.3);
-            padding: 4px 10px;
+        }
+
+        .eyebrow-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #ff9900;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #ff9900;
+        }
+
+        .text-warning {
+            color: #ff9900;
+        }
+
+        .header-title {
+            font-size: 32px;
+            margin: 0 0 8px 0;
+        }
+
+        .header-subtitle {
+            color: #8b949e;
+            margin: 0;
+            font-size: 15px;
+        }
+
+        .massive-btn {
+            background-color: #ccff00;
+            color: #000;
+            font-weight: bold;
+            font-size: 16px;
+            padding: 15px 30px;
+            border: none;
             border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.04);
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 4px 15px rgba(204, 255, 0, 0.2);
         }
 
-        .intensity-bars {
+        .massive-btn:hover {
+            background-color: #b3e600;
+            transform: translateY(-2px);
+        }
+
+        /* GRID LAYOUT */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .form-panel {
+            background-color: #161b22;
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid #30363d;
+        }
+
+        .panel-title {
+            margin: 0;
+            font-size: 22px;
+            color: #ffffff;
+        }
+
+        .helper-text {
+            color: #8b949e;
             font-size: 14px;
-            letter-spacing: -1px;
+            margin: 8px 0 20px 0;
         }
 
-        .intensity-high {
-            color: var(--intensity-high);
-            text-shadow: 0 0 10px rgba(255, 87, 34, 0.6);
+        .badge {
+            background-color: rgba(0, 242, 254, 0.1);
+            color: #00f2fe;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            border: 1px solid rgba(0, 242, 254, 0.3);
         }
 
-        .intensity-med {
-            color: var(--intensity-med);
-            text-shadow: 0 0 10px rgba(200, 255, 77, 0.6);
+        .small-btn {
+            background-color: #00f2fe;
+            color: #000;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
         }
 
-        .intensity-low {
-            color: var(--intensity-low);
-            text-shadow: 0 0 10px rgba(255, 235, 59, 0.6);
+        /* ROSTER (ATTENDANCE) */
+        .player-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #21262d;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            border: 1px solid transparent;
+        }
+
+        .player-name {
+            display: block;
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .player-pos {
+            font-size: 13px;
+            color: #00f2fe;
+            font-weight: bold;
+        }
+
+        .toggle-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .toggle-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .active-green {
+            background-color: rgba(204, 255, 0, 0.15);
+            color: #ccff00;
+            border: 1px solid #ccff00;
+        }
+
+        .active-red {
+            background-color: rgba(255, 71, 87, 0.15);
+            color: #ff4757;
+            border: 1px solid #ff4757;
+        }
+
+        .inactive {
+            background-color: #0d1117;
+            color: #8b949e;
+            border: 1px solid #30363d;
+        }
+
+        /* DRILLS */
+        .drill-card {
+            background: #21262d;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #00f2fe;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .drill-card.completed {
+            border-left-color: #ccff00;
+        }
+
+        .drill-card h3 {
+            margin: 0 0 8px 0;
+            font-size: 18px;
+        }
+
+        .category-badge {
+            background: #0d1117;
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            color: #8b949e;
+            border: 1px solid #30363d;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: #00f2fe;
+            border: 1px solid #00f2fe;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(0, 242, 254, 0.1);
+        }
+
+        .drill-action {
+            text-align: right;
+        }
+
+        .status-text {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .text-success {
+            color: #ccff00;
+        }
+
+        .btn-text {
+            background: transparent;
+            color: #8b949e;
+            border: none;
+            text-decoration: underline;
+            cursor: pointer;
         }
     </style>
 </head>
 
 <body>
 
-    <div class="dashboard-container">
-        <div class="welcome-card">
+    <div class="details-page">
 
-            <!-- Header Section -->
-            <div
-                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; flex-wrap: wrap; gap: 20px;">
-                <div>
-                    <h1
-                        style="font-family: 'Bebas Neue', sans-serif; font-size: 42px; color: var(--text-light); margin: 0; letter-spacing: 1px;">
-                        Drill <span class="accent-text">Templates</span>
-                    </h1>
-                    <p style="color: var(--text-dim); margin: 8px 0 0; font-size: 15px;">Design, manage, and deploy
-                        tactical routines.</p>
+        <!-- HEADER: Session Info -->
+        <header class="page-header flex-between">
+            <div>
+                <div class="header-eyebrow">
+                    <span class="eyebrow-dot"></span>
+                    <span class="text-warning">IN PROGRESS</span>
                 </div>
-                <button class="mock-btn-accent">+ Create New Drill</button>
+                <h1 class="header-title">U17 Team A - Regular Session</h1>
+                <p class="header-subtitle">01 Aug 2026 • Main Pitch - North • Coach: Ahmed Hassan</p>
             </div>
 
-            <!-- Search Section -->
-            <div style="margin-bottom: 40px;">
-                <input type="text" class="mock-input" placeholder="Search by name, focus, or category...">
-            </div>
+            <!-- THE MAGIC BUTTON -->
+            <button class="massive-btn">
+                🏆 Complete Session & Update Player Cards
+            </button>
+        </header>
 
-            <!-- Drill List Grid -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px;">
+        <div class="dashboard-grid">
 
-                <!-- Card 1: High Intensity (Red-Orange) -->
-                <div class="drill-card">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
-                        <h3
-                            style="font-family: 'Bebas Neue', sans-serif; font-size: 26px; margin: 0; letter-spacing: 0.5px;">
-                            Rondo 4v2</h3>
-                        <span class="role-badge badge-possession">Possession</span>
-                    </div>
-                    <p style="color: var(--text-dim); font-size: 14px; margin: 0; line-height: 1.6;">
-                        Classic passing and pressing drill focusing on quick decision making in tight spaces under heavy
-                        pressure.
-                    </p>
-                    <div class="roles" style="gap: 12px; margin-top: 4px;">
-                        <span class="role-badge badge-neutral">15 MIN</span>
-                        <div class="intensity-container">
-                            <span style="font-size: 10px; font-weight: 700; color: var(--text-dim);">HIGH</span>
-                            <span class="intensity-bars intensity-high">▰▰▰</span>
+            <!-- LEFT COLUMN: Attendance -->
+            <section class="form-panel roster-panel">
+                <div class="roster-header flex-between">
+                    <h2 class="panel-title">1. Mark Attendance</h2>
+                    <span class="badge">16 / 18 Present</span>
+                </div>
+                <p class="helper-text">Only players marked 'Present' can participate in drills.</p>
+
+                <div class="roster-list mt-3">
+                    <div class="player-row">
+                        <div class="player-info">
+                            <span class="player-name">Mahmoud Fathy</span>
+                            <span class="player-pos">GK</span>
+                        </div>
+                        <div class="toggle-group">
+                            <button class="toggle-btn active-green">Present</button>
+                            <button class="toggle-btn inactive">Absent</button>
                         </div>
                     </div>
-                    <div class="actions">
-                        <button class="mock-btn-slate" style="flex: 1;">Edit</button>
-                        <button class="mock-btn-slate" style="flex: 1;">View</button>
-                    </div>
-                </div>
 
-                <!-- Card 2: Medium Intensity (Lime/Green) -->
-                <div class="drill-card">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
-                        <h3
-                            style="font-family: 'Bebas Neue', sans-serif; font-size: 26px; margin: 0; letter-spacing: 0.5px;">
-                            Overload Attack</h3>
-                        <span class="role-badge badge-attacking">Attacking</span>
-                    </div>
-                    <p style="color: var(--text-dim); font-size: 14px; margin: 0; line-height: 1.6;">
-                        Building attacks from the wings with a 3v2 advantage in the final third. Focus on crossing
-                        accuracy.
-                    </p>
-                    <div class="roles" style="gap: 12px; margin-top: 4px;">
-                        <span class="role-badge badge-neutral">20 MIN</span>
-                        <div class="intensity-container">
-                            <span style="font-size: 10px; font-weight: 700; color: var(--text-dim);">MED</span>
-                            <span class="intensity-bars intensity-med">▰▰▱</span>
+                    <div class="player-row">
+                        <div class="player-info">
+                            <span class="player-name">Hossam Ghaly</span>
+                            <span class="player-pos">RB</span>
+                        </div>
+                        <div class="toggle-group">
+                            <button class="toggle-btn inactive">Present</button>
+                            <button class="toggle-btn active-red">Absent</button>
                         </div>
                     </div>
-                    <div class="actions">
-                        <button class="mock-btn-slate" style="flex: 1;">Edit</button>
-                        <button class="mock-btn-slate" style="flex: 1;">View</button>
-                    </div>
-                </div>
 
-                <!-- Card 3: Low Intensity (Yellow) -->
-                <div class="drill-card">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
-                        <h3
-                            style="font-family: 'Bebas Neue', sans-serif; font-size: 26px; margin: 0; letter-spacing: 0.5px;">
-                            Shadow Play</h3>
-                        <span class="role-badge badge-tactical">Tactical</span>
-                    </div>
-                    <p style="color: var(--text-dim); font-size: 14px; margin: 0; line-height: 1.6;">
-                        Uncontested phase of play to memorize movements, build up patterns, and establish defensive
-                        shape.
-                    </p>
-                    <div class="roles" style="gap: 12px; margin-top: 4px;">
-                        <span class="role-badge badge-neutral">10 MIN</span>
-                        <div class="intensity-container">
-                            <span style="font-size: 10px; font-weight: 700; color: var(--text-dim);">LOW</span>
-                            <span class="intensity-bars intensity-low">▰▱▱</span>
+                    <div class="player-row">
+                        <div class="player-info">
+                            <span class="player-name">Mohamed Shawky</span>
+                            <span class="player-pos">CB</span>
+                        </div>
+                        <div class="toggle-group">
+                            <button class="toggle-btn active-green">Present</button>
+                            <button class="toggle-btn inactive">Absent</button>
                         </div>
                     </div>
-                    <div class="actions">
-                        <button class="mock-btn-slate" style="flex: 1;">Edit</button>
-                        <button class="mock-btn-slate" style="flex: 1;">View</button>
-                    </div>
                 </div>
+            </section>
 
-            </div>
+            <!-- RIGHT COLUMN: Drills & Results -->
+            <section class="form-panel drills-panel">
+                <div class="drills-header flex-between">
+                    <h2 class="panel-title">2. Session Drills</h2>
+                    <button class="small-btn">+ Add Drill</button>
+                </div>
+                <p class="helper-text">Add drills to this session and record player metrics.</p>
+
+                <div class="drills-list mt-3">
+
+                    <!-- Drill Card: Results Pending -->
+                    <div class="drill-card">
+                        <div class="drill-info">
+                            <h3>100m Sprint Test</h3>
+                            <span class="category-badge">Physical</span>
+                        </div>
+                        <div class="drill-action">
+                            <button class="btn-secondary">📝 Enter Results</button>
+                        </div>
+                    </div>
+
+                    <!-- Drill Card: Results Completed -->
+                    <div class="drill-card completed">
+                        <div class="drill-info">
+                            <h3>Passing Rondo (10 mins)</h3>
+                            <span class="category-badge">Tactical</span>
+                        </div>
+                        <div class="drill-action">
+                            <span class="status-text text-success">✓ Results Saved</span>
+                            <button class="btn-text">Edit</button>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
         </div>
     </div>
 

@@ -1,0 +1,294 @@
+@if (isLoading) {
+<div class="loading-state text-center py-5">
+    <app-loading-spinner size="lg"></app-loading-spinner>
+    <p class="loading-text mt-3">Loading session data...</p>
+</div>
+} @else if (errorMessage) {
+<div class="error-banner">{{ errorMessage }}</div>
+} @else if (sessionData) {
+<div class="details-page">
+
+    <!-- HEADER: Dynamic Status -->
+    <header class="page-header flex-between">
+        <div>
+            <div class="header-eyebrow">
+                <span class="eyebrow-dot" [class.bg-success]="isSessionCompleted"
+                    [class.bg-danger]="isSessionCancelled"></span>
+                <span
+                    [class]="isSessionCancelled ? 'text-danger' : (isSessionCompleted ? 'text-success' : 'text-warning')">
+                    {{ isSessionCancelled ? 'CANCELLED' : (isSessionCompleted ? 'COMPLETED' : 'IN PROGRESS') }}
+                </span>
+            </div>
+            <h1 class="header-title">{{ sessionData.teamName || 'Team #' + sessionData.teamId }} - Session</h1>
+            <p class="header-subtitle">
+                {{ sessionData.sessionDate | date:'dd MMM yyyy' }} •
+                {{ sessionData.location || 'Main Pitch' }} •
+                Coach: {{ sessionData.coachName || 'Assigned Coach' }}
+            </p>
+        </div>
+
+        <!-- Hide complete button if already completed or read-only -->
+        @if (!isReadOnly) {
+        <app-button variant="accent" (click)="completeSession()">Complete Session</app-button>
+        } @else if (isSessionCompleted) {
+        <app-status-chip label="Session Completed" type="success"></app-status-chip>
+        } @else if (isSessionCancelled) {
+        <app-status-chip label="Session Cancelled" type="danger"></app-status-chip>
+        }
+    </header>
+
+    @if (isSessionCancelled) {
+    <div class="cancelled-banner">
+        <div class="cancelled-badge">SESSION CANCELLED</div>
+        <div class="cancelled-title">Reason for Cancellation</div>
+        <p class="cancelled-reason">"{{ sessionData.notes || 'No specific cancellation reason provided.' }}"</p>
+    </div>
+    } @else {
+    <div class="dashboard-grid">
+
+        <!-- LEFT COLUMN: Attendance -->
+        <section class="form-panel roster-panel">
+            <div class="roster-header flex-between">
+                <h2 class="panel-title">1. Attendance Report</h2>
+                <span class="badge">{{ getPresentCount() }} / {{ sessionData.attendance?.length || 0 }} Present</span>
+            </div>
+            <p class="helper-text">
+                {{ isReadOnly ? 'Final attendance for this session. Click a player to view progression.' : 'Only players
+                marked \'Present\' can participate in drills. Click a player to view progression.' }}
+            </p>
+
+            <div class="roster-list mt-3">
+                @if (sessionData.attendance && sessionData.attendance.length > 0) {
+                @for (player of sessionData.attendance; track player.playerId) {
+                <div class="player-row">
+                    <!-- 🟢 Clickable Player Info to navigate to Progression Curve -->
+                    <div class="player-info" style="cursor: pointer;"
+                        (click)="navigateToPlayerProgression(player.playerId)" title="View Player Drill Progression">
+                        <span class="player-name" style="transition: color 0.2s;">
+                            {{ player.playerFullName || player.name }} <span
+                                style="font-size: 11px; opacity: 0.7; color: #00f2fe;">↗</span>
+                        </span>
+                        <span class="player-pos">{{ player.position || 'Squad Player' }}</span>
+                    </div>
+                    <div class="toggle-group">
+                        <button type="button" class="toggle-btn" [class.active-green]="player.isPresent"
+                            [class.inactive]="!player.isPresent" [disabled]="isReadOnly"
+                            (click)="setAttendance(player, true)">
+                            Present
+                        </button>
+                        <button type="button" class="toggle-btn" [class.active-red]="!player.isPresent"
+                            [class.inactive]="player.isPresent" [disabled]="isReadOnly"
+                            (click)="setAttendance(player, false)">
+                            Absent
+                        </button>
+                    </div>
+                </div>
+                }
+                } @else {
+                <div class="empty-roster">
+                    <p style="text-align: center; color: #8b949e;">No attendance records found for this session.</p>
+                </div>
+                }
+            </div>
+        </section>
+
+        <!-- RIGHT COLUMN: Drills & Results -->
+        <section class="form-panel drills-panel">
+            <div class="drills-header flex-between">
+                <h2 class="panel-title">2. Session Drills</h2>
+                @if (!isReadOnly) {
+                <app-button variant="accent" (click)="openAddDrillModal()">+ Add Drill</app-button>
+                }
+            </div>
+            <p class="helper-text">
+                {{ isReadOnly ? 'Player performance metrics and scorecard.' : 'Add drills to this session and record
+                player metrics.' }}
+            </p>
+
+            <div class="drills-list mt-3">
+                @if (sessionData.sessionDrills && sessionData.sessionDrills.length > 0) {
+                @for (drill of sessionData.sessionDrills; track drill.id) {
+                <div class="drill-card">
+                    <div class="drill-info">
+                        <h3>{{ drill.templateName || 'Training Drill' }}</h3>
+                        <span class="category-badge">{{ drill.categoryName || 'General' }}</span>
+                    </div>
+                    <div class="drill-action" style="display: flex; gap: 8px;">
+                        <app-button variant="slate" (click)="openResultsModal(drill)">
+                            {{ isReadOnly ? 'View Results' : 'Enter Results' }}
+                        </app-button>
+                        @if (!isReadOnly) {
+                        <app-button variant="coral" (click)="removeDrill(drill.id)">
+                            Remove
+                        </app-button>
+                        }
+                    </div>
+                </div>
+                }
+                } @else {
+                <div class="empty-drills" style="text-align: center; padding: 30px; color: #8b949e;">
+                    <p>No drills attached to this session.</p>
+                </div>
+                }
+            </div>
+        </section>
+
+    </div>
+    }
+</div>
+}
+
+<!-- SELECT DRILL MODAL POPUP -->
+@if (isAddDrillModalOpen) {
+<div class="modal-backdrop">
+    <div class="modal-content">
+        <h2>Select Drill from Library</h2>
+        <p class="helper-text">Choose a template to inject into this training session.</p>
+
+        <div class="mt-3">
+            <app-select
+                label="Drill Template"
+                placeholder="-- Select a Drill Template --"
+                [options]="templateOptions"
+                [value]="selectedTemplateId"
+                (valueChange)="onTemplateSelect($event)">
+            </app-select>
+        </div>
+
+        <div class="modal-actions mt-3 flex-between">
+            <app-button variant="slate" (click)="closeAddDrillModal()">Cancel</app-button>
+            <app-button variant="accent" [disabled]="!selectedTemplateId" (click)="saveDrillToSession()">Confirm &
+                Add</app-button>
+        </div>
+    </div>
+</div>
+}
+
+<!-- ENTER / VIEW RESULTS MODAL -->
+@if (isResultsModalOpen && activeDrillForResults) {
+<div class="modal-backdrop">
+    <div class="modal-content results-modal-content">
+        <div class="flex-between">
+            <div>
+                <h2>Scorecard: {{ activeDrillForResults.templateName }}</h2>
+                <p class="helper-text">Mode: {{ (activeDrillForResults.mode == 0 || activeDrillForResults.mode ===
+                    'Manual') ? 'Manual Score' : 'Success / Missed' }}</p>
+            </div>
+            <button class="btn-secondary flex-center" (click)="closeResultsModal()" title="Close Scorecard">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+        </div>
+
+        <div class="results-table-container mt-3">
+            @if (playerScoreEntries.length > 0) {
+            <div class="results-header-row">
+                <span>Player</span>
+                <span>Score Input</span>
+                <span>Coach Notes</span>
+            </div>
+            @for (entry of playerScoreEntries; track entry.playerId) {
+            <div class="results-row">
+                <!-- 🟢 Clickable Player Info in Scorecard to navigate to Progression Curve -->
+                <div class="player-info-cell" style="cursor: pointer;"
+                    (click)="navigateToPlayerProgression(entry.playerId)" title="View Player Drill Progression">
+                    <span class="player-name">
+                        {{ entry.playerFullName }}
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00f2fe" stroke-width="2" style="margin-left: 4px; opacity: 0.8;">
+                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                            <polyline points="15 3 21 3 21 9"/>
+                            <line x1="10" y1="14" x2="21" y2="3"/>
+                        </svg>
+                    </span>
+                    <span class="player-pos">{{ entry.position }}</span>
+                </div>
+
+                <div class="score-input-cell">
+                    @if (activeDrillForResults.mode == 0 || activeDrillForResults.mode === 'Manual') {
+                    <app-number-input
+                        label="Manual Score"
+                        [step]="0.5"
+                        [min]="0"
+                        [max]="10"
+                        [value]="entry.manualScore"
+                        (valueChange)="entry.manualScore = $event"
+                        [disabled]="isReadOnly">
+                    </app-number-input>
+                    } @else {
+                    <div class="flex-group" style="display: flex; gap: 8px;">
+                        <app-number-input
+                            label="Done"
+                            [step]="1"
+                            [min]="0"
+                            [value]="entry.doneCount"
+                            (valueChange)="entry.doneCount = $event"
+                            [disabled]="isReadOnly">
+                        </app-number-input>
+                        <app-number-input
+                            label="Missed"
+                            [step]="1"
+                            [min]="0"
+                            [value]="entry.missedCount"
+                            (valueChange)="entry.missedCount = $event"
+                            [disabled]="isReadOnly">
+                        </app-number-input>
+                    </div>
+                    }
+                </div>
+
+                <div class="notes-input-cell">
+                    <app-text-input
+                        type="text"
+                        label="Notes"
+                        [value]="entry.coachNotes"
+                        (valueChange)="entry.coachNotes = $event"
+                        [disabled]="isReadOnly">
+                    </app-text-input>
+                </div>
+            </div>
+            }
+            } @else {
+            <p style="text-align: center; color: #ff4757; padding: 20px;">No players are marked 'Present' for this
+                session.</p>
+            }
+        </div>
+
+        <div class="modal-actions mt-3 flex-between">
+            <app-button variant="slate" (click)="closeResultsModal()">Close</app-button>
+
+            @if (!isReadOnly) {
+            <app-button variant="accent" [disabled]="playerScoreEntries.length === 0" [loading]="isSubmittingResults"
+                (click)="saveDrillResults()">
+                Save Scores
+            </app-button>
+            }
+        </div>
+    </div>
+</div>
+}
+
+<!-- CONFIRM MODAL -->
+@if (confirmModal.isOpen) {
+<div class="confirm-overlay" (click)="closeConfirm()"></div>
+<div class="confirm-modal">
+    <div class="confirm-content">
+        <h3 class="confirm-title">{{ confirmModal.title }}</h3>
+        <p class="confirm-message">{{ confirmModal.message }}</p>
+    </div>
+    <div class="confirm-actions">
+        <app-button variant="slate" (click)="closeConfirm()">Cancel</app-button>
+        <app-button variant="coral" (click)="executeConfirm()">{{ confirmModal.confirmText }}</app-button>
+    </div>
+</div>
+}
+
+<!-- TOAST NOTIFICATION -->
+@if (toastMessage) {
+<div class="toast-container">
+    <div class="toast" [ngClass]="'toast-' + toastType">
+        <span class="toast-text">{{ toastMessage }}</span>
+    </div>
+</div>
+}
