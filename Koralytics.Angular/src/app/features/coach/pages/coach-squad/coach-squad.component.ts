@@ -1,8 +1,12 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { CoachSquadService } from '../../../../../core/services/coach/coach-squad.service';
 import { MatchAnalyticsService } from '../../../../../core/services/match/match-analytics.service';
+import { AuthService } from '../../../../../core/services/auth/auth.service';
 import {
   SquadOverviewDto,
   SquadPlayerDto,
@@ -13,13 +17,15 @@ import { PlayerReadinessDto } from '../../../../../core/interfaces/match-request
 @Component({
   selector: 'app-coach-squad',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule],
   templateUrl: './coach-squad.component.html',
   styleUrls: ['./coach-squad.component.css'],
 })
 export class CoachSquadComponent implements OnInit {
   private squadService = inject(CoachSquadService);
   private analyticsService = inject(MatchAnalyticsService);
+  private authService = inject(AuthService);
+  private destroyRef = inject(DestroyRef);
 
   squad = signal<SquadOverviewDto | null>(null);
   readinessMap = signal<Record<number, PlayerReadinessDto>>({});
@@ -27,9 +33,9 @@ export class CoachSquadComponent implements OnInit {
   loading = signal(false);
   error = signal('');
 
-  // Inputs
+  // Resolved from auth context
   coachId = 0;
-  teamId = 1;
+  teamId = 0; // TODO: resolve from coach profile API or route params
 
   // Comparison selection
   selectedPlayerA: number | null = null;
@@ -37,33 +43,52 @@ export class CoachSquadComponent implements OnInit {
   showCompareModal = false;
 
   ngOnInit(): void {
-    // coachId would typically come from auth claims
+    const user = this.authService.getCurrentUserSync();
+    if (user) {
+      this.coachId = user.userId;
+    }
     this.loadSquad();
   }
 
   loadSquad(): void {
     this.loading.set(true);
     this.error.set('');
-    this.squadService.getSquad(this.coachId, this.teamId).subscribe({
-      next: (data) => {
-        this.squad.set(data);
-        this.loading.set(false);
-        // Load readiness for each player
-        data.players.forEach((p) => this.loadReadiness(p.playerId));
-      },
-      error: (err) => {
-        this.error.set(err?.error?.message || 'Failed to load squad');
-        this.loading.set(false);
-      },
-    });
+    this.squadService.getSquad(this.coachId, this.teamId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (data) => {
+          this.squad.set(data);
+          this.loading.set(false);
+          this.loadReadinessForSquad(data.players);
+        },
+        error: (err) => {
+          this.error.set(err?.error?.message || 'Failed to load squad');
+          this.loading.set(false);
+        },
+      });
   }
 
-  loadReadiness(playerId: number): void {
-    this.analyticsService.getPlayerReadiness(playerId).subscribe({
-      next: (data) => {
-        this.readinessMap.update((map) => ({ ...map, [playerId]: data }));
-      },
-    });
+  /** Batch-load readiness for all players using forkJoin instead of N+1 calls */
+  private loadReadinessForSquad(players: SquadPlayerDto[]): void {
+    if (!players.length) return;
+
+    const requests = players.map(p =>
+      this.analyticsService.getPlayerReadiness(p.playerId).pipe(
+        catchError(() => of(null))
+      )
+    );
+
+    forkJoin(requests)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(results => {
+        const map: Record<number, PlayerReadinessDto> = {};
+        results.forEach((data, i) => {
+          if (data) {
+            map[players[i].playerId] = data;
+          }
+        });
+        this.readinessMap.set(map);
+      });
   }
 
   getAvailabilityClass(status: string): string {
@@ -111,6 +136,7 @@ export class CoachSquadComponent implements OnInit {
     if (!this.canCompare()) return;
     this.squadService
       .compareSquadPlayers(this.selectedPlayerA!, this.selectedPlayerB!)
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (data) => {
           this.comparison.set(data);

@@ -1,28 +1,7 @@
-:host { display: block; }
+@import '../coach-shared.css';
 
-.page-container {
-  padding: 32px 24px;
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-.page-header { margin-bottom: 32px; }
-
-.page-title {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 42px;
-  color: var(--text-light, #f2f3f5);
-  margin: 0;
-  letter-spacing: 1px;
-}
-
-.accent { color: var(--accent-lime, #c8ff4d); }
-
-.page-subtitle {
-  color: var(--text-dim, #8b909a);
-  font-size: 14px;
-  margin-top: 4px;
-}
+/* ── Page overrides ── */
+.page-container { max-width: 1400px; }
 
 /* Action Bar */
 .action-bar {
@@ -62,11 +41,9 @@
   cursor: not-allowed;
 }
 
-/* Loading & Error */
+/* Loading & Error overrides */
 .loading-state, .error-state, .empty-state {
-  text-align: center;
   padding: 80px 20px;
-  color: var(--text-dim, #8b909a);
 }
 
 .spinner {
@@ -78,8 +55,6 @@
   animation: spin 0.8s linear infinite;
   margin: 0 auto 16px;
 }
-
-@keyframes spin { to { transform: rotate(360deg); } }
 
 .btn-retry {
   margin-top: 12px;
@@ -146,13 +121,7 @@
 .player-avatar {
   width: 48px;
   height: 48px;
-  border-radius: 50%;
   overflow: hidden;
-  flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.05);
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .player-avatar img {
@@ -162,7 +131,6 @@
 }
 
 .avatar-initial {
-  font-family: 'Bebas Neue', sans-serif;
   font-size: 22px;
   color: var(--accent-lime, #c8ff4d);
 }
@@ -459,5 +427,4 @@
 @media (max-width: 768px) {
   .squad-grid { grid-template-columns: 1fr; }
   .comparison-body { flex-direction: column; }
-  .page-title { font-size: 32px; }
 }

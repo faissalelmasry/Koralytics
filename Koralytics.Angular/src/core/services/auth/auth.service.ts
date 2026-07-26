@@ -242,4 +242,9 @@ export class AuthService {
     const user = this.currentUserSubject.value;
     return user ? user.roles : [];
   }
+
+  /** Synchronous access to the current user snapshot */
+  public getCurrentUserSync(): User | null {
+    return this.currentUserSubject.value;
+  }
 }

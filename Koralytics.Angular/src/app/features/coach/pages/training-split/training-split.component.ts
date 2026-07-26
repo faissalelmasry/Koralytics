@@ -1,6 +1,8 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CoachSquadService } from '../../../../../core/services/coach/coach-squad.service';
 import { TrainingTeamSplitDto, SquadPlayerDto } from '../../../../../core/interfaces/coach.interfaces';
 
@@ -11,11 +13,11 @@ import { TrainingTeamSplitDto, SquadPlayerDto } from '../../../../../core/interf
   templateUrl: './training-split.component.html',
   styleUrls: ['./training-split.component.css']
 })
-export class TrainingSplitComponent implements OnInit {
+export class TrainingSplitComponent {
   private squadService = inject(CoachSquadService);
+  private destroyRef = inject(DestroyRef);
 
-  // In a real app, we'd load active sessions from a session service. 
-  // For now, we mock some sessions to select from.
+  // TODO: Replace with real session data from a session service API
   availableSessions = [
     { id: 101, title: 'Morning Tactics & Passing', date: new Date().toISOString() },
     { id: 102, title: 'Afternoon Match Practice', date: new Date().toISOString() }
@@ -48,10 +50,6 @@ export class TrainingSplitComponent implements OnInit {
     return (avgA / total) * 100;
   });
 
-  ngOnInit(): void {
-    // We don't load initially, we wait for the user to trigger the split
-  }
-
   generateSplit(): void {
     if (!this.selectedSessionId) return;
 
@@ -59,16 +57,18 @@ export class TrainingSplitComponent implements OnInit {
     this.error.set('');
     this.splitResult.set(null);
 
-    this.squadService.splitTrainingTeams(this.selectedSessionId).subscribe({
-      next: (data) => {
-        this.splitResult.set(data);
-        this.loading.set(false);
-      },
-      error: (err) => {
-        this.error.set(err?.error?.message || 'Failed to split teams.');
-        this.loading.set(false);
-      }
-    });
+    this.squadService.splitTrainingTeams(this.selectedSessionId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (data) => {
+          this.splitResult.set(data);
+          this.loading.set(false);
+        },
+        error: (err) => {
+          this.error.set(err?.error?.message || 'Failed to split teams.');
+          this.loading.set(false);
+        }
+      });
   }
 
   private calculateAverage(players?: SquadPlayerDto[]): number {

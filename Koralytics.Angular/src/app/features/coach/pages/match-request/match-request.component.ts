@@ -1,7 +1,11 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatchRequestService } from '../../../../../core/services/match/match-request.service';
+import { ModalService } from '../../../../../core/services/Modal/modal';
+import { ToastService } from '../../../../../core/services/Toast/toast';
 import { CreateMatchRequestDto, MatchRequestResponseDto } from '../../../../../core/interfaces/match-request.interfaces';
 
 @Component({
@@ -13,8 +17,11 @@ import { CreateMatchRequestDto, MatchRequestResponseDto } from '../../../../../c
 })
 export class MatchRequestComponent implements OnInit {
   private matchService = inject(MatchRequestService);
+  private modalService = inject(ModalService);
+  private toastService = inject(ToastService);
+  private destroyRef = inject(DestroyRef);
 
-  teamId = 1; // Assuming team 1 for the logged-in coach
+  teamId = 0; // TODO: resolve from coach profile API or route params
   
   activeTab = signal<'incoming' | 'outgoing' | 'new'>('incoming');
   
@@ -48,30 +55,34 @@ export class MatchRequestComponent implements OnInit {
 
   loadIncoming(): void {
     this.loading.set(true);
-    this.matchService.getIncomingRequests(this.teamId).subscribe({
-      next: (data) => {
-        this.incomingRequests.set(data);
-        this.loading.set(false);
-      },
-      error: (err) => {
-        this.error.set('Failed to load incoming requests.');
-        this.loading.set(false);
-      }
-    });
+    this.matchService.getIncomingRequests(this.teamId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (data) => {
+          this.incomingRequests.set(data);
+          this.loading.set(false);
+        },
+        error: (err) => {
+          this.error.set('Failed to load incoming requests.');
+          this.loading.set(false);
+        }
+      });
   }
 
   loadOutgoing(): void {
     this.loading.set(true);
-    this.matchService.getOutgoingRequests(this.teamId).subscribe({
-      next: (data) => {
-        this.outgoingRequests.set(data);
-        this.loading.set(false);
-      },
-      error: (err) => {
-        this.error.set('Failed to load outgoing requests.');
-        this.loading.set(false);
-      }
-    });
+    this.matchService.getOutgoingRequests(this.teamId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (data) => {
+          this.outgoingRequests.set(data);
+          this.loading.set(false);
+        },
+        error: (err) => {
+          this.error.set('Failed to load outgoing requests.');
+          this.loading.set(false);
+        }
+      });
   }
 
   sendRequest(): void {
@@ -84,45 +95,71 @@ export class MatchRequestComponent implements OnInit {
     const dto = { ...this.newRequest };
     dto.proposedDate = new Date(dto.proposedDate).toISOString();
 
-    this.matchService.requestFriendlyMatch(dto).subscribe({
-      next: () => {
-        this.successMsg.set('Match request sent successfully!');
-        this.submitting.set(false);
-        this.newRequest.targetTeamId = 0;
-        this.newRequest.location = '';
-        setTimeout(() => {
-          this.successMsg.set('');
-          this.setTab('outgoing');
-        }, 2000);
-      },
-      error: (err) => {
-        this.submitError.set(err?.error?.message || 'Failed to send request.');
-        this.submitting.set(false);
-      }
-    });
+    this.matchService.requestFriendlyMatch(dto)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.successMsg.set('Match request sent successfully!');
+          this.submitting.set(false);
+          this.newRequest.targetTeamId = 0;
+          this.newRequest.location = '';
+          setTimeout(() => {
+            this.successMsg.set('');
+            this.setTab('outgoing');
+          }, 2000);
+        },
+        error: (err) => {
+          this.submitError.set(err?.error?.message || 'Failed to send request.');
+          this.submitting.set(false);
+        }
+      });
   }
 
   acceptRequest(id: number): void {
-    this.matchService.acceptMatchRequest(id).subscribe({
-      next: () => this.loadIncoming(),
-      error: (err) => alert(err?.error?.message || 'Failed to accept match.')
-    });
+    this.matchService.acceptMatchRequest(id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => this.loadIncoming(),
+        error: (err) => this.toastService.show(err?.error?.message || 'Failed to accept match.', 'error')
+      });
   }
 
-  declineRequest(id: number): void {
-    if (!confirm('Decline this match request?')) return;
-    this.matchService.declineMatchRequest(id).subscribe({
-      next: () => this.loadIncoming(),
-      error: (err) => alert(err?.error?.message || 'Failed to decline match.')
+  async declineRequest(id: number): Promise<void> {
+    const confirmed = await this.modalService.open({
+      title: 'Decline Match',
+      message: 'Decline this match request?',
+      confirmText: 'Decline',
+      cancelText: 'Cancel',
+      variant: 'danger'
     });
+
+    if (!confirmed) return;
+
+    this.matchService.declineMatchRequest(id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => this.loadIncoming(),
+        error: (err) => this.toastService.show(err?.error?.message || 'Failed to decline match.', 'error')
+      });
   }
 
-  cancelRequest(id: number): void {
-    if (!confirm('Cancel this outgoing match request?')) return;
-    this.matchService.cancelMatchRequest(id).subscribe({
-      next: () => this.loadOutgoing(),
-      error: (err) => alert(err?.error?.message || 'Failed to cancel request.')
+  async cancelRequest(id: number): Promise<void> {
+    const confirmed = await this.modalService.open({
+      title: 'Cancel Request',
+      message: 'Cancel this outgoing match request?',
+      confirmText: 'Cancel Request',
+      cancelText: 'Keep',
+      variant: 'danger'
     });
+
+    if (!confirmed) return;
+
+    this.matchService.cancelMatchRequest(id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => this.loadOutgoing(),
+        error: (err) => this.toastService.show(err?.error?.message || 'Failed to cancel request.', 'error')
+      });
   }
 
   getStatusClass(status: string): string {

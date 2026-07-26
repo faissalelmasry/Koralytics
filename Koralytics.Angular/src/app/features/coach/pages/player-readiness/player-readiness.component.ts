@@ -1,24 +1,31 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { CoachSquadService } from '../../../../../core/services/coach/coach-squad.service';
 import { MatchAnalyticsService } from '../../../../../core/services/match/match-analytics.service';
+import { AuthService } from '../../../../../core/services/auth/auth.service';
 import { SquadOverviewDto } from '../../../../../core/interfaces/coach.interfaces';
 import { PlayerReadinessDto } from '../../../../../core/interfaces/match-request.interfaces';
 
 @Component({
   selector: 'app-player-readiness',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule],
   templateUrl: './player-readiness.component.html',
   styleUrls: ['./player-readiness.component.css']
 })
 export class PlayerReadinessComponent implements OnInit {
   private squadService = inject(CoachSquadService);
   private analyticsService = inject(MatchAnalyticsService);
+  private authService = inject(AuthService);
+  private destroyRef = inject(DestroyRef);
 
+  // Resolved from auth context
   coachId = 0;
-  teamId = 1;
+  teamId = 0; // TODO: resolve from coach profile API or route params
 
   squad = signal<SquadOverviewDto | null>(null);
   readinessData = signal<PlayerReadinessDto[]>([]);
@@ -56,57 +63,60 @@ export class PlayerReadinessComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    const user = this.authService.getCurrentUserSync();
+    if (user) {
+      this.coachId = user.userId;
+    }
     this.loadData();
   }
 
   loadData(): void {
     this.loading.set(true);
     this.error.set('');
-    this.squadService.getSquad(this.coachId, this.teamId).subscribe({
-      next: (squadData) => {
-        this.squad.set(squadData);
-        this.fetchReadinessForSquad(squadData);
-      },
-      error: (err) => {
-        this.error.set(err?.error?.message || 'Failed to load squad.');
-        this.loading.set(false);
-      }
-    });
+    this.squadService.getSquad(this.coachId, this.teamId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (squadData) => {
+          this.squad.set(squadData);
+          this.fetchReadinessForSquad(squadData);
+        },
+        error: (err) => {
+          this.error.set(err?.error?.message || 'Failed to load squad.');
+          this.loading.set(false);
+        }
+      });
   }
 
+  /** Batch-load readiness for all players using forkJoin instead of N+1 calls */
   fetchReadinessForSquad(squadData: SquadOverviewDto): void {
     if (!squadData.players.length) {
       this.loading.set(false);
       return;
     }
 
-    let loadedCount = 0;
-    const total = squadData.players.length;
-    
-    squadData.players.forEach(player => {
-      this.analyticsService.getPlayerReadiness(player.playerId).subscribe({
-        next: (data) => {
-          // Attach the name from the squad data if backend doesn't provide it
-          data.playerName = data.playerName || player.fullName;
-          // Enrich with availability status from squad player data
-          data.availabilityStatus = data.availabilityStatus || player.availabilityStatus;
-          // Generate last 3 session scores derived from readiness if not provided
-          if (!data.lastSessionScores || data.lastSessionScores.length === 0) {
-            data.lastSessionScores = this.generateSessionScores(data.readinessScore);
+    const requests = squadData.players.map(player =>
+      this.analyticsService.getPlayerReadiness(player.playerId).pipe(
+        catchError(() => of(null))
+      )
+    );
+
+    forkJoin(requests)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(results => {
+        const data: PlayerReadinessDto[] = [];
+        results.forEach((result, i) => {
+          if (result) {
+            const player = squadData.players[i];
+            // Attach the name from the squad data if backend doesn't provide it
+            result.playerName = result.playerName || player.fullName;
+            // Enrich with availability status from squad player data
+            result.availabilityStatus = result.availabilityStatus || player.availabilityStatus;
+            data.push(result);
           }
-          this.readinessData.update(list => [...list, data]);
-        },
-        error: (err) => {
-          console.warn('Failed to load readiness for player ' + player.playerId);
-        },
-        complete: () => {
-          loadedCount++;
-          if (loadedCount === total) {
-            this.loading.set(false);
-          }
-        }
+        });
+        this.readinessData.set(data);
+        this.loading.set(false);
       });
-    });
   }
 
   sortBy(key: 'score' | 'name' | 'matches' | 'availability'): void {
@@ -133,16 +143,5 @@ export class PlayerReadinessComponent implements OnInit {
       case 'loaned': return 'avail-loaned';
       default: return 'avail-default';
     }
-  }
-
-  /** Generate 3 plausible session scores based on readiness score */
-  private generateSessionScores(readinessScore: number): number[] {
-    const base = readinessScore;
-    const variance = 15;
-    return [
-      Math.min(100, Math.max(0, base + Math.round((Math.random() - 0.5) * variance))),
-      Math.min(100, Math.max(0, base + Math.round((Math.random() - 0.5) * variance))),
-      Math.min(100, Math.max(0, base + Math.round((Math.random() - 0.5) * variance)))
-    ];
   }
 }

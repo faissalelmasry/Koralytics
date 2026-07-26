@@ -16,7 +16,7 @@
       <div class="form-group">
         <label for="highlightFile">Video File (MP4, MOV)</label>
         <div class="file-input-wrapper">
-          <input type="file" id="highlightFile" (change)="onFileSelected($event)" accept="video/mp4,video/quicktime,video/x-msvideo,video/x-matroska,video/webm">
+          <input #fileInput type="file" id="highlightFile" (change)="onFileSelected($event)" accept="video/mp4,video/quicktime,video/x-msvideo,video/x-matroska,video/webm">
           <span class="file-name">{{ selectedFile ? selectedFile.name : 'Choose file...' }}</span>
         </div>
       </div>
