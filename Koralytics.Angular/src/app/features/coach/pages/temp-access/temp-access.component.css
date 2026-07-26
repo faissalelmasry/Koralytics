@@ -1,0 +1,146 @@
+@import '../coach-shared.css';
+
+/* ── Page overrides ── */
+.page-container { max-width: 1200px; }
+
+/* Layout */
+.layout-grid {
+  display: grid;
+  grid-template-columns: 400px 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+/* Cards */
+.grant-form-card, .active-grants-card {
+  background: rgba(20, 23, 28, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 16px;
+  padding: 24px;
+  backdrop-filter: blur(12px);
+  animation: slideInCard 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+@keyframes slideInCard {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.active-grants-card {
+  animation-delay: 0.1s;
+}
+
+h3 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 24px;
+  color: var(--text-light, #f2f3f5);
+  margin: 0 0 20px;
+}
+
+/* Form overrides */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.hint {
+  font-size: 11px;
+  color: rgba(255,255,255,0.3);
+  font-style: italic;
+}
+
+.btn-primary {
+  width: 100%;
+  margin-top: 24px;
+}
+
+/* Active Grants List */
+.grants-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.grant-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  transition: transform 0.2s, background 0.2s;
+  animation: fadeSlideItem 0.4s ease backwards;
+}
+
+@keyframes fadeSlideItem {
+  from { opacity: 0; transform: translateX(-10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.grant-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+  transform: translateX(4px);
+}
+
+.grant-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.grant-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-light, #f2f3f5);
+}
+
+.grant-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.badge {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.badge.level { background: rgba(255, 255, 255, 0.1); color: var(--text-dim); }
+.badge.level.full { background: rgba(0, 188, 212, 0.15); color: #00bcd4; border: 1px solid rgba(0, 188, 212, 0.3); }
+
+.expiry-text {
+  font-size: 12px;
+  color: var(--text-dim, #8b909a);
+}
+
+.btn-revoke {
+  background: rgba(244, 67, 54, 0.1);
+  color: #ef5350;
+  border: 1px solid rgba(244, 67, 54, 0.2);
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-revoke:hover {
+  background: #ef5350;
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 83, 80, 0.2);
+}
+
+.btn-revoke:active {
+  transform: translateY(0);
+}
+
+.loading-state, .error-state, .empty-state { padding: 20px 0; text-align: left; }
+
+@media (max-width: 900px) {
+  .layout-grid { grid-template-columns: 1fr; }
+}
