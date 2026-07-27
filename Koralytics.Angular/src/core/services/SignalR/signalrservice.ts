@@ -77,7 +77,7 @@ export class SignalRService {
         console.log('Successfully connected to Koralytics NotificationHub via SignalR.');
         this.connectionState.set(signalR.HubConnectionState.Connected);
       })
-      .catch((err) => {
+      .catch((err: any) => {
         console.error('SignalR Hub Connection Initiation Failed: ', err);
         this.connectionState.set(signalR.HubConnectionState.Disconnected);
       });
@@ -150,7 +150,7 @@ export class SignalRService {
           console.log('SignalR Connection stopped successfully.');
           this.connectionState.set(signalR.HubConnectionState.Disconnected);
         })
-        .catch((err) => console.error('Error stopping SignalR connection: ', err));
+        .catch((err: any) => console.error('Error stopping SignalR connection: ', err));
     }
   }
 }
