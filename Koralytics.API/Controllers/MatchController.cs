@@ -66,7 +66,7 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpPost("session")]
-        [Authorize(Roles = "Coach")]
+        [Authorize(Roles = "Coach,AcademyAdmin")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -172,7 +172,7 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpPost("{matchId:int}/session-events")]
-        [Authorize(Roles = "Coach")]
+        [Authorize(Roles = "SuperAdmin,Coach")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -295,9 +295,15 @@ namespace Koralytics.API.Controllers
         [Authorize(Roles = "Coach,AcademyAdmin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetIncomingRequests([FromQuery] int teamId)
+        public async Task<IActionResult> GetIncomingRequests(
+            [FromQuery] int teamId,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20,
+            [FromQuery] string? status = null,
+            [FromQuery] DateTime? dateFrom = null,
+            [FromQuery] DateTime? dateTo = null)
         {
-            var result = await _matchRequestService.GetPendingRequestsAsync(teamId);
+            var result = await _matchRequestService.GetPendingRequestsAsync(teamId, page, pageSize, status, dateFrom, dateTo);
             return OkResponse(result);
         }
 
@@ -305,9 +311,15 @@ namespace Koralytics.API.Controllers
         [Authorize(Roles = "Coach,AcademyAdmin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetOutgoingRequests([FromQuery] int teamId)
+        public async Task<IActionResult> GetOutgoingRequests(
+            [FromQuery] int teamId,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20,
+            [FromQuery] string? status = null,
+            [FromQuery] DateTime? dateFrom = null,
+            [FromQuery] DateTime? dateTo = null)
         {
-            var result = await _matchRequestService.GetSentRequestsAsync(teamId);
+            var result = await _matchRequestService.GetSentRequestsAsync(teamId, page, pageSize, status, dateFrom, dateTo);
             return OkResponse(result);
         }
 

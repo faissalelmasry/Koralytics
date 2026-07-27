@@ -371,5 +371,13 @@ namespace Koralytics.API.Controllers.Academies
             await _academyService.UpdatePlayerSubscriptionAsync(academyId, playerId, dto, userId);
             return NoContentResponse("Player subscription updated successfully.");
         }
+
+        [HttpGet("search")]
+        [Authorize(Roles = "AcademyAdmin,SystemAdmin,Coach,Player")]
+        public async Task<IActionResult> SearchAcademies([FromQuery] string name)
+        {
+            var result = await _academyService.SearchAcademiesByNameAsync(name);
+            return OkResponse(result, "Academies retrieved successfully.");
+        }
     }
 }

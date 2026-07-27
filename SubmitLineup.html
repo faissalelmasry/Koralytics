@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Koralytics - Submit Squad Lineup</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Chakra+Petch:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #05070c;
+      --card-bg: rgba(15, 21, 33, 0.85);
+      --card-border: rgba(255, 255, 255, 0.08);
+
+      --neon-yellow: #facc15;
+      --neon-green: #82f768;
+      --neon-cyan: #38bdf8;
+      --neon-red: #f43f5e;
+
+      --text-main: #ffffff;
+      --text-muted: #8391a8;
+
+      --transition-smooth: all 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+      --spring-bounce: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: radial-gradient(circle at 50% 0%, rgba(250, 204, 21, 0.1), transparent 70%);
+      color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+    }
+
+    .builder-container {
+      width: 100%;
+      max-width: 1200px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* TOP HEADER & FORMATION SELECTOR */
+    .builder-header {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      backdrop-filter: blur(20px);
+    }
+
+    .header-title h2 { font-size: 20px; font-weight: 800; color: #fff; }
+    .header-title p { font-size: 12px; color: var(--text-muted); }
+
+    .controls-group { display: flex; align-items: center; gap: 15px; }
+
+    .formation-select {
+      background: #0b0e14;
+      border: 1.5px solid var(--neon-yellow);
+      color: var(--neon-yellow);
+      font-family: 'Chakra Petch', sans-serif;
+      font-weight: 800;
+      padding: 10px 16px;
+      border-radius: 12px;
+      outline: none;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .btn-submit {
+      background: linear-gradient(135deg, var(--neon-yellow) 0%, #d97706 100%);
+      color: #000;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-weight: 800;
+      font-size: 13px;
+      cursor: pointer;
+      box-shadow: 0 0 15px rgba(250, 204, 21, 0.3);
+      transition: var(--transition-smooth);
+    }
+
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 25px rgba(250, 204, 21, 0.6);
+    }
+
+    /* MAIN GRID LAYOUT */
+    .main-workspace {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    /* LEFT SIDEBAR: SQUAD LIST */
+    .squad-sidebar {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      max-height: 720px;
+      backdrop-filter: blur(20px);
+    }
+
+    .sidebar-title {
+      font-size: 13px; font-weight: 800; color: var(--neon-yellow);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+
+    .squad-scroll-area {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow-y: auto;
+      padding-right: 5px;
+    }
+
+    .squad-scroll-area::-webkit-scrollbar { width: 5px; }
+    .squad-scroll-area::-webkit-scrollbar-thumb { background: rgba(250, 204, 21, 0.3); border-radius: 4px; }
+
+    /* MINI FIFA CARD (DRAGGABLE) */
+    .mini-card-wrapper {
+      width: 70px; height: 95px;
+      background: linear-gradient(145deg, #1c1d1a 0%, #0b0c0e 100%);
+      border: 1.5px solid rgba(250, 204, 21, 0.35);
+      border-radius: 10px; position: relative; padding: 4px;
+      display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.8);
+      cursor: grab;
+      transition: var(--spring-bounce);
+      user-select: none;
+    }
+
+    .mini-card-wrapper:active { cursor: grabbing; transform: scale(1.08); }
+
+    .mini-card-wrapper.in-pitch {
+      width: 65px; height: 88px;
+      animation: floatCard 4s ease-in-out infinite alternate;
+    }
+
+    @keyframes floatCard {
+      0% { transform: translateY(0px); }
+      100% { transform: translateY(-5px); }
+    }
+
+    .card-top-bar { width: 100%; display: flex; justify-content: space-between; align-items: flex-start; }
+    .overall-rating { font-family: 'Chakra Petch', sans-serif; font-size: 12px; font-weight: 800; color: var(--neon-yellow); }
+    .position-code { font-size: 7px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; }
+
+    .player-avatar-box {
+      width: 30px; height: 30px; border-radius: 50%;
+      border: 1.5px solid rgba(250, 204, 21, 0.5); background: #11141a;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+    }
+
+    .player-initials { font-family: 'Chakra Petch', sans-serif; font-size: 10px; font-weight: 800; color: #717d93; }
+
+    .player-name-box {
+      width: 100%; text-align: center; background: rgba(0, 0, 0, 0.7);
+      border-radius: 4px; padding: 2px 1px; border: 1px solid rgba(255,255,255,0.05);
+    }
+    .player-fullname {
+      font-size: 7px; font-weight: 800; color: #fff; text-transform: uppercase;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    /* SIDEBAR ITEM ROW CONTAINER */
+    .squad-player-row {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: var(--transition-smooth);
+    }
+
+    .squad-player-row:hover {
+      border-color: rgba(250, 204, 21, 0.4);
+      background: rgba(250, 204, 21, 0.05);
+    }
+
+    .squad-player-info { display: flex; flex-direction: column; }
+    .squad-player-info .name { font-size: 12px; font-weight: 800; color: #fff; }
+    .squad-player-info .pos { font-size: 10px; color: var(--text-muted); font-weight: 700; }
+
+    /* RIGHT AREA: PITCH + BENCH */
+    .pitch-and-bench-area { display: flex; flex-direction: column; gap: 15px; }
+
+    .full-pitch {
+      width: 100%; height: 580px;
+      background: radial-gradient(circle at 50% 50%, #122115 0%, #050d08 100%);
+      border: 2px solid rgba(250, 204, 21, 0.3);
+      border-radius: 24px; position: relative; overflow: hidden;
+      display: flex; flex-direction: column; justify-content: space-around;
+      padding: 15px;
+      box-shadow: inset 0 0 60px #000, 0 10px 30px rgba(0,0,0,0.8);
+    }
+
+    .pitch-center-line { position: absolute; top: 50%; left: 0; right: 0; height: 2px; background: rgba(250, 204, 21, 0.2); }
+    .pitch-center-circle {
+      position: absolute; top: 50%; left: 50%; width: 120px; height: 120px;
+      border: 2px solid rgba(250, 204, 21, 0.2); border-radius: 50%; transform: translate(-50%, -50%);
+    }
+
+    .formation-row { display: flex; justify-content: space-around; align-items: center; z-index: 2; width: 100%; }
+
+    /* DROP TARGET SLOT */
+    .pitch-slot {
+      width: 70px; height: 95px;
+      border: 2px dashed rgba(250, 204, 21, 0.3);
+      border-radius: 12px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      background: rgba(0, 0, 0, 0.2);
+      transition: var(--transition-smooth);
+      position: relative;
+    }
+
+    .pitch-slot.drag-over {
+      border-color: var(--neon-yellow);
+      background: rgba(250, 204, 21, 0.15);
+      transform: scale(1.1);
+      box-shadow: 0 0 20px rgba(250, 204, 21, 0.5);
+    }
+
+    .slot-label {
+      font-size: 10px; font-weight: 800; color: rgba(255, 255, 255, 0.4);
+      font-family: 'Chakra Petch', sans-serif;
+    }
+
+    /* BENCH SECTION */
+    .bench-card {
+      background: var(--card-bg); border: 1px solid var(--card-border);
+      border-radius: 16px; padding: 14px;
+      backdrop-filter: blur(20px);
+    }
+    .bench-title { font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px; }
+    .bench-flex { display: flex; gap: 12px; min-height: 105px; overflow-x: auto; padding-bottom: 5px; align-items: center; }
+
+    .bench-slot {
+      min-width: 70px; height: 95px;
+      border: 1.5px dashed rgba(255, 255, 255, 0.15);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      transition: var(--transition-smooth);
+    }
+
+    .bench-slot.drag-over {
+      border-color: var(--neon-green);
+      background: rgba(130, 247, 104, 0.1);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="builder-container">
+
+    <!-- HEADER -->
+    <div class="builder-header">
+      <div class="header-title">
+        <h2>⚽ Match Day Squad Builder</h2>
+        <p>Drag players from the squad roster into position slots on the pitch.</p>
+      </div>
+      <div class="controls-group">
+        <label style="font-size: 12px; font-weight: 800; color: var(--text-muted);">FORMATION:</label>
+        <select class="formation-select" id="formationSelect" onchange="renderPitchSlots()">
+          <option value="4-3-3">4 - 3 - 3</option>
+          <option value="4-2-3-1">4 - 2 - 3 - 1</option>
+          <option value="3-5-2">3 - 5 - 2</option>
+        </select>
+        <button class="btn-submit" onclick="submitLineup()">🚀 Submit Lineup</button>
+      </div>
+    </div>
+
+    <!-- MAIN WORKSPACE -->
+    <div class="main-workspace">
+
+      <!-- LEFT: SQUAD ROSTER -->
+      <div class="squad-sidebar">
+        <div class="sidebar-title">
+          <span>AVAILABLE SQUAD</span>
+          <span id="squadCount" style="color: var(--text-muted);">15 Players</span>
+        </div>
+        <div class="squad-scroll-area" id="squadList">
+          <!-- Dynamically Generated Squad Rows -->
+        </div>
+      </div>
+
+      <!-- RIGHT: PITCH & BENCH -->
+      <div class="pitch-and-bench-area">
+
+        <!-- THE PITCH -->
+        <div class="full-pitch" id="pitchContainer">
+          <div class="pitch-center-line"></div>
+          <div class="pitch-center-circle"></div>
+          <!-- Rows and Slots rendered dynamically -->
+        </div>
+
+        <!-- BENCH -->
+        <div class="bench-card">
+          <div class="bench-title">Substitutes Bench (7 Drop Slots) 🪑</div>
+          <div class="bench-flex" id="benchContainer">
+            <!-- 7 Bench Slots -->
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    // 1. SQUAD DATA MODEL
+    const playersData = [
+      { id: 'p1', name: 'M. SALAH', initials: 'MS', rating: 89, pos: 'RW' },
+      { id: 'p2', name: 'MOSTAFA', initials: 'MM', rating: 81, pos: 'ST' },
+      { id: 'p3', name: 'MARMOUSH', initials: 'OM', rating: 78, pos: 'LW' },
+      { id: 'p4', name: 'ZIZO', initials: 'AZ', rating: 79, pos: 'CM' },
+      { id: 'p5', name: 'ELNENY', initials: 'ME', rating: 76, pos: 'CDM' },
+      { id: 'p6', name: 'ATTIA', initials: 'MA', rating: 75, pos: 'CM' },
+      { id: 'p7', name: 'FATOUH', initials: 'AF', rating: 76, pos: 'LB' },
+      { id: 'p8', name: 'ABDELMONEM', initials: 'MA', rating: 78, pos: 'CB' },
+      { id: 'p9', name: 'YASSER', initials: 'YI', rating: 75, pos: 'CB' },
+      { id: 'p10', name: 'HANY', initials: 'MH', rating: 74, pos: 'RB' },
+      { id: 'p11', name: 'SHENAWY', initials: 'MS', rating: 77, pos: 'GK' },
+      { id: 'p12', name: 'ADEL', initials: 'IA', rating: 75, pos: 'LW' },
+      { id: 'p13', name: 'KAHRABA', initials: 'MK', rating: 76, pos: 'ST' },
+      { id: 'p14', name: 'TREZEGUET', initials: 'TR', rating: 77, pos: 'LW' },
+      { id: 'p15', name: 'HEGAZI', initials: 'AH', rating: 79, pos: 'CB' }
+    ];
+
+    // FORMATIONS MAP (Rows from Top/Attackers to Bottom/GK)
+    const formations = {
+      '4-3-3': [
+        ['LW', 'ST', 'RW'],
+        ['CM', 'CDM', 'CM'],
+        ['LB', 'CB', 'CB', 'RB'],
+        ['GK']
+      ],
+      '4-2-3-1': [
+        ['ST'],
+        ['LAM', 'CAM', 'RAM'],
+        ['CDM', 'CDM'],
+        ['LB', 'CB', 'CB', 'RB'],
+        ['GK']
+      ],
+      '3-5-2': [
+        ['ST', 'ST'],
+        ['LM', 'CM', 'CAM', 'CM', 'RM'],
+        ['CB', 'CB', 'CB'],
+        ['GK']
+      ]
+    };
+
+    let draggedPlayerId = null;
+
+    // INIT APP
+    window.onload = () => {
+      renderSidebar();
+      renderPitchSlots();
+      renderBenchSlots();
+    };
+
+    // RENDER SQUAD SIDEBAR
+    function renderSidebar() {
+      const squadList = document.getElementById('squadList');
+      squadList.innerHTML = '';
+
+      playersData.forEach(player => {
+        const row = document.createElement('div');
+        row.className = 'squad-player-row';
+        row.id = `sidebar-row-${player.id}`;
+        
+        row.innerHTML = `
+          <div class="mini-card-wrapper" id="${player.id}" draggable="true" ondragstart="handleDragStart(event)">
+            <div class="card-top-bar"><span class="overall-rating">${player.rating}</span><span class="position-code">${player.pos}</span></div>
+            <div class="player-avatar-box"><span class="player-initials">${player.initials}</span></div>
+            <div class="player-name-box"><div class="player-fullname">${player.name}</div></div>
+          </div>
+          <div class="squad-player-info">
+            <span class="name">${player.name}</span>
+            <span class="pos">${player.pos} | Rating: ${player.rating}</span>
+          </div>
+        `;
+        squadList.appendChild(row);
+      });
+    }
+
+    // RENDER PITCH SLOTS BASED ON FORMATION
+    function renderPitchSlots() {
+      const pitch = document.getElementById('pitchContainer');
+      const selectedFormation = document.getElementById('formationSelect').value;
+      const schema = formations[selectedFormation];
+
+      pitch.innerHTML = `
+        <div class="pitch-center-line"></div>
+        <div class="pitch-center-circle"></div>
+      `;
+
+      schema.forEach((rowPositions, rowIndex) => {
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'formation-row';
+
+        rowPositions.forEach((posName, colIndex) => {
+          const slot = document.createElement('div');
+          slot.className = 'pitch-slot';
+          slot.dataset.slotId = `pitch-${rowIndex}-${colIndex}`;
+          slot.ondragover = handleDragOver;
+          slot.ondragleave = handleDragLeave;
+          slot.ondrop = handleDrop;
+
+          slot.innerHTML = `<span class="slot-label">${posName}</span>`;
+          rowDiv.appendChild(slot);
+        });
+
+        pitch.appendChild(rowDiv);
+      });
+    }
+
+    // RENDER BENCH SLOTS
+    function renderBenchSlots() {
+      const bench = document.getElementById('benchContainer');
+      bench.innerHTML = '';
+      for (let i = 0; i < 7; i++) {
+        const bSlot = document.createElement('div');
+        bSlot.className = 'bench-slot';
+        bSlot.dataset.slotId = `bench-${i}`;
+        bSlot.ondragover = handleDragOver;
+        bSlot.ondragleave = handleDragLeave;
+        bSlot.ondrop = handleDrop;
+        bench.appendChild(bSlot);
+      }
+    }
+
+    // DRAG AND DROP HANDLERS
+    function handleDragStart(e) {
+      draggedPlayerId = e.target.id;
+      e.dataTransfer.setData('text/plain', e.target.id);
+    }
+
+    function handleDragOver(e) {
+      e.preventDefault();
+      e.currentTarget.classList.add('drag-over');
+    }
+
+    function handleDragLeave(e) {
+      e.currentTarget.classList.remove('drag-over');
+    }
+
+    function handleDrop(e) {
+      e.preventDefault();
+      const slot = e.currentTarget;
+      slot.classList.remove('drag-over');
+
+      const card = document.getElementById(draggedPlayerId);
+      if (!card) return;
+
+      // If slot already has a player card, swap or move old card back to sidebar
+      if (slot.querySelector('.mini-card-wrapper')) {
+        const existingCard = slot.querySelector('.mini-card-wrapper');
+        const oldRow = document.getElementById(`sidebar-row-${existingCard.id}`);
+        if (oldRow) oldRow.prepend(existingCard);
+      }
+
+      // Append new card into slot
+      card.classList.add('in-pitch');
+      slot.appendChild(card);
+    }
+
+    // SUBMIT LINEUP DATA
+    function submitLineup() {
+      const lineup = [];
+      document.querySelectorAll('.pitch-slot').forEach(slot => {
+        const card = slot.querySelector('.mini-card-wrapper');
+        if (card) {
+          const p = playersData.find(x => x.id === card.id);
+          lineup.push({ slot: slot.dataset.slotId, player: p.name, pos: p.pos });
+        }
+      });
+
+      if (lineup.length === 0) {
+        alert('⚠️ Please drag at least one player to the pitch!');
+        return;
+      }
+
+      console.log('Submitted Lineup:', lineup);
+      alert(`✅ Lineup Submitted Successfully with ${lineup.length} players on field!`);
+    }
+  </script>
+</body>
+</html>

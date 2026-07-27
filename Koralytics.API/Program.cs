@@ -251,6 +251,7 @@ namespace Koralytics.API
             builder.Services.AddScoped<IStorageService, StorageService>();
             builder.Services.AddSignalR();
             builder.Services.AddScoped<IRealTimeBridge, RealTimeBridge>();
+            builder.Services.AddScoped<IMatchLiveUpdateService, MatchLiveUpdateService>();
             builder.Services.AddScoped<IPlayerNotificationService, PlayerNotificationService>();
             builder.Services.AddScoped<IScouterNotificationService, ScouterNotificationService>();
             builder.Services.AddScoped<IAnnouncementNotificationService, AnnouncementNotificationService>();
@@ -401,6 +402,7 @@ namespace Koralytics.API
             app.UseAuthorization();
 
             app.MapHub<NotificationHub>("/hubs/notifications");
+            app.MapHub<MatchHub>("/hubs/match");
 
             app.MapControllers();
 

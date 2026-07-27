@@ -350,6 +350,26 @@ namespace Koralytics.Application.Services.Academy.AcademyTeamService
         // ──────────────────────────────────────────────────────────────────────
         // RemovePlayerFromTeamAsync
         // ──────────────────────────────────────────────────────────────────────
+        public async Task<IEnumerable<AcademyTeamSummaryDto>> GetAcademyTeamsAsync(int academyId)
+        {
+            _ = await _unitOfWork.Repository<Domain.Entities.Academy.Academy>()
+                .FindAsNoTrackingAsync(a => a.Id == academyId)
+                ?? throw new NotFoundException($"Academy with Id {academyId} not found.");
+
+            var teams = await _unitOfWork.Repository<Team>()
+                .GetQueryableAsNoTracking()
+                .Include(t => t.AgeGroup)
+                .Where(t => t.AcademyId == academyId)
+                .ToListAsync();
+
+            return teams.Select(t => new AcademyTeamSummaryDto
+            {
+                Id = t.Id,
+                Name = t.Name,
+                AgeGroupName = t.AgeGroup != null ? t.AgeGroup.Name : string.Empty
+            });
+        }
+
         public async Task RemovePlayerFromTeamAsync(int playerUserId, int teamId, int performedByUserId)
         {
             _logger.LogInformation("User {UserId} removing player {PlayerId} from team {TeamId}", performedByUserId, playerUserId, teamId);

@@ -7,5 +7,6 @@ export interface TimelineEvent {
   rawType: string;
   side: 'home' | 'away';
   player: MiniPlayerCardModel;
+  assistPlayerId?: number;
   accentColor: string;
 }

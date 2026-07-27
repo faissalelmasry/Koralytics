@@ -202,6 +202,29 @@ namespace Koralytics.Application.Services.Coach.CoachSquadService
         }
 
         // ─────────────────────────────────────────────────────────────────────
+        // GetCoachTeamsAsync
+        // ─────────────────────────────────────────────────────────────────────
+        public async Task<IEnumerable<CoachTeamDto>> GetCoachTeamsAsync(int coachId)
+        {
+            _logger.LogInformation("Coach {CoachId} requesting their assigned teams", coachId);
+
+            var coachTeams = await _unitOfWork.Repository<CoachTeamEntity>()
+                .GetQueryableAsNoTracking()
+                .Where(ct => ct.CoachUserId == coachId && ct.RemovedAt == null)
+                .Include(ct => ct.Team)
+                    .ThenInclude(t => t.AgeGroup)
+                .ToListAsync();
+
+            return coachTeams.Select(ct => new CoachTeamDto
+            {
+                TeamId = ct.TeamId,
+                TeamName = ct.Team.Name,
+                AgeGroupName = ct.Team.AgeGroup != null ? ct.Team.AgeGroup.Name : string.Empty,
+                AcademyId = ct.Team.AcademyId
+            });
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
         // Private helper — maps a Player + optional PlayerCard → SquadPlayerDto
         // ─────────────────────────────────────────────────────────────────────
         private static SquadPlayerDto MapToSquadPlayerDto(

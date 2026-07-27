@@ -19,6 +19,10 @@
   gap: 6px;
 }
 
+.date-field-group.is-open {
+  z-index: 9999;
+}
+
 .date-control-wrapper {
   position: relative;
   width: 100%;

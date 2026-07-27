@@ -56,4 +56,11 @@ namespace Koralytics.Application.DTOs.Academies
         public string TeamName { get; set; } = string.Empty;
         public DateTime AssignedAt { get; set; }
     }
+
+    public class AcademyTeamSummaryDto
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string AgeGroupName { get; set; } = string.Empty;
+    }
 }
