@@ -1,71 +1,384 @@
+<!-- LIVE MATCH LOGGER TOOLBAR (Renders inside Lineup component when match is Live & User is Authorized) -->
+@if (canLogEvents) {
+<div class="live-logger-bar">
+
+  <!-- Tactical Tag Header inspired by player-match-timeline -->
+  <div class="logger-header-row">
+    <div class="tactical-tag">
+      <span>{{ isShootoutMode ? 'PENALTY SHOOTOUT' : 'LIVE MATCH EVENT LOGGER' }}</span>
+    </div>
+    <div class="header-actions">
+      @if (!isShootoutMode) {
+        <app-button [variant]="isDraw ? 'cyan' : 'slate'" [disabled]="!isDraw && !hasShootoutEvents"
+          (click)="enterShootoutMode()">
+          <span class="btn-inner-content">
+            <span>Penalty Shootouts</span>
+          </span>
+        </app-button>
+      } @else {
+        <app-button variant="slate" [disabled]="(homePenaltyScore > 0 || awayPenaltyScore > 0)"
+          (click)="exitShootoutMode()">
+          <span class="btn-inner-content">
+            <span>◀ Exit Shootout</span>
+          </span>
+        </app-button>
+      }
+    </div>
+  </div>
+
+  <!-- Shootout Scoreboard Banner when Shootout Mode Active -->
+  @if (isShootoutMode) {
+  <div class="shootout-score-box">
+    <span class="shootout-title">PENALTY SHOOTOUT SCORE</span>
+    <div class="shootout-readout">
+      <span class="team-name">{{ homeName }}</span>
+      <span class="shootout-score">{{ homePenaltyScore }} - {{ awayPenaltyScore }}</span>
+      <span class="team-name">{{ awayName }}</span>
+    </div>
+  </div>
+  }
+
+  <!-- Action Tools Banner -->
+  <div class="action-banner">
+    <span class="action-title">Action Mode:</span>
+    <span class="instruction-badge">
+      @switch (activeTool) {
+      @case ('goal_solo') {
+      <svg class="banner-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="ball_shade_bn" cx="30%" cy="30%" r="70%">
+            <stop offset="0%" stop-color="#FFFFFF" />
+            <stop offset="70%" stop-color="#F1F5F9" />
+            <stop offset="100%" stop-color="#CBD5E1" />
+          </radialGradient>
+        </defs>
+        <path d="M2 20.5H22" stroke="#10B981" stroke-width="2" stroke-linecap="round" />
+        <circle cx="12" cy="11" r="8.5" fill="url(#ball_shade_bn)" stroke="#0F172A" stroke-width="1" />
+        <polygon points="12,8 14.85,10.07 13.76,13.43 10.24,13.43 9.15,10.07" fill="#0F172A" />
+        <path d="M12,8 L12,2.5" stroke="#0F172A" stroke-width="0.9" stroke-linecap="round" />
+        <path d="M14.85,10.07 L20.08,8.37" stroke="#0F172A" stroke-width="0.9" stroke-linecap="round" />
+        <path d="M13.76,13.43 L17,17.88" stroke="#0F172A" stroke-width="0.9" stroke-linecap="round" />
+        <path d="M10.24,13.43 L7,17.88" stroke="#0F172A" stroke-width="0.9" stroke-linecap="round" />
+        <path d="M9.15,10.07 L3.92,8.37" stroke="#0F172A" stroke-width="0.9" stroke-linecap="round" />
+      </svg>
+      }
+      @case ('goal_assist') {
+      <svg class="banner-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="svg_boot_grad_bn" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#38BDF8" />
+            <stop offset="1" stop-color="#0284C7" />
+          </linearGradient>
+        </defs>
+        <path
+          d="M2.5 13.5C2.5 12 3.8 11.2 5 12.2L7.2 13.8C8.5 14.6 10.2 15 11.8 15.8C13 16.4 13.2 17.8 12 18.3H3.8C2.8 18.3 2.5 17.2 2.5 16V13.5Z"
+          fill="url(#svg_boot_grad_bn)" stroke="#7DD3FC" stroke-width="0.8" />
+        <path d="M12.5 15.5C13.8 14 14.8 12.5 15.8 11" stroke="#38BDF8" stroke-width="1.2" stroke-dasharray="2 1.5"
+          stroke-linecap="round" />
+        <circle cx="18" cy="7.5" r="4" fill="#FFFFFF" stroke="#0F172A" stroke-width="0.7" />
+      </svg>
+      }
+      @case ('penalty_scored') {
+      <svg class="banner-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M4 19V7C4 5.89543 4.89543 5 6 5H18C19.1046 5 20 5.89543 20 7V19" stroke="#2DD4BF" stroke-width="2"
+          stroke-linecap="round" />
+        <circle cx="16" cy="9" r="3.5" fill="#2DD4BF" stroke="#FFFFFF" stroke-width="1" />
+        <path d="M14.5 9L15.5 10L17.5 8" stroke="#042F2C" stroke-width="1.2" stroke-linecap="round"
+          stroke-linejoin="round" />
+      </svg>
+      }
+      @case ('penalty_missed') {
+      <svg class="banner-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M4 19V7C4 5.89543 4.89543 5 6 5H18C19.1046 5 20 5.89543 20 7V19" stroke="#F43F5E" stroke-width="2"
+          stroke-linecap="round" />
+        <circle cx="16" cy="9" r="3.5" fill="#EF4444" stroke="#FFFFFF" stroke-width="1" />
+        <path d="M14.3 7.3L17.7 10.7M17.7 7.3L14.3 10.7" stroke="#000000" stroke-width="1.3" stroke-linecap="round" />
+      </svg>
+      }
+      @case ('own_goal') {
+      <svg class="banner-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 5H19.5C20.3 5 21 5.7 21 6.5V17.5C21 18.3 20.3 19 19.5 19H12" stroke="#E11D48" stroke-width="1.8"
+          stroke-linecap="round" />
+        <circle cx="10" cy="14" r="3" fill="#FFFFFF" stroke="#E11D48" stroke-width="0.6" />
+      </svg>
+      }
+      @case ('sub') {
+      <svg class="banner-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M4 13C4 8.02944 8.02944 4 13 4C15.5 4 17.5 5 19 6.5" stroke="#10B981" stroke-width="2.2"
+          stroke-linecap="round" />
+        <path d="M15 6.5H19.5V2" stroke="#10B981" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M20 11C20 15.9706 15.9706 20 11 20C8.5 20 6.5 19 5 17.5" stroke="#EF4444" stroke-width="2.2"
+          stroke-linecap="round" />
+        <path d="M9 17.5H4.5V22" stroke="#EF4444" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+      }
+      @case ('yellow') {
+      <svg class="banner-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="svg_yc_grad_bn" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#FDE047" />
+            <stop offset="1" stop-color="#EAB308" />
+          </linearGradient>
+        </defs>
+        <rect x="7" y="4" width="11" height="16" rx="2" transform="rotate(-6 12.5 12)" fill="url(#svg_yc_grad_bn)"
+          stroke="#FEF08A" stroke-width="1" />
+      </svg>
+      }
+      @case ('red') {
+      <svg class="banner-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="svg_rc_grad_bn" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#F87171" />
+            <stop offset="1" stop-color="#DC2626" />
+          </linearGradient>
+        </defs>
+        <rect x="7" y="4" width="11" height="16" rx="2" transform="rotate(-6 12.5 12)" fill="url(#svg_rc_grad_bn)"
+          stroke="#FCA5A5" stroke-width="1" />
+      </svg>
+      }
+      }
+      <span>{{ instructionText }}</span>
+    </span>
+  </div>
+
+  <!-- Action Tool Buttons Grid -->
+  <div class="action-grid">
+
+    @if (!isShootoutMode) {
+    <!-- REGULAR LIVE MATCH TOOLS -->
+
+    <!-- 1. Solo Goal -->
+    <app-button [variant]="activeTool === 'goal_solo' ? 'gold' : 'slate'" [disabled]="hasShootoutEvents"
+      [shimmer]="activeTool === 'goal_solo'" (click)="setTool('goal_solo')">
+      <span class="btn-inner-content">
+        <svg class="tool-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="ball_shade_tb" cx="30%" cy="30%" r="70%">
+              <stop offset="0%" stop-color="#FFFFFF" />
+              <stop offset="70%" stop-color="#F1F5F9" />
+              <stop offset="100%" stop-color="#CBD5E1" />
+            </radialGradient>
+          </defs>
+          <path d="M2 20.5H22" stroke="#10B981" stroke-width="2" stroke-linecap="round" />
+          <circle cx="12" cy="11" r="8.5" fill="url(#ball_shade_tb)" stroke="#0F172A" stroke-width="1" />
+          <polygon points="12,8 14.85,10.07 13.76,13.43 10.24,13.43 9.15,10.07" fill="#0F172A" />
+          <path d="M12,8 L12,2.5" stroke="#0F172A" stroke-width="0.9" stroke-linecap="round" />
+          <path d="M14.85,10.07 L20.08,8.37" stroke="#0F172A" stroke-width="0.9" stroke-linecap="round" />
+          <path d="M13.76,13.43 L17,17.88" stroke="#0F172A" stroke-width="0.9" stroke-linecap="round" />
+          <path d="M10.24,13.43 L7,17.88" stroke="#0F172A" stroke-width="0.9" stroke-linecap="round" />
+          <path d="M9.15,10.07 L3.92,8.37" stroke="#0F172A" stroke-width="0.9" stroke-linecap="round" />
+        </svg>
+        <span>Solo Goal</span>
+      </span>
+    </app-button>
+
+    <!-- 2. Goal + Assist -->
+    <app-button [variant]="activeTool === 'goal_assist' ? 'gold' : 'slate'" [disabled]="hasShootoutEvents"
+      [shimmer]="activeTool === 'goal_assist'" (click)="setTool('goal_assist')">
+      <span class="btn-inner-content">
+        <svg class="tool-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="svg_boot_grad_tb" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#38BDF8" />
+              <stop offset="1" stop-color="#0284C7" />
+            </linearGradient>
+          </defs>
+          <path
+            d="M2.5 13.5C2.5 12 3.8 11.2 5 12.2L7.2 13.8C8.5 14.6 10.2 15 11.8 15.8C13 16.4 13.2 17.8 12 18.3H3.8C2.8 18.3 2.5 17.2 2.5 16V13.5Z"
+            fill="url(#svg_boot_grad_tb)" stroke="#7DD3FC" stroke-width="0.8" />
+          <path d="M12.5 15.5C13.8 14 14.8 12.5 15.8 11" stroke="#38BDF8" stroke-width="1.2" stroke-dasharray="2 1.5"
+            stroke-linecap="round" />
+          <circle cx="18" cy="7.5" r="4" fill="#FFFFFF" stroke="#0F172A" stroke-width="0.7" />
+        </svg>
+        <span>Goal+Assist</span>
+      </span>
+    </app-button>
+
+    <!-- 3. Own Goal -->
+    <app-button [variant]="activeTool === 'own_goal' ? 'gold' : 'slate'" [disabled]="hasShootoutEvents"
+      [shimmer]="activeTool === 'own_goal'" (click)="setTool('own_goal')">
+      <span class="btn-inner-content">
+        <svg class="tool-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 5H19.5C20.3 5 21 5.7 21 6.5V17.5C21 18.3 20.3 19 19.5 19H12" stroke="#E11D48" stroke-width="1.8"
+            stroke-linecap="round" />
+          <circle cx="10" cy="14" r="3" fill="#FFFFFF" stroke="#E11D48" stroke-width="0.6" />
+        </svg>
+        <span>Own Goal</span>
+      </span>
+    </app-button>
+
+    <!-- 4. Substitution -->
+    <app-button [variant]="activeTool === 'sub' ? 'gold' : 'slate'" [disabled]="hasShootoutEvents"
+      [shimmer]="activeTool === 'sub'" (click)="setTool('sub')">
+      <span class="btn-inner-content">
+        <svg class="tool-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 13C4 8.02944 8.02944 4 13 4C15.5 4 17.5 5 19 6.5" stroke="#10B981" stroke-width="2.2"
+            stroke-linecap="round" />
+          <path d="M15 6.5H19.5V2" stroke="#10B981" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+          <path d="M20 11C20 15.9706 15.9706 20 11 20C8.5 20 6.5 19 5 17.5" stroke="#EF4444" stroke-width="2.2"
+            stroke-linecap="round" />
+          <path d="M9 17.5H4.5V22" stroke="#EF4444" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        <span>Sub Out/In</span>
+      </span>
+    </app-button>
+
+    <!-- 5. Yellow Card -->
+    <app-button [variant]="activeTool === 'yellow' ? 'gold' : 'slate'" [disabled]="hasShootoutEvents"
+      [shimmer]="activeTool === 'yellow'" (click)="setTool('yellow')">
+      <span class="btn-inner-content">
+        <svg class="tool-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="svg_yc_grad_tb" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#FDE047" />
+              <stop offset="1" stop-color="#EAB308" />
+            </linearGradient>
+          </defs>
+          <rect x="7" y="4" width="11" height="16" rx="2" transform="rotate(-6 12.5 12)" fill="url(#svg_yc_grad_tb)"
+            stroke="#FEF08A" stroke-width="1" />
+        </svg>
+        <span>Yellow Card</span>
+      </span>
+    </app-button>
+
+    <!-- 6. Red Card -->
+    <app-button [variant]="activeTool === 'red' ? 'gold' : 'slate'" [disabled]="hasShootoutEvents"
+      [shimmer]="activeTool === 'red'" (click)="setTool('red')">
+      <span class="btn-inner-content">
+        <svg class="tool-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="svg_rc_grad_tb" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#F87171" />
+              <stop offset="1" stop-color="#DC2626" />
+            </linearGradient>
+          </defs>
+          <rect x="7" y="4" width="11" height="16" rx="2" transform="rotate(-6 12.5 12)" fill="url(#svg_rc_grad_tb)"
+            stroke="#FCA5A5" stroke-width="1" />
+        </svg>
+        <span>Red Card</span>
+      </span>
+    </app-button>
+
+    } @else {
+    <!-- PENALTY SHOOTOUT MODE TOOLS -->
+
+    <!-- 1. Pen Scored -->
+    <app-button [variant]="activeTool === 'penalty_scored' ? 'gold' : 'slate'"
+      [shimmer]="activeTool === 'penalty_scored'" (click)="setTool('penalty_scored')">
+      <span class="btn-inner-content">
+        <svg class="tool-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 19V7C4 5.89543 4.89543 5 6 5H18C19.1046 5 20 5.89543 20 7V19" stroke="#2DD4BF" stroke-width="2"
+            stroke-linecap="round" />
+          <circle cx="16" cy="9" r="3.5" fill="#2DD4BF" stroke="#FFFFFF" stroke-width="1" />
+          <path d="M14.5 9L15.5 10L17.5 8" stroke="#042F2C" stroke-width="1.2" stroke-linecap="round"
+            stroke-linejoin="round" />
+        </svg>
+        <span>Pen Scored</span>
+      </span>
+    </app-button>
+
+    <!-- 2. Pen Missed -->
+    <app-button [variant]="activeTool === 'penalty_missed' ? 'gold' : 'slate'"
+      [shimmer]="activeTool === 'penalty_missed'" (click)="setTool('penalty_missed')">
+      <span class="btn-inner-content">
+        <svg class="tool-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 19V7C4 5.89543 4.89543 5 6 5H18C19.1046 5 20 5.89543 20 7V19" stroke="#F43F5E" stroke-width="2"
+            stroke-linecap="round" />
+          <circle cx="16" cy="9" r="3.5" fill="#EF4444" stroke="#FFFFFF" stroke-width="1" />
+          <path d="M14.3 7.3L17.7 10.7M17.7 7.3L14.3 10.7" stroke="#000000" stroke-width="1.3" stroke-linecap="round" />
+        </svg>
+        <span>Pen Missed</span>
+      </span>
+    </app-button>
+
+    }
+
+  </div>
+
+</div>
+}
+
+<!-- Team Subtabs -->
 <div class="team-subtabs">
-  <button
-    class="subtab-btn"
-    [class.active]="selectedTeam === 'home'"
-    (click)="selectTeam('home')"
-  >{{ homeName }} ({{ homeFormation || '-' }})</button>
-  <button
-    class="subtab-btn"
-    [class.active]="selectedTeam === 'away'"
-    (click)="selectTeam('away')"
-  >{{ awayName }} ({{ awayFormation || '-' }})</button>
+  <button class="subtab-btn" [class.active]="selectedTeam === 'home'" (click)="selectTeam('home')">
+    {{ homeName }} @if (homeStarters && homeStarters.length > 0) { ({{ homeFormation || '-' }}) }
+  </button>
+  <button class="subtab-btn" [class.active]="selectedTeam === 'away'" (click)="selectTeam('away')">
+    {{ awayName }} @if (awayStarters && awayStarters.length > 0) { ({{ awayFormation || '-' }}) }
+  </button>
 </div>
 
 <div class="lineups-wrapper">
 
+  <!-- HOME TEAM LINEUP -->
   <div class="pitch-view-container" [class.hidden]="selectedTeam !== 'home'">
-    @if (homeFormation && homeFormation !== '-') {
-      <div class="full-pitch">
-        <div class="pitch-center-line"></div>
-        <div class="pitch-center-circle"></div>
+    @if (homeStarters && homeStarters.length > 0) {
+    <div class="full-pitch">
+      <div class="pitch-center-line"></div>
+      <div class="pitch-center-circle"></div>
 
-        @for (row of homeStarters; track $index) {
-          <div class="formation-row">
-            @for (player of row; track player.playerId) {
-              <app-mini-player-card [player]="player" size="sm" [float]="true" />
-            }
-          </div>
+      @for (row of homeStarters; track $index) {
+      <div class="formation-row">
+        @for (player of row; track player.playerId) {
+        <app-mini-player-card [player]="player" size="sm" [float]="true" [accentColor]="getCardAccent(player)"
+          (cardClick)="onPlayerCardClick(player)" />
         }
       </div>
+      }
+    </div>
 
-      <div class="bench-card">
-        <div class="bench-title">Substitutes Bench ({{ homeName }})</div>
-        <div class="bench-flex">
-          @for (player of homeBench; track player.playerId) {
-            <app-mini-player-card [player]="player" size="sm" />
-          }
-        </div>
+    <div class="bench-card" [class.bench-sub-active]="canLogEvents && activeTool === 'sub' && firstPickedPlayer">
+      <div class="bench-title">
+        Substitutes Bench ({{ homeName }})
+        @if (canLogEvents && activeTool === 'sub' && firstPickedPlayer && selectedTeam === 'home') {
+        <span class="sub-prompt animate-pulse"> ➔ Tap Bench Player to Complete Sub</span>
+        }
       </div>
+      <div class="bench-flex">
+        @for (player of homeBench; track player.playerId) {
+        <app-mini-player-card [player]="player" size="sm" [accentColor]="getCardAccent(player)"
+          (cardClick)="onBenchPlayerClick(player)" />
+        }
+      </div>
+    </div>
     } @else {
-      <app-empty-state title="No Lineup" [description]="homeName + ' has no lineup submitted for this match.'" />
+    <app-empty-state title="No Lineup" [description]="homeName + ' has no lineup submitted for this match.'" />
     }
   </div>
 
+  <!-- AWAY TEAM LINEUP -->
   <div class="pitch-view-container" [class.hidden]="selectedTeam !== 'away'">
-    @if (awayFormation && awayFormation !== '-') {
-      <div class="full-pitch">
-        <div class="pitch-center-line"></div>
-        <div class="pitch-center-circle"></div>
+    @if (awayStarters && awayStarters.length > 0) {
+    <div class="full-pitch">
+      <div class="pitch-center-line"></div>
+      <div class="pitch-center-circle"></div>
 
-        @for (row of awayStarters; track $index) {
-          <div class="formation-row">
-            @for (player of row; track player.playerId) {
-              <app-mini-player-card [player]="player" size="sm" [float]="true" />
-            }
-          </div>
+      @for (row of awayStarters; track $index) {
+      <div class="formation-row">
+        @for (player of row; track player.playerId) {
+        <app-mini-player-card [player]="player" size="sm" [float]="true" [accentColor]="getCardAccent(player)"
+          (cardClick)="onPlayerCardClick(player)" />
         }
       </div>
+      }
+    </div>
 
-      <div class="bench-card">
-        <div class="bench-title">Substitutes Bench ({{ awayName }})</div>
-        <div class="bench-flex">
-          @for (player of awayBench; track player.playerId) {
-            <app-mini-player-card [player]="player" size="sm" />
-          }
-        </div>
+    <div class="bench-card" [class.bench-sub-active]="canLogEvents && activeTool === 'sub' && firstPickedPlayer">
+      <div class="bench-title">
+        Substitutes Bench ({{ awayName }})
+        @if (canLogEvents && activeTool === 'sub' && firstPickedPlayer && selectedTeam === 'away') {
+        <span class="sub-prompt animate-pulse"> ➔ Tap Bench Player to Complete Sub</span>
+        }
       </div>
+      <div class="bench-flex">
+        @for (player of awayBench; track player.playerId) {
+        <app-mini-player-card [player]="player" size="sm" [accentColor]="getCardAccent(player)"
+          (cardClick)="onBenchPlayerClick(player)" />
+        }
+      </div>
+    </div>
     } @else {
-      <app-empty-state title="No Lineup" [description]="awayName + ' has no lineup submitted for this match.'" />
+    <app-empty-state title="No Lineup" [description]="awayName + ' has no lineup submitted for this match.'" />
     }
   </div>
 

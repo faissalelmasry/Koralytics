@@ -10,6 +10,8 @@ namespace Koralytics.Application.DTOs.Match
         public MatchFormat Format { get; set; }
         public DateTime MatchDate { get; set; }
         public string? Location { get; set; }
+        public string? Formation { get; set; }
+        public string? AwayFormation { get; set; }
     }
 
     public class SessionSidePlayerDto

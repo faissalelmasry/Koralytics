@@ -2,6 +2,7 @@ namespace Koralytics.Application.DTOs.Match
 {
     public class SubmitLineupDto
     {
+        public string? Formation { get; set; }
         public List<SubmitLineupPlayerDto> Players { get; set; } = [];
     }
 

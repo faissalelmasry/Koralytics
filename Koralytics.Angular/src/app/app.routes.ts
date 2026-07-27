@@ -38,6 +38,9 @@ export const routes: Routes = [
       { path: 'tournament/manage', redirectTo: 'tournament/list', pathMatch: 'full' },
       { path: 'tournament/details/:id', loadComponent: () => import('./features/tournament/pages/tournament-details/tournament-details.component').then(m => m.TournamentDetailsComponent) },
       { path: 'tournament/:id/squad-registration', loadComponent: () => import('./features/tournament/pages/squad-registration/squad-registration.component').then(m => m.SquadRegistrationComponent) },
+      { path: 'match/friendly-request', loadComponent: () => import('./features/match/pages/friendly-match-request/friendly-match-request.component').then(m => m.FriendlyMatchRequestComponent), canActivate: [roleGuard], data: { roles: ['Coach', 'AcademyAdmin'] } },
+      { path: 'match/requests/incoming', loadComponent: () => import('./features/match/pages/match-request-incoming/match-request-incoming.component').then(m => m.MatchRequestIncomingComponent), canActivate: [roleGuard], data: { roles: ['Coach', 'AcademyAdmin'] } },
+      { path: 'match/requests/outgoing', loadComponent: () => import('./features/match/pages/match-request-outgoing/match-request-outgoing.component').then(m => m.MatchRequestOutgoingComponent), canActivate: [roleGuard], data: { roles: ['Coach', 'AcademyAdmin'] } },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   },
@@ -50,6 +53,18 @@ export const routes: Routes = [
     path: 'match/:id',
     loadComponent: () => import('./features/match/pages/match-detail/match-detail.component').then(m => m.MatchDetailComponent),
     canActivate: [authGuard]
+  },
+  {
+    path: 'match/:id/submit-lineup',
+    loadComponent: () => import('./features/match/pages/submit-lineup/submit-lineup.component').then(m => m.SubmitLineupComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Coach', 'AcademyAdmin'] }
+  },
+  {
+    path: 'session/:sessionId/create-match',
+    loadComponent: () => import('./features/match/pages/session-match/session-match.component').then(m => m.SessionMatchComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Coach', 'AcademyAdmin'] }
   },
   {
     path: 'academy/matches',

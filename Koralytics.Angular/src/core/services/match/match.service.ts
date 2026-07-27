@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ApiResponse } from '../../interfaces/api-response.model';
 import { MatchListDto } from '../../models/Match/match-list.model';
+import { MatchRequestListDto } from '../../models/Match/match-request.model';
 
 @Injectable({
   providedIn: 'root'
@@ -63,10 +64,117 @@ export class MatchService {
   }
 
   getMatchTimeline(matchId: number): Observable<ApiResponse<any>> {
-    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/${matchId}/timeline`);
+    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/${matchId}/timeline`, {
+      params: { t: new Date().getTime().toString() }
+    });
   }
 
   getLineup(matchId: number): Observable<ApiResponse<any>> {
-    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/${matchId}/lineup`);
+    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/${matchId}/lineup`, {
+      params: { t: new Date().getTime().toString() }
+    });
+  }
+
+  submitLineup(matchId: number, dto: { formation?: string; players: any[] }): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.apiUrl}/${matchId}/lineup`, dto);
+  }
+
+  requestFriendlyMatch(dto: {
+    requesterTeamId: number;
+    targetTeamId: number;
+    format: string;
+    proposedDate: string;
+    location?: string;
+  }): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.apiUrl}/request`, dto);
+  }
+
+  getIncomingRequests(
+    teamId: number,
+    page: number = 1,
+    pageSize: number = 20,
+    status?: string,
+    dateFrom?: string,
+    dateTo?: string
+  ): Observable<ApiResponse<MatchRequestListDto>> {
+    let params = new HttpParams()
+      .set('teamId', teamId.toString())
+      .set('page', page.toString())
+      .set('pageSize', pageSize.toString());
+
+    if (status)   params = params.set('status', status);
+    if (dateFrom) params = params.set('dateFrom', dateFrom);
+    if (dateTo)   params = params.set('dateTo', dateTo);
+
+    return this.http.get<ApiResponse<MatchRequestListDto>>(`${this.apiUrl}/request/incoming`, { params });
+  }
+
+  getOutgoingRequests(
+    teamId: number,
+    page: number = 1,
+    pageSize: number = 20,
+    status?: string,
+    dateFrom?: string,
+    dateTo?: string
+  ): Observable<ApiResponse<MatchRequestListDto>> {
+    let params = new HttpParams()
+      .set('teamId', teamId.toString())
+      .set('page', page.toString())
+      .set('pageSize', pageSize.toString());
+
+    if (status)   params = params.set('status', status);
+    if (dateFrom) params = params.set('dateFrom', dateFrom);
+    if (dateTo)   params = params.set('dateTo', dateTo);
+
+    return this.http.get<ApiResponse<MatchRequestListDto>>(`${this.apiUrl}/request/outgoing`, { params });
+  }
+
+  acceptMatchRequest(requestId: number): Observable<ApiResponse<any>> {
+    return this.http.patch<ApiResponse<any>>(`${this.apiUrl}/request/${requestId}/accept`, {});
+  }
+
+  declineMatchRequest(requestId: number): Observable<ApiResponse<any>> {
+    return this.http.patch<ApiResponse<any>>(`${this.apiUrl}/request/${requestId}/decline`, {});
+  }
+
+  createSessionMatch(dto: {
+    sessionId: number;
+    homePlayers: Array<{ playerId: number; isStarting: boolean; jerseyNumber?: number; positionInMatch?: string }>;
+    awayPlayers: Array<{ playerId: number; isStarting: boolean; jerseyNumber?: number; positionInMatch?: string }>;
+    format: string | number;
+    matchDate: string;
+    location?: string;
+    formation?: string;
+    awayFormation?: string;
+  }): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.apiUrl}/session`, dto);
+  }
+
+  logMatchEvent(matchId: number, dto: {
+    teamId: number;
+    playerId: number;
+    assistPlayerId?: number | null;
+    eventType: string | number;
+    minute: number;
+  }): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.apiUrl}/${matchId}/events`, dto);
+  }
+
+  logSessionMatchEvent(matchId: number, dto: {
+    playerId: number;
+    assistPlayerId?: number | null;
+    eventType: string | number;
+    minute: number;
+    isHomeSide: boolean;
+  }): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.apiUrl}/${matchId}/session-events`, dto);
+  }
+
+  startMatch(matchId: number): Observable<ApiResponse<any>> {
+    return this.http.patch<ApiResponse<any>>(`${this.apiUrl}/${matchId}/start`, {});
+  }
+
+  endMatch(matchId: number): Observable<ApiResponse<any>> {
+    return this.http.patch<ApiResponse<any>>(`${this.apiUrl}/${matchId}/end`, {});
   }
 }

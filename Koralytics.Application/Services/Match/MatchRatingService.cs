@@ -108,6 +108,15 @@ namespace Koralytics.Application.Services.Match
                 await _unitOfWork.Repository<MatchLineup>().AddAsync(lineup);
             }
 
+            if (coachTeamId == match.HomeTeamId)
+            {
+                match.Formation = dto.Formation;
+            }
+            else if (coachTeamId == match.AwayTeamId)
+            {
+                match.AwayFormation = dto.Formation;
+            }
+
             await _unitOfWork.SaveChangesAsync();
 
             _logger.LogInformation("Lineup submitted for match {MatchId} by coach {CoachId}: {Count} players",

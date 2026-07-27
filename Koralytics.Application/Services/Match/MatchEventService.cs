@@ -18,15 +18,18 @@ namespace Koralytics.Application.Services.Match
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly ILogger<MatchEventService> _logger;
+        private readonly IMatchLiveUpdateService _liveUpdateService;
 
         public MatchEventService(
             IUnitOfWork unitOfWork,
             IMapper mapper,
-            ILogger<MatchEventService> logger)
+            ILogger<MatchEventService> logger,
+            IMatchLiveUpdateService liveUpdateService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _logger = logger;
+            _liveUpdateService = liveUpdateService;
         }
 
         public async Task<MatchEventResponseDto> LogMatchEventAsync(int matchId, LogMatchEventDto dto)
@@ -79,10 +82,38 @@ namespace Koralytics.Application.Services.Match
 
             if (IsPenaltyShootoutEvent(dto.EventType))
             {
+                if (!match.HomePenaltyScore.HasValue) match.HomePenaltyScore = 0;
+                if (!match.AwayPenaltyScore.HasValue) match.AwayPenaltyScore = 0;
+
                 if (dto.TeamId == match.HomeTeamId)
-                    match.HomePenaltyScore = (match.HomePenaltyScore ?? 0) + 1;
+                    match.HomePenaltyScore++;
                 else
-                    match.AwayPenaltyScore = (match.AwayPenaltyScore ?? 0) + 1;
+                    match.AwayPenaltyScore++;
+            }
+
+            if (dto.EventType == DomainEnums.MatchEventType.Substitution)
+            {
+                if (!dto.AssistPlayerId.HasValue)
+                    throw new BadRequestException("Substitution event requires an AssistPlayerId representing the incoming player.");
+
+                var subOutLineup = await _unitOfWork.Repository<MatchLineupEntity>()
+                    .GetQueryable()
+                    .FirstOrDefaultAsync(ml => ml.MatchId == matchId && ml.PlayerId == dto.PlayerId && ml.TeamId == dto.TeamId);
+
+                var subInLineup = await _unitOfWork.Repository<MatchLineupEntity>()
+                    .GetQueryable()
+                    .FirstOrDefaultAsync(ml => ml.MatchId == matchId && ml.PlayerId == dto.AssistPlayerId.Value && ml.TeamId == dto.TeamId);
+
+                if (subOutLineup != null && subInLineup != null)
+                {
+                    var outPosition = subOutLineup.PositionInMatch;
+                    subOutLineup.IsStarting = false;
+                    subOutLineup.PositionInMatch = "SUB";
+
+                    subInLineup.IsStarting = true;
+                    if (!string.IsNullOrEmpty(outPosition))
+                        subInLineup.PositionInMatch = outPosition;
+                }
             }
 
             await _unitOfWork.SaveChangesAsync();
@@ -98,7 +129,25 @@ namespace Koralytics.Application.Services.Match
                 "Match event logged: {EventType} at minute {Minute} for match {MatchId}",
                 dto.EventType, dto.Minute, matchId);
 
-            return _mapper.Map<MatchEventResponseDto>(created!);
+            var responseDto = _mapper.Map<MatchEventResponseDto>(created!);
+
+            await _liveUpdateService.BroadcastMatchEventAsync(new LiveMatchEventUpdateDto
+            {
+                MatchId = matchId,
+                Event = responseDto
+            });
+
+            await _liveUpdateService.BroadcastMatchScoreUpdateAsync(new LiveMatchScoreUpdateDto
+            {
+                MatchId = matchId,
+                HomeScore = match.HomeScore,
+                AwayScore = match.AwayScore,
+                HomePenaltyScore = match.HomePenaltyScore,
+                AwayPenaltyScore = match.AwayPenaltyScore,
+                Status = match.Status.ToString()
+            });
+
+            return responseDto;
         }
 
         public async Task<MatchEventResponseDto> LogSessionMatchEventAsync(int matchId, LogSessionMatchEventDto dto)
@@ -160,10 +209,38 @@ namespace Koralytics.Application.Services.Match
 
             if (IsPenaltyShootoutEvent(dto.EventType))
             {
+                if (!match.HomePenaltyScore.HasValue) match.HomePenaltyScore = 0;
+                if (!match.AwayPenaltyScore.HasValue) match.AwayPenaltyScore = 0;
+
                 if (dto.IsHomeSide)
-                    match.HomePenaltyScore = (match.HomePenaltyScore ?? 0) + 1;
+                    match.HomePenaltyScore++;
                 else
-                    match.AwayPenaltyScore = (match.AwayPenaltyScore ?? 0) + 1;
+                    match.AwayPenaltyScore++;
+            }
+
+            if (dto.EventType == DomainEnums.MatchEventType.Substitution)
+            {
+                if (!dto.AssistPlayerId.HasValue)
+                    throw new BadRequestException("Substitution event requires an AssistPlayerId representing the incoming player.");
+
+                var subOutLineup = await _unitOfWork.Repository<MatchLineupEntity>()
+                    .GetQueryable()
+                    .FirstOrDefaultAsync(ml => ml.MatchId == matchId && ml.PlayerId == dto.PlayerId && ml.IsHomeSide == dto.IsHomeSide);
+
+                var subInLineup = await _unitOfWork.Repository<MatchLineupEntity>()
+                    .GetQueryable()
+                    .FirstOrDefaultAsync(ml => ml.MatchId == matchId && ml.PlayerId == dto.AssistPlayerId.Value && ml.IsHomeSide == dto.IsHomeSide);
+
+                if (subOutLineup != null && subInLineup != null)
+                {
+                    var outPosition = subOutLineup.PositionInMatch;
+                    subOutLineup.IsStarting = false;
+                    subOutLineup.PositionInMatch = "SUB";
+
+                    subInLineup.IsStarting = true;
+                    if (!string.IsNullOrEmpty(outPosition))
+                        subInLineup.PositionInMatch = outPosition;
+                }
             }
 
             await _unitOfWork.SaveChangesAsync();
@@ -179,7 +256,25 @@ namespace Koralytics.Application.Services.Match
                 "Session match event logged: {EventType} at minute {Minute} for match {MatchId}",
                 dto.EventType, dto.Minute, matchId);
 
-            return _mapper.Map<MatchEventResponseDto>(created!);
+            var responseDto = _mapper.Map<MatchEventResponseDto>(created!);
+
+            await _liveUpdateService.BroadcastMatchEventAsync(new LiveMatchEventUpdateDto
+            {
+                MatchId = matchId,
+                Event = responseDto
+            });
+
+            await _liveUpdateService.BroadcastMatchScoreUpdateAsync(new LiveMatchScoreUpdateDto
+            {
+                MatchId = matchId,
+                HomeScore = match.HomeScore,
+                AwayScore = match.AwayScore,
+                HomePenaltyScore = match.HomePenaltyScore,
+                AwayPenaltyScore = match.AwayPenaltyScore,
+                Status = match.Status.ToString()
+            });
+
+            return responseDto;
         }
 
         public async Task<MatchTimelineResponseDto> GetMatchTimelineAsync(int matchId)

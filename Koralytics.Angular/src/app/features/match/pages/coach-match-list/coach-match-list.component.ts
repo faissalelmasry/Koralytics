@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatchService } from '../../../../../core/services/match/match.service';
 import { MatchCardModel } from '../../../../../core/models/Match/match-card.model';
@@ -12,6 +12,8 @@ import { CustomSelect } from '../../../../../shared/components/custom-select/cus
 import { CustomDatePicker } from '../../../../../shared/components/custom-date-picker/custom-date-picker';
 import { CustomButtonComponent } from '../../../../../shared/components/custom-button/custom-button';
 import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
+import { MatchSignalrService } from '../../../../../core/services/match-signalr.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-coach-match-list',
@@ -24,9 +26,12 @@ import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-r
   templateUrl: './coach-match-list.component.html',
   styleUrls: ['./coach-match-list.component.css']
 })
-export class CoachMatchListComponent implements OnInit {
+export class CoachMatchListComponent implements OnInit, OnDestroy {
   private matchService = inject(MatchService);
   private cdr = inject(ChangeDetectorRef);
+  private signalrService = inject(MatchSignalrService);
+
+  private signalrSub?: Subscription;
 
   matches: MatchCardModel[] = [];
   isLoading = false;
@@ -62,6 +67,27 @@ export class CoachMatchListComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadMatches();
+    this.subscribeToLiveUpdates();
+  }
+
+  ngOnDestroy(): void {
+    if (this.signalrSub) {
+      this.signalrSub.unsubscribe();
+    }
+  }
+
+  private subscribeToLiveUpdates(): void {
+    this.signalrSub = this.signalrService.matchScoreUpdate$.subscribe(update => {
+      const matchIndex = this.matches.findIndex(m => m.id === update.matchId);
+      if (matchIndex !== -1) {
+        this.matches[matchIndex].homeScore = update.homeScore;
+        this.matches[matchIndex].awayScore = update.awayScore;
+        this.matches[matchIndex].homePenaltyScore = update.homePenaltyScore ?? undefined;
+        this.matches[matchIndex].awayPenaltyScore = update.awayPenaltyScore ?? undefined;
+        this.matches[matchIndex].status = update.status;
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   loadMatches(): void {

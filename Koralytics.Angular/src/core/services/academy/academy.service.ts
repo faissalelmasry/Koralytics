@@ -258,4 +258,13 @@ export class AcademyService {
   getAcademies(): Observable<any> {
     return this.http.get<any>(this.apiUrl);
   }
+
+  searchAcademies(name: string): Observable<ApiResponse<any[]>> {
+    let params = new HttpParams().set('name', name);
+    return this.http.get<ApiResponse<any[]>>(`${this.apiUrl}/search`, { params });
+  }
+
+  getAcademyTeamsSummary(academyId: number): Observable<ApiResponse<any[]>> {
+    return this.http.get<ApiResponse<any[]>>(`${this.apiUrl}/${academyId}/teams/summary`);
+  }
 }

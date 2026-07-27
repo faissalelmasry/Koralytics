@@ -992,5 +992,25 @@ namespace Koralytics.Application.Services.Academy.AcademyService
 
             await _unitOfWork.SaveChangesAsync();
         }
+
+        public async Task<IEnumerable<AcademySearchResponseDto>> SearchAcademiesByNameAsync(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                return [];
+
+            var lowerName = name.ToLower();
+
+            var academies = await _unitOfWork.Repository<Domain.Entities.Academy.Academy>()
+                .GetQueryableAsNoTracking()
+                .Where(a => a.Name.ToLower().Contains(lowerName))
+                .Take(10)
+                .ToListAsync();
+
+            return academies.Select(a => new AcademySearchResponseDto
+            {
+                Id = a.Id,
+                Name = a.Name
+            });
+        }
     }
 }

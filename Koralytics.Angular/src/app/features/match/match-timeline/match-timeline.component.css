@@ -28,6 +28,7 @@
 /* ---- SCOREBOARD ---- */
 
 .hero-scoreboard {
+  position: relative;
   background: var(--card-bg);
   backdrop-filter: blur(20px);
   border: 1px solid var(--card-border);
@@ -76,6 +77,12 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+.start-match-box {
+  position: absolute;
+  top: 20px;
+  right: 24px;
 }
 
 .score-digits {
@@ -216,4 +223,22 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* ---- BUTTON INNER STYLES ---- */
+.btn-inner-content {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.tool-svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
 }

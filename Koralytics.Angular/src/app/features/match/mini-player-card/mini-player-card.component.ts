@@ -40,6 +40,10 @@ export class MiniPlayerCardComponent {
     return 'tier-base';
   }
 
+  get displayRating(): number {
+    return Math.round(this.player?.overallRating ?? 0);
+  }
+
   getInitials(name: string): string {
     if (!name) return '';
     const parts = name.trim().split(' ');
