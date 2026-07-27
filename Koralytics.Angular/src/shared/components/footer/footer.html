@@ -2,7 +2,7 @@
   <div class="footer-container">
     
     <!-- Column 1: Brand Info & Logo -->
-    <div class="footer-col brand-info">
+    <div class="footer-col brand-info" scrollReveal direction="bottom" [delay]="0">
       <div class="footer-logo" routerLink="/">
         <img src="images/logo/primary/logo-primary-dark.png" alt="Koralytics Logo">
       </div>
@@ -12,7 +12,7 @@
     </div>
 
     <!-- Column 2: Quick Navigation Links -->
-    <div class="footer-col footer-links">
+    <div class="footer-col footer-links" scrollReveal direction="bottom" [delay]="100">
       <h4 class="col-title">explore</h4>
       <nav class="footer-nav">
         <a routerLink="/home">home</a>
@@ -23,7 +23,7 @@
     </div>
 
     <!-- Column 3: Platform Metrics / Quick Contact -->
-    <div class="footer-col footer-status">
+    <div class="footer-col footer-status" scrollReveal direction="bottom" [delay]="200">
       <h4 class="col-title">system status</h4>
       <div class="status-wrapper">
         <div class="status-indicator"></div>
@@ -35,7 +35,7 @@
   </div>
 
   <!-- Bottom Bar: Copyrights -->
-  <div class="footer-bottom">
+  <div class="footer-bottom" scrollReveal direction="bottom" [delay]="300">
     <p>&copy; 2026 koralytics. data. performance. future. all rights reserved.</p>
   </div>
 </footer>

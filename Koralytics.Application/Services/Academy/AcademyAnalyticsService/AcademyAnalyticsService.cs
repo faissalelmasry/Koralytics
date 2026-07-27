@@ -7,6 +7,7 @@ using Koralytics.Domain.Exceptions;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Linq;
 
 namespace Koralytics.Application.Services.Academy.AcademyAnalyticsService
 {
@@ -26,55 +27,106 @@ namespace Koralytics.Application.Services.Academy.AcademyAnalyticsService
         // ──────────────────────────────────────────────────────────────────────
         public async Task<IEnumerable<CoachPerformanceDto>> GetCoachPerformanceDashboardAsync(int academyId)
         {
-            _logger.LogInformation(
-                "Building coach performance dashboard for academy {AcademyId}", academyId);
+            _logger.LogInformation("Building coach performance dashboard for academy {AcademyId}", academyId);
 
             // Academy must exist
             _ = await _unitOfWork.Repository<Domain.Entities.Academy.Academy>()
                 .FindAsNoTrackingAsync(a => a.Id == academyId)
                 ?? throw new NotFoundException($"Academy with Id {academyId} not found.");
 
-            // Fetch all active coaches in the academy with their team assignments
-            var coachAcademies = await _unitOfWork.Repository<CoachAcademy>()
+            var (coaches, teams, playerTeams, cards) = await FetchDashboardDataAsync(academyId);
+
+            var results = MapToCoachPerformanceDtos(coaches, teams, playerTeams, cards);
+
+            _logger.LogInformation(
+                "Coach performance dashboard built for academy {AcademyId}: {Count} coaches.",
+                academyId, results.Count);
+
+            return results;
+        }
+
+        private async Task<(List<CoachData> Coaches, List<CoachTeamData> Teams, List<PlayerTeamData> PlayerTeams, List<PlayerCardData> Cards)> FetchDashboardDataAsync(int academyId)
+        {
+            var coaches = await _unitOfWork.Repository<CoachAcademy>()
                 .GetQueryableAsNoTracking()
-                .Include(ca => ca.Coach)
-                .Where(ca => ca.AcademyId == academyId && ca.LeftAt == null )        
+                .Where(ca => ca.AcademyId == academyId && ca.LeftAt == null)
+                .Select(ca => new CoachData
+                {
+                    CoachUserId = ca.CoachUserId,
+                    BiasScore = ca.BiasScore ?? 0m,
+                    FirstName = ca.Coach != null ? ca.Coach.FirstName : string.Empty,
+                    LastName = ca.Coach != null ? ca.Coach.LastName : string.Empty
+                })
                 .ToListAsync();
 
+            var coachIds = coaches.Select(c => c.CoachUserId).ToList();
+
+            var teams = await _unitOfWork.Repository<CoachTeam>()
+                .GetQueryableAsNoTracking()
+                .Where(ct => coachIds.Contains(ct.CoachUserId) && ct.Team.AcademyId == academyId && ct.RemovedAt == null)
+                .Select(ct => new CoachTeamData
+                {
+                    CoachUserId = ct.CoachUserId,
+                    TeamId = ct.TeamId,
+                    TeamName = ct.Team.Name
+                })
+                .Distinct()
+                .ToListAsync();
+
+            var teamIds = teams.Select(t => t.TeamId).Distinct().ToList();
+
+            var playerTeams = await _unitOfWork.Repository<PlayerTeam>()
+                .GetQueryableAsNoTracking()
+                .Where(pt => teamIds.Contains(pt.TeamId) && pt.LeftAt == null)
+                .Select(pt => new PlayerTeamData
+                {
+                    TeamId = pt.TeamId,
+                    PlayerId = pt.PlayerId
+                })
+                .ToListAsync();
+
+            var playerIds = playerTeams.Select(pt => pt.PlayerId).Distinct().ToList();
+
+            var cards = await _unitOfWork.Repository<PlayerCard>()
+                .GetQueryableAsNoTracking()
+                .Where(pc => playerIds.Contains(pc.PlayerId))
+                .Select(pc => new PlayerCardData
+                {
+                    PlayerId = pc.PlayerId,
+                    OverallRating = pc.OverallRating,
+                    OverallTrainingAvg = pc.OverallTrainingAvg
+                })
+                .ToListAsync();
+
+            return (coaches, teams, playerTeams, cards);
+        }
+
+        private List<CoachPerformanceDto> MapToCoachPerformanceDtos(
+            List<CoachData> coaches,
+            List<CoachTeamData> teams,
+            List<PlayerTeamData> playerTeams,
+            List<PlayerCardData> cards)
+        {
             var results = new List<CoachPerformanceDto>();
 
-            foreach (var ca in coachAcademies)
-            {
-                // Fetch all teams this coach is actively assigned to within this academy
-                var activeTeamIds = await _unitOfWork.Repository<CoachTeam>()
-                    .GetQueryableAsNoTracking()
-                    .Include(ct => ct.Team)
-                    .Where(ct => ct.CoachUserId == ca.CoachUserId && ct.Team.AcademyId == academyId && ct.RemovedAt == null)
-                    .Select(ct => new { ct.TeamId, ct.Team.Name })
-                    .Distinct()
-                    .ToListAsync();
+            // Convert to lookups/dictionaries for faster processing
+            var teamsByCoach = teams.ToLookup(t => t.CoachUserId);
+            var playersByTeam = playerTeams.ToLookup(pt => pt.TeamId);
+            var cardByPlayer = cards.ToDictionary(c => c.PlayerId);
 
+            foreach (var coach in coaches)
+            {
+                var coachActiveTeams = teamsByCoach[coach.CoachUserId];
                 var teamSummaries = new List<CoachTeamSummaryDto>();
                 var improvementRates = new List<decimal>();
 
-                foreach (var t in activeTeamIds)
+                foreach (var team in coachActiveTeams)
                 {
-                    // Fetch active players in this team {id,Full Names}
-                    var playerIds = await _unitOfWork.Repository<PlayerTeam>()
-                        .GetQueryableAsNoTracking()
-                        .Where(pt => pt.TeamId == t.TeamId && pt.LeftAt == null )            
-                        .Select(pt => pt.PlayerId)
-                        .ToListAsync();
+                    var teamPlayers = playersByTeam[team.TeamId];
 
-                    // For each player, compute improvement rate from PlayerCard
-                    // Improvement = OverallRating - OverallTrainingAvg (baseline proxy)
-                    // TODO: Refine improvement formula with the AI/Analytics teammate
-                    foreach (var playerId in playerIds)
+                    foreach (var player in teamPlayers)
                     {
-                        var card = await _unitOfWork.Repository<PlayerCard>()
-                            .FindAsNoTrackingAsync(pc => pc.PlayerId == playerId );
-
-                        if (card is not null && card.OverallTrainingAvg > 0)
+                        if (cardByPlayer.TryGetValue(player.PlayerId, out var card) && card.OverallTrainingAvg > 0)
                         {
                             var improvement = card.OverallRating - card.OverallTrainingAvg;
                             improvementRates.Add(improvement);
@@ -83,42 +135,31 @@ namespace Koralytics.Application.Services.Academy.AcademyAnalyticsService
 
                     teamSummaries.Add(new CoachTeamSummaryDto
                     {
-                        TeamId = t.TeamId,
-                        TeamName = t.Name,
-                        PlayerCount = playerIds.Count
+                        TeamId = team.TeamId,
+                        TeamName = team.TeamName,
+                        PlayerCount = teamPlayers.Count()
                     });
                 }
 
                 var avgImprovement = improvementRates.Count > 0 ? improvementRates.Average() : 0m;
 
-                // TODO: BiasScore is calculated by the AI/Analytics module background job
-                // and stored in CoachAcademy.BiasScore. We read it directly from the record.
-                var biasScore = ca.BiasScore;
-
                 results.Add(new CoachPerformanceDto
                 {
-                    CoachUserId = ca.CoachUserId,
-                    CoachFullName = ca.Coach is not null
-                        ? $"{ca.Coach.FirstName} {ca.Coach.LastName}"
-                        : string.Empty,
+                    CoachUserId = coach.CoachUserId,
+                    CoachFullName = $"{coach.FirstName} {coach.LastName}".Trim(),
                     AveragePlayerImprovementRate = Math.Round(avgImprovement, 2),
-                    BiasScore = biasScore,
+                    BiasScore = coach.BiasScore,
                     Teams = teamSummaries
                 });
             }
 
-            // Rank by improvement rate (descending) — best coach = rank 1
             int rank = 1;
             foreach (var dto in results.OrderByDescending(r => r.AveragePlayerImprovementRate))
             {
                 dto.Rank = rank++;
             }
 
-            _logger.LogInformation(
-                "Coach performance dashboard built for academy {AcademyId}: {Count} coaches.",
-                academyId, results.Count);
-
-            return results.OrderBy(r => r.Rank);
+            return results.OrderBy(r => r.Rank).ToList();
         }
 
         // ──────────────────────────────────────────────────────────────────────
@@ -126,26 +167,33 @@ namespace Koralytics.Application.Services.Academy.AcademyAnalyticsService
         // ──────────────────────────────────────────────────────────────────────
         public async Task<SubscriptionStatusSummaryDto> GetSubscriptionStatusAsync(int academyId)
         {
-            _logger.LogInformation(
-                "Fetching subscription status for academy {AcademyId}", academyId);
+            _logger.LogInformation("Fetching subscription status for academy {AcademyId}", academyId);
 
             _ = await _unitOfWork.Repository<Domain.Entities.Academy.Academy>()
-                .FindAsNoTrackingAsync(a => a.Id == academyId )
+                .FindAsNoTrackingAsync(a => a.Id == academyId)
                 ?? throw new NotFoundException($"Academy with Id {academyId} not found.");
 
-            // Fetch the latest subscription record per player in this academy
-            // We use a per-player grouping: latest subscription decides the player's current status.
-            var allSubscriptions = await _unitOfWork.Repository<PlayerSubscription>()
+            // Fetch the ID of the latest subscription record per player in this academy
+            var latestSubscriptionIds = await _unitOfWork.Repository<PlayerSubscription>()
                 .GetQueryableAsNoTracking()
-                .Include(ps => ps.Player)
                 .Where(ps => ps.AcademyId == academyId)
+                .GroupBy(ps => ps.PlayerId)
+                .Select(g => g.Max(ps => ps.Id))
                 .ToListAsync();
 
-            // Group by player → take the most recent subscription per player
-            var latestPerPlayer = allSubscriptions
-                .GroupBy(ps => ps.PlayerId)
-                .Select(g => g.OrderByDescending(ps => ps.Id).First())
-                .ToList();
+            // Retrieve only the necessary fields for those latest subscriptions
+            var latestPerPlayer = await _unitOfWork.Repository<PlayerSubscription>()
+                .GetQueryableAsNoTracking()
+                .Where(ps => latestSubscriptionIds.Contains(ps.Id))
+                .Select(ps => new
+                {
+                    ps.PlayerId,
+                    ps.Status,
+                    ps.GraceUntil,
+                    FirstName = ps.Player != null ? ps.Player.FirstName : string.Empty,
+                    LastName = ps.Player != null ? ps.Player.LastName : string.Empty
+                })
+                .ToListAsync();
 
             var now = DateTime.UtcNow;
             var unpaidPlayers = new List<UnpaidPlayerDto>();
@@ -165,9 +213,7 @@ namespace Koralytics.Application.Services.Academy.AcademyAnalyticsService
                         unpaidPlayers.Add(new UnpaidPlayerDto
                         {
                             PlayerId = sub.PlayerId,
-                            PlayerFullName = sub.Player is not null
-                                ? $"{sub.Player.FirstName} {sub.Player.LastName}"
-                                : string.Empty,
+                            PlayerFullName = $"{sub.FirstName} {sub.LastName}".Trim(),
                             Status = SubscriptionStatus.Unpaid,
                             GraceUntil = sub.GraceUntil,
                             IsGraceExpired = sub.GraceUntil.HasValue && sub.GraceUntil < now
@@ -179,9 +225,7 @@ namespace Koralytics.Application.Services.Academy.AcademyAnalyticsService
                         unpaidPlayers.Add(new UnpaidPlayerDto
                         {
                             PlayerId = sub.PlayerId,
-                            PlayerFullName = sub.Player is not null
-                                ? $"{sub.Player.FirstName} {sub.Player.LastName}"
-                                : string.Empty,
+                            PlayerFullName = $"{sub.FirstName} {sub.LastName}".Trim(),
                             Status = SubscriptionStatus.Grace,
                             GraceUntil = sub.GraceUntil,
                             IsGraceExpired = sub.GraceUntil.HasValue && sub.GraceUntil < now

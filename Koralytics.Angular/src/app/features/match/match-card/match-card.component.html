@@ -1,0 +1,65 @@
+<div
+  class="match-card"
+  [ngClass]="[statusClass, typeClass, outcomeClass, coachSideClass]"
+  (click)="onClick()"
+>
+  <div class="match-meta">
+    <span class="badge-type" [ngClass]="typeClass">{{ match.type }}</span>
+    @if (match.coachOutcome === 'win') { <span class="outcome-badge outcome-win">W</span> }
+    @if (match.coachOutcome === 'loss') { <span class="outcome-badge outcome-loss">L</span> }
+    @if (match.coachOutcome === 'draw') { <span class="outcome-badge outcome-draw">D</span> }
+    <span class="badge-format">{{ formatLabel }}</span>
+    <span class="location-text">{{ match.location }}</span>
+  </div>
+
+  <div class="match-center">
+    <div class="team home" [class.winner]="isHomeWinner">
+      <div class="team-info">
+        <span class="team-name">
+          @if (isHomeWinner) { <span class="win-tag">WINNER</span> }
+          {{ match.homeTeamName }}
+          @if (isSessionMatch) { <span class="side-label">(Home)</span> }
+        </span>
+        @if (match.homeTeamAcademyName) {
+          <span class="academy-name">{{ match.homeTeamAcademyName }}</span>
+        }
+      </div>
+    </div>
+
+    <div class="score-box">
+      @if (isScheduled) {
+        <div class="vs-badge">VS</div>
+        <div class="scheduled-time">{{ match.matchDate | date:'HH:mm' }}</div>
+      } @else {
+        <div
+          class="main-score"
+          [style.color]="isLive ? '#facc15' : '#ffffff'"
+        >{{ match.homeScore }} - {{ match.awayScore }}</div>
+        @if (showPenalty) {
+          <div class="penalty-tag">PENS: {{ match.homePenaltyScore }} - {{ match.awayPenaltyScore }}</div>
+        }
+      }
+    </div>
+
+    <div class="team away" [class.winner]="isAwayWinner">
+      <div class="team-info">
+        <span class="team-name">
+          {{ match.awayTeamName }}
+          @if (isSessionMatch) { <span class="side-label">(Away)</span> }
+          @if (isAwayWinner) { <span class="win-tag">WINNER</span> }
+        </span>
+        @if (match.awayTeamAcademyName) {
+          <span class="academy-name">{{ match.awayTeamAcademyName }}</span>
+        }
+      </div>
+    </div>
+  </div>
+
+  <div class="match-status">
+    <div class="status-badge" [ngClass]="statusStyleClass">
+      @if (isLive) { <span class="pulse-dot"></span> }
+      {{ statusLabel }}
+    </div>
+    <div class="match-date">{{ isLive ? 'Live Now' : (match.matchDate | date:'dd MMM, yyyy') }}</div>
+  </div>
+</div>

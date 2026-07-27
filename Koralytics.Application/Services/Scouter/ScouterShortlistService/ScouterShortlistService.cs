@@ -109,15 +109,16 @@ namespace Koralytics.Application.Services.Scouter.ScouterShortlistService
         }
         public async Task<PaginatedResult<PlayerCardDto>> GetShortlistAsync(int scouterId, int pageNumber = 1, int pageSize = 10, string? searchTerm = null)
         {
-            _logger.LogInformation("Retrieving paginated shortlist grid for ScouterId: {ScouterId}. Parameters -> PageNumber: {Page}, PageSize: {Size}, SearchTerm: '{Term}'", scouterId, pageNumber, pageSize, searchTerm ?? string.Empty);
+            _logger.LogInformation("Retrieving paginated shortlist grid for ScouterId: {ScouterId}.", scouterId);
 
             var baseQuery = _unitOfWork.Repository<ScouterShortlist>()
                 .GetQueryableAsNoTracking()
+                .Include(sl => sl.Player)
                 .Where(sl => sl.ScouterUserId == scouterId && !sl.IsDeleted);
 
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                baseQuery = baseQuery.Where(sl =>
+                baseQuery = baseQuery.Where(sl => sl.Player != null &&
                     (sl.Player.FirstName + " " + sl.Player.LastName).Contains(searchTerm));
             }
 
@@ -130,11 +131,8 @@ namespace Koralytics.Application.Services.Scouter.ScouterShortlistService
                     .AnyAsync(s => s.Id == scouterId && !s.IsDeleted);
 
                 if (!scouterExists)
-                {
                     throw new NotFoundException($"Scouter with ID {scouterId} not found.");
-                }
 
-                _logger.LogInformation("No matching shortlisted players found for Scouter {ScouterId}.", scouterId);
                 return new PaginatedResult<PlayerCardDto>
                 {
                     Items = new List<PlayerCardDto>(),
@@ -144,16 +142,25 @@ namespace Koralytics.Application.Services.Scouter.ScouterShortlistService
                 };
             }
 
-            var playerCardQuery = _unitOfWork.Repository<PlayerCard>().GetQueryableAsNoTracking();
-            var items = await baseQuery
+            var shortlistedPlayerIds = await baseQuery
                 .OrderByDescending(sl => sl.Id)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
-                .Select(sl => playerCardQuery.FirstOrDefault(pc => pc.PlayerId == sl.PlayerId)) 
-                .ProjectTo<PlayerCardDto>(_mapper.ConfigurationProvider) 
+                .Select(sl => sl.PlayerId)
                 .ToListAsync();
 
-            _logger.LogInformation("Fetched {Count} player card records successfully from Scouter {ScouterId}'s shortlist.", items.Count, scouterId);
+            var playerCards = await _unitOfWork.Repository<PlayerCard>()
+                .GetQueryableAsNoTracking()
+                .Where(pc => shortlistedPlayerIds.Contains(pc.PlayerId))
+                .ProjectTo<PlayerCardDto>(_mapper.ConfigurationProvider)
+                .ToListAsync();
+
+            var items = shortlistedPlayerIds
+                .Select(id => playerCards.FirstOrDefault(pc => pc.PlayerId == id))
+                .Where(pc => pc != null)
+                .Cast<PlayerCardDto>()
+                .ToList();
+
             return new PaginatedResult<PlayerCardDto>
             {
                 Items = items,

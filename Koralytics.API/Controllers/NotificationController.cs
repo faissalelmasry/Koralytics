@@ -31,6 +31,26 @@ namespace Koralytics.API.Controllers
             _realTimeBridge = realTimeBridge;
         }
 
+      
+        private bool TryGetRequester(out int requesterId, out string requesterRole, out IActionResult? errorResult)
+        {
+            requesterId = 0;
+            requesterRole = string.Empty;
+            errorResult = null;
+
+            var idClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var roleClaim = User.FindFirstValue(ClaimTypes.Role);
+
+            if (string.IsNullOrEmpty(idClaim) || !int.TryParse(idClaim, out requesterId) || string.IsNullOrEmpty(roleClaim))
+            {
+                errorResult = Unauthorized(new { message = "Unable to resolve caller identity from the provided credentials." });
+                return false;
+            }
+
+            requesterRole = roleClaim;
+            return true;
+        }
+
         #region 1. User Notification Management (Active Feed & Reading Status)
 
         /// <summary>
@@ -41,11 +61,9 @@ namespace Koralytics.API.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> GetMyNotifications([FromQuery] int skip = 0, [FromQuery] int take = 50)
         {
-            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out var currentUserId))
-            {
-                return Unauthorized("User identity validation failed.");
-            }
+           
+            if (!TryGetRequester(out var currentUserId, out _, out var authError))
+                return authError!;
 
             // Fetches ordered, paginated notifications from Redis cache (Hash + ZSET)
             var notifications = await _realTimeBridge.GetNotificationsAsync(currentUserId, skip, take, HttpContext.RequestAborted);
@@ -61,11 +79,9 @@ namespace Koralytics.API.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> MarkAsRead([FromRoute] string notificationId)
         {
-            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out var currentUserId))
-            {
-                return Unauthorized("User identity validation failed.");
-            }
+            
+            if (!TryGetRequester(out var currentUserId, out _, out var authError))
+                return authError!;
 
             // Updates IsRead to true inside the Redis Hash, keeping the ZSET score intact
             await _realTimeBridge.MarkAsReadAsync(currentUserId, notificationId, HttpContext.RequestAborted);
@@ -80,13 +96,10 @@ namespace Koralytics.API.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> PurgeExpiredNotifications()
         {
-            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out var currentUserId))
-            {
-                return Unauthorized("User identity validation failed.");
-            }
+            // === استخدام الدالة المساعدة ===
+            if (!TryGetRequester(out var currentUserId, out _, out var authError))
+                return authError!;
 
-            
             await _realTimeBridge.DeleteExpiredNotificationsAsync(currentUserId, HttpContext.RequestAborted);
             return Ok(new { message = "Expired notifications purged successfully." });
         }
@@ -118,15 +131,12 @@ namespace Koralytics.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> SendAcademyAnnouncement([FromRoute] int academyId, [FromBody] CreateAnnouncementDto body)
         {
-            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out var currentUserId))
-            {
-                return Unauthorized("User identity validation failed.");
-            }
+           
+            if (!TryGetRequester(out var currentUserId, out _, out var authError))
+                return authError!;
 
             var isSystemAdmin = User.IsInRole("SystemAdmin");
 
-            
             await _announcementService.SendAnnouncementNotificationAsync(
                 academyId,
                 currentUserId,
@@ -141,7 +151,6 @@ namespace Koralytics.API.Controllers
 
         #region 3. Player & Parent Engagement
 
-       
         /// <summary>
         /// Triggers a milestone real-time broadcast to a specific player connection room.
         /// </summary>

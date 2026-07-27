@@ -1,0 +1,221 @@
+<div class="drills-page">
+
+    <!-- PAGE HEADER -->
+    <header class="drills-header">
+        <div class="header-left">
+            <div class="header-eyebrow">
+                <span class="eyebrow-dot"></span>
+                <span class="eyebrow-text">ACADEMY ANALYTICS</span>
+            </div>
+            <h1 class="header-title">Coach Assessment Accuracy</h1>
+            <p class="header-subtitle">Evaluate how accurately a coach evaluates players during practice compared to real match performance.</p>
+        </div>
+
+        <div class="header-right">
+            @if (isCoachView) {
+            <div class="coach-badge-box">
+                <span class="badge-sub">REPORTING COACH</span>
+                <span class="badge-title">{{ getSelectedCoachName() }}</span>
+            </div>
+            } @else {
+            <div class="selector-group">
+                <app-select
+                    label="Select Target Coach"
+                    placeholder="-- Select Coach --"
+                    [options]="coachOptions"
+                    [(value)]="selectedCoachId"
+                    [disabled]="isCoachesLoading || coachOptions.length === 0">
+                </app-select>
+
+                <app-button
+                    variant="accent"
+                    [loading]="isLoading"
+                    [disabled]="isLoading || isCoachesLoading || !selectedCoachId"
+                    (click)="calculateBias()">
+                    Evaluate Coach
+                </app-button>
+            </div>
+            }
+        </div>
+    </header>
+
+    @if (isCoachesLoading || isLoading) {
+    <div class="state-card">
+        <app-loading-spinner size="lg"></app-loading-spinner>
+        <p class="state-text mt-3">Evaluating 30-day practice ratings vs. match performance...</p>
+    </div>
+    } @else if (errorMessage) {
+    <div class="error-card">
+        <div class="error-icon-box">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+        </div>
+        <p>{{ errorMessage }}</p>
+    </div>
+    } @else if (biasReport) {
+
+    <!-- STATS STRIP -->
+    <section class="stats-strip">
+        <div class="stat-item">
+            <span class="stat-value" [class]="getMeterClass()">{{ biasReport.trustPercentage }}%</span>
+            <span class="stat-label">Accuracy Score</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+            <span class="stat-value text-white">{{ biasReport.playersAnalyzedCount }}</span>
+            <span class="stat-label">Players Analyzed</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+            <span class="stat-value text-cyan">±{{ getAverageDelta() }} pts</span>
+            <span class="stat-label">Rating Variance</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+            <span class="stat-value text-amber">30 Days</span>
+            <span class="stat-label">Evaluation Window</span>
+        </div>
+    </section>
+
+    <!-- PLAYER BREAKDOWN TABLE (TOP 5 SAMPLE ONLY) -->
+    @if (topPlayerComparisons.length > 0) {
+    <div class="breakdown-section">
+        <div class="section-title-row flex-between">
+            <div>
+                <h2>Player Evaluation Sample</h2>
+                <p class="section-desc">Comparison of Coach {{ biasReport.coachName }}'s practice drill scores vs. actual match ratings.</p>
+            </div>
+            <app-status-chip [label]="'Top ' + topPlayerComparisons.length + ' of ' + biasReport.playersAnalyzedCount + ' Players'" type="info"></app-status-chip>
+        </div>
+
+        <div class="table-card mt-3">
+            <table class="breakdown-table">
+                <thead>
+                    <tr>
+                        <th>Player Name</th>
+                        <th>Avg Practice Score</th>
+                        <th>Avg Match Rating</th>
+                        <th>Rating Variance</th>
+                        <th>Assessor Verdict</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (item of topPlayerComparisons; track item.playerId) {
+                    <tr>
+                        <td class="player-name-cell">
+                            <div class="player-avatar-box">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                </svg>
+                            </div>
+                            <span class="player-name">{{ item.playerName }}</span>
+                        </td>
+                        <td class="score-cell practice-score">
+                            <strong>{{ item.avgPracticeScore }}</strong> <span class="max-scale">/ 10</span>
+                        </td>
+                        <td class="score-cell match-score">
+                            <strong>{{ item.avgMatchScore }}</strong> <span class="max-scale">/ 10</span>
+                        </td>
+                        <td class="delta-cell">
+                            ±{{ item.delta }} pts
+                        </td>
+                        <td>
+                            <app-status-chip
+                                [label]="item.status"
+                                [type]="item.status === 'Accurate' ? 'success' : (item.status === 'Over-rated' ? 'warning' : 'danger')">
+                            </app-status-chip>
+                        </td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    }
+
+    <!-- HOW THE ENGINE WORKS (VISUAL STEP-BY-STEP ILLUSTRATION) -->
+    <div class="engine-section">
+        <div class="section-title-row">
+            <h2>Evaluation Engine Architecture</h2>
+            <p class="section-desc">Comparing subjective practice scores against objective match day ratings.</p>
+        </div>
+
+        <div class="engine-flow-grid mt-3">
+            <!-- STEP 1 -->
+            <div class="engine-step-card">
+                <div class="step-num-badge">01</div>
+                <h3>Practice Ratings</h3>
+                <p>Coach evaluates player drill performances manually during training sessions.</p>
+                <span class="step-tag subjective">Subjective Input</span>
+            </div>
+
+            <div class="flow-arrow">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+            </div>
+
+            <!-- STEP 2 -->
+            <div class="engine-step-card">
+                <div class="step-num-badge">02</div>
+                <h3>Match Performance</h3>
+                <p>Real game day performance ratings logged from actual match statistics.</p>
+                <span class="step-tag objective">Objective Benchmark</span>
+            </div>
+
+            <div class="flow-arrow">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+            </div>
+
+            <!-- STEP 3 -->
+            <div class="engine-step-card">
+                <div class="step-num-badge">03</div>
+                <h3>Variance Analysis</h3>
+                <p>Calculates average rating gap between practice expectations and game performance.</p>
+                <span class="step-tag delta">Delta Engine</span>
+            </div>
+
+            <div class="flow-arrow">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+            </div>
+
+            <!-- STEP 4 -->
+            <div class="engine-step-card highlight">
+                <div class="step-num-badge active">04</div>
+                <h3>Accuracy Rating</h3>
+                <p>High score means coach evaluates practice performance accurately relative to match results.</p>
+                <span class="step-tag final">Final Accuracy</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- SYSTEM SUMMARY REMARKS -->
+    <div class="summary-card">
+        <div class="summary-header">
+            <h3>Assessor Insights & System Remarks</h3>
+        </div>
+        <p class="summary-remarks">"{{ biasReport.remarks }}"</p>
+        <p class="summary-subtext mt-1">
+            Assessor Rating Profile: <strong>{{ getBiasDescription() }}</strong>
+        </p>
+    </div>
+
+    } @else {
+    <div class="state-card text-center">
+        <h3>Select a Coach to Evaluate</h3>
+        <p class="state-text">Choose a coach above and click "Evaluate Coach" to calculate their assessment accuracy score.</p>
+    </div>
+    }
+
+</div>

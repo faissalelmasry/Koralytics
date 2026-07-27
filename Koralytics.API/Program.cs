@@ -13,6 +13,7 @@ using Koralytics.Application.Options;
 using Koralytics.Infrastructure.ExternalServices;
 using Koralytics.Application.Interfaces.Tournament;
 using Koralytics.Application.Interfaces.Tournaments;
+using Koralytics.Application.Mappings.SystemAdmin;
 using Koralytics.Application.Mappings.Auth;
 using Koralytics.Application.Mappings.Player;
 using Koralytics.Application.Mappings.Tournaments;
@@ -51,6 +52,8 @@ using Koralytics.Application.Services.Academy.AcademyService;
 using Koralytics.Application.Services.Academy.AcademyTeamService;
 using Koralytics.Application.Services.Academy.AcademyAnalyticsService;
 using Koralytics.Application.Services.Academy.AcademyAnnouncementService;
+using Koralytics.Application.Services.Academy.AcademyBadgeService;
+using Koralytics.Application.Services.SystemAdmin.UserManagement;
 using Koralytics.Application.Services.Player.Helpers;
 using Koralytics.Application.Interfaces.Scouter;
 using Koralytics.Application.Interfaces.ScouterInterfaces;
@@ -145,6 +148,14 @@ namespace Koralytics.API
                             {
                                 context.Token = accessToken;
                             }
+                            // Priority 3: access_token query parameter — used for SignalR connections.
+                            var accessTokenQuery = context.Request.Query["access_token"];
+                            var path = context.HttpContext.Request.Path;
+                            if (!string.IsNullOrEmpty(accessTokenQuery) && path.StartsWithSegments("/hubs"))
+                            {
+                                context.Token = accessTokenQuery;
+                                return Task.CompletedTask;
+                            }
 
                             return Task.CompletedTask;
                         }
@@ -220,6 +231,8 @@ namespace Koralytics.API
             builder.Services.AddScoped<IAcademyTeamService, AcademyTeamService>();
             builder.Services.AddScoped<IAcademyAnalyticsService, AcademyAnalyticsService>();
             builder.Services.AddScoped<IAcademyAnnouncementService, AcademyAnnouncementService>();
+            builder.Services.AddScoped<IAcademyBadgeService, AcademyBadgeService>();
+            builder.Services.AddScoped<IUserManagementService, UserManagementService>();
             builder.Services.AddScoped<ICoachSquadService, CoachSquadService>();
             builder.Services.AddScoped<ICoachNoteService, CoachNoteService>();
             builder.Services.AddScoped<ICoachAccessService, CoachAccessService>();
@@ -235,9 +248,10 @@ namespace Koralytics.API
             builder.Services.AddScoped<IScouterShortlistService, ScouterShortlistService>();
             builder.Services.AddScoped<IScouterFollowService, ScouterFollowService>();
             builder.Services.AddScoped<IScouterReportService, ScouterReportService>();
-            //builder.Services.AddScoped<IStorageService, StorageService>();
+            builder.Services.AddScoped<IStorageService, StorageService>();
             builder.Services.AddSignalR();
             builder.Services.AddScoped<IRealTimeBridge, RealTimeBridge>();
+            builder.Services.AddScoped<IMatchLiveUpdateService, MatchLiveUpdateService>();
             builder.Services.AddScoped<IPlayerNotificationService, PlayerNotificationService>();
             builder.Services.AddScoped<IScouterNotificationService, ScouterNotificationService>();
             builder.Services.AddScoped<IAnnouncementNotificationService, AnnouncementNotificationService>();
@@ -253,7 +267,7 @@ namespace Koralytics.API
             builder.Services.AddValidatorsFromAssemblyContaining<AddLocationValidator>();
             builder.Services.AddValidatorsFromAssemblyContaining<CreateAgeGroupValidator>();
             builder.Services.AddValidatorsFromAssemblyContaining<CreateTeamValidator>();
-            builder.Services.AddValidatorsFromAssemblyContaining<SendAnnouncementValidator>();
+            builder.Services.AddValidatorsFromAssemblyContaining<CreateAnnouncementValidator>();
             builder.Services.AddValidatorsFromAssemblyContaining<CreateFriendlyMatchValidator>();
             builder.Services.AddScoped<IUserBusinessValidator, UserBusinessValidator>();
             builder.Services.AddHostedService<NotificationCleanupBackgroundService>();
@@ -278,6 +292,7 @@ namespace Koralytics.API
             builder.Services.AddAutoMapper(op => op.AddProfile<PlayerProfile>());
             builder.Services.AddAutoMapper(op => op.AddProfile<MatchProfile>());
             builder.Services.AddAutoMapper(op=>op.AddProfile<ScouterProfile>());
+            builder.Services.AddAutoMapper(op => op.AddProfile<UserManagementProfile>());
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
@@ -387,6 +402,7 @@ namespace Koralytics.API
             app.UseAuthorization();
 
             app.MapHub<NotificationHub>("/hubs/notifications");
+            app.MapHub<MatchHub>("/hubs/match");
 
             app.MapControllers();
 

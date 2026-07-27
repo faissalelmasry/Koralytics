@@ -1,0 +1,144 @@
+:host {
+  display: block;
+  width: 100%;
+  --bg-input: rgba(20, 23, 28, 0.7); 
+  --border-color: rgba(255, 255, 255, 0.08);
+  --accent-cyan: #00f0ff;
+  --accent-lime: #c8ff4d;
+  --text-dim: #8b909a;
+  --text-light: #f2f3f5;
+}
+
+.number-input-group {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.input-control-wrapper {
+  position: relative;
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  height: 48px;
+  padding: 0 40px 0 14px;
+  display: flex;
+  align-items: center;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.floating-label {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-dim);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  pointer-events: none;
+  transform-origin: left top;
+  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.2s ease;
+  z-index: 2;
+}
+
+.custom-number-field {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  background: transparent !important;
+  border: none;
+  outline: none;
+  color: var(--text-light);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  padding-top: 10px;
+  position: relative;
+  z-index: 1;
+  -moz-appearance: textfield;
+}
+
+/* Hide native number input spin buttons */
+.custom-number-field::-webkit-outer-spin-button,
+.custom-number-field::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.custom-number-field:focus ~ .floating-label,
+.custom-number-field:not(:placeholder-shown) ~ .floating-label {
+  transform: translateY(-20px) scale(0.78) !important;
+}
+
+.custom-number-field:focus ~ .floating-label {
+  color: var(--accent-cyan) !important;
+}
+
+.input-control-wrapper.focused {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 16px rgba(0, 240, 255, 0.15);
+}
+
+.input-control-wrapper:hover:not(.is-disabled) {
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+/* CUSTOM STEPPER CONTROLS */
+.stepper-controls {
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  bottom: 4px;
+  width: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 3;
+}
+
+.stepper-btn {
+  flex: 1;
+  width: 100%;
+  background: rgba(30, 36, 48, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.2s ease;
+}
+
+.stepper-up {
+  border-radius: 6px 6px 2px 2px;
+}
+
+.stepper-down {
+  border-radius: 2px 2px 6px 6px;
+}
+
+.stepper-btn:hover {
+  background: rgba(0, 240, 255, 0.2);
+  border-color: var(--accent-cyan);
+  color: #fff;
+}
+
+.stepper-btn:active {
+  transform: scale(0.92);
+  background: rgba(0, 240, 255, 0.4);
+}
+
+.number-input-group.is-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.number-input-group.is-disabled .input-control-wrapper {
+  pointer-events: none;
+}

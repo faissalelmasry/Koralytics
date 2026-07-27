@@ -1,0 +1,126 @@
+<div class="section-container fade-in">
+
+  <div class="section-header">
+    <div class="header-content">
+      <h3>Communications & Subscriptions</h3>
+      <p class="subtitle">Broadcast announcements to academy members and manage player subscriptions</p>
+    </div>
+  </div>
+
+  <div class="grid-layout">
+
+    <!-- ANNOUNCEMENTS PANEL -->
+    <div class="panel glass-card">
+      <div class="panel-header">
+        <h4>Announcements</h4>
+        <span class="badge" *ngIf="announcements.length > 0">{{ announcements.length }} Sent</span>
+      </div>
+
+      <!-- Send Announcement Form -->
+      <div class="form-container">
+        <form [formGroup]="announcementForm" (ngSubmit)="onSendAnnouncement()">
+          <div class="form-row">
+            <app-select label="Target Audience" [options]="targetAudienceOptions"
+              [value]="announcementForm.get('targetType')?.value"
+              (valueChange)="announcementForm.get('targetType')?.setValue($event)">
+            </app-select>
+
+            <!-- Target ID Select (Optional, shown if not Everyone) -->
+            <app-select *ngIf="announcementForm.get('targetType')?.value !== 1" [label]="getTargetIdLabel()"
+              [options]="targetIdOptions" [value]="announcementForm.get('targetId')?.value"
+              (valueChange)="announcementForm.get('targetId')?.setValue($event)">
+            </app-select>
+          </div>
+
+          <div style="margin-bottom: 16px;">
+            <app-text-input label="Title" type="text" placeholder="Announcement Title" formControlName="title">
+            </app-text-input>
+          </div>
+
+          <app-text-input label="Message" type="text" placeholder="Write your message here..."
+            formControlName="message">
+          </app-text-input>
+
+          <div style="margin-top: 16px; display: flex; justify-content: flex-end;">
+            <app-button type="submit" variant="accent" [disabled]="announcementForm.invalid || isSending">
+              {{ isSending ? 'Sending...' : 'Broadcast Announcement' }}
+            </app-button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Announcements List -->
+      <div class="announcements-list cyber-scrollbar">
+        <div class="loading-state" *ngIf="isLoadingAnnouncements">
+          <app-loading-spinner size="sm"></app-loading-spinner>
+          <p>Loading announcements...</p>
+        </div>
+
+        <div class="empty-state" *ngIf="!isLoadingAnnouncements && announcements.length === 0">
+          <p>No announcements sent yet.</p>
+        </div>
+
+        <div class="announcement-item" *ngFor="let ann of announcements">
+          <div class="ann-header">
+            <h5>{{ ann.title }}</h5>
+            <span class="audience-badge">{{ getTargetTypeName(ann.targetType) }}</span>
+          </div>
+          <p class="ann-message">{{ ann.body || ann.message }}</p>
+          <div class="ann-footer">
+            <span class="sender">By: {{ ann.sentByFullName }}</span>
+            <span class="date">{{ ann.createdAt || ann.sentAt | date:'medium' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- SUBSCRIPTIONS PANEL -->
+    <div class="panel glass-card">
+      <div class="panel-header">
+        <h4>Player Subscriptions</h4>
+      </div>
+
+      <div class="table-container">
+        <div class="loading-state" *ngIf="isLoadingSubscriptions">
+          <app-loading-spinner size="sm"></app-loading-spinner>
+          <p>Loading subscriptions...</p>
+        </div>
+
+        <div *ngIf="!isLoadingSubscriptions && subscriptionStats" class="stats-grid">
+          <div class="stat-card total">
+            <div class="stat-value" style="color: var(--text-primary, #fff);">{{ subscriptionStats.totalPlayers }}</div>
+            <div class="stat-label">Total</div>
+          </div>
+          <div class="stat-card paid">
+            <div class="stat-value" style="color: var(--success-color, #10b981);">{{ subscriptionStats.totalPaid }}
+            </div>
+            <div class="stat-label">Paid</div>
+          </div>
+          <div class="stat-card unpaid">
+            <div class="stat-value" style="color: var(--danger-color, #ef4444);">{{ subscriptionStats.totalUnpaid }}
+            </div>
+            <div class="stat-label">Unpaid</div>
+          </div>
+          <div class="stat-card grace">
+            <div class="stat-value" style="color: var(--warning-color, #f59e0b);">{{ subscriptionStats.totalGrace }}
+            </div>
+            <div class="stat-label">Grace</div>
+          </div>
+        </div>
+
+        <h5 *ngIf="!isLoadingSubscriptions" style="margin-bottom: 16px; font-size: 16px; color: var(--text-primary);">
+          Unpaid Subscriptions</h5>
+
+        <div class="empty-state" *ngIf="!isLoadingSubscriptions && subscriptions.length === 0">
+          <p>All players are paid up! No unpaid subscriptions found.</p>
+        </div>
+
+        <app-data-table *ngIf="!isLoadingSubscriptions && subscriptions.length > 0" [columns]="subColumns"
+          [data]="subscriptions" (actionClick)="onAction($event)">
+        </app-data-table>
+      </div>
+    </div>
+
+  </div>
+</div>

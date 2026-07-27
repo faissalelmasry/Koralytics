@@ -38,7 +38,6 @@ namespace Koralytics.Application.Services.Academy.AcademyAnnouncementService
         // ──────────────────────────────────────────────────────────────────────
         // SendAnnouncementAsync
         // Validates TargetType → ensures TargetId references an entity in the academy.
-        // TODO: Trigger NotificationService.SendAnnouncementAsync() once implemented.
         // ──────────────────────────────────────────────────────────────────────
         public async Task<AnnouncementResponseDto> SendAnnouncementAsync(int academyId,CreateAnnouncementDto dto, int sentByUserId,bool isSystemAdmin = false,CancellationToken cancellationToken = default)
         {
@@ -50,6 +49,8 @@ namespace Koralytics.Application.Services.Academy.AcademyAnnouncementService
             _ = await _unitOfWork.Repository<Domain.Entities.Academy.Academy>()
                 .FindAsync(a => a.Id == academyId && !a.IsDeleted)
                 ?? throw new NotFoundException($"Academy with Id {academyId} not found.");
+
+            await ValidateTargetAsync(academyId, dto.TargetType, dto.TargetId);
 
             string mappedRole = string.Empty;
             if (dto.TargetType == AnnouncementTargetType.Role)
@@ -113,17 +114,21 @@ namespace Koralytics.Application.Services.Academy.AcademyAnnouncementService
         // ──────────────────────────────────────────────────────────────────────
         // GetAnnouncementsAsync
         // ──────────────────────────────────────────────────────────────────────
-        public async Task<IEnumerable<AnnouncementResponseDto>> GetAnnouncementsAsync(int academyId)
+        public async Task<Koralytics.Application.DTOs.Common.PagedResponseDto<AnnouncementResponseDto>> GetAnnouncementsAsync(int academyId, Koralytics.Application.DTOs.Common.PaginationRequestDto request)
         {
             _ = await _unitOfWork.Repository<Domain.Entities.Academy.Academy>()
                 .FindAsNoTrackingAsync(a => a.Id == academyId)
                 ?? throw new NotFoundException($"Academy with Id {academyId} not found.");
 
-            var announcements = await _unitOfWork.Repository<AcademyAnnouncement>()
+            var announcementsQuery = _unitOfWork.Repository<AcademyAnnouncement>()
                 .GetQueryableAsNoTracking()
-                .Include(a => a.Academy)
                 .Where(a => a.AcademyId == academyId)
-                .OrderByDescending(a => a.CreatedAt)
+                .OrderByDescending(a => a.CreatedAt);
+
+            var totalCount = await announcementsQuery.CountAsync();
+            var announcements = await announcementsQuery
+                .Skip((request.PageNumber - 1) * request.PageSize)
+                .Take(request.PageSize)
                 .ToListAsync();
 
             // Fetch sender names in a single query
@@ -132,7 +137,7 @@ namespace Koralytics.Application.Services.Academy.AcademyAnnouncementService
                 .FindAllAsNoTrackingAsync(u => senderIds.Contains(u.Id));
             var senderMap = senders.ToDictionary(u => u.Id, u => $"{u.FirstName} {u.LastName}");
 
-            return announcements.Select(a => new AnnouncementResponseDto
+            var items = announcements.Select(a => new AnnouncementResponseDto
             {
                 Id = a.Id,
                 AcademyId = a.AcademyId,
@@ -144,97 +149,14 @@ namespace Koralytics.Application.Services.Academy.AcademyAnnouncementService
                 SentByFullName = senderMap.TryGetValue(a.SentByUserId, out var name) ? name : string.Empty,
                 CreatedAt = a.CreatedAt
             }).ToList();
-        }
 
-        // ──────────────────────────────────────────────────────────────────────
-        // RemovePlayerAsync
-        // Business rules:
-        //   1. Player must be in the academy (active PlayerAcademy record).
-        //   2. Player's latest subscription must be Unpaid/Grace AND grace period expired.
-        //   3. Requesting coach must currently coach the player's active team.
-        //   4. Sets PlayerAcademy.LeftAt = now.
-        //   5. Logs to RoleAuditLog.
-        // ──────────────────────────────────────────────────────────────────────
-        public async Task RemovePlayerAsync(int academyId, int playerId, int coachUserId, string reason)
-        {
-            _logger.LogInformation(
-                "Coach {CoachId} requesting removal of player {PlayerId} from academy {AcademyId}",
-                coachUserId, playerId, academyId);
-
-            // Academy must exist
-            _ = await _unitOfWork.Repository<Domain.Entities.Academy.Academy>()
-                .FindAsync(a => a.Id == academyId)
-                ?? throw new NotFoundException($"Academy with Id {academyId} not found.");
-
-            // Player must be actively enrolled in this academy
-            var playerAcademy = await _unitOfWork.Repository<PlayerAcademy>()
-                .FindAsync(pa => pa.PlayerId == playerId && pa.AcademyId == academyId && pa.LeftAt == null);
-                                 
-
-            if (playerAcademy is null)
-                throw new NotFoundException(
-                    $"Player {playerId} is not actively enrolled in academy {academyId}.");
-
-            // Validate subscription: must be Unpaid or Grace with expired grace period
-            var latestSubscription = await _unitOfWork.Repository<PlayerSubscription>()
-                .GetQueryableAsNoTracking()
-                .Where(ps => ps.PlayerId == playerId && ps.AcademyId == academyId )
-                .OrderByDescending(ps => ps.Id)
-                .FirstOrDefaultAsync();
-
-            if (latestSubscription is null)
-                throw new BadRequestException(
-                    "Cannot remove player: no subscription record found.");
-
-            var now = DateTime.UtcNow;
-
-            var canRemove = latestSubscription.Status == SubscriptionStatus.Unpaid ||
-                            (latestSubscription.Status == SubscriptionStatus.Grace &&
-                             latestSubscription.GraceUntil.HasValue &&
-                             latestSubscription.GraceUntil < now);
-
-            if (!canRemove)
-                throw new BadRequestException(
-                    "Player can only be removed if their subscription is Unpaid, " +
-                    "or they are in Grace status with an expired grace period.");
-
-            // Validate requesting coach is actively coaching this player's team
-            var playerTeam = await _unitOfWork.Repository<PlayerTeam>()
-                .FindAsync(pt => pt.PlayerId == playerId && pt.LeftAt == null );
-
-            if (playerTeam is null)
-                throw new BadRequestException(
-                    "Cannot remove player: player is not assigned to any active team.");
-
-            // Verify the coach coaches that specific team
-            var isCoachOfTeam = await _unitOfWork.Repository<CoachTeam>()
-                .ExistsAsync(ct => ct.CoachUserId == coachUserId && ct.TeamId == playerTeam.TeamId && ct.RemovedAt == null );
-
-            if (!isCoachOfTeam)
-                throw new ForbiddenException(
-                    "Only a coach of the player's active team can remove the player.");
-
-            // Soft-remove: set LeftAt
-            playerAcademy.LeftAt = now;
-            _unitOfWork.Repository<PlayerAcademy>().SoftDelete(playerAcademy);
-
-            // Log to RoleAuditLog
-            var auditLog = new RoleAuditLog
+            return new Koralytics.Application.DTOs.Common.PagedResponseDto<AnnouncementResponseDto>
             {
-                AcademyId = academyId,
-                PerformedByUserId = coachUserId,
-                AffectedUserId = playerId,
-                Action = RoleAuditAction.Removed,
-                Details = $"Player removed from academy. Reason: {reason}",
-                CreatedById = coachUserId
+                Items = items,
+                TotalCount = totalCount,
+                PageNumber = request.PageNumber,
+                PageSize = request.PageSize
             };
-
-            await _unitOfWork.Repository<RoleAuditLog>().AddAsync(auditLog);
-            await _unitOfWork.SaveChangesAsync();
-
-            _logger.LogInformation(
-                "Player {PlayerId} removed from academy {AcademyId} by coach {CoachId}.",
-                playerId, academyId, coachUserId);
         }
 
         // ──────────────────────────────────────────────────────────────────────
@@ -265,17 +187,9 @@ namespace Koralytics.Application.Services.Academy.AcademyAnnouncementService
                     break;
 
                 case AnnouncementTargetType.Role:
-                    // TODO: Validate that the Role (SystemAdmin, Coach, etc.) is a valid role for the academy
-                    /*  1:Scouter
-                        2:SystemAdmin
-                        3:AcademyAdmin
-                        4:Player
-                        5:Parent
-                        6:Coach
-                    */
-                    if (targetId <= 0 || targetId > 6)
+                    if (targetId is not (4 or 5 or 6))
                         throw new BadRequestException(
-                            "TargetId must be a valid positive role id between 1 and 6.");
+                            $"Role ID {targetId} is not supported for academy announcements.");
                     break;
 
                 default:

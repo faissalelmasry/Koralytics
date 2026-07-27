@@ -19,20 +19,20 @@ namespace Koralytics.API.Controllers
         private readonly IPlayerTransferService _playerTransferService;
         private readonly IPlayerCardService _playerCardService;
         private readonly IPlayerProfileService _playerProfileService;
-        //private readonly IStorageService _storageService;
+        private readonly IStorageService _storageService;
         private readonly IPlayerGoalService _playerGoalService;
 
         public PlayerController(
             IPlayerTransferService playerTransferService,
             IPlayerCardService playerCardService,
             IPlayerProfileService playerProfileService,
-            //IStorageService storageService,
+            IStorageService storageService,
             IPlayerGoalService playerGoalService)
         {
             _playerTransferService = playerTransferService;
             _playerCardService = playerCardService;
             _playerProfileService = playerProfileService;
-            //_storageService = storageService;
+            _storageService = storageService;
             _playerGoalService = playerGoalService;
         }
         [HttpPatch("{playerId}/availability")]
@@ -86,37 +86,32 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpGet("{playerId}/timeline/drills")]
-        [Authorize(Roles = "Player")]
+        [Authorize]
         public async Task<IActionResult> GetDrillTimeline(
             int playerId,
             [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 20)
+            [FromQuery] int pageSize = 20,
+            [FromQuery] DateTime? dateFrom = null,
+            [FromQuery] DateTime? dateTo = null)
         {
-            var requesterId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-
-            if (requesterId != playerId)
-                return Forbid();
-
             var timeline = await _playerProfileService.GetDrillTimelineAsync(
-                playerId, page, pageSize);
+                playerId, page, pageSize, dateFrom, dateTo);
 
             return Ok(timeline);
         }
 
         [HttpGet("{playerId}/timeline/matches")]
-        [Authorize(Roles = "Player")]
+        [Authorize]
         public async Task<IActionResult> GetMatchTimeline(
             int playerId,
             [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 20)
+            [FromQuery] int pageSize = 20,
+            [FromQuery] string? matchType = null,
+            [FromQuery] DateTime? dateFrom = null,
+            [FromQuery] DateTime? dateTo = null)
         {
-            var requesterId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-
-            if (requesterId != playerId)
-                return Forbid();
-
             var timeline = await _playerProfileService.GetMatchTimelineAsync(
-                playerId, page, pageSize);
+                playerId, page, pageSize, matchType, dateFrom, dateTo);
 
             return Ok(timeline);
         }
@@ -137,6 +132,27 @@ namespace Koralytics.API.Controllers
                 playerId, page, pageSize);
 
             return Ok(timeline);
+        }
+
+        [HttpGet("{playerId}/team/scheduled")]
+        [Authorize(Roles = "Player")]
+        public async Task<IActionResult> GetTeamScheduledEvents(
+            int playerId,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20,
+            [FromQuery] string? eventType = null,
+            [FromQuery] DateTime? dateFrom = null,
+            [FromQuery] DateTime? dateTo = null)
+        {
+            var requesterId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+            if (requesterId != playerId)
+                return Forbid();
+
+            var result = await _playerProfileService.GetTeamScheduledEventsAsync(
+                playerId, page, pageSize, eventType, dateFrom, dateTo);
+
+            return Ok(result);
         }
 
         [HttpPost("{playerId}/card/recalculate")]
@@ -163,6 +179,23 @@ namespace Koralytics.API.Controllers
 
             if (requesterId != playerId)
                 return Forbid();
+
+            var comparison = await _playerProfileService.GetPlayerVsAcademyAverageAsync(
+                playerId, academyId);
+            return Ok(comparison);
+        }
+
+        [HttpGet("academy-comparison")]
+        [Authorize(Roles = "Player")]
+        public async Task<IActionResult> GetCurrentPlayerAcademyComparison()
+        {
+            var playerId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+            var academyIdStr = User.FindFirstValue("AcademyId")
+                               ?? User.FindFirstValue("academyId");
+
+            if (string.IsNullOrEmpty(academyIdStr) || !int.TryParse(academyIdStr, out var academyId))
+                return BadRequest(new { message = "No academy association found for current user." });
 
             var comparison = await _playerProfileService.GetPlayerVsAcademyAverageAsync(
                 playerId, academyId);
@@ -205,8 +238,8 @@ namespace Koralytics.API.Controllers
             if (requesterId != playerId)
                 return Forbid();
 
-            //var result = await _storageService.UploadHighlightAsync(playerId, academyId, file, title);
-            return CreatedAtAction(nameof(GetHighlights), new { playerId }/*, result*/);
+            var result = await _storageService.UploadHighlightAsync(playerId, academyId, file, title);
+            return CreatedAtAction(nameof(GetHighlights), new { playerId }, result);
         }
 
         [HttpDelete("{playerId}/highlights/{highlightId}")]
@@ -217,7 +250,7 @@ namespace Koralytics.API.Controllers
             if (requesterId != playerId)
                 return Forbid();
 
-            //await _storageService.DeleteHighlightAsync(highlightId, playerId);
+            await _storageService.DeleteHighlightAsync(highlightId, playerId);
             return NoContent();
         }
 
@@ -229,7 +262,7 @@ namespace Koralytics.API.Controllers
             if (requesterId != playerId)
                 return Forbid();
 
-            //await _storageService.PinHighlightAsync(highlightId, playerId);
+            await _storageService.PinHighlightAsync(highlightId, playerId);
             return NoContent();
         }
 
@@ -237,8 +270,8 @@ namespace Koralytics.API.Controllers
         [Authorize]
         public async Task<IActionResult> GetHighlights(int playerId)
         {
-            //var highlights = await _storageService.GetHighlightsAsync(playerId);
-            return Ok(/*highlights*/);
+            var highlights = await _storageService.GetHighlightsAsync(playerId);
+            return Ok(highlights);
         }
         [HttpPost("{playerId}/goals")]
         [Authorize(Roles = "Coach,AcademyAdmin")]
@@ -255,5 +288,48 @@ namespace Koralytics.API.Controllers
             var result = await _playerGoalService.UpdatePlayerGoalAsync(goalId, dto);
             return Ok(result);
         }
+
+        [HttpPost("{playerId}/positions")]
+        [Authorize(Roles = "Player,Coach,AcademyAdmin")]
+        public async Task<IActionResult> AddPlayerPosition(int playerId, [FromBody] AddPlayerPositionDto dto)
+        {
+            var requesterId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var requesterRole = User.FindFirstValue(ClaimTypes.Role)!;
+
+            if (requesterRole == "Player" && requesterId != playerId)
+                return Forbid();
+
+            await _playerProfileService.AddPlayerPositionAsync(playerId, dto.Position, dto.IsPrimary);
+            return NoContent();
+        }
+
+        [HttpPatch("{playerId}/positions/primary")]
+        [Authorize(Roles = "Player,Coach,AcademyAdmin")]
+        public async Task<IActionResult> UpdatePrimaryPosition(int playerId, [FromBody] UpdatePrimaryPositionDto dto)
+        {
+            var requesterId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var requesterRole = User.FindFirstValue(ClaimTypes.Role)!;
+
+            if (requesterRole == "Player" && requesterId != playerId)
+                return Forbid();
+
+            await _playerProfileService.UpdatePrimaryPositionAsync(playerId, dto.Position);
+            return NoContent();
+        }
+
+        [HttpDelete("{playerId}/positions")]
+        [Authorize(Roles = "Player,Coach,AcademyAdmin")]
+        public async Task<IActionResult> RemovePlayerPosition(int playerId, [FromBody] RemovePlayerPositionDto dto)
+        {
+            var requesterId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var requesterRole = User.FindFirstValue(ClaimTypes.Role)!;
+
+            if (requesterRole == "Player" && requesterId != playerId)
+                return Forbid();
+
+            await _playerProfileService.RemovePlayerPositionAsync(playerId, dto.Position);
+            return NoContent();
+        }
+
     }
 }

@@ -27,12 +27,30 @@ export interface PaginatedResult<T> {
   pageSize: number;
 }
 
+// Confirmed against the real backend DTO
+// (Koralytics.Application.DTOs.Player.PlayerCardDto), 2026-07-23.
+// Note there is no firstName/lastName (just a combined playerName) and no
+// matchesPlayed/goals/assists -- those were an earlier inferred guess and
+// don't exist on this response at all. PlayerId was added to the backend
+// DTO specifically so this list can support unfollow/view-profile actions.
 export interface PlayerCardDto {
   playerId: number;
-  firstName: string;
-  lastName: string;
+  playerName: string;
+  position: string;
   overallRating: number;
-  [key: string]: unknown;
+  paceRating?: number;
+  dribblingRating?: number;
+  shootingRating?: number;
+  defendingRating?: number;
+  passingRating?: number;
+  physicalRating?: number;
+  goalkeepingRating?: number;
+  transferClassification: string;
+  archetypePlayerName?: string;
+  playStyleTag?: string;
+  preferredFoot: string;
+  weakFootRating: number;
+  profileImageUrl?: string;
 }
 
 export interface PlayerSearchFiltersDto {

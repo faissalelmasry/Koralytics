@@ -1,0 +1,121 @@
+<div class="create-page">
+    <header class="page-header">
+        <div class="header-eyebrow">
+            <span class="eyebrow-dot"></span>
+            <span class="eyebrow-text">Session Planner</span>
+        </div>
+        <h1 class="header-title">Schedule Session</h1>
+        <p class="header-subtitle">Configure pitch details and select the expected squad</p>
+    </header>
+
+    @if (errorMessage) {
+    <div class="error-banner flex-align">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        {{ errorMessage }}
+    </div>
+    }
+
+    <form [formGroup]="sessionForm" (ngSubmit)="onSubmit()" class="form-grid">
+
+        <!-- LEFT COLUMN: SESSION DETAILS -->
+        <section class="form-panel details-panel">
+            <h2 class="panel-title">Session Details</h2>
+            
+            <div class="form-group">
+                <app-select
+                    label="Target Squad (Team)"
+                    placeholder="Select a team..."
+                    [options]="teamOptions"
+                    [value]="sessionForm.get('teamId')?.value"
+                    (valueChange)="onTeamChangeCustom($event)">
+                </app-select>
+                @if (sessionForm.get('teamId')?.touched && sessionForm.get('teamId')?.invalid) {
+                <span class="error-text">Team selection is required.</span>
+                }
+            </div>
+
+            <div class="row-group mt-3">
+                <div class="form-group half">
+                    <app-date-picker
+                        label="Date"
+                        formControlName="sessionDate">
+                    </app-date-picker>
+                </div>
+                <div class="form-group half">
+                    <label>Time</label>
+                    <input type="time" class="native-input" formControlName="sessionTime">
+                </div>
+            </div>
+
+            <div class="row-group mt-3">
+                <div class="form-group half">
+                    <app-select
+                        label="Session Type"
+                        placeholder="Select type..."
+                        [options]="typeOptions"
+                        [value]="sessionForm.get('type')?.value"
+                        (valueChange)="onTypeChangeCustom($event)">
+                    </app-select>
+                </div>
+                <div class="form-group half">
+                    <label>Location / Pitch</label>
+                    <input type="text" class="native-input" formControlName="location"
+                        placeholder="e.g., Main Pitch - North">
+                </div>
+            </div>
+
+            <div class="form-group mt-3">
+                <label>Tactical Notes</label>
+                <textarea class="native-input textarea" formControlName="notes" rows="4"
+                    placeholder="Enter tactical objectives or gear requirements..."></textarea>
+            </div>
+        </section>
+
+        <!-- RIGHT COLUMN: ROSTER SELECTION -->
+        <section class="form-panel roster-panel">
+            <div class="roster-header flex-between">
+                <h2 class="panel-title">Expected Squad</h2>
+                @if (availablePlayers.length > 0) {
+                <div class="roster-actions">
+                    <button type="button" class="btn-text" (click)="selectAllPlayers()">Select All</button>
+                    <span class="divider">|</span>
+                    <button type="button" class="btn-text" (click)="deselectAllPlayers()">Clear</button>
+                </div>
+                }
+            </div>
+
+            <div class="roster-list">
+                @if (availablePlayers.length === 0) {
+                <div class="empty-roster">
+                    <p>Select a team to load the roster.</p>
+                </div>
+                } @else {
+                @for (player of availablePlayers; track player.id) {
+                <div class="player-row" [class.selected]="player.selected" (click)="togglePlayerSelection(player)">
+                    <div class="checkbox-custom">
+                        @if (player.selected) { <span class="checkmark">✓</span> }
+                    </div>
+                    <div class="player-info">
+                        <span class="player-name">{{ player.name }}</span>
+                        <span class="player-pos">{{ player.position }}</span>
+                    </div>
+                </div>
+                }
+                }
+            </div>
+        </section>
+
+        <!-- BOTTOM ACTION BAR -->
+        <div class="action-bar">
+            <app-button variant="slate" (click)="cancel()">Cancel</app-button>
+            <app-button variant="accent" [loading]="isSubmitting" [disabled]="sessionForm.invalid || isSubmitting" (click)="onSubmit()">
+                Schedule Session
+            </app-button>
+        </div>
+
+    </form>
+</div>

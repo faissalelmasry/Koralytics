@@ -14,6 +14,8 @@ namespace Koralytics.Application.Interfaces.Match
         Task<FormGuideResponseDto> GetFormGuideAsync(int teamId, MatchFormat format);
         Task<MatchListResponseDto> GetMatchesByDateAsync(DateTime date, int page, int pageSize);
         Task<MatchListResponseDto> GetTeamMatchesByStatusAsync(int teamId, MatchStatus? status, int page, int pageSize);
+        Task<CoachMatchesResponseDto> GetCoachMatchesAsync(int coachId, MatchStatus? status, Domain.Enums.MatchType? type, DateTime? dateFrom, DateTime? dateTo, int page, int pageSize);
+        Task<AcademyMatchesResponseDto> GetAcademyMatchesAsync(int academyId, int? teamId, int? ageGroupId, MatchStatus? status, Domain.Enums.MatchType? type, DateTime? dateFrom, DateTime? dateTo, int page, int pageSize);
         Task CancelMatchAsync(int matchId);
 
     }

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Koralytics.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260718132158_v3")]
-    partial class v3
+    [Migration("20260725182351_AddAwayFormation")]
+    partial class AddAwayFormation
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -980,6 +980,9 @@ namespace Koralytics.Infrastructure.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
+                    b.Property<string>("Location")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Notes")
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
@@ -1359,6 +1362,9 @@ namespace Koralytics.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("AwayFormation")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int?>("AwayPenaltyScore")
                         .HasColumnType("int");
 
@@ -1378,6 +1384,9 @@ namespace Koralytics.Infrastructure.Migrations
 
                     b.Property<string>("Format")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Formation")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("HomePenaltyScore")
@@ -1565,6 +1574,9 @@ namespace Koralytics.Infrastructure.Migrations
 
                     b.Property<int>("PlayerId")
                         .HasColumnType("int");
+
+                    b.Property<string>("PositionInMatch")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("TeamId")
                         .HasColumnType("int");
@@ -4367,7 +4379,7 @@ namespace Koralytics.Infrastructure.Migrations
                     b.HasOne("Koralytics.Domain.Entities.Player.Player", "Player")
                         .WithMany("PlayerPositions")
                         .HasForeignKey("PlayerId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("CreatedByUser");

@@ -23,7 +23,10 @@ namespace Koralytics.API.Hubs
 
         public override async Task OnConnectedAsync()
         {
-            var userIdString = Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userIdString = Context.User?.FindFirst("id")?.Value
+                 ?? Context.User?.FindFirst("sub")?.Value
+                 ?? Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+            Console.WriteLine($"[SignalR Debug] Connected User ID: '{userIdString}' | Connection ID: {Context.ConnectionId}");
 
             var roles = Context.User?.FindAll(ClaimTypes.Role)
                 .Select(c => c.Value)

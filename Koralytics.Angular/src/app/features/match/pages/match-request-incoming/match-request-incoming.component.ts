@@ -1,0 +1,212 @@
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { MatchService } from '../../../../../core/services/match/match.service';
+import { CoachSquadService } from '../../../../../core/services/coach/coach-squad.service';
+import { ToastService } from '../../../../../core/services/Toast/toast';
+import { MatchRequestModel } from '../../../../../core/models/Match/match-request.model';
+import { Pagination } from '../../../../../shared/components/pagination/pagination';
+import { LoadingSpinnerComponent } from '../../../../../shared/components/loading-spinner/loading-spinner';
+import { EmptyStateComponent } from '../../../../../shared/components/empty-state/empty-state';
+import { NavbarComponent } from '../../../../../shared/components/navbar/navbar';
+import { Footer } from '../../../../../shared/components/footer/footer';
+import { CustomSelect, SelectOption } from '../../../../../shared/components/custom-select/custom-select';
+import { CustomDatePicker } from '../../../../../shared/components/custom-date-picker/custom-date-picker';
+import { CustomButtonComponent } from '../../../../../shared/components/custom-button/custom-button';
+import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
+
+@Component({
+  selector: 'app-match-request-incoming',
+  standalone: true,
+  imports: [
+    CommonModule, Pagination, LoadingSpinnerComponent,
+    EmptyStateComponent, NavbarComponent, Footer, CustomSelect,
+    CustomDatePicker, CustomButtonComponent, ScrollRevealDirective
+  ],
+  templateUrl: './match-request-incoming.component.html',
+  styleUrls: ['./match-request-incoming.component.css']
+})
+export class MatchRequestIncomingComponent implements OnInit {
+  private matchService = inject(MatchService);
+  private coachSquadService = inject(CoachSquadService);
+  private toast = inject(ToastService);
+  private cdr = inject(ChangeDetectorRef);
+
+  // Teams dropdown
+  coachTeams: SelectOption[] = [];
+  selectedTeamId: number | null = null;
+  isLoadingTeams = true;
+
+  // List state
+  requests: MatchRequestModel[] = [];
+  isLoading = false;
+  error = '';
+  filterError = '';
+
+  // Pagination
+  currentPage = 1;
+  pageSize = 20;
+  totalItems = 0;
+
+  // Filters
+  selectedStatus: string | null = 'All';
+  selectedDateFrom = '';
+  selectedDateTo = '';
+
+  // Action state
+  actionInProgressId: number | null = null;
+
+  statusOptions: SelectOption[] = [
+    { value: 'All',      label: 'All Statuses' },
+    { value: 'Pending',  label: 'Pending' },
+    { value: 'Accepted', label: 'Accepted' },
+    { value: 'Declined', label: 'Declined' }
+  ];
+
+  ngOnInit(): void {
+    this.loadCoachTeams();
+  }
+
+  loadCoachTeams(): void {
+    this.isLoadingTeams = true;
+    this.coachSquadService.getCoachTeams().subscribe({
+      next: (res: any) => {
+        const teams = res?.data ?? res ?? [];
+        this.coachTeams = teams.map((t: any) => ({
+          value: t.teamId ?? t.TeamId,
+          label: `${t.teamName ?? t.TeamName} (${t.ageGroupName ?? t.AgeGroupName})`
+        }));
+        if (this.coachTeams.length > 0) {
+          this.selectedTeamId = this.coachTeams[0].value as number;
+          this.loadRequests();
+        }
+        this.isLoadingTeams = false;
+      },
+      error: () => {
+        this.error = 'Failed to load your teams.';
+        this.isLoadingTeams = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  loadRequests(): void {
+    if (!this.selectedTeamId) return;
+    this.isLoading = true;
+    this.error = '';
+
+    const statusParam = (this.selectedStatus && this.selectedStatus !== 'All') ? this.selectedStatus : undefined;
+
+    this.matchService.getIncomingRequests(
+      this.selectedTeamId,
+      this.currentPage,
+      this.pageSize,
+      statusParam,
+      this.selectedDateFrom || undefined,
+      this.selectedDateTo || undefined
+    ).subscribe({
+      next: (res) => {
+        this.requests = res.data?.requests ?? [];
+        this.totalItems = res.data?.totalCount ?? 0;
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.isLoading = false;
+        this.error = 'Failed to load match requests.';
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  applyFilters(): void {
+    this.filterError = '';
+    if (this.selectedDateFrom && this.selectedDateTo && this.selectedDateFrom > this.selectedDateTo) {
+      this.filterError = '"From" date must be earlier than "To" date.';
+      return;
+    }
+    this.currentPage = 1;
+    this.loadRequests();
+  }
+
+  clearFilters(): void {
+    this.selectedStatus = 'All';
+    this.selectedDateFrom = '';
+    this.selectedDateTo = '';
+    this.filterError = '';
+    this.currentPage = 1;
+    this.loadRequests();
+  }
+
+  onTeamChange(): void {
+    this.currentPage = 1;
+    this.loadRequests();
+  }
+
+  onDateFromChange(): void {
+    if (this.selectedDateFrom && this.selectedDateTo && this.selectedDateFrom > this.selectedDateTo) {
+      this.selectedDateTo = this.selectedDateFrom;
+    }
+  }
+
+  onDateToChange(): void {
+    if (this.selectedDateFrom && this.selectedDateTo && this.selectedDateFrom > this.selectedDateTo) {
+      this.selectedDateFrom = this.selectedDateTo;
+    }
+  }
+
+  onPageChange(page: number): void {
+    this.currentPage = page;
+    this.loadRequests();
+  }
+
+  accept(request: MatchRequestModel): void {
+    this.actionInProgressId = request.id;
+    this.matchService.acceptMatchRequest(request.id).subscribe({
+      next: () => {
+        this.toast.show('Match request accepted — a new match has been created!', 'success');
+        this.actionInProgressId = null;
+        this.loadRequests();
+      },
+      error: (err: any) => {
+        const msg = err?.error?.detail ?? err?.error?.message ?? 'Failed to accept request.';
+        this.toast.show(msg, 'error');
+        this.actionInProgressId = null;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  decline(request: MatchRequestModel): void {
+    this.actionInProgressId = request.id;
+    this.matchService.declineMatchRequest(request.id).subscribe({
+      next: () => {
+        this.toast.show('Match request declined.', 'info');
+        this.actionInProgressId = null;
+        this.loadRequests();
+      },
+      error: (err: any) => {
+        const msg = err?.error?.detail ?? err?.error?.message ?? 'Failed to decline request.';
+        this.toast.show(msg, 'error');
+        this.actionInProgressId = null;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  formatLabel(format: string): string {
+    const map: Record<string, string> = {
+      ElevenSide: '11v11',
+      SevenSide:  '7v7',
+      FiveSide:   '5v5'
+    };
+    return map[format] ?? format;
+  }
+
+  isActionInProgress(id: number): boolean {
+    return this.actionInProgressId === id;
+  }
+
+  isPending(request: MatchRequestModel): boolean {
+    return request?.status?.toLowerCase() === 'pending';
+  }
+}

@@ -1,0 +1,162 @@
+<div class="section-container fade-in">
+  <div class="section-header">
+    <div class="header-content">
+      <h3>Global Users Governance</h3>
+      <p class="subtitle">Comprehensive control over all platform users, roles, statuses, and permissions</p>
+    </div>
+
+    <!-- Filters Bar -->
+    <div class="filter-bar">
+      <div class="search-box">
+        <input 
+          type="text" 
+          [(ngModel)]="searchTerm" 
+          (keyup.enter)="onFilterChange()" 
+          placeholder="Search name, email, or username..." />
+        <button class="btn-filter" (click)="onFilterChange()">Search</button>
+      </div>
+
+      <div class="select-box">
+        <app-select
+          label="Role Filter"
+          [options]="roleOptions"
+          [value]="roleFilter"
+          (valueChange)="roleFilter = $event; onFilterChange()">
+        </app-select>
+      </div>
+
+      <div class="select-box">
+        <app-select
+          label="Status Filter"
+          [options]="statusOptions"
+          [value]="isDeletedFilter"
+          (valueChange)="isDeletedFilter = $event; onFilterChange()">
+        </app-select>
+      </div>
+    </div>
+  </div>
+
+  <div class="loading-state" *ngIf="isLoading">
+    <app-loading-spinner size="lg"></app-loading-spinner>
+    <p>Loading platform users...</p>
+  </div>
+
+  <!-- Users Table -->
+  <div class="cyber-table-responsive-container" *ngIf="!isLoading && users.length > 0">
+    <table class="cyber-data-table">
+      <thead>
+        <tr>
+          <th>User Account</th>
+          <th>Username / Email</th>
+          <th>Roles & Permissions</th>
+          <th>Account Status</th>
+          <th>Registered</th>
+          <th class="text-right">Administration Hub</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let u of users">
+          <td>
+            <div class="user-info-cell">
+              <div class="avatar-circle">
+                {{ u.firstName.charAt(0) || u.email.charAt(0) || 'U' }}
+              </div>
+              <div>
+                <span class="user-fullname">{{ u.fullName || u.userName }}</span>
+                <span class="user-id">User ID: #{{ u.id }}</span>
+              </div>
+            </div>
+          </td>
+          <td>
+            <span class="cell-text">{{ u.email }}</span>
+          </td>
+          <td>
+            <div class="roles-hub">
+              <span class="role-chip" *ngFor="let r of u.roles" [ngClass]="r.toLowerCase()">
+                {{ r }}
+              </span>
+              <span class="no-role" *ngIf="!u.roles || u.roles.length === 0">No Role</span>
+            </div>
+          </td>
+          <td>
+            <span class="status-badge" [class.active]="!u.isDeleted" [class.inactive]="u.isDeleted">
+              {{ u.isDeleted ? 'Deactivated' : 'Active' }}
+            </span>
+          </td>
+          <td>
+            <span class="date-text">{{ u.createdAt | date:'mediumDate' }}</span>
+          </td>
+          <td class="text-right">
+            <div class="table-actions-hub">
+              <!-- User Governance Actions -->
+              <app-button variant="cyan" size="sm" (click)="openEditRolesModal(u)">
+                Roles
+              </app-button>
+              <app-button 
+                [variant]="u.isDeleted ? 'accent' : 'amber'" 
+                size="sm"
+                (click)="toggleStatus(u)">
+                {{ u.isDeleted ? 'Activate' : 'Deactivate' }}
+              </app-button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="empty-state" *ngIf="!isLoading && users.length === 0">
+    <div class="empty-icon">👥</div>
+    <h4>No Users Found</h4>
+    <p>Try adjusting your search filters or status selection.</p>
+  </div>
+
+  <!-- Pagination Controls -->
+  <div class="pagination-footer" *ngIf="!isLoading && totalCount > pageSize">
+    <app-pagination
+      [totalItems]="totalCount"
+      [pageSize]="pageSize"
+      [currentPage]="pageNumber"
+      (pageChange)="onPageChange($event)">
+    </app-pagination>
+  </div>
+</div>
+
+<!-- Edit Roles Modal -->
+<div class="modal-backdrop" *ngIf="selectedUserForRoles" (click)="closeEditRolesModal()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h4>Assign Roles - {{ selectedUserForRoles.fullName }}</h4>
+      <button class="btn-close" (click)="closeEditRolesModal()">&times;</button>
+    </div>
+
+    <div class="modal-body">
+      <p class="helper-text">Select one or multiple platform roles to assign to this account:</p>
+
+      <div class="roles-list">
+        <div 
+          class="role-checkbox-card" 
+          *ngFor="let r of availableRoles"
+          [class.selected]="selectedRoles[r]"
+          (click)="toggleRoleSelection(r)">
+          <input 
+            type="checkbox" 
+            [checked]="selectedRoles[r]" 
+            (change)="toggleRoleSelection(r)" 
+            (click)="$event.stopPropagation()" />
+          <div class="role-desc">
+            <strong>{{ r }}</strong>
+            <small>{{ r === 'SystemAdmin' ? 'Full platform administration rights' : 'Specialized access for ' + r }}</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <app-button variant="slate" type="button" (click)="closeEditRolesModal()">Cancel</app-button>
+      <app-button variant="accent" type="button" [disabled]="isUpdatingRoles" (click)="saveRoles()">
+        {{ isUpdatingRoles ? 'Saving...' : 'Save Permissions' }}
+      </app-button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,131 @@
+<div class="section-container fade-in">
+  <div class="section-header">
+    <div class="header-content">
+      <h3>Academy Creation Requests</h3>
+      <p class="subtitle">Review, approve, or reject new academy onboarding requests across the Koralytics platform</p>
+    </div>
+  </div>
+
+  <div class="loading-state" *ngIf="isLoading">
+    <app-loading-spinner size="lg"></app-loading-spinner>
+    <p>Loading pending requests...</p>
+  </div>
+
+  <!-- Table View -->
+  <div class="cyber-table-responsive-container" *ngIf="!isLoading && pendingRequests.length > 0">
+    <table class="cyber-data-table">
+      <thead>
+        <tr>
+          <th>Academy Name</th>
+          <th>Contact Person</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>Location</th>
+          <th>Requested Date</th>
+          <th class="text-right">Review Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let req of pendingRequests; let i = index" [style.--animation-order]="i">
+          <td>
+            <div class="academy-name-cell">
+              <span class="academy-title">{{ req.academyName }}</span>
+            </div>
+          </td>
+          <td><span class="cell-text">{{ req.contactPersonName }}</span></td>
+          <td><span class="cell-text">{{ req.contactEmail }}</span></td>
+          <td><span class="cell-text">{{ req.contactPhone }}</span></td>
+          <td><span class="cell-text">{{ req.location }}</span></td>
+          <td><span class="date-text">{{ req.requestedAt | date:'mediumDate' }}</span></td>
+          <td class="text-right">
+            <div class="table-actions-hub">
+              <app-button variant="accent" size="sm" (click)="openApproveModal(req)">
+                Approve
+              </app-button>
+              <app-button variant="coral" size="sm" (click)="openRejectModal(req)">
+                Reject
+              </app-button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="empty-state" *ngIf="!isLoading && pendingRequests.length === 0">
+    <div class="empty-icon">✓</div>
+    <h4>All Caught Up!</h4>
+    <p>There are currently no pending academy join requests.</p>
+  </div>
+</div>
+
+<!-- Approve Modal -->
+<div class="modal-backdrop" *ngIf="selectedRequestForApprove" (click)="closeApproveModal()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h4>Approve Academy Onboarding</h4>
+      <button class="btn-close" (click)="closeApproveModal()">&times;</button>
+    </div>
+
+    <form [formGroup]="approveForm" (ngSubmit)="onApproveSubmit()" class="modal-form">
+      <app-text-input
+        label="Academy Name"
+        type="text"
+        formControlName="name">
+      </app-text-input>
+
+      <app-text-input
+        label="Founded Date (YYYY-MM-DD)"
+        type="date"
+        formControlName="foundedDate">
+      </app-text-input>
+
+      <div class="color-row">
+        <app-text-input
+          label="Primary Brand Color"
+          type="text"
+          formControlName="primaryColor">
+        </app-text-input>
+
+        <app-text-input
+          label="Secondary Brand Color"
+          type="text"
+          formControlName="secondaryColor">
+        </app-text-input>
+      </div>
+
+      <div class="modal-footer">
+        <app-button variant="slate" type="button" (click)="closeApproveModal()">Cancel</app-button>
+        <app-button variant="accent" type="submit" [disabled]="isApproving">
+          {{ isApproving ? 'Creating Academy...' : 'Approve & Create' }}
+        </app-button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Reject Modal -->
+<div class="modal-backdrop" *ngIf="selectedRequestForReject" (click)="closeRejectModal()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h4>Reject Academy Request</h4>
+      <button class="btn-close" (click)="closeRejectModal()">&times;</button>
+    </div>
+
+    <form [formGroup]="rejectForm" (ngSubmit)="onRejectSubmit()" class="modal-form">
+      <app-text-input
+        label="Rejection Reason"
+        type="text"
+        placeholder="Explain why this request is being rejected..."
+        formControlName="reason">
+      </app-text-input>
+
+      <div class="modal-footer">
+        <app-button variant="slate" type="button" (click)="closeRejectModal()">Cancel</app-button>
+        <app-button variant="coral" type="submit" [disabled]="isRejecting || rejectForm.invalid">
+          {{ isRejecting ? 'Rejecting...' : 'Confirm Rejection' }}
+        </app-button>
+      </div>
+    </form>
+  </div>
+</div>

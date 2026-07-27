@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Koralytics.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class v3 : Migration
+    public partial class init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -1178,7 +1178,7 @@ namespace Koralytics.Infrastructure.Migrations
                         column: x => x.PlayerId,
                         principalTable: "Players",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -1586,6 +1586,7 @@ namespace Koralytics.Infrastructure.Migrations
                     AcademyId = table.Column<int>(type: "int", nullable: false),
                     TeamId = table.Column<int>(type: "int", nullable: false),
                     CoachId = table.Column<int>(type: "int", nullable: false),
+                    Location = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     SessionDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Type = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -1943,6 +1944,7 @@ namespace Koralytics.Infrastructure.Migrations
                     HomePenaltyScore = table.Column<int>(type: "int", nullable: true),
                     AwayPenaltyScore = table.Column<int>(type: "int", nullable: true),
                     WinningTeamId = table.Column<int>(type: "int", nullable: true),
+                    Formation = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedById = table.Column<int>(type: "int", nullable: true),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false),
@@ -2305,6 +2307,7 @@ namespace Koralytics.Infrastructure.Migrations
                     IsStarting = table.Column<bool>(type: "bit", nullable: false),
                     JerseyNumber = table.Column<int>(type: "int", nullable: true),
                     IsHomeSide = table.Column<bool>(type: "bit", nullable: true),
+                    PositionInMatch = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedById = table.Column<int>(type: "int", nullable: true),
                     CreatedByUserId = table.Column<int>(type: "int", nullable: true),

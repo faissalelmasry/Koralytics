@@ -1,4 +1,4 @@
-﻿using Koralytics.Application.Common;
+using Koralytics.Application.Common;
 
 using Microsoft.AspNetCore.Mvc;
 
@@ -31,6 +31,16 @@ namespace Koralytics.API.Controllers.BaseController
         protected IActionResult DeletedResponse(string message = "Deleted successfully")
         {
             return Ok(CreateResponse<object?>(null, message, StatusCodes.Status200OK));
+        }
+
+        protected int GetCurrentUserId()
+        {
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+            {
+                throw new UnauthorizedAccessException("Invalid user token");
+            }
+            return userId;
         }
 
         private static ApiResponse<T> CreateResponse<T>(T data, string message, int statusCode)

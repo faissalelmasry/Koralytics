@@ -20,5 +20,11 @@ namespace Koralytics.Application.Services.Coach.CoachSquadService
         /// Returns a side-by-side comparison of two players' category ratings and match stats.
         /// </summary>
         Task<SquadComparisonDto> GetSquadComparisonAsync(int playerAId, int playerBId);
+
+        /// <summary>
+        /// Returns all teams that the given coach is actively assigned to,
+        /// including team name, age group name, and academy id.
+        /// </summary>
+        Task<IEnumerable<CoachTeamDto>> GetCoachTeamsAsync(int coachId);
     }
 }

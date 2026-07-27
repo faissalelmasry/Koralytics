@@ -16,12 +16,10 @@ import { Pagination } from '../../../../shared/components/pagination/pagination'
 import { CustomButtonComponent } from '../../../../shared/components/custom-button/custom-button';
 import { SearchBarComponent } from '../../../../shared/components/search-bar/search-bar';
 import { CustomSelect, SelectOption } from '../../../../shared/components/custom-select/custom-select';
-import { CustomInputComponent } from '../../../../shared/components/custom-input-component/custom-input-component';
+import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state';
+import { Footer } from '../../../../shared/components/footer/footer';
 import { CustomToggle } from '../../../../shared/components/custom-toggle/custom-toggle';
 import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner';
-import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state';
-import { NavbarComponent } from '../../../../shared/components/navbar/navbar';
-import { Footer } from '../../../../shared/components/footer/footer';
 
 @Component({
   selector: 'app-drill-template-list',
@@ -101,6 +99,18 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
 
   difficultyLevels = Object.values(DifficultyLevel);
   drillModes = Object.values(DrillMode);
+
+  onFormCategoryChange(val: any): void {
+    this.drillForm.get('categoryId')?.setValue(val ? Number(val) : null);
+  }
+
+  onFormDifficultyChange(val: any): void {
+    this.drillForm.get('difficultyLevel')?.setValue(val || null);
+  }
+
+  onFormModeChange(val: any): void {
+    this.drillForm.get('drillMode')?.setValue(val || null);
+  }
 
   // --- RxJS Subscriptions ---
   private searchSubject = new Subject<string>();

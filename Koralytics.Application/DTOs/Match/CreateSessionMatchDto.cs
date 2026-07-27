@@ -10,6 +10,8 @@ namespace Koralytics.Application.DTOs.Match
         public MatchFormat Format { get; set; }
         public DateTime MatchDate { get; set; }
         public string? Location { get; set; }
+        public string? Formation { get; set; }
+        public string? AwayFormation { get; set; }
     }
 
     public class SessionSidePlayerDto
@@ -17,5 +19,6 @@ namespace Koralytics.Application.DTOs.Match
         public int PlayerId { get; set; }
         public bool IsStarting { get; set; }
         public int? JerseyNumber { get; set; }
+        public string? PositionInMatch { get; set; }
     }
 }

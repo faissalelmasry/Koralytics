@@ -1,0 +1,94 @@
+<app-navbar></app-navbar>
+
+<div class="shortlist-page">
+  <!-- Header -->
+  <div class="page-header" scrollReveal direction="bottom" [delay]="0">
+    <div class="header-titles">
+      <h1>My Shortlist</h1>
+      <p>Players you've shortlisted for closer evaluation. Click a card to flip it for quick details.</p>
+    </div>
+
+    <div class="search-container">
+      <app-search-bar
+        [placeholderText]="'Search shortlist...'"
+        (searchChange)="onSearch($event)">
+      </app-search-bar>
+    </div>
+  </div>
+
+  <!-- Shared Loading Spinner -->
+  @if (isLoading()) {
+    <div class="status-state">
+      <app-loading-spinner text="Loading your shortlist..."></app-loading-spinner>
+    </div>
+  }
+
+  <!-- Shared Empty State -->
+  @if (!isLoading() && players().length === 0) {
+    <div class="status-state">
+      <app-empty-state
+        title="No shortlisted players"
+        description="You haven't shortlisted any players yet, or no matches found for your search."
+        icon="search">
+      </app-empty-state>
+    </div>
+  }
+
+  <!-- Grid Layout -->
+  @if (!isLoading() && players().length > 0) {
+    <div class="shortlist-grid" scrollReveal direction="bottom" [delay]="100">
+      @for (player of players(); track player.playerId) {
+        <div class="shortlist-item">
+
+          <!--
+           any
+          -->
+          <div class="card-wrap">
+            <app-player-card
+              [player]="$any(player)"
+              [autoLoad]="false"
+              [compact]="true"
+              [cardWidth]="220"
+              [cardHeight]="340">
+            </app-player-card>
+            <span class="flip-hint">Tap card for quick view</span>
+          </div>
+
+          <!-- Side-by-Side Actions -->
+          <div class="card-actions">
+            <app-button
+              variant="accent"
+              (click)="viewProfile(player.playerId)"
+              class="action-btn">
+              Profile
+            </app-button>
+
+            <app-button
+              variant="coral"
+              [disabled]="isRemoving() === player.playerId"
+              (click)="removeFromShortlist(player.playerId)"
+              class="action-btn">
+              {{ isRemoving() === player.playerId ? 'Removing...' : 'Remove' }}
+            </app-button>
+          </div>
+
+        </div>
+      }
+    </div>
+
+    <!-- Load More -->
+    @if (hasMore()) {
+      <div class="load-more-container">
+        <!-- Changed (onClick) to (click) for consistency -->
+        <app-button
+          variant="cyan"
+          [disabled]="isLoadingMore()"
+          (click)="loadMore()">
+          {{ isLoadingMore() ? 'Loading...' : 'Load More Players' }}
+        </app-button>
+      </div>
+    }
+  }
+</div>
+
+<app-footer scrollReveal direction="bottom" [delay]="200"></app-footer>

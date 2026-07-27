@@ -1,0 +1,152 @@
+<app-navbar></app-navbar>
+
+<div class="page-wrapper">
+
+  <div class="tactical-tag" scrollReveal direction="bottom" [delay]="0">Match Timeline</div>
+
+  <div class="header-row" scrollReveal direction="bottom" [delay]="50">
+    <h2 class="section-title">{{ playerName || 'Player' }}</h2>
+    <span class="badge-count">{{ totalItems }} Matches</span>
+  </div>
+
+  <div class="filter-panel-card" scrollReveal direction="bottom" [delay]="100">
+    <div class="filter-grid">
+      <div class="filter-item">
+        <app-select
+          label="Match Type"
+          [options]="matchTypeOptions"
+          [(value)]="selectedMatchType">
+        </app-select>
+      </div>
+      <div class="filter-item">
+        <app-date-picker
+          label="From"
+          [(value)]="selectedDateFrom"
+          (valueChange)="onDateFromChange()">
+        </app-date-picker>
+      </div>
+      <div class="filter-item">
+        <app-date-picker
+          label="To"
+          [(value)]="selectedDateTo"
+          (valueChange)="onDateToChange()">
+        </app-date-picker>
+      </div>
+      <div class="filter-actions">
+        <app-button variant="accent" (click)="applyFilters()">Apply</app-button>
+        <app-button variant="slate" (click)="clearFilters()">Clear</app-button>
+      </div>
+    </div>
+  </div>
+
+  @if (filterError) {
+    <div class="filter-error">{{ filterError }}</div>
+  }
+
+  @if (isLoading) {
+    <div class="loading-state">
+      <app-loading-spinner size="lg"></app-loading-spinner>
+      <p>Loading match history...</p>
+    </div>
+  }
+  @else if (error) {
+    <div class="error-state">
+      <div class="error-icon">!</div>
+      <p>{{ error }}</p>
+      <app-button variant="accent" (click)="loadTimeline()">Retry</app-button>
+    </div>
+  }
+  @else if (!events || events.length === 0) {
+    <div class="empty-state-wrapper">
+      <app-empty-state
+        title="No Matches Found"
+        description="No matches match the selected filters or there is no timeline history recorded for this player yet.">
+      </app-empty-state>
+    </div>
+  }
+  @else {
+    <div class="group-label" scrollReveal direction="bottom" [delay]="200">Match Performances</div>
+
+    <div class="koralytics-grid">
+      @for (event of events; track event.matchId; let i = $index) {
+        <div
+          class="koralytics-card"
+          scrollReveal
+          direction="bottom"
+          [delay]="250 + i * 70"
+          [class.card-green]="getRatingColorClass(event) === 'score-green'"
+          [class.card-yellow]="getRatingColorClass(event) === 'score-yellow'"
+          [class.card-red]="getRatingColorClass(event) === 'score-red'"
+          [class.motm-card]="event.isMOTM">
+
+          @if (event.isMOTM) {
+            <div class="motm-ribbon">
+              <span class="star-icon">★</span> MAN OF THE MATCH
+            </div>
+          }
+
+          <div class="card-left-info">
+            <div class="meta-header">
+              <span class="badge"
+                [class.win]="getOutcomeClass(event) === 'win'"
+                [class.draw]="getOutcomeClass(event) === 'draw'"
+                [class.loss]="getOutcomeClass(event) === 'loss'">
+                {{ getOutcomeClass(event) | uppercase }}
+              </span>
+              <span class="meta-date">{{ formatDate(event.date) }}</span>
+            </div>
+            <div class="card-title">
+              <span>{{ event.homeTeamName || 'Home' }} vs {{ event.awayTeamName || 'Away' }}</span>
+              <span
+                [class.score-green]="getOutcomeClass(event) === 'win'"
+                [class.score-yellow]="getOutcomeClass(event) === 'draw'"
+                [class.score-red]="getOutcomeClass(event) === 'loss'"
+                style="margin-left: 8px;">
+                {{ event.homeScore }} - {{ event.awayScore }}
+              </span>
+            </div>
+            <div class="card-subtitle">{{ event.matchType }}</div>
+
+            @if (event.coachNote) {
+              <div class="coach-note">&ldquo;{{ event.coachNote }}&rdquo;</div>
+            }
+          </div>
+
+          <div class="stats-block">
+            <div class="stat-pill">
+              <span class="lbl">MINS</span>
+              <span class="val">{{ event.minutesPlayed }}'</span>
+            </div>
+            <div class="stat-pill">
+              <span class="lbl">GOALS</span>
+              <span class="val" [class.score-green]="event.goals > 0">{{ event.goals }}</span>
+            </div>
+            <div class="stat-pill">
+              <span class="lbl">ASSISTS</span>
+              <span class="val" [class.score-yellow]="event.assists > 0">{{ event.assists }}</span>
+            </div>
+
+            <div class="rating-box">
+              <span class="stat-pill"><span class="lbl">RATING</span></span>
+              <span class="rating-num" [ngClass]="getRatingColorClass(event)">
+                {{ event.rating ? event.rating.toFixed(1) : 'N/A' }}
+              </span>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="pagination-wrapper" scrollReveal direction="bottom" [delay]="400">
+      <app-pagination
+        [totalItems]="totalItems"
+        [pageSize]="pageSize"
+        [currentPage]="currentPage"
+        (pageChange)="onPageChange($event)">
+      </app-pagination>
+    </div>
+  }
+
+</div>
+
+<app-footer></app-footer>

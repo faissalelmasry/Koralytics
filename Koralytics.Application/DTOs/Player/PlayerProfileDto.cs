@@ -55,4 +55,20 @@ namespace Koralytics.Application.DTOs.Player
         public int Assists { get; set; }
         public int MOTMs { get; set; }
     }
+
+    public class AddPlayerPositionDto
+    {
+        public string Position { get; set; } = string.Empty;
+        public bool IsPrimary { get; set; }
+    }
+
+    public class UpdatePrimaryPositionDto
+    {
+        public string Position { get; set; } = string.Empty;
+    }
+
+    public class RemovePlayerPositionDto
+    {
+        public string Position { get; set; } = string.Empty;
+    }
 }

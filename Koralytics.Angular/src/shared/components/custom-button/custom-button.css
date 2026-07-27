@@ -33,6 +33,30 @@
     border-color 0.3s ease;
 }
 
+/* ---------- Button Sizes ---------- */
+.custom-btn.sm,
+.custom-btn.small {
+  padding: 6px 14px !important;
+  font-size: 12px !important;
+  border-radius: 8px !important;
+  width: auto !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.custom-btn.md,
+.custom-btn.medium {
+  padding: 12px 24px;
+  font-size: 14px;
+}
+
+.custom-btn.lg,
+.custom-btn.large {
+  padding: 16px 32px;
+  font-size: 16px;
+}
+
 /* Radial Shine Overlay */
 .custom-btn::before {
   content: "";
@@ -96,6 +120,28 @@
   background: #1c2027;
   box-shadow: 0 14px 40px -10px rgba(0, 0, 0, 0.6);
   border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* 5. Amber / Orange */
+.custom-btn.amber {
+  background: linear-gradient(135deg, #ff6a00 0%, #ff8c42 100%);
+  color: #ffffff;
+  border-color: rgba(255, 106, 0, 0.3);
+}
+.custom-btn.amber:hover {
+  box-shadow: 0 14px 40px -10px rgba(255, 106, 0, 0.5), 0 0 20px rgba(255, 106, 0, 0.2);
+  border-color: rgba(255, 106, 0, 0.6);
+}
+
+/* 6. Gold / Yellow */
+.custom-btn.gold {
+  background: linear-gradient(135deg, #ffd700 0%, #ffed6a 100%);
+  color: #0a0c0f;
+  border-color: rgba(255, 215, 0, 0.3);
+}
+.custom-btn.gold:hover {
+  box-shadow: 0 14px 40px -10px rgba(255, 215, 0, 0.5), 0 0 20px rgba(255, 215, 0, 0.2);
+  border-color: rgba(255, 215, 0, 0.6);
 }
 
 /* Pressed Click State */
@@ -163,6 +209,26 @@
   z-index: 1;
 }
 @keyframes rippleAnim { to { transform: scale(3); opacity: 0; } }
+
+/* ---------- Shimmer Sweep Animation ---------- */
+.custom-btn.shimmer::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -60%;
+  width: 30%;
+  height: 200%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+  transform: rotate(35deg);
+  animation: sweepShimmer 4s infinite ease-in-out;
+  z-index: 1;
+  pointer-events: none;
+}
+
+@keyframes sweepShimmer {
+  0% { left: -60%; }
+  30%, 100% { left: 140%; }
+}
 
 /* Disabled State */
 .custom-btn:disabled:not(.loading) {

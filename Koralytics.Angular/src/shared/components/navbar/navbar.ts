@@ -1,6 +1,7 @@
-import { Component, signal, HostListener } from '@angular/core';
+import { Component, signal, HostListener, inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { AuthService } from '../../../core/services/auth/auth.service';
 
 @Component({
   selector: 'app-navbar',
@@ -10,10 +11,16 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./navbar.css']
 })
 export class NavbarComponent {
+  private authService = inject(AuthService);
+
   variant = signal<'primary' | 'icon'>('icon'); 
   
   isSidebarOpen = false;
   isScrolled = false;
+
+  get isSystemAdmin(): boolean {
+    return this.authService.getUserRoles().includes('SystemAdmin');
+  }
 
   @HostListener('window:scroll', [])
   onWindowScroll() {
@@ -22,5 +29,21 @@ export class NavbarComponent {
 
   toggleSidebar(status: boolean) {
     this.isSidebarOpen = status;
+  }
+
+  get isLoggedIn(): boolean {
+    return this.authService.isLoggedIn();
+  }
+
+  get isCoach(): boolean {
+    return this.authService.getUserRoles().includes('Coach');
+  }
+
+  get isPlayer(): boolean {
+    return this.authService.getUserRoles().includes('Player');
+  }
+
+  get isAcademyAdmin(): boolean {
+    return this.authService.getUserRoles().includes('AcademyAdmin');
   }
 }

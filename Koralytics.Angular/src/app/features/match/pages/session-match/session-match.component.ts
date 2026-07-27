@@ -1,0 +1,767 @@
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ActivatedRoute, Router } from '@angular/router';
+import { MatchService } from '../../../../../core/services/match/match.service';
+import { DrillSessionService } from '../../../../../core/services/drill/drill-session.service';
+import { CoachSquadService } from '../../../../../core/services/coach/coach-squad.service';
+import { PlayerCardService } from '../../../../../core/services/player/player-card.service';
+import { ToastService } from '../../../../../core/services/Toast/toast';
+import { MiniPlayerCardModel } from '../../../../../core/models/Player/mini-player-card-model';
+import { MiniPlayerCardComponent } from '../../mini-player-card/mini-player-card.component';
+import { CustomSelect, SelectOption } from '../../../../../shared/components/custom-select/custom-select';
+import { CustomButtonComponent } from '../../../../../shared/components/custom-button/custom-button';
+import { LoadingSpinnerComponent } from '../../../../../shared/components/loading-spinner/loading-spinner';
+import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
+import { NavbarComponent } from "../../../../../shared/components/navbar/navbar";
+import { Footer } from "../../../../../shared/components/footer/footer";
+
+export interface PositionSlot {
+  slotId: string;
+  role: string;
+  player: MiniPlayerCardModel | null;
+}
+
+const FORMATIONS_11v11: Record<string, string[][]> = {
+  '4-3-3': [
+    ['LW', 'ST', 'RW'],
+    ['CM', 'CDM', 'CM'],
+    ['LB', 'CB', 'CB', 'RB'],
+    ['GK']
+  ],
+  '4-2-3-1': [
+    ['ST'],
+    ['LAM', 'CAM', 'RAM'],
+    ['CDM', 'CDM'],
+    ['LB', 'CB', 'CB', 'RB'],
+    ['GK']
+  ],
+  '3-5-2': [
+    ['ST', 'ST'],
+    ['LM', 'CM', 'CAM', 'CM', 'RM'],
+    ['CB', 'CB', 'CB'],
+    ['GK']
+  ],
+  '4-4-2': [
+    ['ST', 'ST'],
+    ['LM', 'CM', 'CM', 'RM'],
+    ['LB', 'CB', 'CB', 'RB'],
+    ['GK']
+  ]
+};
+
+const FORMATIONS_7v7: Record<string, string[][]> = {
+  '2-3-1': [
+    ['ST'],
+    ['LM', 'CM', 'RM'],
+    ['CB', 'CB'],
+    ['GK']
+  ],
+  '3-2-1': [
+    ['ST'],
+    ['CM', 'CM'],
+    ['LB', 'CB', 'RB'],
+    ['GK']
+  ],
+  '2-2-2': [
+    ['ST', 'ST'],
+    ['CM', 'CM'],
+    ['CB', 'CB'],
+    ['GK']
+  ],
+  '3-1-2': [
+    ['ST', 'ST'],
+    ['CM'],
+    ['LB', 'CB', 'RB'],
+    ['GK']
+  ]
+};
+
+const FORMATIONS_5v5: Record<string, string[][]> = {
+  '1-2-1': [
+    ['ST'],
+    ['LM', 'RM'],
+    ['CB'],
+    ['GK']
+  ],
+  '2-2': [
+    ['ST', 'ST'],
+    ['CB', 'CB'],
+    ['GK']
+  ],
+  '2-1-1': [
+    ['ST'],
+    ['CM'],
+    ['LB', 'RB'],
+    ['GK']
+  ],
+  '1-1-2': [
+    ['ST', 'ST'],
+    ['CM'],
+    ['CB'],
+    ['GK']
+  ]
+};
+
+const FORMAT_MAP_ENUM: Record<string, number> = {
+  'FiveSide': 5,
+  'SevenSide': 7,
+  'ElevenSide': 11
+};
+
+@Component({
+  selector: 'app-session-match',
+  standalone: true,
+  imports: [
+    CommonModule,
+    MiniPlayerCardComponent,
+    CustomSelect,
+    CustomButtonComponent,
+    LoadingSpinnerComponent,
+    ScrollRevealDirective,
+    NavbarComponent,
+    Footer
+],
+  templateUrl: './session-match.component.html',
+  styleUrls: ['./session-match.component.css']
+})
+export class SessionMatchComponent implements OnInit {
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private matchService = inject(MatchService);
+  private drillSessionService = inject(DrillSessionService);
+  private coachSquadService = inject(CoachSquadService);
+  private playerCardService = inject(PlayerCardService);
+  private toast = inject(ToastService);
+  private cdr = inject(ChangeDetectorRef);
+
+  sessionId = 0;
+  sessionData: any = null;
+  teamId = 0;
+
+  isLoading = true;
+  isSubmitting = false;
+  error = '';
+
+  // Active Team Side Slider
+  activeSide: 'home' | 'away' = 'home';
+
+  // Format & Options
+  selectedFormat = 'SevenSide';
+  formatOptions: SelectOption[] = [
+    { value: 'FiveSide', label: '5-Side' },
+    { value: 'SevenSide', label: '7-Side' },
+    { value: 'ElevenSide', label: '11-Side' }
+  ];
+
+  formatStartingCount = 7;
+  matchDate = '';
+  location = '';
+
+  // Formations for Home & Away
+  homeFormation = '2-3-1';
+  awayFormation = '2-3-1';
+  formationOptions: SelectOption[] = [];
+
+  get activeFormation(): string {
+    return this.activeSide === 'home' ? this.homeFormation : this.awayFormation;
+  }
+  set activeFormation(val: string) {
+    if (this.activeSide === 'home') {
+      this.homeFormation = val;
+    } else {
+      this.awayFormation = val;
+    }
+  }
+
+  // Squad Lists
+  unassignedSquad: MiniPlayerCardModel[] = [];
+
+  // Home Side Layout
+  homePitchRows: PositionSlot[][] = [];
+  homeBenchSlots: (MiniPlayerCardModel | null)[] = Array(7).fill(null);
+
+  // Away Side Layout
+  awayPitchRows: PositionSlot[][] = [];
+  awayBenchSlots: (MiniPlayerCardModel | null)[] = Array(7).fill(null);
+
+  get activePitchRows(): PositionSlot[][] {
+    return this.activeSide === 'home' ? this.homePitchRows : this.awayPitchRows;
+  }
+
+  get activeBenchSlots(): (MiniPlayerCardModel | null)[] {
+    return this.activeSide === 'home' ? this.homeBenchSlots : this.awayBenchSlots;
+  }
+
+  // Drag State
+  draggedPlayer: MiniPlayerCardModel | null = null;
+  dragSource: 'unassigned' | 'home-pitch' | 'home-bench' | 'away-pitch' | 'away-bench' = 'unassigned';
+  dragSourceIndex: { row?: number; col?: number; benchIdx?: number } = {};
+
+  // Click to assign selection
+  selectedPlayer: MiniPlayerCardModel | null = null;
+
+  ngOnInit(): void {
+    const idParam = this.route.snapshot.paramMap.get('sessionId');
+    this.sessionId = idParam ? parseInt(idParam, 10) : 0;
+    if (this.sessionId > 0) {
+      this.loadSessionData();
+    } else {
+      this.error = 'Invalid Session ID';
+      this.isLoading = false;
+    }
+  }
+
+  loadSessionData(): void {
+    this.isLoading = true;
+    this.error = '';
+
+    this.drillSessionService.getSessionById(this.sessionId).subscribe({
+      next: (res: any) => {
+        const data = res?.data ?? res;
+        this.sessionData = data;
+        this.teamId = data?.teamId ?? data?.TeamId ?? 0;
+
+        const rawDate = data?.sessionDate ?? data?.SessionDate ?? new Date().toISOString();
+        this.matchDate = rawDate;
+        this.location = data?.location ?? data?.Location ?? 'Training Pitch';
+
+        this.updateFormatAndFormations('SevenSide');
+        this.loadSessionPresentSquad();
+      },
+      error: () => {
+        this.error = 'Failed to load session details.';
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  loadSessionPresentSquad(): void {
+    const attendances: any[] = this.sessionData?.sessionAttendances ?? this.sessionData?.SessionAttendances ?? [];
+    const presentAttendance = attendances.filter((a: any) => a.isPresent || a.IsPresent);
+
+    if (presentAttendance.length > 0) {
+      const playerIds = presentAttendance.map((a: any) => a.playerId ?? a.PlayerId);
+      this.fetchMiniCardsForSquad(playerIds, presentAttendance);
+    } else if (this.teamId > 0) {
+      this.coachSquadService.getSquad(this.teamId).subscribe({
+        next: (squadRes: any) => {
+          const squadData = squadRes?.data ?? squadRes;
+          const squadList: any[] = Array.isArray(squadData)
+            ? squadData
+            : (squadData?.players ?? squadData?.Players ?? []);
+
+          const playerIds = squadList.map((item: any) => item.playerId ?? item.PlayerId ?? item.id ?? item.Id);
+          this.fetchMiniCardsForSquad(playerIds, squadList);
+        },
+        error: () => {
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        }
+      });
+    } else {
+      this.isLoading = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  fetchMiniCardsForSquad(playerIds: number[], rawItems: any[]): void {
+    const validIds = playerIds.filter(id => id > 0);
+    if (validIds.length === 0) {
+      this.isLoading = false;
+      this.cdr.detectChanges();
+      return;
+    }
+
+    const buildFallbackCard = (item: any): MiniPlayerCardModel => {
+      const pId = item.playerId ?? item.PlayerId ?? item.id ?? item.Id;
+      const playerObj = item.player ?? item.Player ?? item;
+      const name = (playerObj.fullName ?? playerObj.FullName ?? `${playerObj.firstName ?? playerObj.FirstName ?? ''} ${playerObj.lastName ?? playerObj.LastName ?? ''}`.trim()) || 'Player #' + pId;
+      const pos = playerObj.primaryPosition ?? playerObj.PrimaryPosition ?? playerObj.position ?? playerObj.Position ?? 'CM';
+      const img = playerObj.profileImageUrl ?? playerObj.ProfileImageUrl ?? null;
+      const rating = Math.round(playerObj.overallRating ?? playerObj.OverallRating ?? 0);
+
+      return {
+        playerId: pId,
+        fullName: name,
+        position: pos,
+        profileImageUrl: img,
+        overallRating: rating
+      };
+    };
+
+    this.playerCardService.getMiniPlayerCards(validIds).subscribe({
+      next: (cards: MiniPlayerCardModel[]) => {
+        const rawCards = (cards as any)?.data ?? cards ?? [];
+        const fetchedMap = new Map<number, MiniPlayerCardModel>();
+
+        if (Array.isArray(rawCards)) {
+          rawCards.forEach((c: any) => {
+            if (c && c.playerId > 0) {
+              fetchedMap.set(c.playerId, {
+                ...c,
+                overallRating: Math.round(c.overallRating ?? 0)
+              });
+            }
+          });
+        }
+
+        this.unassignedSquad = rawItems.map((item: any) => {
+          const pId = item.playerId ?? item.PlayerId ?? item.id ?? item.Id;
+          const fetched = fetchedMap.get(pId);
+          if (fetched) return fetched;
+          return buildFallbackCard(item);
+        });
+
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.unassignedSquad = rawItems.map(item => buildFallbackCard(item));
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  onFormatChange(): void {
+    this.updateFormatAndFormations(this.selectedFormat);
+  }
+
+  resetAllAssignedPlayersToUnassigned(): void {
+    const assignedPlayers: MiniPlayerCardModel[] = [];
+
+    for (const row of this.homePitchRows) {
+      for (const slot of row) {
+        if (slot.player) {
+          assignedPlayers.push(slot.player);
+        }
+      }
+    }
+
+    for (const row of this.awayPitchRows) {
+      for (const slot of row) {
+        if (slot.player) {
+          assignedPlayers.push(slot.player);
+        }
+      }
+    }
+
+    for (const player of this.homeBenchSlots) {
+      if (player) {
+        assignedPlayers.push(player);
+      }
+    }
+
+    for (const player of this.awayBenchSlots) {
+      if (player) {
+        assignedPlayers.push(player);
+      }
+    }
+
+    if (assignedPlayers.length > 0) {
+      this.unassignedSquad = [...this.unassignedSquad, ...assignedPlayers];
+    }
+
+    this.homeBenchSlots = Array(7).fill(null);
+    this.awayBenchSlots = Array(7).fill(null);
+
+    this.resetDragState();
+    this.selectedPlayer = null;
+  }
+
+  updateFormatAndFormations(format: string): void {
+    this.resetAllAssignedPlayersToUnassigned();
+    this.selectedFormat = format;
+
+    let map: Record<string, string[][]> = FORMATIONS_7v7;
+    if (format === 'FiveSide') {
+      this.formatStartingCount = 5;
+      map = FORMATIONS_5v5;
+    } else if (format === 'SevenSide') {
+      this.formatStartingCount = 7;
+      map = FORMATIONS_7v7;
+    } else {
+      this.formatStartingCount = 11;
+      map = FORMATIONS_11v11;
+    }
+
+    this.formationOptions = Object.keys(map).map(f => ({ value: f, label: f }));
+
+    if (!map[this.homeFormation]) this.homeFormation = this.formationOptions[0].value;
+    if (!map[this.awayFormation]) this.awayFormation = this.formationOptions[0].value;
+
+    this.renderHomePitch(map[this.homeFormation]);
+    this.renderAwayPitch(map[this.awayFormation]);
+  }
+
+  onActiveFormationChange(): void {
+    const map = this.getFormationMap();
+    const schema = map[this.activeFormation] || map[Object.keys(map)[0]];
+    const targetRows = this.activeSide === 'home' ? this.homePitchRows : this.awayPitchRows;
+    const oldStarters = this.getAssignedPlayers(targetRows);
+
+    if (this.activeSide === 'home') {
+      this.renderHomePitch(schema);
+      this.reassignOldStarters(this.homePitchRows, oldStarters);
+    } else {
+      this.renderAwayPitch(schema);
+      this.reassignOldStarters(this.awayPitchRows, oldStarters);
+    }
+  }
+
+  getFormationMap(): Record<string, string[][]> {
+    if (this.selectedFormat === 'FiveSide') return FORMATIONS_5v5;
+    if (this.selectedFormat === 'SevenSide') return FORMATIONS_7v7;
+    return FORMATIONS_11v11;
+  }
+
+  renderHomePitch(schema: string[][]): void {
+    this.homePitchRows = schema.map((rowRoles, rIdx) =>
+      rowRoles.map((role, cIdx) => ({
+        slotId: `home-pitch-${rIdx}-${cIdx}`,
+        role,
+        player: null
+      }))
+    );
+  }
+
+  renderAwayPitch(schema: string[][]): void {
+    this.awayPitchRows = schema.map((rowRoles, rIdx) =>
+      rowRoles.map((role, cIdx) => ({
+        slotId: `away-pitch-${rIdx}-${cIdx}`,
+        role,
+        player: null
+      }))
+    );
+  }
+
+  getAssignedPlayers(rows: PositionSlot[][]): MiniPlayerCardModel[] {
+    const list: MiniPlayerCardModel[] = [];
+    for (const r of rows) {
+      for (const slot of r) {
+        if (slot.player) list.push(slot.player);
+      }
+    }
+    return list;
+  }
+
+  reassignOldStarters(targetRows: PositionSlot[][], players: MiniPlayerCardModel[]): void {
+    let idx = 0;
+    for (const r of targetRows) {
+      for (const slot of r) {
+        if (idx < players.length) {
+          slot.player = players[idx];
+          idx++;
+        }
+      }
+    }
+  }
+
+  // Drag & Drop Handlers
+  onDragStart(
+    event: DragEvent,
+    player: MiniPlayerCardModel,
+    source: 'unassigned' | 'home-pitch' | 'home-bench' | 'away-pitch' | 'away-bench',
+    posInfo?: any
+  ): void {
+    this.draggedPlayer = player;
+    this.dragSource = source;
+    this.dragSourceIndex = posInfo || {};
+
+    if (event.dataTransfer) {
+      event.dataTransfer.setData('text/plain', player.playerId.toString());
+      event.dataTransfer.effectAllowed = 'move';
+
+      const target = event.currentTarget as HTMLElement;
+      const cardEl = (target.querySelector('.mini-card-wrapper') as HTMLElement) || target;
+      if (cardEl && event.dataTransfer.setDragImage) {
+        event.dataTransfer.setDragImage(cardEl, cardEl.offsetWidth / 2, cardEl.offsetHeight / 2);
+      }
+    }
+  }
+
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'move';
+    }
+    const target = event.currentTarget as HTMLElement;
+    if (target) target.classList.add('drag-over');
+  }
+
+  onDragLeave(event: DragEvent): void {
+    const target = event.currentTarget as HTMLElement;
+    if (target) target.classList.remove('drag-over');
+  }
+
+  onDropPitchSlot(event: DragEvent, rIdx: number, cIdx: number): void {
+    event.preventDefault();
+    const target = event.currentTarget as HTMLElement;
+    if (target) target.classList.remove('drag-over');
+
+    if (!this.draggedPlayer) return;
+
+    const targetRows = this.activeSide === 'home' ? this.homePitchRows : this.awayPitchRows;
+    const targetSlot = targetRows[rIdx][cIdx];
+    const existing = targetSlot.player;
+
+    targetSlot.player = this.draggedPlayer;
+    this.swapSourcePlayer(existing);
+    this.resetDragState();
+  }
+
+  onDropBenchSlot(event: DragEvent, bIdx: number): void {
+    event.preventDefault();
+    const target = event.currentTarget as HTMLElement;
+    if (target) target.classList.remove('drag-over');
+
+    if (!this.draggedPlayer) return;
+
+    const targetBench = this.activeSide === 'home' ? this.homeBenchSlots : this.awayBenchSlots;
+    const existing = targetBench[bIdx];
+
+    targetBench[bIdx] = this.draggedPlayer;
+    this.swapSourcePlayer(existing);
+    this.resetDragState();
+  }
+
+  onDropUnassigned(event: DragEvent): void {
+    event.preventDefault();
+    const target = event.currentTarget as HTMLElement;
+    if (target) target.classList.remove('drag-over');
+
+    if (!this.draggedPlayer || this.dragSource === 'unassigned') return;
+
+    this.clearPlayerFromSource();
+    this.unassignedSquad.push(this.draggedPlayer);
+    this.resetDragState();
+  }
+
+  swapSourcePlayer(replacementPlayer: MiniPlayerCardModel | null): void {
+    if (this.dragSource === 'unassigned') {
+      this.removeFromUnassigned(this.draggedPlayer!.playerId);
+      if (replacementPlayer) {
+        this.unassignedSquad.push(replacementPlayer);
+      }
+    } else if (this.dragSource === 'home-pitch') {
+      const { row, col } = this.dragSourceIndex;
+      if (row !== undefined && col !== undefined) {
+        this.homePitchRows[row][col].player = replacementPlayer;
+      }
+    } else if (this.dragSource === 'away-pitch') {
+      const { row, col } = this.dragSourceIndex;
+      if (row !== undefined && col !== undefined) {
+        this.awayPitchRows[row][col].player = replacementPlayer;
+      }
+    } else if (this.dragSource === 'home-bench') {
+      const { benchIdx } = this.dragSourceIndex;
+      if (benchIdx !== undefined) {
+        this.homeBenchSlots[benchIdx] = replacementPlayer;
+      }
+    } else if (this.dragSource === 'away-bench') {
+      const { benchIdx } = this.dragSourceIndex;
+      if (benchIdx !== undefined) {
+        this.awayBenchSlots[benchIdx] = replacementPlayer;
+      }
+    }
+  }
+
+  clearPlayerFromSource(): void {
+    if (!this.draggedPlayer) return;
+
+    if (this.dragSource === 'unassigned') {
+      this.removeFromUnassigned(this.draggedPlayer.playerId);
+    } else if (this.dragSource === 'home-pitch') {
+      const { row, col } = this.dragSourceIndex;
+      if (row !== undefined && col !== undefined) {
+        this.homePitchRows[row][col].player = null;
+      }
+    } else if (this.dragSource === 'away-pitch') {
+      const { row, col } = this.dragSourceIndex;
+      if (row !== undefined && col !== undefined) {
+        this.awayPitchRows[row][col].player = null;
+      }
+    } else if (this.dragSource === 'home-bench') {
+      const { benchIdx } = this.dragSourceIndex;
+      if (benchIdx !== undefined) {
+        this.homeBenchSlots[benchIdx] = null;
+      }
+    } else if (this.dragSource === 'away-bench') {
+      const { benchIdx } = this.dragSourceIndex;
+      if (benchIdx !== undefined) {
+        this.awayBenchSlots[benchIdx] = null;
+      }
+    }
+  }
+
+  resetDragState(): void {
+    this.draggedPlayer = null;
+    this.dragSource = 'unassigned';
+    this.dragSourceIndex = {};
+  }
+
+  removeFromUnassigned(playerId: number): void {
+    this.unassignedSquad = this.unassignedSquad.filter(p => p.playerId !== playerId);
+  }
+
+  // Click to Assign (Touch/Mobile Support)
+  selectPlayerCard(player: MiniPlayerCardModel): void {
+    if (this.selectedPlayer?.playerId === player.playerId) {
+      this.selectedPlayer = null;
+    } else {
+      this.selectedPlayer = player;
+    }
+  }
+
+  assignSelectedToPitchSlot(rIdx: number, cIdx: number): void {
+    if (!this.selectedPlayer) return;
+    const targetRows = this.activeSide === 'home' ? this.homePitchRows : this.awayPitchRows;
+    const targetSlot = targetRows[rIdx][cIdx];
+    const existing = targetSlot.player;
+
+    targetSlot.player = this.selectedPlayer;
+    this.removeFromUnassigned(this.selectedPlayer.playerId);
+    if (existing) this.unassignedSquad.push(existing);
+    this.selectedPlayer = null;
+  }
+
+  assignSelectedToBenchSlot(bIdx: number): void {
+    if (!this.selectedPlayer) return;
+    const targetBench = this.activeSide === 'home' ? this.homeBenchSlots : this.awayBenchSlots;
+    const existing = targetBench[bIdx];
+
+    targetBench[bIdx] = this.selectedPlayer;
+    this.removeFromUnassigned(this.selectedPlayer.playerId);
+    if (existing) this.unassignedSquad.push(existing);
+    this.selectedPlayer = null;
+  }
+
+  removePitchPlayer(rIdx: number, cIdx: number): void {
+    const targetRows = this.activeSide === 'home' ? this.homePitchRows : this.awayPitchRows;
+    const p = targetRows[rIdx][cIdx].player;
+    if (p) {
+      targetRows[rIdx][cIdx].player = null;
+      this.unassignedSquad.push(p);
+    }
+  }
+
+  removeBenchPlayer(bIdx: number): void {
+    const targetBench = this.activeSide === 'home' ? this.homeBenchSlots : this.awayBenchSlots;
+    const p = targetBench[bIdx];
+    if (p) {
+      targetBench[bIdx] = null;
+      this.unassignedSquad.push(p);
+    }
+  }
+
+  getHomeStartingCount(): number {
+    return this.getAssignedPlayers(this.homePitchRows).length;
+  }
+
+  getAwayStartingCount(): number {
+    return this.getAssignedPlayers(this.awayPitchRows).length;
+  }
+
+  submitSessionMatch(): void {
+    const homeStarters = this.getAssignedPlayers(this.homePitchRows);
+    const awayStarters = this.getAssignedPlayers(this.awayPitchRows);
+
+    if (homeStarters.length !== this.formatStartingCount) {
+      this.toast.show(
+        `Home Side requires exactly ${this.formatStartingCount} starting players (${homeStarters.length} assigned).`,
+        'error'
+      );
+      return;
+    }
+
+    if (awayStarters.length !== this.formatStartingCount) {
+      this.toast.show(
+        `Away Side requires exactly ${this.formatStartingCount} starting players (${awayStarters.length} assigned).`,
+        'error'
+      );
+      return;
+    }
+
+    const homePlayersPayload: any[] = [];
+    for (const r of this.homePitchRows) {
+      for (const slot of r) {
+        if (slot.player) {
+          homePlayersPayload.push({
+            playerId: slot.player.playerId,
+            isStarting: true,
+            jerseyNumber: (slot.player as any).jerseyNumber ?? undefined,
+            positionInMatch: slot.role
+          });
+        }
+      }
+    }
+    this.homeBenchSlots.forEach(p => {
+      if (p) {
+        homePlayersPayload.push({
+          playerId: p.playerId,
+          isStarting: false,
+          jerseyNumber: (p as any).jerseyNumber ?? undefined,
+          positionInMatch: 'SUB'
+        });
+      }
+    });
+
+    const awayPlayersPayload: any[] = [];
+    for (const r of this.awayPitchRows) {
+      for (const slot of r) {
+        if (slot.player) {
+          awayPlayersPayload.push({
+            playerId: slot.player.playerId,
+            isStarting: true,
+            jerseyNumber: (slot.player as any).jerseyNumber ?? undefined,
+            positionInMatch: slot.role
+          });
+        }
+      }
+    }
+    this.awayBenchSlots.forEach(p => {
+      if (p) {
+        awayPlayersPayload.push({
+          playerId: p.playerId,
+          isStarting: false,
+          jerseyNumber: (p as any).jerseyNumber ?? undefined,
+          positionInMatch: 'SUB'
+        });
+      }
+    });
+
+    this.isSubmitting = true;
+
+    const dto = {
+      sessionId: this.sessionId,
+      format: FORMAT_MAP_ENUM[this.selectedFormat] ?? 1,
+      matchDate: this.matchDate ? new Date(this.matchDate).toISOString() : new Date().toISOString(),
+      location: this.location || 'Training Pitch',
+      formation: this.homeFormation,
+      awayFormation: this.awayFormation,
+      homePlayers: homePlayersPayload,
+      awayPlayers: awayPlayersPayload
+    };
+
+    this.matchService.createSessionMatch(dto).subscribe({
+      next: (res: any) => {
+        this.isSubmitting = false;
+        const createdId = res?.data?.id ?? res?.id;
+        this.toast.show('Internal Session Match created successfully!', 'success');
+
+        if (createdId) {
+          this.router.navigate(['/match', createdId]);
+        } else {
+          this.router.navigate(['/drills/sessions']);
+        }
+      },
+      error: (err: any) => {
+        this.isSubmitting = false;
+        const msg = err?.error?.detail ?? err?.error?.message ?? 'Failed to create session match.';
+        this.toast.show(msg, 'error');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+}
