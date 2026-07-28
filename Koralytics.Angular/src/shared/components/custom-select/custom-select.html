@@ -28,6 +28,9 @@
       >
         {{ option.label }}
       </div>
+      <div *ngIf="options.length === 0" class="no-options">
+        No options available
+      </div>
     </div>
   </div>
 

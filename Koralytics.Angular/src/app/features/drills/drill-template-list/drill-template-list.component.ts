@@ -34,11 +34,9 @@ import { LoadingSpinnerComponent } from '../../../../shared/components/loading-s
     CustomButtonComponent,
     SearchBarComponent,
     CustomSelect,
-    CustomInputComponent,
     CustomToggle,
     LoadingSpinnerComponent,
     EmptyStateComponent,
-    NavbarComponent,
     Footer
   ],
 })

@@ -25,6 +25,8 @@ export class CustomSelect {
 
   isOpen: boolean = false;
 
+  private static activeSelect: CustomSelect | null = null;
+
   @HostBinding('class.is-open')
   get isOpenClass(): boolean {
     return this.isOpen;
@@ -40,7 +42,18 @@ export class CustomSelect {
   toggleDropdown(event: MouseEvent) {
     event.stopPropagation();
     if (!this.disabled) {
-      this.isOpen = !this.isOpen;
+      if (!this.isOpen) {
+        if (CustomSelect.activeSelect && CustomSelect.activeSelect !== this) {
+          CustomSelect.activeSelect.isOpen = false;
+        }
+        CustomSelect.activeSelect = this;
+        this.isOpen = true;
+      } else {
+        this.isOpen = false;
+        if (CustomSelect.activeSelect === this) {
+          CustomSelect.activeSelect = null;
+        }
+      }
     }
   }
 
@@ -48,12 +61,20 @@ export class CustomSelect {
     this.value = option.value;
     this.valueChange.emit(this.value);
     this.isOpen = false;
+    if (CustomSelect.activeSelect === this) {
+      CustomSelect.activeSelect = null;
+    }
   }
 
   @HostListener('document:click', ['$event'])
   closeOnClickOutside(event: Event) {
     if (!this.elementRef.nativeElement.contains(event.target)) {
-      this.isOpen = false;
+      if (this.isOpen) {
+        this.isOpen = false;
+        if (CustomSelect.activeSelect === this) {
+          CustomSelect.activeSelect = null;
+        }
+      }
     }
   }
 }

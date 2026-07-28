@@ -175,10 +175,14 @@
   padding: 22px;
 }
 
-.surface:has(app-select.is-open) {
+.surface:has(app-select) {
   position: relative;
-  z-index: 20;
+  overflow: visible !important;
 }
+
+.ops-layout > .surface:nth-child(1) { z-index: 30; position: relative; }
+.ops-layout > .surface:nth-child(2) { z-index: 20; position: relative; }
+.ops-layout > .surface:nth-child(3) { z-index: 10; position: relative; }
 
 .section-heading {
   display: flex;

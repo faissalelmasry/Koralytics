@@ -62,6 +62,14 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
             Manage Tournament
           </button>
+          <button class="status-action-btn export-btn" (click)="exportStandingsCSV()" [disabled]="groups.length === 0" title="Export Group Standings as CSV">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export CSV
+          </button>
+          <button class="status-action-btn print-btn" (click)="printSchedule()" title="Print Tournament Schedule">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Print
+          </button>
           @if (tournament.status === 'Draft') {
             <button class="status-action-btn draft-to-reg" (click)="openRegistration()" [disabled]="isUpdatingStatus">
               @if (isUpdatingStatus) {
@@ -143,7 +151,7 @@
                     </thead>
                     <tbody>
                       @for (row of group.standings; track row.tournamentTeamId; let i = $index) {
-                        <tr>
+                        <tr [class.highlighted-row]="hoveredTeamName === row.teamName" (mouseenter)="setHoveredTeam(row.teamName)" (mouseleave)="setHoveredTeam(null)">
                           <td>
                             <div class="team-name">
                               <strong>{{ i + 1 }}</strong> {{ row.teamName }}
@@ -185,11 +193,21 @@
                 <div class="round-title">{{ round.roundName }}</div>
                 @for (fixture of round.fixtures; track fixture.fixtureId) {
                   <div class="match-box" [class.highlight]="round.roundNumber === rounds.length">
-                    <div class="match-team" [class.winner]="fixture.winnerTeamName === fixture.homeTeamName && fixture.winnerTeamName">
+                    <div
+                      class="match-team"
+                      [class.winner]="fixture.winnerTeamName === fixture.homeTeamName && fixture.winnerTeamName"
+                      [class.hover-path]="hoveredTeamName && fixture.homeTeamName === hoveredTeamName"
+                      (mouseenter)="setHoveredTeam(fixture.homeTeamName)"
+                      (mouseleave)="setHoveredTeam(null)">
                       <span>{{ fixture.homeTeamName }}</span>
                       <span class="score">{{ fixture.homeScore ?? '-' }}</span>
                     </div>
-                    <div class="match-team" [class.winner]="fixture.winnerTeamName === fixture.awayTeamName && fixture.winnerTeamName">
+                    <div
+                      class="match-team"
+                      [class.winner]="fixture.winnerTeamName === fixture.awayTeamName && fixture.winnerTeamName"
+                      [class.hover-path]="hoveredTeamName && fixture.awayTeamName === hoveredTeamName"
+                      (mouseenter)="setHoveredTeam(fixture.awayTeamName)"
+                      (mouseleave)="setHoveredTeam(null)">
                       <span>{{ fixture.awayTeamName }}</span>
                       <span class="score">{{ fixture.awayScore ?? '-' }}</span>
                     </div>

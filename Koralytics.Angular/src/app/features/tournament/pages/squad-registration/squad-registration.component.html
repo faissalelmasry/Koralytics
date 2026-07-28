@@ -64,6 +64,15 @@
           (valueChange)="onTeamChange($event)">
         </app-select>
 
+        <div class="quick-actions-bar">
+          <button class="quick-btn accent" type="button" (click)="autoSelectTopRated()" [disabled]="isLoadingPlayers || players.length === 0">
+            Auto-select Top {{ squadRules.max }}
+          </button>
+          <button class="quick-btn outline" type="button" (click)="clearAllSelections()" [disabled]="selectedCount === 0">
+            Clear All
+          </button>
+        </div>
+
         <div class="squad-counter">
           <span>Selected players</span>
           <strong>{{ selectedCount }}</strong>
@@ -77,8 +86,33 @@
           @for (player of players; track player.playerId) {
             @if (isSelected(player.playerId) || registeredPlayerIds.has(player.playerId)) {
               <div class="selected-row" [class.registered]="registeredPlayerIds.has(player.playerId)">
-                <span>{{ player.fullName || player.FullName }}</span>
-                <strong>{{ registeredPlayerIds.has(player.playerId) ? 'Registered' : 'Selected' }}</strong>
+                <div class="selected-name-block">
+                  <strong>{{ player.fullName || player.FullName }}</strong>
+                  <small>{{ getPositionCategory(player.primaryPosition) }}</small>
+                </div>
+                @if (isSelected(player.playerId) && !registeredPlayerIds.has(player.playerId)) {
+                  <div class="selected-controls">
+                    <input
+                      type="number"
+                      min="1"
+                      max="99"
+                      class="jersey-input"
+                      placeholder="#"
+                      [value]="jerseyNumbers[player.playerId] || ''"
+                      (input)="setJerseyNumber(player.playerId, $any($event.target).value)"
+                      title="Jersey Number">
+                    <button
+                      type="button"
+                      class="captain-badge-btn"
+                      [class.active]="captainPlayerId === player.playerId"
+                      (click)="toggleCaptain(player.playerId)"
+                      title="Set as Captain">
+                      C
+                    </button>
+                  </div>
+                } @else {
+                  <strong class="registered-tag">Registered</strong>
+                }
               </div>
             }
           }
@@ -112,8 +146,21 @@
             }
           </div>
         } @else {
+          <!-- Position filter chips -->
+          <div class="position-filter-bar">
+            @for (filter of positionFilters; track filter.key) {
+              <button
+                type="button"
+                class="position-chip"
+                [class.active]="selectedPositionFilter === filter.key"
+                (click)="setPositionFilter(filter.key)">
+                {{ filter.label }}
+              </button>
+            }
+          </div>
+
           <div class="players-list">
-            @for (player of players; track player.playerId) {
+            @for (player of filteredPlayers; track player.playerId) {
               <button
                 class="player-row"
                 type="button"
@@ -130,8 +177,14 @@
                   <strong>{{ player.fullName || player.FullName }}</strong>
                   <small>{{ player.primaryPosition || player.PrimaryPosition || 'Position pending' }} / {{ player.availabilityStatus || player.AvailabilityStatus || 'Available' }}</small>
                 </span>
+                <span class="pos-badge" [class]="getPositionCategory(player.primaryPosition).toLowerCase()">
+                  {{ getPositionCategory(player.primaryPosition) }}
+                </span>
                 <span class="rating-pill">{{ player.overallRating || player.OverallRating || 0 }}</span>
               </button>
+            }
+            @if (filteredPlayers.length === 0) {
+              <div class="empty-mini">No players found in this position group.</div>
             }
           </div>
         }

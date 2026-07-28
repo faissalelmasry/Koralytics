@@ -2,7 +2,7 @@
   display: block;
   position: relative;
   width: 100%;
-  max-width: 400px;
+  max-width: 100%;
   --bg-input: rgba(20, 23, 28, 0.6); 
   --border-color: rgba(255, 255, 255, 0.07);
   --accent-lime: #c8ff4d;
@@ -152,6 +152,15 @@
 .dropdown-item.is-selected {
   background: rgba(200, 255, 77, 0.1);
   color: var(--accent-lime);
+}
+
+.no-options {
+  padding: 12px 14px;
+  color: var(--text-dim);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-style: italic;
+  text-align: center;
 }
 
 .select-field-group.has-error .select-control-wrapper {
