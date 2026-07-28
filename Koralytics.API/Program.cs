@@ -186,24 +186,24 @@ namespace Koralytics.API
             builder.Services.AddSingleton<IEmailTemplateProvider, EmailTemplateProvider>();
             builder.Services.AddScoped<IEmailService, SmtpEmailService>();
 
-            //builder.Services.AddSingleton<IAmazonS3>(sp =>
-            //{
-            //    var config = sp.GetRequiredService<IConfiguration>();
-            //    var section = config.GetSection(CloudflareR2Options.SectionName);
-            //    var accessKey = section["AccessKeyId"]
-            //        ?? throw new InvalidOperationException("CloudflareR2:AccessKeyId is missing from configuration.");
-            //    var secretKey = section["SecretAccessKey"]
-            //        ?? throw new InvalidOperationException("CloudflareR2:SecretAccessKey is missing from configuration.");
-            //    var endpoint = section["Endpoint"]
-            //        ?? throw new InvalidOperationException("CloudflareR2:Endpoint is missing from configuration.");
+            builder.Services.AddSingleton<IAmazonS3>(sp =>
+            {
+                var config = sp.GetRequiredService<IConfiguration>();
+                var section = config.GetSection(CloudflareR2Options.SectionName);
+                var accessKey = section["AccessKeyId"]
+                    ?? throw new InvalidOperationException("CloudflareR2:AccessKeyId is missing from configuration.");
+                var secretKey = section["SecretAccessKey"]
+                    ?? throw new InvalidOperationException("CloudflareR2:SecretAccessKey is missing from configuration.");
+                var endpoint = section["Endpoint"]
+                    ?? throw new InvalidOperationException("CloudflareR2:Endpoint is missing from configuration.");
 
-            //    var s3Config = new AmazonS3Config
-            //    {
-            //        ServiceURL = endpoint,
-            //        ForcePathStyle = true
-            //    };
-            //    return new AmazonS3Client(accessKey, secretKey, s3Config);
-            //});
+                var s3Config = new AmazonS3Config
+                {
+                    ServiceURL = endpoint,
+                    ForcePathStyle = true
+                };
+                return new AmazonS3Client(accessKey, secretKey, s3Config);
+            });
 
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
