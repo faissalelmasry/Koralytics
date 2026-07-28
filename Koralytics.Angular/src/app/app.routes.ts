@@ -55,6 +55,7 @@ export const routes: Routes = [
         loadComponent: () => import('./features/drills/coach-bias-analytics.component/coach-bias-analytics.component').then(m => m.CoachBiasAnalyticsComponent)
       },
 
+      { path: 'profile/me', loadComponent: () => import('./features/profile/my-profile/my-profile.component').then(m => m.MyProfileComponent) },
       { path: 'settings/change-password', loadComponent: () => import('./features/auth/pages/change-password/change-password.component').then(m => m.ChangePasswordComponent) },
       {
         path: 'coach/squad',
@@ -138,8 +139,6 @@ export const routes: Routes = [
     canActivate: [authGuard, roleGuard],
     data: { roles: ['AcademyAdmin', 'SuperAdmin'] }
   },
-  {
-    path: 'academy-admin/dashboard',
   {
     path: 'academy-admin/dashboard',
     loadComponent: () => import('./features/academy-admin/pages/academy-admin-dashboard/academy-admin-dashboard.component').then(m => m.AcademyAdminDashboardComponent),

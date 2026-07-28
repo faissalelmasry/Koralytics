@@ -28,10 +28,17 @@ namespace Koralytics.Application.Services.Storage
         private readonly string _publicUrl;
         private readonly int _maxFileSizeMb;
         private readonly string[] _allowedExtensions;
+        private readonly int _maxImageSizeMb;
+        private readonly string[] _allowedImageExtensions;
 
         private static readonly string[] AllowedContentTypes =
         {
             "video/mp4", "video/quicktime", "video/x-msvideo", "video/x-matroska", "video/webm"
+        };
+
+        private static readonly string[] AllowedImageContentTypes =
+        {
+            "image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif", "image/svg+xml"
         };
 
         public StorageService(
@@ -51,6 +58,15 @@ namespace Koralytics.Application.Services.Storage
             _publicUrl = options.PublicUrl;
             _maxFileSizeMb = options.MaxFileSizeMb;
             _allowedExtensions = options.AllowedExtensions
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(ext => ext.StartsWith('.') ? ext : $".{ext}")
+                .ToArray();
+
+            _maxImageSizeMb = options.MaxImageSizeMb > 0 ? options.MaxImageSizeMb : 10;
+            var imageExts = string.IsNullOrWhiteSpace(options.AllowedImageExtensions)
+                ? "jpg,jpeg,png,webp,gif,svg"
+                : options.AllowedImageExtensions;
+            _allowedImageExtensions = imageExts
                 .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                 .Select(ext => ext.StartsWith('.') ? ext : $".{ext}")
                 .ToArray();
@@ -227,6 +243,105 @@ namespace Koralytics.Application.Services.Storage
                 .ToListAsync();
 
             return _mapper.Map<IEnumerable<PlayerHighlightDto>>(highlights);
+        }
+
+        public async Task<string> UploadImageAsync(IFormFile file, string folderName = "images")
+        {
+            if (file == null || file.Length == 0)
+            {
+                throw new BadRequestException("No image file was uploaded or file is empty.");
+            }
+
+            // Validate file size
+            long maxFileSize = (long)_maxImageSizeMb * 1024 * 1024;
+            if (file.Length > maxFileSize)
+            {
+                throw new BadRequestException($"Image file size exceeds the {_maxImageSizeMb}MB limit.");
+            }
+
+            // Validate file format (image only)
+            var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
+
+            if (!AllowedImageContentTypes.Contains(file.ContentType.ToLowerInvariant()) ||
+                !_allowedImageExtensions.Contains(fileExtension))
+            {
+                throw new BadRequestException("Only image files (JPG, JPEG, PNG, WEBP, GIF, SVG) are allowed.");
+            }
+
+            // Sanitize folder name
+            var cleanFolder = string.IsNullOrWhiteSpace(folderName)
+                ? "images"
+                : folderName.Trim().Trim('/').Trim('\\');
+
+            // Generate unique file name
+            var uniqueFileName = $"{cleanFolder}/{Guid.NewGuid()}{fileExtension}";
+
+            try
+            {
+                using var stream = file.OpenReadStream();
+                var putRequest = new PutObjectRequest
+                {
+                    BucketName = _bucketName,
+                    Key = uniqueFileName,
+                    InputStream = stream,
+                    ContentType = file.ContentType
+                };
+
+                await _s3Client.PutObjectAsync(putRequest);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to upload image to Cloudflare R2 under folder {Folder}", cleanFolder);
+                throw new InternalServerException($"Failed to upload image to storage: {ex.Message}");
+            }
+
+            var publicUrlBase = _publicUrl.EndsWith("/") ? _publicUrl : _publicUrl + "/";
+            return $"{publicUrlBase}{uniqueFileName}";
+        }
+
+        public Task<bool> DeleteImageAsync(string imageUrl)
+        {
+            return DeleteFileAsync(imageUrl);
+        }
+
+        public async Task<bool> DeleteFileAsync(string fileUrl)
+        {
+            if (string.IsNullOrWhiteSpace(fileUrl))
+            {
+                return false;
+            }
+
+            try
+            {
+                string fileKey;
+                if (Uri.TryCreate(fileUrl, UriKind.Absolute, out var uri))
+                {
+                    fileKey = uri.AbsolutePath.TrimStart('/');
+                }
+                else
+                {
+                    fileKey = fileUrl.TrimStart('/');
+                }
+
+                if (string.IsNullOrWhiteSpace(fileKey))
+                {
+                    return false;
+                }
+
+                var deleteRequest = new DeleteObjectRequest
+                {
+                    BucketName = _bucketName,
+                    Key = fileKey
+                };
+
+                await _s3Client.DeleteObjectAsync(deleteRequest);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to delete file {FileUrl} from Cloudflare R2.", fileUrl);
+                return false;
+            }
         }
     }
 }

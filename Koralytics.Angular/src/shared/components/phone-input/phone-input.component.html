@@ -1,0 +1,62 @@
+<div class="phone-input-wrapper">
+  <div
+    class="phone-input-group"
+    [class.focused]="isFocused"
+    [class.error]="!!currentErrorMessage"
+    [class.disabled]="disabled">
+
+    @if (label) {
+      <label class="floating-label raised">
+        {{ label }}
+        @if (required) {
+          <span class="required-asterisk">*</span>
+        }
+      </label>
+    }
+
+    <!-- Country Selector Button -->
+    <button
+      type="button"
+      class="country-select-btn"
+      [disabled]="disabled"
+      (click)="toggleDropdown($event)">
+      <span class="country-flag">{{ selectedCountry.flag }}</span>
+      <span class="country-dial-code">{{ selectedCountry.dialCode }}</span>
+      <span class="dropdown-arrow">▼</span>
+    </button>
+
+    <!-- Dropdown Menu -->
+    @if (isDropdownOpen) {
+      <div class="country-dropdown-menu">
+        @for (country of countries; track country.code) {
+          <div
+            class="country-option"
+            [class.active]="country.code === selectedCountry.code"
+            (click)="selectCountry(country, $event)">
+            <span class="opt-flag">{{ country.flag }}</span>
+            <span class="opt-name">{{ country.name }}</span>
+            <span class="opt-dial">{{ country.dialCode }}</span>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Digits Input -->
+    <input
+      type="tel"
+      class="phone-digits-input"
+      [value]="digits"
+      [placeholder]="placeholder || selectedCountry.placeholder"
+      [disabled]="disabled"
+      (input)="onDigitsInput($event)"
+      (focus)="isFocused = true"
+      (blur)="onBlur()"
+      [attr.maxlength]="maxDigitsLength" />
+  </div>
+
+  @if (currentErrorMessage) {
+    <div class="error-message">
+      {{ currentErrorMessage }}
+    </div>
+  }
+</div>

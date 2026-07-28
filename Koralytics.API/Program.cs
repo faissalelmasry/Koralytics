@@ -33,6 +33,9 @@ using Koralytics.Application.Services.Player.PlayerTransferService;
 using Koralytics.Application.Validators.Auth;
 using Koralytics.Application.Validators.Tournament;
 using Koralytics.Application.Validators.UserBusiness;
+using Koralytics.Application.Services.ProfileManagement;
+using Koralytics.Application.Mappings.ProfileManagement;
+using Koralytics.Application.Validators.ProfileManagement;
 using Koralytics.Domain.Entities;
 using Koralytics.Application.Validators.Academies;
 using Koralytics.Application.Mappings.Academies;
@@ -186,24 +189,36 @@ namespace Koralytics.API
             builder.Services.AddSingleton<IEmailTemplateProvider, EmailTemplateProvider>();
             builder.Services.AddScoped<IEmailService, SmtpEmailService>();
 
-            //builder.Services.AddSingleton<IAmazonS3>(sp =>
-            //{
-            //    var config = sp.GetRequiredService<IConfiguration>();
-            //    var section = config.GetSection(CloudflareR2Options.SectionName);
-            //    var accessKey = section["AccessKeyId"]
-            //        ?? throw new InvalidOperationException("CloudflareR2:AccessKeyId is missing from configuration.");
-            //    var secretKey = section["SecretAccessKey"]
-            //        ?? throw new InvalidOperationException("CloudflareR2:SecretAccessKey is missing from configuration.");
-            //    var endpoint = section["Endpoint"]
-            //        ?? throw new InvalidOperationException("CloudflareR2:Endpoint is missing from configuration.");
+            /*
+            builder.Services.AddSingleton<IAmazonS3>(sp =>
+            {
+                var config = sp.GetRequiredService<IConfiguration>();
+                var section = config.GetSection(CloudflareR2Options.SectionName);
+                var accessKey = section["AccessKeyId"]
+                    ?? throw new InvalidOperationException("CloudflareR2:AccessKeyId is missing from configuration.");
+                var secretKey = section["SecretAccessKey"]
+                    ?? throw new InvalidOperationException("CloudflareR2:SecretAccessKey is missing from configuration.");
+                var endpoint = section["Endpoint"]
+                    ?? throw new InvalidOperationException("CloudflareR2:Endpoint is missing from configuration.");
 
-            //    var s3Config = new AmazonS3Config
-            //    {
-            //        ServiceURL = endpoint,
-            //        ForcePathStyle = true
-            //    };
-            //    return new AmazonS3Client(accessKey, secretKey, s3Config);
-            //});
+                var s3Config = new AmazonS3Config
+                {
+                    ServiceURL = endpoint,
+                    ForcePathStyle = true
+                };
+                return new AmazonS3Client(accessKey, secretKey, s3Config);
+            });
+            */
+            // Temporary dummy S3 client registration so DI resolution succeeds without valid Cloudflare R2 config
+            builder.Services.AddSingleton<IAmazonS3>(sp =>
+            {
+                var s3Config = new AmazonS3Config
+                {
+                    ServiceURL = "https://dummy.r2.cloudflarestorage.com",
+                    ForcePathStyle = true
+                };
+                return new AmazonS3Client("dummy-access-key", "dummy-secret-key", s3Config);
+            });
 
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -249,6 +264,7 @@ namespace Koralytics.API
             builder.Services.AddScoped<IScouterFollowService, ScouterFollowService>();
             builder.Services.AddScoped<IScouterReportService, ScouterReportService>();
             builder.Services.AddScoped<IStorageService, StorageService>();
+            builder.Services.AddScoped<IProfileManagementService, ProfileManagementService>();
             builder.Services.AddSignalR();
             builder.Services.AddScoped<IRealTimeBridge, RealTimeBridge>();
             builder.Services.AddScoped<IMatchLiveUpdateService, MatchLiveUpdateService>();
@@ -285,6 +301,7 @@ namespace Koralytics.API
                 op.AddProfile<AcademyProfile>();
                 op.AddProfile<PlayerProfile>();
                 op.AddProfile<ScouterProfile>();
+                op.AddProfile<ProfileManagementProfile>();
             });
             builder.Services.AddAutoMapper(op => op.AddProfile<RegisterProfile>());
             builder.Services.AddAutoMapper(op => op.AddProfile<TournamentProfile>());
@@ -293,6 +310,7 @@ namespace Koralytics.API
             builder.Services.AddAutoMapper(op => op.AddProfile<MatchProfile>());
             builder.Services.AddAutoMapper(op=>op.AddProfile<ScouterProfile>());
             builder.Services.AddAutoMapper(op => op.AddProfile<UserManagementProfile>());
+            builder.Services.AddAutoMapper(op => op.AddProfile<ProfileManagementProfile>());
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();

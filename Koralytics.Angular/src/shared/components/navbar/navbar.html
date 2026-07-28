@@ -4,6 +4,7 @@
   </div>
 
   <nav>
+    <a routerLink="/profile/me" routerLinkActive="active" *ngIf="isLoggedIn">my profile</a>
     <a routerLink="/home" routerLinkActive="active">home</a>
     <a routerLink="/about" routerLinkActive="active">about</a>
     <a routerLink="/clubs" routerLinkActive="active">clubs</a>
@@ -41,6 +42,7 @@
   <div class="sidebar-content">
     <nav class="sidebar-nav">
       <a routerLink="/dashboard" routerLinkActive="active" (click)="toggleSidebar(false)" *ngIf="isLoggedIn">dashboard</a>
+      <a routerLink="/profile/me" routerLinkActive="active" (click)="toggleSidebar(false)" *ngIf="isLoggedIn">my profile</a>
 
       <!-- Coach Section -->
       <div class="sidebar-section" *ngIf="isCoach">

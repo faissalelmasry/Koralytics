@@ -21,6 +21,7 @@ import { AcademyResponseDto } from '../../../../../core/interfaces/academy.model
 import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
 
 import { AcademyLocationsSectionComponent } from '../../components/academy-locations-section/academy-locations-section';
+import { PhoneInputComponent } from '../../../../../shared/components/phone-input/phone-input.component';
 
 @Component({
   selector: 'app-academy-admin-dashboard',
@@ -29,6 +30,7 @@ import { AcademyLocationsSectionComponent } from '../../components/academy-locat
     CommonModule, 
     ReactiveFormsModule, 
     CustomInputComponent, 
+    PhoneInputComponent,
     CustomButtonComponent, 
     AcademyMembersComponent, 
     NavbarComponent, 
