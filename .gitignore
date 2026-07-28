@@ -3,6 +3,10 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+# ASP.NET Core secrets - never commit real secrets
+Koralytics.API/appsettings.json
+# (appsettings.Development.json is intentionally tracked - keep placeholders only)
+
 # User-specific files
 *.rsuser
 *.suo
