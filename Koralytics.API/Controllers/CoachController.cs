@@ -28,20 +28,29 @@ namespace Koralytics.API.Controllers
         }
 
         /// <summary>
+        /// Returns all teams that the authenticated coach is actively assigned to.
+        /// </summary>
+        [HttpGet("teams")]
+        public async Task<IActionResult> GetCoachTeams()
+        {
+            var coachId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var teams = await _coachSquadService.GetCoachTeamsAsync(coachId);
+            return Ok(teams);
+        }
+
+        /// <summary>
         /// Returns the full squad for a given team, including each player's
         /// FIFA-card style rating and availability status.
-        /// Only the coach assigned to that team may call this endpoint.
+        /// Extracts coachId from JWT token if not explicitly provided.
         /// </summary>
+        [HttpGet("teams/{teamId}/squad")]
         [HttpGet("{coachId}/teams/{teamId}/squad")]
-        [Authorize(Roles = "Coach")]
-        public async Task<IActionResult> GetSquad(int coachId, int teamId)
+        [Authorize(Roles = "Coach,AcademyAdmin")]
+        public async Task<IActionResult> GetSquad(int teamId, int? coachId = null)
         {
-            // Enforce that the authenticated coach can only query their own data
             var requesterId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-            if (requesterId != coachId)
-                return Forbid();
-
-            var squad = await _coachSquadService.GetSquadAsync(coachId, teamId);
+            var targetCoachId = (coachId.HasValue && coachId.Value > 0) ? coachId.Value : requesterId;
+            var squad = await _coachSquadService.GetSquadAsync(targetCoachId, teamId);
             return Ok(squad);
         }
 

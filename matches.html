@@ -3,558 +3,277 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Koralytics - Animated Performance Hub</title>
-  
-  <!-- Fonts Matching Koralytics Design System -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@600;700&display=swap" rel="stylesheet">
+  <title>Koralytics - Premium Match Ratings</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Alpine.js -->
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
 
   <style>
-    /* ==========================================
-       KORALYTICS EXACT DESIGN SYSTEM VARIABLES
-       ========================================== */
-    :root {
-      --bg-dark: #08090c;
-      --card-bg: #12161f;
-      --card-bg-hover: #161b27;
-      --border-color: rgba(255, 255, 255, 0.06);
-      
-      /* Dynamic Neon Colors */
-      --color-green: #a3e635;
-      --glow-green: rgba(163, 230, 53, 0.25);
-      
-      --color-yellow: #facc15;
-      --glow-yellow: rgba(250, 204, 21, 0.25);
-
-      --color-red: #f87171;
-      --glow-red: rgba(248, 113, 113, 0.25);
-
-      --text-main: #f3f4f6;
-      --text-muted: #6b7280;
-      
-      --font-display: 'Oswald', sans-serif;
-      --font-body: 'Inter', sans-serif;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font-body); }
-
     body {
-      background-color: var(--bg-dark);
-      color: var(--text-main);
-      padding: 40px 20px;
-      display: flex;
-      justify-content: center;
-      min-height: 100vh;
-      overflow-x: hidden;
+      font-family: 'Outfit', sans-serif;
+      background-color: #05080f; /* Deep cyber dark */
+      color: #e2e8f0;
+      background-image: 
+        radial-gradient(circle at 15% 50%, rgba(16, 185, 129, 0.04), transparent 25%),
+        radial-gradient(circle at 85% 30%, rgba(56, 189, 248, 0.04), transparent 25%);
     }
 
-    .koralytics-wrapper {
-      width: 100%;
-      max-width: 850px;
+    /* Hide Number Input Arrows */
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type="number"] {
+      -moz-appearance: textfield;
     }
 
-    /* Subtitle Tag Above Header + Pulsing Dot */
-    .tactical-tag {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 0.7rem;
-      font-weight: 700;
-      color: var(--color-green);
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      margin-bottom: 4px;
-      animation: fadeIn 0.8s ease-out forwards;
-    }
-
-    .tactical-tag::before {
-      content: '';
-      width: 7px;
-      height: 7px;
-      background: var(--color-green);
-      border-radius: 50%;
-      box-shadow: 0 0 8px var(--color-green);
-      animation: pulseDot 1.8s infinite ease-in-out;
-    }
-
-    /* Header Title */
-    .section-title {
-      font-family: var(--font-display);
-      font-size: 2.2rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      line-height: 1;
-      margin-bottom: 24px;
-      animation: fadeIn 0.8s ease-out 0.1s forwards;
-      opacity: 0;
-    }
-
-    /* Section Divider Headings */
-    .group-label {
-      font-family: var(--font-display);
-      font-size: 1.1rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--text-muted);
-      margin: 32px 0 14px 0;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      animation: fadeIn 0.8s ease-out 0.2s forwards;
-      opacity: 0;
-    }
-
-    .group-label::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--border-color);
-    }
-
-    /* General Cards Grid */
-    .koralytics-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    /* ==========================================
-       CARD STYLES & ANIMATIONS
-       ========================================== */
-    .koralytics-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 14px;
-      padding: 18px 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: relative;
-      overflow: hidden;
-      
-      /* Smooth Hover Transitions */
-      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
-                  border-color 0.3s ease,
-                  background-color 0.3s ease,
-                  box-shadow 0.3s ease;
-
-      /* Entrance Animation Base */
-      opacity: 0;
-      animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-
-    /* Staggered Delay for Entrance Animation */
-    .koralytics-grid .koralytics-card:nth-child(1) { animation-delay: 0.25s; }
-    .koralytics-grid .koralytics-card:nth-child(2) { animation-delay: 0.35s; }
-    .koralytics-grid .koralytics-card:nth-child(3) { animation-delay: 0.45s; }
-    .koralytics-grid .koralytics-card:nth-child(4) { animation-delay: 0.55s; }
-
-    /* Animated Hover Glow Bar */
-    .koralytics-card::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -50%;
-      width: 200%;
-      height: 2px;
-      opacity: 0;
-      transition: opacity 0.4s ease, transform 0.6s ease;
-      transform: translateX(-30%);
-    }
-
-    .koralytics-card:hover {
-      background: var(--card-bg-hover);
-      border-color: rgba(255, 255, 255, 0.15);
-      transform: translateY(-4px);
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
-    }
-
-    .koralytics-card:hover::after {
-      opacity: 1;
-      transform: translateX(0%);
-    }
-
-    /* Top Line Glows */
-    .card-green::after { background: linear-gradient(90deg, transparent, var(--color-green), transparent); }
-    .card-yellow::after { background: linear-gradient(90deg, transparent, var(--color-yellow), transparent); }
-    .card-red::after { background: linear-gradient(90deg, transparent, var(--color-red), transparent); }
-
-    /* 🌟 MAN OF THE MATCH SPECIAL STYLING & ANIMATION */
-    .koralytics-card.motm-card {
-      border: 1px solid rgba(163, 230, 53, 0.35) !important;
-      box-shadow: inset 0 0 15px rgba(163, 230, 53, 0.04);
-    }
-
-    .motm-ribbon {
-      position: absolute;
-      top: -10px;
-      right: 24px;
-      background: var(--color-green);
-      color: #08090c;
-      font-family: var(--font-display);
-      font-size: 0.65rem;
-      font-weight: 700;
-      letter-spacing: 1px;
-      padding: 3px 12px;
-      border-radius: 4px;
-      box-shadow: 0 0 12px var(--glow-green);
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      z-index: 2;
-      animation: pulseGlow 2s infinite ease-in-out;
-    }
-
-    .motm-ribbon .star-icon {
-      font-size: 0.75rem;
-      line-height: 1;
-      display: inline-block;
-      animation: rotateStar 4s infinite linear;
-    }
-
-    /* Card Content Left */
-    .card-left-info {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .meta-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .meta-date {
-      font-size: 0.65rem;
-      font-weight: 700;
-      color: var(--text-muted);
-      letter-spacing: 1px;
-      text-transform: uppercase;
-    }
-
-    .card-title {
-      font-family: var(--font-display);
-      font-size: 1.35rem;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-      color: #fff;
-      display: flex;
-      align-items: center;
-    }
-
-    .card-subtitle {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-    }
-
-    /* Badges for Matches */
-    .badge {
-      font-size: 0.6rem;
-      font-weight: 800;
-      padding: 2px 8px;
-      border-radius: 4px;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-      transition: transform 0.2s ease;
+    /* Premium Card Glass Effect */
+    .premium-card {
+      background: linear-gradient(145deg, #0f172a 0%, #090e17 100%);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
     }
     
-    .koralytics-card:hover .badge {
-      transform: scale(1.05);
+    .premium-card:hover {
+      border-color: rgba(16, 185, 129, 0.2);
     }
 
-    .badge.win { background: rgba(163, 230, 53, 0.15); color: var(--color-green); border: 1px solid rgba(163, 230, 53, 0.3); }
-    .badge.draw { background: rgba(250, 204, 21, 0.15); color: var(--color-yellow); border: 1px solid rgba(250, 204, 21, 0.3); }
-    .badge.loss { background: rgba(248, 113, 113, 0.15); color: var(--color-red); border: 1px solid rgba(248, 113, 113, 0.3); }
-
-    /* Right Block Container */
-    .stats-block {
-      display: flex;
-      align-items: center;
-      gap: 18px;
-      background: rgba(0, 0, 0, 0.35);
-      padding: 10px 18px;
-      border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.03);
-      transition: border-color 0.3s ease;
+    /* MOTM Glow Effect */
+    .motm-card {
+      background: linear-gradient(145deg, #181814 0%, #090e17 100%);
+      border: 1px solid rgba(234, 179, 8, 0.4);
+      box-shadow: 0 0 30px rgba(234, 179, 8, 0.1);
     }
 
-    .koralytics-card:hover .stats-block {
-      border-color: rgba(255, 255, 255, 0.08);
-    }
-
-    /* Match Stat Items */
-    .stat-pill {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .stat-pill .lbl {
-      font-size: 0.58rem;
-      font-weight: 700;
-      color: var(--text-muted);
-      letter-spacing: 1px;
-    }
-
-    .stat-pill .val {
-      font-family: var(--font-display);
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: #fff;
-    }
-
-    /* Rating / Score Box */
-    .rating-box {
-      border-left: 1px solid rgba(255, 255, 255, 0.08);
-      padding-left: 16px;
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-    }
-
-    .rating-num {
-      font-family: var(--font-display);
-      font-size: 1.8rem;
-      font-weight: 700;
-      line-height: 1;
-      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-
-    .koralytics-card:hover .rating-num {
-      transform: scale(1.1);
-    }
-
-    /* Dynamic Color Classes */
-    .score-green { color: var(--color-green); }
-    .score-yellow { color: var(--color-yellow); }
-    .score-red { color: var(--color-red); }
-
-    /* Drill Segment Indicators */
-    .segments-box {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 4px;
-    }
-
-    .segments {
-      display: flex;
-      gap: 3px;
-    }
-
-    .segment {
-      width: 12px;
-      height: 6px;
-      border-radius: 2px;
-      background: rgba(255, 255, 255, 0.1);
-      transition: transform 0.2s ease;
-    }
-
-    .segment.active-green { background: var(--color-green); box-shadow: 0 0 6px var(--glow-green); }
-    .segment.active-yellow { background: var(--color-yellow); box-shadow: 0 0 6px var(--glow-yellow); }
-    .segment.active-red { background: var(--color-red); box-shadow: 0 0 6px var(--glow-red); }
-
-    /* ==========================================
-       KEYFRAME ANIMATIONS DEFINITIONS
-       ========================================== */
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    @keyframes pulseDot {
-      0%, 100% {
-        transform: scale(1);
-        opacity: 1;
-      }
-      50% {
-        transform: scale(1.5);
-        opacity: 0.4;
-      }
-    }
-
-    @keyframes pulseGlow {
-      0%, 100% {
-        box-shadow: 0 0 10px var(--glow-green);
-      }
-      50% {
-        box-shadow: 0 0 20px var(--color-green);
-      }
-    }
-
-    @keyframes rotateStar {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #05080f; }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: #334155; }
   </style>
 </head>
-<body>
+<body x-data="matchRatingApp()" class="min-h-screen pb-32 select-none">
 
-  <div class="koralytics-wrapper">
-    
-    <div class="tactical-tag">Tactical Engine</div>
-    <h2 class="section-title">Player Performance Hub</h2>
-
-    <!-- MATCHES SECTION -->
-    <div class="group-label">Match Performances</div>
-
-    <div class="koralytics-grid">
-
-      <!-- Match 1: MOTM + Win -->
-      <div class="koralytics-card card-green motm-card">
-        <div class="motm-ribbon">
-          <span class="star-icon">★</span> MAN OF THE MATCH
+  <!-- TOP HEADER -->
+  <header class="sticky top-0 z-40 bg-[#05080f]/90 backdrop-blur-xl border-b border-white/5 py-5 px-6">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
         </div>
-
-        <div class="card-left-info">
-          <div class="meta-header">
-            <span class="badge win">WIN</span>
-            <span class="meta-date">JUL 20, 2026 • HOME</span>
-          </div>
-          <div class="card-title">
-            <span>Al Ahly vs Zamalek</span>
-            <span class="score-green" style="margin-left: 8px;">2 - 1</span>
-          </div>
-          <div class="card-subtitle">Egyptian Premier League</div>
-        </div>
-
-        <div class="stats-block">
-          <div class="stat-pill"><span class="lbl">MINS</span><span class="val">90'</span></div>
-          <div class="stat-pill"><span class="lbl">GOALS</span><span class="val score-green">1</span></div>
-          <div class="stat-pill"><span class="lbl">ASSISTS</span><span class="val score-green">1</span></div>
-
-          <div class="rating-box">
-            <span class="stat-pill"><span class="lbl">RATING</span></span>
-            <span class="rating-num score-green">8.8</span>
-          </div>
+        <div>
+          <h1 class="text-2xl font-black text-white tracking-tight">Post-Match Ratings</h1>
+          <p class="text-sm text-slate-400 font-medium mt-1">Koralytics 1st Team vs Academy • <span class="text-emerald-400">Match Completed</span></p>
         </div>
       </div>
-
-      <!-- Match 2: Draw -->
-      <div class="koralytics-card card-yellow">
-        <div class="card-left-info">
-          <div class="meta-header">
-            <span class="badge draw">DRAW</span>
-            <span class="meta-date">JUL 15, 2026 • AWAY</span>
-          </div>
-          <div class="card-title">
-            <span>Pyramids FC vs Al Ahly</span>
-            <span class="score-yellow" style="margin-left: 8px;">0 - 0</span>
-          </div>
-          <div class="card-subtitle">Egyptian Premier League</div>
-        </div>
-
-        <div class="stats-block">
-          <div class="stat-pill"><span class="lbl">MINS</span><span class="val">60'</span></div>
-          <div class="stat-pill"><span class="lbl">GOALS</span><span class="val">0</span></div>
-          <div class="stat-pill"><span class="lbl">ASSISTS</span><span class="val score-yellow">1</span></div>
-
-          <div class="rating-box">
-            <span class="stat-pill"><span class="lbl">RATING</span></span>
-            <span class="rating-num score-yellow">7.1</span>
-          </div>
-        </div>
+      
+      <div class="flex items-center gap-3">
+        <button @click="fillDefaultRatings()" class="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-sm font-semibold text-white transition-all flex items-center gap-2">
+          <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+          Auto-Fill (7.0)
+        </button>
       </div>
-
-      <!-- Match 3: Loss -->
-      <div class="koralytics-card card-red">
-        <div class="card-left-info">
-          <div class="meta-header">
-            <span class="badge loss">LOSS</span>
-            <span class="meta-date">JUL 10, 2026 • AWAY</span>
-          </div>
-          <div class="card-title">
-            <span>Future FC vs Al Ahly</span>
-            <span class="score-red" style="margin-left: 8px;">2 - 1</span>
-          </div>
-          <div class="card-subtitle">Egyptian Premier League</div>
-        </div>
-
-        <div class="stats-block">
-          <div class="stat-pill"><span class="lbl">MINS</span><span class="val">90'</span></div>
-          <div class="stat-pill"><span class="lbl">GOALS</span><span class="val">0</span></div>
-          <div class="stat-pill"><span class="lbl">ASSISTS</span><span class="val">0</span></div>
-
-          <div class="rating-box">
-            <span class="stat-pill"><span class="lbl">RATING</span></span>
-            <span class="rating-num score-red">6.2</span>
-          </div>
-        </div>
-      </div>
-
     </div>
+  </header>
 
-    <!-- DRILLS SECTION -->
-    <div class="group-label">Training Drills Log</div>
+  <!-- MAIN GRID -->
+  <main class="max-w-7xl mx-auto px-6 mt-8">
+    <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+      
+      <template x-for="player in players" :key="player.id">
+        <!-- PLAYER CARD -->
+        <div :class="player.isMOTM ? 'motm-card' : 'premium-card'" class="rounded-2xl p-6 transition-all duration-300 flex flex-col h-full relative overflow-hidden group">
+          
+          <!-- MOTM Background Highlight -->
+          <div x-show="player.isMOTM" class="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 blur-3xl rounded-full pointer-events-none"></div>
 
-    <div class="koralytics-grid">
+          <!-- Header: Player Info -->
+          <div class="flex justify-between items-start mb-6 z-10">
+            <div class="flex items-center gap-4">
+              <div class="relative">
+                <div class="w-14 h-14 rounded-xl bg-slate-800 flex items-center justify-center text-2xl font-black text-white border border-white/10 shadow-inner">
+                  <span x-text="player.number"></span>
+                </div>
+                <div class="absolute -bottom-2 -right-2 bg-emerald-500 text-black text-[10px] font-bold px-1.5 py-0.5 rounded-md border border-[#05080f]" x-text="player.position"></div>
+              </div>
+              <div>
+                <h3 class="font-bold text-lg text-white" x-text="player.name"></h3>
+                <div class="flex items-center gap-3 text-xs font-semibold text-slate-400 mt-1">
+                  <span class="flex items-center gap-1"><svg class="w-3.5 h-3.5 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1-11a1 1 0 112 0v3.586l2.293 2.293a1 1 0 01-1.414 1.414l-3-3A1 1 0 019 10.586V7z"></path></svg> <span x-text="player.minutesPlayed + ' Min'"></span></span>
+                  <span class="flex items-center gap-1 text-emerald-400" x-show="player.goals > 0"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg> <span x-text="player.goals"></span></span>
+                  <span class="flex items-center gap-1 text-teal-400" x-show="player.assists > 0"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg> <span x-text="player.assists"></span></span>
+                </div>
+              </div>
+            </div>
 
-      <div class="koralytics-card card-green">
-        <div class="card-left-info">
-          <div class="meta-header">
-            <span class="meta-date">PHYSICAL • SESSION #2 • JUL 09</span>
+            <!-- MOTM Toggle Button -->
+            <button @click="setMOTM(player.id)" 
+                    :class="player.isMOTM ? 'bg-amber-500 text-black border-amber-400 shadow-[0_0_15px_rgba(234,179,8,0.4)]' : 'bg-slate-800/50 text-slate-400 border-white/5 hover:bg-white/10 hover:text-white'"
+                    class="w-10 h-10 rounded-xl border flex items-center justify-center transition-all z-10" title="Set Man of the Match">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+            </button>
           </div>
-          <div class="card-title">Agility Ladder Drill</div>
-          <div class="card-subtitle">Regular Session</div>
-        </div>
 
-        <div class="stats-block">
-          <div class="segments-box">
-            <span class="stat-pill"><span class="lbl">SCORE 9/10</span></span>
-            <div class="segments">
-              <div class="segment active-green"></div>
-              <div class="segment active-green"></div>
-              <div class="segment active-green"></div>
+          <!-- Minutes & Note Input -->
+          <div class="flex gap-3 mb-6 z-10">
+            <div class="w-24 bg-slate-900/50 rounded-xl border border-white/5 p-2 flex flex-col justify-center">
+              <label class="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">Minutes</label>
+              <input type="number" min="0" max="120" x-model.number="player.minutesPlayed" @blur="enforceMaxMin(player, 'minutesPlayed', 0, 120)" class="bg-transparent text-white font-bold text-lg outline-none w-full">
+            </div>
+            <div class="flex-1 bg-slate-900/50 rounded-xl border border-white/5 p-2 flex flex-col justify-center">
+              <label class="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">Coach Note</label>
+              <input type="text" placeholder="Add feedback..." x-model="player.coachNote" class="bg-transparent text-slate-300 text-sm outline-none w-full placeholder-slate-700">
             </div>
           </div>
-          <div class="rating-box">
-            <span class="rating-num score-green">9</span>
-          </div>
-        </div>
-      </div>
 
-      <div class="koralytics-card card-yellow">
-        <div class="card-left-info">
-          <div class="meta-header">
-            <span class="meta-date">SPEED • SESSION #2 • JUL 09</span>
-          </div>
-          <div class="card-title">Sprint Test Drill</div>
-          <div class="card-subtitle">Regular Session</div>
-        </div>
+          <div class="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent mb-5"></div>
 
-        <div class="stats-block">
-          <div class="segments-box">
-            <span class="stat-pill"><span class="lbl">SCORE 7/10</span></span>
-            <div class="segments">
-              <div class="segment active-yellow"></div>
-              <div class="segment active-yellow"></div>
-              <div class="segment"></div>
-            </div>
+          <!-- Category Ratings Grid (The Steppers) -->
+          <div class="flex-1 space-y-3 z-10">
+            <template x-for="cat in categories" :key="cat.id">
+              <div class="flex items-center justify-between bg-[#0a0f18] rounded-xl p-2.5 border border-white/5 hover:border-white/10 transition-colors">
+                <span class="text-sm font-semibold text-slate-300" x-text="cat.name"></span>
+                
+                <!-- NEW STEPPER CONTROLS -->
+                <div class="flex items-center gap-1 bg-[#131b2c] rounded-lg p-1 border border-white/5">
+                  <!-- Minus Button -->
+                  <button @click="updateRating(player, cat.id, -1)" class="w-8 h-8 flex items-center justify-center rounded-md bg-white/5 text-slate-400 hover:bg-rose-500/20 hover:text-rose-400 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
+                  </button>
+                  
+                  <!-- Manual Input -->
+                  <input type="number" step="1"
+                         x-model="player.ratings[cat.id]"
+                         @blur="validateRatingInput(player, cat.id, $event)"
+                         class="w-10 bg-transparent text-center font-black text-white text-lg outline-none">
+                  
+                  <!-- Plus Button -->
+                  <button @click="updateRating(player, cat.id, 1)" class="w-8 h-8 flex items-center justify-center rounded-md bg-white/5 text-slate-400 hover:bg-emerald-500/20 hover:text-emerald-400 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                  </button>
+                </div>
+
+              </div>
+            </template>
           </div>
-          <div class="rating-box">
-            <span class="rating-num score-yellow">7</span>
-          </div>
+
         </div>
-      </div>
+      </template>
 
     </div>
+  </main>
 
+  <!-- FIXED BOTTOM ACTION BAR -->
+  <div class="fixed bottom-0 left-0 right-0 bg-[#05080f]/95 backdrop-blur-xl border-t border-white/10 p-4 z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+      
+      <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 border border-white/5">
+          <div :class="selectedMotmId ? 'bg-emerald-500' : 'bg-rose-500'" class="w-2 h-2 rounded-full animate-pulse"></div>
+          <span class="text-xs font-bold text-white" x-text="selectedMotmId ? 'MOTM Selected' : 'Missing MOTM'"></span>
+        </div>
+      </div>
+
+      <button @click="submitRatings()" 
+              :disabled="!selectedMotmId"
+              :class="selectedMotmId ? 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-black shadow-[0_0_20px_rgba(16,185,129,0.3)]' : 'bg-slate-800 text-slate-500 cursor-not-allowed'"
+              class="px-8 py-3.5 rounded-xl text-sm font-black transition-all flex items-center gap-2">
+        <span>Submit Match Data</span>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+      </button>
+
+    </div>
   </div>
 
+  <script>
+    function matchRatingApp() {
+      return {
+        // Data
+        categories: [
+          { id: 101, name: 'Tactical Awareness' },
+          { id: 102, name: 'Passing Accuracy' },
+          { id: 103, name: 'Physicality' },
+          { id: 104, name: 'Work Rate' }
+        ],
+        players: [
+          { id: 10, name: 'Karim Benchaf', number: 9, position: 'ST', goals: 2, assists: 0, minutesPlayed: 90, isMOTM: false, coachNote: '', ratings: { 101: 7, 102: 8, 103: 9, 104: 6 } },
+          { id: 11, name: 'Youssef Soliman', number: 10, position: 'CAM', goals: 1, assists: 2, minutesPlayed: 85, isMOTM: true, coachNote: 'Perfect vision.', ratings: { 101: 9, 102: 9, 103: 7, 104: 8 } },
+          { id: 12, name: 'Omar Gaber', number: 7, position: 'RW', goals: 0, assists: 1, minutesPlayed: 70, isMOTM: false, coachNote: '', ratings: { 101: 7, 102: 7, 103: 8, 104: 7 } },
+          { id: 13, name: 'Ahmed Hegazi', number: 4, position: 'CB', goals: 0, assists: 0, minutesPlayed: 90, isMOTM: false, coachNote: '', ratings: { 101: 8, 102: 6, 103: 9, 104: 8 } },
+        ],
+
+        // Computed
+        get selectedMotmId() {
+          const motm = this.players.find(p => p.isMOTM);
+          return motm ? motm.id : null;
+        },
+
+        // Methods
+        setMOTM(playerId) {
+          this.players.forEach(p => p.isMOTM = (p.id === playerId));
+        },
+
+        // STEPPER LOGIC (+ / - Buttons)
+        updateRating(player, categoryId, delta) {
+          let currentVal = parseInt(player.ratings[categoryId]) || 5;
+          let newVal = currentVal + delta;
+          
+          // Cap between 1 and 10
+          if (newVal > 10) newVal = 10;
+          if (newVal < 1) newVal = 1;
+          
+          player.ratings[categoryId] = newVal;
+        },
+
+        // MANUAL INPUT LOGIC (On Blur)
+        validateRatingInput(player, categoryId, event) {
+          let val = parseInt(event.target.value);
+          
+          if (isNaN(val) || val < 1) val = 1;
+          if (val > 10) val = 10;
+          
+          player.ratings[categoryId] = val;
+        },
+
+        enforceMaxMin(player, field, min, max) {
+          let val = parseInt(player[field]);
+          if(isNaN(val) || val < min) player[field] = min;
+          if(val > max) player[field] = max;
+        },
+
+        fillDefaultRatings() {
+          this.players.forEach(p => {
+            this.categories.forEach(c => p.ratings[c.id] = 7);
+          });
+        },
+
+        async submitRatings() {
+          if (!this.selectedMotmId) return;
+
+          // Generating DTO
+          const payload = {
+            ratings: this.players.map(p => ({
+              playerId: p.id,
+              isMOTM: p.isMOTM,
+              minutesPlayed: p.minutesPlayed,
+              coachNote: p.coachNote || null,
+              categoryRatings: Object.keys(p.ratings).map(catId => ({
+                drillCategoryId: parseInt(catId),
+                rating: p.ratings[catId]
+              }))
+            }))
+          };
+
+          console.log("Submitting Payload to C#:", JSON.stringify(payload, null, 2));
+          alert("Ratings built successfully! Check browser console for the exact JSON Payload.");
+        }
+      }
+    }
+  </script>
 </body>
 </html>

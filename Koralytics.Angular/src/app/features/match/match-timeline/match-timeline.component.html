@@ -22,6 +22,36 @@
         }
       </div>
     </div>
+    @if (canStartMatch && areBothLineupsSubmitted) {
+      <div class="start-match-box">
+        <app-button
+          variant="accent"
+          [disabled]="isStartingMatch"
+          (click)="onStartMatchClick()">
+          <span class="btn-inner-content">
+            <svg class="tool-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="5 3 19 12 5 21 5 3" fill="#A3E635" stroke="#FFFFFF" stroke-width="1"/>
+            </svg>
+            <span>Start Match</span>
+          </span>
+        </app-button>
+      </div>
+    }
+    @if (canLogEvents) {
+      <div class="start-match-box">
+        <app-button
+          variant="coral"
+          [disabled]="isEndingMatch"
+          (click)="onEndMatchClick()">
+          <span class="btn-inner-content">
+            <svg class="tool-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="5" y="5" width="14" height="14" rx="2.5" fill="#EF4444" stroke="#FCA5A5" stroke-width="1"/>
+            </svg>
+            <span>End Match</span>
+          </span>
+        </app-button>
+      </div>
+    }
   </div>
 
   <div class="nav-tabs-container">
@@ -50,13 +80,17 @@
         } @else {
           <app-match-lineups
             [homeName]="matchInfo.homeTeam"
-            [homeFormation]="displayHomeFormation"
-            [homeStarters]="formationHome"
+            [homeFormation]="matchInfo.formation || '4-3-3'"
+            [homeStarters]="homeStarters"
             [homeBench]="homeBench"
             [awayName]="matchInfo.awayTeam"
-            [awayFormation]="displayAwayFormation"
-            [awayStarters]="formationAway"
+            [awayFormation]="matchInfo.awayFormation || '4-3-3'"
+            [awayStarters]="awayStarters"
             [awayBench]="awayBench"
+            [canLogEvents]="canLogEvents"
+            [matchId]="matchId"
+            [matchInfo]="matchInfo"
+            (eventLogged)="refresh()"
           />
         }
       </div>
@@ -65,3 +99,23 @@
   </div>
 
 </div>
+
+<app-confirm-dialog
+  [isOpen]="isStartMatchDialogOpen"
+  title="Start Match"
+  message="Are you sure you want to start this match? This will change the match status to Live."
+  confirmText="Start Match"
+  level="info"
+  (confirm)="confirmStartMatch()"
+  (cancel)="isStartMatchDialogOpen = false"
+></app-confirm-dialog>
+
+<app-confirm-dialog
+  [isOpen]="isEndMatchDialogOpen"
+  title="End Match"
+  message="Are you sure you want to end this match? This action will finalize the match and cannot be undone."
+  confirmText="End Match"
+  level="danger"
+  (confirm)="confirmEndMatch()"
+  (cancel)="isEndMatchDialogOpen = false"
+></app-confirm-dialog>

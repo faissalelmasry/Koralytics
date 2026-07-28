@@ -92,5 +92,12 @@ namespace Koralytics.API.Controllers.Academies
             return NoContentResponse("Player removed from team successfully.");
         }
 
+        [HttpGet("{academyId}/teams/summary")]
+        [Authorize(Roles = "AcademyAdmin,Coach,Player")]
+        public async Task<IActionResult> GetAcademyTeams(int academyId)
+        {
+            var result = await _academyTeamService.GetAcademyTeamsAsync(academyId);
+            return OkResponse(result, "Teams retrieved successfully.");
+        }
     }
 }

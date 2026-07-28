@@ -45,5 +45,7 @@ namespace Koralytics.Application.Services.Academy.AcademyTeamService
         /// Soft-removes a player from a team by setting PlayerTeam.LeftAt = UtcNow.
         /// </summary>
         Task RemovePlayerFromTeamAsync(int playerUserId, int teamId, int performedByUserId);
+
+        Task<IEnumerable<Koralytics.Application.DTOs.Academies.AcademyTeamSummaryDto>> GetAcademyTeamsAsync(int academyId);
     }
 }

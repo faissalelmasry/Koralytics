@@ -105,4 +105,10 @@ namespace Koralytics.Application.DTOs.Academies
         public string City { get; set; } = string.Empty;
         public bool IsMain { get; set; }
     }
+
+    public class AcademySearchResponseDto
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+    }
 }

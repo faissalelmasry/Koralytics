@@ -1,0 +1,134 @@
+<div class="page-wrapper">
+
+  <div class="tactical-tag" scrollReveal direction="bottom" [delay]="0">Friendly Match</div>
+
+  <div class="header-row" scrollReveal direction="bottom" [delay]="50">
+    <h2 class="section-title">Request Friendly Match</h2>
+    <span class="badge-subtitle">Challenge an opponent academy</span>
+  </div>
+
+  @if (isLoadingTeams) {
+    <div class="loading-state">
+      <app-loading-spinner size="lg"></app-loading-spinner>
+      <p>Loading your teams...</p>
+    </div>
+  }
+  @else {
+
+    <div class="matchup-bar" scrollReveal direction="bottom" [delay]="100">
+      <div class="team-badge-box">
+        <span class="team-label">Your Team</span>
+        <span class="team-name">{{ requesterTeamName || '-- Select --' }}</span>
+      </div>
+      <div class="vs-circle">VS</div>
+      <div class="team-badge-box">
+        <span class="team-label">Opponent</span>
+        <span class="team-name">{{ targetTeamName || '-- Select --' }}</span>
+      </div>
+    </div>
+
+    <div class="form-card" scrollReveal direction="bottom" [delay]="150">
+      <div class="form-grid">
+
+        <div class="form-group full-width">
+          <app-select
+            label="1. Select Your Team"
+            [options]="coachTeams"
+            [(value)]="requesterTeamId">
+          </app-select>
+        </div>
+
+        <div class="form-group">
+          <div class="autocomplete-wrapper">
+            <app-text-input
+              label="2. Search Opponent Academy"
+              placeholder="Type academy name..."
+              [value]="academySearchQuery"
+              (valueChange)="onAcademySearch($event)"
+              (focus)="onFocusAcademySearch()"
+              (blur)="onBlurAcademySearch()">
+            </app-text-input>
+
+            @if (showAcademyDropdown && academySearchResults.length > 0) {
+              <div class="autocomplete-dropdown">
+                @for (academy of academySearchResults; track academy.id) {
+                  <div class="autocomplete-item" (click)="selectAcademy(academy)">
+                    <span>{{ academy.name }}</span>
+                    <span class="item-tag">Academy</span>
+                  </div>
+                }
+              </div>
+            }
+
+            @if (selectedAcademyId) {
+              <div class="selected-academy-badge">
+                <span>{{ selectedAcademyName }}</span>
+                <button type="button" class="clear-badge" (click)="clearAcademy()">&#10005;</button>
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="form-group">
+          @if (isLoadingOpponentTeams) {
+            <div class="mini-loader">
+              <app-loading-spinner size="sm"></app-loading-spinner>
+            </div>
+          }
+          @else {
+            <app-select
+              label="3. Select Opponent Team"
+              [options]="opponentTeams"
+              [(value)]="targetTeamId"
+              [disabled]="!selectedAcademyId">
+            </app-select>
+          }
+        </div>
+
+        <div class="form-group">
+          <app-select
+            label="4. Match Format"
+            [options]="formatOptions"
+            [(value)]="format">
+          </app-select>
+        </div>
+
+        <div class="form-group">
+          <app-date-time-picker
+            label="5. Proposed Date & Time"
+            [(value)]="proposedDate">
+          </app-date-time-picker>
+        </div>
+
+        <div class="form-group full-width">
+          <app-text-input
+            label="6. Stadium / Location"
+            placeholder="e.g. Cairo International Stadium Field B"
+            [value]="location"
+            (valueChange)="location = $event">
+          </app-text-input>
+        </div>
+
+      </div>
+
+      @if (error) {
+        <div class="alert alert-error">{{ error }}</div>
+      }
+
+      @if (success) {
+        <div class="alert alert-success">{{ success }}</div>
+      }
+
+      <div class="form-actions">
+        <app-button
+          variant="accent"
+          [loading]="isSubmitting"
+          [disabled]="isSubmitting"
+          (click)="submit()">
+          {{ isSubmitting ? 'Sending...' : 'Send Challenge Request' }}
+        </app-button>
+      </div>
+    </div>
+  }
+
+</div>

@@ -24,7 +24,7 @@ namespace Koralytics.Application.Validators.Match
                 .IsInEnum().WithMessage("Invalid match format.");
 
             RuleFor(x => x.MatchDate)
-                .GreaterThan(DateTime.UtcNow).WithMessage("Match date must be in the future.");
+                .NotEmpty().WithMessage("Match date is required.");
 
             RuleFor(x => x.Location)
                 .MaximumLength(200).WithMessage("Location must not exceed 200 characters.");

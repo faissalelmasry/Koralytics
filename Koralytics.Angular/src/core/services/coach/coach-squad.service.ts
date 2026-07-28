@@ -41,5 +41,6 @@ export class CoachSquadService {
     return this.http.get<SquadComparisonDto>(`${this.baseUrl}/squad/compare`, {
       params,
     });
-  }
+
+  
 }

@@ -22,17 +22,20 @@ namespace Koralytics.Application.Services.Match
         private readonly IMapper _mapper;
         private readonly ILogger<MatchService> _logger;
         private readonly ITournamentFixtureService _tournamentFixtureService;
+        private readonly IMatchLiveUpdateService _liveUpdateService;
 
         public MatchService(
             IUnitOfWork unitOfWork,
             IMapper mapper,
             ILogger<MatchService> logger,
-            ITournamentFixtureService tournamentFixtureService)
+            ITournamentFixtureService tournamentFixtureService,
+            IMatchLiveUpdateService liveUpdateService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _logger = logger;
             _tournamentFixtureService = tournamentFixtureService;
+            _liveUpdateService = liveUpdateService;
         }
 
         public async Task<MatchResponseDto> CreateFriendlyMatchAsync(CreateFriendlyMatchDto dto)
@@ -219,6 +222,8 @@ namespace Koralytics.Application.Services.Match
                 match.AwayTeamId = session.TeamId;
                 match.Type = DomainEnums.MatchType.Session;
                 match.Status = DomainEnums.MatchStatus.Live;
+                match.Formation = dto.Formation;
+                match.AwayFormation = dto.AwayFormation;
                 match.HomeScore = 0;
                 match.AwayScore = 0;
 
@@ -267,6 +272,8 @@ namespace Koralytics.Application.Services.Match
                 _logger.LogInformation(
                     "Session match created with Id {MatchId} for session {SessionId}, status Live",
                     match.Id, dto.SessionId);
+
+                await transaction.CommitAsync();
 
                 return _mapper.Map<MatchResponseDto>(created!);
             }
@@ -323,6 +330,15 @@ namespace Koralytics.Application.Services.Match
 
             _logger.LogInformation("Match {MatchId} started", matchId);
 
+            await _liveUpdateService.BroadcastMatchScoreUpdateAsync(new LiveMatchScoreUpdateDto
+            {
+                MatchId = matchId,
+                HomeScore = match.HomeScore,
+                AwayScore = match.AwayScore,
+                HomePenaltyScore = match.HomePenaltyScore,
+                AwayPenaltyScore = match.AwayPenaltyScore,
+                Status = match.Status.ToString()
+            });
         }
 
         public async Task<MatchResponseDto> EndMatchAsync(int matchId)
@@ -373,6 +389,16 @@ namespace Koralytics.Application.Services.Match
 
             _logger.LogInformation("Match {MatchId} ended. Score: {Home}-{Away}. Winner: {Winner}",
                 matchId, match.HomeScore, match.AwayScore, match.WinningTeamId);
+
+            await _liveUpdateService.BroadcastMatchScoreUpdateAsync(new LiveMatchScoreUpdateDto
+            {
+                MatchId = matchId,
+                HomeScore = match.HomeScore,
+                AwayScore = match.AwayScore,
+                HomePenaltyScore = match.HomePenaltyScore,
+                AwayPenaltyScore = match.AwayPenaltyScore,
+                Status = match.Status.ToString()
+            });
 
             return _mapper.Map<MatchResponseDto>(match);
         }
