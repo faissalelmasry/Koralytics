@@ -55,7 +55,7 @@ export class CoachNotesComponent implements OnInit {
   }
 
   loadSquad(): void {
-    this.squadService.getSquad(this.coachId, this.teamId)
+    this.squadService.getSquad(this.teamId, this.coachId)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (data) => {
