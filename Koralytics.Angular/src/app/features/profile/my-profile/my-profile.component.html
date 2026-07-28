@@ -1,0 +1,334 @@
+<div class="profile-page">
+  @if (isLoading) {
+  <div class="loading-state">
+    <app-loading-spinner size="lg"></app-loading-spinner>
+    <p>Loading your profile...</p>
+  </div>
+  }
+  @else if (profile) {
+  <div class="profile-container">
+
+    <!-- ================= 1. HERO HEADER BANNER ================= -->
+    <div class="header-banner" scrollReveal direction="bottom">
+      <div class="player-title-box">
+        <div class="avatar-wrapper" (click)="openImageUpload()" title="Click to update profile photo">
+          @if (profile.profileImageUrl) {
+          <img [src]="profile.profileImageUrl" alt="Avatar" class="avatar-img" />
+          }
+          @else {
+          <div class="avatar-circle">{{ initials }}</div>
+          }
+          <div class="avatar-overlay">
+            <span class="camera-icon">📷</span>
+          </div>
+        </div>
+        <div>
+          <div class="name-row">
+            <h2>{{ profile.firstName }} {{ profile.lastName }}</h2>
+            <span class="role-badge">{{ profile.role }}</span>
+          </div>
+          <div class="tags-group">
+            <span class="tags">@{{ profile.userName }}</span>
+            <span class="tags">{{ profile.email }}</span>
+            @if (profile.phoneNumber) {
+            <span class="tags">📞 {{ profile.phoneNumber }}</span>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="meta-stats">
+        <div>JOINED <strong>{{ profile.createdAt | date:'mediumDate' }}</strong></div>
+        @if (asPlayer) {
+        <div>AGE / FOOT <strong>{{ asPlayer.age || 'N/A' }} / {{ footLabel }}</strong></div>
+        <div>PRIMARY POS <strong class="text-yellow">{{ primaryPositionCode }}</strong></div>
+        }
+        @else if (asAcademyAdmin) {
+        <div>ACADEMY <strong>{{ asAcademyAdmin.academyName || 'N/A' }}</strong></div>
+        }
+        @else if (asScouter) {
+        <div>STATUS <strong [class.text-green]="asScouter.isVerified">{{ asScouter.isVerified ? 'Verified' : 'Pending'
+            }}</strong></div>
+        }
+      </div>
+    </div>
+
+    <!-- ================= 2. MAIN GRID (VIEW MODE vs EDIT MODE) ================= -->
+    @if (!isEditing) {
+    <div class="main-grid" scrollReveal direction="bottom">
+      <!-- Left Column: Personal Info Card -->
+      <div class="panel-card info-card">
+        <div class="card-header-row">
+          <span class="panel-title">Personal Identity</span>
+          <button class="btn-action btn-yellow edit-btn" (click)="startEditing()">
+            ⚡ Edit Profile
+          </button>
+        </div>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-lbl">First Name</span>
+            <span class="info-val">{{ profile.firstName }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-lbl">Last Name</span>
+            <span class="info-val">{{ profile.lastName }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-lbl">Email Address</span>
+            <span class="info-val">{{ profile.email }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-lbl">Phone Number</span>
+            <span class="info-val">{{ profile.phoneNumber || 'Not provided' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Role-Specific Column: Player Attributes & Pitch Overview -->
+      @if (asPlayer) {
+      <div class="panel-card player-details-card">
+        <span class="panel-title">Player Attributes & Archetype</span>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-lbl">Nationality</span>
+            <span class="info-val">{{ asPlayer.nationality || 'N/A' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-lbl">Preferred Foot</span>
+            <span class="info-val">{{ footLabel }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-lbl">Weak Foot Rating</span>
+            <span class="info-val">{{ asPlayer.weakFootRating ? asPlayer.weakFootRating + ' ★' : 'N/A' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-lbl">Play Style Tag</span>
+            <span class="info-val">{{ asPlayer.playStyleTag || 'N/A' }}</span>
+          </div>
+          <div class="info-item full-width">
+            <span class="info-lbl">Archetype Name</span>
+            <span class="info-val text-yellow">{{ asPlayer.archetypePlayerName || 'No archetype selected' }}</span>
+          </div>
+          <div class="info-item full-width">
+            <span class="info-lbl">Archetype Description</span>
+            <span class="info-val bio-text">{{ asPlayer.archetypeText || 'No detailed archetype description provided.'
+              }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Position Overview Pitch Map -->
+      <div class="panel-card pitch-panel">
+        <span class="panel-title">Tactical Positions Overview</span>
+        <div class="pitch-wrapper">
+          <div class="p-line p-half"></div>
+          <div class="p-center-c"></div>
+          <div class="p-line p-box p-box-l"></div>
+          <div class="p-line p-box p-box-r"></div>
+
+          @for (pos of asPlayer.positions; track pos.position) {
+          <div class="pos-marker" [class.primary]="pos.isPrimary" [class.secondary]="!pos.isPrimary"
+            [style.top]="allPitchPositions[0].top" [style.left]="allPitchPositions[0].left" [ngStyle]="{
+                         top: ($any(allPitchPositions.find(p => p.id === pos.position.toUpperCase()))?.top || '50%'),
+                         left: ($any(allPitchPositions.find(p => p.id === pos.position.toUpperCase()))?.left || '50%')
+                       }">
+            {{ pos.position }} {{ pos.isPrimary ? '★' : '' }}
+          </div>
+          }
+        </div>
+        <div class="current-pos-info">
+          <span>Primary: <strong class="text-yellow">{{ primaryPositionCode }}</strong></span>
+          <span>Secondary: <strong>{{ secondaryPositions.join(', ') || 'None' }}</strong></span>
+        </div>
+      </div>
+      }
+
+      <!-- Role-Specific: Academy Admin -->
+      @if (asAcademyAdmin) {
+      <div class="panel-card">
+        <span class="panel-title">Academy Administration</span>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-lbl">Academy Name</span>
+            <span class="info-val text-yellow">{{ asAcademyAdmin.academyName || 'No academy assigned' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-lbl">Academy ID</span>
+            <span class="info-val">#{{ asAcademyAdmin.academyId || 'N/A' }}</span>
+          </div>
+        </div>
+      </div>
+      }
+
+      <!-- Role-Specific: Scouter -->
+      @if (asScouter) {
+      <div class="panel-card">
+        <span class="panel-title">Scouter Verification</span>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-lbl">Verification Status</span>
+            <span class="info-val" [class.text-green]="asScouter.isVerified">
+              {{ asScouter.isVerified ? '✔ Verified Scouter' : '⏳ Verification Pending' }}
+            </span>
+          </div>
+          @if (asScouter.verifiedAt) {
+          <div class="info-item">
+            <span class="info-lbl">Verified Date</span>
+            <span class="info-val">{{ asScouter.verifiedAt | date:'medium' }}</span>
+          </div>
+          }
+        </div>
+      </div>
+      }
+    </div>
+    }
+    @else {
+    <!-- ================= EDIT MODE FORM ================= -->
+    <div class="main-grid edit-grid" scrollReveal direction="bottom">
+      <div class="panel-card form-panel">
+        <div class="card-header-row">
+          <span class="panel-title">Edit Profile Record</span>
+          <div class="form-actions-top">
+            <app-button variant="slate" (click)="cancelEditing()" [disabled]="isSaving">
+              Cancel
+            </app-button>
+            <app-button variant="gold" (click)="saveProfile()" [loading]="isSaving" [disabled]="form.invalid || isSaving">
+              Save Changes
+            </app-button>
+          </div>
+        </div>
+
+        <!-- Personal Identity Inputs -->
+        <div class="section-title">Personal Identity</div>
+        <div class="form-grid">
+          <app-text-input [label]="'First Name'" [placeholder]="'Enter first name'"
+            [formControl]="form.controls.firstName" [errorMessage]="getErrorMessage('firstName', 'First Name')">
+          </app-text-input>
+
+          <app-text-input [label]="'Last Name'" [placeholder]="'Enter last name'"
+            [formControl]="form.controls.lastName" [errorMessage]="getErrorMessage('lastName', 'Last Name')">
+          </app-text-input>
+
+          <app-phone-input [label]="'Phone'"
+            [formControl]="form.controls.phoneNumber"
+            [errorMessage]="phoneError()"
+            [required]="true">
+          </app-phone-input>
+        </div>
+
+        <!-- Player Specific Attributes -->
+        @if (asPlayer) {
+        <div class="section-title mt-4">Player Tactical & Physical Attributes</div>
+        <div class="form-grid">
+          <app-text-input [label]="'Nationality'" [placeholder]="'e.g. Egypt, Portugal, Brazil'"
+            [formControl]="form.controls.nationality" [errorMessage]="getErrorMessage('nationality', 'Nationality')">
+          </app-text-input>
+
+          <app-select [label]="'Preferred Foot'" [placeholder]="'Select preferred foot'"
+            [options]="preferredFootOptions" [value]="form.controls.preferredFoot.value"
+            (valueChange)="form.controls.preferredFoot.setValue($event)">
+          </app-select>
+
+          <app-select [label]="'Weak Foot Rating (1 to 5 Stars)'" [placeholder]="'Select weak foot rating'"
+            [options]="weakFootOptions" [value]="form.controls.weakFootRating.value"
+            (valueChange)="form.controls.weakFootRating.setValue($event)">
+          </app-select>
+
+          <app-text-input [label]="'Play Style Tag'" [placeholder]="'e.g. Playmaker, Box-to-Box, Target Man'"
+            [value]="form.controls.playStyleTag.value" (valueChange)="form.controls.playStyleTag.setValue($event)">
+          </app-text-input>
+
+          <div class="full-width">
+            <app-text-input [label]="'Archetype Player Name'" [placeholder]="'e.g. Bernardo Silva / Kevin De Bruyne'"
+              [value]="form.controls.archetypePlayerName.value"
+              (valueChange)="form.controls.archetypePlayerName.setValue($event)">
+            </app-text-input>
+          </div>
+
+          <div class="full-width">
+            <app-text-input [label]="'Archetype Text Description'"
+              [placeholder]="'Describe your player archetype characteristics...'"
+              [value]="form.controls.archetypeText.value" (valueChange)="form.controls.archetypeText.setValue($event)">
+            </app-text-input>
+          </div>
+        </div>
+
+        <!-- Interactive Inline Pitch Selector -->
+        <div class="section-title mt-4">Tactical Positions Selector (Click Pitch Nodes to Select/Deselect)</div>
+        <p class="section-subtitle">Select up to 5 positions. Click "★ Set Primary" on any selected tag below to make it
+          your main position.</p>
+
+        <div class="tactical-pitch-overlay">
+          <div class="p-line p-half"></div>
+          <div class="p-center-c"></div>
+          <div class="p-line p-box p-box-l"></div>
+          <div class="p-line p-box p-box-r"></div>
+
+          @for (pos of allPitchPositions; track pos.id) {
+          <button type="button" class="pitch-node-btn" [class.selected]="isPositionSelected(pos.id)"
+            [class.primary-node]="isPositionPrimary(pos.id)" [style.top]="pos.top" [style.left]="pos.left"
+            (click)="togglePosition(pos.id)">
+            {{ pos.name }} {{ isPositionPrimary(pos.id) ? '★' : '' }}
+          </button>
+          }
+        </div>
+
+        <!-- Selected Positions Chips -->
+        <div class="selected-positions-box">
+          <span class="box-lbl">Selected Positions ({{ editPositions.length }}/5):</span>
+          <div class="chips-container">
+            @for (p of editPositions; track p.position) {
+            <div class="pos-chip" [class.primary-chip]="p.isPrimary">
+              <span class="chip-code">{{ p.position }}</span>
+              @if (p.isPrimary) {
+              <span class="primary-badge">★ PRIMARY</span>
+              }
+              @else {
+              <button type="button" class="btn-set-primary" (click)="setPrimaryPosition(p.position, $event)">
+                ★ Set Primary
+              </button>
+              }
+              <button type="button" class="btn-remove-chip" (click)="togglePosition(p.position)">
+                ✕
+              </button>
+            </div>
+            }
+            @if (editPositions.length === 0) {
+            <span class="text-muted">No positions selected. Please click on the pitch nodes above.</span>
+            }
+          </div>
+        </div>
+        }
+
+        <div class="form-actions-bottom">
+          <app-button variant="slate" (click)="cancelEditing()" [disabled]="isSaving">
+            Cancel
+          </app-button>
+          <app-button variant="gold" (click)="saveProfile()" [loading]="isSaving" [disabled]="form.invalid || isSaving">
+            Save Changes
+          </app-button>
+        </div>
+      </div>
+    </div>
+    }
+  </div>
+  }
+
+  <!-- ================= IMAGE UPLOAD MODAL ================= -->
+  @if (showImageUploadModal) {
+  <div class="modal-backdrop active" (click)="closeImageUpload()">
+    <div class="upload-modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Update Profile Photo</h3>
+        <button class="close-btn" (click)="closeImageUpload()">✕</button>
+      </div>
+      <p class="modal-sub">Upload a new tactical avatar image (.jpg, .jpeg, .png, .webp, max 5MB).</p>
+      <div class="upload-wrapper">
+        <app-image-upload [maxFileSizeMb]="5" [isUploading]="isUploadingImage" [aspectRatio]="'circle'"
+          (imageSelected)="onImageSelected($event)">
+        </app-image-upload>
+      </div>
+    </div>
+  </div>
+  }
+</div>

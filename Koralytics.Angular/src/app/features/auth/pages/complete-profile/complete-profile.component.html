@@ -32,7 +32,7 @@
       
       <div [formGroup]="baseForm" class="form-grid">
         <app-text-input label="Username" formControlName="userName" [errorMessage]="baseError('userName')" class="full-width"></app-text-input>
-        <app-text-input label="Phone Number" formControlName="phoneNumber" [errorMessage]="baseError('phoneNumber')" class="full-width"></app-text-input>
+        <app-phone-input label="Phone" formControlName="phoneNumber" [errorMessage]="baseError('phoneNumber')" [required]="true" class="full-width"></app-phone-input>
       </div>
 
       <div *ngIf="selectedRole === 'Player'" [formGroup]="playerForm" class="form-grid" style="margin-top: 16px;">
@@ -66,6 +66,7 @@
       type="button" 
       variant="accent" 
       (click)="nextStep()"
+      [disabled]="isContinueDisabled()"
       class="full-width-btn">
       Continue
     </app-button>
@@ -75,6 +76,7 @@
       type="button" 
       variant="accent" 
       (click)="onSubmit()"
+      [disabled]="isSubmitDisabled()"
       [loading]="isLoading">
       Complete Profile
     </app-button>

@@ -10,6 +10,7 @@ import { CustomButtonComponent } from '../../../../../shared/components/custom-b
 import { CustomSelect } from '../../../../../shared/components/custom-select/custom-select';
 import { CustomDatePicker } from '../../../../../shared/components/custom-date-picker/custom-date-picker';
 import { StepperComponent } from '../../../../../shared/components/stepper/stepper.component';
+import { PhoneInputComponent } from '../../../../../shared/components/phone-input/phone-input.component';
 import { CompleteProfileAsPlayer, CompleteProfileAsParent, CompleteProfileBase, CompleteProfileAsCoach, CompleteProfileAsScouter } from '../../../../../core/interfaces/auth.models';
 
 @Component({
@@ -23,7 +24,8 @@ import { CompleteProfileAsPlayer, CompleteProfileAsParent, CompleteProfileBase, 
     CustomButtonComponent,
     CustomSelect,
     CustomDatePicker,
-    StepperComponent
+    StepperComponent,
+    PhoneInputComponent
   ],
   templateUrl: './complete-profile.component.html',
   styleUrls: ['./complete-profile.component.css']
@@ -67,7 +69,7 @@ export class CompleteProfileComponent implements OnInit {
   // Base missing details (usually just username since Google gives email/name)
   baseForm = this.fb.group({
     userName: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9_]{3,20}$/)]],
-    phoneNumber: ['', [Validators.required, Validators.pattern(/^\+?[1-9]\d{1,14}$/)]]
+    phoneNumber: ['', [Validators.required]]
   });
 
   playerForm = this.fb.group({
@@ -121,6 +123,20 @@ export class CompleteProfileComponent implements OnInit {
     if (index < this.currentStep) {
       this.currentStep = index;
     }
+  }
+
+  isContinueDisabled(): boolean {
+    if (this.isLoading) return true;
+    if (this.currentStep === 0 && !this.selectedRole) return true;
+    return false;
+  }
+
+  isSubmitDisabled(): boolean {
+    if (this.isLoading) return true;
+    if (this.baseForm.invalid) return true;
+    if (this.selectedRole === 'Player' && this.playerForm.invalid) return true;
+    if (this.selectedRole === 'Parent' && this.parentForm.invalid) return true;
+    return false;
   }
 
   onSubmit() {

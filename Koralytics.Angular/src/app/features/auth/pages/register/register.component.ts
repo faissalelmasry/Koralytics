@@ -10,6 +10,7 @@ import { CustomSelect } from '../../../../../shared/components/custom-select/cus
 import { CustomDatePicker } from '../../../../../shared/components/custom-date-picker/custom-date-picker';
 import { PasswordStrengthComponent } from '../../../../../shared/components/password-strength/password-strength.component';
 import { StepperComponent } from '../../../../../shared/components/stepper/stepper.component';
+import { PhoneInputComponent } from '../../../../../shared/components/phone-input/phone-input.component';
 import { RegisterPlayerRequest, RegisterCoachRequest, RegisterParentRequest, RegisterAcademyAdminRequest, RegisterScouterRequest } from '../../../../../core/interfaces/auth.models';
 
 @Component({
@@ -24,7 +25,8 @@ import { RegisterPlayerRequest, RegisterCoachRequest, RegisterParentRequest, Reg
     CustomSelect,
     CustomDatePicker,
     PasswordStrengthComponent,
-    StepperComponent
+    StepperComponent,
+    PhoneInputComponent
   ],
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.css']
@@ -70,7 +72,7 @@ export class RegisterComponent {
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(100), Validators.pattern(/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_])/)]],
     confirmPassword: ['', [Validators.required]],
-    phoneNumber: ['', [Validators.required, Validators.pattern(/^\+?[1-9]\d{1,14}$/)]]
+    phoneNumber: ['', [Validators.required]]
   }, { validators: this.passwordMatchValidator });
 
   // Role Specific Forms
@@ -121,6 +123,21 @@ export class RegisterComponent {
     if (index < this.currentStep) {
       this.currentStep = index;
     }
+  }
+
+  isContinueDisabled(): boolean {
+    if (this.isLoading) return true;
+    if (this.currentStep === 0 && !this.selectedRole) return true;
+    if (this.currentStep === 1 && this.baseForm.invalid) return true;
+    return false;
+  }
+
+  isSubmitDisabled(): boolean {
+    if (this.isLoading) return true;
+    if (this.baseForm.invalid) return true;
+    if (this.selectedRole === 'Player' && this.playerForm.invalid) return true;
+    if (this.selectedRole === 'Parent' && this.parentForm.invalid) return true;
+    return false;
   }
 
   onSubmit() {

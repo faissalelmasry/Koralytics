@@ -149,7 +149,7 @@ export class SquadRegistrationComponent implements OnInit {
       registered: this.tournamentService.getRegisteredPlayerIds(this.tournamentId, this.selectedTeamId).pipe(catchError(() => of([])))
     }).subscribe({
       next: ({ squad, registered }) => {
-        const data = squad?.data || squad;
+        const data = (squad as any)?.data || squad;
         const players = data?.players || data?.Players || [];
         this.players = this.normalizePlayers(Array.isArray(players) ? players : []);
         
