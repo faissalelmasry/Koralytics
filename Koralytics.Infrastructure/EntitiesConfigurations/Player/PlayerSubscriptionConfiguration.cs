@@ -2,11 +2,6 @@
 using Koralytics.Infrastructure.EntitiesConfigurations.Common;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Koralytics.Infrastructure.EntitiesConfigurations.Player
 {
@@ -15,10 +10,23 @@ namespace Koralytics.Infrastructure.EntitiesConfigurations.Player
         public override void Configure(EntityTypeBuilder<PlayerSubscription> builder)
         {
             base.Configure(builder);
+
+            // Decimal precision & scale for financial accuracy
+            builder.Property(x => x.Amount)
+                .HasColumnType("decimal(18,2)")
+                .IsRequired();
+
             builder.Property(x => x.Status)
                 .IsRequired()
                 .HasConversion<string>()
                 .HasMaxLength(20);
+
+            // Cycle dates configuration
+            builder.Property(x => x.StartDate)
+                .IsRequired();
+
+            builder.Property(x => x.DueDate)
+                .IsRequired();
 
             builder.Property(x => x.PaidAt)
                 .IsRequired(false);
@@ -26,11 +34,15 @@ namespace Koralytics.Infrastructure.EntitiesConfigurations.Player
             builder.Property(x => x.GraceUntil)
                 .IsRequired(false);
 
+            builder.Property(x => x.PaidByUserId)
+                .IsRequired(false);
+
+            // Relationships
             builder.HasOne(x => x.Player)
-                .WithMany(p => p.PlayerSubscriptions) 
+                .WithMany(p => p.PlayerSubscriptions)
                 .HasForeignKey(x => x.PlayerId)
                 .OnDelete(DeleteBehavior.Cascade);
-            
+
             builder.HasOne(x => x.Academy)
                 .WithMany()
                 .HasForeignKey(x => x.AcademyId)
@@ -41,19 +53,18 @@ namespace Koralytics.Infrastructure.EntitiesConfigurations.Player
                 .HasForeignKey(x => x.PaidByUserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // Database Indexes
             builder.HasIndex(x => x.PlayerId);
             builder.HasIndex(x => x.AcademyId);
             builder.HasIndex(x => x.PaidByUserId);
 
+            // Table constraints
             builder.ToTable(t =>
             {
                 t.HasCheckConstraint(
                     "CK_PlayerSubscription_GraceUntil_After_PaidAt",
                     "[GraceUntil] IS NULL OR [PaidAt] IS NULL OR [GraceUntil] >= [PaidAt]");
             });
-
-
-
         }
     }
 }

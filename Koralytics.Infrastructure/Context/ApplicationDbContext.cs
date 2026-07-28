@@ -8,7 +8,7 @@ using Koralytics.Domain.Entities.Scouter;
 using Koralytics.Domain.Entities.SystemAdmin;
 using Koralytics.Domain.Entities.Tournamet;
 using Koralytics.Domain.Entities;
-using Koralytics.Infrastructure.Extensions; 
+using Koralytics.Infrastructure.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -57,6 +57,7 @@ namespace Koralytics.Infrastructure.Context
         #endregion
 
         #region Aly's Entities (Academy Settings & SuperAdmin)
+        public DbSet<AcademyPlan> AcademyPlans { get; set; }
         public DbSet<AcademyAdmin> AcademyAdmins { get; set; }
         public DbSet<Team> Teams { get; set; }
         public DbSet<AcademyLocation> AcademyLocations { get; set; }
@@ -68,7 +69,7 @@ namespace Koralytics.Infrastructure.Context
         public DbSet<AcademyRequest> AcademyRequests { get; set; }
         public DbSet<AcademyPlayerJoinRequest> AcademyPlayerJoinRequests { get; set; }
         public DbSet<AcademyCoachJoinRequest> AcademyCoachJoinRequests { get; set; }
-        
+
         public DbSet<Parent> Parents { get; set; }
         public DbSet<ParentPlayer> ParentPlayers { get; set; }
         #endregion
@@ -121,6 +122,22 @@ namespace Koralytics.Infrastructure.Context
             builder.Entity<Scouter>().ToTable("Scouters");
             builder.Entity<Parent>().ToTable("Parents");
             builder.Entity<AcademyAdmin>().ToTable("AcademyAdmins");
+
+            // Explicit ParentPlayer Junction Table Mapping to Prevent Shadow Key Warnings
+            builder.Entity<ParentPlayer>(entity =>
+            {
+                entity.HasKey(pp => new { pp.ParentId, pp.PlayerId });
+
+                entity.HasOne(pp => pp.Parent)
+                      .WithMany()
+                      .HasForeignKey(pp => pp.ParentId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(pp => pp.Player)
+                      .WithMany(p => p.ParentPlayers)
+                      .HasForeignKey(pp => pp.PlayerId)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
 
             // The DrillSessions.Status column is nvarchar in the DB (storing "0", "1", etc.)
             // This converter ensures EF Core queries use the integer STRING ("0") not the enum name ("Scheduled").

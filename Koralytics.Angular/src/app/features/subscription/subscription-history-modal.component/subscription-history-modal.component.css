@@ -1,0 +1,56 @@
+/* Component Host Container */
+:host {
+    display: block;
+}
+
+/* Modal Entry Keyframe Animation (Smooth Pop-In) */
+@keyframes modalPop {
+    0% {
+        opacity: 0;
+        transform: scale(0.95) translateY(12px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* Apply Pop Animation to Modal Card */
+.bg-slate-900 {
+    animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Backdrop Blur Safari Compatibility */
+.backdrop-blur-md {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+/* Custom Sleek Dark Scrollbar for History Table */
+.overflow-x-auto::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.6);
+    /* slate-900 */
+    border-radius: 8px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb {
+    background: rgba(51, 65, 85, 0.8);
+    /* slate-700 */
+    border-radius: 8px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb:hover {
+    background: rgba(71, 85, 105, 1);
+    /* slate-600 */
+}
+
+/* Table Row Hover State */
+tbody tr {
+    transition: background-color 0.15s ease-in-out;
+}

@@ -74,6 +74,15 @@ namespace Koralytics.Domain.Enums
         Grace = 3
     }
     [JsonConverter(typeof(JsonStringEnumConverter))]
+    public enum SubscriptionDuration
+    {
+        OneMonth = 1,
+        ThreeMonths = 3,
+        SixMonths = 6,
+        OneYear = 12
+    }
+
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum PlayerAcademyStatus
     {
         Active = 1,

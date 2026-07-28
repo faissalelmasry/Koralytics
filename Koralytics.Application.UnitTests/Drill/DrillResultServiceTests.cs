@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Koralytics.Application.DTOs.Drill;
 using Koralytics.Application.Interfaces;
 using Koralytics.Application.Services.Drill.DrillResult;
@@ -176,6 +176,27 @@ namespace Koralytics.Application.UnitTests.Drill
             Assert.Equal(new DateTime(2026, 1, 1), result.ProgressionChart[0].SessionDate);
             Assert.Equal(new DateTime(2026, 2, 1), result.ProgressionChart[1].SessionDate);
             Assert.Equal(new DateTime(2026, 3, 1), result.ProgressionChart[2].SessionDate);
+        }
+
+        [Fact]
+        public async Task GetPlayerDrillProgressionAsync_AllowsParentWithAcademyIdZero()
+        {
+            // --- ARRANGE ---
+            var playerRepoMock = new Mock<IRepository<Koralytics.Domain.Entities.Player.Player>>();
+            playerRepoMock.Setup(r => r.ExistsAsync(It.IsAny<Expression<Func<Koralytics.Domain.Entities.Player.Player, bool>>>())).ReturnsAsync(true);
+            _unitOfWorkMock.Setup(u => u.Repository<Koralytics.Domain.Entities.Player.Player>()).Returns(playerRepoMock.Object);
+
+            var rawResults = new List<Domain.Entities.Drill.DrillResult>();
+            var resultRepoMock = new Mock<IRepository<Domain.Entities.Drill.DrillResult>>();
+            resultRepoMock.Setup(r => r.GetQueryableAsNoTracking()).Returns(rawResults.BuildMock());
+            _unitOfWorkMock.Setup(u => u.Repository<Domain.Entities.Drill.DrillResult>()).Returns(resultRepoMock.Object);
+
+            // --- ACT ---
+            var result = await _service.GetPlayerDrillProgressionAsync(playerId: 4, categoryId: 1, currentAcademyId: 0);
+
+            // --- ASSERT ---
+            Assert.NotNull(result);
+            Assert.Equal(4, result.PlayerId);
         }
     }
 }

@@ -1,8 +1,10 @@
+using Koralytics.Domain.Entities;
 using Koralytics.Domain.Entities.Academy;
 using Koralytics.Domain.Entities.Coach;
 using Koralytics.Domain.Entities.Drill;
 using Koralytics.Domain.Entities.Identity;
 using Koralytics.Domain.Entities.Match;
+using Koralytics.Domain.Entities.Parents;
 using Koralytics.Domain.Entities.Player;
 using Koralytics.Domain.Entities.SystemAdmin;
 using Koralytics.Domain.Enums;
@@ -70,6 +72,7 @@ namespace Koralytics.Infrastructure.Seeding
                 await context.Database.ExecuteSqlRawAsync(
                     "ALTER TABLE [AspNetUsers] CHECK CONSTRAINT [FK_AspNetUsers_AspNetUsers_CreatedById]");
             }
+
             // ---- SEED TEST DATA (Development only) ----
 
             // Second Academy (needed for match AwayTeam)
@@ -131,7 +134,7 @@ namespace Koralytics.Infrastructure.Seeding
                 {
                     Name = "Al Ahly Academy",
                     Status = AcademyStatus.Active,
-                    AdminUserId = freshAdminUser!.Id,  // ? use freshAdminUser not academyAdminUser
+                    AdminUserId = freshAdminUser!.Id,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
@@ -141,9 +144,10 @@ namespace Koralytics.Infrastructure.Seeding
 
                 await context.Database.ExecuteSqlRawAsync(
                     "INSERT INTO AcademyAdmins (Id, AcademyId) VALUES ({0}, {1})",
-                    freshAdminUser.Id,  // ? use freshAdminUser
+                    freshAdminUser.Id,
                     academy.Id
                 );
+
                 // --- Academy Location ---
                 var location = new AcademyLocation
                 {
@@ -246,7 +250,7 @@ namespace Koralytics.Infrastructure.Seeding
                 context.CoachTeams.Add(coachTeam);
                 await context.SaveChangesAsync();
 
-                // --- Player ---
+                // --- Player 1 ---
                 var playerUser = new User
                 {
                     UserName = "player@test.com",
@@ -265,9 +269,9 @@ namespace Koralytics.Infrastructure.Seeding
                     "INSERT INTO Players (Id, DateOfBirth, PreferredFoot, WeakFootRating, AvailabilityStatus) VALUES ({0}, {1}, {2}, {3}, {4})",
                     playerUser.Id,
                     new DateTime(2008, 1, 1),
-                    (int)PreferredFoot.Right,      // cast to int
+                    (int)PreferredFoot.Right,
                     2,
-                    (int)AvailabilityStatus.Available  // cast to int
+                    (int)AvailabilityStatus.Available
                 );
 
                 var playerAcademy = new PlayerAcademy
@@ -299,10 +303,11 @@ namespace Koralytics.Infrastructure.Seeding
                 {
                     PlayerId = playerUser.Id,
                     AcademyId = academy.Id,
+                    Amount = 1500.00m,
                     Status = SubscriptionStatus.Paid,
-                    PaidAt = DateTime.UtcNow,
-                    PaidByUserId = playerUser.Id
+                    PaidAt = DateTime.UtcNow
                 };
+                playerSubscription.SetBillingCycle(DateTime.UtcNow.AddMonths(-1), SubscriptionDuration.OneMonth);
                 context.PlayerSubscriptions.Add(playerSubscription);
                 await context.SaveChangesAsync();
 
@@ -327,7 +332,16 @@ namespace Koralytics.Infrastructure.Seeding
                 context.PlayerTeams.Add(new PlayerTeam { PlayerId = player2User.Id, TeamId = team.Id, JoinedAt = DateTime.UtcNow });
                 context.PlayerAcademies.Add(new PlayerAcademy { PlayerId = player2User.Id, AcademyId = academy.Id, JoinedAt = DateTime.UtcNow, Status = PlayerAcademyStatus.Active });
                 context.PlayerPositions.Add(new PlayerPosition { PlayerId = player2User.Id, Position = "LW", IsPrimary = true });
-                context.PlayerSubscriptions.Add(new PlayerSubscription { PlayerId = player2User.Id, AcademyId = academy.Id, Status = SubscriptionStatus.Paid, PaidAt = DateTime.UtcNow, PaidByUserId = player2User.Id });
+
+                var p2Sub = new PlayerSubscription
+                {
+                    PlayerId = player2User.Id,
+                    AcademyId = academy.Id,
+                    Amount = 1500.00m,
+                    Status = SubscriptionStatus.Unpaid
+                };
+                p2Sub.SetBillingCycle(DateTime.UtcNow, SubscriptionDuration.OneMonth);
+                context.PlayerSubscriptions.Add(p2Sub);
                 await context.SaveChangesAsync();
 
                 // --- Player 3 ---
@@ -351,7 +365,43 @@ namespace Koralytics.Infrastructure.Seeding
                 context.PlayerTeams.Add(new PlayerTeam { PlayerId = player3User.Id, TeamId = team.Id, JoinedAt = DateTime.UtcNow });
                 context.PlayerAcademies.Add(new PlayerAcademy { PlayerId = player3User.Id, AcademyId = academy.Id, JoinedAt = DateTime.UtcNow, Status = PlayerAcademyStatus.Active });
                 context.PlayerPositions.Add(new PlayerPosition { PlayerId = player3User.Id, Position = "CB", IsPrimary = true });
-                context.PlayerSubscriptions.Add(new PlayerSubscription { PlayerId = player3User.Id, AcademyId = academy.Id, Status = SubscriptionStatus.Paid, PaidAt = DateTime.UtcNow, PaidByUserId = player3User.Id });
+
+                var p3Sub = new PlayerSubscription
+                {
+                    PlayerId = player3User.Id,
+                    AcademyId = academy.Id,
+                    Amount = 4000.00m,
+                    Status = SubscriptionStatus.Paid,
+                    PaidAt = DateTime.UtcNow.AddDays(-10)
+                };
+                p3Sub.SetBillingCycle(DateTime.UtcNow.AddDays(-10), SubscriptionDuration.ThreeMonths);
+                context.PlayerSubscriptions.Add(p3Sub);
+                await context.SaveChangesAsync();
+
+                // --- Test Parent User & Child Links ---
+                var parentUser = new User
+                {
+                    UserName = "parent@test.com",
+                    Email = "parent@test.com",
+                    EmailConfirmed = true,
+                    FirstName = "Test",
+                    LastName = "Parent",
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    CreatedById = adminUser.Id
+                };
+                await userManager.CreateAsync(parentUser, "Parent@123456");
+                await userManager.AddToRoleAsync(parentUser, "Parent");
+
+                await context.Database.ExecuteSqlRawAsync(
+                    "INSERT INTO Parents (Id) VALUES ({0})",
+                    parentUser.Id
+                );
+
+                context.ParentPlayers.AddRange(
+                    new ParentPlayer { ParentId = parentUser.Id, PlayerId = playerUser.Id },
+                    new ParentPlayer { ParentId = parentUser.Id, PlayerId = player2User.Id }
+                );
                 await context.SaveChangesAsync();
 
                 // --- Drill Session ---
@@ -393,7 +443,6 @@ namespace Koralytics.Infrastructure.Seeding
                     TeamId = team.Id,
                     CoachId = coachUser.Id,
                     SessionDate = DateTime.UtcNow.AddDays(-7),
-                  //  Type = SessionType.Regular,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
@@ -458,7 +507,7 @@ namespace Koralytics.Infrastructure.Seeding
                     MatchDate = DateTime.UtcNow.AddDays(-3),
                     HomeScore = 2,
                     AwayScore = 1,
-                    Location="Ittihad Club",
+                    Location = "Ittihad Club",
                     WinningTeamId = team.Id,
                     CreatedById = coachUser.Id,
                     CreatedAt = DateTime.UtcNow,
@@ -512,23 +561,29 @@ namespace Koralytics.Infrastructure.Seeding
                 context.MatchPlayerRatings.Add(matchRating);
                 await context.SaveChangesAsync();
 
-                // Friendly match per-category expert ratings
                 context.MatchPlayerCategoryRatings.AddRange(
                     new MatchPlayerCategoryRating { MatchPlayerRatingId = matchRating.Id, DrillCategoryId = shootingCategory.Id, Rating = 8.0m },
-                    new MatchPlayerCategoryRating { MatchPlayerRatingId = matchRating.Id, DrillCategoryId = passingCategory.Id,  Rating = 9.0m }
+                    new MatchPlayerCategoryRating { MatchPlayerRatingId = matchRating.Id, DrillCategoryId = passingCategory.Id, Rating = 9.0m }
                 );
                 await context.SaveChangesAsync();
 
-                // Friendly match with draw + penalty shootout (for penalty logic testing)
                 var penaltyMatch = new Match
                 {
-                    HomeTeamId = team.Id, AwayTeamId = awayTeam.Id,
-                    Type = Domain.Enums.MatchType.Friendly, Format = MatchFormat.ElevenSide,
-                    Status = MatchStatus.Completed, MatchDate = DateTime.UtcNow.AddDays(-10),
-                    HomeScore = 2, AwayScore = 2, Location = "Neutral Ground",
-                    HomePenaltyScore = 5, AwayPenaltyScore = 4,
-                    WinningTeamId = team.Id, CreatedById = coachUser.Id,
-                    CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow
+                    HomeTeamId = team.Id,
+                    AwayTeamId = awayTeam.Id,
+                    Type = Domain.Enums.MatchType.Friendly,
+                    Format = MatchFormat.ElevenSide,
+                    Status = MatchStatus.Completed,
+                    MatchDate = DateTime.UtcNow.AddDays(-10),
+                    HomeScore = 2,
+                    AwayScore = 2,
+                    Location = "Neutral Ground",
+                    HomePenaltyScore = 5,
+                    AwayPenaltyScore = 4,
+                    WinningTeamId = team.Id,
+                    CreatedById = coachUser.Id,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
                 };
                 context.Matches.Add(penaltyMatch);
                 await context.SaveChangesAsync();
@@ -539,8 +594,13 @@ namespace Koralytics.Infrastructure.Seeding
 
                 var penaltyMatchRating = new MatchPlayerRating
                 {
-                    MatchId = penaltyMatch.Id, PlayerId = playerUser.Id, CoachId = coachUser.Id,
-                    Goals = 1, Assists = 0, MinutesPlayed = 90, IsMOTM = true
+                    MatchId = penaltyMatch.Id,
+                    PlayerId = playerUser.Id,
+                    CoachId = coachUser.Id,
+                    Goals = 1,
+                    Assists = 0,
+                    MinutesPlayed = 90,
+                    IsMOTM = true
                 };
                 context.MatchPlayerRatings.Add(penaltyMatchRating);
                 await context.SaveChangesAsync();
@@ -558,50 +618,68 @@ namespace Koralytics.Infrastructure.Seeding
                 var physicalCat = allCategories.First(c => c.Name == "Physical");
                 var speedCat = allCategories.First(c => c.Name == "Speed");
 
-                // Drill Templates for remaining categories
                 var dribbleTemplate = new DrillTemplate
                 {
-                    CategoryId = dribblingCat.Id, AcademyId = null,
-                    Name = "Cone Dribbling Drill", DifficultyLevel = DifficultyLevel.Advanced,
-                    DrillMode = DrillMode.SuccessOrMissed, IsShared = true,
-                    CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow
+                    CategoryId = dribblingCat.Id,
+                    AcademyId = null,
+                    Name = "Cone Dribbling Drill",
+                    DifficultyLevel = DifficultyLevel.Advanced,
+                    DrillMode = DrillMode.SuccessOrMissed,
+                    IsShared = true,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
                 };
                 context.DrillTemplates.Add(dribbleTemplate);
 
                 var defendTemplate = new DrillTemplate
                 {
-                    CategoryId = defendingCat.Id, AcademyId = null,
-                    Name = "1v1 Defending Drill", DifficultyLevel = DifficultyLevel.Intermediate,
-                    DrillMode = DrillMode.Manual, IsShared = true,
-                    CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow
+                    CategoryId = defendingCat.Id,
+                    AcademyId = null,
+                    Name = "1v1 Defending Drill",
+                    DifficultyLevel = DifficultyLevel.Intermediate,
+                    DrillMode = DrillMode.Manual,
+                    IsShared = true,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
                 };
                 context.DrillTemplates.Add(defendTemplate);
 
                 var physicalTemplate = new DrillTemplate
                 {
-                    CategoryId = physicalCat.Id, AcademyId = null,
-                    Name = "Agility Ladder Drill", DifficultyLevel = DifficultyLevel.Intermediate,
-                    DrillMode = DrillMode.SuccessOrMissed, IsShared = true,
-                    CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow
+                    CategoryId = physicalCat.Id,
+                    AcademyId = null,
+                    Name = "Agility Ladder Drill",
+                    DifficultyLevel = DifficultyLevel.Intermediate,
+                    DrillMode = DrillMode.SuccessOrMissed,
+                    IsShared = true,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
                 };
                 context.DrillTemplates.Add(physicalTemplate);
 
                 var speedTemplate = new DrillTemplate
                 {
-                    CategoryId = speedCat.Id, AcademyId = null,
-                    Name = "Sprint Test Drill", DifficultyLevel = DifficultyLevel.Beginner,
-                    DrillMode = DrillMode.SuccessOrMissed, IsShared = true,
-                    CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow
+                    CategoryId = speedCat.Id,
+                    AcademyId = null,
+                    Name = "Sprint Test Drill",
+                    DifficultyLevel = DifficultyLevel.Beginner,
+                    DrillMode = DrillMode.SuccessOrMissed,
+                    IsShared = true,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
                 };
                 context.DrillTemplates.Add(speedTemplate);
                 await context.SaveChangesAsync();
 
-                // Session 2 with all new drills
                 var session2 = new DrillSession
                 {
-                    AcademyId = academy.Id, TeamId = team.Id, CoachId = coachUser.Id,
-                    SessionDate = DateTime.UtcNow.AddDays(-4), Type = SessionType.Regular,
-                    CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow
+                    AcademyId = academy.Id,
+                    TeamId = team.Id,
+                    CoachId = coachUser.Id,
+                    SessionDate = DateTime.UtcNow.AddDays(-4),
+                    Type = SessionType.Regular,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
                 };
                 context.DrillSessions.Add(session2);
                 await context.SaveChangesAsync();
@@ -613,7 +691,6 @@ namespace Koralytics.Infrastructure.Seeding
                 context.Drills.AddRange(drillDribble, drillDefend, drillPhysical, drillSpeed);
                 await context.SaveChangesAsync();
 
-                // Drill Results - varied scores per category
                 context.DrillResults.AddRange(
                     new DrillResult { DrillId = drillDribble.Id, PlayerId = playerUser.Id, DoneCount = 5, MissedCount = 5, FinalScore = 6.0m, CreatedAt = DateTime.UtcNow },
                     new DrillResult { DrillId = drillDefend.Id, PlayerId = playerUser.Id, ManualScore = 8.0m, FinalScore = 8.0m, CreatedAt = DateTime.UtcNow },
@@ -623,50 +700,62 @@ namespace Koralytics.Infrastructure.Seeding
                 await context.SaveChangesAsync();
 
                 // ===== PLAYER CARD TEST DATA: MATCHES =====
-                // Tournament Match
                 var tournMatch = new Match
                 {
-                    HomeTeamId = team.Id, AwayTeamId = awayTeam.Id,
-                    Type = Domain.Enums.MatchType.Tournament, Format = MatchFormat.ElevenSide,
-                    Status = MatchStatus.Completed, MatchDate = DateTime.UtcNow.AddDays(-2),
-                    HomeScore = 3, AwayScore = 1, Location = "Cairo Stadium",
-                    WinningTeamId = team.Id, CreatedById = coachUser.Id,
-                    CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow
+                    HomeTeamId = team.Id,
+                    AwayTeamId = awayTeam.Id,
+                    Type = Domain.Enums.MatchType.Tournament,
+                    Format = MatchFormat.ElevenSide,
+                    Status = MatchStatus.Completed,
+                    MatchDate = DateTime.UtcNow.AddDays(-2),
+                    HomeScore = 3,
+                    AwayScore = 1,
+                    Location = "Cairo Stadium",
+                    WinningTeamId = team.Id,
+                    CreatedById = coachUser.Id,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
                 };
                 context.Matches.Add(tournMatch);
                 await context.SaveChangesAsync();
 
                 var tournRating = new MatchPlayerRating
                 {
-                    MatchId = tournMatch.Id, PlayerId = playerUser.Id, CoachId = coachUser.Id,
-                    Goals = 1, Assists = 0, MinutesPlayed = 75, IsMOTM = false
+                    MatchId = tournMatch.Id,
+                    PlayerId = playerUser.Id,
+                    CoachId = coachUser.Id,
+                    Goals = 1,
+                    Assists = 0,
+                    MinutesPlayed = 75,
+                    IsMOTM = false
                 };
                 context.MatchPlayerRatings.Add(tournRating);
                 await context.SaveChangesAsync();
 
-                // Tournament per-category expert ratings
                 context.MatchPlayerCategoryRatings.AddRange(
-                    new MatchPlayerCategoryRating { MatchPlayerRatingId = tournRating.Id, DrillCategoryId = shootingCategory.Id,  Rating = 7.0m },
-                    new MatchPlayerCategoryRating { MatchPlayerRatingId = tournRating.Id, DrillCategoryId = passingCategory.Id,   Rating = 8.0m },
-                    new MatchPlayerCategoryRating { MatchPlayerRatingId = tournRating.Id, DrillCategoryId = dribblingCat.Id,       Rating = 6.5m },
-                    new MatchPlayerCategoryRating { MatchPlayerRatingId = tournRating.Id, DrillCategoryId = defendingCat.Id,       Rating = 8.0m },
-                    new MatchPlayerCategoryRating { MatchPlayerRatingId = tournRating.Id, DrillCategoryId = physicalCat.Id,        Rating = 7.5m },
-                    new MatchPlayerCategoryRating { MatchPlayerRatingId = tournRating.Id, DrillCategoryId = speedCat.Id,           Rating = 7.0m }
+                    new MatchPlayerCategoryRating { MatchPlayerRatingId = tournRating.Id, DrillCategoryId = shootingCategory.Id, Rating = 7.0m },
+                    new MatchPlayerCategoryRating { MatchPlayerRatingId = tournRating.Id, DrillCategoryId = passingCategory.Id, Rating = 8.0m },
+                    new MatchPlayerCategoryRating { MatchPlayerRatingId = tournRating.Id, DrillCategoryId = dribblingCat.Id, Rating = 6.5m },
+                    new MatchPlayerCategoryRating { MatchPlayerRatingId = tournRating.Id, DrillCategoryId = defendingCat.Id, Rating = 8.0m },
+                    new MatchPlayerCategoryRating { MatchPlayerRatingId = tournRating.Id, DrillCategoryId = physicalCat.Id, Rating = 7.5m },
+                    new MatchPlayerCategoryRating { MatchPlayerRatingId = tournRating.Id, DrillCategoryId = speedCat.Id, Rating = 7.0m }
                 );
                 await context.SaveChangesAsync();
 
                 // ===== SESSION MATCH TEST DATA =====
-                // DrillSession for the session match
                 var sessionMatchSession = new DrillSession
                 {
-                    AcademyId = academy.Id, TeamId = team.Id, CoachId = coachUser.Id,
-                    SessionDate = DateTime.UtcNow.AddDays(-5), Type = SessionType.SessionMatch,
-                    CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow
+                    AcademyId = academy.Id,
+                    TeamId = team.Id,
+                    CoachId = coachUser.Id,
+                    SessionDate = DateTime.UtcNow.AddDays(-5),
+                    Type = SessionType.SessionMatch,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
                 };
                 context.DrillSessions.Add(sessionMatchSession);
                 await context.SaveChangesAsync();
 
-                // Attendance for session match (all 3 players present)
                 context.SessionAttendances.AddRange(
                     new SessionAttendance { SessionId = sessionMatchSession.Id, playerId = playerUser.Id, IsPresent = true },
                     new SessionAttendance { SessionId = sessionMatchSession.Id, playerId = player2User.Id, IsPresent = true },
@@ -674,21 +763,26 @@ namespace Koralytics.Infrastructure.Seeding
                 );
                 await context.SaveChangesAsync();
 
-                // --- Completed Session Match (for analytics/form-guide testing) ---
                 var completedSessionMatch = new Match
                 {
-                    HomeTeamId = team.Id, AwayTeamId = team.Id,
+                    HomeTeamId = team.Id,
+                    AwayTeamId = team.Id,
                     SessionId = sessionMatchSession.Id,
-                    Type = Domain.Enums.MatchType.Session, Format = MatchFormat.FiveSide,
-                    Status = MatchStatus.Completed, MatchDate = DateTime.UtcNow.AddDays(-5),
-                    HomeScore = 1, AwayScore = 2, Location = "Training Ground - Pitch B",
-                    WinningTeamId = team.Id, CreatedById = coachUser.Id,
-                    CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow
+                    Type = Domain.Enums.MatchType.Session,
+                    Format = MatchFormat.FiveSide,
+                    Status = MatchStatus.Completed,
+                    MatchDate = DateTime.UtcNow.AddDays(-5),
+                    HomeScore = 1,
+                    AwayScore = 2,
+                    Location = "Training Ground - Pitch B",
+                    WinningTeamId = team.Id,
+                    CreatedById = coachUser.Id,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
                 };
                 context.Matches.Add(completedSessionMatch);
                 await context.SaveChangesAsync();
 
-                // Lineup with IsHomeSide: Omar + Ahmed = home, Mohamed = away
                 context.MatchLineups.AddRange(
                     new MatchLineup { MatchId = completedSessionMatch.Id, PlayerId = playerUser.Id, TeamId = team.Id, IsStarting = true, JerseyNumber = 9, IsHomeSide = true },
                     new MatchLineup { MatchId = completedSessionMatch.Id, PlayerId = player2User.Id, TeamId = team.Id, IsStarting = true, JerseyNumber = 7, IsHomeSide = true },
@@ -696,7 +790,6 @@ namespace Koralytics.Infrastructure.Seeding
                 );
                 await context.SaveChangesAsync();
 
-                // Events with IsHomeSide
                 context.MatchEvents.AddRange(
                     new MatchEvent { MatchId = completedSessionMatch.Id, PlayerId = playerUser.Id, TeamId = team.Id, EventType = MatchEventType.Goal, Minute = 15, CreatedById = coachUser.Id, IsHomeSide = true },
                     new MatchEvent { MatchId = completedSessionMatch.Id, PlayerId = player3User.Id, TeamId = team.Id, EventType = MatchEventType.Goal, Minute = 28, CreatedById = coachUser.Id, IsHomeSide = false },
@@ -704,28 +797,41 @@ namespace Koralytics.Infrastructure.Seeding
                 );
                 await context.SaveChangesAsync();
 
-                // Ratings
                 var sessionRating = new MatchPlayerRating
                 {
-                    MatchId = completedSessionMatch.Id, PlayerId = playerUser.Id, CoachId = coachUser.Id,
-                    Goals = 1, Assists = 0, MinutesPlayed = 60, IsMOTM = false
+                    MatchId = completedSessionMatch.Id,
+                    PlayerId = playerUser.Id,
+                    CoachId = coachUser.Id,
+                    Goals = 1,
+                    Assists = 0,
+                    MinutesPlayed = 60,
+                    IsMOTM = false
                 };
                 context.MatchPlayerRatings.Add(sessionRating);
                 var sessionRating2 = new MatchPlayerRating
                 {
-                    MatchId = completedSessionMatch.Id, PlayerId = player2User.Id, CoachId = coachUser.Id,
-                    Goals = 0, Assists = 1, MinutesPlayed = 60, IsMOTM = false
+                    MatchId = completedSessionMatch.Id,
+                    PlayerId = player2User.Id,
+                    CoachId = coachUser.Id,
+                    Goals = 0,
+                    Assists = 1,
+                    MinutesPlayed = 60,
+                    IsMOTM = false
                 };
                 context.MatchPlayerRatings.Add(sessionRating2);
                 var sessionRating3 = new MatchPlayerRating
                 {
-                    MatchId = completedSessionMatch.Id, PlayerId = player3User.Id, CoachId = coachUser.Id,
-                    Goals = 2, Assists = 0, MinutesPlayed = 60, IsMOTM = true
+                    MatchId = completedSessionMatch.Id,
+                    PlayerId = player3User.Id,
+                    CoachId = coachUser.Id,
+                    Goals = 2,
+                    Assists = 0,
+                    MinutesPlayed = 60,
+                    IsMOTM = true
                 };
                 context.MatchPlayerRatings.Add(sessionRating3);
                 await context.SaveChangesAsync();
 
-                // Per-category ratings for all 3 players
                 context.MatchPlayerCategoryRatings.AddRange(
                     new MatchPlayerCategoryRating { MatchPlayerRatingId = sessionRating.Id, DrillCategoryId = shootingCategory.Id, Rating = 6.0m },
                     new MatchPlayerCategoryRating { MatchPlayerRatingId = sessionRating.Id, DrillCategoryId = passingCategory.Id, Rating = 7.0m },
@@ -736,12 +842,16 @@ namespace Koralytics.Infrastructure.Seeding
                 );
                 await context.SaveChangesAsync();
 
-                // ===== LIVE Session Match (for event logging + ratings testing) =====
+                // ===== LIVE Session Match =====
                 var liveSessionMatchSession = new DrillSession
                 {
-                    AcademyId = academy.Id, TeamId = team.Id, CoachId = coachUser.Id,
-                    SessionDate = DateTime.UtcNow, Type = SessionType.SessionMatch,
-                    CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow
+                    AcademyId = academy.Id,
+                    TeamId = team.Id,
+                    CoachId = coachUser.Id,
+                    SessionDate = DateTime.UtcNow,
+                    Type = SessionType.SessionMatch,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
                 };
                 context.DrillSessions.Add(liveSessionMatchSession);
                 await context.SaveChangesAsync();
@@ -755,13 +865,20 @@ namespace Koralytics.Infrastructure.Seeding
 
                 var liveSessionMatch = new Match
                 {
-                    HomeTeamId = team.Id, AwayTeamId = team.Id,
+                    HomeTeamId = team.Id,
+                    AwayTeamId = team.Id,
                     SessionId = liveSessionMatchSession.Id,
-                    Type = Domain.Enums.MatchType.Session, Format = MatchFormat.FiveSide,
-                    Status = MatchStatus.Live, MatchDate = DateTime.UtcNow,
-                    HomeScore = 0, AwayScore = 0, Location = "Training Ground - Pitch A",
-                    WinningTeamId = null, CreatedById = coachUser.Id,
-                    CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow
+                    Type = Domain.Enums.MatchType.Session,
+                    Format = MatchFormat.FiveSide,
+                    Status = MatchStatus.Live,
+                    MatchDate = DateTime.UtcNow,
+                    HomeScore = 0,
+                    AwayScore = 0,
+                    Location = "Training Ground - Pitch A",
+                    WinningTeamId = null,
+                    CreatedById = coachUser.Id,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
                 };
                 context.Matches.Add(liveSessionMatch);
                 await context.SaveChangesAsync();
@@ -776,9 +893,13 @@ namespace Koralytics.Infrastructure.Seeding
                 // ===== GK PLAYER TEST DATA =====
                 var gkUser = new User
                 {
-                    UserName = "goalkeeper@test.com", Email = "goalkeeper@test.com",
-                    EmailConfirmed = true, FirstName = "Ahmed", LastName = "ElShenawy",
-                    CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow,
+                    UserName = "goalkeeper@test.com",
+                    Email = "goalkeeper@test.com",
+                    EmailConfirmed = true,
+                    FirstName = "Ahmed",
+                    LastName = "ElShenawy",
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
                     CreatedById = adminUser.Id
                 };
                 await userManager.CreateAsync(gkUser, "Player@123456");
@@ -792,25 +913,43 @@ namespace Koralytics.Infrastructure.Seeding
                 context.PlayerPositions.Add(new PlayerPosition { PlayerId = gkUser.Id, Position = "GK", IsPrimary = true });
                 context.PlayerAcademies.Add(new PlayerAcademy { PlayerId = gkUser.Id, AcademyId = academy.Id, JoinedAt = DateTime.UtcNow, Status = PlayerAcademyStatus.Active });
                 context.PlayerTeams.Add(new PlayerTeam { PlayerId = gkUser.Id, TeamId = team.Id, JoinedAt = DateTime.UtcNow });
-                context.PlayerSubscriptions.Add(new PlayerSubscription { PlayerId = gkUser.Id, AcademyId = academy.Id, Status = SubscriptionStatus.Paid, PaidAt = DateTime.UtcNow, PaidByUserId = gkUser.Id });
+
+                var gkSub = new PlayerSubscription
+                {
+                    PlayerId = gkUser.Id,
+                    AcademyId = academy.Id,
+                    Amount = 7500.00m,
+                    Status = SubscriptionStatus.Paid,
+                    PaidAt = DateTime.UtcNow.AddDays(-20)
+                };
+                gkSub.SetBillingCycle(DateTime.UtcNow.AddDays(-20), SubscriptionDuration.SixMonths);
+                context.PlayerSubscriptions.Add(gkSub);
                 await context.SaveChangesAsync();
 
                 var gkCat = allCategories.First(c => c.Name == "GoalKeeping");
                 var gkTemplate = new DrillTemplate
                 {
-                    CategoryId = gkCat.Id, AcademyId = null,
-                    Name = "Shot Stopping Drill", DifficultyLevel = DifficultyLevel.Intermediate,
-                    DrillMode = DrillMode.SuccessOrMissed, IsShared = true,
-                    CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow
+                    CategoryId = gkCat.Id,
+                    AcademyId = null,
+                    Name = "Shot Stopping Drill",
+                    DifficultyLevel = DifficultyLevel.Intermediate,
+                    DrillMode = DrillMode.SuccessOrMissed,
+                    IsShared = true,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
                 };
                 context.DrillTemplates.Add(gkTemplate);
                 await context.SaveChangesAsync();
 
                 var gkSession = new DrillSession
                 {
-                    AcademyId = academy.Id, TeamId = team.Id, CoachId = coachUser.Id,
-                    SessionDate = DateTime.UtcNow.AddDays(-6), Type = SessionType.Regular,
-                    CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow
+                    AcademyId = academy.Id,
+                    TeamId = team.Id,
+                    CoachId = coachUser.Id,
+                    SessionDate = DateTime.UtcNow.AddDays(-6),
+                    Type = SessionType.Regular,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
                 };
                 context.DrillSessions.Add(gkSession);
                 await context.SaveChangesAsync();
@@ -824,20 +963,32 @@ namespace Koralytics.Infrastructure.Seeding
 
                 var gkTnMatch = new Match
                 {
-                    HomeTeamId = team.Id, AwayTeamId = awayTeam.Id,
-                    Type = Domain.Enums.MatchType.Tournament, Format = MatchFormat.ElevenSide,
-                    Status = MatchStatus.Completed, MatchDate = DateTime.UtcNow.AddDays(-1),
-                    HomeScore = 2, AwayScore = 0, Location = "Cairo Stadium",
-                    WinningTeamId = team.Id, CreatedById = coachUser.Id,
-                    CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow
+                    HomeTeamId = team.Id,
+                    AwayTeamId = awayTeam.Id,
+                    Type = Domain.Enums.MatchType.Tournament,
+                    Format = MatchFormat.ElevenSide,
+                    Status = MatchStatus.Completed,
+                    MatchDate = DateTime.UtcNow.AddDays(-1),
+                    HomeScore = 2,
+                    AwayScore = 0,
+                    Location = "Cairo Stadium",
+                    WinningTeamId = team.Id,
+                    CreatedById = coachUser.Id,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
                 };
                 context.Matches.Add(gkTnMatch);
                 await context.SaveChangesAsync();
 
                 var gkRating = new MatchPlayerRating
                 {
-                    MatchId = gkTnMatch.Id, PlayerId = gkUser.Id, CoachId = coachUser.Id,
-                    Goals = 0, Assists = 0, MinutesPlayed = 90, IsMOTM = true
+                    MatchId = gkTnMatch.Id,
+                    PlayerId = gkUser.Id,
+                    CoachId = coachUser.Id,
+                    Goals = 0,
+                    Assists = 0,
+                    MinutesPlayed = 90,
+                    IsMOTM = true
                 };
                 context.MatchPlayerRatings.Add(gkRating);
                 await context.SaveChangesAsync();
@@ -846,15 +997,10 @@ namespace Koralytics.Infrastructure.Seeding
                     new MatchPlayerCategoryRating { MatchPlayerRatingId = gkRating.Id, DrillCategoryId = gkCat.Id, Rating = 8.5m }
                 );
                 await context.SaveChangesAsync();
-
-                // === RECALCULATE PLAYER CARDS ===
-                // trigger recalc by calling service? No — just note that calling
-                // POST api/player/{id}/card/recalculate after seeding will calculate
             }
 
             // ====================================================================
             // INCREMENTAL SEED DATA FOR TESTING
-            // Runs every startup; skips if data already exists
             // ====================================================================
 
             // --- Al Ahly Extra Players (7 more, total 11 for 11-side) ---
@@ -879,9 +1025,14 @@ namespace Koralytics.Infrastructure.Seeding
                 {
                     var user = new User
                     {
-                        UserName = np.Email, Email = np.Email, EmailConfirmed = true,
-                        FirstName = np.First, LastName = np.Last,
-                        CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow, CreatedById = adminUser!.Id
+                        UserName = np.Email,
+                        Email = np.Email,
+                        EmailConfirmed = true,
+                        FirstName = np.First,
+                        LastName = np.Last,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow,
+                        CreatedById = adminUser!.Id
                     };
                     await userManager.CreateAsync(user, "Player@123456");
                     await userManager.AddToRoleAsync(user, "Player");
@@ -893,11 +1044,20 @@ namespace Koralytics.Infrastructure.Seeding
                     context.PlayerTeams.Add(new PlayerTeam { PlayerId = user.Id, TeamId = ahlyTeam.Id, JoinedAt = DateTime.UtcNow });
                     context.PlayerAcademies.Add(new PlayerAcademy { PlayerId = user.Id, AcademyId = ahlyAcademy.Id, JoinedAt = DateTime.UtcNow, Status = PlayerAcademyStatus.Active });
                     context.PlayerPositions.Add(new PlayerPosition { PlayerId = user.Id, Position = np.Pos, IsPrimary = true });
-                    context.PlayerSubscriptions.Add(new PlayerSubscription { PlayerId = user.Id, AcademyId = ahlyAcademy.Id, Status = SubscriptionStatus.Paid, PaidAt = DateTime.UtcNow, PaidByUserId = user.Id });
+
+                    var extraSub = new PlayerSubscription
+                    {
+                        PlayerId = user.Id,
+                        AcademyId = ahlyAcademy.Id,
+                        Amount = 1500.00m,
+                        Status = SubscriptionStatus.Paid,
+                        PaidAt = DateTime.UtcNow
+                    };
+                    extraSub.SetBillingCycle(DateTime.UtcNow, SubscriptionDuration.OneMonth);
+                    context.PlayerSubscriptions.Add(extraSub);
                 }
                 await context.SaveChangesAsync();
 
-                // Enhance existing live session match with 2 more players
                 var liveSession = await context.Matches
                     .FirstAsync(m => m.Location == "Training Ground - Pitch A" && m.Type == Domain.Enums.MatchType.Session);
                 var liveDrillSession = await context.DrillSessions.FirstAsync(s => s.Id == liveSession.SessionId);
@@ -946,9 +1106,14 @@ namespace Koralytics.Infrastructure.Seeding
                 {
                     var user = new User
                     {
-                        UserName = np.Email, Email = np.Email, EmailConfirmed = true,
-                        FirstName = np.First, LastName = np.Last,
-                        CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow, CreatedById = adminUser!.Id
+                        UserName = np.Email,
+                        Email = np.Email,
+                        EmailConfirmed = true,
+                        FirstName = np.First,
+                        LastName = np.Last,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow,
+                        CreatedById = adminUser!.Id
                     };
                     await userManager.CreateAsync(user, "Player@123456");
                     await userManager.AddToRoleAsync(user, "Player");
@@ -960,7 +1125,17 @@ namespace Koralytics.Infrastructure.Seeding
                     context.PlayerTeams.Add(new PlayerTeam { PlayerId = user.Id, TeamId = zamTeam.Id, JoinedAt = DateTime.UtcNow });
                     context.PlayerAcademies.Add(new PlayerAcademy { PlayerId = user.Id, AcademyId = zamAcademy.Id, JoinedAt = DateTime.UtcNow, Status = PlayerAcademyStatus.Active });
                     context.PlayerPositions.Add(new PlayerPosition { PlayerId = user.Id, Position = np.Pos, IsPrimary = true });
-                    context.PlayerSubscriptions.Add(new PlayerSubscription { PlayerId = user.Id, AcademyId = zamAcademy.Id, Status = SubscriptionStatus.Paid, PaidAt = DateTime.UtcNow, PaidByUserId = user.Id });
+
+                    var zamSub = new PlayerSubscription
+                    {
+                        PlayerId = user.Id,
+                        AcademyId = zamAcademy.Id,
+                        Amount = 1500.00m,
+                        Status = SubscriptionStatus.Paid,
+                        PaidAt = DateTime.UtcNow
+                    };
+                    zamSub.SetBillingCycle(DateTime.UtcNow, SubscriptionDuration.OneMonth);
+                    context.PlayerSubscriptions.Add(zamSub);
                 }
                 await context.SaveChangesAsync();
 
@@ -970,9 +1145,14 @@ namespace Koralytics.Infrastructure.Seeding
                 {
                     var zamCoachUser = new User
                     {
-                        UserName = zamCoachEmail, Email = zamCoachEmail, EmailConfirmed = true,
-                        FirstName = "Mahmoud", LastName = "ElKhatib",
-                        CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow, CreatedById = adminUser!.Id
+                        UserName = zamCoachEmail,
+                        Email = zamCoachEmail,
+                        EmailConfirmed = true,
+                        FirstName = "Mahmoud",
+                        LastName = "ElKhatib",
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow,
+                        CreatedById = adminUser!.Id
                     };
                     await userManager.CreateAsync(zamCoachUser, "Coach@123456");
                     await userManager.AddToRoleAsync(zamCoachUser, "Coach");
@@ -985,7 +1165,7 @@ namespace Koralytics.Infrastructure.Seeding
                 }
             }
 
-            // ===== TEST MATCH A: 11-side Scheduled (test: lineup + start + events + end + ratings) =====
+            // ===== TEST MATCH A =====
             if (!await context.Matches.AnyAsync(m => m.Location == "Test - 11v11 Scheduled"))
             {
                 var ahlyAc = await context.Academies.FirstAsync(a => a.Name == "Al Ahly Academy");
@@ -996,16 +1176,23 @@ namespace Koralytics.Infrastructure.Seeding
 
                 context.Matches.Add(new Match
                 {
-                    HomeTeamId = ahlyTeam.Id, AwayTeamId = zamTeam.Id,
-                    Type = Domain.Enums.MatchType.Friendly, Format = MatchFormat.ElevenSide,
-                    Status = MatchStatus.Scheduled, MatchDate = DateTime.UtcNow.AddDays(7),
-                    HomeScore = 0, AwayScore = 0, Location = "Test - 11v11 Scheduled",
-                    CreatedById = coachUser!.Id, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow
+                    HomeTeamId = ahlyTeam.Id,
+                    AwayTeamId = zamTeam.Id,
+                    Type = Domain.Enums.MatchType.Friendly,
+                    Format = MatchFormat.ElevenSide,
+                    Status = MatchStatus.Scheduled,
+                    MatchDate = DateTime.UtcNow.AddDays(7),
+                    HomeScore = 0,
+                    AwayScore = 0,
+                    Location = "Test - 11v11 Scheduled",
+                    CreatedById = coachUser!.Id,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
                 });
                 await context.SaveChangesAsync();
             }
 
-            // ===== TEST MATCH B: 11-side Completed with lineups + events, NO ratings (test: ratings post-completion) =====
+            // ===== TEST MATCH B =====
             if (!await context.Matches.AnyAsync(m => m.Location == "Test - 11v11 Completed"))
             {
                 var ahlyAc = await context.Academies.FirstAsync(a => a.Name == "Al Ahly Academy");
@@ -1016,28 +1203,33 @@ namespace Koralytics.Infrastructure.Seeding
 
                 var matchB = new Match
                 {
-                    HomeTeamId = ahlyTeam.Id, AwayTeamId = zamTeam.Id,
-                    Type = Domain.Enums.MatchType.Friendly, Format = MatchFormat.ElevenSide,
-                    Status = MatchStatus.Completed, MatchDate = DateTime.UtcNow.AddDays(-14),
-                    HomeScore = 2, AwayScore = 1, Location = "Test - 11v11 Completed",
-                    WinningTeamId = ahlyTeam.Id, Formation = "4-3-3", AwayFormation = "4-4-2",
+                    HomeTeamId = ahlyTeam.Id,
+                    AwayTeamId = zamTeam.Id,
+                    Type = Domain.Enums.MatchType.Friendly,
+                    Format = MatchFormat.ElevenSide,
+                    Status = MatchStatus.Completed,
+                    MatchDate = DateTime.UtcNow.AddDays(-14),
+                    HomeScore = 2,
+                    AwayScore = 1,
+                    Location = "Test - 11v11 Completed",
+                    WinningTeamId = ahlyTeam.Id,
+                    Formation = "4-3-3",
+                    AwayFormation = "4-4-2",
                     CreatedById = coachUser!.Id,
-                    CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
                 };
                 context.Matches.Add(matchB);
                 await context.SaveChangesAsync();
 
-                // Fetch all players for lineups
                 var ahlyEmails = new[] { "goalkeeper@test.com", "ahlyplayer5@test.com", "ahlyplayer6@test.com", "ahlyplayer10@test.com", "player3@test.com", "ahlyplayer7@test.com", "ahlyplayer8@test.com", "ahlyplayer9@test.com", "player2@test.com", "player@test.com", "ahlyplayer11@test.com" };
                 var zamEmails = new[] { "zamalekplayer1@test.com", "zamalekplayer2@test.com", "zamalekplayer3@test.com", "zamalekplayer4@test.com", "zamalekplayer5@test.com", "zamalekplayer6@test.com", "zamalekplayer7@test.com", "zamalekplayer8@test.com", "zamalekplayer9@test.com", "zamalekplayer10@test.com", "zamalekplayer11@test.com" };
 
                 var ahlyPlayers = await context.Users.Where(p => ahlyEmails.Contains(p.Email)).ToListAsync();
                 var zamPlayers = await context.Users.Where(p => zamEmails.Contains(p.Email)).ToListAsync();
 
-                // Al Ahly lineup: jersey numbers in order: 1,2,3,4,5,8,10,11,7,9,17
                 var ahlyJerseys = new int?[] { 1, 2, 3, 4, 5, 8, 10, 11, 7, 9, 17 };
                 var ahlyPositions = new[] { "GK", "RB", "CB", "CB", "LB", "CM", "CM", "CAM", "RW", "ST", "LW" };
-                // Zamalek lineup: jersey numbers in order: 1,2,4,5,3,8,10,11,7,9,17
                 var zamJerseys = new int?[] { 1, 2, 4, 5, 3, 8, 10, 11, 7, 9, 17 };
                 var zamPositions = new[] { "GK", "RB", "CB", "CB", "LB", "RM", "CM", "CM", "LM", "ST", "ST" };
 
@@ -1045,8 +1237,12 @@ namespace Koralytics.Infrastructure.Seeding
                 {
                     context.MatchLineups.Add(new MatchLineup
                     {
-                        MatchId = matchB.Id, PlayerId = ahlyPlayers[i].Id, TeamId = ahlyTeam.Id,
-                        IsStarting = true, JerseyNumber = ahlyJerseys[i], IsHomeSide = null,
+                        MatchId = matchB.Id,
+                        PlayerId = ahlyPlayers[i].Id,
+                        TeamId = ahlyTeam.Id,
+                        IsStarting = true,
+                        JerseyNumber = ahlyJerseys[i],
+                        IsHomeSide = null,
                         PositionInMatch = ahlyPositions[i]
                     });
                 }
@@ -1054,14 +1250,17 @@ namespace Koralytics.Infrastructure.Seeding
                 {
                     context.MatchLineups.Add(new MatchLineup
                     {
-                        MatchId = matchB.Id, PlayerId = zamPlayers[i].Id, TeamId = zamTeam.Id,
-                        IsStarting = true, JerseyNumber = zamJerseys[i], IsHomeSide = null,
+                        MatchId = matchB.Id,
+                        PlayerId = zamPlayers[i].Id,
+                        TeamId = zamTeam.Id,
+                        IsStarting = true,
+                        JerseyNumber = zamJerseys[i],
+                        IsHomeSide = null,
                         PositionInMatch = zamPositions[i]
                     });
                 }
                 await context.SaveChangesAsync();
 
-                // Events: 3 goals + 1 yellow card
                 var omar = ahlyPlayers.First(p => p.Email == "player@test.com");
                 var tarek = ahlyPlayers.First(p => p.Email == "ahlyplayer7@test.com");
                 var ibrahim = ahlyPlayers.First(p => p.Email == "ahlyplayer10@test.com");
@@ -1076,7 +1275,7 @@ namespace Koralytics.Infrastructure.Seeding
                 await context.SaveChangesAsync();
             }
 
-            // ===== TEST MATCH C: 7-side Scheduled (test: lineup with 7 starting count + start) =====
+            // ===== TEST MATCH C =====
             if (!await context.Matches.AnyAsync(m => m.Location == "Test - 7v7 Scheduled"))
             {
                 var ahlyAc = await context.Academies.FirstAsync(a => a.Name == "Al Ahly Academy");
@@ -1087,33 +1286,42 @@ namespace Koralytics.Infrastructure.Seeding
 
                 context.Matches.Add(new Match
                 {
-                    HomeTeamId = ahlyTeam.Id, AwayTeamId = zamTeam.Id,
-                    Type = Domain.Enums.MatchType.Friendly, Format = MatchFormat.SevenSide,
-                    Status = MatchStatus.Scheduled, MatchDate = DateTime.UtcNow.AddDays(7),
-                    HomeScore = 0, AwayScore = 0, Location = "Test - 7v7 Scheduled",
-                    CreatedById = coachUser!.Id, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow
+                    HomeTeamId = ahlyTeam.Id,
+                    AwayTeamId = zamTeam.Id,
+                    Type = Domain.Enums.MatchType.Friendly,
+                    Format = MatchFormat.SevenSide,
+                    Status = MatchStatus.Scheduled,
+                    MatchDate = DateTime.UtcNow.AddDays(7),
+                    HomeScore = 0,
+                    AwayScore = 0,
+                    Location = "Test - 7v7 Scheduled",
+                    CreatedById = coachUser!.Id,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
                 });
                 await context.SaveChangesAsync();
             }
 
-            // ===== TEST MATCH D: 5-side Live Session (test: session-events + end + ratings) =====
+            // ===== TEST MATCH D =====
             if (!await context.Matches.AnyAsync(m => m.Location == "Test - 5v5 Live Session"))
             {
                 var ahlyAc = await context.Academies.FirstAsync(a => a.Name == "Al Ahly Academy");
                 var ahlyTeam = await context.Teams.FirstAsync(t => t.Name == "U17 Team A" && t.AcademyId == ahlyAc.Id);
                 var coachUser = await userManager.FindByEmailAsync("coach@test.com");
 
-                // Create drill session for the session match
                 var sessionDs = new DrillSession
                 {
-                    AcademyId = ahlyAc.Id, TeamId = ahlyTeam.Id, CoachId = coachUser!.Id,
-                    SessionDate = DateTime.UtcNow.AddDays(-1), Type = SessionType.SessionMatch,
-                    CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow
+                    AcademyId = ahlyAc.Id,
+                    TeamId = ahlyTeam.Id,
+                    CoachId = coachUser!.Id,
+                    SessionDate = DateTime.UtcNow.AddDays(-1),
+                    Type = SessionType.SessionMatch,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
                 };
                 context.DrillSessions.Add(sessionDs);
                 await context.SaveChangesAsync();
 
-                // Session attendances: 10 Al Ahly players
                 var attendEmails = new[] { "player@test.com", "player2@test.com", "player3@test.com", "goalkeeper@test.com", "ahlyplayer5@test.com", "ahlyplayer6@test.com", "ahlyplayer7@test.com", "ahlyplayer8@test.com", "ahlyplayer9@test.com", "ahlyplayer10@test.com" };
                 var attendPlayers = await context.Users.Where(p => attendEmails.Contains(p.Email)).ToListAsync();
 
@@ -1125,17 +1333,23 @@ namespace Koralytics.Infrastructure.Seeding
 
                 var matchD = new Match
                 {
-                    HomeTeamId = ahlyTeam.Id, AwayTeamId = ahlyTeam.Id,
+                    HomeTeamId = ahlyTeam.Id,
+                    AwayTeamId = ahlyTeam.Id,
                     SessionId = sessionDs.Id,
-                    Type = Domain.Enums.MatchType.Session, Format = MatchFormat.FiveSide,
-                    Status = MatchStatus.Live, MatchDate = DateTime.UtcNow.AddDays(-1),
-                    HomeScore = 0, AwayScore = 0, Location = "Test - 5v5 Live Session",
-                    CreatedById = coachUser.Id, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow
+                    Type = Domain.Enums.MatchType.Session,
+                    Format = MatchFormat.FiveSide,
+                    Status = MatchStatus.Live,
+                    MatchDate = DateTime.UtcNow.AddDays(-1),
+                    HomeScore = 0,
+                    AwayScore = 0,
+                    Location = "Test - 5v5 Live Session",
+                    CreatedById = coachUser.Id,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
                 };
                 context.Matches.Add(matchD);
                 await context.SaveChangesAsync();
 
-                // Lineup: 5 home side + 5 away side
                 var homeEmails = new[] { "player@test.com", "player2@test.com", "ahlyplayer5@test.com", "ahlyplayer6@test.com", "ahlyplayer7@test.com" };
                 var awayEmails = new[] { "player3@test.com", "goalkeeper@test.com", "ahlyplayer8@test.com", "ahlyplayer9@test.com", "ahlyplayer10@test.com" };
 
@@ -1146,22 +1360,30 @@ namespace Koralytics.Infrastructure.Seeding
                 {
                     context.MatchLineups.Add(new MatchLineup
                     {
-                        MatchId = matchD.Id, PlayerId = homeSidePlayers[i].Id, TeamId = ahlyTeam.Id,
-                        IsStarting = true, JerseyNumber = i + 1, IsHomeSide = true
+                        MatchId = matchD.Id,
+                        PlayerId = homeSidePlayers[i].Id,
+                        TeamId = ahlyTeam.Id,
+                        IsStarting = true,
+                        JerseyNumber = i + 1,
+                        IsHomeSide = true
                     });
                 }
                 for (int i = 0; i < awaySidePlayers.Count; i++)
                 {
                     context.MatchLineups.Add(new MatchLineup
                     {
-                        MatchId = matchD.Id, PlayerId = awaySidePlayers[i].Id, TeamId = ahlyTeam.Id,
-                        IsStarting = true, JerseyNumber = i + 1, IsHomeSide = false
+                        MatchId = matchD.Id,
+                        PlayerId = awaySidePlayers[i].Id,
+                        TeamId = ahlyTeam.Id,
+                        IsStarting = true,
+                        JerseyNumber = i + 1,
+                        IsHomeSide = false
                     });
                 }
                 await context.SaveChangesAsync();
             }
 
-            // ===== MATCH REQUEST: Pending request from Ahly Coach -> Zamalek Team =====
+            // ===== MATCH REQUEST =====
             if (!await context.MatchRequests.AnyAsync())
             {
                 var ahlyAc = await context.Academies.FirstAsync(a => a.Name == "Al Ahly Academy");
@@ -1184,26 +1406,30 @@ namespace Koralytics.Infrastructure.Seeding
                 await context.SaveChangesAsync();
             }
 
-            // ===== ADDITIONAL SEED DATA FOR AL AHLY ACADEMY DASHBOARD TESTING =====
+            // ===== ADDITIONAL SEED DATA FOR ACADEMY DASHBOARD TESTING =====
             var testAcademy = await context.Academies.FirstOrDefaultAsync(a => a.Name == "Al Ahly Academy");
             if (testAcademy != null && !await context.AcademyBadges.AnyAsync(b => b.AcademyId == testAcademy.Id))
             {
                 var mainAdminUser = await userManager.FindByEmailAsync("admin@koralytics.com");
 
-                // 1. Seed Badges
                 context.AcademyBadges.AddRange(
                     new AcademyBadge { AcademyId = testAcademy.Id, BadgeType = AcademyBadgeType.Premium, AwardedAt = DateTime.UtcNow },
                     new AcademyBadge { AcademyId = testAcademy.Id, BadgeType = AcademyBadgeType.TopPerformer, AwardedAt = DateTime.UtcNow },
                     new AcademyBadge { AcademyId = testAcademy.Id, BadgeType = AcademyBadgeType.Verified, AwardedAt = DateTime.UtcNow }
                 );
 
-                // 2. Extra Admin
                 if (await userManager.FindByEmailAsync("admin2@test.com") == null)
                 {
                     var extraAdmin = new User
                     {
-                        UserName = "admin2@test.com", Email = "admin2@test.com", EmailConfirmed = true,
-                        FirstName = "Second", LastName = "Admin", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow, CreatedById = mainAdminUser!.Id
+                        UserName = "admin2@test.com",
+                        Email = "admin2@test.com",
+                        EmailConfirmed = true,
+                        FirstName = "Second",
+                        LastName = "Admin",
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow,
+                        CreatedById = mainAdminUser!.Id
                     };
                     await userManager.CreateAsync(extraAdmin, "Admin@123456");
                     await userManager.AddToRoleAsync(extraAdmin, "AcademyAdmin");
@@ -1213,13 +1439,18 @@ namespace Koralytics.Infrastructure.Seeding
                         await context.Database.ExecuteSqlRawAsync("INSERT INTO AcademyAdmins (Id, AcademyId) VALUES ({0}, {1})", extraAdmin.Id, testAcademy.Id);
                 }
 
-                // 3. Extra Coach
                 if (await userManager.FindByEmailAsync("coach2@test.com") == null)
                 {
                     var extraCoach = new User
                     {
-                        UserName = "coach2@test.com", Email = "coach2@test.com", EmailConfirmed = true,
-                        FirstName = "Hossam", LastName = "Hassan", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow, CreatedById = mainAdminUser!.Id
+                        UserName = "coach2@test.com",
+                        Email = "coach2@test.com",
+                        EmailConfirmed = true,
+                        FirstName = "Hossam",
+                        LastName = "Hassan",
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow,
+                        CreatedById = mainAdminUser!.Id
                     };
                     await userManager.CreateAsync(extraCoach, "Coach@123456");
                     await userManager.AddToRoleAsync(extraCoach, "Coach");
@@ -1227,13 +1458,18 @@ namespace Koralytics.Infrastructure.Seeding
                     context.CoachAcademies.Add(new CoachAcademy { CoachUserId = extraCoach.Id, AcademyId = testAcademy.Id, JoinedAt = DateTime.UtcNow });
                 }
 
-                // 4. Pending Coach Request
                 if (await userManager.FindByEmailAsync("pendingcoach@test.com") == null)
                 {
                     var pendingCoach = new User
                     {
-                        UserName = "pendingcoach@test.com", Email = "pendingcoach@test.com", EmailConfirmed = true,
-                        FirstName = "Pending", LastName = "Coach", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow, CreatedById = mainAdminUser!.Id
+                        UserName = "pendingcoach@test.com",
+                        Email = "pendingcoach@test.com",
+                        EmailConfirmed = true,
+                        FirstName = "Pending",
+                        LastName = "Coach",
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow,
+                        CreatedById = mainAdminUser!.Id
                     };
                     await userManager.CreateAsync(pendingCoach, "Coach@123456");
                     await userManager.AddToRoleAsync(pendingCoach, "Coach");
@@ -1241,13 +1477,18 @@ namespace Koralytics.Infrastructure.Seeding
                     context.AcademyCoachJoinRequests.Add(new AcademyCoachJoinRequest { AcademyId = testAcademy.Id, CoachId = pendingCoach.Id, Status = JoinRequestStatus.Pending, RequestedAt = DateTime.UtcNow });
                 }
 
-                // 5. Extra Player
                 if (await userManager.FindByEmailAsync("player4@test.com") == null)
                 {
                     var extraPlayer = new User
                     {
-                        UserName = "player4@test.com", Email = "player4@test.com", EmailConfirmed = true,
-                        FirstName = "Ziad", LastName = "Tarek", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow, CreatedById = mainAdminUser!.Id
+                        UserName = "player4@test.com",
+                        Email = "player4@test.com",
+                        EmailConfirmed = true,
+                        FirstName = "Ziad",
+                        LastName = "Tarek",
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow,
+                        CreatedById = mainAdminUser!.Id
                     };
                     await userManager.CreateAsync(extraPlayer, "Player@123456");
                     await userManager.AddToRoleAsync(extraPlayer, "Player");
@@ -1256,13 +1497,18 @@ namespace Koralytics.Infrastructure.Seeding
                     context.PlayerAcademies.Add(new PlayerAcademy { PlayerId = extraPlayer.Id, AcademyId = testAcademy.Id, JoinedAt = DateTime.UtcNow, Status = PlayerAcademyStatus.Active });
                 }
 
-                // 6. Pending Player Request
                 if (await userManager.FindByEmailAsync("pendingplayer@test.com") == null)
                 {
                     var pendingPlayer = new User
                     {
-                        UserName = "pendingplayer@test.com", Email = "pendingplayer@test.com", EmailConfirmed = true,
-                        FirstName = "Pending", LastName = "Player", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow, CreatedById = mainAdminUser!.Id
+                        UserName = "pendingplayer@test.com",
+                        Email = "pendingplayer@test.com",
+                        EmailConfirmed = true,
+                        FirstName = "Pending",
+                        LastName = "Player",
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow,
+                        CreatedById = mainAdminUser!.Id
                     };
                     await userManager.CreateAsync(pendingPlayer, "Player@123456");
                     await userManager.AddToRoleAsync(pendingPlayer, "Player");
@@ -1273,6 +1519,67 @@ namespace Koralytics.Infrastructure.Seeding
 
                 await context.SaveChangesAsync();
             }
+
+            // ===== PARENT SEED DATA FOR PARENT PORTAL TESTING =====
+            if (!await context.Users.AnyAsync(u => u.Email == "parent@test.com"))
+            {
+                var adminUser = await userManager.FindByEmailAsync("admin@koralytics.com");
+
+                // 1. Create Parent User Account
+                var parentUser = new User
+                {
+                    UserName = "parent@test.com",
+                    Email = "parent@test.com",
+                    EmailConfirmed = true,
+                    FirstName = "Khaled",
+                    LastName = "Nabil",
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    CreatedById = adminUser!.Id
+                };
+
+                await userManager.CreateAsync(parentUser, "Parent@123456");
+                await userManager.AddToRoleAsync(parentUser, "Parent");
+
+                // 2. Insert into Parents table
+                await context.Database.ExecuteSqlRawAsync("INSERT INTO Parents (Id) VALUES ({0})", parentUser.Id);
+
+                // 3. Link Parent to Players (Omar Khaled & Ahmed Saeed)
+                var omarPlayer = await context.Users.FirstAsync(u => u.Email == "player@test.com");
+                var ahmedPlayer = await context.Users.FirstAsync(u => u.Email == "player2@test.com");
+
+                context.ParentPlayers.AddRange(
+                    new ParentPlayer { ParentId = parentUser.Id, PlayerId = omarPlayer.Id },
+                    new ParentPlayer { ParentId = parentUser.Id, PlayerId = ahmedPlayer.Id }
+                );
+
+                await context.SaveChangesAsync();
+            }
+            // 🟢 Seed Default Academy Plan
+                    if (!context.AcademyPlans.Any())
+                    {
+                        // Fetch an existing academy ID (e.g., Academy #1)
+                        var defaultAcademy = await context.Academies.FirstOrDefaultAsync();
+
+                        if (defaultAcademy != null)
+                        {
+                            var defaultPlans = new List<AcademyPlan>
+                {
+                    new AcademyPlan
+                    {
+                        AcademyId = defaultAcademy.Id,
+                        Name = "Standard Monthly Plan",
+                        Amount = 1500.00m,
+                        Duration = SubscriptionDuration.OneMonth,
+                        GracePeriodDays = 7,
+                        IsDefault = true
+                    }
+                };
+
+                            await context.AcademyPlans.AddRangeAsync(defaultPlans);
+                            await context.SaveChangesAsync();
+                        }
+                    }
         }
     }
 }
