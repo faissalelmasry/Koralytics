@@ -1,0 +1,232 @@
+:host {
+  display: block;
+  position: relative;
+  width: 100%;
+  font-family: 'Inter', sans-serif;
+  z-index: 1;
+}
+
+:host(.is-open) {
+  z-index: 10000 !important;
+}
+
+.phone-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+  width: 100%;
+  z-index: 1;
+}
+
+:host(.is-open) .phone-input-wrapper {
+  z-index: 10000 !important;
+}
+
+.floating-label {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #8b909a;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  pointer-events: none;
+  text-transform: lowercase;
+  transform-origin: left top;
+  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.2s ease;
+  z-index: 5;
+}
+
+.floating-label.raised {
+  transform: translateY(-22px) scale(0.8) !important;
+}
+
+.phone-input-group.focused .floating-label {
+  color: #c8ff4d !important;
+}
+
+.phone-input-group.error .floating-label {
+  color: #ff6a5c !important;
+}
+
+.required-asterisk {
+  color: #ff4757;
+  margin-left: 2px;
+}
+
+.phone-input-group {
+  display: flex;
+  align-items: center;
+  background: rgba(20, 23, 28, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+  height: 56px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.phone-input-group.focused {
+  border-color: #c8ff4d;
+  box-shadow: 0 0 20px rgba(200, 255, 77, 0.1);
+  background: rgba(20, 23, 28, 0.6);
+}
+
+.phone-input-group.error {
+  border-color: #ff6a5c !important;
+  box-shadow: 0 0 20px rgba(255, 106, 92, 0.1) !important;
+}
+
+.phone-input-group.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ================== COUNTRY SELECT BUTTON ================== */
+.country-select-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: none;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 14px 14px 0 14px;
+  height: 100%;
+  border-radius: 12px 0 0 12px;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  flex-shrink: 0;
+}
+
+.country-select-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.country-flag {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.country-dial-code {
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  color: #ffffff;
+  font-size: 14px;
+}
+
+.dropdown-arrow {
+  font-size: 9px;
+  color: #8e9bb0;
+  margin-left: 2px;
+}
+
+/* ================== DIGITS INPUT ================== */
+.phone-digits-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #f2f3f5;
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  padding: 14px 16px 0 16px;
+  width: 100%;
+  height: 100%;
+}
+
+.phone-digits-input::placeholder {
+  color: #4b5563;
+  font-weight: 500;
+}
+
+.phone-digits-input:disabled {
+  cursor: not-allowed;
+}
+
+/* ================== DROPDOWN MENU ================== */
+.country-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 280px;
+  max-height: 260px;
+  overflow-y: auto;
+  background: #11151e;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 14px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+  z-index: 999999 !important;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  backdrop-filter: blur(12px);
+}
+
+.country-dropdown-menu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.country-dropdown-menu::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.country-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 13px;
+  color: #cbd5e1;
+}
+
+.country-option:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+.country-option.active {
+  background: rgba(250, 204, 21, 0.15);
+  color: #facc15;
+  font-weight: 700;
+}
+
+.opt-flag {
+  font-size: 18px;
+}
+
+.opt-name {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.opt-dial {
+  font-family: 'Chakra Petch', monospace;
+  font-weight: 700;
+  color: #8e9bb0;
+}
+
+.country-option.active .opt-dial {
+  color: #facc15;
+}
+
+/* ================== ERROR MESSAGE ================== */
+.error-message {
+  font-size: 12px;
+  color: #ff4757;
+  font-weight: 600;
+  margin-top: 2px;
+}

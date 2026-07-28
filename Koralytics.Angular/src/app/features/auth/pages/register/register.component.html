@@ -33,7 +33,7 @@
       <app-text-input label="Last Name" formControlName="lastName" [errorMessage]="baseError('lastName')"></app-text-input>
       <app-text-input label="Username" formControlName="userName" [errorMessage]="baseError('userName')" class="full-width"></app-text-input>
       <app-text-input label="Email Address" type="email" formControlName="email" [errorMessage]="baseError('email')" class="full-width"></app-text-input>
-      <app-text-input label="Phone Number" formControlName="phoneNumber" [errorMessage]="baseError('phoneNumber')" class="full-width"></app-text-input>
+      <app-phone-input label="Phone" formControlName="phoneNumber" [errorMessage]="baseError('phoneNumber')" [required]="true" class="full-width"></app-phone-input>
       
       <div class="full-width password-container">
         <app-text-input label="Password" type="password" formControlName="password" [errorMessage]="baseError('password')"></app-text-input>
@@ -77,6 +77,7 @@
       type="button" 
       variant="accent" 
       (click)="nextStep()"
+      [disabled]="isContinueDisabled()"
       [class.full-width-btn]="currentStep === 0">
       Continue
     </app-button>
@@ -86,6 +87,7 @@
       type="button" 
       variant="accent" 
       (click)="onSubmit()"
+      [disabled]="isSubmitDisabled()"
       [loading]="isLoading">
       Create Account
     </app-button>

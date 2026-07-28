@@ -5,7 +5,7 @@
       <div class="team-text">
         <span class="team-name">{{ matchInfo.homeTeam }}</span>
         @if (matchInfo.homeAcademy) {
-          <span class="academy-sub">{{ matchInfo.homeAcademy }}</span>
+        <span class="academy-sub">{{ matchInfo.homeAcademy }}</span>
         }
       </div>
     </div>
@@ -18,39 +18,35 @@
       <div class="team-text">
         <span class="team-name">{{ matchInfo.awayTeam }}</span>
         @if (matchInfo.awayAcademy) {
-          <span class="academy-sub">{{ matchInfo.awayAcademy }}</span>
+        <span class="academy-sub">{{ matchInfo.awayAcademy }}</span>
         }
       </div>
     </div>
     @if (canStartMatch && areBothLineupsSubmitted) {
-      <div class="start-match-box">
-        <app-button
-          variant="accent"
-          [disabled]="isStartingMatch"
-          (click)="onStartMatchClick()">
-          <span class="btn-inner-content">
-            <svg class="tool-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <polygon points="5 3 19 12 5 21 5 3" fill="#A3E635" stroke="#FFFFFF" stroke-width="1"/>
-            </svg>
-            <span>Start Match</span>
-          </span>
-        </app-button>
-      </div>
+    <div class="start-match-box">
+      <app-button variant="accent" [disabled]="isStartingMatch" (click)="onStartMatchClick()">
+        <span class="btn-inner-content">
+          <svg class="tool-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="5 3 19 12 5 21 5 3" fill="#A3E635" stroke="#FFFFFF" stroke-width="1" />
+          </svg>
+          <span>Start Match</span>
+        </span>
+      </app-button>
+    </div>
     }
     @if (canLogEvents) {
-      <div class="start-match-box">
-        <app-button
-          variant="coral"
-          [disabled]="isEndingMatch"
-          (click)="onEndMatchClick()">
-          <span class="btn-inner-content">
-            <svg class="tool-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="5" y="5" width="14" height="14" rx="2.5" fill="#EF4444" stroke="#FCA5A5" stroke-width="1"/>
-            </svg>
-            <span>End Match</span>
-          </span>
-        </app-button>
-      </div>
+    <div class="start-match-box">
+      <app-button variant="coral" [disabled]="isEndingMatch" (click)="onEndMatchClick()">
+        <span class="btn-inner-content">
+          <svg class="tool-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <rect x="5" y="5" width="14" height="14" rx="2.5" fill="#EF4444" stroke="#FCA5A5" stroke-width="1" />
+          </svg>
+          <span>End Match</span>
+        </span>
+      </app-button>
+    </div>
     }
   </div>
 
@@ -61,61 +57,64 @@
     <button class="tab-btn" [class.active]="selectedTab === 'lineups'" (click)="selectTab('lineups')">
       Lineups &amp; Tactics
     </button>
+    @if (isCompleted) {
+    <button class="tab-btn" [class.active]="selectedTab === 'ratings'" (click)="selectTab('ratings')">
+      Match Ratings
+    </button>
+    }
   </div>
 
   <div class="swipe-viewport">
+    @if (!eventsLoaded || !lineupsLoaded) {
+    <div style="padding: 4rem 0; display: flex; justify-content: center; width: 100%;">
+      <app-loading-spinner text="Loading match data..."></app-loading-spinner>
+    </div>
+    } @else {
     <div class="swipe-track" [style.transform]="trackTransform">
 
       <div class="slide-page left-page">
         @if (eventsLoaded && timelineEvents.length === 0) {
-          <app-empty-state title="No Match Events" description="Timeline events have not been recorded for this match." />
+        <app-empty-state title="No Match Events" description="Timeline events have not been recorded for this match." />
         } @else {
-          <app-match-timeline-events [events]="timelineEvents" />
+        <app-match-timeline-events [events]="timelineEvents" />
         }
       </div>
 
       <div class="slide-page right-page">
         @if (lineupsLoaded && homeStarters.length === 0 && awayStarters.length === 0) {
-          <app-empty-state title="No Lineups Available" description="Lineups have not been submitted for this match." />
+        <app-empty-state title="No Lineups Available" description="Lineups have not been submitted for this match." />
         } @else {
-          <app-match-lineups
-            [homeName]="matchInfo.homeTeam"
-            [homeFormation]="matchInfo.formation || '4-3-3'"
-            [homeStarters]="homeStarters"
-            [homeBench]="homeBench"
-            [awayName]="matchInfo.awayTeam"
-            [awayFormation]="matchInfo.awayFormation || '4-3-3'"
-            [awayStarters]="awayStarters"
-            [awayBench]="awayBench"
-            [canLogEvents]="canLogEvents"
-            [matchId]="matchId"
-            [matchInfo]="matchInfo"
-            (eventLogged)="refresh()"
-          />
+        <app-match-lineups [homeName]="matchInfo.homeTeam" [homeFormation]="matchInfo.formation || '4-3-3'"
+          [homeStarters]="homeStarters" [homeBench]="homeBench" [awayName]="matchInfo.awayTeam"
+          [awayFormation]="matchInfo.awayFormation || '4-3-3'" [awayStarters]="awayStarters" [awayBench]="awayBench"
+          [canLogEvents]="canLogEvents" [matchId]="matchId" [matchInfo]="matchInfo" (eventLogged)="refresh()" />
+        }
+      </div>
+
+      <div class="slide-page ratings-page">
+        @if (ratingsInitialized) {
+        @if (lineupsLoaded && homeStarters.length === 0 && awayStarters.length === 0) {
+        <app-empty-state title="No Lineups Available"
+          description="Lineups have not been submitted for this match, so ratings cannot be submitted." />
+        } @else {
+        <app-match-ratings [matchId]="matchId" [matchInfo]="matchInfo" [homePlayers]="allHomePlayers"
+          [awayPlayers]="allAwayPlayers" [canSubmitRatings]="canSubmitRatings" />
+        }
         }
       </div>
 
     </div>
+    }
   </div>
 
 </div>
 
-<app-confirm-dialog
-  [isOpen]="isStartMatchDialogOpen"
-  title="Start Match"
+<app-confirm-dialog [isOpen]="isStartMatchDialogOpen" title="Start Match"
   message="Are you sure you want to start this match? This will change the match status to Live."
-  confirmText="Start Match"
-  level="info"
-  (confirm)="confirmStartMatch()"
-  (cancel)="isStartMatchDialogOpen = false"
-></app-confirm-dialog>
+  confirmText="Start Match" level="info" (confirm)="confirmStartMatch()"
+  (cancel)="isStartMatchDialogOpen = false"></app-confirm-dialog>
 
-<app-confirm-dialog
-  [isOpen]="isEndMatchDialogOpen"
-  title="End Match"
+<app-confirm-dialog [isOpen]="isEndMatchDialogOpen" title="End Match"
   message="Are you sure you want to end this match? This action will finalize the match and cannot be undone."
-  confirmText="End Match"
-  level="danger"
-  (confirm)="confirmEndMatch()"
-  (cancel)="isEndMatchDialogOpen = false"
-></app-confirm-dialog>
+  confirmText="End Match" level="danger" (confirm)="confirmEndMatch()"
+  (cancel)="isEndMatchDialogOpen = false"></app-confirm-dialog>

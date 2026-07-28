@@ -33,6 +33,9 @@ using Koralytics.Application.Services.Player.PlayerTransferService;
 using Koralytics.Application.Validators.Auth;
 using Koralytics.Application.Validators.Tournament;
 using Koralytics.Application.Validators.UserBusiness;
+using Koralytics.Application.Services.ProfileManagement;
+using Koralytics.Application.Mappings.ProfileManagement;
+using Koralytics.Application.Validators.ProfileManagement;
 using Koralytics.Domain.Entities;
 using Koralytics.Application.Validators.Academies;
 using Koralytics.Application.Mappings.Academies;
@@ -248,7 +251,7 @@ namespace Koralytics.API
             builder.Services.AddScoped<IScouterShortlistService, ScouterShortlistService>();
             builder.Services.AddScoped<IScouterFollowService, ScouterFollowService>();
             builder.Services.AddScoped<IScouterReportService, ScouterReportService>();
-            builder.Services.AddScoped<IStorageService, StorageService>();
+            //builder.Services.AddScoped<IStorageService, StorageService>();
             builder.Services.AddSignalR();
             builder.Services.AddScoped<IRealTimeBridge, RealTimeBridge>();
             builder.Services.AddScoped<IMatchLiveUpdateService, MatchLiveUpdateService>();
@@ -285,6 +288,7 @@ namespace Koralytics.API
                 op.AddProfile<AcademyProfile>();
                 op.AddProfile<PlayerProfile>();
                 op.AddProfile<ScouterProfile>();
+                op.AddProfile<ProfileManagementProfile>();
             });
             builder.Services.AddAutoMapper(op => op.AddProfile<RegisterProfile>());
             builder.Services.AddAutoMapper(op => op.AddProfile<TournamentProfile>());
@@ -293,6 +297,7 @@ namespace Koralytics.API
             builder.Services.AddAutoMapper(op => op.AddProfile<MatchProfile>());
             builder.Services.AddAutoMapper(op=>op.AddProfile<ScouterProfile>());
             builder.Services.AddAutoMapper(op => op.AddProfile<UserManagementProfile>());
+            builder.Services.AddAutoMapper(op => op.AddProfile<ProfileManagementProfile>());
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();

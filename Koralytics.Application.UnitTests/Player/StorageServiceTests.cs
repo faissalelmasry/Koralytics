@@ -580,5 +580,79 @@ namespace Koralytics.Application.UnitTests.Player
             Assert.Equal(3, resultList.Count);
             Assert.True(resultList[0].IsPinned); // Pinned should be first
         }
+
+        // ──────────────────────────────────────────────────────────────
+        // UploadImageAsync & DeleteImageAsync / DeleteFileAsync Tests
+        // ──────────────────────────────────────────────────────────────
+
+        [Fact]
+        public async Task UploadImageAsync_FileIsNull_ThrowsBadRequestException()
+        {
+            await Assert.ThrowsAsync<BadRequestException>(() =>
+                _service.UploadImageAsync(null!, "profile-images"));
+        }
+
+        [Fact]
+        public async Task UploadImageAsync_InvalidExtension_ThrowsBadRequestException()
+        {
+            var fileMock = new Mock<IFormFile>();
+            fileMock.Setup(f => f.Length).Returns(1 * 1024 * 1024);
+            fileMock.Setup(f => f.FileName).Returns("test.txt");
+            fileMock.Setup(f => f.ContentType).Returns("image/jpeg");
+
+            await Assert.ThrowsAsync<BadRequestException>(() =>
+                _service.UploadImageAsync(fileMock.Object, "profile-images"));
+        }
+
+        [Fact]
+        public async Task UploadImageAsync_InvalidContentType_ThrowsBadRequestException()
+        {
+            var fileMock = new Mock<IFormFile>();
+            fileMock.Setup(f => f.Length).Returns(1 * 1024 * 1024);
+            fileMock.Setup(f => f.FileName).Returns("test.jpg");
+            fileMock.Setup(f => f.ContentType).Returns("application/pdf");
+
+            await Assert.ThrowsAsync<BadRequestException>(() =>
+                _service.UploadImageAsync(fileMock.Object, "profile-images"));
+        }
+
+        [Fact]
+        public async Task UploadImageAsync_ValidImage_ReturnsPublicUrl()
+        {
+            var fileMock = new Mock<IFormFile>();
+            fileMock.Setup(f => f.Length).Returns(2 * 1024 * 1024);
+            fileMock.Setup(f => f.FileName).Returns("avatar.png");
+            fileMock.Setup(f => f.ContentType).Returns("image/png");
+            fileMock.Setup(f => f.OpenReadStream()).Returns(new MemoryStream(new byte[100]));
+
+            _s3ClientMock.Setup(s => s.PutObjectAsync(It.IsAny<PutObjectRequest>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new PutObjectResponse());
+
+            var url = await _service.UploadImageAsync(fileMock.Object, "profile-images");
+
+            Assert.Contains("https://pub-test.r2.dev/profile-images/", url);
+            Assert.EndsWith(".png", url);
+            _s3ClientMock.Verify(s => s.PutObjectAsync(It.IsAny<PutObjectRequest>(), It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task DeleteFileAsync_ValidUrl_CallsDeleteObjectAsyncAndReturnsTrue()
+        {
+            _s3ClientMock.Setup(s => s.DeleteObjectAsync(It.IsAny<DeleteObjectRequest>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new DeleteObjectResponse());
+
+            var result = await _service.DeleteFileAsync("https://pub-test.r2.dev/profile-images/test.jpg");
+
+            Assert.True(result);
+            _s3ClientMock.Verify(s => s.DeleteObjectAsync(It.Is<DeleteObjectRequest>(r => r.Key == "profile-images/test.jpg"), It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task DeleteFileAsync_NullOrEmptyUrl_ReturnsFalse()
+        {
+            var result = await _service.DeleteFileAsync("");
+            Assert.False(result);
+        }
     }
 }
+

@@ -15,12 +15,19 @@ export class CoachSquadService {
   private http = inject(HttpClient);
   private baseUrl = `${environment.apiUrl}/api/Coach`;
 
-  /** GET /api/Coach/{coachId}/teams/{teamId}/squad or /api/Coach/teams/{teamId}/squad */
+  /** 
+   * GET /api/Coach/{coachId}/teams/{teamId}/squad or /api/Coach/teams/{teamId}/squad 
+   * Supports both (teamId, coachId) and (coachId, teamId) call signatures seamlessly.
+   */
   getSquad(first: number, second?: number): Observable<any> {
-    if (second !== undefined) {
+    if (second !== undefined && second > 0) {
       return this.http.get<any>(`${this.baseUrl}/${first}/teams/${second}/squad`);
     }
     return this.http.get<any>(`${this.baseUrl}/teams/${first}/squad`);
+  }
+
+  getCoachTeams(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/teams`);
   }
 
   /** POST /api/Coach/sessions/{sessionId}/split */
@@ -42,9 +49,5 @@ export class CoachSquadService {
     return this.http.get<SquadComparisonDto>(`${this.baseUrl}/squad/compare`, {
       params,
     });
-  }
-
-  getCoachTeams(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.baseUrl}/teams`);
   }
 }

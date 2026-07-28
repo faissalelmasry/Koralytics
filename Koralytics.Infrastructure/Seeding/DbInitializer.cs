@@ -5,6 +5,7 @@ using Koralytics.Domain.Entities.Identity;
 using Koralytics.Domain.Entities.Match;
 using Koralytics.Domain.Entities.Player;
 using Koralytics.Domain.Entities.SystemAdmin;
+using Koralytics.Domain.Entities.Tournamet;
 using Koralytics.Domain.Enums;
 using Koralytics.Infrastructure.Context;
 using Microsoft.AspNetCore.Identity;
@@ -1271,6 +1272,369 @@ namespace Koralytics.Infrastructure.Seeding
                     context.AcademyPlayerJoinRequests.Add(new AcademyPlayerJoinRequest { AcademyId = testAcademy.Id, PlayerId = pendingPlayer.Id, Status = JoinRequestStatus.Pending, RequestedAt = DateTime.UtcNow });
                 }
 
+                await context.SaveChangesAsync();
+            }
+
+            // ====================================================================
+            // TOURNAMENT SEED: Cairo Youth Cup 2025
+            // Full fixtures (Scheduled, no matches yet) — ready to create matches from
+            // ====================================================================
+            // 0. Clean up any previous partial tournament data if present
+            var existingTournament = await context.Tournaments.FirstOrDefaultAsync(t => t.Name == "Cairo Youth Cup 2025");
+            if (existingTournament != null)
+            {
+                var oldFixtures = await context.TournamentFixtures.Where(f => f.HomeTeam.TournamentId == existingTournament.Id || f.AwayTeam.TournamentId == existingTournament.Id).ToListAsync();
+                context.TournamentFixtures.RemoveRange(oldFixtures);
+                var oldSquads = await context.TournamentSquads.Where(s => s.TournamentId == existingTournament.Id).ToListAsync();
+                context.TournamentSquads.RemoveRange(oldSquads);
+                var oldStandings = await context.TournamentStandings.Where(s => s.Group.TournamentId == existingTournament.Id).ToListAsync();
+                context.TournamentStandings.RemoveRange(oldStandings);
+                var oldGroupTeams = await context.TournamentGroupTeams.Where(gt => gt.Group.TournamentId == existingTournament.Id).ToListAsync();
+                context.TournamentGroupTeams.RemoveRange(oldGroupTeams);
+                var oldGroups = await context.TournamentGroups.Where(g => g.TournamentId == existingTournament.Id).ToListAsync();
+                context.TournamentGroups.RemoveRange(oldGroups);
+                var oldRounds = await context.TournamentRounds.Where(r => r.TournamentId == existingTournament.Id).ToListAsync();
+                context.TournamentRounds.RemoveRange(oldRounds);
+                var oldTTs = await context.TournamentTeams.Where(tt => tt.TournamentId == existingTournament.Id).ToListAsync();
+                context.TournamentTeams.RemoveRange(oldTTs);
+                context.Tournaments.Remove(existingTournament);
+                await context.SaveChangesAsync();
+            }
+
+            if (!await context.Tournaments.AnyAsync(t => t.Name == "Cairo Youth Cup 2025"))
+            {
+                var adminUser    = await userManager.FindByEmailAsync("admin@koralytics.com");
+                var ahlyAcademy  = await context.Academies.FirstAsync(a => a.Name == "Al Ahly Academy");
+                var zamAcademy   = await context.Academies.FirstAsync(a => a.Name == "Zamalek Academy");
+                var ahlyAgeGroup = await context.AgeGroups.FirstAsync(g => g.AcademyId == ahlyAcademy.Id && g.Name == "U17");
+                var zamAgeGroup  = await context.AgeGroups.FirstAsync(g => g.AcademyId == zamAcademy.Id  && g.Name == "U17");
+                var ahlyTeam     = await context.Teams.FirstAsync(t => t.Name == "U17 Team A" && t.AcademyId == ahlyAcademy.Id);
+                var zamTeam      = await context.Teams.FirstAsync(t => t.Name == "U17 Team A" && t.AcademyId == zamAcademy.Id);
+
+                // ── Pyramids Academy ────────────────────────────────────────────
+                var pyramidsAcademy = await context.Academies.FirstOrDefaultAsync(a => a.Name == "Pyramids Academy");
+                AgeGroup pyramidsAgeGroup;
+                Team pyramidsTeam;
+                if (pyramidsAcademy == null)
+                {
+                    pyramidsAcademy = new Academy
+                    {
+                        Name = "Pyramids Academy", Status = AcademyStatus.Active,
+                        AdminUserId = adminUser!.Id, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow
+                    };
+                    context.Academies.Add(pyramidsAcademy);
+                    await context.SaveChangesAsync();
+
+                    pyramidsAgeGroup = new AgeGroup { AcademyId = pyramidsAcademy.Id, Name = "U17", MinAge = 15, MaxAge = 17 };
+                    context.AgeGroups.Add(pyramidsAgeGroup);
+
+                    var pyramidsLocation = new AcademyLocation
+                    {
+                        AcademyId = pyramidsAcademy.Id, Name = "Main Branch",
+                        Address = "6th of October", City = "Giza", IsMain = true
+                    };
+                    context.AcademyLocations.Add(pyramidsLocation);
+                    await context.SaveChangesAsync();
+
+                    pyramidsTeam = new Team
+                    {
+                        AcademyId = pyramidsAcademy.Id, AgeGroupId = pyramidsAgeGroup.Id,
+                        LocationId = pyramidsLocation.Id, Name = "U17 Team A"
+                    };
+                    context.Teams.Add(pyramidsTeam);
+                    await context.SaveChangesAsync();
+
+                    var pyramidsPlayers = new[]
+                    {
+                        new { Email = "pyramids1@test.com", First = "Ali",     Last = "Gomaa",    DOB = new DateTime(2008, 3, 10),  Foot = PreferredFoot.Right, Pos = "GK"  },
+                        new { Email = "pyramids2@test.com", First = "Hassan",  Last = "Ragab",    DOB = new DateTime(2008, 7, 22),  Foot = PreferredFoot.Right, Pos = "CB"  },
+                        new { Email = "pyramids3@test.com", First = "Samy",    Last = "Nour",     DOB = new DateTime(2009, 1, 5),   Foot = PreferredFoot.Left,  Pos = "CB"  },
+                        new { Email = "pyramids4@test.com", First = "Kareem",  Last = "Fouad",    DOB = new DateTime(2008, 11, 18), Foot = PreferredFoot.Right, Pos = "CM"  },
+                        new { Email = "pyramids5@test.com", First = "Omar",    Last = "Nasser",   DOB = new DateTime(2009, 4, 30),  Foot = PreferredFoot.Right, Pos = "CM"  },
+                        new { Email = "pyramids6@test.com", First = "Yasser",  Last = "Abdallah", DOB = new DateTime(2008, 9, 14),  Foot = PreferredFoot.Left,  Pos = "LW"  },
+                        new { Email = "pyramids7@test.com", First = "Amr",     Last = "Mostafa",  DOB = new DateTime(2009, 6, 3),   Foot = PreferredFoot.Right, Pos = "ST"  },
+                    };
+                    foreach (var pp in pyramidsPlayers)
+                    {
+                        var pu = new User
+                        {
+                            UserName = pp.Email, Email = pp.Email, EmailConfirmed = true,
+                            FirstName = pp.First, LastName = pp.Last,
+                            CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow, CreatedById = adminUser!.Id
+                        };
+                        await userManager.CreateAsync(pu, "Player@123456");
+                        await userManager.AddToRoleAsync(pu, "Player");
+                        await context.Database.ExecuteSqlRawAsync(
+                            "INSERT INTO Players (Id, DateOfBirth, PreferredFoot, WeakFootRating, AvailabilityStatus) VALUES ({0}, {1}, {2}, {3}, {4})",
+                            pu.Id, pp.DOB, (int)pp.Foot, 2, (int)AvailabilityStatus.Available);
+                        context.PlayerTeams.Add(new PlayerTeam { PlayerId = pu.Id, TeamId = pyramidsTeam.Id, JoinedAt = DateTime.UtcNow });
+                        context.PlayerAcademies.Add(new PlayerAcademy { PlayerId = pu.Id, AcademyId = pyramidsAcademy.Id, JoinedAt = DateTime.UtcNow, Status = PlayerAcademyStatus.Active });
+                        context.PlayerPositions.Add(new PlayerPosition { PlayerId = pu.Id, Position = pp.Pos, IsPrimary = true });
+                        context.PlayerSubscriptions.Add(new PlayerSubscription { PlayerId = pu.Id, AcademyId = pyramidsAcademy.Id, Status = SubscriptionStatus.Paid, PaidAt = DateTime.UtcNow, PaidByUserId = pu.Id });
+                    }
+                    await context.SaveChangesAsync();
+                }
+                else
+                {
+                    pyramidsAgeGroup = await context.AgeGroups.FirstAsync(g => g.AcademyId == pyramidsAcademy.Id);
+                    pyramidsTeam = await context.Teams.FirstAsync(t => t.AcademyId == pyramidsAcademy.Id);
+                }
+
+                // ── Al Masry Academy ─────────────────────────────────────────────
+                var masryAcademy = await context.Academies.FirstOrDefaultAsync(a => a.Name == "Al Masry Academy");
+                AgeGroup masryAgeGroup;
+                Team masryTeam;
+                if (masryAcademy == null)
+                {
+                    masryAcademy = new Academy
+                    {
+                        Name = "Al Masry Academy", Status = AcademyStatus.Active,
+                        AdminUserId = adminUser!.Id, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow
+                    };
+                    context.Academies.Add(masryAcademy);
+                    await context.SaveChangesAsync();
+
+                    masryAgeGroup = new AgeGroup { AcademyId = masryAcademy.Id, Name = "U17", MinAge = 15, MaxAge = 17 };
+                    context.AgeGroups.Add(masryAgeGroup);
+
+                    var masryLocation = new AcademyLocation
+                    {
+                        AcademyId = masryAcademy.Id, Name = "Main Branch",
+                        Address = "Port Said", City = "Port Said", IsMain = true
+                    };
+                    context.AcademyLocations.Add(masryLocation);
+                    await context.SaveChangesAsync();
+
+                    masryTeam = new Team
+                    {
+                        AcademyId = masryAcademy.Id, AgeGroupId = masryAgeGroup.Id,
+                        LocationId = masryLocation.Id, Name = "U17 Team A"
+                    };
+                    context.Teams.Add(masryTeam);
+                    await context.SaveChangesAsync();
+
+                    var masryPlayers = new[]
+                    {
+                        new { Email = "masry1@test.com", First = "Tamer",   Last = "Salama",  DOB = new DateTime(2008, 2, 12),  Foot = PreferredFoot.Right, Pos = "GK"  },
+                        new { Email = "masry2@test.com", First = "Wael",    Last = "Gomaa",   DOB = new DateTime(2008, 8, 25),  Foot = PreferredFoot.Right, Pos = "CB"  },
+                        new { Email = "masry3@test.com", First = "Emad",    Last = "Moteab",  DOB = new DateTime(2009, 3, 17),  Foot = PreferredFoot.Left,  Pos = "CB"  },
+                        new { Email = "masry4@test.com", First = "Shady",   Last = "Mohamed", DOB = new DateTime(2008, 10, 9),  Foot = PreferredFoot.Right, Pos = "CM"  },
+                        new { Email = "masry5@test.com", First = "Hamdy",   Last = "Fathy",   DOB = new DateTime(2009, 5, 20),  Foot = PreferredFoot.Right, Pos = "CAM" },
+                        new { Email = "masry6@test.com", First = "Ahmed",   Last = "Kamel",   DOB = new DateTime(2008, 12, 8),  Foot = PreferredFoot.Left,  Pos = "RW"  },
+                        new { Email = "masry7@test.com", First = "Mohamed", Last = "Barakat", DOB = new DateTime(2009, 7, 27),  Foot = PreferredFoot.Right, Pos = "ST"  },
+                    };
+                    foreach (var mp in masryPlayers)
+                    {
+                        var mu = new User
+                        {
+                            UserName = mp.Email, Email = mp.Email, EmailConfirmed = true,
+                            FirstName = mp.First, LastName = mp.Last,
+                            CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow, CreatedById = adminUser!.Id
+                        };
+                        await userManager.CreateAsync(mu, "Player@123456");
+                        await userManager.AddToRoleAsync(mu, "Player");
+                        await context.Database.ExecuteSqlRawAsync(
+                            "INSERT INTO Players (Id, DateOfBirth, PreferredFoot, WeakFootRating, AvailabilityStatus) VALUES ({0}, {1}, {2}, {3}, {4})",
+                            mu.Id, mp.DOB, (int)mp.Foot, 2, (int)AvailabilityStatus.Available);
+                        context.PlayerTeams.Add(new PlayerTeam { PlayerId = mu.Id, TeamId = masryTeam.Id, JoinedAt = DateTime.UtcNow });
+                        context.PlayerAcademies.Add(new PlayerAcademy { PlayerId = mu.Id, AcademyId = masryAcademy.Id, JoinedAt = DateTime.UtcNow, Status = PlayerAcademyStatus.Active });
+                        context.PlayerPositions.Add(new PlayerPosition { PlayerId = mu.Id, Position = mp.Pos, IsPrimary = true });
+                        context.PlayerSubscriptions.Add(new PlayerSubscription { PlayerId = mu.Id, AcademyId = masryAcademy.Id, Status = SubscriptionStatus.Paid, PaidAt = DateTime.UtcNow, PaidByUserId = mu.Id });
+                    }
+                    await context.SaveChangesAsync();
+                }
+                else
+                {
+                    masryAgeGroup = await context.AgeGroups.FirstAsync(g => g.AcademyId == masryAcademy.Id);
+                    masryTeam = await context.Teams.FirstAsync(t => t.AcademyId == masryAcademy.Id);
+                }
+
+                // ── Tournament ────────────────────────────────────────────────────
+                var tournament = new Tournament
+                {
+                    Name      = "Cairo Youth Cup 2025",
+                    Format    = MatchFormat.ElevenSide,
+                    Structure = TournamentStructure.GroupAndKnockout,
+                    AgeGroupId = ahlyAgeGroup.Id,
+                    HasTwoLegs = false,
+                    StartDate  = DateTime.UtcNow.AddDays(-7),
+                    EndDate    = DateTime.UtcNow.AddDays(30),
+                    Status     = TournamentStatus.InProgress,
+                    CreatedAt  = DateTime.UtcNow,
+                    UpdatedAt  = DateTime.UtcNow
+                };
+                context.Tournaments.Add(tournament);
+                await context.SaveChangesAsync();
+
+                // ── TournamentTeams (4 teams, all accepted) ───────────────────────
+                var ttAhly = new TournamentTeam
+                {
+                    TournamentId = tournament.Id, TeamId = ahlyTeam.Id,
+                    SeedNumber = 1, Status = TournamentTeamStatus.Accepted,
+                    RegisteredAt = DateTime.UtcNow, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow
+                };
+                var ttZam = new TournamentTeam
+                {
+                    TournamentId = tournament.Id, TeamId = zamTeam.Id,
+                    SeedNumber = 2, Status = TournamentTeamStatus.Accepted,
+                    RegisteredAt = DateTime.UtcNow, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow
+                };
+                var ttPyramids = new TournamentTeam
+                {
+                    TournamentId = tournament.Id, TeamId = pyramidsTeam.Id,
+                    SeedNumber = 3, Status = TournamentTeamStatus.Accepted,
+                    RegisteredAt = DateTime.UtcNow, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow
+                };
+                var ttMasry = new TournamentTeam
+                {
+                    TournamentId = tournament.Id, TeamId = masryTeam.Id,
+                    SeedNumber = 4, Status = TournamentTeamStatus.Accepted,
+                    RegisteredAt = DateTime.UtcNow, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow
+                };
+                context.TournamentTeams.AddRange(ttAhly, ttZam, ttPyramids, ttMasry);
+                await context.SaveChangesAsync();
+
+                // ── Groups ────────────────────────────────────────────────────────
+                // Group A: Al Ahly  + Al Masry
+                // Group B: Zamalek  + Pyramids
+                var groupA = new TournamentGroup
+                {
+                    TournamentId = tournament.Id, Name = "Group A", IsDummy = false,
+                    CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow
+                };
+                var groupB = new TournamentGroup
+                {
+                    TournamentId = tournament.Id, Name = "Group B", IsDummy = false,
+                    CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow
+                };
+                context.TournamentGroups.AddRange(groupA, groupB);
+                await context.SaveChangesAsync();
+
+                // ── Group memberships ─────────────────────────────────────────────
+                context.TournamentGroupTeams.AddRange(
+                    new TournamentGroupTeam { GroupId = groupA.Id, TournamentTeamId = ttAhly.Id   },
+                    new TournamentGroupTeam { GroupId = groupA.Id, TournamentTeamId = ttMasry.Id  },
+                    new TournamentGroupTeam { GroupId = groupB.Id, TournamentTeamId = ttZam.Id    },
+                    new TournamentGroupTeam { GroupId = groupB.Id, TournamentTeamId = ttPyramids.Id }
+                );
+
+                // ── Standings ─────────────────────────────────────────────────────
+                context.TournamentStandings.AddRange(
+                    new TournamentStanding { GroupId = groupA.Id, TournamentTeamId = ttAhly.Id,    Played = 0, Won = 0, Drawn = 0, Lost = 0, GoalsFor = 0, GoalsAgainst = 0, Points = 0 },
+                    new TournamentStanding { GroupId = groupA.Id, TournamentTeamId = ttMasry.Id,   Played = 0, Won = 0, Drawn = 0, Lost = 0, GoalsFor = 0, GoalsAgainst = 0, Points = 0 },
+                    new TournamentStanding { GroupId = groupB.Id, TournamentTeamId = ttZam.Id,     Played = 0, Won = 0, Drawn = 0, Lost = 0, GoalsFor = 0, GoalsAgainst = 0, Points = 0 },
+                    new TournamentStanding { GroupId = groupB.Id, TournamentTeamId = ttPyramids.Id, Played = 0, Won = 0, Drawn = 0, Lost = 0, GoalsFor = 0, GoalsAgainst = 0, Points = 0 }
+                );
+                await context.SaveChangesAsync();
+
+                // ── Rounds ────────────────────────────────────────────────────────
+                var roundGroupStage = new TournamentRound { TournamentId = tournament.Id, Name = "Group Stage",  RoundNumber = 1 };
+                var roundSemiFinals = new TournamentRound { TournamentId = tournament.Id, Name = "Semi-Finals",  RoundNumber = 2 };
+                var roundFinal      = new TournamentRound { TournamentId = tournament.Id, Name = "Final",        RoundNumber = 3 };
+                context.TournamentRounds.AddRange(roundGroupStage, roundSemiFinals, roundFinal);
+                await context.SaveChangesAsync();
+
+                // ── Fixtures ──────────────────────────────────────────────────────
+                // Constraint rule:
+                //   Group fixtures: GroupId IS NOT NULL AND RoundId IS NULL
+                //   Knockout fixtures: RoundId IS NOT NULL AND GroupId IS NULL
+
+                // Group Stage (GroupId set, RoundId must be null)
+                var fixtureGrpA = new TournamentFixture
+                {
+                    GroupId    = groupA.Id, RoundId    = null,
+                    HomeTeamId = ttAhly.Id, AwayTeamId = ttMasry.Id,
+                    Status     = MatchStatus.Scheduled, LegNumber = 1
+                };
+                var fixtureGrpB = new TournamentFixture
+                {
+                    GroupId    = groupB.Id, RoundId    = null,
+                    HomeTeamId = ttZam.Id,  AwayTeamId = ttPyramids.Id,
+                    Status     = MatchStatus.Scheduled, LegNumber = 1
+                };
+
+                // Semi-Finals (RoundId set, GroupId must be null)
+                var fixtureSF1 = new TournamentFixture
+                {
+                    RoundId    = roundSemiFinals.Id, GroupId = null,
+                    HomeTeamId = ttAhly.Id,          AwayTeamId = ttPyramids.Id,
+                    Status     = MatchStatus.Scheduled, LegNumber = 1
+                };
+                var fixtureSF2 = new TournamentFixture
+                {
+                    RoundId    = roundSemiFinals.Id, GroupId = null,
+                    HomeTeamId = ttZam.Id,           AwayTeamId = ttMasry.Id,
+                    Status     = MatchStatus.Scheduled, LegNumber = 1
+                };
+
+                // Final (RoundId set, GroupId must be null)
+                var fixtureFinal = new TournamentFixture
+                {
+                    RoundId    = roundFinal.Id, GroupId = null,
+                    HomeTeamId = ttAhly.Id,     AwayTeamId = ttZam.Id,
+                    Status     = MatchStatus.Scheduled, LegNumber = 1
+                };
+
+                context.TournamentFixtures.AddRange(
+                    fixtureGrpA, fixtureGrpB,
+                    fixtureSF1, fixtureSF2,
+                    fixtureFinal
+                );
+                await context.SaveChangesAsync();
+
+                // ── Squads ────────────────────────────────────────────────────────
+                var ahlySquadEmails = new[]
+                {
+                    "goalkeeper@test.com",   "ahlyplayer5@test.com",  "ahlyplayer6@test.com",
+                    "ahlyplayer7@test.com",  "ahlyplayer8@test.com",  "ahlyplayer9@test.com",
+                    "ahlyplayer10@test.com", "ahlyplayer11@test.com", "player@test.com",
+                    "player2@test.com",      "player3@test.com"
+                };
+                var zamSquadEmails = new[]
+                {
+                    "zamalekplayer1@test.com",  "zamalekplayer2@test.com",  "zamalekplayer3@test.com",
+                    "zamalekplayer4@test.com",  "zamalekplayer5@test.com",  "zamalekplayer6@test.com",
+                    "zamalekplayer7@test.com",  "zamalekplayer8@test.com",  "zamalekplayer9@test.com",
+                    "zamalekplayer10@test.com", "zamalekplayer11@test.com"
+                };
+                var pyramidsSquadEmails = new[]
+                {
+                    "pyramids1@test.com", "pyramids2@test.com", "pyramids3@test.com",
+                    "pyramids4@test.com", "pyramids5@test.com", "pyramids6@test.com", "pyramids7@test.com"
+                };
+                var masrySquadEmails = new[]
+                {
+                    "masry1@test.com", "masry2@test.com", "masry3@test.com",
+                    "masry4@test.com", "masry5@test.com", "masry6@test.com", "masry7@test.com"
+                };
+
+                var squadDefinitions = new[]
+                {
+                    (Emails: ahlySquadEmails,     TeamId: ahlyTeam.Id),
+                    (Emails: zamSquadEmails,      TeamId: zamTeam.Id),
+                    (Emails: pyramidsSquadEmails,  TeamId: pyramidsTeam.Id),
+                    (Emails: masrySquadEmails,    TeamId: masryTeam.Id),
+                };
+
+                foreach (var (emails, teamId) in squadDefinitions)
+                {
+                    var players = await context.Users
+                        .Where(u => emails.Contains(u.Email!))
+                        .ToListAsync();
+
+                    foreach (var p in players)
+                    {
+                        context.TournamentSquads.Add(new TournamentSquad
+                        {
+                            TournamentId = tournament.Id,
+                            TeamId       = teamId,
+                            PlayerId     = p.Id,
+                            RegisteredAt = DateTime.UtcNow,
+                            CreatedAt    = DateTime.UtcNow,
+                            UpdatedAt    = DateTime.UtcNow
+                        });
+                    }
+                }
                 await context.SaveChangesAsync();
             }
         }

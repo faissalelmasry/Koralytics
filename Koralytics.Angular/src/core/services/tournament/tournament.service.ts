@@ -74,4 +74,8 @@ export class TournamentService {
   getTournamentTeams(tournamentId: number): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/${tournamentId}/teams`);
   }
+
+  getFixtureById(fixtureId: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/fixture/${fixtureId}`);
+  }
 }

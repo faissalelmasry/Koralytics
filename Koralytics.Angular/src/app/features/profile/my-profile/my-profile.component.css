@@ -1,0 +1,631 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  color: #ffffff;
+  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+}
+
+.profile-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 30px 24px 60px;
+}
+
+/* ================== LOADING & ERROR STATES ================== */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  gap: 16px;
+  color: #8e9bb0;
+}
+
+.profile-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ================== 1. HERO BANNER ================== */
+.header-banner {
+  background: #11151e;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 24px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+.player-title-box {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.avatar-wrapper {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid #facc15;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1a202c;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-circle {
+  font-family: 'Chakra Petch', sans-serif;
+  font-weight: 700;
+  color: #facc15;
+  font-size: 26px;
+}
+
+.avatar-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.camera-icon {
+  font-size: 20px;
+}
+
+.avatar-wrapper:hover .avatar-overlay {
+  opacity: 1;
+}
+
+.name-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.name-row h2 {
+  font-size: 28px;
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: 0.5px;
+}
+
+.role-badge {
+  font-size: 11px;
+  font-family: 'Chakra Petch', sans-serif;
+  font-weight: 700;
+  background: rgba(250, 204, 21, 0.15);
+  color: #facc15;
+  border: 1px solid rgba(250, 204, 21, 0.35);
+  padding: 4px 10px;
+  border-radius: 16px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.tags-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.tags {
+  font-size: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 4px 12px;
+  border-radius: 12px;
+  color: #cbd5e1;
+  font-weight: 600;
+}
+
+.meta-stats {
+  display: flex;
+  gap: 32px;
+  font-size: 11px;
+  color: #8e9bb0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.meta-stats strong {
+  color: #ffffff;
+  display: block;
+  font-size: 15px;
+  margin-top: 4px;
+  font-weight: 700;
+}
+
+.text-yellow {
+  color: #facc15 !important;
+}
+
+.text-green {
+  color: #22c55e !important;
+}
+
+/* ================== 2. MAIN GRID (CARDS) ================== */
+.main-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.panel-card {
+  background: #11151e;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+}
+
+.card-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.panel-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: #8e9bb0;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.edit-btn {
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 12px;
+  cursor: pointer;
+  border: none;
+  background: #facc15;
+  color: #000000;
+  transition: all 0.2s ease;
+}
+
+.edit-btn:hover {
+  background: #eab308;
+  transform: translateY(-1px);
+}
+
+/* ================== INFO GRID (VIEW MODE) ================== */
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.info-item.full-width {
+  grid-column: 1 / -1;
+}
+
+.info-lbl {
+  font-size: 11px;
+  font-weight: 700;
+  color: #8e9bb0;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.info-val {
+  font-size: 15px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.bio-text {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #cbd5e1;
+  white-space: pre-line;
+}
+
+/* ================== PITCH MAP (VIEW MODE) ================== */
+.pitch-wrapper {
+  position: relative;
+  background: radial-gradient(circle at 62% 50%, rgba(250, 204, 21, 0.12) 0%, transparent 45%), #0c1a12;
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  border-radius: 16px;
+  aspect-ratio: 16 / 9;
+  max-height: 400px;
+  margin: 16px 0;
+  overflow: hidden;
+  box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.8);
+}
+
+.p-line {
+  position: absolute;
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  pointer-events: none;
+}
+
+.p-half {
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  border-right: none;
+  transform: translateX(-50%);
+}
+
+.p-center-c {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  height: 34%;
+  aspect-ratio: 1 / 1;
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.p-box {
+  top: 18%;
+  bottom: 18%;
+  width: 14%;
+}
+
+.p-box-l {
+  left: 0;
+  border-left: none;
+}
+
+.p-box-r {
+  right: 0;
+  border-right: none;
+}
+
+.pos-marker {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-family: 'Chakra Petch', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  z-index: 5;
+  transition: all 0.2s ease;
+}
+
+.pos-marker.primary {
+  background: #facc15;
+  color: #000000;
+  box-shadow: 0 0 25px rgba(250, 204, 21, 0.8);
+}
+
+.pos-marker.secondary {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  backdrop-filter: blur(4px);
+}
+
+.current-pos-info {
+  font-size: 13px;
+  color: #8e9bb0;
+  background: #0d1017;
+  padding: 14px 18px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* ================== 3. EDIT MODE FORM ================== */
+.edit-grid {
+  margin-top: 10px;
+}
+
+.form-panel {
+  gap: 20px;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #ffffff;
+  margin-top: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.section-subtitle {
+  font-size: 13px;
+  color: #8e9bb0;
+  margin-bottom: 8px;
+}
+
+.mt-4 {
+  margin-top: 24px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.full-width {
+  grid-column: 1 / -1;
+}
+
+.form-actions-top,
+.form-actions-bottom {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.form-actions-bottom {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* ================== TACTICAL PITCH SELECTOR (EDIT MODE) ================== */
+.tactical-pitch-overlay {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  max-height: 420px;
+  background: radial-gradient(circle at 50% 50%, rgba(34, 197, 94, 0.08) 0%, transparent 60%), #0c1a12;
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.8);
+  margin: 12px 0;
+}
+
+.pitch-node-btn {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  background: rgba(0, 0, 0, 0.75);
+  color: #8e9bb0;
+  font-family: 'Chakra Petch', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 10;
+}
+
+.pitch-node-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  border-color: #facc15;
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+.pitch-node-btn.selected {
+  background: rgba(255, 255, 255, 0.18) !important;
+  color: #ffffff !important;
+  border: 1.5px solid #facc15 !important;
+  box-shadow: 0 0 15px rgba(250, 204, 21, 0.4);
+}
+
+.pitch-node-btn.primary-node {
+  background: #facc15 !important;
+  color: #000000 !important;
+  border: none !important;
+  box-shadow: 0 0 25px rgba(250, 204, 21, 0.8);
+  font-weight: 800;
+}
+
+/* ================== SELECTED CHIPS (EDIT MODE) ================== */
+.selected-positions-box {
+  background: #0d1017;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.box-lbl {
+  font-size: 12px;
+  font-weight: 700;
+  color: #8e9bb0;
+  text-transform: uppercase;
+}
+
+.chips-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.pos-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+}
+
+.pos-chip.primary-chip {
+  background: rgba(250, 204, 21, 0.15);
+  border-color: #facc15;
+}
+
+.chip-code {
+  font-family: 'Chakra Petch', sans-serif;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.primary-chip .chip-code {
+  color: #facc15;
+}
+
+.primary-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #facc15;
+  background: rgba(250, 204, 21, 0.2);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.btn-set-primary {
+  background: transparent;
+  border: none;
+  color: #8e9bb0;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.btn-set-primary:hover {
+  color: #facc15;
+}
+
+.btn-remove-chip {
+  background: transparent;
+  border: none;
+  color: #8e9bb0;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0 4px;
+  transition: color 0.2s ease;
+}
+
+.btn-remove-chip:hover {
+  color: #ff4757;
+}
+
+.text-muted {
+  color: #8e9bb0;
+  font-size: 13px;
+}
+
+/* ================== 4. IMAGE UPLOAD MODAL ================== */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(5, 7, 10, 0.85);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.upload-modal-content {
+  background: #11151e;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  width: 520px;
+  max-width: 90vw;
+  padding: 28px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h3 {
+  font-size: 20px;
+  font-weight: 800;
+  margin: 0;
+}
+
+.close-btn {
+  background: transparent;
+  border: none;
+  color: #8e9bb0;
+  font-size: 22px;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.close-btn:hover {
+  color: #ffffff;
+}
+
+.modal-sub {
+  font-size: 13px;
+  color: #8e9bb0;
+  margin: 0;
+}
+
+.upload-wrapper {
+  margin-top: 8px;
+}
+
+/* ================== MEDIA QUERIES ================== */
+@media (max-width: 768px) {
+  .header-banner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .meta-stats {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .info-grid,
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}

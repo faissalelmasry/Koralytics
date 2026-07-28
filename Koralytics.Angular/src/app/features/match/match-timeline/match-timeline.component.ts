@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { MiniPlayerCardModel } from '../../../../core/models/Player/mini-player-card-model';
 import { MatchTimelineEventsComponent } from './match-timeline-events.component';
 import { MatchLineupsComponent } from './match-lineups.component';
+import { MatchRatingsComponent } from './match-ratings.component';
 import { TimelineEvent } from './match-timeline.types';
 import { MatchService } from '../../../../core/services/match/match.service';
 import { PlayerCardService } from '../../../../core/services/player/player-card.service';
@@ -11,12 +12,14 @@ import { CustomButtonComponent } from '../../../../shared/components/custom-butt
 import { ToastService } from '../../../../core/services/Toast/toast';
 import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 import { MatchSignalrService } from '../../../../core/services/match-signalr.service';
-import { Subscription } from 'rxjs';
+import { Subscription, forkJoin, of, catchError } from 'rxjs';
+
+import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner';
 
 @Component({
   selector: 'app-match-timeline',
   standalone: true,
-  imports: [CommonModule, MatchTimelineEventsComponent, MatchLineupsComponent, EmptyStateComponent, CustomButtonComponent, ConfirmDialogComponent],
+  imports: [CommonModule, MatchTimelineEventsComponent, MatchLineupsComponent, MatchRatingsComponent, EmptyStateComponent, CustomButtonComponent, ConfirmDialogComponent, LoadingSpinnerComponent],
   templateUrl: './match-timeline.component.html',
   styleUrls: ['./match-timeline.component.css']
 })
@@ -50,14 +53,16 @@ export class MatchTimelineComponent implements OnInit, OnDestroy {
   @Input() mockTimelineEvents?: TimelineEvent[];
   @Input() canLogEvents: boolean = false;
   @Input() canStartMatch: boolean = false;
+  @Input() canSubmitRatings: boolean = false;
 
   @Output() eventLogged = new EventEmitter<void>();
 
-  selectedTab: 'timeline' | 'lineups' = 'timeline';
+  selectedTab: 'timeline' | 'lineups' | 'ratings' = 'timeline';
 
   timelineEvents: TimelineEvent[] = [];
   eventsLoading = false;
   eventsLoaded = false;
+  ratingsInitialized = false;
   isStartingMatch = false;
   isStartMatchDialogOpen = false;
   isEndingMatch = false;
@@ -98,6 +103,16 @@ export class MatchTimelineComponent implements OnInit, OnDestroy {
     return this.homeStarters.length > 0 && this.awayStarters.length > 0;
   }
 
+  get allHomePlayers(): MiniPlayerCardModel[] {
+    const starters = this.homeStarters.reduce((acc, val) => acc.concat(val), []);
+    return starters.concat(this.homeBench);
+  }
+
+  get allAwayPlayers(): MiniPlayerCardModel[] {
+    const starters = this.awayStarters.reduce((acc, val) => acc.concat(val), []);
+    return starters.concat(this.awayBench);
+  }
+
   get isLive(): boolean {
     return (this.matchInfo?.status || '').toString().toLowerCase() === 'live';
   }
@@ -112,7 +127,9 @@ export class MatchTimelineComponent implements OnInit, OnDestroy {
   }
 
   get trackTransform(): string {
-    return this.selectedTab === 'timeline' ? 'translateX(0%)' : 'translateX(-50%)';
+    if (this.selectedTab === 'timeline') return 'translateX(0%)';
+    if (this.selectedTab === 'lineups') return 'translateX(-33.3333%)';
+    return 'translateX(-66.6666%)';
   }
 
   onStartMatchClick(): void {
@@ -172,8 +189,11 @@ export class MatchTimelineComponent implements OnInit, OnDestroy {
     });
   }
 
-  selectTab(tab: 'timeline' | 'lineups'): void {
+  selectTab(tab: 'timeline' | 'lineups' | 'ratings'): void {
     this.selectedTab = tab;
+    if (tab === 'ratings') {
+      this.ratingsInitialized = true;
+    }
     if (tab === 'timeline' && !this.eventsLoaded) {
       if (this.mockTimelineEvents?.length) {
         this.timelineEvents = this.mockTimelineEvents;
@@ -183,7 +203,9 @@ export class MatchTimelineComponent implements OnInit, OnDestroy {
         this.loadEvents();
       }
     }
-    if (tab === 'lineups' && !this.lineupsLoaded) this.loadLineups();
+    if ((tab === 'lineups' || tab === 'ratings') && !this.lineupsLoaded) {
+      this.loadLineups();
+    }
   }
 
   public refresh(): void {
@@ -221,28 +243,35 @@ export class MatchTimelineComponent implements OnInit, OnDestroy {
         if (hasPenaltyShootoutEvent && this.matchInfo) {
           (this.matchInfo as any).hasPenaltyShootout = true;
         }
-        this.timelineEvents = events.map((e: any) => ({
-          minute: e.minute,
-          eventType: this.formatEventType(e.eventType),
-          eventSubtext: e.assistPlayerName ? `Assist: ${e.assistPlayerName}` : '',
-          rawType: e.eventType,
-          side: e.isHomeSide === true ? 'home' :
-                e.isHomeSide === false ? 'away' :
-                e.teamId === this.matchInfo.homeTeamId ? 'home' : 'away',
-          accentColor: this.eventAccentColor(e.eventType),
-          player: {
-            playerId: e.playerId,
-            fullName: e.playerName,
-            position: '',
-            profileImageUrl: null,
-            overallRating: 0
-          },
-          assistPlayerId: e.assistPlayerId
-        }));
-        this.eventsLoaded = true;
-        this.eventsLoading = false;
-        this.attachEventsToLineups();
-        this.cdr.detectChanges();
+
+        const playerIds = Array.from(new Set(events.map((e: any) => e.playerId).filter(id => id > 0)));
+
+        if (playerIds.length > 0) {
+          this.playerCardService.getMiniPlayerCards(playerIds).subscribe({
+            next: (cards: MiniPlayerCardModel[]) => {
+              const rawCards = (cards as any)?.data ?? cards ?? [];
+              const fetchedMap = new Map<number, MiniPlayerCardModel>();
+
+              if (Array.isArray(rawCards)) {
+                rawCards.forEach((c: any) => {
+                  if (c && c.playerId > 0) {
+                    fetchedMap.set(c.playerId, {
+                      ...c,
+                      overallRating: Math.round(c.overallRating ?? 0)
+                    });
+                  }
+                });
+              }
+
+              this.finishLoadEvents(events, fetchedMap);
+            },
+            error: () => {
+              this.finishLoadEvents(events, new Map());
+            }
+          });
+        } else {
+          this.finishLoadEvents(events, new Map());
+        }
       },
       error: () => {
         this.eventsLoading = false;
@@ -250,6 +279,34 @@ export class MatchTimelineComponent implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  private finishLoadEvents(events: any[], fetchedMap: Map<number, MiniPlayerCardModel>): void {
+    this.timelineEvents = events.map((e: any) => {
+      const fetched = fetchedMap.get(e.playerId);
+      return {
+        minute: e.minute,
+        eventType: this.formatEventType(e.eventType),
+        eventSubtext: e.assistPlayerName ? `Assist: ${e.assistPlayerName}` : '',
+        rawType: e.eventType,
+        side: e.isHomeSide === true ? 'home' :
+              e.isHomeSide === false ? 'away' :
+              e.teamId === this.matchInfo.homeTeamId ? 'home' : 'away',
+        accentColor: this.eventAccentColor(e.eventType),
+        player: {
+          playerId: e.playerId,
+          fullName: e.playerName,
+          position: fetched?.position ?? fetched?.naturalPosition ?? '',  // real/natural position
+          profileImageUrl: fetched?.profileImageUrl ?? null,
+          overallRating: fetched?.overallRating ?? 0
+        },
+        assistPlayerId: e.assistPlayerId
+      };
+    });
+    this.eventsLoaded = true;
+    this.eventsLoading = false;
+    this.attachEventsToLineups();
+    this.cdr.detectChanges();
   }
 
   public loadLineups(): void {
@@ -259,23 +316,57 @@ export class MatchTimelineComponent implements OnInit, OnDestroy {
         const data = res.data ?? res;
         const lineups: any[] = data.lineup ?? data.Lineup ?? (Array.isArray(data) ? data : []);
 
-        const homePlayers = lineups.filter((l: any) =>
-          l.teamId === this.matchInfo.homeTeamId || l.isHomeSide === true
-        );
-        const awayPlayers = lineups.filter((l: any) =>
-          l.teamId === this.matchInfo.awayTeamId || l.isHomeSide === false
-        );
+        const isSession = (this.matchInfo?.type || '').toString().toLowerCase().includes('session');
 
-        this.homeStarters = this.buildStartersMatrix(homePlayers, this.matchInfo.formation || '4-3-3');
-        this.homeBench = this.buildBenchList(homePlayers);
+        const homePlayers = lineups.filter((l: any) => {
+          if (isSession) return l.isHomeSide === true;
+          return l.teamId === this.matchInfo.homeTeamId || l.isHomeSide === true;
+        });
+        const awayPlayers = lineups.filter((l: any) => {
+          if (isSession) return l.isHomeSide === false;
+          return l.teamId === this.matchInfo.awayTeamId || l.isHomeSide === false;
+        });
 
-        this.awayStarters = this.buildStartersMatrix(awayPlayers, this.matchInfo.awayFormation || '4-3-3');
-        this.awayBench = this.buildBenchList(awayPlayers);
+        const playerIds = lineups.map((l: any) => l.playerId ?? l.PlayerId).filter((id: number) => id > 0);
+        
+        if (playerIds.length > 0) {
+          this.playerCardService.getMiniPlayerCards(playerIds).subscribe({
+            next: (cards: MiniPlayerCardModel[]) => {
+              const rawCards = (cards as any)?.data ?? cards ?? [];
+              const fetchedMap = new Map<number, MiniPlayerCardModel>();
 
-        this.lineupsLoaded = true;
-        this.lineupsLoading = false;
-        this.attachEventsToLineups();
-        this.cdr.detectChanges();
+              if (Array.isArray(rawCards)) {
+                rawCards.forEach((c: any) => {
+                  if (c && c.playerId > 0) {
+                    fetchedMap.set(c.playerId, {
+                      ...c,
+                      overallRating: Math.round(c.overallRating ?? 0)
+                    });
+                  }
+                });
+              }
+
+              lineups.forEach((l: any) => {
+                const pId = l.playerId ?? l.PlayerId;
+                const fetched = fetchedMap.get(pId);
+                
+                if (fetched) {
+                  l.overallRating = fetched.overallRating;
+                  l.profileImageUrl = fetched.profileImageUrl;
+                  // Store the player's real/natural position from mini card
+                  l.naturalPosition = fetched.position;
+                }
+              });
+
+              this.finishLoadLineups(homePlayers, awayPlayers);
+            },
+            error: () => {
+              this.finishLoadLineups(homePlayers, awayPlayers);
+            }
+          });
+        } else {
+          this.finishLoadLineups(homePlayers, awayPlayers);
+        }
       },
       error: () => {
         this.lineupsLoading = false;
@@ -285,42 +376,109 @@ export class MatchTimelineComponent implements OnInit, OnDestroy {
     });
   }
 
+  private finishLoadLineups(homePlayers: any[], awayPlayers: any[]): void {
+    this.homeStarters = this.buildStartersMatrix(homePlayers, this.matchInfo.formation || '4-3-3');
+    this.homeBench = this.buildBenchList(homePlayers);
+
+    this.awayStarters = this.buildStartersMatrix(awayPlayers, this.matchInfo.awayFormation || '4-3-3');
+    this.awayBench = this.buildBenchList(awayPlayers);
+
+    this.lineupsLoaded = true;
+    this.lineupsLoading = false;
+    this.attachEventsToLineups();
+    this.cdr.detectChanges();
+  }
+
   private buildStartersMatrix(players: any[], formationStr: string): MiniPlayerCardModel[][] {
     const starters = players.filter((p: any) => p.isStarting || p.IsStarting);
-    const parsed = formationStr.split('-').map(n => parseInt(n, 10)).filter(n => !isNaN(n));
+
+    // Parse formation – support any format: 4-3-3, 2-2, 3-2-1, 2-3-1, etc.
+    // Convention: numbers go from defense → midfield → attack (e.g. 4-3-3 = 4 DEF, 3 MID, 3 FW)
+    const parsed = formationStr.split('-').map(n => parseInt(n, 10)).filter(n => !isNaN(n) && n > 0);
     const lines = parsed.length > 0 ? parsed : [4, 3, 3];
 
-    const matrix: MiniPlayerCardModel[][] = [];
-    let idx = 0;
-
+    // Separate GK from outfield players
     const gk = starters.find((p: any) => (p.positionInMatch || p.PositionInMatch || '').toUpperCase() === 'GK');
+    const outfield = gk ? starters.filter((p: any) => p !== gk) : starters.slice(1);
+
+    // Sort outfield players by compound key: (zone * 10) + lateral
+    //   Zone:    0=DEF  1=CDM  2=CM/Wide-MID  3=CAM/AM  4=FW
+    //   Lateral: 0=Left  1=Center  2=Right
+    // This ensures correct left-right ordering within each row AND
+    // correct zone ordering (e.g. CAM between CDM and FW in 4-2-3-1)
+    const posKey = (pos: string): number => {
+      const p = (pos || '').toUpperCase();
+      switch (p) {
+        // ── Defenders ──────────────────────────────
+        case 'LB':   return 0 * 10 + 0;
+        case 'LWB':  return 0 * 10 + 0;
+        case 'CB':   return 0 * 10 + 1;
+        case 'SW':   return 0 * 10 + 1;
+        case 'DEF':  return 0 * 10 + 1;
+        case 'DF':   return 0 * 10 + 1;
+        case 'RB':   return 0 * 10 + 2;
+        case 'RWB':  return 0 * 10 + 2;
+        // ── Defensive Midfielders ───────────────────
+        case 'CDM':  return 1 * 10 + 1;
+        case 'DM':   return 1 * 10 + 1;
+        case 'DMF':  return 1 * 10 + 1;
+        // ── Central / Wide Midfielders ──────────────
+        case 'LM':   return 2 * 10 + 0;
+        case 'CM':   return 2 * 10 + 1;
+        case 'MID':  return 2 * 10 + 1;
+        case 'MF':   return 2 * 10 + 1;
+        case 'RM':   return 2 * 10 + 2;
+        // ── Attacking Midfielders ───────────────────
+        case 'LAM':  return 3 * 10 + 0;
+        case 'CAM':  return 3 * 10 + 1;
+        case 'AM':   return 3 * 10 + 1;
+        case 'AMF':  return 3 * 10 + 1;
+        case 'RAM':  return 3 * 10 + 2;
+        // ── Forwards ───────────────────────────────
+        case 'LW':   return 4 * 10 + 0;
+        case 'SS':   return 4 * 10 + 1;
+        case 'CF':   return 4 * 10 + 1;
+        case 'ST':   return 4 * 10 + 1;
+        case 'FW':   return 4 * 10 + 1;
+        case 'ATT':  return 4 * 10 + 1;
+        case 'FOR':  return 4 * 10 + 1;
+        case 'RW':   return 4 * 10 + 2;
+        default:     return 2 * 10 + 1; // unknown → CM
+      }
+    };
+    const sortedOutfield = [...outfield].sort((a, b) =>
+      posKey(a.positionInMatch ?? a.PositionInMatch ?? '') -
+      posKey(b.positionInMatch ?? b.PositionInMatch ?? '')
+    );
+
+    // Build matrix: GK row first, then formation rows (DEF → MID → ATT)
+    const matrix: MiniPlayerCardModel[][] = [];
     if (gk) {
       matrix.push([this.toCardModel(gk)]);
     } else if (starters.length > 0) {
       matrix.push([this.toCardModel(starters[0])]);
-      idx = 1;
     }
 
-    const fieldStarters = gk ? starters.filter((p: any) => p !== gk) : starters.slice(idx);
     let fieldIdx = 0;
-
     for (const count of lines) {
       const row: MiniPlayerCardModel[] = [];
-      for (let c = 0; c < count && fieldIdx < fieldStarters.length; c++) {
-        row.push(this.toCardModel(fieldStarters[fieldIdx++]));
+      for (let c = 0; c < count && fieldIdx < sortedOutfield.length; c++) {
+        row.push(this.toCardModel(sortedOutfield[fieldIdx++]));
       }
       if (row.length > 0) matrix.push(row);
     }
 
-    while (fieldIdx < fieldStarters.length) {
+    // Any overflow players go into the last row
+    while (fieldIdx < sortedOutfield.length) {
       if (matrix.length > 1) {
-        matrix[matrix.length - 1].push(this.toCardModel(fieldStarters[fieldIdx++]));
+        matrix[matrix.length - 1].push(this.toCardModel(sortedOutfield[fieldIdx++]));
       } else {
-        matrix.push([this.toCardModel(fieldStarters[fieldIdx++])]);
+        matrix.push([this.toCardModel(sortedOutfield[fieldIdx++])]);
       }
     }
 
-    return matrix;
+    // Reverse: pitch renders top→bottom, but we want ATT at top and GK at bottom
+    return matrix.reverse();
   }
 
   private attachEventsToLineups(): void {
@@ -374,7 +532,8 @@ export class MatchTimelineComponent implements OnInit, OnDestroy {
     return {
       playerId: p.playerId ?? p.PlayerId ?? 0,
       fullName: p.playerName ?? p.PlayerName ?? p.playerFullName ?? 'Player',
-      position: p.positionInMatch ?? p.PositionInMatch ?? 'SUB',
+      position: p.positionInMatch ?? p.PositionInMatch ?? 'SUB',   // role in this match
+      naturalPosition: p.naturalPosition ?? p.NaturalPosition ?? undefined, // player's real position
       profileImageUrl: p.profileImageUrl ?? p.ProfileImageUrl ?? null,
       overallRating: p.overallRating ?? p.OverallRating ?? 0
     };

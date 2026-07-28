@@ -23,5 +23,12 @@ namespace Koralytics.Application.Options
 
         /// <summary>Comma-separated allowed video extensions e.g. "mp4,mov,avi".</summary>
         public string AllowedExtensions { get; set; } = "mp4,mov,avi,mkv,webm";
+
+        /// <summary>Max upload size for image files in MB (default 10).</summary>
+        public int MaxImageSizeMb { get; set; } = 10;
+
+        /// <summary>Comma-separated allowed image extensions e.g. "jpg,jpeg,png,webp,gif,svg".</summary>
+        public string AllowedImageExtensions { get; set; } = "jpg,jpeg,png,webp,gif,svg";
     }
 }
+

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { MatchService } from '../../../../../core/services/match/match.service';
 import { AuthService } from '../../../../../core/services/auth/auth.service';
+import { CoachSquadService } from '../../../../../core/services/coach/coach-squad.service';
 import { MatchTimelineComponent } from '../../match-timeline/match-timeline.component';
 import { NavbarComponent } from '../../../../../shared/components/navbar/navbar';
 import { Footer } from '../../../../../shared/components/footer/footer';
@@ -27,6 +28,7 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private matchService = inject(MatchService);
   private authService = inject(AuthService);
+  private coachSquadService = inject(CoachSquadService);
   private cdr = inject(ChangeDetectorRef);
   private signalrService = inject(MatchSignalrService);
 
@@ -35,6 +37,8 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
   matchId!: number;
   isLoading = true;
   error = '';
+  
+  isCoachForThisMatch = false;
 
   matchInfo: any = {
     homeTeam: '',
@@ -75,7 +79,19 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
       return this.isSuperAdmin;
     }
 
-    return this.isCoach || this.isSuperAdmin;
+    return this.isCoachForThisMatch || this.isSuperAdmin;
+  }
+
+  get canSubmitRatings(): boolean {
+    if (!this.matchInfo || this.matchInfo.status !== 'Completed') return false;
+
+    const matchType = (this.matchInfo.type || '').toString().toLowerCase();
+
+    if (matchType.includes('tournament')) {
+      return this.isSuperAdmin;
+    }
+
+    return this.isCoachForThisMatch || this.isSuperAdmin;
   }
 
   get isStartMatchEligibleDate(): boolean {
@@ -100,7 +116,7 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
       return this.isSuperAdmin;
     }
 
-    return this.isCoach || this.isSuperAdmin;
+    return this.isCoachForThisMatch || this.isSuperAdmin;
   }
 
   ngOnInit(): void {
@@ -116,6 +132,9 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.matchId) {
       this.signalrService.leaveMatchGroup(this.matchId);
+    }
+    if (this.signalrSub) {
+      this.signalrSub.unsubscribe();
     }
     if (this.signalrSub) {
       this.signalrSub.unsubscribe();
@@ -158,8 +177,26 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
           awayFormation: m.awayFormation ?? m.AwayFormation ?? '4-3-3'
         };
 
-        this.isLoading = false;
-        this.cdr.detectChanges();
+        if (this.isCoach && !this.isSuperAdmin) {
+          this.coachSquadService.getCoachTeams().subscribe({
+            next: (teamsRes: any) => {
+              const teams = teamsRes?.data ?? teamsRes ?? [];
+              const coachTeam = teams.find((t: any) =>
+                (t.teamId ?? t.TeamId) === this.matchInfo.homeTeamId || (t.teamId ?? t.TeamId) === this.matchInfo.awayTeamId
+              );
+              this.isCoachForThisMatch = !!coachTeam;
+              this.isLoading = false;
+              this.cdr.detectChanges();
+            },
+            error: () => {
+              this.isLoading = false;
+              this.cdr.detectChanges();
+            }
+          });
+        } else {
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        }
       },
       error: () => {
         this.isLoading = false;

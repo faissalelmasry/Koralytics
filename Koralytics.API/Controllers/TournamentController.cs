@@ -136,6 +136,13 @@ namespace Koralytics.API.Controllers
             return OkResponse(result);
         }
 
+        [HttpGet("fixture/{fixtureId}")]
+        public async Task<IActionResult> GetFixtureDetails(int fixtureId)
+        {
+            var result = await _tournamentFixtureService.GetFixtureDetailsAsync(fixtureId);
+            return OkResponse(result);
+        }
+
         [HttpGet("{tournamentId}/teams")]
         public async Task<IActionResult> GetTeams(int tournamentId)
         {

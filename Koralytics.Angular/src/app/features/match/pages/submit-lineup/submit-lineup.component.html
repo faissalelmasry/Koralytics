@@ -7,28 +7,23 @@
     <div class="header-info">
       <h2 class="builder-title">Match Day Squad Builder</h2>
       <p class="builder-subtitle">
-        {{ coachTeamName }} — Drag & drop players into position slots on the pitch and substitute bench.
+        {{ coachTeamName }}
       </p>
     </div>
 
     <div class="header-actions">
       <div class="formation-selector-box">
-        <app-select
-          label="Formation"
-          [options]="formationOptions"
-          [(value)]="selectedFormation"
+        <app-select label="Formation" [options]="formationOptions" [(value)]="selectedFormation"
           (valueChange)="onFormationChange()">
         </app-select>
       </div>
 
-      <app-button
-        variant="accent"
-        [loading]="isSubmitting"
-        [disabled]="isSubmitting || isLoading || getStartingCount() !== formatStartingCount"
-        (click)="submitLineup()">
-        <svg class="btn-icon-svg" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="22" y1="2" x2="11" y2="13"/>
-          <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+      <app-button variant="accent" [loading]="isSubmitting"
+        [disabled]="isSubmitting || isLoading || getStartingCount() !== formatStartingCount" (click)="submitLineup()">
+        <svg class="btn-icon-svg" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+          fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13" />
+          <polygon points="22 2 15 22 11 13 2 9 22 2" />
         </svg>
         Submit Lineup
       </app-button>
@@ -37,154 +32,141 @@
 
   <!-- Loading State -->
   @if (isLoading) {
-    <div class="loading-state">
-      <app-loading-spinner size="lg"></app-loading-spinner>
-      <p>Loading team squad and mini player cards...</p>
-    </div>
+  <div class="loading-state">
+    <app-loading-spinner size="lg"></app-loading-spinner>
+    <p>Loading team squad and mini player cards...</p>
+  </div>
   }
   @else if (error) {
-    <div class="error-state">
-      <div class="error-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"/>
-          <line x1="12" y1="8" x2="12" y2="12"/>
-          <line x1="12" y1="16" x2="12.01" y2="16"/>
-        </svg>
-      </div>
-      <p>{{ error }}</p>
-      <app-button variant="accent" (click)="loadMatchData()">Retry</app-button>
+  <div class="error-state">
+    <div class="error-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="8" x2="12" y2="12" />
+        <line x1="12" y1="16" x2="12.01" y2="16" />
+      </svg>
     </div>
+    <p>{{ error }}</p>
+    <app-button variant="accent" (click)="loadMatchData()">Retry</app-button>
+  </div>
   }
   @else {
-    <!-- Main Workspace Grid -->
-    <div class="builder-workspace" scrollReveal direction="bottom" [delay]="100">
+  <!-- Main Workspace Grid -->
+  <div class="builder-workspace" scrollReveal direction="bottom" [delay]="100">
 
-      <!-- Left Sidebar: Squad Roster -->
-      <div class="squad-sidebar-card" (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDropSidebar($event)">
-        <div class="sidebar-header">
-          <span class="sidebar-title">Available Squad</span>
-          <span class="squad-count-badge">{{ availableSquad.length }} Players</span>
+    <!-- Left Sidebar: Squad Roster -->
+    <div class="squad-sidebar-card" (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)"
+      (drop)="onDropSidebar($event)">
+      <div class="sidebar-header">
+        <span class="sidebar-title">Available Squad</span>
+        <span class="squad-count-badge">{{ availableSquad.length }} Players</span>
+      </div>
+
+      @if (availableSquad.length === 0) {
+      <div class="all-assigned-msg">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12" />
+        </svg>
+        <p>All squad members assigned to pitch or bench</p>
+      </div>
+      }
+
+      <div class="squad-scroll-list">
+        @for (player of availableSquad; track (player ? player.playerId : $index)) {
+        <div class="squad-item-row" draggable="true" (dragstart)="onDragStart($event, player, 'sidebar')"
+          [class.is-selected]="selectedPlayer?.playerId === player.playerId" (click)="selectPlayerCard(player)">
+
+          <div class="mini-card-drag-wrapper">
+            <app-mini-player-card [player]="player" size="xs" [float]="true"></app-mini-player-card>
+          </div>
+
+          <div class="squad-player-meta">
+            <span class="player-name">{{ player.fullName }}</span>
+            <span class="player-position-tag">{{ player.position || 'CM' }} • Rating: {{ player.overallRating }}</span>
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+
+    <!-- Right Workspace: Pitch + Substitutes Bench -->
+    <div class="pitch-and-bench-wrapper">
+
+      <!-- Football Pitch -->
+      <div class="tactical-pitch-container">
+        <div class="pitch-grass">
+          <div class="pitch-center-line"></div>
+          <div class="pitch-center-circle"></div>
+          <div class="pitch-penalty-area-top"></div>
+          <div class="pitch-penalty-area-bottom"></div>
+
+          <!-- Pitch Formation Rows -->
+          <div class="formation-rows-wrapper">
+            @for (row of pitchRows; track $index; let rIdx = $index) {
+            <div class="formation-row">
+              @for (slot of row; track slot.slotId; let cIdx = $index) {
+              <div class="pitch-slot" [class.has-player]="!!slot.player" [class.can-accept]="!!selectedPlayer"
+                (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)"
+                (drop)="onDropPitch($event, rIdx, cIdx)"
+                (click)="selectedPlayer ? assignSelectedToPitchSlot(rIdx, cIdx) : null">
+
+                @if (slot.player) {
+                <div class="slotted-mini-card" draggable="true"
+                  (dragstart)="onDragStart($event, slot.player, 'pitch', { row: rIdx, col: cIdx })">
+                  <button class="btn-remove-slot"
+                    (click)="removePitchPlayer(rIdx, cIdx); $event.stopPropagation()">×</button>
+                  <app-mini-player-card [player]="slot.player" size="xs" [float]="true"></app-mini-player-card>
+                </div>
+                } @else {
+                <div class="empty-slot-placeholder">
+                  <span class="slot-role-code">{{ slot.role }}</span>
+                  <span class="slot-plus-icon">+</span>
+                </div>
+                }
+              </div>
+              }
+            </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Substitutes Bench -->
+      <div class="bench-section-card">
+        <div class="bench-header">
+          <span class="bench-title">Substitutes Bench (7 Drop Slots)</span>
+          <span class="starters-status">
+            Starters: {{ getStartingCount() }} / {{ formatStartingCount }}
+          </span>
         </div>
 
-        @if (availableSquad.length === 0) {
-          <div class="all-assigned-msg">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="20 6 9 17 4 12"/>
-            </svg>
-            <p>All squad members assigned to pitch or bench</p>
-          </div>
-        }
+        <div class="bench-flex-container">
+          @for (bPlayer of benchSlots; track $index; let bIdx = $index) {
+          <div class="bench-slot" [class.has-player]="!!bPlayer" [class.can-accept]="!!selectedPlayer"
+            (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDropBench($event, bIdx)"
+            (click)="selectedPlayer ? assignSelectedToBenchSlot(bIdx) : null">
 
-        <div class="squad-scroll-list">
-          @for (player of availableSquad; track (player ? player.playerId : $index)) {
-            <div
-              class="squad-item-row"
-              draggable="true"
-              (dragstart)="onDragStart($event, player, 'sidebar')"
-              [class.is-selected]="selectedPlayer?.playerId === player.playerId"
-              (click)="selectPlayerCard(player)">
-
-              <div class="mini-card-drag-wrapper">
-                <app-mini-player-card [player]="player" size="xs" [float]="true"></app-mini-player-card>
-              </div>
-
-              <div class="squad-player-meta">
-                <span class="player-name">{{ player.fullName }}</span>
-                <span class="player-position-tag">{{ player.position || 'CM' }} • Rating: {{ player.overallRating }}</span>
-              </div>
+            @if (bPlayer) {
+            <div class="slotted-mini-card" draggable="true"
+              (dragstart)="onDragStart($event, bPlayer, 'bench', { benchIdx: bIdx })">
+              <button class="btn-remove-slot" (click)="removeBenchPlayer(bIdx); $event.stopPropagation()">×</button>
+              <app-mini-player-card [player]="bPlayer" size="xs"></app-mini-player-card>
             </div>
+            } @else {
+            <div class="empty-bench-placeholder">
+              <span class="bench-slot-label">SUB {{ bIdx + 1 }}</span>
+            </div>
+            }
+          </div>
           }
         </div>
       </div>
 
-      <!-- Right Workspace: Pitch + Substitutes Bench -->
-      <div class="pitch-and-bench-wrapper">
-
-        <!-- Football Pitch -->
-        <div class="tactical-pitch-container">
-          <div class="pitch-grass">
-            <div class="pitch-center-line"></div>
-            <div class="pitch-center-circle"></div>
-            <div class="pitch-penalty-area-top"></div>
-            <div class="pitch-penalty-area-bottom"></div>
-
-            <!-- Pitch Formation Rows -->
-            <div class="formation-rows-wrapper">
-              @for (row of pitchRows; track $index; let rIdx = $index) {
-                <div class="formation-row">
-                  @for (slot of row; track slot.slotId; let cIdx = $index) {
-                    <div
-                      class="pitch-slot"
-                      [class.has-player]="!!slot.player"
-                      [class.can-accept]="!!selectedPlayer"
-                      (dragover)="onDragOver($event)"
-                      (dragleave)="onDragLeave($event)"
-                      (drop)="onDropPitch($event, rIdx, cIdx)"
-                      (click)="selectedPlayer ? assignSelectedToPitchSlot(rIdx, cIdx) : null">
-
-                      @if (slot.player) {
-                        <div
-                          class="slotted-mini-card"
-                          draggable="true"
-                          (dragstart)="onDragStart($event, slot.player, 'pitch', { row: rIdx, col: cIdx })">
-                          <button class="btn-remove-slot" (click)="removePitchPlayer(rIdx, cIdx); $event.stopPropagation()">×</button>
-                          <app-mini-player-card [player]="slot.player" size="xs" [float]="true"></app-mini-player-card>
-                        </div>
-                      } @else {
-                        <div class="empty-slot-placeholder">
-                          <span class="slot-role-code">{{ slot.role }}</span>
-                          <span class="slot-plus-icon">+</span>
-                        </div>
-                      }
-                    </div>
-                  }
-                </div>
-              }
-            </div>
-          </div>
-        </div>
-
-        <!-- Substitutes Bench -->
-        <div class="bench-section-card">
-          <div class="bench-header">
-            <span class="bench-title">Substitutes Bench (7 Drop Slots)</span>
-            <span class="starters-status">
-              Starters: {{ getStartingCount() }} / {{ formatStartingCount }}
-            </span>
-          </div>
-
-          <div class="bench-flex-container">
-            @for (bPlayer of benchSlots; track $index; let bIdx = $index) {
-              <div
-                class="bench-slot"
-                [class.has-player]="!!bPlayer"
-                [class.can-accept]="!!selectedPlayer"
-                (dragover)="onDragOver($event)"
-                (dragleave)="onDragLeave($event)"
-                (drop)="onDropBench($event, bIdx)"
-                (click)="selectedPlayer ? assignSelectedToBenchSlot(bIdx) : null">
-
-                @if (bPlayer) {
-                  <div
-                    class="slotted-mini-card"
-                    draggable="true"
-                    (dragstart)="onDragStart($event, bPlayer, 'bench', { benchIdx: bIdx })">
-                    <button class="btn-remove-slot" (click)="removeBenchPlayer(bIdx); $event.stopPropagation()">×</button>
-                    <app-mini-player-card [player]="bPlayer" size="xs"></app-mini-player-card>
-                  </div>
-                } @else {
-                  <div class="empty-bench-placeholder">
-                    <span class="bench-slot-label">SUB {{ bIdx + 1 }}</span>
-                  </div>
-                }
-              </div>
-            }
-          </div>
-        </div>
-
-      </div>
-
     </div>
+
+  </div>
   }
 
 </div>

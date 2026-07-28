@@ -181,7 +181,7 @@ export class SquadRegistrationComponent implements OnInit {
           endDate: '2026-08-15',
           status: TournamentStatus.Registration
         };
-        
+
         const teamPayload = responses.teams?.data || responses.teams;
         this.tournamentTeams = Array.isArray(teamPayload) && teamPayload.length > 0 ? teamPayload : [
           { teamId: 1, teamName: 'Cairo Youth FC' },
@@ -203,9 +203,9 @@ export class SquadRegistrationComponent implements OnInit {
         this.loadPlayersForSelectedTeam();
       },
       error: () => {
-        this.tournament = { 
+        this.tournament = {
           id: this.tournamentId || 1,
-          name: 'Summer Champions Cup 2026', 
+          name: 'Summer Champions Cup 2026',
           format: MatchFormat.ElevenSide,
           structure: TournamentStructure.GroupAndKnockout,
           ageGroupName: 'U-17',
@@ -247,19 +247,19 @@ export class SquadRegistrationComponent implements OnInit {
     this.cdr.markForCheck();
 
     forkJoin({
-      squad: this.coachSquadService.getSquad(coachId, this.selectedTeamId).pipe(catchError(() => of(null))),
+      squad: this.coachSquadService.getSquad(this.selectedTeamId, coachId).pipe(catchError(() => of(null))),
       registered: this.tournamentService.getRegisteredPlayerIds(this.tournamentId, this.selectedTeamId).pipe(catchError(() => of([])))
     }).subscribe({
       next: ({ squad, registered }) => {
-        const data = squad?.data || squad;
+        const data = (squad as any)?.data || squad;
         const rawPlayers = data?.players || data?.Players || [];
-        
+
         let loadedPlayers = this.normalizePlayers(Array.isArray(rawPlayers) ? rawPlayers : []);
         if (loadedPlayers.length === 0) {
           loadedPlayers = this.getMockPlayers();
         }
         this.players = loadedPlayers;
-        
+
         this.registeredPlayerIds.clear();
         const regIds = registered?.data || registered;
         if (Array.isArray(regIds)) {

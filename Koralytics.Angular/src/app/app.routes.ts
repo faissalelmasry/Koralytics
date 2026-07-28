@@ -55,6 +55,7 @@ export const routes: Routes = [
         loadComponent: () => import('./features/drills/coach-bias-analytics.component/coach-bias-analytics.component').then(m => m.CoachBiasAnalyticsComponent)
       },
 
+      { path: 'profile/me', loadComponent: () => import('./features/profile/my-profile/my-profile.component').then(m => m.MyProfileComponent) },
       { path: 'settings/change-password', loadComponent: () => import('./features/auth/pages/change-password/change-password.component').then(m => m.ChangePasswordComponent) },
       {
         path: 'coach/squad',
@@ -131,6 +132,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/match/pages/session-match/session-match.component').then(m => m.SessionMatchComponent),
     canActivate: [authGuard, roleGuard],
     data: { roles: ['Coach', 'AcademyAdmin'] }
+  },
+  {
+    path: 'tournament/fixture/:fixtureId/create-match',
+    loadComponent: () => import('./features/match/pages/create-tournament-match/create-tournament-match.component').then(m => m.CreateTournamentMatchComponent),
+    canActivate: [authGuard]
   },
   {
     path: 'academy/matches',

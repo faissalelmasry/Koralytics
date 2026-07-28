@@ -1,0 +1,262 @@
+<div class="match-ratings-container fade-in-content">
+  @if (isLoading) {
+  <div class="loading-state">
+    <app-loading-spinner size="lg"></app-loading-spinner>
+    <p>Loading ratings form...</p>
+  </div>
+  } @else if (hasSubmitted) {
+  <div class="team-subtabs" style="margin-bottom: 2rem;">
+    @if (canSeeHome) {
+    <button class="subtab-btn" [class.active]="selectedTeam === 'home'" (click)="selectTeam('home')">
+      {{ matchInfo.homeTeam }}
+    </button>
+    }
+    @if (canSeeAway) {
+    <button class="subtab-btn" [class.active]="selectedTeam === 'away'" (click)="selectTeam('away')">
+      {{ matchInfo.awayTeam }}
+    </button>
+    }
+  </div>
+
+  <div class="teams-container">
+    @if (selectedTeam === 'home') {
+      <div class="team-section fade-in-content">
+        @if (submittedHomeRatings.length === 0) {
+          <app-empty-state title="No Ratings" description="No ratings found for this team."></app-empty-state>
+        } @else {
+          <ng-container *ngTemplateOutlet="readonlyList; context: { $implicit: submittedHomeRatings }"></ng-container>
+        }
+      </div>
+    }
+    @if (selectedTeam === 'away') {
+      <div class="team-section fade-in-content">
+        @if (submittedAwayRatings.length === 0) {
+          <app-empty-state title="No Ratings" description="No ratings found for this team."></app-empty-state>
+        } @else {
+          <ng-container *ngTemplateOutlet="readonlyList; context: { $implicit: submittedAwayRatings }"></ng-container>
+        }
+      </div>
+    }
+  </div>
+
+  <ng-template #readonlyList let-ratings>
+    <div class="readonly-players-grid">
+      @for (rating of ratings; track rating.playerId) {
+      <div class="glass-card player-readonly-card">
+        
+        <!-- Ambient Background Glows inside card -->
+        <div class="ambient-glow glow-emerald"></div>
+        <div class="ambient-glow glow-cyan"></div>
+
+        <div class="card-top-section">
+          <div class="player-info-wrap">
+            <app-mini-player-card [player]="rating.player" size="xs" [useNaturalPosition]="true"></app-mini-player-card>
+            <div class="player-details">
+              <span class="full-name-label block">{{ rating.player.fullName }}</span>
+              <span class="mins-played-label">{{ rating.minutesPlayed }} mins played</span>
+              @if (rating.isMOTM) {
+                <span class="motm-badge">MOTM</span>
+              }
+            </div>
+          </div>
+
+          <div class="average-score-container">
+            <div class="average-score-circle">
+              <span class="average-score-value" [ngClass]="getAverageColor(rating.overallAverage)">
+                {{ rating.overallAverage | number:'1.0-1' }}
+              </span>
+            </div>
+            <span class="average-score-label">Avg</span>
+          </div>
+        </div>
+
+        <div class="categories-bars-grid">
+          @for (cat of rating.categories; track cat.name) {
+          <div class="category-bar-group">
+            <div class="category-bar-header">
+              <div class="category-bar-title">
+                <span class="category-name">{{ cat.name }}</span>
+              </div>
+              <div class="category-score-wrap">
+                <span class="category-score-val">{{ cat.score | number:'1.0-1' }}</span>
+                <span class="category-score-max">/ 10</span>
+              </div>
+            </div>
+
+            <!-- Animated Progress Bar -->
+            <div class="progress-bar-track">
+              <div class="progress-bar-fill"
+                   [ngClass]="cat.colorClass"
+                   [style.width.%]="(cat.score / 10) * 100">
+                <div class="progress-bar-glow"></div>
+              </div>
+            </div>
+          </div>
+          }
+        </div>
+
+        @if (rating.coachNote) {
+          <div class="coach-note-box">
+            <span class="coach-note-label">Coach Note</span>
+            <p class="coach-note-text">"{{ rating.coachNote }}"</p>
+          </div>
+        }
+      </div>
+      }
+    </div>
+  </ng-template>
+
+  } @else {
+  <div class="ratings-header">
+    <div class="header-content">
+      <h3>Submit Post-Match Ratings</h3>
+      <p>Rate players on a scale of 0-10. You must select one MOTM per team (or one overall depending on match type).
+      </p>
+    </div>
+    <div class="header-action">
+      <app-button variant="accent" [loading]="isSubmitting" [disabled]="isSubmitting" (click)="submitRatings()">
+        Submit All Ratings
+      </app-button>
+    </div>
+  </div>
+
+  <div class="team-subtabs" style="margin-bottom: 2rem;">
+    @if (canSeeHome) {
+    <button class="subtab-btn" [class.active]="selectedTeam === 'home'" (click)="selectTeam('home')">
+      {{ matchInfo.homeTeam }}
+    </button>
+    }
+    @if (canSeeAway) {
+    <button class="subtab-btn" [class.active]="selectedTeam === 'away'" (click)="selectTeam('away')">
+      {{ matchInfo.awayTeam }}
+    </button>
+    }
+  </div>
+
+  <div class="teams-container">
+    <!-- Home Team -->
+    @if (selectedTeam === 'home') {
+    <div class="team-section fade-in-content">
+      <div class="players-list">
+        @for (playerForm of homeRatings; track playerForm.player.playerId) {
+        <div class="player-rating-card" [class.is-motm]="playerForm.isMOTM" [class.is-skipped]="playerForm.skipRating">
+          <div class="card-header">
+            <div class="player-info-wrap">
+              <app-mini-player-card [player]="playerForm.player" size="xs" [useNaturalPosition]="true"></app-mini-player-card>
+              <span class="full-name-label">{{ playerForm.player.fullName }}</span>
+            </div>
+            <div class="header-actions">
+              <button type="button" class="skip-btn" [class.active]="playerForm.skipRating"
+                (click)="toggleSkipRating(playerForm)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+                </svg>
+                No Rating
+              </button>
+              <button type="button" class="motm-btn" [class.active]="playerForm.isMOTM"
+                [disabled]="playerForm.skipRating" (click)="toggleMOTM(playerForm)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"
+                  stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon
+                    points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                  </polygon>
+                </svg>
+                MOTM
+              </button>
+            </div>
+          </div>
+
+          <div class="rating-controls">
+            <div class="minutes-note-row" [class.disabled-row]="playerForm.skipRating">
+              <div class="input-group mins-group">
+                <label>Mins Played</label>
+                <app-number-input [(ngModel)]="playerForm.minutesPlayed" [min]="0" [max]="defaultMinutes" [disabled]="playerForm.skipRating" [step]="1"></app-number-input>
+              </div>
+              <div class="input-group note-group">
+                <label>Coach Note</label>
+                <input type="text" class="form-input" [(ngModel)]="playerForm.coachNote"
+                  placeholder="Any thoughts on performance?..." [disabled]="playerForm.skipRating" />
+              </div>
+            </div>
+
+            <div class="categories-grid" [class.disabled-grid]="playerForm.skipRating">
+              @for (cat of playerForm.categories; track cat.drillCategoryId) {
+              <div class="category-counter-box">
+                <span class="cat-label">{{ cat.name }}</span>
+                <app-number-input [(ngModel)]="cat.rating" [min]="0" [max]="10" [disabled]="playerForm.skipRating" [step]="1"></app-number-input>
+              </div>
+              }
+            </div>
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+    }
+
+    <!-- Away Team -->
+    @if (selectedTeam === 'away') {
+    <div class="team-section fade-in-content">
+      <div class="players-list">
+        @for (playerForm of awayRatings; track playerForm.player.playerId) {
+        <div class="player-rating-card" [class.is-motm]="playerForm.isMOTM" [class.is-skipped]="playerForm.skipRating">
+          <div class="card-header">
+            <div class="player-info-wrap">
+              <app-mini-player-card [player]="playerForm.player" size="xs" [useNaturalPosition]="true"></app-mini-player-card>
+              <span class="full-name-label">{{ playerForm.player.fullName }}</span>
+            </div>
+            <div class="header-actions">
+              <button type="button" class="skip-btn" [class.active]="playerForm.skipRating"
+                (click)="toggleSkipRating(playerForm)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+                </svg>
+                No Rating
+              </button>
+              <button type="button" class="motm-btn" [class.active]="playerForm.isMOTM"
+                [disabled]="playerForm.skipRating" (click)="toggleMOTM(playerForm)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"
+                  stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon
+                    points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                  </polygon>
+                </svg>
+                MOTM
+              </button>
+            </div>
+          </div>
+
+          <div class="rating-controls">
+            <div class="minutes-note-row" [class.disabled-row]="playerForm.skipRating">
+              <div class="input-group mins-group">
+                <label>Mins Played</label>
+                <app-number-input [(ngModel)]="playerForm.minutesPlayed" [min]="0" [max]="defaultMinutes" [disabled]="playerForm.skipRating" [step]="1"></app-number-input>
+              </div>
+              <div class="input-group note-group">
+                <label>Coach Note</label>
+                <input type="text" class="form-input" [(ngModel)]="playerForm.coachNote"
+                  placeholder="Any thoughts on performance?..." [disabled]="playerForm.skipRating" />
+              </div>
+            </div>
+
+            <div class="categories-grid" [class.disabled-grid]="playerForm.skipRating">
+              @for (cat of playerForm.categories; track cat.drillCategoryId) {
+              <div class="category-counter-box">
+                <span class="cat-label">{{ cat.name }}</span>
+                <app-number-input [(ngModel)]="cat.rating" [min]="0" [max]="10" [disabled]="playerForm.skipRating" [step]="1"></app-number-input>
+              </div>
+              }
+            </div>
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+    }
+  </div>
+  }
+</div>
