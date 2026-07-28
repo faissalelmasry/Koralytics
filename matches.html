@@ -3,558 +3,319 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Koralytics - Animated Performance Hub</title>
+  <title>Koralytics - Create Match</title>
   
-  <!-- Fonts Matching Koralytics Design System -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@600;700&display=swap" rel="stylesheet">
-
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Alpine.js -->
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+  
   <style>
-    /* ==========================================
-       KORALYTICS EXACT DESIGN SYSTEM VARIABLES
-       ========================================== */
-    :root {
-      --bg-dark: #08090c;
-      --card-bg: #12161f;
-      --card-bg-hover: #161b27;
-      --border-color: rgba(255, 255, 255, 0.06);
-      
-      /* Dynamic Neon Colors */
-      --color-green: #a3e635;
-      --glow-green: rgba(163, 230, 53, 0.25);
-      
-      --color-yellow: #facc15;
-      --glow-yellow: rgba(250, 204, 21, 0.25);
-
-      --color-red: #f87171;
-      --glow-red: rgba(248, 113, 113, 0.25);
-
-      --text-main: #f3f4f6;
-      --text-muted: #6b7280;
-      
-      --font-display: 'Oswald', sans-serif;
-      --font-body: 'Inter', sans-serif;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font-body); }
-
     body {
-      background-color: var(--bg-dark);
-      color: var(--text-main);
-      padding: 40px 20px;
-      display: flex;
-      justify-content: center;
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-
-    .koralytics-wrapper {
-      width: 100%;
-      max-width: 850px;
-    }
-
-    /* Subtitle Tag Above Header + Pulsing Dot */
-    .tactical-tag {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 0.7rem;
-      font-weight: 700;
-      color: var(--color-green);
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      margin-bottom: 4px;
-      animation: fadeIn 0.8s ease-out forwards;
-    }
-
-    .tactical-tag::before {
-      content: '';
-      width: 7px;
-      height: 7px;
-      background: var(--color-green);
-      border-radius: 50%;
-      box-shadow: 0 0 8px var(--color-green);
-      animation: pulseDot 1.8s infinite ease-in-out;
-    }
-
-    /* Header Title */
-    .section-title {
-      font-family: var(--font-display);
-      font-size: 2.2rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      line-height: 1;
-      margin-bottom: 24px;
-      animation: fadeIn 0.8s ease-out 0.1s forwards;
-      opacity: 0;
-    }
-
-    /* Section Divider Headings */
-    .group-label {
-      font-family: var(--font-display);
-      font-size: 1.1rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--text-muted);
-      margin: 32px 0 14px 0;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      animation: fadeIn 0.8s ease-out 0.2s forwards;
-      opacity: 0;
-    }
-
-    .group-label::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--border-color);
-    }
-
-    /* General Cards Grid */
-    .koralytics-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    /* ==========================================
-       CARD STYLES & ANIMATIONS
-       ========================================== */
-    .koralytics-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 14px;
-      padding: 18px 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: relative;
-      overflow: hidden;
-      
-      /* Smooth Hover Transitions */
-      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
-                  border-color 0.3s ease,
-                  background-color 0.3s ease,
-                  box-shadow 0.3s ease;
-
-      /* Entrance Animation Base */
-      opacity: 0;
-      animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-
-    /* Staggered Delay for Entrance Animation */
-    .koralytics-grid .koralytics-card:nth-child(1) { animation-delay: 0.25s; }
-    .koralytics-grid .koralytics-card:nth-child(2) { animation-delay: 0.35s; }
-    .koralytics-grid .koralytics-card:nth-child(3) { animation-delay: 0.45s; }
-    .koralytics-grid .koralytics-card:nth-child(4) { animation-delay: 0.55s; }
-
-    /* Animated Hover Glow Bar */
-    .koralytics-card::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -50%;
-      width: 200%;
-      height: 2px;
-      opacity: 0;
-      transition: opacity 0.4s ease, transform 0.6s ease;
-      transform: translateX(-30%);
-    }
-
-    .koralytics-card:hover {
-      background: var(--card-bg-hover);
-      border-color: rgba(255, 255, 255, 0.15);
-      transform: translateY(-4px);
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
-    }
-
-    .koralytics-card:hover::after {
-      opacity: 1;
-      transform: translateX(0%);
-    }
-
-    /* Top Line Glows */
-    .card-green::after { background: linear-gradient(90deg, transparent, var(--color-green), transparent); }
-    .card-yellow::after { background: linear-gradient(90deg, transparent, var(--color-yellow), transparent); }
-    .card-red::after { background: linear-gradient(90deg, transparent, var(--color-red), transparent); }
-
-    /* 🌟 MAN OF THE MATCH SPECIAL STYLING & ANIMATION */
-    .koralytics-card.motm-card {
-      border: 1px solid rgba(163, 230, 53, 0.35) !important;
-      box-shadow: inset 0 0 15px rgba(163, 230, 53, 0.04);
-    }
-
-    .motm-ribbon {
-      position: absolute;
-      top: -10px;
-      right: 24px;
-      background: var(--color-green);
-      color: #08090c;
-      font-family: var(--font-display);
-      font-size: 0.65rem;
-      font-weight: 700;
-      letter-spacing: 1px;
-      padding: 3px 12px;
-      border-radius: 4px;
-      box-shadow: 0 0 12px var(--glow-green);
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      z-index: 2;
-      animation: pulseGlow 2s infinite ease-in-out;
-    }
-
-    .motm-ribbon .star-icon {
-      font-size: 0.75rem;
-      line-height: 1;
-      display: inline-block;
-      animation: rotateStar 4s infinite linear;
-    }
-
-    /* Card Content Left */
-    .card-left-info {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .meta-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .meta-date {
-      font-size: 0.65rem;
-      font-weight: 700;
-      color: var(--text-muted);
-      letter-spacing: 1px;
-      text-transform: uppercase;
-    }
-
-    .card-title {
-      font-family: var(--font-display);
-      font-size: 1.35rem;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-      color: #fff;
-      display: flex;
-      align-items: center;
-    }
-
-    .card-subtitle {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-    }
-
-    /* Badges for Matches */
-    .badge {
-      font-size: 0.6rem;
-      font-weight: 800;
-      padding: 2px 8px;
-      border-radius: 4px;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-      transition: transform 0.2s ease;
+      font-family: 'Outfit', sans-serif;
+      background-color: #05080f;
+      color: #e2e8f0;
+      background-image:
+        radial-gradient(circle at 10% 20%, rgba(14, 165, 233, 0.05), transparent 25%),
+        radial-gradient(circle at 90% 80%, rgba(139, 92, 246, 0.05), transparent 25%);
     }
     
-    .koralytics-card:hover .badge {
-      transform: scale(1.05);
+    .glass-card {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
     }
 
-    .badge.win { background: rgba(163, 230, 53, 0.15); color: var(--color-green); border: 1px solid rgba(163, 230, 53, 0.3); }
-    .badge.draw { background: rgba(250, 204, 21, 0.15); color: var(--color-yellow); border: 1px solid rgba(250, 204, 21, 0.3); }
-    .badge.loss { background: rgba(248, 113, 113, 0.15); color: var(--color-red); border: 1px solid rgba(248, 113, 113, 0.3); }
-
-    /* Right Block Container */
-    .stats-block {
-      display: flex;
-      align-items: center;
-      gap: 18px;
-      background: rgba(0, 0, 0, 0.35);
-      padding: 10px 18px;
-      border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.03);
-      transition: border-color 0.3s ease;
+    .form-input {
+      width: 100%;
+      background-color: rgba(30, 41, 59, 0.6);
+      border: 1px solid rgba(51, 65, 85, 0.8);
+      color: #f1f5f9;
+      border-radius: 0.75rem;
+      padding: 0.75rem 1.25rem;
+      transition: all 0.3s ease;
     }
 
-    .koralytics-card:hover .stats-block {
-      border-color: rgba(255, 255, 255, 0.08);
+    .form-input:focus {
+      outline: none;
+      border-color: #0ea5e9;
+      box-shadow: 0 0 0 1px #0ea5e9;
+      background-color: rgba(30, 41, 59, 0.9);
     }
 
-    /* Match Stat Items */
-    .stat-pill {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+    /* Customizing date picker icon for dark theme */
+    ::-webkit-calendar-picker-indicator {
+      filter: invert(1);
+      cursor: pointer;
     }
-
-    .stat-pill .lbl {
-      font-size: 0.58rem;
-      font-weight: 700;
-      color: var(--text-muted);
-      letter-spacing: 1px;
-    }
-
-    .stat-pill .val {
-      font-family: var(--font-display);
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: #fff;
-    }
-
-    /* Rating / Score Box */
-    .rating-box {
-      border-left: 1px solid rgba(255, 255, 255, 0.08);
-      padding-left: 16px;
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-    }
-
-    .rating-num {
-      font-family: var(--font-display);
-      font-size: 1.8rem;
-      font-weight: 700;
-      line-height: 1;
-      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-
-    .koralytics-card:hover .rating-num {
-      transform: scale(1.1);
-    }
-
-    /* Dynamic Color Classes */
-    .score-green { color: var(--color-green); }
-    .score-yellow { color: var(--color-yellow); }
-    .score-red { color: var(--color-red); }
-
-    /* Drill Segment Indicators */
-    .segments-box {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 4px;
-    }
-
-    .segments {
-      display: flex;
-      gap: 3px;
-    }
-
-    .segment {
-      width: 12px;
-      height: 6px;
-      border-radius: 2px;
-      background: rgba(255, 255, 255, 0.1);
-      transition: transform 0.2s ease;
-    }
-
-    .segment.active-green { background: var(--color-green); box-shadow: 0 0 6px var(--glow-green); }
-    .segment.active-yellow { background: var(--color-yellow); box-shadow: 0 0 6px var(--glow-yellow); }
-    .segment.active-red { background: var(--color-red); box-shadow: 0 0 6px var(--glow-red); }
-
-    /* ==========================================
-       KEYFRAME ANIMATIONS DEFINITIONS
-       ========================================== */
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    @keyframes pulseDot {
-      0%, 100% {
-        transform: scale(1);
-        opacity: 1;
-      }
-      50% {
-        transform: scale(1.5);
-        opacity: 0.4;
-      }
-    }
-
-    @keyframes pulseGlow {
-      0%, 100% {
-        box-shadow: 0 0 10px var(--glow-green);
-      }
-      50% {
-        box-shadow: 0 0 20px var(--color-green);
-      }
-    }
-
-    @keyframes rotateStar {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+    
+    select option {
+      background-color: #0f172a;
+      color: #e2e8f0;
     }
   </style>
 </head>
-<body>
+<body class="min-h-screen flex items-center justify-center p-4 sm:p-8" x-data="createActualMatchApp()">
 
-  <div class="koralytics-wrapper">
+  <div class="max-w-5xl w-full glass-card rounded-3xl p-8 sm:p-10 relative overflow-hidden">
     
-    <div class="tactical-tag">Tactical Engine</div>
-    <h2 class="section-title">Player Performance Hub</h2>
+    <!-- Background Accents -->
+    <div class="absolute -top-32 -right-32 w-80 h-80 bg-blue-600 rounded-full mix-blend-screen filter blur-[100px] opacity-20 pointer-events-none"></div>
+    <div class="absolute -bottom-32 -left-32 w-80 h-80 bg-purple-600 rounded-full mix-blend-screen filter blur-[100px] opacity-20 pointer-events-none"></div>
 
-    <!-- MATCHES SECTION -->
-    <div class="group-label">Match Performances</div>
-
-    <div class="koralytics-grid">
-
-      <!-- Match 1: MOTM + Win -->
-      <div class="koralytics-card card-green motm-card">
-        <div class="motm-ribbon">
-          <span class="star-icon">★</span> MAN OF THE MATCH
+    <!-- Header -->
+    <div class="mb-8 relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-800 pb-6 gap-6">
+      <div>
+        <div class="inline-flex items-center gap-2 mb-2">
+          <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+          <span class="text-xs font-bold text-blue-400 tracking-widest uppercase">Match Execution</span>
         </div>
-
-        <div class="card-left-info">
-          <div class="meta-header">
-            <span class="badge win">WIN</span>
-            <span class="meta-date">JUL 20, 2026 • HOME</span>
-          </div>
-          <div class="card-title">
-            <span>Al Ahly vs Zamalek</span>
-            <span class="score-green" style="margin-left: 8px;">2 - 1</span>
-          </div>
-          <div class="card-subtitle">Egyptian Premier League</div>
-        </div>
-
-        <div class="stats-block">
-          <div class="stat-pill"><span class="lbl">MINS</span><span class="val">90'</span></div>
-          <div class="stat-pill"><span class="lbl">GOALS</span><span class="val score-green">1</span></div>
-          <div class="stat-pill"><span class="lbl">ASSISTS</span><span class="val score-green">1</span></div>
-
-          <div class="rating-box">
-            <span class="stat-pill"><span class="lbl">RATING</span></span>
-            <span class="rating-num score-green">8.8</span>
-          </div>
-        </div>
+        <h2 class="text-3xl font-black uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
+          Initialize Match
+        </h2>
+        <p class="text-slate-400 text-sm mt-1">Convert a planned fixture into an active match record.</p>
       </div>
 
-      <!-- Match 2: Draw -->
-      <div class="koralytics-card card-yellow">
-        <div class="card-left-info">
-          <div class="meta-header">
-            <span class="badge draw">DRAW</span>
-            <span class="meta-date">JUL 15, 2026 • AWAY</span>
-          </div>
-          <div class="card-title">
-            <span>Pyramids FC vs Al Ahly</span>
-            <span class="score-yellow" style="margin-left: 8px;">0 - 0</span>
-          </div>
-          <div class="card-subtitle">Egyptian Premier League</div>
-        </div>
-
-        <div class="stats-block">
-          <div class="stat-pill"><span class="lbl">MINS</span><span class="val">60'</span></div>
-          <div class="stat-pill"><span class="lbl">GOALS</span><span class="val">0</span></div>
-          <div class="stat-pill"><span class="lbl">ASSISTS</span><span class="val score-yellow">1</span></div>
-
-          <div class="rating-box">
-            <span class="stat-pill"><span class="lbl">RATING</span></span>
-            <span class="rating-num score-yellow">7.1</span>
-          </div>
-        </div>
+      <!-- Load From Fixture Dropdown -->
+      <div class="w-full md:w-72 bg-slate-900/50 p-4 rounded-xl border border-slate-700/50">
+        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 block">Load Data From Fixture</label>
+        <select x-model="selectedFixtureId" @change="loadFixtureData" class="form-input text-sm py-2">
+          <option value="">-- Create Standalone Match --</option>
+          <template x-for="fixture in pendingFixtures" :key="fixture.id">
+            <option :value="fixture.id" x-text="fixture.name"></option>
+          </template>
+        </select>
       </div>
-
-      <!-- Match 3: Loss -->
-      <div class="koralytics-card card-red">
-        <div class="card-left-info">
-          <div class="meta-header">
-            <span class="badge loss">LOSS</span>
-            <span class="meta-date">JUL 10, 2026 • AWAY</span>
-          </div>
-          <div class="card-title">
-            <span>Future FC vs Al Ahly</span>
-            <span class="score-red" style="margin-left: 8px;">2 - 1</span>
-          </div>
-          <div class="card-subtitle">Egyptian Premier League</div>
-        </div>
-
-        <div class="stats-block">
-          <div class="stat-pill"><span class="lbl">MINS</span><span class="val">90'</span></div>
-          <div class="stat-pill"><span class="lbl">GOALS</span><span class="val">0</span></div>
-          <div class="stat-pill"><span class="lbl">ASSISTS</span><span class="val">0</span></div>
-
-          <div class="rating-box">
-            <span class="stat-pill"><span class="lbl">RATING</span></span>
-            <span class="rating-num score-red">6.2</span>
-          </div>
-        </div>
-      </div>
-
     </div>
 
-    <!-- DRILLS SECTION -->
-    <div class="group-label">Training Drills Log</div>
-
-    <div class="koralytics-grid">
-
-      <div class="koralytics-card card-green">
-        <div class="card-left-info">
-          <div class="meta-header">
-            <span class="meta-date">PHYSICAL • SESSION #2 • JUL 09</span>
-          </div>
-          <div class="card-title">Agility Ladder Drill</div>
-          <div class="card-subtitle">Regular Session</div>
+    <!-- Form Section -->
+    <form @submit.prevent="submitForm" class="relative z-10 space-y-8">
+      
+      <!-- Teams VS Section -->
+      <div class="flex flex-col md:flex-row items-center justify-between gap-6 bg-slate-900/30 p-6 rounded-2xl border border-slate-800 shadow-inner relative">
+        <!-- Home Team -->
+        <div class="w-full md:w-5/12 flex flex-col">
+          <label class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Home Team</label>
+          <select x-model="formData.homeTeamId" required class="form-input text-center text-lg font-bold" :class="{'opacity-75 cursor-not-allowed': selectedFixtureId}" :disabled="selectedFixtureId !== ''">
+            <option value="" disabled>Select Home</option>
+            <template x-for="team in teams" :key="team.id">
+              <option :value="team.id" x-text="team.name"></option>
+            </template>
+          </select>
         </div>
 
-        <div class="stats-block">
-          <div class="segments-box">
-            <span class="stat-pill"><span class="lbl">SCORE 9/10</span></span>
-            <div class="segments">
-              <div class="segment active-green"></div>
-              <div class="segment active-green"></div>
-              <div class="segment active-green"></div>
-            </div>
-          </div>
-          <div class="rating-box">
-            <span class="rating-num score-green">9</span>
+        <!-- VS Badge -->
+        <div class="flex-shrink-0">
+          <div class="w-12 h-12 rounded-full bg-slate-950 border border-slate-700 flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.2)]">
+            <span class="text-sm font-black italic text-slate-300">VS</span>
           </div>
         </div>
-      </div>
 
-      <div class="koralytics-card card-yellow">
-        <div class="card-left-info">
-          <div class="meta-header">
-            <span class="meta-date">SPEED • SESSION #2 • JUL 09</span>
-          </div>
-          <div class="card-title">Sprint Test Drill</div>
-          <div class="card-subtitle">Regular Session</div>
-        </div>
-
-        <div class="stats-block">
-          <div class="segments-box">
-            <span class="stat-pill"><span class="lbl">SCORE 7/10</span></span>
-            <div class="segments">
-              <div class="segment active-yellow"></div>
-              <div class="segment active-yellow"></div>
-              <div class="segment"></div>
-            </div>
-          </div>
-          <div class="rating-box">
-            <span class="rating-num score-yellow">7</span>
-          </div>
+        <!-- Away Team -->
+        <div class="w-full md:w-5/12 flex flex-col">
+          <label class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1 text-right">Away Team</label>
+          <select x-model="formData.awayTeamId" required class="form-input text-center text-lg font-bold" :class="{'opacity-75 cursor-not-allowed': selectedFixtureId}" :disabled="selectedFixtureId !== ''">
+            <option value="" disabled>Select Away</option>
+            <template x-for="team in teams" :key="team.id">
+              <option :value="team.id" x-text="team.name"></option>
+            </template>
+          </select>
         </div>
       </div>
 
-    </div>
+      <!-- Match Details Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        
+        <div class="flex flex-col">
+          <label class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Match Type</label>
+          <select x-model="formData.type" required class="form-input">
+            <option value="0">Friendly</option>
+            <option value="1">League</option>
+            <option value="2">Cup</option>
+            <option value="3">Tournament</option>
+          </select>
+        </div>
 
+        <div class="flex flex-col">
+          <label class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Format</label>
+          <select x-model="formData.format" required class="form-input">
+            <option value="11">11 v 11</option>
+            <option value="9">9 v 9</option>
+            <option value="7">7 v 7</option>
+            <option value="5">5 v 5</option>
+          </select>
+        </div>
+
+        <div class="flex flex-col">
+          <label class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Date & Time</label>
+          <input type="datetime-local" x-model="formData.matchDate" required class="form-input">
+        </div>
+
+        <div class="flex flex-col">
+          <label class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Location / Stadium</label>
+          <input type="text" x-model="formData.location" placeholder="e.g. Camp Nou" required class="form-input">
+        </div>
+      </div>
+
+      <!-- Formations & Links Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-900/20 p-6 rounded-2xl border border-slate-800">
+        
+        <!-- Formations -->
+        <div class="space-y-4">
+          <h3 class="text-sm font-bold text-slate-300 uppercase tracking-widest border-b border-slate-700 pb-2">Tactical Setup</h3>
+          <div class="flex gap-4">
+            <div class="w-1/2">
+              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1 block">Home Formation</label>
+              <select x-model="formData.formation" class="form-input text-sm">
+                <option value="">TBD</option>
+                <option value="4-3-3">4-3-3</option>
+                <option value="4-4-2">4-4-2</option>
+                <option value="4-2-3-1">4-2-3-1</option>
+                <option value="3-5-2">3-5-2</option>
+              </select>
+            </div>
+            <div class="w-1/2">
+              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1 block">Away Formation</label>
+              <select x-model="formData.awayFormation" class="form-input text-sm">
+                <option value="">TBD</option>
+                <option value="4-3-3">4-3-3</option>
+                <option value="4-4-2">4-4-2</option>
+                <option value="4-2-3-1">4-2-3-1</option>
+                <option value="3-5-2">3-5-2</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Links -->
+        <div class="space-y-4">
+          <h3 class="text-sm font-bold text-slate-300 uppercase tracking-widest border-b border-slate-700 pb-2">Associations (Optional)</h3>
+          <div class="flex gap-4">
+            <div class="w-1/2">
+              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1 block">Tournament</label>
+              <select x-model="formData.tournamentId" class="form-input text-sm" :class="{'opacity-75 cursor-not-allowed': selectedFixtureId && formData.tournamentId}" :disabled="selectedFixtureId !== '' && formData.tournamentId !== ''">
+                <option value="">None</option>
+                <option value="1">Champions League</option>
+                <option value="2">Premier League</option>
+              </select>
+            </div>
+            <div class="w-1/2">
+              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1 block">Drill Session</label>
+              <select x-model="formData.sessionId" class="form-input text-sm">
+                <option value="">None</option>
+                <option value="1">Morning Tactics</option>
+                <option value="2">Evening Scrimmage</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Submit Button -->
+      <div class="pt-2 flex justify-end">
+        <button type="submit" 
+                class="group relative px-8 py-3 font-bold text-white rounded-xl bg-blue-600 overflow-hidden transition-all hover:scale-105 hover:shadow-[0_0_20px_rgba(37,99,235,0.4)]">
+          <div class="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-500 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10"></div>
+          <div class="flex items-center gap-2 relative z-10">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span class="tracking-wider uppercase text-sm">Create Match</span>
+          </div>
+        </button>
+      </div>
+
+    </form>
   </div>
 
+  <script>
+    document.addEventListener('alpine:init', () => {
+      Alpine.data('createActualMatchApp', () => ({
+        selectedFixtureId: '',
+        
+        formData: {
+          homeTeamId: '',
+          awayTeamId: '',
+          tournamentId: '',
+          sessionId: '',
+          type: '1', // Default League
+          format: '11', // Default 11v11
+          matchDate: '',
+          location: '',
+          formation: '',
+          awayFormation: ''
+        },
+
+        // Mock Data for Dropdowns
+        teams: [
+          { id: '1', name: 'Manchester City' },
+          { id: '2', name: 'Real Madrid' },
+          { id: '3', name: 'Bayern Munich' }
+        ],
+
+        pendingFixtures: [
+          { id: '101', name: 'Fixture: Man City vs Real Madrid', homeTeamId: '1', awayTeamId: '2', tournamentId: '1' },
+          { id: '102', name: 'Fixture: Bayern vs Man City', homeTeamId: '3', awayTeamId: '1', tournamentId: '1' }
+        ],
+
+        // Automatically fill data when a fixture is selected
+        loadFixtureData() {
+          if (this.selectedFixtureId) {
+            const fixture = this.pendingFixtures.find(f => f.id === this.selectedFixtureId);
+            if (fixture) {
+              this.formData.homeTeamId = fixture.homeTeamId;
+              this.formData.awayTeamId = fixture.awayTeamId;
+              this.formData.tournamentId = fixture.tournamentId;
+              this.formData.type = '3'; // Assuming Fixture means Tournament type
+            }
+          } else {
+            // Reset if deselected
+            this.formData.homeTeamId = '';
+            this.formData.awayTeamId = '';
+            this.formData.tournamentId = '';
+          }
+        },
+
+        submitForm() {
+          // Payload mapping exactly to your C# Match entity
+          const payload = {
+            homeTeamId: parseInt(this.formData.homeTeamId),
+            awayTeamId: parseInt(this.formData.awayTeamId),
+            tournamentId: this.formData.tournamentId ? parseInt(this.formData.tournamentId) : null,
+            sessionId: this.formData.sessionId ? parseInt(this.formData.sessionId) : null,
+            type: parseInt(this.formData.type), // Enum
+            format: parseInt(this.formData.format), // Enum
+            matchDate: new Date(this.formData.matchDate).toISOString(),
+            location: this.formData.location,
+            formation: this.formData.formation || null,
+            awayFormation: this.formData.awayFormation || null,
+            
+            // Backend Defaults (Usually set in C# directly, but explicitly showing they start at 0/null)
+            status: 0, // MatchStatus.NotStarted
+            homeScore: 0,
+            awayScore: 0,
+            homePenaltyScore: null,
+            awayPenaltyScore: null,
+            winningTeamId: null
+          };
+
+          // If created from a fixture, you'd typically send the FixtureId to the backend 
+          // so the backend can update the Fixture.MatchId = newMatch.Id
+          if (this.selectedFixtureId) {
+            payload.linkedFixtureId = parseInt(this.selectedFixtureId);
+          }
+
+          console.log('Sending Match Entity:', payload);
+          alert('Match created successfully! Check console for C# DTO payload.');
+        }
+      }))
+    })
+  </script>
 </body>
 </html>

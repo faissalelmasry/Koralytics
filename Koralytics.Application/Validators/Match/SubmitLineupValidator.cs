@@ -11,6 +11,9 @@ namespace Koralytics.Application.Validators.Match
             RuleFor(x => x.Players)
                 .NotEmpty().WithMessage("Lineup must contain at least one player.");
 
+            RuleFor(x => x.Formation)
+                .MaximumLength(20).When(x => !string.IsNullOrEmpty(x.Formation));
+
             RuleForEach(x => x.Players).ChildRules(player =>
             {
                 player.RuleFor(p => p.PlayerId)

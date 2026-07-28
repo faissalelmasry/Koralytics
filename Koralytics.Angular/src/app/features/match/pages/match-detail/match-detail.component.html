@@ -13,7 +13,13 @@
       <p>{{ error }}</p>
     </div>
   } @else {
-    <app-match-timeline [matchId]="matchId" [matchInfo]="matchInfo" />
+    <app-match-timeline 
+      [matchId]="matchId"
+      [matchInfo]="matchInfo" 
+      [canLogEvents]="canLogEvents"
+      [canStartMatch]="canStartMatch"
+      [canSubmitRatings]="canSubmitRatings"
+    />
   }
 
 </div>

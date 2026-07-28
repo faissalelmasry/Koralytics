@@ -1,10 +1,12 @@
-﻿using Koralytics.Application.Interfaces;
+using Koralytics.Application.DTOs.Tournaments;
+using Koralytics.Application.Interfaces;
 using Koralytics.Application.Interfaces.Tournament;
 using Koralytics.Application.Interfaces.Tournaments;
 using Koralytics.Domain.Enums;
 using Koralytics.Domain.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using DomainEnums = Koralytics.Domain.Enums;
 using MatchEntity = Koralytics.Domain.Entities.Match.Match;
 using TournamentEntity = Koralytics.Domain.Entities.Tournamet.Tournament;
 using TournamentFixtureEntity = Koralytics.Domain.Entities.Tournamet.TournamentFixture;
@@ -24,6 +26,40 @@ namespace Koralytics.Application.Services.Tournaments
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
+        }
+
+        public async Task<TournamentFixtureDetailDto> GetFixtureDetailsAsync(int fixtureId)
+        {
+            var fixture = await _unitOfWork.Repository<TournamentFixtureEntity>()
+                .GetQueryable()
+                .Include(f => f.Group).ThenInclude(g => g!.Tournament)
+                .Include(f => f.Round).ThenInclude(r => r!.Tournament)
+                .Include(f => f.HomeTeam).ThenInclude(tt => tt.Team).ThenInclude(t => t.AgeGroup).ThenInclude(t=>t.Academy)
+                .Include(f => f.AwayTeam).ThenInclude(tt => tt.Team).ThenInclude(t => t.AgeGroup).ThenInclude(t => t.Academy)
+                .FirstOrDefaultAsync(f => f.Id == fixtureId);
+
+            if (fixture is null)
+                throw new NotFoundException($"TournamentFixture with Id {fixtureId} not found");
+
+            var tournament = fixture.Group?.Tournament ?? fixture.Round?.Tournament;
+
+            return new TournamentFixtureDetailDto
+            {
+                FixtureId = fixture.Id,
+                MatchId = fixture.MatchId,
+                HomeTeamId = fixture.HomeTeamId,
+                HomeTeamName = fixture.HomeTeam.Team.Name,
+                HomeAcademyName = fixture.HomeTeam.Team.AgeGroup?.Academy?.Name,
+                AwayTeamId = fixture.AwayTeamId,
+                AwayTeamName = fixture.AwayTeam.Team.Name,
+                AwayAcademyName = fixture.AwayTeam.Team.AgeGroup.Academy?.Name,
+                TournamentId = tournament?.Id ?? 0,
+                TournamentName = tournament?.Name ?? string.Empty,
+                GroupOrRoundName = fixture.Group?.Name ?? fixture.Round?.Name,
+                Format = tournament?.Format ?? DomainEnums.MatchFormat.ElevenSide,
+                Status = fixture.Status,
+                LegNumber = fixture.LegNumber
+            };
         }
 
         public async Task UpdateStandingsAsync(int groupId, int matchId)

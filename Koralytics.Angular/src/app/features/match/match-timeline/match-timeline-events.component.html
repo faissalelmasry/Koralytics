@@ -1,5 +1,5 @@
 <div class="timeline-container">
-  @for (event of eventsWithIcons; track event.minute) {
+  @for (event of eventsWithIcons; track $index) {
     <div class="timeline-row">
       @if (event.side === 'home') {
         <div class="timeline-event-box home">
@@ -17,7 +17,7 @@
         <div class="timeline-event-box empty"></div>
       }
 
-      <div class="minute-badge">{{ event.minute }}'</div>
+      <div class="minute-badge">#{{ $index + 1 }}</div>
 
       @if (event.side === 'away') {
         <div class="timeline-event-box away">

@@ -53,7 +53,7 @@ export class CoachSquadComponent implements OnInit {
   loadSquad(): void {
     this.loading.set(true);
     this.error.set('');
-    this.squadService.getSquad(this.coachId, this.teamId)
+    this.squadService.getSquad(this.teamId, this.coachId)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (data) => {

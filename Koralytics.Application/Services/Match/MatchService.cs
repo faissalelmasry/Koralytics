@@ -13,6 +13,7 @@ using MatchEntity = Koralytics.Domain.Entities.Match.Match;
 using MatchLineupEntity = Koralytics.Domain.Entities.Match.MatchLineup;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Koralytics.Domain.Enums;
 
 namespace Koralytics.Application.Services.Match
 {
@@ -22,17 +23,20 @@ namespace Koralytics.Application.Services.Match
         private readonly IMapper _mapper;
         private readonly ILogger<MatchService> _logger;
         private readonly ITournamentFixtureService _tournamentFixtureService;
+        private readonly IMatchLiveUpdateService _liveUpdateService;
 
         public MatchService(
             IUnitOfWork unitOfWork,
             IMapper mapper,
             ILogger<MatchService> logger,
-            ITournamentFixtureService tournamentFixtureService)
+            ITournamentFixtureService tournamentFixtureService,
+            IMatchLiveUpdateService liveUpdateService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _logger = logger;
             _tournamentFixtureService = tournamentFixtureService;
+            _liveUpdateService = liveUpdateService;
         }
 
         public async Task<MatchResponseDto> CreateFriendlyMatchAsync(CreateFriendlyMatchDto dto)
@@ -88,8 +92,8 @@ namespace Koralytics.Application.Services.Match
 
             var fixture = await _unitOfWork.Repository<TournamentFixture>()
                 .GetQueryable()
-                .Include(f => f.Group)
-                .Include(f => f.Round)
+                .Include(f => f.Group).ThenInclude(g => g!.Tournament)
+                .Include(f => f.Round).ThenInclude(r => r!.Tournament)
                 .Include(f => f.HomeTeam)
                 .Include(f => f.AwayTeam)
                 .FirstOrDefaultAsync(f => f.Id == dto.TournamentFixtureId);
@@ -100,8 +104,8 @@ namespace Koralytics.Application.Services.Match
             if (fixture.MatchId.HasValue)
                 throw new BadRequestException("This tournament fixture already has a match assigned.");
 
-            var tournamentId = fixture.Group?.TournamentId
-                ?? fixture.Round?.TournamentId
+            var tournament = fixture.Group?.Tournament ?? fixture.Round?.Tournament;
+            var tournamentId = tournament?.Id
                 ?? throw new BadRequestException("TournamentFixture is not associated with a group or round.");
 
             if (fixture.HomeTeamId != dto.HomeTeamId)
@@ -130,6 +134,10 @@ namespace Koralytics.Application.Services.Match
             match.AwayTeamId = awayTeam.Id;
             match.HomeScore = 0;
             match.AwayScore = 0;
+            if (dto.Format == 0 && tournament != null)
+            {
+                match.Format = tournament.Format;
+            }
 
             await _unitOfWork.Repository<MatchEntity>().AddAsync(match);
             await _unitOfWork.SaveChangesAsync();
@@ -219,6 +227,8 @@ namespace Koralytics.Application.Services.Match
                 match.AwayTeamId = session.TeamId;
                 match.Type = DomainEnums.MatchType.Session;
                 match.Status = DomainEnums.MatchStatus.Live;
+                match.Formation = dto.Formation;
+                match.AwayFormation = dto.AwayFormation;
                 match.HomeScore = 0;
                 match.AwayScore = 0;
 
@@ -267,6 +277,8 @@ namespace Koralytics.Application.Services.Match
                 _logger.LogInformation(
                     "Session match created with Id {MatchId} for session {SessionId}, status Live",
                     match.Id, dto.SessionId);
+
+                await transaction.CommitAsync();
 
                 return _mapper.Map<MatchResponseDto>(created!);
             }
@@ -323,6 +335,15 @@ namespace Koralytics.Application.Services.Match
 
             _logger.LogInformation("Match {MatchId} started", matchId);
 
+            await _liveUpdateService.BroadcastMatchScoreUpdateAsync(new LiveMatchScoreUpdateDto
+            {
+                MatchId = matchId,
+                HomeScore = match.HomeScore,
+                AwayScore = match.AwayScore,
+                HomePenaltyScore = match.HomePenaltyScore,
+                AwayPenaltyScore = match.AwayPenaltyScore,
+                Status = match.Status.ToString()
+            });
         }
 
         public async Task<MatchResponseDto> EndMatchAsync(int matchId)
@@ -366,13 +387,31 @@ namespace Koralytics.Application.Services.Match
                 .GetQueryableAsNoTracking()
                 .FirstOrDefaultAsync(f => f.MatchId == matchId && f.GroupId != null);
 
-            if (fixture != null && fixture.GroupId.HasValue)
+            if (fixture != null)
             {
-                await _tournamentFixtureService.UpdateStandingsAsync(fixture.GroupId.Value, matchId);
+                fixture.HomeScore = match.HomeScore;
+                fixture.AwayScore = match.AwayScore;
+                fixture.WinnerTeamId = match.WinningTeamId;
+                fixture.Status = MatchStatus.Completed;
+
+                await _unitOfWork.SaveChangesAsync();
+
+                if (fixture.GroupId.HasValue)
+                    await _tournamentFixtureService.UpdateStandingsAsync(fixture.GroupId.Value, matchId);
             }
 
             _logger.LogInformation("Match {MatchId} ended. Score: {Home}-{Away}. Winner: {Winner}",
                 matchId, match.HomeScore, match.AwayScore, match.WinningTeamId);
+
+            await _liveUpdateService.BroadcastMatchScoreUpdateAsync(new LiveMatchScoreUpdateDto
+            {
+                MatchId = matchId,
+                HomeScore = match.HomeScore,
+                AwayScore = match.AwayScore,
+                HomePenaltyScore = match.HomePenaltyScore,
+                AwayPenaltyScore = match.AwayPenaltyScore,
+                Status = match.Status.ToString()
+            });
 
             return _mapper.Map<MatchResponseDto>(match);
         }

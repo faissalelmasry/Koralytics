@@ -108,6 +108,15 @@ namespace Koralytics.Application.Services.Match
                 await _unitOfWork.Repository<MatchLineup>().AddAsync(lineup);
             }
 
+            if (coachTeamId == match.HomeTeamId)
+            {
+                match.Formation = dto.Formation;
+            }
+            else if (coachTeamId == match.AwayTeamId)
+            {
+                match.AwayFormation = dto.Formation;
+            }
+
             await _unitOfWork.SaveChangesAsync();
 
             _logger.LogInformation("Lineup submitted for match {MatchId} by coach {CoachId}: {Count} players",
@@ -279,6 +288,7 @@ namespace Koralytics.Application.Services.Match
             var ratings = await _unitOfWork.Repository<MatchPlayerRating>()
                 .GetQueryableAsNoTracking()
                 .Include(r => r.CategoryRatings)
+                    .ThenInclude(cr => cr.DrillCategory)
                 .Include(r => r.Player)
                 .Include(r => r.Coach)
                 .Where(r => r.MatchId == matchId)
@@ -293,6 +303,7 @@ namespace Koralytics.Application.Services.Match
                     .Select(cr => new CategoryRatingDto
                     {
                         DrillCategoryId = cr.DrillCategoryId,
+                        CategoryName = cr.DrillCategory != null ? cr.DrillCategory.Name : "Unknown",
                         Rating = cr.Rating
                     })
                     .ToList();

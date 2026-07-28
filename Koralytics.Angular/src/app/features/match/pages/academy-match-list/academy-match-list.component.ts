@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatchService } from '../../../../../core/services/match/match.service';
 import { AcademyService } from '../../../../../core/services/academy/academy.service';
@@ -14,6 +14,8 @@ import { CustomSelect, SelectOption } from '../../../../../shared/components/cus
 import { CustomDatePicker } from '../../../../../shared/components/custom-date-picker/custom-date-picker';
 import { CustomButtonComponent } from '../../../../../shared/components/custom-button/custom-button';
 import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
+import { MatchSignalrService } from '../../../../../core/services/match-signalr.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-academy-match-list',
@@ -26,11 +28,14 @@ import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-r
   templateUrl: './academy-match-list.component.html',
   styleUrls: ['./academy-match-list.component.css']
 })
-export class AcademyMatchListComponent implements OnInit {
+export class AcademyMatchListComponent implements OnInit, OnDestroy {
   private matchService = inject(MatchService);
   private academyService = inject(AcademyService);
   private tokenStorage = inject(TokenStorageService);
   private cdr = inject(ChangeDetectorRef);
+  private signalrService = inject(MatchSignalrService);
+
+  private signalrSub?: Subscription;
 
   academyId: number = 0;
   matches: MatchCardModel[] = [];
@@ -86,7 +91,28 @@ export class AcademyMatchListComponent implements OnInit {
     if (this.academyId) {
       this.loadDropdowns();
       this.loadMatches();
+      this.subscribeToLiveUpdates();
     }
+  }
+
+  ngOnDestroy(): void {
+    if (this.signalrSub) {
+      this.signalrSub.unsubscribe();
+    }
+  }
+
+  private subscribeToLiveUpdates(): void {
+    this.signalrSub = this.signalrService.matchScoreUpdate$.subscribe(update => {
+      const matchIndex = this.matches.findIndex(m => m.id === update.matchId);
+      if (matchIndex !== -1) {
+        this.matches[matchIndex].homeScore = update.homeScore;
+        this.matches[matchIndex].awayScore = update.awayScore;
+        this.matches[matchIndex].homePenaltyScore = update.homePenaltyScore ?? undefined;
+        this.matches[matchIndex].awayPenaltyScore = update.awayPenaltyScore ?? undefined;
+        this.matches[matchIndex].status = update.status;
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   loadDropdowns(): void {

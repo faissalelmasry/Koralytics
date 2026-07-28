@@ -1,4 +1,4 @@
-﻿using Koralytics.Domain.Enums;
+using Koralytics.Domain.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +10,9 @@ namespace Koralytics.Application.DTOs.Tournaments
     public class FixtureDto
     {
         public int FixtureId { get; set; }
+        public int? MatchId { get; set; }
+        public int HomeTeamId { get; set; }
+        public int AwayTeamId { get; set; }
         public string HomeTeamName { get; set; } = string.Empty;
         public string AwayTeamName { get; set; } = string.Empty;
         public int? HomeScore { get; set; }

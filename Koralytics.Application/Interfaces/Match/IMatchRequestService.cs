@@ -7,7 +7,19 @@ namespace Koralytics.Application.Interfaces.Match
         Task<MatchRequestResponseDto> RequestFriendlyMatchAsync(int coachId, CreateMatchRequestDto dto);
         Task<MatchResponseDto> AcceptMatchRequestAsync(int requestId, int coachId);
         Task DeclineMatchRequestAsync(int requestId, int coachId);
-        Task<List<MatchRequestResponseDto>> GetPendingRequestsAsync(int teamId);
-        Task<List<MatchRequestResponseDto>> GetSentRequestsAsync(int teamId);
+        Task<MatchRequestListResponseDto> GetPendingRequestsAsync(
+            int teamId,
+            int page = 1,
+            int pageSize = 20,
+            string? status = null,
+            DateTime? dateFrom = null,
+            DateTime? dateTo = null);
+        Task<MatchRequestListResponseDto> GetSentRequestsAsync(
+            int teamId,
+            int page = 1,
+            int pageSize = 20,
+            string? status = null,
+            DateTime? dateFrom = null,
+            DateTime? dateTo = null);
     }
 }

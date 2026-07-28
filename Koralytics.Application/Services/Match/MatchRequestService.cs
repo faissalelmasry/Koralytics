@@ -64,10 +64,14 @@ namespace Koralytics.Application.Services.Match
             if (!isCoachOfTeam && !isAdminOfRequesterAcademy)
                 throw new ForbiddenException("You must be a coach of the requester team or the academy admin.");
 
+            if (requesterTeam.AcademyId == targetTeam.AcademyId)
+                throw new BadRequestException("Friendly matches must be between teams from different academies.");
+
             var existingPending = await _unitOfWork.Repository<MatchRequest>()
-                .ExistsAsync(r => r.RequesterTeamId == dto.RequesterTeamId
-                    && r.TargetTeamId == dto.TargetTeamId
-                    && r.Status == MatchRequestStatus.Pending);
+                .ExistsAsync(r =>
+                    r.Status == MatchRequestStatus.Pending
+                    && ((r.RequesterTeamId == dto.RequesterTeamId && r.TargetTeamId == dto.TargetTeamId)
+                        || (r.RequesterTeamId == dto.TargetTeamId && r.TargetTeamId == dto.RequesterTeamId)));
 
             if (existingPending)
                 throw new BadRequestException("A pending request already exists between these teams.");
@@ -208,9 +212,17 @@ namespace Koralytics.Application.Services.Match
             _logger.LogInformation("Match request {RequestId} declined", requestId);
         }
 
-        public async Task<List<MatchRequestResponseDto>> GetPendingRequestsAsync(int teamId)
+        public async Task<MatchRequestListResponseDto> GetPendingRequestsAsync(
+            int teamId,
+            int page = 1,
+            int pageSize = 20,
+            string? status = null,
+            DateTime? dateFrom = null,
+            DateTime? dateTo = null)
         {
-            _logger.LogInformation("Fetching pending match requests for team {TeamId}", teamId);
+            _logger.LogInformation(
+                "Fetching incoming match requests for team {TeamId} (page={Page}, pageSize={PageSize}, status={Status})",
+                teamId, page, pageSize, status);
 
             var teamExists = await _unitOfWork.Repository<Team>()
                 .ExistsAsync(t => t.Id == teamId);
@@ -218,22 +230,57 @@ namespace Koralytics.Application.Services.Match
             if (!teamExists)
                 throw new NotFoundException($"Team with Id {teamId} not found");
 
-            var requests = await _unitOfWork.Repository<MatchRequest>()
+            var query = _unitOfWork.Repository<MatchRequest>()
                 .GetQueryableAsNoTracking()
                 .Include(r => r.RequesterTeam)
                 .Include(r => r.TargetTeam)
                 .Include(r => r.RequesterCoach)
                 .Include(r => r.ResolvedByCoach)
-                .Where(r => r.TargetTeamId == teamId && r.Status == MatchRequestStatus.Pending)
+                .Where(r => r.TargetTeamId == teamId);
+
+            // Status filter
+            if (!string.IsNullOrWhiteSpace(status) && !string.Equals(status, "All", StringComparison.OrdinalIgnoreCase))
+            {
+                if (Enum.TryParse<MatchRequestStatus>(status, ignoreCase: true, out var parsedStatus))
+                {
+                    query = query.Where(r => r.Status == parsedStatus);
+                }
+            }
+
+            if (dateFrom.HasValue)
+                query = query.Where(r => r.ProposedDate >= dateFrom.Value);
+
+            if (dateTo.HasValue)
+                query = query.Where(r => r.ProposedDate <= dateTo.Value);
+
+            var totalCount = await query.CountAsync();
+
+            var requests = await query
                 .OrderByDescending(r => r.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
 
-            return _mapper.Map<List<MatchRequestResponseDto>>(requests);
+            return new MatchRequestListResponseDto
+            {
+                Requests = _mapper.Map<List<MatchRequestResponseDto>>(requests),
+                TotalCount = totalCount,
+                Page = page,
+                PageSize = pageSize
+            };
         }
 
-        public async Task<List<MatchRequestResponseDto>> GetSentRequestsAsync(int teamId)
+        public async Task<MatchRequestListResponseDto> GetSentRequestsAsync(
+            int teamId,
+            int page = 1,
+            int pageSize = 20,
+            string? status = null,
+            DateTime? dateFrom = null,
+            DateTime? dateTo = null)
         {
-            _logger.LogInformation("Fetching sent match requests from team {TeamId}", teamId);
+            _logger.LogInformation(
+                "Fetching sent match requests from team {TeamId} (page={Page}, pageSize={PageSize}, status={Status})",
+                teamId, page, pageSize, status);
 
             var teamExists = await _unitOfWork.Repository<Team>()
                 .ExistsAsync(t => t.Id == teamId);
@@ -241,17 +288,41 @@ namespace Koralytics.Application.Services.Match
             if (!teamExists)
                 throw new NotFoundException($"Team with Id {teamId} not found");
 
-            var requests = await _unitOfWork.Repository<MatchRequest>()
+            var query = _unitOfWork.Repository<MatchRequest>()
                 .GetQueryableAsNoTracking()
                 .Include(r => r.RequesterTeam)
                 .Include(r => r.TargetTeam)
                 .Include(r => r.RequesterCoach)
                 .Include(r => r.ResolvedByCoach)
-                .Where(r => r.RequesterTeamId == teamId)
+                .Where(r => r.RequesterTeamId == teamId);
+
+            if (!string.IsNullOrWhiteSpace(status)
+                && Enum.TryParse<MatchRequestStatus>(status, ignoreCase: true, out var parsedStatus))
+            {
+                query = query.Where(r => r.Status == parsedStatus);
+            }
+
+            if (dateFrom.HasValue)
+                query = query.Where(r => r.ProposedDate >= dateFrom.Value);
+
+            if (dateTo.HasValue)
+                query = query.Where(r => r.ProposedDate <= dateTo.Value);
+
+            var totalCount = await query.CountAsync();
+
+            var requests = await query
                 .OrderByDescending(r => r.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
 
-            return _mapper.Map<List<MatchRequestResponseDto>>(requests);
+            return new MatchRequestListResponseDto
+            {
+                Requests = _mapper.Map<List<MatchRequestResponseDto>>(requests),
+                TotalCount = totalCount,
+                Page = page,
+                PageSize = pageSize
+            };
         }
     }
 }

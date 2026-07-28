@@ -93,5 +93,7 @@ namespace Koralytics.Application.Services.Academy.AcademyService
         Task RemovePlayerFromAcademyAsync(int academyId, int playerUserId, int performedByUserId);
         
         Task UpdatePlayerSubscriptionAsync(int academyId, int playerId, Koralytics.Application.DTOs.Academies.UpdatePlayerSubscriptionDto dto, int performedByUserId);
+
+        Task<IEnumerable<Koralytics.Application.DTOs.Academies.AcademySearchResponseDto>> SearchAcademiesByNameAsync(string name);
     }
 }

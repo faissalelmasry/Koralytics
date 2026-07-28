@@ -20,6 +20,8 @@ export class MiniPlayerCardComponent {
   @Input() size: 'xs' | 'sm' | 'md' = 'md';
   @Input() accentColor?: string;
   @Input() float: boolean = false;
+  /** When true, shows player.naturalPosition instead of player.position */
+  @Input() useNaturalPosition: boolean = false;
 
   @Output() cardClick = new EventEmitter<number>();
 
@@ -38,6 +40,17 @@ export class MiniPlayerCardComponent {
     if (rating >= 80) return 'tier-elite';
     if (rating >= 70) return 'tier-gold';
     return 'tier-base';
+  }
+
+  get displayPosition(): string {
+    if (this.useNaturalPosition && this.player?.naturalPosition) {
+      return this.player.naturalPosition;
+    }
+    return this.player?.position || '';
+  }
+
+  get displayRating(): number {
+    return Math.round(this.player?.overallRating ?? 0);
   }
 
   getInitials(name: string): string {

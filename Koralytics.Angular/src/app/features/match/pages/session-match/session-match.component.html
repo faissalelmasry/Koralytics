@@ -1,0 +1,222 @@
+<app-navbar></app-navbar>
+<div class="page-wrapper">
+
+  <div class="tactical-tag" scrollReveal direction="bottom" [delay]="0">Internal Match Generator</div>
+
+  <!-- Header Banner Card (Identical to submit-lineup) -->
+  <div class="builder-header-card" scrollReveal direction="bottom" [delay]="50">
+    <div class="header-info">
+      <h2 class="builder-title">Create Session Match</h2>
+      <p class="builder-subtitle">
+        Split present session squad into Home and Away tactical lineups
+      </p>
+    </div>
+
+    <div class="header-actions">
+      <!-- Team Side Slider / Toggle -->
+      <div class="side-toggle-slider">
+        <button
+          type="button"
+          class="toggle-btn"
+          [class.active]="activeSide === 'home'"
+          (click)="activeSide = 'home'">
+          Home Squad ({{ getHomeStartingCount() }}/{{ formatStartingCount }})
+        </button>
+        <button
+          type="button"
+          class="toggle-btn"
+          [class.active]="activeSide === 'away'"
+          (click)="activeSide = 'away'">
+          Away Squad ({{ getAwayStartingCount() }}/{{ formatStartingCount }})
+        </button>
+      </div>
+
+      <!-- Format Selector -->
+      <div class="formation-selector-box">
+        <app-select
+          label="Format"
+          [options]="formatOptions"
+          [(value)]="selectedFormat"
+          (valueChange)="onFormatChange()">
+        </app-select>
+      </div>
+
+      <!-- Formation Selector for Active Side -->
+      <div class="formation-selector-box">
+        <app-select
+          [label]="activeSide === 'home' ? 'Home Formation' : 'Away Formation'"
+          [options]="formationOptions"
+          [(value)]="activeFormation"
+          (valueChange)="onActiveFormationChange()">
+        </app-select>
+      </div>
+
+      <!-- Submit Button -->
+      <app-button
+        variant="accent"
+        [loading]="isSubmitting"
+        [disabled]="isSubmitting || isLoading || getHomeStartingCount() !== formatStartingCount || getAwayStartingCount() !== formatStartingCount"
+        (click)="submitSessionMatch()">
+        <svg class="btn-icon-svg" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"/>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+        </svg>
+        Create Session Match
+      </app-button>
+    </div>
+  </div>
+
+  <!-- Loading / Error -->
+  @if (isLoading) {
+    <div class="loading-state">
+      <app-loading-spinner size="lg"></app-loading-spinner>
+      <p>Loading present session squad...</p>
+    </div>
+  }
+  @else if (error) {
+    <div class="error-state">
+      <div class="error-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+      </div>
+      <p>{{ error }}</p>
+      <app-button variant="accent" (click)="loadSessionData()">Retry</app-button>
+    </div>
+  }
+  @else {
+    <!-- Main Workspace Grid (IDENTICAL STRUCTURE TO submit-lineup) -->
+    <div class="builder-workspace" scrollReveal direction="bottom" [delay]="100">
+
+      <!-- Left Sidebar: Squad Roster -->
+      <div class="squad-sidebar-card" (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDropUnassigned($event)">
+        <div class="sidebar-header">
+          <span class="sidebar-title">Present Squad</span>
+          <span class="squad-count-badge">{{ unassignedSquad.length }} Unassigned</span>
+        </div>
+
+        @if (unassignedSquad.length === 0) {
+          <div class="all-assigned-msg">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            <p>All present players assigned to Home or Away team</p>
+          </div>
+        }
+
+        <div class="squad-scroll-list">
+          @for (player of unassignedSquad; track (player ? player.playerId : $index)) {
+            <div
+              class="squad-item-row"
+              draggable="true"
+              (dragstart)="onDragStart($event, player, 'unassigned')"
+              [class.is-selected]="selectedPlayer?.playerId === player.playerId"
+              (click)="selectPlayerCard(player)">
+
+              <div class="mini-card-drag-wrapper">
+                <app-mini-player-card [player]="player" size="xs" [float]="true"></app-mini-player-card>
+              </div>
+
+              <div class="squad-player-meta">
+                <span class="player-name">{{ player.fullName }}</span>
+                <span class="player-position-tag">{{ player.position || 'CM' }} • Rating: {{ player.overallRating }}</span>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Right Workspace: Pitch + Substitutes Bench -->
+      <div class="pitch-and-bench-wrapper">
+
+        <!-- Football Pitch -->
+        <div class="tactical-pitch-container">
+          <div class="pitch-grass">
+            <div class="pitch-center-line"></div>
+            <div class="pitch-center-circle"></div>
+            <div class="pitch-penalty-area-top"></div>
+            <div class="pitch-penalty-area-bottom"></div>
+
+            <!-- Pitch Formation Rows -->
+            <div class="formation-rows-wrapper">
+              @for (row of activePitchRows; track $index; let rIdx = $index) {
+                <div class="formation-row">
+                  @for (slot of row; track slot.slotId; let cIdx = $index) {
+                    <div
+                      class="pitch-slot"
+                      [class.has-player]="!!slot.player"
+                      [class.can-accept]="!!selectedPlayer"
+                      (dragover)="onDragOver($event)"
+                      (dragleave)="onDragLeave($event)"
+                      (drop)="onDropPitchSlot($event, rIdx, cIdx)"
+                      (click)="selectedPlayer ? assignSelectedToPitchSlot(rIdx, cIdx) : null">
+
+                      @if (slot.player) {
+                        <div
+                          class="slotted-mini-card"
+                          draggable="true"
+                          (dragstart)="onDragStart($event, slot.player, activeSide === 'home' ? 'home-pitch' : 'away-pitch', { row: rIdx, col: cIdx })">
+                          <button class="btn-remove-slot" (click)="removePitchPlayer(rIdx, cIdx); $event.stopPropagation()">×</button>
+                          <app-mini-player-card [player]="slot.player" size="xs" [float]="true"></app-mini-player-card>
+                        </div>
+                      } @else {
+                        <div class="empty-slot-placeholder">
+                          <span class="slot-role-code">{{ slot.role }}</span>
+                          <span class="slot-plus-icon">+</span>
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Substitutes Bench -->
+        <div class="bench-section-card">
+          <div class="bench-header">
+            <span class="bench-title">{{ activeSide === 'home' ? 'Home' : 'Away' }} Substitutes Bench (7 Drop Slots)</span>
+            <span class="starters-status">
+              Starters: {{ activeSide === 'home' ? getHomeStartingCount() : getAwayStartingCount() }} / {{ formatStartingCount }}
+            </span>
+          </div>
+
+          <div class="bench-flex-container">
+            @for (bPlayer of activeBenchSlots; track $index; let bIdx = $index) {
+              <div
+                class="bench-slot"
+                [class.has-player]="!!bPlayer"
+                [class.can-accept]="!!selectedPlayer"
+                (dragover)="onDragOver($event)"
+                (dragleave)="onDragLeave($event)"
+                (drop)="onDropBenchSlot($event, bIdx)"
+                (click)="selectedPlayer ? assignSelectedToBenchSlot(bIdx) : null">
+
+                @if (bPlayer) {
+                  <div
+                    class="slotted-mini-card"
+                    draggable="true"
+                    (dragstart)="onDragStart($event, bPlayer, activeSide === 'home' ? 'home-bench' : 'away-bench', { benchIdx: bIdx })">
+                    <button class="btn-remove-slot" (click)="removeBenchPlayer(bIdx); $event.stopPropagation()">×</button>
+                    <app-mini-player-card [player]="bPlayer" size="xs"></app-mini-player-card>
+                  </div>
+                } @else {
+                  <div class="empty-bench-placeholder">
+                    <span class="bench-slot-label">SUB {{ bIdx + 1 }}</span>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  }
+
+</div>
+<app-footer></app-footer>
