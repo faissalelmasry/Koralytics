@@ -21,3 +21,15 @@ export enum SessionType {
   OffSeason = 3,
   SessionMatch = 4
 }
+export enum SubscriptionStatus {
+  Paid = 'Paid',
+  Unpaid = 'Unpaid',
+  Grace = 'Grace'
+}
+
+export enum SubscriptionDuration {
+  OneMonth = 'OneMonth',
+  ThreeMonths = 'ThreeMonths',
+  SixMonths = 'SixMonths',
+  OneYear = 'OneYear'
+}

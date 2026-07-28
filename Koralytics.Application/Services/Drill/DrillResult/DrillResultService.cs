@@ -132,7 +132,7 @@ namespace Koralytics.Application.Services.Drill.DrillResult
         public async Task<PlayerProgressionDto> GetPlayerDrillProgressionAsync(int playerId, int categoryId, int currentAcademyId)
         {
             var playerExists = await _unitOfWork.Repository<Domain.Entities.Player.Player>()
-                .ExistsAsync(p => p.Id == playerId && p.PlayerAcademies.Any(pa => pa.AcademyId == currentAcademyId));
+                .ExistsAsync(p => p.Id == playerId && (currentAcademyId == 0 || p.PlayerAcademies.Any(pa => pa.AcademyId == currentAcademyId)));
 
             if (!playerExists)
             {

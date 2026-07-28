@@ -1,0 +1,290 @@
+<div class="subscriptions-portal-page">
+
+  <!-- PAGE HEADER -->
+  <header class="page-header">
+    <div class="header-left">
+      <div class="header-eyebrow">
+        <span class="eyebrow-dot"></span>
+        <span class="eyebrow-text">GUARDIAN BILLING</span>
+      </div>
+      <h1 class="header-title">My Children Subscriptions</h1>
+      <p class="header-subtitle">Manage membership plans, payment status, dues, and payment history for your enrolled children.</p>
+    </div>
+  </header>
+
+  <!-- STATS STRIP -->
+  @if (!isLoading && subscriptions.length > 0) {
+  <section class="stats-strip">
+    <div class="stat-item">
+      <span class="stat-value">{{ totalCount }}</span>
+      <span class="stat-label">Total Plans</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item">
+      <span class="stat-value success">{{ paidCount }}</span>
+      <span class="stat-label">Paid & Settled</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item">
+      <span class="stat-value warning">{{ unpaidCount }}</span>
+      <span class="stat-label">Pending Dues</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item">
+      <span class="stat-value coral">{{ graceCount }}</span>
+      <span class="stat-label">Grace Period</span>
+    </div>
+  </section>
+  }
+
+  <!-- SUCCESS BANNER -->
+  @if (successMessage) {
+  <div class="alert-banner success-banner">
+    <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+      <polyline points="22 4 12 14.01 9 11.01"></polyline>
+    </svg>
+    <span>{{ successMessage }}</span>
+    <button class="close-alert" (click)="successMessage = ''">&times;</button>
+  </div>
+  }
+
+  <!-- ERROR BANNER -->
+  @if (errorMessage) {
+  <div class="alert-banner error-banner">
+    <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"></circle>
+      <line x1="12" y1="8" x2="12" y2="12"></line>
+      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+    </svg>
+    <span>{{ errorMessage }}</span>
+    <button class="close-alert" (click)="errorMessage = ''">&times;</button>
+  </div>
+  }
+
+  <!-- LOADING STATE -->
+  @if (isLoading) {
+  <div class="loading-wrapper">
+    <app-loading-spinner size="lg"></app-loading-spinner>
+    <p class="loading-text">Loading subscription details...</p>
+  </div>
+  } @else if (subscriptions.length === 0) {
+  <div class="empty-wrapper">
+    <app-empty-state title="No Active Subscriptions"
+      description="There are currently no active or pending subscription records for your linked player profiles.">
+    </app-empty-state>
+  </div>
+  } @else {
+
+  <!-- SUBSCRIPTIONS GRID -->
+  <div class="subscriptions-grid">
+    @for (sub of subscriptions; track sub.id; let i = $index) {
+    <article class="subscription-card" [class.unpaid-card]="!isPaid(sub.status)" [style.animation-delay]="(i * 60) + 'ms'">
+      <div class="card-glow-bar" [class.glow-paid]="isPaid(sub.status)" [class.glow-grace]="getStatusChipType(sub.status) === 'danger'"></div>
+
+      <div class="card-header">
+        <div class="player-info">
+          @if (sub.academyName) {
+          <span class="academy-name-badge">{{ sub.academyName }}</span>
+          }
+          <h3 class="player-name">{{ sub.playerName }}</h3>
+        </div>
+        <app-status-chip [label]="sub.status | uppercase" [type]="getStatusChipType(sub.status)" [pulse]="getStatusChipType(sub.status) === 'danger'"></app-status-chip>
+      </div>
+
+      <div class="card-body">
+        <div class="price-display">
+          <span class="amount">{{ sub.amount }}</span>
+          <span class="currency">EGP</span>
+          <span class="duration">/ {{ formatDuration(sub.duration) }}</span>
+        </div>
+
+        <div class="meta-grid">
+          <div class="meta-item">
+            <span class="meta-label">Start Date</span>
+            <span class="meta-value">{{ isValidDate(sub.startDate) ? (sub.startDate | date:'mediumDate') : 'N/A' }}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Due Date</span>
+            <span class="meta-value">{{ isValidDate(sub.dueDate) ? (sub.dueDate | date:'mediumDate') : 'N/A' }}</span>
+          </div>
+          @if (isValidDate(sub.graceUntil)) {
+          <div class="meta-item warning-item">
+            <span class="meta-label">Grace Until</span>
+            <span class="meta-value coral-text">{{ sub.graceUntil | date:'mediumDate' }}</span>
+          </div>
+          }
+        </div>
+      </div>
+
+      <div class="card-footer flex-between">
+        <div class="footer-actions flex items-center gap-2">
+          @if (!isPaid(sub.status)) {
+          <app-button variant="accent" (click)="openPaymentModal(sub)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;">
+              <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+              <line x1="1" y1="10" x2="23" y2="10"></line>
+            </svg>
+            Pay Now
+          </app-button>
+          } @else {
+          <app-button variant="slate" [disabled]="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+            Settled
+          </app-button>
+          }
+        </div>
+
+        <app-button variant="slate" (click)="openHistoryModal(sub.playerId, sub.playerName)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;">
+            <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          History
+        </app-button>
+      </div>
+    </article>
+    }
+  </div>
+  }
+
+  <!-- STRIPE VISA CHECKOUT MODAL -->
+  @if (selectedSubForPayment) {
+  <div class="modal-backdrop" (click)="closePaymentModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+
+      <div class="modal-header">
+        <div class="modal-header-info">
+          <div class="modal-icon-badge">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+              <line x1="1" y1="10" x2="23" y2="10"></line>
+            </svg>
+          </div>
+          <div>
+            <h3 class="modal-title">Visa / Mastercard Checkout</h3>
+            <p class="modal-subtitle">Authorized by Stripe Payment Gateway</p>
+          </div>
+        </div>
+        <button class="modal-close-btn" (click)="closePaymentModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="summary-box">
+          <div class="summary-row">
+            <span class="summary-label">Player Name:</span>
+            <span class="summary-val highlight">{{ selectedSubForPayment.playerName }}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Academy:</span>
+            <span class="summary-val">{{ selectedSubForPayment.academyName }}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Plan Duration:</span>
+            <span class="summary-val duration-badge">{{ formatDuration(selectedSubForPayment.duration) }}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Total Dues:</span>
+            <span class="summary-val text-green font-bold">{{ selectedSubForPayment.amount | currency:'EGP ':'symbol':'1.0-0' }}</span>
+          </div>
+        </div>
+
+        <div class="stripe-box">
+          <label class="section-label">Card Details (Stripe Sandbox)</label>
+
+          @if (isStripeLoading) {
+          <div class="stripe-loading">
+            <app-loading-spinner size="sm"></app-loading-spinner>
+            <span>Loading Stripe Secure Input...</span>
+          </div>
+          }
+
+          <div id="card-element" class="stripe-input-box"></div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <app-button variant="slate" (click)="closePaymentModal()">Cancel</app-button>
+        <app-button variant="accent" [loading]="isProcessingId === selectedSubForPayment.id || isStripeLoading" [disabled]="isProcessingId === selectedSubForPayment.id || isStripeLoading" (click)="confirmPayment()">
+          Pay {{ selectedSubForPayment.amount }} EGP with Visa
+        </app-button>
+      </div>
+
+    </div>
+  </div>
+  }
+
+  <!-- SUBSCRIPTION HISTORY MODAL -->
+  @if (selectedHistoryPlayer) {
+  <div class="modal-backdrop" (click)="closeHistoryModal()">
+    <div class="modal-card history-modal-card" (click)="$event.stopPropagation()">
+
+      <div class="modal-header">
+        <div class="modal-header-info">
+          <div class="modal-icon-badge">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <div>
+            <h3 class="modal-title">Payment & Billing History</h3>
+            <p class="modal-subtitle">Billing cycle history for <strong class="highlight">{{ selectedHistoryPlayer.name }}</strong></p>
+          </div>
+        </div>
+        <button class="modal-close-btn" (click)="closeHistoryModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        @if (isLoadingHistory) {
+        <div class="loading-wrapper py-4">
+          <app-loading-spinner size="md"></app-loading-spinner>
+        </div>
+        } @else if (historySubscriptions.length === 0) {
+        <div class="empty-state-small">
+          <p>No prior billing records found for this player.</p>
+        </div>
+        } @else {
+        <div class="history-table-wrapper">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Period</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Paid At</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of historySubscriptions; track item.id) {
+              <tr>
+                <td class="font-mono">
+                  {{ isValidDate(item.startDate) ? (item.startDate | date:'mediumDate') : '—' }}
+                  -
+                  {{ isValidDate(item.dueDate) ? (item.dueDate | date:'mediumDate') : '—' }}
+                </td>
+                <td class="font-bold text-white">{{ item.amount }} EGP</td>
+                <td>
+                  <app-status-chip [label]="item.status | uppercase" [type]="getStatusChipType(item.status)"></app-status-chip>
+                </td>
+                <td class="text-slate">
+                  {{ isValidDate(item.paidAt) ? (item.paidAt | date:'mediumDate') : '—' }}
+                </td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        }
+      </div>
+
+      <div class="modal-footer">
+        <app-button variant="slate" (click)="closeHistoryModal()">Close</app-button>
+      </div>
+
+    </div>
+  </div>
+  }
+
+</div>

@@ -1,0 +1,370 @@
+<div class="admin-subscriptions-page">
+
+  <!-- PAGE HEADER -->
+  <header class="page-header">
+    <div class="header-left">
+      <div class="header-eyebrow">
+        <span class="eyebrow-dot"></span>
+        <span class="eyebrow-text">ACADEMY FINANCIAL MANAGEMENT</span>
+      </div>
+      <h1 class="header-title">Billing & Subscription Ledger</h1>
+      <p class="header-subtitle">Issue plan invoices, track player revenue, and manage membership dues.</p>
+    </div>
+
+    <div class="header-right">
+      <app-button variant="accent" (click)="openCreateModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        Issue New Subscription
+      </app-button>
+    </div>
+  </header>
+
+  <!-- METRICS / STATS STRIP -->
+  <section class="stats-strip">
+    <div class="stat-item">
+      <span class="stat-value success">{{ totalRevenue | currency:'EGP ':'symbol':'1.0-0' }}</span>
+      <span class="stat-label">Revenue Collected</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item">
+      <span class="stat-value warning">{{ pendingDues | currency:'EGP ':'symbol':'1.0-0' }}</span>
+      <span class="stat-label">Outstanding Dues</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item">
+      <span class="stat-value cyan">{{ activeSubscriptionsCount }}</span>
+      <span class="stat-label">Active Memberships</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item">
+      <span class="stat-value">{{ subscriptions.length }}</span>
+      <span class="stat-label">Total Invoices</span>
+    </div>
+  </section>
+
+  <!-- FEEDBACK BANNERS -->
+  @if (successMessage) {
+  <div class="alert-banner success-banner">
+    <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+      <polyline points="22 4 12 14.01 9 11.01"></polyline>
+    </svg>
+    <span>{{ successMessage }}</span>
+    <button class="close-alert" (click)="successMessage = ''">&times;</button>
+  </div>
+  }
+
+  @if (errorMessage) {
+  <div class="alert-banner error-banner">
+    <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"></circle>
+      <line x1="12" y1="8" x2="12" y2="12"></line>
+      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+    </svg>
+    <span>{{ errorMessage }}</span>
+    <button class="close-alert" (click)="errorMessage = ''">&times;</button>
+  </div>
+  }
+
+  <!-- CONTROL BAR (SEARCH & FILTERS) -->
+  <section class="filter-bar">
+    <div class="filter-search">
+      <app-search-bar placeholderText="Search player name..." (searchChange)="onSearchChange($event)">
+      </app-search-bar>
+    </div>
+
+    <div class="filter-controls">
+      <div class="filter-select-wrapper">
+        <app-select label="Status Filter" [options]="statusFilterOptions" [value]="selectedStatusFilter" (valueChange)="onStatusFilterChange($event)">
+        </app-select>
+      </div>
+    </div>
+  </section>
+
+  <!-- LOADING / EMPTY / TABLE -->
+  @if (isLoading) {
+  <div class="loading-wrapper">
+    <app-loading-spinner size="lg"></app-loading-spinner>
+    <p class="loading-text">Fetching academy subscription ledger...</p>
+  </div>
+  } @else if (filteredSubscriptions.length === 0) {
+  <div class="empty-wrapper">
+    <app-empty-state title="No Subscriptions Found"
+      description="No subscription records match your filter criteria or search query.">
+    </app-empty-state>
+  </div>
+  } @else {
+
+  <!-- SUBSCRIPTIONS TABLE -->
+  <div class="table-card">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Invoice ID</th>
+          <th>Player Name</th>
+          <th>Academy</th>
+          <th>Billing Cycle</th>
+          <th>Coverage Period</th>
+          <th>Amount</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (sub of filteredSubscriptions; track sub.id) {
+        <tr>
+          <td><span class="id-tag">#SUB-{{ sub.id }}</span></td>
+          <td><strong class="player-name-cell">{{ sub.playerName }}</strong></td>
+          <td class="text-slate">{{ sub.academyName }}</td>
+          <td><span class="cycle-tag">{{ formatDuration(sub.duration) }}</span></td>
+          <td>
+            <span class="date-range">
+              {{ sub.startDate | date:'shortDate' }} — {{ sub.dueDate | date:'shortDate' }}
+            </span>
+          </td>
+          <td class="amount-cell">{{ sub.amount | currency:'EGP ':'symbol':'1.0-0' }}</td>
+          <td>
+            <app-status-chip [label]="sub.status | uppercase" [type]="getStatusChipType(sub.status)"></app-status-chip>
+          </td>
+          <td class="action-cell">
+            <div class="action-buttons-group">
+              @if (!isPaid(sub.status)) {
+              <!-- Cash Paid Button -->
+              <app-button variant="amber" [loading]="isProcessingCashId === sub.id" (click)="onMarkAsPaidByCash(sub)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px;">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                Cash Paid
+              </app-button>
+
+              <!-- Edit Unpaid Plan Button -->
+              <app-button variant="slate" (click)="openEditModal(sub)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px;">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+                Edit
+              </app-button>
+              }
+
+              <!-- Player Billing History Button -->
+              <app-button variant="slate" (click)="openHistoryModal(sub.playerId, sub.playerName)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px;">
+                  <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                History
+              </app-button>
+            </div>
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  }
+
+  <!-- CREATE NEW SUBSCRIPTION MODAL -->
+  @if (isCreateModalOpen) {
+  <div class="modal-backdrop" (click)="closeCreateModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+
+      <div class="modal-header">
+        <div class="modal-header-info">
+          <div class="modal-icon-badge">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+          </div>
+          <div>
+            <h3 class="modal-title">Issue Flexible Subscription</h3>
+            <p class="modal-subtitle">Assign a custom duration membership bill to an academy player</p>
+          </div>
+        </div>
+        <button class="modal-close-btn" (click)="closeCreateModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group">
+          @if (isLoadingPlayers) {
+          <div class="loading-wrapper py-3">
+            <app-loading-spinner size="sm"></app-loading-spinner>
+            <span>Loading academy players...</span>
+          </div>
+          } @else if (availablePlayers.length === 0) {
+          <div class="empty-state-small">No enrolled academy players found.</div>
+          } @else {
+          <app-select label="Select Academy Player" [options]="playerOptions" [value]="newSub.playerId" (valueChange)="onPlayerSelect($event)">
+          </app-select>
+          }
+        </div>
+
+        <div class="form-row mt-4">
+          <div class="form-group col">
+            <app-number-input
+              label="Subscription Amount (EGP)"
+              placeholder="1500"
+              [min]="0"
+              [max]="100000"
+              [step]="100"
+              [value]="newSub.amount"
+              (valueChange)="onAmountChange($event)">
+            </app-number-input>
+          </div>
+
+          <div class="form-group col">
+            <app-select label="Billing Duration" [options]="durationOptions" [value]="newSub.duration" (valueChange)="onDurationSelect($event)">
+            </app-select>
+          </div>
+        </div>
+
+        <div class="form-group mt-4">
+          <app-date-picker label="Billing Start Date" [value]="newSub.startDate || ''" (valueChange)="onStartDateChange($event)">
+          </app-date-picker>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <app-button variant="slate" (click)="closeCreateModal()">Cancel</app-button>
+        <app-button variant="accent" [loading]="isSubmitting" [disabled]="isSubmitting || availablePlayers.length === 0" (click)="onCreateSubscription()">
+          Issue Subscription
+        </app-button>
+      </div>
+
+    </div>
+  </div>
+  }
+
+  <!-- EDIT UNPAID SUBSCRIPTION MODAL -->
+  @if (isEditModalOpen && selectedSubForEdit) {
+  <div class="modal-backdrop" (click)="closeEditModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+
+      <div class="modal-header">
+        <div class="modal-header-info">
+          <div class="modal-icon-badge">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+          </div>
+          <div>
+            <h3 class="modal-title">Modify Subscription Plan</h3>
+            <p class="modal-subtitle">Update unpaid plan details for <strong class="highlight">{{ selectedSubForEdit.playerName }}</strong></p>
+          </div>
+        </div>
+        <button class="modal-close-btn" (click)="closeEditModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group col">
+            <app-number-input
+              label="Subscription Amount (EGP)"
+              placeholder="1500"
+              [min]="0"
+              [max]="100000"
+              [step]="100"
+              [value]="editSub.amount"
+              (valueChange)="onEditAmountChange($event)">
+            </app-number-input>
+          </div>
+
+          <div class="form-group col">
+            <app-select label="Billing Duration" [options]="durationOptions" [value]="editSub.duration" (valueChange)="onEditDurationSelect($event)">
+            </app-select>
+          </div>
+        </div>
+
+        <div class="form-group mt-4">
+          <app-date-picker label="Billing Start Date" [value]="editSub.startDate || ''" (valueChange)="onEditStartDateChange($event)">
+          </app-date-picker>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <app-button variant="slate" (click)="closeEditModal()">Cancel</app-button>
+        <app-button variant="accent" [loading]="isEditingSub" (click)="onSaveEditedSubscription()">
+          Save Changes
+        </app-button>
+      </div>
+
+    </div>
+  </div>
+  }
+
+  <!-- PLAYER BILLING HISTORY MODAL -->
+  @if (selectedHistoryPlayer) {
+  <div class="modal-backdrop" (click)="closeHistoryModal()">
+    <div class="modal-card history-modal-card" (click)="$event.stopPropagation()">
+
+      <div class="modal-header">
+        <div class="modal-header-info">
+          <div class="modal-icon-badge">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <div>
+            <h3 class="modal-title">Player Payment & Billing History</h3>
+            <p class="modal-subtitle">Full subscription cycle ledger for <strong class="highlight">{{ selectedHistoryPlayer.name }}</strong></p>
+          </div>
+        </div>
+        <button class="modal-close-btn" (click)="closeHistoryModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        @if (isLoadingHistory) {
+        <div class="loading-wrapper py-4">
+          <app-loading-spinner size="md"></app-loading-spinner>
+        </div>
+        } @else if (historySubscriptions.length === 0) {
+        <div class="empty-state-small">
+          <p>No prior billing records found for this player.</p>
+        </div>
+        } @else {
+        <div class="history-table-wrapper">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Period</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Paid At</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of historySubscriptions; track item.id) {
+              <tr>
+                <td class="font-mono">
+                  {{ isValidDate(item.startDate) ? (item.startDate | date:'mediumDate') : '—' }}
+                  -
+                  {{ isValidDate(item.dueDate) ? (item.dueDate | date:'mediumDate') : '—' }}
+                </td>
+                <td class="font-bold text-white">{{ item.amount }} EGP</td>
+                <td>
+                  <app-status-chip [label]="item.status | uppercase" [type]="getStatusChipType(item.status)"></app-status-chip>
+                </td>
+                <td class="text-slate">
+                  {{ isValidDate(item.paidAt) ? (item.paidAt | date:'mediumDate') : '—' }}
+                </td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        }
+      </div>
+
+      <div class="modal-footer">
+        <app-button variant="slate" (click)="closeHistoryModal()">Close</app-button>
+      </div>
+
+    </div>
+  </div>
+  }
+
+</div>

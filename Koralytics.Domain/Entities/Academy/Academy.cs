@@ -22,6 +22,8 @@ namespace Koralytics.Domain.Entities.Academy
         public ICollection<AcademyAnnouncement> AcademyAnnouncements { get; set; } = [];
         public ICollection<AcademyBadge> AcademyBadges { get; set; } = [];
         public ICollection<RoleAuditLog> RoleAuditLogs { get; set; } = [];
+        // Inside Academy.cs
+        public ICollection<AcademyPlan> Plans { get; set; } = new List<AcademyPlan>();
 
     }
 }

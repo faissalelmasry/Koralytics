@@ -1,0 +1,190 @@
+<div class="parent-portal-page">
+
+    <!-- PAGE HEADER -->
+    <header class="page-header flex-between">
+        <div>
+            <div class="header-eyebrow">
+                <span class="eyebrow-dot"></span>
+                <span class="eyebrow-text">Guardian Portal</span>
+            </div>
+            <h1 class="header-title">Parent Dashboard</h1>
+            <p class="header-subtitle">Monitor performance, match history, and drill analytics for your children.</p>
+        </div>
+    </header>
+
+    @if (isLoading) {
+    <div class="loading-wrapper mt-4">
+        <app-loading-spinner text="Loading family profiles and children data..."></app-loading-spinner>
+    </div>
+    } @else if (errorMessage) {
+    <div class="error-banner mt-4">
+        <svg class="error-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <span>{{ errorMessage }}</span>
+    </div>
+    } @else if (children.length === 0) {
+    <div class="empty-wrapper mt-4">
+        <app-empty-state title="No Children Linked"
+            message="There are no active player profiles linked to your parent account yet. Please contact academy administration.">
+        </app-empty-state>
+    </div>
+    } @else {
+
+    <!-- CHILD SELECTOR STRIP (FOR MULTIPLE KIDS) -->
+    @if (children.length > 1) {
+    <section class="family-switcher-panel mt-4">
+        <div class="switcher-header">
+            <svg class="switcher-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+            <span class="switcher-label">Select Child Profile</span>
+        </div>
+        <div class="children-pills">
+            @for (child of children; track child.playerId) {
+            <button class="child-pill" [class.active]="selectedChild?.playerId === child.playerId"
+                (click)="onChildSelect(child)">
+                <svg class="pill-avatar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <span>{{ child.fullName }}</span>
+            </button>
+            }
+        </div>
+    </section>
+    }
+
+    <!-- SELECTED CHILD HERO BANNER -->
+    @if (selectedChild) {
+    <section class="child-hero-card mt-4">
+        <div class="hero-glow-bg"></div>
+        <div class="hero-avatar">
+            @if (selectedChild.photoUrl && !hasImageError(selectedChild.playerId)) {
+                <img [src]="selectedChild.photoUrl" [alt]="selectedChild.fullName" (error)="onImageError(selectedChild.playerId)" />
+            } @else {
+                <div class="avatar-fallback">
+                    <span class="avatar-initials">{{ getInitials(selectedChild.fullName) }}</span>
+                </div>
+            }
+            <div class="avatar-border-ring"></div>
+        </div>
+        <div class="hero-details">
+            <span class="team-badge">{{ selectedChild.teamName || 'Academy Squad' }}</span>
+            <h2 class="child-name">{{ selectedChild.fullName }}</h2>
+            <div class="child-meta">
+                <div class="meta-item">
+                    <span class="meta-label">Position</span>
+                    <span class="meta-val">{{ selectedChild.position || 'Squad Player' }}</span>
+                </div>
+                <div class="meta-divider"></div>
+                <div class="meta-item">
+                    <span class="meta-label">Player ID</span>
+                    <span class="meta-val">#{{ selectedChild.playerId }}</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ACTION CARDS GRID -->
+    <section class="modules-grid mt-4">
+
+        <!-- CARD 1: FIFA CARD & PROFILE -->
+        <div class="module-card card-cyan" (click)="navigateToProfile()">
+            <div class="card-glass-glow"></div>
+            <div class="card-header-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                    <polyline points="21 15 16 10 5 21"></polyline>
+                </svg>
+            </div>
+            <div class="card-content">
+                <h3>Player Profile & FIFA Card</h3>
+                <p>View complete player bio, physical attributes, position traits, and custom FIFA rating card.</p>
+            </div>
+            <div class="card-action-arrow">
+                <span>Explore Profile</span>
+                <svg class="arrow-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+            </div>
+        </div>
+
+        <!-- CARD 2: MATCH HISTORY & FIXTURES -->
+        <div class="module-card card-lime" (click)="navigateToMatchTimeline()">
+            <div class="card-glass-glow"></div>
+            <div class="card-header-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M12 2a14.5 14.5 0 0 0 0 20M2 12h20"></path>
+                </svg>
+            </div>
+            <div class="card-content">
+                <h3>Match History & Fixtures</h3>
+                <p>Track game day stats, upcoming schedule, minutes played, and match ratings.</p>
+            </div>
+            <div class="card-action-arrow">
+                <span>View Matches</span>
+                <svg class="arrow-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+            </div>
+        </div>
+
+        <!-- CARD 3: DRILL PROGRESSION -->
+        <div class="module-card card-amber" (click)="navigateToDrillProgression()">
+            <div class="card-glass-glow"></div>
+            <div class="card-header-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                    <polyline points="17 6 23 6 23 12"></polyline>
+                </svg>
+            </div>
+            <div class="card-content">
+                <h3>Drill Progression & Growth</h3>
+                <p>Analyze practice session curves, technical ratings over time, and category scores.</p>
+            </div>
+            <div class="card-action-arrow">
+                <span>View Performance</span>
+                <svg class="arrow-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+            </div>
+        </div>
+
+        <!-- CARD 4: SUBSCRIPTIONS & BILLING -->
+        <div class="module-card card-purple" (click)="navigateToSubscriptions()">
+            <div class="card-glass-glow"></div>
+            <div class="card-header-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                    <line x1="1" y1="10" x2="23" y2="10"></line>
+                </svg>
+            </div>
+            <div class="card-content">
+                <h3>Subscriptions & Billing</h3>
+                <p>Manage academy membership plans, payment status, dues, and renewal invoices.</p>
+            </div>
+            <div class="card-action-arrow">
+                <span>View Subscriptions</span>
+                <svg class="arrow-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+            </div>
+        </div>
+
+    </section>
+    }
+
+    }
+</div>
