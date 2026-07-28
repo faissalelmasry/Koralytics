@@ -134,6 +134,11 @@ export const routes: Routes = [
     data: { roles: ['Coach', 'AcademyAdmin'] }
   },
   {
+    path: 'tournament/fixture/:fixtureId/create-match',
+    loadComponent: () => import('./features/match/pages/create-tournament-match/create-tournament-match.component').then(m => m.CreateTournamentMatchComponent),
+    canActivate: [authGuard]
+  },
+  {
     path: 'academy/matches',
     loadComponent: () => import('./features/match/pages/academy-match-list/academy-match-list.component').then(m => m.AcademyMatchListComponent),
     canActivate: [authGuard, roleGuard],

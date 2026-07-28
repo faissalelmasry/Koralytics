@@ -55,7 +55,7 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpPost("tournament")]
-        [Authorize(Roles = "SuperAdmin")]
+        [Authorize(Roles = "SystemAdmin")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

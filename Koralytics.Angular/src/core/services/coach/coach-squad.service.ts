@@ -16,10 +16,19 @@ export class CoachSquadService {
   private baseUrl = `${environment.apiUrl}/api/Coach`;
 
   /** GET /api/Coach/{coachId}/teams/{teamId}/squad */
-  getSquad(coachId: number, teamId: number): Observable<SquadOverviewDto> {
+  getSquad(teamId: number, coachId?: number): Observable<SquadOverviewDto> {
+    if (coachId && coachId > 0) {
+      return this.http.get<SquadOverviewDto>(
+        `${this.baseUrl}/${coachId}/teams/${teamId}/squad`
+      );
+    }
     return this.http.get<SquadOverviewDto>(
-      `${this.baseUrl}/${coachId}/teams/${teamId}/squad`
+      `${this.baseUrl}/teams/${teamId}/squad`
     );
+  }
+
+  getCoachTeams(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/teams`);
   }
 
   /** POST /api/Coach/sessions/{sessionId}/split */
@@ -41,6 +50,17 @@ export class CoachSquadService {
     return this.http.get<SquadComparisonDto>(`${this.baseUrl}/squad/compare`, {
       params,
     });
+  }
+import { environment } from '../../../environments/environment';
 
-  
+@Injectable({
+  providedIn: 'root'
+})
+export class CoachSquadService {
+  private http = inject(HttpClient);
+  private apiUrl = `${environment.apiUrl}/api/Coach`;
+
+  getSquad(coachId: number, teamId: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/${coachId}/teams/${teamId}/squad`);
+  }
 }

@@ -177,4 +177,25 @@ export class MatchService {
   endMatch(matchId: number): Observable<ApiResponse<any>> {
     return this.http.patch<ApiResponse<any>>(`${this.apiUrl}/${matchId}/end`, {});
   }
+
+  createTournamentMatch(dto: CreateTournamentMatchDto): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.apiUrl}/tournament`, dto);
+  }
+
+  submitMatchRatings(matchId: number, dto: any): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.apiUrl}/${matchId}/ratings`, dto);
+  }
+
+  getMatchRatings(matchId: number): Observable<ApiResponse<any>> {
+    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/${matchId}/ratings`);
+  }
+}
+
+export interface CreateTournamentMatchDto {
+  tournamentFixtureId: number;
+  homeTeamId: number;
+  awayTeamId: number;
+  format?: number | string;
+  matchDate: string;
+  location?: string;
 }

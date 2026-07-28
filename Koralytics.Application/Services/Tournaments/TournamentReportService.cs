@@ -461,6 +461,9 @@ namespace Koralytics.Application.Services.Tournaments
         private FixtureDto MapFixtureToDto(TournamentFixtureEntity f) => new()
         {
             FixtureId = f.Id,
+            MatchId = f.MatchId,
+            HomeTeamId = f.HomeTeamId,
+            AwayTeamId = f.AwayTeamId,
             HomeTeamName = f.HomeTeam.Team.Name,
             AwayTeamName = f.AwayTeam.Team.Name,
             HomeScore = f.HomeScore,

@@ -17,6 +17,7 @@ namespace Koralytics.Application.DTOs.Match
     public class CategoryRatingDto
     {
         public int DrillCategoryId { get; set; }
+        public string CategoryName { get; set; } = string.Empty;
         public decimal Rating { get; set; }
     }
 }

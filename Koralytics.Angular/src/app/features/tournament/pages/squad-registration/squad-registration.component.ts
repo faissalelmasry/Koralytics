@@ -145,7 +145,7 @@ export class SquadRegistrationComponent implements OnInit {
     }
 
     forkJoin({
-      squad: this.coachSquadService.getSquad(coachId, this.selectedTeamId).pipe(catchError(() => of(null))),
+      squad: this.coachSquadService.getSquad(this.selectedTeamId, coachId).pipe(catchError(() => of(null))),
       registered: this.tournamentService.getRegisteredPlayerIds(this.tournamentId, this.selectedTeamId).pipe(catchError(() => of([])))
     }).subscribe({
       next: ({ squad, registered }) => {

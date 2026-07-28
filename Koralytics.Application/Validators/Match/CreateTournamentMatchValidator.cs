@@ -21,7 +21,7 @@ namespace Koralytics.Application.Validators.Match
                 .WithMessage("Home team and away team must be different.");
 
             RuleFor(x => x.Format)
-                .IsInEnum().WithMessage("Invalid match format.");
+                .Must(f => (int)f == 0 || System.Enum.IsDefined(f)).WithMessage("Invalid match format.");
 
             RuleFor(x => x.MatchDate)
                 .GreaterThan(DateTime.UtcNow).WithMessage("Match date must be in the future.");
