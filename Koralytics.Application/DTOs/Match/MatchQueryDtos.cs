@@ -4,8 +4,10 @@ namespace Koralytics.Application.DTOs.Match
     {
         public int TeamAId { get; set; }
         public string TeamAName { get; set; } = string.Empty;
+        public string TeamAAcademyName { get; set; } = string.Empty;
         public int TeamBId { get; set; }
         public string TeamBName { get; set; } = string.Empty;
+        public string TeamBAcademyName { get; set; } = string.Empty;
         public int TotalMatches { get; set; }
         public int TeamAWins { get; set; }
         public int TeamBWins { get; set; }
@@ -17,10 +19,16 @@ namespace Koralytics.Application.DTOs.Match
     {
         public int MatchId { get; set; }
         public DateTime MatchDate { get; set; }
+        public int HomeTeamId { get; set; }
         public string HomeTeamName { get; set; } = string.Empty;
+        public string HomeAcademyName { get; set; } = string.Empty;
+        public int AwayTeamId { get; set; }
         public string AwayTeamName { get; set; } = string.Empty;
+        public string AwayAcademyName { get; set; } = string.Empty;
         public int HomeScore { get; set; }
         public int AwayScore { get; set; }
+        public int? HomePenaltyScore { get; set; }
+        public int? AwayPenaltyScore { get; set; }
     }
 
     public class PostMatchAnalysisResponseDto

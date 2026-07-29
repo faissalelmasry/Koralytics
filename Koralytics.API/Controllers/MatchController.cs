@@ -87,7 +87,7 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpPatch("{matchId:int}/start")]
-        [Authorize(Roles = "SuperAdmin,Coach,AcademyAdmin")]
+        [Authorize(Roles = "SystemAdmin,Coach,AcademyAdmin")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -123,7 +123,7 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpGet("academy")]
-        [Authorize(Roles = "AcademyAdmin,SuperAdmin")]
+        [Authorize(Roles = "AcademyAdmin,SystemAdmin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAcademyMatches(
             [FromQuery] int academyId,
@@ -161,7 +161,7 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpPost("{matchId:int}/events")]
-        [Authorize(Roles = "SuperAdmin,Coach")]
+        [Authorize(Roles = "SystemAdmin,Coach")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -172,7 +172,7 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpPost("{matchId:int}/session-events")]
-        [Authorize(Roles = "SuperAdmin,Coach")]
+        [Authorize(Roles = "SystemAdmin,Coach")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -190,6 +190,17 @@ namespace Koralytics.API.Controllers
         {
             var result = await _matchEventService.GetMatchTimelineAsync(matchId);
             return OkResponse(result);
+        }
+
+        [HttpDelete("{matchId:int}/events/{eventId:int}")]
+        [Authorize(Roles = "SystemAdmin,Coach")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DisallowMatchEvent(int matchId, int eventId)
+        {
+            await _matchEventService.DeleteMatchEventAsync(matchId, eventId);
+            return NoContentResponse("Match event disallowed successfully");
         }
 
         [HttpPost("{matchId:int}/lineup")]
@@ -215,7 +226,7 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpPatch("{matchId:int}/end")]
-        [Authorize(Roles = "Coach,AcademyAdmin,SuperAdmin")]
+        [Authorize(Roles = "Coach,AcademyAdmin,SystemAdmin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -226,7 +237,7 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpPost("{matchId:int}/ratings")]
-        [Authorize(Roles = "SuperAdmin,Coach,AcademyAdmin")]
+        [Authorize(Roles = "SystemAdmin,Coach,AcademyAdmin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

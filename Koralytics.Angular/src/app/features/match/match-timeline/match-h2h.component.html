@@ -1,0 +1,120 @@
+<div class="h2h-wrapper fade-in-content">
+
+  @if (isLoading) {
+    <div class="loading-state">
+      <app-loading-spinner text="Loading Head to Head history..."></app-loading-spinner>
+    </div>
+  } @else if (error) {
+    <app-empty-state
+      title="Error Loading H2H Data"
+      [description]="error"
+    ></app-empty-state>
+  } @else if (!h2hData || h2hData.totalMatches === 0) {
+    <app-empty-state
+      title="No Head to Head History"
+      description="These teams have not played against each other in any recorded completed matches yet."
+    ></app-empty-state>
+  } @else {
+
+    <!-- HEADER SECTION -->
+    <div class="h2h-header-section">
+      <div class="header-tag">
+        <span class="tag-dot"></span>
+        <span>Match Analytics</span>
+      </div>
+      <h2 class="h2h-title">Head To Head Comparison</h2>
+      <p class="h2h-subtitle">Historical performance &amp; past encounters between {{ h2hData.teamAName || teamAName }} and {{ h2hData.teamBName || teamBName }}</p>
+    </div>
+
+    <!-- MAIN H2H SUMMARY HERO CARD -->
+    <div class="hero-card">
+      <div class="h2h-teams-header">
+        
+        <!-- Team A -->
+        <div class="team-display team-a">
+          <div class="team-badge team-a-badge">{{ getTeamInitials(h2hData.teamAName || teamAName) }}</div>
+          <div class="team-info">
+            <span class="team-sub">{{ h2hData.teamAAcademyName || 'HOME TEAM' }}</span>
+            <h3 class="team-name">{{ h2hData.teamAName || teamAName }}</h3>
+          </div>
+        </div>
+
+        <!-- VS Tag -->
+        <div class="vs-badge-container">
+          <span class="vs-badge">VS</span>
+        </div>
+
+        <!-- Team B -->
+        <div class="team-display team-b">
+          <div class="team-info">
+            <span class="team-sub">{{ h2hData.teamBAcademyName || 'AWAY TEAM' }}</span>
+            <h3 class="team-name">{{ h2hData.teamBName || teamBName }}</h3>
+          </div>
+          <div class="team-badge team-b-badge">{{ getTeamInitials(h2hData.teamBName || teamBName) }}</div>
+        </div>
+
+      </div>
+
+      <!-- Aggregated Numbers Grid -->
+      <div class="h2h-stats-grid">
+        <div class="stat-card">
+          <span class="val total-val">{{ h2hData.totalMatches }}</span>
+          <span class="lbl">Total Matches</span>
+        </div>
+        <div class="stat-card team-a-card">
+          <span class="val team-a-val">{{ h2hData.teamAWins }}</span>
+          <span class="lbl">{{ h2hData.teamAName || teamAName }} Wins</span>
+        </div>
+        <div class="stat-card draws-card">
+          <span class="val draws-val">{{ h2hData.draws }}</span>
+          <span class="lbl">Draws</span>
+        </div>
+        <div class="stat-card team-b-card">
+          <span class="val team-b-val">{{ h2hData.teamBWins }}</span>
+          <span class="lbl">{{ h2hData.teamBName || teamBName }} Wins</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PREVIOUS ENCOUNTERS LIST -->
+    <div class="history-section">
+      <div class="section-header">
+        <h3 class="section-title">Match History</h3>
+        <span class="match-count-badge">{{ h2hData.matches.length }} Matches Recorded</span>
+      </div>
+
+      <div class="match-history-list">
+        @for (m of h2hData.matches; track m.matchId) {
+          <div class="match-item" (click)="onMatchClick(m.matchId)">
+            <div class="match-date-box">
+              <svg class="calendar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+              <span>{{ formatDate(m.matchDate) }}</span>
+            </div>
+            
+            <div class="match-team home" [ngClass]="getTeamWinnerClass(m, true)">
+              {{ m.homeTeamName }}
+            </div>
+            
+            <div class="score-badge-container">
+              <span class="score-badge">{{ m.homeScore }} - {{ m.awayScore }}</span>
+              @if (hasPenalties(m)) {
+                <span class="penalties-subtext">({{ getPenaltyText(m) }})</span>
+              }
+            </div>
+            
+            <div class="match-team away" [ngClass]="getTeamWinnerClass(m, false)">
+              {{ m.awayTeamName }}
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+  }
+
+</div>

@@ -203,9 +203,9 @@
   position: relative;
   overflow: hidden;
   transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-              background 0.35s ease,
-              border-color 0.35s ease,
-              box-shadow 0.35s ease;
+    background 0.35s ease,
+    border-color 0.35s ease,
+    box-shadow 0.35s ease;
 }
 
 .koralytics-card::after {
@@ -232,9 +232,17 @@
   box-shadow: 0 12px 30px -8px rgba(0, 0, 0, 0.6);
 }
 
-.card-green::after  { background: linear-gradient(90deg, transparent, var(--glow-green), transparent); }
-.card-yellow::after { background: linear-gradient(90deg, transparent, var(--glow-yellow), transparent); }
-.card-red::after    { background: linear-gradient(90deg, transparent, var(--glow-red), transparent); }
+.card-green::after {
+  background: linear-gradient(90deg, transparent, var(--glow-green), transparent);
+}
+
+.card-yellow::after {
+  background: linear-gradient(90deg, transparent, var(--glow-yellow), transparent);
+}
+
+.card-red::after {
+  background: linear-gradient(90deg, transparent, var(--glow-red), transparent);
+}
 
 .card-left-info {
   display: flex;
@@ -413,9 +421,17 @@
   font-weight: 500;
 }
 
-.score-green  { color: var(--color-green); }
-.score-yellow { color: var(--color-yellow); }
-.score-red    { color: var(--color-red); }
+.score-green {
+  color: var(--color-green);
+}
+
+.score-yellow {
+  color: var(--color-yellow);
+}
+
+.score-red {
+  color: var(--color-red);
+}
 
 .pagination-wrapper {
   display: flex;
@@ -424,20 +440,35 @@
 }
 
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes drawCircle {
-  from { stroke-dashoffset: 110; }
-  to   { stroke-dashoffset: var(--target-offset); }
+  from {
+    stroke-dashoffset: 110;
+  }
+
+  to {
+    stroke-dashoffset: var(--target-offset);
+  }
 }
 
 @keyframes pulseDot {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 0 8px var(--color-green);
     transform: scale(1);
   }
+
   50% {
     box-shadow: 0 0 18px var(--color-green), 0 0 32px var(--glow-green);
     transform: scale(1.5);

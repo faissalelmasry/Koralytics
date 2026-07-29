@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { MatchService } from '../../../../../core/services/match/match.service';
 import { MatchCardModel } from '../../../../../core/models/Match/match-card.model';
 import { MatchCardComponent } from '../../match-card/match-card.component';
@@ -27,6 +28,7 @@ import { Subscription } from 'rxjs';
   styleUrls: ['./coach-match-list.component.css']
 })
 export class CoachMatchListComponent implements OnInit, OnDestroy {
+  private router = inject(Router);
   private matchService = inject(MatchService);
   private cdr = inject(ChangeDetectorRef);
   private signalrService = inject(MatchSignalrService);
@@ -195,5 +197,8 @@ export class CoachMatchListComponent implements OnInit, OnDestroy {
   }
 
   onMatchClick(matchId: number): void {
+    if (matchId) {
+      this.router.navigate(['/match', matchId]);
+    }
   }
 }

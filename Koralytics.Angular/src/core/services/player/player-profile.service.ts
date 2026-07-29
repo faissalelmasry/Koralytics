@@ -100,6 +100,10 @@ export class PlayerProfileService {
     return this.http.get<PlayerVsAcademyModel>(`${this.apiUrl}/Player/academy-comparison`);
   }
 
+  getPlayerAcademyComparisonById(playerId: number): Observable<PlayerVsAcademyModel> {
+    return this.http.get<PlayerVsAcademyModel>(`${this.apiUrl}/Player/${playerId}/academy-comparison`);
+  }
+
   addPlayerPosition(playerId: number, dto: AddPlayerPositionDto): Observable<void> {
     return this.http.post<void>(`${this.apiUrl}/Player/${playerId}/positions`, dto);
   }

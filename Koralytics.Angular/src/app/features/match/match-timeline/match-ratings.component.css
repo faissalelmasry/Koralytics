@@ -697,3 +697,13 @@
   font-style: italic;
   margin: 0;
 }
+
+.clickable-player-name {
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.clickable-player-name:hover {
+  color: #a3e635;
+  text-decoration: underline;
+}

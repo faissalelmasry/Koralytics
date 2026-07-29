@@ -71,6 +71,7 @@
       @for (event of events; track event.matchId; let i = $index) {
         <div
           class="koralytics-card"
+          [routerLink]="['/match', event.matchId]"
           scrollReveal
           direction="bottom"
           [delay]="250 + i * 70"
