@@ -6,5 +6,6 @@ namespace Koralytics.Application.Interfaces.Match
     {
         Task BroadcastMatchScoreUpdateAsync(LiveMatchScoreUpdateDto updateDto);
         Task BroadcastMatchEventAsync(LiveMatchEventUpdateDto eventDto);
+        Task BroadcastMatchEventDeletedAsync(LiveMatchEventDeletedDto deletedDto);
     }
 }

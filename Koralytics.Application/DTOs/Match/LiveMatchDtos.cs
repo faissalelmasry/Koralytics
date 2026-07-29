@@ -15,4 +15,10 @@ namespace Koralytics.Application.DTOs.Match
         public int MatchId { get; set; }
         public MatchEventResponseDto Event { get; set; } = null!;
     }
+
+    public class LiveMatchEventDeletedDto
+    {
+        public int MatchId { get; set; }
+        public int EventId { get; set; }
+    }
 }

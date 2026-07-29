@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Koralytics.Application.DTOs.Player;
 using Koralytics.Application.Interfaces;
 using Koralytics.Application.Services.Player.Helpers;
@@ -403,6 +403,10 @@ namespace Koralytics.Application.Services.Player.PlayerProfileServices
                 .Select(g => new { DrillCategoryId = g.Key, Average = g.Average(cr => cr.Score) })
                 .ToDictionaryAsync(g => g.DrillCategoryId, g => g.Average);
 
+            // Determine position type early — needed to select the right academy peer group
+            var isGoalkeeper = player.PlayerPositions
+                .Any(pp => pp.IsPrimary && string.Equals(pp.Position, "GK", StringComparison.OrdinalIgnoreCase));
+
             Dictionary<int, decimal> academyAverages = new();
 
             if (ageGroupIds.Count > 0)
@@ -413,16 +417,38 @@ namespace Koralytics.Application.Services.Player.PlayerProfileServices
                     .Select(t => t.Id)
                     .ToListAsync();
 
-                var academyPlayerIds = await _unitOfWork.Repository<PlayerTeam>()
+                // All active players in the same age-group teams
+                var allAcademyPlayerIds = await _unitOfWork.Repository<PlayerTeam>()
                     .GetQueryableAsNoTracking()
                     .Where(pt => pt.LeftAt == null && teamIds.Contains(pt.TeamId))
                     .Select(pt => pt.PlayerId)
                     .Distinct()
                     .ToListAsync();
 
+                // Split the academy peers into GKs and field players so that
+                // a GK's Goalkeeping score is benchmarked against other GKs,
+                // and a field player's scores are benchmarked against other field players.
+                var gkAcademyPlayerIds = await _unitOfWork.Repository<PlayerPosition>()
+                    .GetQueryableAsNoTracking()
+                    .Where(pp =>
+                        pp.IsPrimary &&
+                        allAcademyPlayerIds.Contains(pp.PlayerId) &&
+                        pp.Position.ToLower() == "gk")
+                    .Select(pp => pp.PlayerId)
+                    .Distinct()
+                    .ToListAsync();
+
+                // Field players = everyone in the academy cohort who is NOT a GK
+                var fieldAcademyPlayerIds = allAcademyPlayerIds
+                    .Except(gkAcademyPlayerIds)
+                    .ToList();
+
+                // Choose peer group based on whether the current player is a GK
+                var peerPlayerIds = isGoalkeeper ? gkAcademyPlayerIds : fieldAcademyPlayerIds;
+
                 academyAverages = await _unitOfWork.Repository<PlayerCategoryRating>()
                     .GetQueryableAsNoTracking()
-                    .Where(cr => academyPlayerIds.Contains(cr.PlayerCard!.PlayerId))
+                    .Where(cr => peerPlayerIds.Contains(cr.PlayerCard!.PlayerId))
                     .GroupBy(cr => cr.DrillCategoryId)
                     .Select(g => new { DrillCategoryId = g.Key, Average = g.Average(cr => cr.Score) })
                     .ToDictionaryAsync(g => g.DrillCategoryId, g => g.Average);
@@ -457,14 +483,24 @@ namespace Koralytics.Application.Services.Player.PlayerProfileServices
                 }
             }
 
-            var isGoalkeeper = player.PlayerPositions
-                .Any(pp => pp.IsPrimary && string.Equals(pp.Position, "GK", StringComparison.OrdinalIgnoreCase));
-
             if (isGoalkeeper)
             {
                 categories = categories
                     .Where(c => string.Equals(c.CategoryName, "Goalkeeping", StringComparison.OrdinalIgnoreCase))
                     .ToList();
+
+                // GK with no Goalkeeping data yet → inject a zero-placeholder so the bar always renders
+                if (categories.Count == 0)
+                {
+                    categories.Add(new CategoryComparison
+                    {
+                        CategoryId = -1,
+                        CategoryName = "Goalkeeping",
+                        PlayerAverage = 0,
+                        AcademyAverage = 0,
+                        Difference = 0,
+                    });
+                }
             }
             else
             {
@@ -480,8 +516,28 @@ namespace Koralytics.Application.Services.Player.PlayerProfileServices
                 AcademyId = academyId,
                 AcademyName = academy,
                 AgeGroupName = ageGroupName,
+                IsGoalkeeper = isGoalkeeper,
                 Categories = categories,
             };
+
+        }
+
+        public async Task<PlayerVsAcademyAverageDto> GetPlayerAcademyComparisonByIdAsync(int playerId)
+        {
+            _logger.LogInformation(
+                "Resolving academy for player {PlayerId} to run academy comparison", playerId);
+
+            // Resolve the player's current academy from their active team memberships
+            var currentAcademyId = await _unitOfWork.Repository<PlayerTeam>()
+                .GetQueryableAsNoTracking()
+                .Where(pt => pt.PlayerId == playerId && pt.LeftAt == null)
+                .Select(pt => (int?)pt.Team.AcademyId)
+                .FirstOrDefaultAsync();
+
+            if (currentAcademyId is null)
+                throw new NotFoundException($"No active academy found for player {playerId}.");
+
+            return await GetPlayerVsAcademyAverageAsync(playerId, currentAcademyId.Value);
         }
 
         public async Task<ScouterViewsCountDto> GetScouterViewsCountAsync(

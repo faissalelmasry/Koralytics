@@ -1,8 +1,11 @@
-import { Component, Input, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { MiniPlayerCardComponent } from '../mini-player-card/mini-player-card.component';
 import { TimelineEvent } from '../match-timeline/match-timeline.types';
+import { MatchService } from '../../../../core/services/match/match.service';
+import { ToastService } from '../../../../core/services/Toast/toast';
 
 @Component({
   selector: 'app-match-timeline-events',
@@ -12,8 +15,23 @@ import { TimelineEvent } from '../match-timeline/match-timeline.types';
   styleUrls: ['./match-timeline-events.component.css']
 })
 export class MatchTimelineEventsComponent {
+  private router = inject(Router);
   private sanitizer = inject(DomSanitizer);
   private cdr = inject(ChangeDetectorRef);
+  private matchService = inject(MatchService);
+  private toastService = inject(ToastService);
+
+  @Input() matchId!: number;
+  @Input() canLogEvents: boolean = false;
+  @Output() eventDisallowed = new EventEmitter<number>();
+
+  onPlayerClick(playerId: number): void {
+    if (playerId) {
+      this.router.navigate(['/player/profile', playerId]);
+    }
+  }
+
+  deletingEventId: number | null = null;
 
   private _events: TimelineEvent[] = [];
   @Input({ required: true }) 
@@ -27,6 +45,33 @@ export class MatchTimelineEventsComponent {
   }
   get events(): TimelineEvent[] {
     return this._events;
+  }
+
+  onDisallowEvent(eventId?: number): void {
+    if (!this.matchId || this.deletingEventId) return;
+
+    if (!eventId) {
+      this.toastService.show('Cannot disallow event: missing event ID', 'error');
+      return;
+    }
+
+    this.deletingEventId = eventId;
+    this.matchService.deleteMatchEvent(this.matchId, eventId).subscribe({
+      next: () => {
+        this.deletingEventId = null;
+        this.toastService.show('Event disallowed successfully', 'success');
+        this._events = this._events.filter(e => e.id !== eventId);
+        this.eventsWithIcons = this.eventsWithIcons.filter(e => e.id !== eventId);
+        this.eventDisallowed.emit(eventId);
+        this.cdr.detectChanges();
+      },
+      error: (err: any) => {
+        this.deletingEventId = null;
+        const msg = err?.error?.message ?? 'Failed to disallow event';
+        this.toastService.show(msg, 'error');
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   eventsWithIcons: (TimelineEvent & { iconSvg: SafeHtml })[] = [];

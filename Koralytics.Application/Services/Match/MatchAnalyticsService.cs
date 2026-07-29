@@ -29,13 +29,19 @@ namespace Koralytics.Application.Services.Match
                 teamAId, teamBId);
 
             var teamA = await _unitOfWork.Repository<Team>()
-                .FindAsNoTrackingAsync(t => t.Id == teamAId);
+                .GetQueryableAsNoTracking()
+                .Include(t => t.AgeGroup)
+                    .ThenInclude(ag => ag.Academy)
+                .FirstOrDefaultAsync(t => t.Id == teamAId);
 
             if (teamA is null)
                 throw new NotFoundException($"Team with Id {teamAId} not found");
 
             var teamB = await _unitOfWork.Repository<Team>()
-                .FindAsNoTrackingAsync(t => t.Id == teamBId);
+                .GetQueryableAsNoTracking()
+                .Include(t => t.AgeGroup)
+                    .ThenInclude(ag => ag.Academy)
+                .FirstOrDefaultAsync(t => t.Id == teamBId);
 
             if (teamB is null)
                 throw new NotFoundException($"Team with Id {teamBId} not found");
@@ -43,7 +49,11 @@ namespace Koralytics.Application.Services.Match
             var matches = await _unitOfWork.Repository<MatchEntity>()
                 .GetQueryableAsNoTracking()
                 .Include(m => m.HomeTeam)
+                    .ThenInclude(t => t.AgeGroup)
+                        .ThenInclude(ag => ag.Academy)
                 .Include(m => m.AwayTeam)
+                    .ThenInclude(t => t.AgeGroup)
+                        .ThenInclude(ag => ag.Academy)
                 .Where(m => m.Status == DomainEnums.MatchStatus.Completed
                     && m.Type != DomainEnums.MatchType.Session
                     && ((m.HomeTeamId == teamAId && m.AwayTeamId == teamBId)
@@ -74,8 +84,10 @@ namespace Koralytics.Application.Services.Match
             {
                 TeamAId = teamAId,
                 TeamAName = teamA.Name,
+                TeamAAcademyName = teamA.AgeGroup?.Academy?.Name ?? string.Empty,
                 TeamBId = teamBId,
                 TeamBName = teamB.Name,
+                TeamBAcademyName = teamB.AgeGroup?.Academy?.Name ?? string.Empty,
                 TotalMatches = matches.Count,
                 TeamAWins = teamAWins,
                 TeamBWins = teamBWins,
@@ -84,10 +96,16 @@ namespace Koralytics.Application.Services.Match
                 {
                     MatchId = m.Id,
                     MatchDate = m.MatchDate,
+                    HomeTeamId = m.HomeTeamId,
                     HomeTeamName = m.HomeTeam.Name,
+                    HomeAcademyName = m.HomeTeam.AgeGroup?.Academy?.Name ?? string.Empty,
+                    AwayTeamId = m.AwayTeamId,
                     AwayTeamName = m.AwayTeam.Name,
+                    AwayAcademyName = m.AwayTeam.AgeGroup?.Academy?.Name ?? string.Empty,
                     HomeScore = m.HomeScore,
-                    AwayScore = m.AwayScore
+                    AwayScore = m.AwayScore,
+                    HomePenaltyScore = m.HomePenaltyScore,
+                    AwayPenaltyScore = m.AwayPenaltyScore
                 }).ToList()
             };
         }

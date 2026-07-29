@@ -1,5 +1,6 @@
 import { Component, OnInit, AfterViewInit, inject, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Chart, registerables } from 'chart.js';
 import { NavbarComponent } from '../../../../shared/components/navbar/navbar';
 import { Footer } from '../../../../shared/components/footer/footer';
@@ -22,12 +23,18 @@ export class PlayerAcademyComparisonComponent implements OnInit, AfterViewInit {
   private profileService = inject(PlayerProfileService);
   private tokenStorage = inject(TokenStorageService);
   private cdr = inject(ChangeDetectorRef);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
 
   @ViewChild('radarCanvas') radarCanvas!: ElementRef<HTMLCanvasElement>;
 
   data: PlayerVsAcademyModel | null = null;
   isLoading = true;
   error = '';
+
+  /** The player whose data we're viewing. Read from route param or token. */
+  playerId: number | null = null;
+  loggedInUserId: number | null = null;
 
   private radarChart?: Chart<'radar'>;
 
@@ -40,6 +47,13 @@ export class PlayerAcademyComparisonComponent implements OnInit, AfterViewInit {
     return (this.data.categories.reduce((s, c) => s + c.playerAverage, 0) / this.data.categories.length).toFixed(1);
   }
 
+  // ── Computed getters for hero-banner ────────────────────────
+  get playerInitials(): string {
+    if (!this.data) return '?';
+    const parts = this.data.playerName.split(' ');
+    return (parts[0]?.[0] ?? '').toUpperCase() + (parts[1]?.[0] ?? '').toUpperCase();
+  }
+
   ngOnInit(): void {
     const token = this.tokenStorage.getAccessToken();
     if (!token) {
@@ -49,26 +63,51 @@ export class PlayerAcademyComparisonComponent implements OnInit, AfterViewInit {
     }
 
     const claims = this.decodeTokenPayload(token);
-    if (!claims || !claims.academyId) {
-      this.error = 'No academy association found';
-      this.isLoading = false;
-      return;
+    if (claims) {
+      this.loggedInUserId = claims.userId;
     }
 
-    this.profileService.getPlayerVsAcademyAverage().subscribe({
-      next: (res) => {
-        this.data = res;
-        this.isLoading = false;
-        this.cdr.detectChanges();
-        if (res.categories.length > 0) {
-          this.initRadarChart();
+    // If a :playerId is in the route, fetch that specific player's comparison via the open endpoint.
+    // Otherwise fall back to the player-self endpoint (uses JWT token).
+    const paramId = this.route.snapshot.paramMap.get('playerId');
+
+    if (paramId) {
+      this.playerId = Number(paramId);
+      this.profileService.getPlayerAcademyComparisonById(this.playerId).subscribe({
+        next: (res) => this.handleData(res),
+        error: (err) => {
+          this.error = err?.error?.message || 'Failed to load comparison data';
+          this.isLoading = false;
         }
-      },
-      error: (err) => {
-        this.error = err?.error?.message || 'Failed to load comparison data';
-        this.isLoading = false;
-      }
-    });
+      });
+    } else {
+      this.playerId = this.loggedInUserId;
+      this.profileService.getPlayerVsAcademyAverage().subscribe({
+        next: (res) => this.handleData(res),
+        error: (err) => {
+          this.error = err?.error?.message || 'Failed to load comparison data';
+          this.isLoading = false;
+        }
+      });
+    }
+  }
+
+  private handleData(res: PlayerVsAcademyModel): void {
+    this.data = res;
+    this.isLoading = false;
+    this.cdr.detectChanges();
+    if (res.categories.length > 0) {
+      this.initRadarChart();
+    }
+  }
+
+
+  goToProfile(): void {
+    if (this.playerId) {
+      this.router.navigate(['/player/profile', this.playerId]);
+    } else {
+      this.router.navigate(['/player/profile']);
+    }
   }
 
   ngAfterViewInit(): void {
@@ -171,3 +210,4 @@ export class PlayerAcademyComparisonComponent implements OnInit, AfterViewInit {
     }
   }
 }
+

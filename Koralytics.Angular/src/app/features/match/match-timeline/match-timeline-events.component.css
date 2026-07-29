@@ -112,6 +112,16 @@
   margin-top: 2px;
 }
 
+.clickable-player-name {
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.clickable-player-name:hover {
+  color: #a3e635;
+  text-decoration: underline;
+}
+
 .event-assist {
   font-size: 10px;
   color: var(--text-muted);
@@ -139,4 +149,48 @@
 .timeline-row:hover .minute-badge {
   transform: scale(1.1);
   box-shadow: 0 0 20px rgba(250, 204, 21, 0.6);
+}
+
+.disallow-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(239, 68, 68, 0.16);
+  border: 1px solid rgba(239, 68, 68, 0.45);
+  color: #fca5a5;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  flex-shrink: 0;
+  z-index: 2;
+}
+
+.timeline-event-box.home .disallow-btn {
+  margin-right: auto;
+}
+
+.timeline-event-box.away .disallow-btn {
+  margin-left: auto;
+}
+
+.disallow-btn svg {
+  width: 13px;
+  height: 13px;
+}
+
+.disallow-btn:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.35);
+  border-color: #ef4444;
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.5);
+  transform: scale(1.05);
+}
+
+.disallow-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
