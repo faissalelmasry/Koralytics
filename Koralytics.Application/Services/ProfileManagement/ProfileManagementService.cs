@@ -9,6 +9,7 @@ using Koralytics.Domain.Entities.Parents;
 using PlayerEntity = Koralytics.Domain.Entities.Player.Player;
 using PlayerPosition = Koralytics.Domain.Entities.Player.PlayerPosition;
 using ScouterEntity = Koralytics.Domain.Entities.Scouter.Scouter;
+using ParentEntity = Koralytics.Domain.Entities.Parents.Parent;
 using Koralytics.Domain.Entities.SystemAdmin;
 using Koralytics.Domain.Exceptions;
 using Koralytics.Application.Services.Player.Helpers;
@@ -92,9 +93,9 @@ namespace Koralytics.Application.Services.ProfileManagement
                     .FirstOrDefaultAsync(c => c.Id == userId);
                 dto = _mapper.Map<CoachProfileResponseDto>(coach ?? (object)user);
             }
-            else if (user is Parent || primaryRole == "Parent")
+            else if (user is ParentEntity || primaryRole == "Parent")
             {
-                var parent = await _unitOfWork.Repository<Parent>()
+                var parent = await _unitOfWork.Repository<ParentEntity>()
                     .GetQueryableAsNoTracking()
                     .FirstOrDefaultAsync(p => p.Id == userId);
                 dto = _mapper.Map<ParentProfileResponseDto>(parent ?? (object)user);
