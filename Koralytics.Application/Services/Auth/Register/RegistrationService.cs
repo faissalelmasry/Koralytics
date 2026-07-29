@@ -28,6 +28,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 using AcademyEntity = Koralytics.Domain.Entities.Academy.Academy;
+using ParentEntity = Koralytics.Domain.Entities.Parents.Parent;
 using CoachEntity = Koralytics.Domain.Entities.Coach.Coach;
 
 namespace Koralytics.Application.Services.Auth.Register
@@ -142,7 +143,7 @@ namespace Koralytics.Application.Services.Auth.Register
             var child = await _unitOfWork.Repository<Domain.Entities.Player.Player>().GetByIdAsync(request.ChildPlayerId);
             if (child is null) throw new NotFoundException("Child player not found.");
 
-            var parent = _mapper.Map<Parent>(request);
+            var parent = _mapper.Map<ParentEntity>(request);
 
             await ExecuteRegistrationInTransactionAsync(async () =>
             {

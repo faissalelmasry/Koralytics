@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Koralytics.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260724220953_init")]
-    partial class init
+    [Migration("20260726131559_parentplayer")]
+    partial class parentplayer
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -1362,6 +1362,9 @@ namespace Koralytics.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("AwayFormation")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int?>("AwayPenaltyScore")
                         .HasColumnType("int");
 
@@ -1815,11 +1818,11 @@ namespace Koralytics.Infrastructure.Migrations
 
             modelBuilder.Entity("Koralytics.Domain.Entities.Parents.ParentPlayer", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<int>("ParentId")
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    b.Property<int>("PlayerId")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -1830,16 +1833,13 @@ namespace Koralytics.Infrastructure.Migrations
                     b.Property<int?>("CreatedByUserId")
                         .HasColumnType("int");
 
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<int>("ParentId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PlayerId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
+                    b.HasKey("ParentId", "PlayerId");
 
                     b.HasIndex("CreatedByUserId");
 
@@ -3300,11 +3300,6 @@ namespace Koralytics.Infrastructure.Migrations
                 {
                     b.HasBaseType("Koralytics.Domain.Entities.Identity.User");
 
-                    b.Property<int?>("PlayerId")
-                        .HasColumnType("int");
-
-                    b.HasIndex("PlayerId");
-
                     b.ToTable("Parents", (string)null);
                 });
 
@@ -4217,7 +4212,7 @@ namespace Koralytics.Infrastructure.Migrations
                         .IsRequired();
 
                     b.HasOne("Koralytics.Domain.Entities.Player.Player", "Player")
-                        .WithMany()
+                        .WithMany("ParentPlayers")
                         .HasForeignKey("PlayerId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -4961,10 +4956,6 @@ namespace Koralytics.Infrastructure.Migrations
                         .HasForeignKey("Koralytics.Domain.Entities.Parents.Parent", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("Koralytics.Domain.Entities.Player.Player", null)
-                        .WithMany("ParentPlayers")
-                        .HasForeignKey("PlayerId");
                 });
 
             modelBuilder.Entity("Koralytics.Domain.Entities.Player.Player", b =>

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -29,7 +29,7 @@ namespace Koralytics.Domain.Entities.Player
         public ICollection<PlayerHighlight> PlayerHighlights { get; set; } = new List<PlayerHighlight>();
         public ICollection<PlayerAchievement> PlayerAchievements { get; set; } = new List<PlayerAchievement>();
         public ICollection<ScouterView> ScouterViews { get; set; } = new List<ScouterView>();
-        public ICollection<Parent> ParentPlayers { get; set; } = new List<Parent>();
+        public ICollection<ParentPlayer> ParentPlayers { get; set; } = new List<ParentPlayer>();
 
         public ICollection<MatchPlayerRating> PlayerRatings { get; set; } = new List<MatchPlayerRating>();
     }
