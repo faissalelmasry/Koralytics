@@ -127,8 +127,8 @@ export class TournamentDetailsComponent implements OnInit {
           this.allFixtures = this.groups.flatMap((g: any) =>
             (g.fixtures || []).map((f: any) => ({ ...f, groupName: g.groupName }))
           );
-          
-          const roundFixtures = this.rounds.flatMap((r: any) => 
+
+          const roundFixtures = this.rounds.flatMap((r: any) =>
             (r.fixtures || []).map((f: any) => ({ ...f, groupName: r.roundName }))
           );
           this.allFixtures = [...this.allFixtures, ...roundFixtures];
