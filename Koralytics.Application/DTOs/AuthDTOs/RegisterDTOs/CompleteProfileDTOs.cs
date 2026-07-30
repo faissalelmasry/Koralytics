@@ -26,7 +26,7 @@ namespace Koralytics.Application.DTOs.AuthDTOs.RegisterDTOs
 
     public class CompleteProfileAsParentDto : CompleteProfileBaseDto
     {
-        public int ChildPlayerId { get; set; }
+        public int? ChildPlayerId { get; set; }
     }
 
     public class CompleteProfileAsScouterDto : CompleteProfileBaseDto

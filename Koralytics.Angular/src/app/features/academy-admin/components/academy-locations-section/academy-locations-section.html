@@ -67,3 +67,16 @@
     <p>No locations found. Add your first academy location above.</p>
   </div>
 </div>
+
+<!-- Shared Cyber Confirm Dialog -->
+<app-confirm-dialog
+  [isOpen]="isConfirmDialogOpen"
+  [title]="confirmDialogTitle"
+  [message]="confirmDialogMessage"
+  level="danger"
+  confirmText="Yes, Confirm"
+  cancelText="Cancel"
+  [requiresConfirmation]="false"
+  (confirm)="onConfirmDialogExecute()"
+  (cancel)="isConfirmDialogOpen = false; targetIdForConfirm = null">
+</app-confirm-dialog>

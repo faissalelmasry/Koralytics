@@ -7,6 +7,7 @@ import { CustomButtonComponent } from '../../../../../shared/components/custom-b
 import { LoadingSpinnerComponent } from '../../../../../shared/components/loading-spinner/loading-spinner';
 import { CustomSelect, SelectOption } from '../../../../../shared/components/custom-select/custom-select';
 import { Pagination } from '../../../../../shared/components/pagination/pagination';
+import { ConfirmDialogComponent } from '../../../../../shared/components/confirm-dialog/confirm-dialog';
 
 @Component({
   selector: 'app-manage-users-section',
@@ -18,7 +19,8 @@ import { Pagination } from '../../../../../shared/components/pagination/paginati
     CustomButtonComponent,
     LoadingSpinnerComponent,
     CustomSelect,
-    Pagination
+    Pagination,
+    ConfirmDialogComponent
   ],
   templateUrl: './manage-users-section.html',
   styleUrls: ['./manage-users-section.css']
@@ -76,22 +78,24 @@ export class ManageUsersSectionComponent implements OnInit {
   selectedRoles: { [key: string]: boolean } = {};
   isUpdatingRoles = false;
 
+  isConfirmDialogOpen = false;
+  userToToggle: UserSummaryDto | null = null;
+  confirmDialogTitle = '';
+  confirmDialogMessage = '';
+  confirmDialogActionName = '';
+
   ngOnInit() {
     this.loadUsers();
   }
 
   loadUsers() {
     this.isLoading = true;
-    let isDeletedParam: boolean | undefined = undefined;
-    if (this.isDeletedFilter === 'false') isDeletedParam = false;
-    if (this.isDeletedFilter === 'true') isDeletedParam = true;
-
     this.systemAdminService.getUsers({
-      pageNumber: this.pageNumber,
-      pageSize: this.pageSize,
       searchTerm: this.searchTerm,
       roleFilter: this.roleFilter === 'All' ? undefined : this.roleFilter,
-      isDeletedFilter: isDeletedParam
+      isDeletedFilter: this.isDeletedFilter === 'All' ? undefined : (this.isDeletedFilter === 'true'),
+      pageNumber: this.pageNumber,
+      pageSize: this.pageSize
     }).subscribe({
       next: (res) => {
         this.isLoading = false;
@@ -155,12 +159,24 @@ export class ManageUsersSectionComponent implements OnInit {
   }
 
   toggleStatus(user: UserSummaryDto) {
+    this.userToToggle = user;
     const newStatus = !user.isDeleted;
-    const actionName = newStatus ? 'deactivate' : 'activate';
+    this.confirmDialogActionName = newStatus ? 'deactivate' : 'activate';
+    this.confirmDialogTitle = `${newStatus ? 'Deactivate' : 'Activate'} User Account`;
+    this.confirmDialogMessage = `Are you sure you want to ${this.confirmDialogActionName} the account for ${user.fullName || user.email}?`;
+    this.isConfirmDialogOpen = true;
+  }
 
-    if (!confirm(`Are you sure you want to ${actionName} account for ${user.fullName || user.email}?`)) {
+  onConfirmStatusToggle() {
+    if (!this.userToToggle) {
+      this.isConfirmDialogOpen = false;
       return;
     }
+
+    const user = this.userToToggle;
+    const newStatus = !user.isDeleted;
+    this.isConfirmDialogOpen = false;
+    this.userToToggle = null;
 
     this.systemAdminService.toggleUserStatus(user.id, newStatus).subscribe({
       next: (res) => {

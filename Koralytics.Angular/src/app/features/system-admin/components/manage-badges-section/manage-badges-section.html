@@ -30,9 +30,17 @@
     <div class="badge-card cyber-glass" *ngFor="let b of badges">
       <div class="badge-top">
         <div class="badge-icon-wrap">
-          <span>🏅</span>
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="8" r="7"></circle>
+            <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
+          </svg>
         </div>
-        <button class="btn-revoke" (click)="deleteBadge(b)" title="Revoke Badge">&times;</button>
+        <button class="action-icon-btn delete-btn" (click)="deleteBadge(b)" title="Revoke Badge">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+        </button>
       </div>
       <h4>{{ getBadgeLabel(b.badgeType) }}</h4>
       <p class="badge-desc">{{ b.description || 'Verified Koralytics partner academy recognition badge.' }}</p>
@@ -44,7 +52,12 @@
 
   <!-- Empty State -->
   <div class="empty-state" *ngIf="!isLoadingBadges && badges.length === 0 && selectedAcademyId">
-    <div class="empty-icon">🎖️</div>
+    <div class="empty-icon">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="8" r="7"></circle>
+        <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
+      </svg>
+    </div>
     <h4>No Badges Awarded</h4>
     <p>This academy currently has no verification or achievement badges.</p>
     <app-button variant="accent" (click)="openAwardModal()">Award First Badge</app-button>
@@ -52,44 +65,77 @@
 </div>
 
 <!-- Award Badge Modal -->
-<div class="modal-backdrop" *ngIf="showAwardModal" (click)="closeAwardModal()">
-  <div class="modal-card" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h4>Award Recognition Badge</h4>
-      <button class="btn-close" (click)="closeAwardModal()">&times;</button>
+<div class="modal-backdrop-cyber" *ngIf="showAwardModal" (click)="closeAwardModal()">
+  <div class="cyber-modal-card award-modal fade-in" (click)="$event.stopPropagation()">
+    <div class="tactical-tag">
+      <span>04 // ACADEMY RECOGNITION & HONORS</span>
     </div>
 
-    <form [formGroup]="awardForm" (ngSubmit)="onAwardSubmit()" class="modal-form">
-      <div class="form-group">
-        <app-select
-          label="Target Academy"
-          [options]="academyOptions"
-          [value]="awardForm.get('academyId')?.value"
-          (valueChange)="awardForm.get('academyId')?.setValue($event)">
-        </app-select>
+    <div class="modal-header-cyber">
+      <div class="modal-header-left">
+        <div class="modal-icon-badge badge">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a3e635" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+          </svg>
+        </div>
+        <div>
+          <h4>AWARD RECOGNITION BADGE</h4>
+          <p class="modal-subtitle">Grant official network honors and verified status to an academy.</p>
+        </div>
+      </div>
+      <button class="btn-close-cyber" (click)="closeAwardModal()" title="Close Modal">&times;</button>
+    </div>
+
+    <form [formGroup]="awardForm" (ngSubmit)="onAwardSubmit()" class="modal-form-cyber">
+      <div class="modal-form-fields">
+        <div class="form-group-cyber">
+          <app-select
+            label="Target Academy"
+            [options]="academyOptions"
+            [value]="awardForm.get('academyId')?.value"
+            (valueChange)="awardForm.get('academyId')?.setValue($event)">
+          </app-select>
+        </div>
+
+        <div class="form-group-cyber">
+          <app-select
+            label="Recognition Badge Type"
+            [options]="badgeTypes"
+            [value]="awardForm.get('badgeType')?.value"
+            (valueChange)="awardForm.get('badgeType')?.setValue($event)">
+          </app-select>
+        </div>
+
+        <app-text-input
+          label="Award Justification / Citation"
+          type="text"
+          placeholder="e.g. Awarded for high platform engagement and verified coaching standards."
+          formControlName="description">
+        </app-text-input>
       </div>
 
-      <div class="form-group">
-        <app-select
-          label="Badge Type"
-          [options]="badgeTypes"
-          [value]="awardForm.get('badgeType')?.value"
-          (valueChange)="awardForm.get('badgeType')?.setValue($event)">
-        </app-select>
-      </div>
-
-      <app-text-input
-        label="Award Reason / Description"
-        type="text"
-        formControlName="description">
-      </app-text-input>
-
-      <div class="modal-footer">
-        <app-button variant="slate" type="button" (click)="closeAwardModal()">Cancel</app-button>
-        <app-button variant="accent" type="submit" [disabled]="isAwarding || awardForm.invalid">
-          {{ isAwarding ? 'Awarding Badge...' : 'Confirm Award' }}
-        </app-button>
+      <div class="modal-footer-cyber">
+        <button type="button" class="btn-cyber-cancel" (click)="closeAwardModal()">CANCEL</button>
+        <button type="submit" class="btn-cyber-confirm award-btn" [disabled]="isAwarding || awardForm.invalid">
+          <svg *ngIf="!isAwarding" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+          </svg>
+          <span>{{ isAwarding ? 'AWARDING BADGE...' : 'CONFIRM AWARD' }}</span>
+        </button>
       </div>
     </form>
   </div>
 </div>
+
+<!-- Shared Cyber Confirm Dialog for Revoke Badge -->
+<app-confirm-dialog
+  [isOpen]="isConfirmDialogOpen"
+  [title]="confirmDialogTitle"
+  [message]="confirmDialogMessage"
+  level="danger"
+  confirmText="Yes, Revoke"
+  cancelText="Cancel"
+  [requiresConfirmation]="false"
+  (confirm)="onConfirmBadgeRevoke()"
+  (cancel)="isConfirmDialogOpen = false; badgeToRevoke = null">
+</app-confirm-dialog>

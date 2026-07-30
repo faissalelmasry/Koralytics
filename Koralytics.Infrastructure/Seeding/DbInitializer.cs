@@ -1565,20 +1565,22 @@ namespace Koralytics.Infrastructure.Seeding
                         if (defaultAcademy != null)
                         {
                             var defaultPlans = new List<AcademyPlan>
-                {
-                    new AcademyPlan
-                    {
-                        AcademyId = defaultAcademy.Id,
-                        Name = "Standard Monthly Plan",
-                        Amount = 1500.00m,
-                        Duration = SubscriptionDuration.OneMonth,
-                        GracePeriodDays = 7,
-                        IsDefault = true
-                    }
-                };
+                            {
+                                new AcademyPlan
+                                {
+                                    AcademyId = defaultAcademy.Id,
+                                    Name = "Standard Monthly Plan",
+                                    Amount = 1500.00m,
+                                    Duration = SubscriptionDuration.OneMonth,
+                                    GracePeriodDays = 7,
+                                    IsDefault = true
+                                }
+                            };
 
-                await context.SaveChangesAsync();
-            }
+                            await context.AcademyPlans.AddRangeAsync(defaultPlans);
+                            await context.SaveChangesAsync();
+                        }
+                    }
 
             // ====================================================================
             // TOURNAMENT SEED: Cairo Youth Cup 2025
@@ -1872,6 +1874,7 @@ namespace Koralytics.Infrastructure.Seeding
                     Status     = MatchStatus.Scheduled, LegNumber = 1
                 };
 
+                context.TournamentFixtures.AddRange(fixtureGrpA, fixtureGrpB, fixtureSF1, fixtureSF2);
                 await context.SaveChangesAsync();
             }
         }

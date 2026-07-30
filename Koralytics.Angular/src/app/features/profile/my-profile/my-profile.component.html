@@ -53,6 +53,34 @@
       </div>
     </div>
 
+    <!-- ================= PENDING GUARDIAN / PARENT JOIN REQUESTS ================= -->
+    @if (asPlayer && pendingParentRequests.length > 0) {
+    <div class="pending-parent-strip" scrollReveal direction="bottom">
+      <div class="strip-header">
+        <span class="pulse-dot"></span>
+        <h3>Pending Guardian / Parent Link Requests</h3>
+        <span class="req-count">{{ pendingParentRequests.length }}</span>
+      </div>
+      <div class="parent-req-cards">
+        @for (req of pendingParentRequests; track req.id) {
+        <div class="parent-req-card">
+          <div class="req-left">
+            <span class="req-icon">👨‍👦</span>
+            <div>
+              <h4>{{ req.parentName }}</h4>
+              <p>{{ req.parentEmail }} • Requested {{ req.requestedAt | date:'shortDate' }}</p>
+            </div>
+          </div>
+          <div class="req-actions">
+            <button class="btn-accept-req" (click)="respondToParentRequest(req.id, true)">Accept</button>
+            <button class="btn-reject-req" (click)="respondToParentRequest(req.id, false)">Reject</button>
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+    }
+
     <!-- ================= 2. MAIN GRID (VIEW MODE vs EDIT MODE) ================= -->
     @if (!isEditing) {
     <div class="main-grid" scrollReveal direction="bottom">
@@ -178,6 +206,58 @@
           </div>
           }
         </div>
+      </div>
+      }
+
+      <!-- ================= LINKED PARENTS / GUARDIANS SECTION (FOR PLAYER) ================= -->
+      @if (asPlayer) {
+      <div class="panel-card mt-4" scrollReveal direction="bottom">
+        <div class="linked-parents-header">
+          <div>
+            <span class="panel-title">Linked Guardians / Parents</span>
+            <p class="panel-subtitle">Parents and guardians who have access to manage and view your profile</p>
+          </div>
+          <span class="badge-count">{{ linkedParents.length }} Linked</span>
+        </div>
+
+        @if (linkedParents.length > 0) {
+        <div class="linked-parents-grid">
+          @for (parent of linkedParents; track parent.parentId) {
+          <div class="linked-parent-card">
+            <div class="parent-info-left">
+              <div class="parent-avatar">
+                @if (parent.photoUrl) {
+                <img [src]="parent.photoUrl" [alt]="parent.fullName" />
+                } @else {
+                <span>{{ (parent.fullName[0] || 'P') }}</span>
+                }
+              </div>
+              <div class="parent-details">
+                <h4>{{ parent.fullName }}</h4>
+                <p class="parent-email">{{ parent.email }}</p>
+                @if (parent.phoneNumber) {
+                <p class="parent-phone">{{ parent.phoneNumber }}</p>
+                }
+              </div>
+            </div>
+            <div class="parent-actions">
+              <button
+                class="btn-unlink-parent"
+                [disabled]="isUnlinkingParent"
+                (click)="unlinkParent(parent.parentId)">
+                Unlink
+              </button>
+            </div>
+          </div>
+          }
+        </div>
+        } @else {
+        <div class="empty-parents-box">
+          <span class="empty-icon">🛡️</span>
+          <p>No parents or guardians are currently linked to your profile.</p>
+          <span>When a parent sends you a link request, you can approve them from the top banner.</span>
+        </div>
+        }
       </div>
       }
     </div>

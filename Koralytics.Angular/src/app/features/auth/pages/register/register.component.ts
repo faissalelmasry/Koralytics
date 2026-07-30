@@ -84,7 +84,7 @@ export class RegisterComponent {
   });
 
   parentForm = this.fb.group({
-    childPlayerId: [0, [Validators.required, Validators.min(1)]]
+    childPlayerId: [null as number | null]
   });
 
   passwordMatchValidator(g: AbstractControl) {
@@ -106,8 +106,8 @@ export class RegisterComponent {
         this.baseForm.markAllAsTouched();
         return;
       }
-      // Coach, Scouter, and Admin don't have step 3 (Profile details)
-      if (['Coach', 'Scouter', 'AcademyAdmin'].includes(this.selectedRole!)) {
+      // Coach, Scouter, Parent, and Admin don't have step 3 (Profile details)
+      if (['Coach', 'Scouter', 'Parent', 'AcademyAdmin'].includes(this.selectedRole!)) {
         this.onSubmit();
         return;
       }
@@ -136,7 +136,6 @@ export class RegisterComponent {
     if (this.isLoading) return true;
     if (this.baseForm.invalid) return true;
     if (this.selectedRole === 'Player' && this.playerForm.invalid) return true;
-    if (this.selectedRole === 'Parent' && this.parentForm.invalid) return true;
     return false;
   }
 
@@ -144,10 +143,6 @@ export class RegisterComponent {
     if (this.currentStep === 2) {
       if (this.selectedRole === 'Player' && this.playerForm.invalid) {
         this.playerForm.markAllAsTouched();
-        return;
-      }
-      if (this.selectedRole === 'Parent' && this.parentForm.invalid) {
-        this.parentForm.markAllAsTouched();
         return;
       }
     }
@@ -179,10 +174,9 @@ export class RegisterComponent {
         break;
         
       case 'Parent':
-        const parentData = this.parentForm.getRawValue();
         const parentReq: RegisterParentRequest = {
           ...baseData,
-          childPlayerId: parentData.childPlayerId!
+          childPlayerId: null
         };
         requestObservable = this.authService.registerParent(parentReq);
         break;

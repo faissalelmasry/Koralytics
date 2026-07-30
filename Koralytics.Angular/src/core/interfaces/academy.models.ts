@@ -20,10 +20,25 @@ export interface CreateAcademyRequestDto {
   location: string;
 }
 
+export interface CreateAcademyDto {
+  academyRequestId: number;
+  name: string;
+  logoUrl?: string;
+  primaryColor?: string;
+  secondaryColor?: string;
+  foundedAt: string;
+  adminUserId: number;
+}
+
 export interface AcademyRequestResponseDto {
   id: number;
   academyName: string;
-  status: number;
+  contactPersonName?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  location?: string;
+  requestStatus: 'Pending' | 'Approved' | 'Rejected' | string;
+  status?: number | string;
   requestedAt: string;
   requestedById: number;
   requestedByFullName: string;

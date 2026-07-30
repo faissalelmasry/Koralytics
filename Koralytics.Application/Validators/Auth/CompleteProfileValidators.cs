@@ -44,8 +44,6 @@ namespace Koralytics.Application.Validators.Auth
     {
         public CompleteProfileAsParentValidator()
         {
-            RuleFor(x => x.ChildPlayerId)
-                .GreaterThan(0).WithMessage("ChildPlayerId is required.");
         }
     }
 

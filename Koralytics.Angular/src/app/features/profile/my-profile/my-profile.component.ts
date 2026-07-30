@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ProfileService } from '../../../../core/services/profile/profile.service';
 import { ToastService } from '../../../../core/services/Toast/toast';
+import { ParentService, ParentPlayerJoinRequest, PlayerParent } from '../../../../core/services/parent/parent.service';
 import {
   BaseUserProfileResponse,
   PlayerProfileResponse,
@@ -40,11 +41,15 @@ export class MyProfileComponent implements OnInit {
   private fb = inject(FormBuilder);
   private profileService = inject(ProfileService);
   private toast = inject(ToastService);
+  private parentService = inject(ParentService);
 
   profile: BaseUserProfileResponse | null = null;
+  pendingParentRequests: ParentPlayerJoinRequest[] = [];
+  linkedParents: PlayerParent[] = [];
   isLoading = true;
   isEditing = false;
   isSaving = false;
+  isUnlinkingParent = false;
   isUploadingImage = false;
   showImageUploadModal = false;
 
@@ -118,6 +123,10 @@ export class MyProfileComponent implements OnInit {
         this.isLoading = false;
         if (res.isSuccess && res.data) {
           this.profile = res.data;
+          if (this.profile.role === 'Player') {
+            this.loadPendingParentRequests();
+            this.loadLinkedParents();
+          }
         } else {
           this.toast.show(res.message || 'Failed to load profile', 'error');
         }
@@ -125,6 +134,62 @@ export class MyProfileComponent implements OnInit {
       error: (err) => {
         this.isLoading = false;
         this.toast.show('Error connecting to server while loading profile.', 'error');
+      }
+    });
+  }
+
+  loadPendingParentRequests(): void {
+    this.parentService.getPlayerPendingRequests().subscribe({
+      next: (res: any) => {
+        const data = res.data || res;
+        this.pendingParentRequests = Array.isArray(data) ? data : [];
+      },
+      error: (err) => console.error('Failed to load pending parent requests', err)
+    });
+  }
+
+  loadLinkedParents(): void {
+    this.parentService.getMyParents().subscribe({
+      next: (res: any) => {
+        const data = res.data || res;
+        this.linkedParents = Array.isArray(data) ? data : [];
+      },
+      error: (err) => console.error('Failed to load linked parents', err)
+    });
+  }
+
+  respondToParentRequest(requestId: number, accept: boolean): void {
+    const status = accept ? 2 : 3; // 2 = Accepted, 3 = Rejected
+    this.parentService.respondToChildRequest(requestId, status).subscribe({
+      next: () => {
+        this.pendingParentRequests = this.pendingParentRequests.filter(r => r.id !== requestId);
+        if (accept) {
+          this.loadLinkedParents();
+        }
+        this.toast.show(accept ? 'Parent request accepted!' : 'Parent request rejected.', 'success');
+      },
+      error: (err) => {
+        console.error('Failed to respond to parent request', err);
+        this.toast.show('Failed to respond to parent request.', 'error');
+      }
+    });
+  }
+
+  unlinkParent(parentId: number): void {
+    if (!confirm('Are you sure you want to unlink this parent/guardian from your account?')) {
+      return;
+    }
+    this.isUnlinkingParent = true;
+    this.parentService.unlinkParent(parentId).subscribe({
+      next: () => {
+        this.isUnlinkingParent = false;
+        this.linkedParents = this.linkedParents.filter(p => p.parentId !== parentId);
+        this.toast.show('Parent/Guardian unlinked successfully.', 'success');
+      },
+      error: (err) => {
+        this.isUnlinkingParent = false;
+        console.error('Failed to unlink parent', err);
+        this.toast.show('Failed to unlink parent/guardian.', 'error');
       }
     });
   }

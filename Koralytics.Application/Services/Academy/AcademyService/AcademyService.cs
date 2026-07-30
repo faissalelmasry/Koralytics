@@ -4,6 +4,7 @@ using Koralytics.Application.DTOs.Academies;
 using Koralytics.Application.DTOs.Academy;
 using Koralytics.Application.Interfaces;
 using Koralytics.Application.Validators.Academies;
+using Koralytics.Domain.Entities;
 using Koralytics.Domain.Entities.Academy;
 using Koralytics.Domain.Entities.Coach;
 using Koralytics.Domain.Entities.Player;
@@ -621,6 +622,8 @@ namespace Koralytics.Application.Services.Academy.AcademyService
 
             await _unitOfWork.Repository<Domain.Entities.Player.PlayerAcademy>().AddAsync(playerAcademy);
 
+            var academyPlan = await _unitOfWork.Repository<AcademyPlan>().FindAsNoTrackingAsync(ap => ap.AcademyId == academyId && ap.Name == "Standard Monthly Plan");
+
             // Create an unpaid subscription for the player at this academy
             var subscription = new PlayerSubscription
             {
@@ -628,7 +631,9 @@ namespace Koralytics.Application.Services.Academy.AcademyService
                 AcademyId = academyId,
                 PaidByUserId = playerUserId,
                 Status = SubscriptionStatus.Unpaid,
-                CreatedById = performedByUserId
+                CreatedById = performedByUserId,
+                Amount = academyPlan?.Amount ?? 1500m,
+                DueDate = DateTime.UtcNow.AddMonths((int)(academyPlan?.Duration??SubscriptionDuration.OneMonth)),
             };
 
             await _unitOfWork.Repository<PlayerSubscription>().AddAsync(subscription);

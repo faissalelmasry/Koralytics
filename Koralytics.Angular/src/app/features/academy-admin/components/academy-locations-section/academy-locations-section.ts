@@ -8,6 +8,7 @@ import { CustomButtonComponent } from '../../../../../shared/components/custom-b
 import { DataTable, TableColumn } from '../../../../../shared/components/data-table/data-table';
 import { Pagination } from '../../../../../shared/components/pagination/pagination';
 import { AcademyLocationResponseDto } from '../../../../../core/interfaces/academy.models';
+import { ConfirmDialogComponent } from '../../../../../shared/components/confirm-dialog/confirm-dialog';
 
 @Component({
   selector: 'app-academy-locations-section',
@@ -18,7 +19,8 @@ import { AcademyLocationResponseDto } from '../../../../../core/interfaces/acade
     CustomInputComponent,
     CustomButtonComponent,
     DataTable,
-    Pagination
+    Pagination,
+    ConfirmDialogComponent
   ],
   templateUrl: './academy-locations-section.html',
   styleUrls: ['./academy-locations-section.css']
@@ -128,8 +130,27 @@ export class AcademyLocationsSectionComponent implements OnInit {
     }
   }
 
+  isConfirmDialogOpen = false;
+  confirmDialogTitle = '';
+  confirmDialogMessage = '';
+  targetIdForConfirm: number | null = null;
+
   deleteLocation(locationId: number) {
-    if (!confirm('Are you sure you want to delete this location?')) return;
+    this.targetIdForConfirm = locationId;
+    this.confirmDialogTitle = 'Delete Academy Location';
+    this.confirmDialogMessage = 'Are you sure you want to permanently remove this location?';
+    this.isConfirmDialogOpen = true;
+  }
+
+  onConfirmDialogExecute() {
+    if (!this.targetIdForConfirm) {
+      this.isConfirmDialogOpen = false;
+      return;
+    }
+
+    const locationId = this.targetIdForConfirm;
+    this.isConfirmDialogOpen = false;
+    this.targetIdForConfirm = null;
 
     this.academyService.deleteLocation(this.academyId, locationId).subscribe({
       next: (res) => {

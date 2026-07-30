@@ -367,4 +367,16 @@
   </div>
   }
 
+  <!-- Shared Cyber Confirm Dialog -->
+  <app-confirm-dialog
+    [isOpen]="isConfirmDialogOpen"
+    [title]="confirmDialogTitle"
+    [message]="confirmDialogMessage"
+    level="warning"
+    confirmText="Yes, Mark Paid"
+    cancelText="Cancel"
+    [requiresConfirmation]="false"
+    (confirm)="onConfirmDialogExecute()"
+    (cancel)="isConfirmDialogOpen = false; targetSubForCash = null">
+  </app-confirm-dialog>
 </div>

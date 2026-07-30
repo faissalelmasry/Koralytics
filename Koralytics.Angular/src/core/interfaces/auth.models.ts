@@ -83,7 +83,7 @@ export interface RegisterPlayerRequest extends BaseRegistrationRequest {
 }
 
 export interface RegisterParentRequest extends BaseRegistrationRequest {
-  childPlayerId: number;
+  childPlayerId?: number | null;
 }
 
 export interface RegisterCoachRequest extends BaseRegistrationRequest {}
@@ -104,7 +104,7 @@ export interface CompleteProfileAsPlayer extends CompleteProfileBase {
 }
 
 export interface CompleteProfileAsParent extends CompleteProfileBase {
-  childPlayerId: number;
+  childPlayerId?: number | null;
 }
 
 export interface CompleteProfileAsCoach extends CompleteProfileBase {}

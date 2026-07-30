@@ -1,30 +1,31 @@
-<div class="detail-panel">
+<div class="detail-panel fade-in">
   <div class="panel-header">
+    <div class="tactical-tag">Academy Inspection Directory</div>
     <div class="sub-tabs">
       <button 
         [class.active]="activeSubTab === 'members'" 
         (click)="setSubTab('members')">
-        Members ({{ members.length }})
+        <span>Members ({{ members.length }})</span>
       </button>
       <button 
         [class.active]="activeSubTab === 'admins'" 
         (click)="setSubTab('admins')">
-        Admins ({{ admins.length }})
+        <span>Admins ({{ admins.length }})</span>
       </button>
       <button 
         [class.active]="activeSubTab === 'locations'" 
         (click)="setSubTab('locations')">
-        Locations ({{ locations.length }})
+        <span>Locations ({{ locations.length }})</span>
       </button>
       <button 
         [class.active]="activeSubTab === 'badges'" 
         (click)="setSubTab('badges')">
-        Badges ({{ badges.length }})
+        <span>Badges ({{ badges.length }})</span>
       </button>
       <button 
         [class.active]="activeSubTab === 'subscriptions'" 
         (click)="setSubTab('subscriptions')">
-        Subscriptions
+        <span>Subscriptions</span>
       </button>
     </div>
   </div>
@@ -36,7 +37,7 @@
 
   <div class="tab-content" *ngIf="!isLoading">
     <!-- Members Tab -->
-    <div *ngIf="activeSubTab === 'members'">
+    <div *ngIf="activeSubTab === 'members'" class="fade-in">
       <table class="mini-table" *ngIf="members.length > 0">
         <thead>
           <tr>
@@ -57,7 +58,7 @@
     </div>
 
     <!-- Admins Tab -->
-    <div *ngIf="activeSubTab === 'admins'">
+    <div *ngIf="activeSubTab === 'admins'" class="fade-in">
       <table class="mini-table" *ngIf="admins.length > 0">
         <thead>
           <tr>
@@ -68,7 +69,11 @@
         <tbody>
           <tr *ngFor="let a of admins">
             <td>{{ a.fullName || a.firstName + ' ' + a.lastName }}</td>
-            <td><span class="badge-chip admin">{{ a.isOwner ? 'Owner' : 'Admin' }}</span></td>
+            <td>
+              <span class="badge-chip" [class.admin]="!a.isOwner" [class.owner]="a.isOwner">
+                {{ a.isOwner ? 'Owner' : 'Admin' }}
+              </span>
+            </td>
           </tr>
         </tbody>
       </table>
@@ -76,24 +81,32 @@
     </div>
 
     <!-- Locations Tab -->
-    <div *ngIf="activeSubTab === 'locations'">
+    <div *ngIf="activeSubTab === 'locations'" class="fade-in">
       <div class="location-list" *ngIf="locations.length > 0">
         <div class="location-card" *ngFor="let loc of locations">
-          <div class="loc-name">{{ loc.name }} <span class="badge-chip main" *ngIf="loc.isMain">Main</span></div>
-          <div class="loc-address">{{ loc.address }}, {{ loc.city }}</div>
+          <div>
+            <div class="loc-name">{{ loc.name }}</div>
+            <div class="loc-address">{{ loc.address }}, {{ loc.city }}</div>
+          </div>
+          <span class="badge-chip main" *ngIf="loc.isMain">Main</span>
         </div>
       </div>
       <div class="empty-sub" *ngIf="locations.length === 0">No locations listed.</div>
     </div>
 
     <!-- Badges Tab -->
-    <div *ngIf="activeSubTab === 'badges'">
+    <div *ngIf="activeSubTab === 'badges'" class="fade-in">
       <div class="badge-list" *ngIf="badges.length > 0">
         <div class="badge-item" *ngFor="let b of badges">
-          <span class="badge-icon">🏅</span>
+          <span class="badge-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00e5ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="8" r="7"></circle>
+              <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
+            </svg>
+          </span>
           <div class="badge-info">
             <strong>{{ getBadgeLabel(b.badgeType) }}</strong>
-            <small>Awarded {{ b.awardedAt | date:'shortDate' }}</small>
+            <small>Awarded {{ b.awardedAt | date:'mediumDate' }}</small>
           </div>
         </div>
       </div>
@@ -101,15 +114,15 @@
     </div>
 
     <!-- Subscriptions Tab -->
-    <div *ngIf="activeSubTab === 'subscriptions'">
+    <div *ngIf="activeSubTab === 'subscriptions'" class="fade-in">
       <div class="subs-summary" *ngIf="subscriptions">
         <div class="stat-box">
           <span class="stat-num">{{ subscriptions.activeCount || 0 }}</span>
           <span class="stat-label">Active Subscriptions</span>
         </div>
         <div class="stat-box">
-          <span class="stat-num">{{ subscriptions.expiredCount || 0 }}</span>
-          <span class="stat-label">Expired</span>
+          <span class="stat-num expired">{{ subscriptions.expiredCount || 0 }}</span>
+          <span class="stat-label">Expired Subscriptions</span>
         </div>
       </div>
       <div class="empty-sub" *ngIf="!subscriptions">No subscription data available.</div>

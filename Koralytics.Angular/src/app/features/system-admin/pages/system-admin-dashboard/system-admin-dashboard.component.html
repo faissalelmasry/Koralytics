@@ -11,44 +11,154 @@
   <ng-container *ngIf="!isLoading">
     <div class="profile-container">
 
-      <!-- HEADER -->
-      <div class="glass-card fade-in"
-        style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
-        <div>
-          <h2
-            style="margin: 0 0 8px 0; font-size: 1.8rem; font-weight: 600; background: linear-gradient(to right, #60a5fa, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-            Platform Administration
-          </h2>
-          <p style="margin: 0; color: #94a3b8;">
-            Global oversight of academies, user management, badges, and onboarding workflows
-          </p>
+      <!-- TACTICAL TAG & HEADER ROW -->
+      <div>
+        <div class="tactical-tag" scrollReveal direction="bottom" [delay]="0">Platform Administration</div>
+        <div class="header-row" scrollReveal direction="bottom" [delay]="40">
+          <h1 class="section-title">Core Platform Command</h1>
+          <span class="badge-count">v2.4 LTS · All Systems Operational</span>
+        </div>
+      </div>
+
+      <!-- 1. HERO BANNER -->
+      <div class="hero-banner" scrollReveal direction="bottom" [delay]="90">
+        <div class="admin-identity">
+          <div class="avatar-circle">{{ initials }}</div>
+          <div>
+            <h1>{{ currentUser?.fullName || currentUser?.userName || 'System Administrator' }}</h1>
+            <div class="meta-pills">
+              <span class="pill gold">System Admin</span>
+              <span class="pill" *ngIf="currentUser?.email">{{ currentUser?.email }}</span>
+              <span class="pill">Global Overseer</span>
+            </div>
+          </div>
         </div>
 
-        <div class="user-profile" *ngIf="currentUser" style="display: flex; align-items: center; gap: 12px;">
-          <div class="avatar"
-            style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6, #8b5cf6); display: flex; align-items: center; justify-content: center; font-weight: 600; color: #fff; font-size: 18px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
-            {{ currentUser.fullName.charAt(0) || currentUser.email.charAt(0) || 'S' }}
+        <div class="bio-quick-list">
+          <div class="bio-item">
+            <span class="bio-lbl">Pending Review</span>
+            <span class="bio-val" [class.status-transferred]="pendingCount() > 0" [class.status-available]="pendingCount() === 0">
+              {{ pendingCount() }}
+            </span>
           </div>
-          <div class="profile-info" style="display: flex; flex-direction: column;">
-            <span class="user-name" style="font-size: 1rem; font-weight: 600; color: #e2e8f0;">{{ currentUser.fullName
-              || currentUser.userName }}</span>
-            <span class="user-role" style="font-size: 0.8rem; color: #60a5fa; font-weight: 500;">System
-              Administrator</span>
+          <div class="bio-item">
+            <span class="bio-lbl">Active Academies</span>
+            <span class="bio-val">{{ totalAcademies() }}</span>
+          </div>
+          <div class="bio-item">
+            <span class="bio-lbl">Platform Users</span>
+            <span class="bio-val">{{ totalUsers() }}</span>
+          </div>
+          <div class="bio-item">
+            <span class="bio-lbl">System Health</span>
+            <span class="bio-val status-available">Optimal</span>
           </div>
         </div>
       </div>
 
-      <!-- SECTIONS -->
-      <app-pending-requests-section scrollReveal direction="bottom" [delay]="100"
-        (requestsChanged)="refreshPendingCount()">
-      </app-pending-requests-section>
+      <!-- 2. KPI CARDS GRID -->
+      <div class="kpi-grid" scrollReveal direction="bottom" [delay]="140">
+        <div class="kpi-card clickable" [class.highlight]="pendingCount() > 0" (click)="setTab('pending')">
+          <div class="kpi-header">Pending Requests</div>
+          <div class="kpi-value">{{ pendingCount() }}</div>
+          <div class="kpi-sub">{{ pendingCount() > 0 ? 'Requires immediate admin review' : 'All onboarding caught up' }}</div>
+        </div>
 
-      <app-active-academies-section scrollReveal direction="bottom" [delay]="200"></app-active-academies-section>
+        <div class="kpi-card clickable" (click)="setTab('academies')">
+          <div class="kpi-header">Active Academies</div>
+          <div class="kpi-value">{{ totalAcademies() }}</div>
+          <div class="kpi-sub">Verified football academies</div>
+        </div>
 
-      <app-manage-badges-section scrollReveal direction="bottom" [delay]="300"></app-manage-badges-section>
+        <div class="kpi-card clickable" (click)="setTab('users')">
+          <div class="kpi-header">Platform Users</div>
+          <div class="kpi-value">{{ totalUsers() }}</div>
+          <div class="kpi-sub">Players, coaches & administrators</div>
+        </div>
 
-      <app-manage-users-section scrollReveal direction="bottom" [delay]="400"></app-manage-users-section>
+        <div class="kpi-card highlight">
+          <div class="kpi-header">API Security & Uptime</div>
+          <div class="kpi-value">99.9%</div>
+          <div class="kpi-sub">All microservices operational</div>
+        </div>
+      </div>
+
+      <!-- 3. TACTICAL SECTION NAVIGATION BAR -->
+      <div class="filter-panel-card" scrollReveal direction="bottom" [delay]="200">
+        <div class="tabs-bar">
+          <button class="tab-btn" [class.active]="activeTab() === 'all'" (click)="setTab('all')">
+            <span>All Overview</span>
+          </button>
+          <button class="tab-btn" [class.active]="activeTab() === 'pending'" (click)="setTab('pending')">
+            <span>Pending Requests</span>
+            <span class="tab-badge" *ngIf="pendingCount() > 0">{{ pendingCount() }}</span>
+          </button>
+          <button class="tab-btn" [class.active]="activeTab() === 'academies'" (click)="setTab('academies')">
+            <span>Active Academies</span>
+          </button>
+          <button class="tab-btn" [class.active]="activeTab() === 'badges'" (click)="setTab('badges')">
+            <span>Platform Badges</span>
+          </button>
+          <button class="tab-btn" [class.active]="activeTab() === 'users'" (click)="setTab('users')">
+            <span>User Management</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 4. DASHBOARD SECTIONS -->
+      <div class="dashboard-sections">
+        <!-- 01 / ACADEMY ONBOARDING REQUESTS -->
+        <ng-container *ngIf="activeTab() === 'all' || activeTab() === 'pending'">
+          <div class="group-label" scrollReveal direction="bottom" [delay]="100">
+            01 / Academy Onboarding Requests
+          </div>
+          <app-pending-requests-section
+            scrollReveal
+            direction="bottom"
+            [delay]="150"
+            (requestsChanged)="refreshPendingCount()">
+          </app-pending-requests-section>
+        </ng-container>
+
+        <!-- 02 / REGISTERED ACADEMIES DIRECTORY -->
+        <ng-container *ngIf="activeTab() === 'all' || activeTab() === 'academies'">
+          <div class="group-label" scrollReveal direction="bottom" [delay]="100">
+            02 / Registered Academies Directory
+          </div>
+          <app-active-academies-section
+            scrollReveal
+            direction="bottom"
+            [delay]="150">
+          </app-active-academies-section>
+        </ng-container>
+
+        <!-- 03 / GLOBAL BADGES & ACHIEVEMENTS -->
+        <ng-container *ngIf="activeTab() === 'all' || activeTab() === 'badges'">
+          <div class="group-label" scrollReveal direction="bottom" [delay]="100">
+            03 / Global Badges & Achievements
+          </div>
+          <app-manage-badges-section
+            scrollReveal
+            direction="bottom"
+            [delay]="150">
+          </app-manage-badges-section>
+        </ng-container>
+
+        <!-- 04 / PLATFORM USER MANAGEMENT -->
+        <ng-container *ngIf="activeTab() === 'all' || activeTab() === 'users'">
+          <div class="group-label" scrollReveal direction="bottom" [delay]="100">
+            04 / Platform User Management
+          </div>
+          <app-manage-users-section
+            scrollReveal
+            direction="bottom"
+            [delay]="150">
+          </app-manage-users-section>
+        </ng-container>
+      </div>
 
     </div>
   </ng-container>
 </div>
+
+<app-footer scrollReveal direction="bottom" [delay]="250"></app-footer>
