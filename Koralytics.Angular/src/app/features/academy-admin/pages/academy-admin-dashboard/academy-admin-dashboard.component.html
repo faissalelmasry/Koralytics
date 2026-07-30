@@ -13,14 +13,14 @@
     <!-- Has Academy (Scrolling Single Page + Filter Panel) -->
     <div class="profile-container" *ngIf="hasAcademy">
 
-      <!-- TACTICAL TAG & HEADER ROW -->
+      <!-- TACTICAL TAG & HEADER ROW
       <div>
         <div class="tactical-tag" scrollReveal direction="bottom" [delay]="0">Academy Command Protocol</div>
         <div class="header-row" scrollReveal direction="bottom" [delay]="40">
           <h1 class="section-title">Academy Operations Command</h1>
           <span class="badge-count">{{ academyDetails?.name || 'Academy Hub' }}</span>
         </div>
-      </div>
+      </div> -->
 
       <!-- =============== 1. HERO BANNER =============== -->
       <div class="hero-banner" scrollReveal direction="bottom" [delay]="90">
@@ -55,6 +55,13 @@
           <div class="bio-item">
             <span class="bio-lbl">Status</span>
             <span class="bio-val status-available">Active</span>
+          </div>
+          <div class="bio-item">
+            <span class="bio-lbl">Public Profile</span>
+            <button type="button" class="action-btn" (click)="viewPublicProfile()"
+              style="padding: 5px 12px; font-size: 0.8rem; font-weight: 600; background: rgba(0, 229, 255, 0.15); color: #00e5ff; border: 1px solid rgba(0, 229, 255, 0.4); border-radius: 6px; cursor: pointer; transition: all 0.2s;">
+              View Profile ↗
+            </button>
           </div>
         </div>
       </div>
@@ -123,7 +130,8 @@
           <div class="group-label" scrollReveal direction="bottom" [delay]="100">
             01 / Academy Recognition & Badges
           </div>
-          <app-academy-badges-section scrollReveal direction="bottom" [delay]="100" *ngIf="currentUser?.academyId" [academyId]="currentUser!.academyId!">
+          <app-academy-badges-section scrollReveal direction="bottom" [delay]="100" *ngIf="currentUser?.academyId"
+            [academyId]="currentUser!.academyId!">
           </app-academy-badges-section>
         </ng-container>
 
@@ -132,7 +140,8 @@
           <div class="group-label" scrollReveal direction="bottom" [delay]="100">
             02 / Management Admins
           </div>
-          <app-academy-admins-section scrollReveal direction="bottom" [delay]="200" *ngIf="currentUser?.academyId" [academyId]="currentUser!.academyId!" [isOwner]="academyDetails?.adminUserId === currentUser?.userId">
+          <app-academy-admins-section scrollReveal direction="bottom" [delay]="200" *ngIf="currentUser?.academyId"
+            [academyId]="currentUser!.academyId!" [isOwner]="academyDetails?.adminUserId === currentUser?.userId">
           </app-academy-admins-section>
         </ng-container>
 
@@ -141,7 +150,8 @@
           <div class="group-label" scrollReveal direction="bottom" [delay]="100">
             03 / Coaching Staff
           </div>
-          <app-academy-coaches-section scrollReveal direction="bottom" [delay]="300" *ngIf="currentUser?.academyId" [academyId]="currentUser!.academyId!">
+          <app-academy-coaches-section scrollReveal direction="bottom" [delay]="300" *ngIf="currentUser?.academyId"
+            [academyId]="currentUser!.academyId!">
           </app-academy-coaches-section>
         </ng-container>
 
@@ -150,7 +160,8 @@
           <div class="group-label" scrollReveal direction="bottom" [delay]="100">
             04 / Academy Players & Members
           </div>
-          <app-academy-members scrollReveal direction="bottom" [delay]="400" *ngIf="currentUser?.academyId" [academyId]="currentUser!.academyId!">
+          <app-academy-members scrollReveal direction="bottom" [delay]="400" *ngIf="currentUser?.academyId"
+            [academyId]="currentUser!.academyId!">
           </app-academy-members>
         </ng-container>
 
@@ -159,7 +170,8 @@
           <div class="group-label" scrollReveal direction="bottom" [delay]="100">
             05 / Teams & Age Groups
           </div>
-          <app-academy-teams-section scrollReveal direction="bottom" [delay]="500" *ngIf="currentUser?.academyId" [academyId]="currentUser!.academyId!">
+          <app-academy-teams-section scrollReveal direction="bottom" [delay]="500" *ngIf="currentUser?.academyId"
+            [academyId]="currentUser!.academyId!">
           </app-academy-teams-section>
         </ng-container>
 
@@ -168,7 +180,8 @@
           <div class="group-label" scrollReveal direction="bottom" [delay]="100">
             06 / Facilities & Locations
           </div>
-          <app-academy-locations-section scrollReveal direction="bottom" [delay]="550" *ngIf="currentUser?.academyId" [academyId]="currentUser!.academyId!">
+          <app-academy-locations-section scrollReveal direction="bottom" [delay]="550" *ngIf="currentUser?.academyId"
+            [academyId]="currentUser!.academyId!">
           </app-academy-locations-section>
         </ng-container>
 
@@ -177,7 +190,8 @@
           <div class="group-label" scrollReveal direction="bottom" [delay]="100">
             07 / Communications & Subscriptions
           </div>
-          <app-academy-comm-subs-section scrollReveal direction="bottom" [delay]="600" *ngIf="currentUser?.academyId" [academyId]="currentUser!.academyId!">
+          <app-academy-comm-subs-section scrollReveal direction="bottom" [delay]="600" *ngIf="currentUser?.academyId"
+            [academyId]="currentUser!.academyId!">
           </app-academy-comm-subs-section>
         </ng-container>
       </div>
@@ -194,7 +208,8 @@
         </div>
         <div class="glass-card cyber-invitation-card fade-in" *ngFor="let req of myPendingAdminRequests">
           <div class="invitation-icon-wrap">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00e5ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00e5ff" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
               <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
               <circle cx="8.5" cy="7" r="4"></circle>
               <line x1="20" y1="8" x2="20" y2="14"></line>
@@ -206,14 +221,10 @@
             <span class="inviter-meta">Invited by: <strong>{{ req.requestedByFullName }}</strong></span>
           </div>
           <div class="req-actions">
-            <app-button 
-              variant="accent" 
-              (click)="respondToAdminRequest(req.id, true)">
+            <app-button variant="accent" (click)="respondToAdminRequest(req.id, true)">
               Accept
             </app-button>
-            <app-button 
-              variant="coral" 
-              (click)="respondToAdminRequest(req.id, false)">
+            <app-button variant="coral" (click)="respondToAdminRequest(req.id, false)">
               Reject
             </app-button>
           </div>
@@ -227,7 +238,8 @@
         </div>
         <div class="rejected-header-row">
           <div class="status-icon-badge rejected">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ff6a5c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ff6a5c" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="10"></circle>
               <line x1="15" y1="9" x2="9" y2="15"></line>
               <line x1="9" y1="9" x2="15" y2="15"></line>
@@ -235,10 +247,11 @@
           </div>
           <div>
             <h2>ACADEMY REQUEST REJECTED</h2>
-            <p>Your previous application for <strong class="highlight-text">{{ rejectedRequest.academyName }}</strong> was not approved by system administration.</p>
+            <p>Your previous application for <strong class="highlight-text">{{ rejectedRequest.academyName }}</strong>
+              was not approved by system administration.</p>
           </div>
         </div>
-        
+
         <div class="telemetry-box rejected-details">
           <div class="info-row" *ngIf="rejectedRequest.rejectedReason">
             <span class="row-label">Rejection Notice:</span>
@@ -262,14 +275,16 @@
         </div>
         <div class="pending-header-row">
           <div class="status-icon-badge pending">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="10"></circle>
               <polyline points="12 6 12 12 16 14"></polyline>
             </svg>
           </div>
           <div>
             <h2>ACADEMY REQUEST PENDING</h2>
-            <p>Your application for <strong class="highlight-text">{{ pendingRequest.academyName }}</strong> is currently being evaluated by Koralytics governance.</p>
+            <p>Your application for <strong class="highlight-text">{{ pendingRequest.academyName }}</strong> is
+              currently being evaluated by Koralytics governance.</p>
           </div>
         </div>
 
@@ -294,7 +309,8 @@
 
         <div class="card-header-cyber">
           <div class="header-icon-badge">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00e5ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00e5ff" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
               <path d="M12 8v4"></path>
               <path d="M12 16h.01"></path>
@@ -302,7 +318,8 @@
           </div>
           <div class="header-text">
             <h2>REQUEST AN ACADEMY</h2>
-            <p class="subtitle-cyber">Create a verified Koralytics academy to manage teams, players, tournaments, and coaching staff.</p>
+            <p class="subtitle-cyber">Create a verified Koralytics academy to manage teams, players, tournaments, and
+              coaching staff.</p>
           </div>
         </div>
 
@@ -314,17 +331,11 @@
               <span>Academy Identity & Location</span>
             </div>
             <div class="form-fields-grid">
-              <app-text-input 
-                label="Academy Name" 
-                type="text" 
-                placeholder="E.g. Elite Football Academy"
+              <app-text-input label="Academy Name" type="text" placeholder="E.g. Elite Football Academy"
                 formControlName="academyName">
               </app-text-input>
 
-              <app-text-input 
-                label="Location / Headquarters" 
-                type="text" 
-                placeholder="City, Country" 
+              <app-text-input label="Location / Headquarters" type="text" placeholder="City, Country"
                 formControlName="location">
               </app-text-input>
             </div>
@@ -337,17 +348,11 @@
               <span>Primary Administrator Contact</span>
             </div>
             <div class="form-fields-grid">
-              <app-text-input 
-                label="Contact Person Name" 
-                type="text" 
-                placeholder="Your Full Name"
+              <app-text-input label="Contact Person Name" type="text" placeholder="Your Full Name"
                 formControlName="contactPersonName">
               </app-text-input>
 
-              <app-text-input 
-                label="Contact Email" 
-                type="email" 
-                placeholder="contact@academy.com"
+              <app-text-input label="Contact Email" type="email" placeholder="contact@academy.com"
                 formControlName="contactEmail">
               </app-text-input>
             </div>
@@ -361,7 +366,8 @@
           <!-- Cyber Submit Footer -->
           <div class="form-footer-cyber">
             <button type="submit" class="cyber-btn-submit" [disabled]="requestForm.invalid || isLoading">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <path d="M5 12h14"></path>
                 <path d="M12 5l7 7-7 7"></path>
               </svg>

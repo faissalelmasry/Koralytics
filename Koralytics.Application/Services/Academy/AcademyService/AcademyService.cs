@@ -1116,6 +1116,7 @@ namespace Koralytics.Application.Services.Academy.AcademyService
                                   pa.Player.AvailabilityStatus == Domain.Enums.AvailabilityStatus.Injured ? "Injured" :
                                   pa.Player.AvailabilityStatus == Domain.Enums.AvailabilityStatus.Resting ? "Resting" :
                                   pa.Player.AvailabilityStatus == Domain.Enums.AvailabilityStatus.Suspended ? "Suspended" : "Available",
+                    ProfileImageUrl = pa.Player.ProfileImageUrl,
                     JoinedAt = pa.JoinedAt
                 });
 
@@ -1130,6 +1131,7 @@ namespace Koralytics.Application.Services.Academy.AcademyService
                     Role = "Coach",
                     Position = null,
                     SquadStatus = null,
+                    ProfileImageUrl = ca.Coach.ProfileImageUrl,
                     JoinedAt = ca.JoinedAt
                 });
 
@@ -1168,6 +1170,7 @@ namespace Koralytics.Application.Services.Academy.AcademyService
                     UserId = a.Id,
                     FullName = (a.FirstName + " " + a.LastName).Trim(),
                     Email = a.Email ?? string.Empty,
+                    ProfileImageUrl = a.ProfileImageUrl,
                     IsOwner = a.Id == ownerId
                 });
 

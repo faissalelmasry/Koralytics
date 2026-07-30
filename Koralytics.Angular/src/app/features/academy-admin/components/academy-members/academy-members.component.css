@@ -33,7 +33,8 @@
   color: #7b8293;
 }
 
-.search-panel, .pending-section {
+.search-panel,
+.pending-section {
   background: rgba(15, 23, 42, 0.65);
   backdrop-filter: blur(12px);
   border: 1px solid rgba(0, 229, 255, 0.25);
@@ -44,7 +45,8 @@
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.search-panel:hover, .pending-section:hover {
+.search-panel:hover,
+.pending-section:hover {
   border-color: rgba(0, 229, 255, 0.45);
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 25px rgba(0, 229, 255, 0.1);
 }
@@ -192,6 +194,15 @@ h4 {
   font-weight: 600;
   color: #fff;
   font-size: 14px;
+  overflow: hidden;
+  position: relative;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
 }
 
 .status-indicator {
@@ -209,7 +220,8 @@ h4 {
   font-size: 14px;
 }
 
-.user-email, .date-text {
+.user-email,
+.date-text {
   font-size: 12px;
   color: #7b8293;
 }
@@ -229,7 +241,8 @@ h4 {
   text-align: right;
 }
 
-.empty-state, .loading-state {
+.empty-state,
+.loading-state {
   text-align: center;
   padding: 40px;
   color: #7b8293;

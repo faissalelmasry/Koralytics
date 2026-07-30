@@ -154,9 +154,9 @@ namespace Koralytics.Application.Services.ProfileManagement
                     if (dto.WeakFootRating.HasValue)
                         player.WeakFootRating = dto.WeakFootRating.Value;
 
+                    player.HeightCm = dto.HeightCm;
+                    player.WeightKg = dto.WeightKg;
                     player.PlayStyleTag = dto.PlayStyleTag;
-                    player.ArchetypePlayerName = dto.ArchetypePlayerName;
-                    player.ArchetypeText = dto.ArchetypeText;
 
                     if (dto.Positions != null)
                     {

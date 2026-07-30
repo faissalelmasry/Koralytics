@@ -91,9 +91,9 @@ export class MyProfileComponent implements OnInit {
     nationality: ['', [Validators.maxLength(50)]],
     preferredFoot: [null as string | number | null],
     weakFootRating: [null as number | null],
-    playStyleTag: [''],
-    archetypePlayerName: [''],
-    archetypeText: ['']
+    heightCm: [null as number | null],
+    weightKg: [null as number | null],
+    playStyleTag: ['']
   });
 
   phoneError(): string {
@@ -249,9 +249,9 @@ export class MyProfileComponent implements OnInit {
       nationality: this.asPlayer?.nationality || '',
       preferredFoot: normalizedFoot,
       weakFootRating: this.asPlayer?.weakFootRating ?? null,
-      playStyleTag: this.asPlayer?.playStyleTag || '',
-      archetypePlayerName: this.asPlayer?.archetypePlayerName || '',
-      archetypeText: this.asPlayer?.archetypeText || ''
+      heightCm: this.asPlayer?.heightCm ?? null,
+      weightKg: this.asPlayer?.weightKg ?? null,
+      playStyleTag: this.asPlayer?.playStyleTag || ''
     });
 
     if (this.asPlayer?.positions) {
@@ -344,9 +344,9 @@ export class MyProfileComponent implements OnInit {
       dto.nationality = val.nationality || null;
       dto.preferredFoot = val.preferredFoot;
       dto.weakFootRating = val.weakFootRating;
+      dto.heightCm = val.heightCm;
+      dto.weightKg = val.weightKg;
       dto.playStyleTag = val.playStyleTag || null;
-      dto.archetypePlayerName = val.archetypePlayerName || null;
-      dto.archetypeText = val.archetypeText || null;
       dto.positions = this.editPositions;
     }
 

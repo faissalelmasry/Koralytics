@@ -173,6 +173,10 @@ export const routes: Routes = [
     canActivate: [authGuard, roleGuard],
     data: { roles: ['AcademyAdmin'] }
   },
+  {
+    path: 'academy/profile/:id',
+    loadComponent: () => import('./features/academy-profile/academy-profile.component').then(m => m.AcademyProfileComponent)
+  },
 
   // Player Features
   {

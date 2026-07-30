@@ -269,6 +269,13 @@
   box-shadow: 0 0 12px rgba(163, 230, 53, 0.2);
 }
 
+.action-icon-btn.profile-btn:hover {
+  background: rgba(0, 229, 255, 0.15);
+  border-color: rgba(0, 229, 255, 0.4);
+  color: #00e5ff;
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.2);
+}
+
 /* ===================================================
    CYBER-COMMAND HUD MODAL (OPERATIONAL STATUS)
    =================================================== */

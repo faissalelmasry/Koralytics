@@ -77,6 +77,8 @@ export interface RegisterPlayerRequest extends BaseRegistrationRequest {
   nationality?: string;
   preferredFoot: string;
   weakFootRating: number;
+  heightCm?: number;
+  weightKg?: number;
   playStyleTag?: string;
   archetypePlayerName?: string;
   archetypeText?: string;
@@ -101,6 +103,8 @@ export interface CompleteProfileAsPlayer extends CompleteProfileBase {
   nationality?: string;
   preferredFoot?: string;
   weakFootRating?: number;
+  heightCm?: number;
+  weightKg?: number;
 }
 
 export interface CompleteProfileAsParent extends CompleteProfileBase {

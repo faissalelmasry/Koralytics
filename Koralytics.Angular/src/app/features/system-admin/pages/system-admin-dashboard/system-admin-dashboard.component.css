@@ -145,6 +145,7 @@
   flex-shrink: 0;
   box-shadow: 0 0 15px var(--tier-glow);
   animation: avatarPulse 3s infinite ease-in-out;
+  overflow: hidden;
 }
 
 .admin-identity h1 {

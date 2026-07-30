@@ -51,6 +51,8 @@
         <app-text-input label="Nationality" formControlName="nationality" class="full-width"></app-text-input>
         <app-select label="Preferred Foot" [options]="footOptions" formControlName="preferredFoot"></app-select>
         <app-select label="Weak Foot Rating" [options]="ratingOptions" formControlName="weakFootRating"></app-select>
+        <app-text-input label="Height (cm)" type="number" placeholder="e.g. 178" formControlName="heightCm"></app-text-input>
+        <app-text-input label="Weight (kg)" type="number" placeholder="e.g. 72" formControlName="weightKg"></app-text-input>
       </div>
 
       <div *ngIf="selectedRole === 'Parent'" [formGroup]="parentForm" class="form-grid">

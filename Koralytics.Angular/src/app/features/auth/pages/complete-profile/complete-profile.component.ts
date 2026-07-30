@@ -76,7 +76,9 @@ export class CompleteProfileComponent implements OnInit {
     dateOfBirth: ['', [Validators.required]],
     nationality: ['Egypt'],
     preferredFoot: ['Right', [Validators.required]],
-    weakFootRating: [3, [Validators.required, Validators.min(1), Validators.max(5)]]
+    weakFootRating: [3, [Validators.required, Validators.min(1), Validators.max(5)]],
+    heightCm: [null as number | null, [Validators.min(50), Validators.max(220)]],
+    weightKg: [null as number | null, [Validators.min(20), Validators.max(150)]]
   });
 
   parentForm = this.fb.group({
@@ -174,7 +176,9 @@ export class CompleteProfileComponent implements OnInit {
           dateOfBirth: playerData.dateOfBirth!,
           nationality: playerData.nationality!,
           preferredFoot: playerData.preferredFoot!,
-          weakFootRating: playerData.weakFootRating!
+          weakFootRating: playerData.weakFootRating!,
+          heightCm: playerData.heightCm || undefined,
+          weightKg: playerData.weightKg || undefined
         };
         requestObservable = this.authService.completeProfileAsPlayer(playerReq);
         break;

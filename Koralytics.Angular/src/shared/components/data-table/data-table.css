@@ -194,10 +194,25 @@
 }
 /* User Info Layout */
 .user-info { display: flex; align-items: center; gap: 12px; }
-.avatar-small { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #ec4899, #be185d); display: flex; align-items: center; justify-content: center; font-weight: 700; color: white; font-size: 16px; text-transform: uppercase; }
+.avatar-small { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #ec4899, #be185d); display: flex; align-items: center; justify-content: center; font-weight: 700; color: white; font-size: 16px; text-transform: uppercase; overflow: hidden; position: relative; }
+.avatar-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 .user-details { display: flex; flex-direction: column; }
 .user-name { font-weight: 600; color: #e2e8f0; font-size: 14px; }
 .user-email { font-size: 12px; color: #7b8293; }
+
+.clickable-user-elem {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.avatar-small.clickable-user-elem:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.5);
+  border: 1px solid #00e5ff;
+}
+.user-name.clickable-user-elem:hover {
+  color: #00e5ff;
+  text-decoration: underline;
+}
 
 /* Expanded Row Styling */
 .btn-expand {

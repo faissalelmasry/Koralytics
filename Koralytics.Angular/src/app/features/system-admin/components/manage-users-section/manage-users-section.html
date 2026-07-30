@@ -70,11 +70,12 @@
         <tr *ngFor="let u of users">
           <td>
             <div class="user-info-cell">
-              <div class="avatar-circle">
-                {{ u.firstName.charAt(0) || u.email.charAt(0) || 'U' }}
+              <div class="avatar-circle clickable-user-elem" (click)="viewMemberProfile(u.id); $event.stopPropagation()" title="View Member Profile">
+                <img *ngIf="u.profileImageUrl" [src]="u.profileImageUrl" alt="avatar" class="avatar-img" />
+                <span *ngIf="!u.profileImageUrl">{{ u.firstName.charAt(0) || u.email.charAt(0) || 'U' }}</span>
               </div>
               <div>
-                <span class="user-fullname">{{ u.fullName || u.userName }}</span>
+                <span class="user-fullname clickable-user-elem" (click)="viewMemberProfile(u.id); $event.stopPropagation()" title="View Member Profile">{{ u.fullName || u.userName }}</span>
                 <span class="user-id">User ID: #{{ u.id }}</span>
               </div>
             </div>

@@ -146,12 +146,14 @@
   flex-shrink: 0;
   box-shadow: 0 0 15px rgba(0, 229, 255, 0.2);
   animation: avatarPulse 3s infinite ease-in-out;
+  overflow: hidden;
 }
 
 .avatar-circle img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  border-radius: 50%;
 }
 
 .admin-identity h1 {

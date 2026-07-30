@@ -21,6 +21,8 @@ export interface PlayerProfileResponse extends BaseUserProfileResponse {
   nationality: string | null;
   preferredFoot: string | number | null; // "Right" | "Left" | "Both" | 1 | 2 | 3
   weakFootRating: number | null; // 1 - 5
+  heightCm: number | null;
+  weightKg: number | null;
   playStyleTag: string | null;
   archetypePlayerName: string | null;
   archetypeText: string | null;
@@ -49,8 +51,8 @@ export interface UpdateProfileRequest {
   nationality?: string | null;
   preferredFoot?: string | number | null;
   weakFootRating?: number | null;
+  heightCm?: number | null;
+  weightKg?: number | null;
   playStyleTag?: string | null;
-  archetypePlayerName?: string | null;
-  archetypeText?: string | null;
   positions?: PlayerPositionDto[];
 }

@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { SystemAdminService, UserSummaryDto } from '../../../../../core/services/system-admin/system-admin.service';
 import { ToastService } from '../../../../../core/services/Toast/toast';
 import { CustomButtonComponent } from '../../../../../shared/components/custom-button/custom-button';
@@ -29,6 +30,11 @@ export class ManageUsersSectionComponent implements OnInit {
   private systemAdminService = inject(SystemAdminService);
   private toast = inject(ToastService);
   private fb = inject(FormBuilder);
+  private router = inject(Router);
+
+  viewMemberProfile(userId: number) {
+    this.router.navigate(['/player/profile', userId]);
+  }
 
   users: UserSummaryDto[] = [];
   isLoading = true;

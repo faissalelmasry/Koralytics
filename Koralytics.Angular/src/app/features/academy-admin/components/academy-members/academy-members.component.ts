@@ -1,6 +1,7 @@
 import { Component, Input, OnInit, inject, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { AcademyService } from '../../../../../core/services/academy/academy.service';
 import { ToastService } from '../../../../../core/services/Toast/toast';
 import { AcademyMemberResponseDto, PagedResponseDto } from '../../../../../core/interfaces/academy.models';
@@ -24,6 +25,7 @@ export class AcademyMembersComponent implements OnInit, OnChanges {
   private academyService = inject(AcademyService);
   private toast = inject(ToastService);
   private fb = inject(FormBuilder);
+  private router = inject(Router);
 
   membersData: PagedResponseDto<AcademyMemberResponseDto> | null = null;
   pendingRequests: any[] = [];
@@ -206,8 +208,11 @@ export class AcademyMembersComponent implements OnInit, OnChanges {
   onActionClick(event: { row: any, action: string }) {
     if (event.action === 'delete') {
       this.onRemoveMember(event.row.userId);
-    } else if (event.action === 'view') {
-      // Analyze logic here
+    } else if (event.action === 'view' || event.action === 'viewProfile') {
+      const targetId = event.row.playerId || event.row.userId || event.row.id;
+      if (targetId) {
+        this.router.navigate(['/player/profile', targetId]);
+      }
     }
   }
 

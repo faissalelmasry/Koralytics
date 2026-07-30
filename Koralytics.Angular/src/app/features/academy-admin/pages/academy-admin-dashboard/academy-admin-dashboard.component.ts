@@ -217,4 +217,11 @@ export class AcademyAdminDashboardComponent implements OnInit {
       }
     });
   }
+
+  viewPublicProfile() {
+    if (this.academyDetails?.id) {
+      this.router.navigate(['/academy/profile', this.academyDetails.id]);
+    }
+  }
 }
+

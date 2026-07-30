@@ -180,6 +180,15 @@
   font-weight: 600;
   color: #fff;
   font-size: 14px;
+  overflow: hidden;
+  position: relative;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
 }
 
 .user-fullname {
@@ -192,6 +201,21 @@
   display: block;
   font-size: 11px;
   color: #7b8293;
+}
+
+.clickable-user-elem {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.avatar-circle.clickable-user-elem:hover {
+  transform: scale(1.08);
+  box-shadow: 0 0 14px rgba(0, 229, 255, 0.5);
+}
+
+.user-fullname.clickable-user-elem:hover {
+  color: #00e5ff;
+  text-decoration: underline;
 }
 
 .roles-hub {

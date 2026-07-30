@@ -94,7 +94,8 @@
   gap: 12px;
   margin-bottom: 16px;
 }
-.form-row > * {
+
+.form-row>* {
   flex: 1;
 }
 
@@ -187,10 +188,21 @@
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
-.stat-card.total:hover::before { background: var(--text-primary, #fff); }
-.stat-card.paid:hover::before { background: var(--success-color, #10b981); }
-.stat-card.unpaid:hover::before { background: var(--danger-color, #ef4444); }
-.stat-card.grace:hover::before { background: var(--warning-color, #f59e0b); }
+.stat-card.total:hover::before {
+  background: var(--text-primary, #fff);
+}
+
+.stat-card.paid:hover::before {
+  background: var(--success-color, #10b981);
+}
+
+.stat-card.unpaid:hover::before {
+  background: var(--danger-color, #ef4444);
+}
+
+.stat-card.grace:hover::before {
+  background: var(--warning-color, #f59e0b);
+}
 
 .stat-value {
   font-size: 28px;
@@ -212,21 +224,24 @@
   margin-top: 8px;
 }
 
-.stat-card.total .stat-label { 
-  background: rgba(255, 255, 255, 0.1); 
-  color: var(--text-primary, #fff); 
+.stat-card.total .stat-label {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary, #fff);
 }
-.stat-card.paid .stat-label { 
-  background: rgba(16, 185, 129, 0.15); 
-  color: var(--success-color, #10b981); 
+
+.stat-card.paid .stat-label {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--success-color, #10b981);
 }
-.stat-card.unpaid .stat-label { 
-  background: rgba(239, 68, 68, 0.15); 
-  color: var(--danger-color, #ef4444); 
+
+.stat-card.unpaid .stat-label {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--danger-color, #ef4444);
 }
-.stat-card.grace .stat-label { 
-  background: rgba(245, 158, 11, 0.15); 
-  color: var(--warning-color, #f59e0b); 
+
+.stat-card.grace .stat-label {
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--warning-color, #f59e0b);
 }
 
 .ann-footer {
@@ -240,7 +255,8 @@
 }
 
 /* Loading & Empty States */
-.loading-state, .empty-state {
+.loading-state,
+.empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -262,14 +278,17 @@
 .cyber-scrollbar::-webkit-scrollbar {
   width: 6px;
 }
+
 .cyber-scrollbar::-webkit-scrollbar-track {
   background: rgba(255, 255, 255, 0.02);
   border-radius: 4px;
 }
+
 .cyber-scrollbar::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 4px;
 }
+
 .cyber-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(200, 255, 77, 0.3);
 }

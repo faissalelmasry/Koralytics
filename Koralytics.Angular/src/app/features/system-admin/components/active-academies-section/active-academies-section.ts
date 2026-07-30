@@ -1,6 +1,7 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { SystemAdminService } from '../../../../../core/services/system-admin/system-admin.service';
 import { ToastService } from '../../../../../core/services/Toast/toast';
 import { AcademyDetailPanelComponent } from '../academy-detail-panel/academy-detail-panel';
@@ -18,6 +19,11 @@ import { Pagination } from '../../../../../shared/components/pagination/paginati
 export class ActiveAcademiesSectionComponent implements OnInit {
   private systemAdminService = inject(SystemAdminService);
   private toast = inject(ToastService);
+  private router = inject(Router);
+
+  viewAcademyProfile(academyId: number) {
+    this.router.navigate(['/academy/profile', academyId]);
+  }
 
   academies: any[] = [];
   isLoading = true;

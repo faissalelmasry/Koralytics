@@ -130,6 +130,14 @@
             <span class="info-val">{{ asPlayer.weakFootRating ? asPlayer.weakFootRating + ' ★' : 'N/A' }}</span>
           </div>
           <div class="info-item">
+            <span class="info-lbl">Height</span>
+            <span class="info-val">{{ asPlayer.heightCm ? asPlayer.heightCm + ' cm' : 'N/A' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-lbl">Weight</span>
+            <span class="info-val">{{ asPlayer.weightKg ? asPlayer.weightKg + ' kg' : 'N/A' }}</span>
+          </div>
+          <div class="info-item">
             <span class="info-lbl">Play Style Tag</span>
             <span class="info-val">{{ asPlayer.playStyleTag || 'N/A' }}</span>
           </div>
@@ -314,21 +322,19 @@
             (valueChange)="form.controls.weakFootRating.setValue($event)">
           </app-select>
 
-          <app-text-input [label]="'Play Style Tag'" [placeholder]="'e.g. Playmaker, Box-to-Box, Target Man'"
-            [value]="form.controls.playStyleTag.value" (valueChange)="form.controls.playStyleTag.setValue($event)">
+          <app-text-input [label]="'Height (cm)'" [type]="'number'" [placeholder]="'e.g. 178'"
+            [value]="form.controls.heightCm.value ? form.controls.heightCm.value.toString() : ''"
+            (valueChange)="form.controls.heightCm.setValue($event ? +$event : null)">
+          </app-text-input>
+
+          <app-text-input [label]="'Weight (kg)'" [type]="'number'" [placeholder]="'e.g. 72'"
+            [value]="form.controls.weightKg.value ? form.controls.weightKg.value.toString() : ''"
+            (valueChange)="form.controls.weightKg.setValue($event ? +$event : null)">
           </app-text-input>
 
           <div class="full-width">
-            <app-text-input [label]="'Archetype Player Name'" [placeholder]="'e.g. Bernardo Silva / Kevin De Bruyne'"
-              [value]="form.controls.archetypePlayerName.value"
-              (valueChange)="form.controls.archetypePlayerName.setValue($event)">
-            </app-text-input>
-          </div>
-
-          <div class="full-width">
-            <app-text-input [label]="'Archetype Text Description'"
-              [placeholder]="'Describe your player archetype characteristics...'"
-              [value]="form.controls.archetypeText.value" (valueChange)="form.controls.archetypeText.setValue($event)">
+            <app-text-input [label]="'Play Style Tag'" [placeholder]="'e.g. Playmaker, Box-to-Box, Target Man'"
+              [value]="form.controls.playStyleTag.value" (valueChange)="form.controls.playStyleTag.setValue($event)">
             </app-text-input>
           </div>
         </div>

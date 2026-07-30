@@ -193,6 +193,42 @@ export class AcademyCoachesSectionComponent implements OnInit, OnChanges {
     }
   }
 
+  isAnalyticsModalOpen = false;
+  isLoadingAnalytics = false;
+  coachesAnalytics: any[] = [];
+  topCoach: any = null;
+  avgAcademyImprovement = 0;
+
+  openCoachesAnalyticsModal() {
+    this.isAnalyticsModalOpen = true;
+    this.isLoadingAnalytics = true;
+    this.academyService.getCoachPerformance(this.academyId).subscribe({
+      next: (res) => {
+        this.isLoadingAnalytics = false;
+        if (res.isSuccess && res.data) {
+          this.coachesAnalytics = Array.isArray(res.data) ? res.data : [];
+          if (this.coachesAnalytics.length > 0) {
+            this.coachesAnalytics.sort((a, b) => (a.rank || 999) - (b.rank || 999));
+            this.topCoach = this.coachesAnalytics[0];
+            const totalImp = this.coachesAnalytics.reduce((sum, c) => sum + (c.averagePlayerImprovementRate || 0), 0);
+            this.avgAcademyImprovement = parseFloat((totalImp / this.coachesAnalytics.length).toFixed(1));
+          } else {
+            this.topCoach = null;
+            this.avgAcademyImprovement = 0;
+          }
+        }
+      },
+      error: (err) => {
+        this.isLoadingAnalytics = false;
+        this.toast.show(err.error?.message || 'Failed to load coaches analytics.', 'error');
+      }
+    });
+  }
+
+  closeCoachesAnalyticsModal() {
+    this.isAnalyticsModalOpen = false;
+  }
+
   onActionClick(event: { row: any, action: string }) {
     if (event.action === 'delete') {
       this.onRemoveCoach(event.row.userId);

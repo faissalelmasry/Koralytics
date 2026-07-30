@@ -36,7 +36,7 @@ namespace Koralytics.API.Controllers.Academies
         }
 
         [HttpGet]
-        [Authorize(Roles = "AcademyAdmin,SystemAdmin,Coach,Player")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetBadges(int academyId)
         {
             var result = await _badgeService.GetBadgesByAcademyAsync(academyId);

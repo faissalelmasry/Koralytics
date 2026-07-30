@@ -8,39 +8,25 @@
 
   <div class="search-panel">
     <h4>Add New Location</h4>
-    <form [formGroup]="locationForm" (ngSubmit)="onCreateLocation()" class="search-form" style="display: flex; gap: 16px; align-items: flex-end; margin-top: 16px; flex-wrap: wrap;">
+    <form [formGroup]="locationForm" (ngSubmit)="onCreateLocation()" class="search-form"
+      style="display: flex; gap: 16px; align-items: flex-end; margin-top: 16px; flex-wrap: wrap;">
       <div style="flex: 2; min-width: 200px;">
-        <app-text-input
-          formControlName="name"
-          placeholder="e.g. Main Branch"
-          type="text"
-          label="Location Name">
+        <app-text-input formControlName="name" placeholder="e.g. Main Branch" type="text" label="Location Name">
         </app-text-input>
       </div>
 
       <div style="flex: 2; min-width: 200px;">
-        <app-text-input
-          formControlName="address"
-          placeholder="e.g. 123 Main St"
-          type="text"
-          label="Address">
+        <app-text-input formControlName="address" placeholder="e.g. 123 Main St" type="text" label="Address">
         </app-text-input>
       </div>
 
       <div style="flex: 1; min-width: 150px;">
-        <app-text-input
-          formControlName="city"
-          placeholder="e.g. Cairo"
-          type="text"
-          label="City">
+        <app-text-input formControlName="city" placeholder="e.g. Cairo" type="text" label="City">
         </app-text-input>
       </div>
 
       <div class="form-actions">
-        <app-button
-          type="submit"
-          variant="accent"
-          [disabled]="locationForm.invalid || isAddingLocation">
+        <app-button type="submit" variant="accent" [disabled]="locationForm.invalid || isAddingLocation">
           {{ isAddingLocation ? 'Adding...' : 'Add Location' }}
         </app-button>
       </div>
@@ -48,35 +34,22 @@
   </div>
 
   <div class="table-container" *ngIf="locations.length > 0" style="margin-top: 24px;">
-    <app-data-table
-      [columns]="locationColumns"
-      [data]="paginatedLocations"
-      (actionClick)="onLocationAction($event)">
+    <app-data-table [columns]="locationColumns" [data]="paginatedLocations" (actionClick)="onLocationAction($event)">
     </app-data-table>
 
-    <app-pagination
-      *ngIf="totalLocationsCount > pageSizeLocations"
-      [totalItems]="totalLocationsCount"
-      [pageSize]="pageSizeLocations"
-      [currentPage]="pageNumberLocations"
-      (pageChange)="onPageChangeLocations($event)">
+    <app-pagination *ngIf="totalLocationsCount > pageSizeLocations" [totalItems]="totalLocationsCount"
+      [pageSize]="pageSizeLocations" [currentPage]="pageNumberLocations" (pageChange)="onPageChangeLocations($event)">
     </app-pagination>
   </div>
 
-  <div class="empty-state" *ngIf="!isLoading && locations.length === 0" style="margin-top: 24px; text-align: center; color: #7b8293;">
+  <div class="empty-state" *ngIf="!isLoading && locations.length === 0"
+    style="margin-top: 24px; text-align: center; color: #7b8293;">
     <p>No locations found. Add your first academy location above.</p>
   </div>
 </div>
 
 <!-- Shared Cyber Confirm Dialog -->
-<app-confirm-dialog
-  [isOpen]="isConfirmDialogOpen"
-  [title]="confirmDialogTitle"
-  [message]="confirmDialogMessage"
-  level="danger"
-  confirmText="Yes, Confirm"
-  cancelText="Cancel"
-  [requiresConfirmation]="false"
-  (confirm)="onConfirmDialogExecute()"
-  (cancel)="isConfirmDialogOpen = false; targetIdForConfirm = null">
+<app-confirm-dialog [isOpen]="isConfirmDialogOpen" [title]="confirmDialogTitle" [message]="confirmDialogMessage"
+  level="danger" confirmText="Yes, Confirm" cancelText="Cancel" [requiresConfirmation]="false"
+  (confirm)="onConfirmDialogExecute()" (cancel)="isConfirmDialogOpen = false; targetIdForConfirm = null">
 </app-confirm-dialog>

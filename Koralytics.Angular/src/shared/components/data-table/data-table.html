@@ -31,9 +31,12 @@
             <!-- Case 3: User Info -->
             <ng-container *ngIf="col.type === 'user'">
               <div class="user-info">
-                <div class="avatar-small">{{ row[col.key]?.charAt(0) }}</div>
+                <div class="avatar-small clickable-user-elem" (click)="onAction(row, 'viewProfile'); $event.stopPropagation()" title="View Member Profile">
+                  <img *ngIf="row['profileImageUrl']" [src]="row['profileImageUrl']" alt="avatar" class="avatar-img" />
+                  <span *ngIf="!row['profileImageUrl']">{{ row[col.key]?.charAt(0) }}</span>
+                </div>
                 <div class="user-details">
-                  <span class="user-name">{{ row[col.key] }}</span>
+                  <span class="user-name clickable-user-elem" (click)="onAction(row, 'viewProfile'); $event.stopPropagation()" title="View Member Profile">{{ row[col.key] }}</span>
                   <span class="user-email">{{ row['email'] }}</span>
                 </div>
               </div>

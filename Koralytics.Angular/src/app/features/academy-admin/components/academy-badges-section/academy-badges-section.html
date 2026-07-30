@@ -6,17 +6,23 @@
   <div class="badges-grid" *ngIf="!isLoading && badges.length > 0">
     <div class="badge-card" *ngFor="let badge of badges">
       <div class="badge-icon-container" [ngSwitch]="getBadgeTypeKey(badge.badgeType)">
-        <svg *ngSwitchCase="'Verified'" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg *ngSwitchCase="'Verified'" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#60a5fa"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
           <polyline points="9 12 11 14 15 10"></polyline>
         </svg>
-        <svg *ngSwitchCase="'TopPerformer'" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+        <svg *ngSwitchCase="'TopPerformer'" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fbbf24"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon
+            points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+          </polygon>
         </svg>
-        <svg *ngSwitchCase="'Premium'" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg *ngSwitchCase="'Premium'" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#a855f7"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path>
         </svg>
-        <svg *ngSwitchDefault width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg *ngSwitchDefault width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="8" r="7"></circle>
           <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
         </svg>
@@ -30,7 +36,8 @@
 
   <div class="empty-state" *ngIf="!isLoading && badges.length === 0">
     <div class="empty-icon">
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+        stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="8" r="7"></circle>
         <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
       </svg>
