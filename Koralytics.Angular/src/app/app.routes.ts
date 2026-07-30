@@ -169,8 +169,6 @@ export const routes: Routes = [
   },
   {
     path: 'academy-admin/dashboard',
-  {
-    path: 'academy-admin/dashboard',
     loadComponent: () => import('./features/academy-admin/pages/academy-admin-dashboard/academy-admin-dashboard.component').then(m => m.AcademyAdminDashboardComponent),
     canActivate: [authGuard, roleGuard],
     data: { roles: ['AcademyAdmin'] }

@@ -97,13 +97,14 @@
 
 .toolbar {
   position: relative;
-  z-index: 10;
+  z-index: 20;
   display: grid;
   grid-template-columns: minmax(260px, 1fr) auto;
   gap: 12px;
-  align-items: center;
+  align-items: start;
   padding: 12px;
   margin-bottom: 12px;
+  overflow: visible;
 }
 
 .search-box {
@@ -112,13 +113,16 @@
 
 .select-filters {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
-  align-items: center;
+  align-items: start;
 }
 
 ::ng-deep .select-filters app-select {
-  min-width: 148px;
-  max-width: 174px;
+  flex: 1 1 168px;
+  min-width: 168px;
+  max-width: 210px;
+  --dropdown-min-width: 210px;
 }
 
 .results-line {
@@ -153,6 +157,8 @@
 }
 
 .table-surface {
+  position: relative;
+  z-index: 1;
   overflow: hidden;
 }
 
