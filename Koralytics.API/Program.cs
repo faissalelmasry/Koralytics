@@ -73,7 +73,6 @@ using Koralytics.Infrastructure.Context;
 using Koralytics.Infrastructure.ExternalServices;
 using Koralytics.Infrastructure.ExternalServices.Email;
 using Koralytics.Infrastructure.Repositories;
-using Koralytics.Infrastructure.Seeding;
 using Koralytics.Infrastructure.Services.Parents;
 using Koralytics.Infrastructure.UnitOfWork;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -114,6 +113,7 @@ using Koralytics.Application.Services.Scouter.ScouterReportService;
 using Koralytics.Application.Services.Scouter.ScouterSearchService;
 using Koralytics.Application.Services.Scouter.ScouterShortlistService;
 using StackExchange.Redis;
+using Koralytics.Application.Services.SystemAdmin.UserManagement;
 
 namespace Koralytics.API
 {
@@ -415,7 +415,7 @@ namespace Koralytics.API
                     var context = services.GetRequiredService<ApplicationDbContext>();
                     var userManager = services.GetRequiredService<UserManager<User>>();
                     var roleManager = services.GetRequiredService<RoleManager<Domain.Entities.Identity.Role>>();
-                    await DbInitializer.SeedAsync(context, userManager, roleManager);
+                    //await DbInitializer.SeedAsync(context, userManager, roleManager);
                 }
                 catch (Exception ex)
                 {
