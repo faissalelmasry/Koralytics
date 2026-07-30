@@ -2,238 +2,237 @@
 
 <div class="profile-page">
   @if (isLoading) {
-    <div class="loading-state">
-      <app-loading-spinner size="lg"></app-loading-spinner>
-      <p>Loading profile...</p>
-    </div>
+  <div class="loading-state">
+    <app-loading-spinner size="lg"></app-loading-spinner>
+    <p>Loading profile...</p>
+  </div>
   }
   @else if (error) {
-    <div class="error-state">
-      <div class="error-icon">!</div>
-      <p>{{ error }}</p>
-    </div>
+  <div class="error-state">
+    <div class="error-icon">!</div>
+    <p>{{ error }}</p>
+  </div>
   }
   @else if (profile) {
-    <div class="profile-container"
-      [class.tier-gold]="tierClass === 'tier-gold'"
-      [class.tier-elite]="tierClass === 'tier-elite'"
-      [class.tier-base]="tierClass === 'tier-base'">
+  <div class="profile-container" [class.tier-gold]="tierClass === 'tier-gold'"
+    [class.tier-elite]="tierClass === 'tier-elite'" [class.tier-base]="tierClass === 'tier-base'">
 
-      <!-- =============== 1. HERO BANNER =============== -->
-      <div class="hero-banner" scrollReveal direction="bottom" [delay]="0">
-        <div class="player-identity">
-          <div class="avatar-circle">{{ initials }}</div>
-          <div>
-            <h1>{{ fullName }}</h1>
-            <div class="meta-pills">
-              <span class="pill">{{ academyName }}</span>
-              @for (team of profile.teams; track team.teamId) {
-                <span class="pill">{{ team.teamName }} @if (team.ageGroupName) { / {{ team.ageGroupName }} }</span>
-              }
-            </div>
-          </div>
-        </div>
-
-        <div class="bio-quick-list">
-          <div class="bio-item">
-            <span class="bio-lbl">Status</span>
-            <span class="bio-val" [class]="statusClass">{{ statusLabel }}</span>
-          </div>
-          <div class="bio-item">
-            <span class="bio-lbl">Age / Foot</span>
-            <span class="bio-val">{{ profile.age }} Yrs / {{ preferredFoot }}</span>
-          </div>
-          <div class="bio-item">
-            <span class="bio-lbl">Nationality</span>
-            <span class="bio-val">{{ profile.nationality ?? 'N/A' }}</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- =============== 2. MAIN GRID =============== -->
-      <div class="main-grid">
-
-        <!-- FIFA Player Card -->
-        <div class="card-col" scrollReveal direction="bottom" [delay]="50">
-          @if (profile.playerCard) {
-            <app-player-card
-              [player]="profile.playerCard"
-              [autoLoad]="false"
-              [compact]="true"
-              [cardWidth]="240"
-              [cardHeight]="380">
-            </app-player-card>
-            @if (isOwnProfile) {
-              <app-button
-                variant="slate"
-                [shimmer]="true"
-                [loading]="isFetchingCard"
-                (click)="fetchPlayerCard()"
-                style="margin-top:12px; width:100%;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-                &nbsp;Update Card
-              </app-button>
+    <!-- =============== 1. HERO BANNER =============== -->
+    <div class="hero-banner" scrollReveal direction="bottom" [delay]="0">
+      <div class="player-identity">
+        <div class="avatar-circle">{{ initials }}</div>
+        <div>
+          <h1>{{ fullName }}</h1>
+          <div class="meta-pills">
+            <span class="pill">{{ academyName }}</span>
+            @for (team of profile.teams; track team.teamId) {
+            <span class="pill">{{ team.teamName }} @if (team.ageGroupName) { / {{ team.ageGroupName }} }</span>
             }
-          }
-          @else {
-            <div class="no-card-placeholder">
-              <div class="no-card-icon">&#9889;</div>
-              <p class="no-card-title">No Card Yet</p>
-              <p class="no-card-sub">Generate your FIFA-style player card to see your ratings and stats</p>
-              @if (isOwnProfile) {
-                <app-button
-                  [variant]="tierButtonVariant"
-                  [shimmer]="true"
-                  [loading]="isFetchingCard"
-                  (click)="fetchPlayerCard()">
-                  Generate Card
-                </app-button>
-              }
-            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bio-quick-list">
+        <div class="bio-item">
+          <span class="bio-lbl">Status</span>
+          <span class="bio-val" [class]="statusClass">{{ statusLabel }}</span>
+        </div>
+        <div class="bio-item">
+          <span class="bio-lbl">Age / Foot</span>
+          <span class="bio-val">{{ profile.age }} Yrs / {{ preferredFoot }}</span>
+        </div>
+        <div class="bio-item">
+          <span class="bio-lbl">Nationality</span>
+          <span class="bio-val">{{ profile.nationality ?? 'N/A' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- =============== 2. MAIN GRID =============== -->
+    <div class="main-grid">
+
+      <!-- FIFA Player Card -->
+      <div class="card-col" scrollReveal direction="bottom" [delay]="50">
+        @if (profile.playerCard) {
+        <app-player-card [player]="profile.playerCard" [autoLoad]="false" [compact]="true" [cardWidth]="240"
+          [cardHeight]="380">
+        </app-player-card>
+        @if (isOwnProfile) {
+        <app-button variant="slate" [shimmer]="true" [loading]="isFetchingCard" (click)="fetchPlayerCard()"
+          style="margin-top:12px; width:100%;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10" />
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+          </svg>
+          &nbsp;Update Card
+        </app-button>
+        }
+        }
+        @else {
+        <div class="no-card-placeholder">
+          <div class="no-card-icon">&#9889;</div>
+          <p class="no-card-title">No Card Yet</p>
+          <p class="no-card-sub">Generate your FIFA-style player card to see your ratings and stats</p>
+          @if (isOwnProfile) {
+          <app-button [variant]="tierButtonVariant" [shimmer]="true" [loading]="isFetchingCard"
+            (click)="fetchPlayerCard()">
+            Generate Card
+          </app-button>
           }
         </div>
+        }
+      </div>
 
-        <!-- Tactical Pitch Panel -->
-        <div class="pitch-col" scrollReveal direction="bottom" [delay]="120">
-          <div class="pitch-panel">
-            <div class="panel-header">
-              <span>Position Overview</span>
+      <!-- Tactical Pitch Panel -->
+      <div class="pitch-col" scrollReveal direction="bottom" [delay]="120">
+        <div class="pitch-panel">
+          <div class="panel-header">
+            <span>Position Overview</span>
+          </div>
+
+          <div class="pitch-container">
+            <div class="pitch-lines">
+              <div class="pitch-line-half"></div>
+              <div class="pitch-center-circle"></div>
+              <div class="pitch-box left"></div>
+              <div class="pitch-box right"></div>
             </div>
 
-            <div class="pitch-container">
-              <div class="pitch-lines">
-                <div class="pitch-line-half"></div>
-                <div class="pitch-center-circle"></div>
-                <div class="pitch-box left"></div>
-                <div class="pitch-box right"></div>
+            <div class="heatmap-overlay"></div>
+
+            @for (pos of profile.positions; track pos.position) {
+            <div class="pos-pin" [class.primary]="pos.isPrimary" [style.top]="getPosPinStyle(pos.position).top"
+              [style.left]="getPosPinStyle(pos.position).left">
+              {{ pos.position }}{{ pos.isPrimary ? ' ★' : '' }}
+            </div>
+            }
+          </div>
+
+          <div class="filter-bar">
+            <span>Primary: <strong>{{ primaryPosition }}</strong></span>
+            @if (secondaryPositions.length) {
+            <span>Also: {{ secondaryPositions.join(', ') }}</span>
+            }
+          </div>
+        </div>
+
+        @if (isOwnProfile) {
+        <div class="pitch-actions">
+          <app-button variant="slate" (click)="openUpdatePrimaryModal()" style="flex: 1;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="17 1 21 5 17 9" />
+              <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+              <polyline points="7 23 3 19 7 15" />
+              <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+            </svg>
+            &nbsp;Change Primary
+          </app-button>
+          <app-button [variant]="tierButtonVariant" (click)="openAddPositionModal()" style="flex: 1;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            &nbsp;Add Position
+          </app-button>
+          <app-button variant="coral" (click)="openRemovePositionModal()" style="flex: 1;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6" />
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+            </svg>
+            &nbsp;Remove Position
+          </app-button>
+        </div>
+        }
+      </div>
+
+      <!-- Radar Chart Panel -->
+      <div class="radar-col" scrollReveal direction="bottom" [delay]="190">
+        <div class="radar-panel">
+          <div class="panel-header">
+            <span>Attributes Radar</span>
+          </div>
+
+          <div class="radar-container">
+            @if (profile.playerCard) {
+            @if (isGK && profile.playerCard.goalkeepingRating != null && profile.playerCard.goalkeepingRating > 0) {
+            <div class="gk-rating-bar">
+              <div class="gk-rating-label">Goalkeeping Rating</div>
+              <div class="gk-rating-value" [class.tier-gold]="tierClass === 'tier-gold'"
+                [class.tier-elite]="tierClass === 'tier-elite'" [class.tier-base]="tierClass === 'tier-base'">{{
+                profile.playerCard.goalkeepingRating | number:'1.0-0' }}</div>
+              <div class="gk-bar-track">
+                <div class="gk-bar-fill" [style.width.%]="profile.playerCard.goalkeepingRating"></div>
               </div>
-
-              <div class="heatmap-overlay"></div>
-
-              @for (pos of profile.positions; track pos.position) {
-                <div
-                  class="pos-pin"
-                  [class.primary]="pos.isPrimary"
-                  [style.top]="getPosPinStyle(pos.position).top"
-                  [style.left]="getPosPinStyle(pos.position).left">
-                  {{ pos.position }}{{ pos.isPrimary ? ' ★' : '' }}
-                </div>
-              }
+              <div class="gk-rating-scale"><span>0</span><span>50</span><span>100</span></div>
             </div>
-
-            <div class="filter-bar">
-              <span>Primary: <strong>{{ primaryPosition }}</strong></span>
-              @if (secondaryPositions.length) {
-                <span>Also: {{ secondaryPositions.join(', ') }}</span>
-              }
+            }
+            @else {
+            <canvas #radarCanvas></canvas>
+            }
+            }
+            @else {
+            <div class="radar-empty">
+              <span>No attribute data available</span>
             </div>
+            }
           </div>
-
-          @if (isOwnProfile) {
-            <div class="pitch-actions">
-              <app-button variant="slate" (click)="openUpdatePrimaryModal()" style="flex: 1;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-                &nbsp;Change Primary
-              </app-button>
-              <app-button [variant]="tierButtonVariant" (click)="openAddPositionModal()" style="flex: 1;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                &nbsp;Add Position
-              </app-button>
-              <app-button variant="coral" (click)="openRemovePositionModal()" style="flex: 1;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                &nbsp;Remove Position
-              </app-button>
-            </div>
-          }
         </div>
 
-        <!-- Radar Chart Panel -->
-        <div class="radar-col" scrollReveal direction="bottom" [delay]="190">
-          <div class="radar-panel">
-            <div class="panel-header">
-              <span>Attributes Radar</span>
-            </div>
-
-            <div class="radar-container">
-              @if (profile.playerCard) {
-                @if (isGK && profile.playerCard.goalkeepingRating != null && profile.playerCard.goalkeepingRating > 0) {
-                  <div class="gk-rating-bar">
-                    <div class="gk-rating-label">Goalkeeping Rating</div>
-                    <div class="gk-rating-value" [class.tier-gold]="tierClass === 'tier-gold'" [class.tier-elite]="tierClass === 'tier-elite'" [class.tier-base]="tierClass === 'tier-base'">{{ profile.playerCard.goalkeepingRating | number:'1.0-0' }}</div>
-                    <div class="gk-bar-track">
-                      <div class="gk-bar-fill" [style.width.%]="profile.playerCard.goalkeepingRating"></div>
-                    </div>
-                    <div class="gk-rating-scale"><span>0</span><span>50</span><span>100</span></div>
-                  </div>
-                }
-                @else {
-                  <canvas #radarCanvas></canvas>
-                }
-              }
-              @else {
-                <div class="radar-empty">
-                  <span>No attribute data available</span>
-                </div>
-              }
-            </div>
-          </div>
-
-          @if (isOwnProfile) {
-            <app-button
-              [variant]="tierButtonVariant"
-              [shimmer]="true"
-              (click)="openArchetypeOverlay()">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-8l1-8z"/></svg>
-              &nbsp;Reveal Archetype
-            </app-button>
-          }
-        </div>
-
+        @if (isOwnProfile) {
+        <app-button [variant]="tierButtonVariant" [shimmer]="true" (click)="openArchetypeOverlay()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M13 2L3 14h9l-1 8 10-12h-8l1-8z" />
+          </svg>
+          &nbsp;Reveal Archetype
+        </app-button>
+        }
       </div>
 
-      <!-- =============== 2.5. TRANSFER CANVAS =============== -->
-      @if (profile.playerCard) {
-        <div class="canvas-section" scrollReveal direction="bottom" [delay]="260">
-          <app-transfer-canvas
-            [overallTrainingAvg]="profile.playerCard.overallTrainingAvg"
-            [overallTournamentAvg]="profile.playerCard.overallTournamentAvg"
-            [transferClassification]="profile.playerCard.transferClassification">
-          </app-transfer-canvas>
-        </div>
-      }
+    </div>
 
-      <!-- =============== 3. KPI GRID =============== -->
-      <div
-        #countersSection
-        class="kpi-grid"
-        scrollReveal direction="bottom"
-        [delay]="400">
+    <!-- =============== 2.5. TRANSFER CANVAS =============== -->
+    @if (profile.playerCard) {
+    <div class="canvas-section" scrollReveal direction="bottom" [delay]="260">
+      <app-transfer-canvas [overallTrainingAvg]="profile.playerCard.overallTrainingAvg"
+        [overallTournamentAvg]="profile.playerCard.overallTournamentAvg"
+        [transferClassification]="profile.playerCard.transferClassification">
+      </app-transfer-canvas>
+    </div>
+    }
 
-        <div class="kpi-card">
-          <div class="kpi-header">Matches Played</div>
-          <div class="kpi-value">{{ animatedCounters.matches }}</div>
-          <div class="kpi-sub">Across all competitions</div>
-        </div>
+    <!-- =============== 3. KPI GRID =============== -->
+    <div #countersSection class="kpi-grid" scrollReveal direction="bottom" [delay]="400">
 
-        <div class="kpi-card highlight">
-          <div class="kpi-header">Goals Scored</div>
-          <div class="kpi-value">{{ animatedCounters.goals }}</div>
-          <div class="kpi-sub">{{ goalsPerMatch }} Avg / Game</div>
-        </div>
-
-        <div class="kpi-card">
-          <div class="kpi-header">Assists</div>
-          <div class="kpi-value">{{ animatedCounters.assists }}</div>
-          <div class="kpi-sub">{{ assistsPerMatch }} Avg / Game</div>
-        </div>
-
-        <div class="kpi-card highlight">
-          <div class="kpi-header">Man of Match</div>
-          <div class="kpi-value">{{ animatedCounters.motms }}</div>
-          <div class="kpi-sub">{{ motmPercentage }}% Match Impact</div>
-        </div>
-
+      <div class="kpi-card">
+        <div class="kpi-header">Matches Played</div>
+        <div class="kpi-value">{{ animatedCounters.matches }}</div>
+        <div class="kpi-sub">Across all competitions</div>
       </div>
+
+      <div class="kpi-card highlight">
+        <div class="kpi-header">Goals Scored</div>
+        <div class="kpi-value">{{ animatedCounters.goals }}</div>
+        <div class="kpi-sub">{{ goalsPerMatch }} Avg / Game</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-header">Assists</div>
+        <div class="kpi-value">{{ animatedCounters.assists }}</div>
+        <div class="kpi-sub">{{ assistsPerMatch }} Avg / Game</div>
+      </div>
+
+      <div class="kpi-card highlight">
+        <div class="kpi-header">Man of Match</div>
+        <div class="kpi-value">{{ animatedCounters.motms }}</div>
+        <div class="kpi-sub">{{ motmPercentage }}% Match Impact</div>
+      </div>
+
+    </div>
 
       <!-- =============== 4. COMPETITION BREAKDOWN =============== -->
       <div class="breakdown-section">
@@ -242,136 +241,118 @@
             <app-button [variant]="tierButtonVariant" (click)="goToTimeline()">View Full Timeline</app-button>
         </div>
 
-        <div class="breakdown-grid">
-          @for (comp of competitionBreakdown; track comp.label; let i = $index) {
-            <div
-              class="comp-box"
-              [class]="'comp-hover-' + i"
-              scrollReveal direction="bottom"
-              [delay]="i * 80"
-              [once]="true">
-              <div class="comp-name">
-                <span class="comp-icon" [style.background]="comp.iconColor"></span>
-                {{ comp.label }}
-              </div>
-              <div class="comp-stats-row"><span>Matches</span><strong>{{ comp.stats.matches }}</strong></div>
-              <div class="comp-stats-row"><span>Goals</span><strong>{{ comp.stats.goals }}</strong></div>
-              <div class="comp-stats-row"><span>Assists</span><strong>{{ comp.stats.assists }}</strong></div>
-              <div class="comp-stats-row"><span>MOTM</span><strong>{{ comp.stats.motMs }}</strong></div>
-            </div>
-          }
+      <div class="breakdown-grid">
+        @for (comp of competitionBreakdown; track comp.label; let i = $index) {
+        <div class="comp-box" [class]="'comp-hover-' + i" scrollReveal direction="bottom" [delay]="i * 80"
+          [once]="true">
+          <div class="comp-name">
+            <span class="comp-icon" [style.background]="comp.iconColor"></span>
+            {{ comp.label }}
+          </div>
+          <div class="comp-stats-row"><span>Matches</span><strong>{{ comp.stats.matches }}</strong></div>
+          <div class="comp-stats-row"><span>Goals</span><strong>{{ comp.stats.goals }}</strong></div>
+          <div class="comp-stats-row"><span>Assists</span><strong>{{ comp.stats.assists }}</strong></div>
+          <div class="comp-stats-row"><span>MOTM</span><strong>{{ comp.stats.motMs }}</strong></div>
         </div>
+        }
       </div>
+    </div>
 
     <!-- =============== POSITION SELECTION MODAL =============== -->
     @if (showPositionModal) {
-      <div class="modal-backdrop" (click)="closePositionModal()">
-        <div class="position-modal" (click)="$event.stopPropagation()">
-          <div class="modal-header">
-            <h3>{{ modalMode === 'ADD' ? 'Add New Position' : modalMode === 'UPDATE_PRIMARY' ? 'Update Primary Position' : 'Remove Position' }}</h3>
-            <button class="close-btn" (click)="closePositionModal()">✕</button>
+    <div class="modal-backdrop" (click)="closePositionModal()">
+      <div class="position-modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>{{ modalMode === 'ADD' ? 'Add New Position' : modalMode === 'UPDATE_PRIMARY' ? 'Update Primary Position' :
+            'Remove Position' }}</h3>
+          <button class="close-btn" (click)="closePositionModal()">✕</button>
+        </div>
+
+        <p class="modal-subtitle">
+          {{ modalMode === 'ADD' ? 'Select any unowned position to add it to your player profile.' : modalMode ===
+          'UPDATE_PRIMARY' ? 'Choose one of your existing Secondary Positions to promote it as Primary.' : 'Select a
+          secondary position to remove from your profile.' }}
+        </p>
+
+        <div class="modal-pitch">
+          <div class="pitch-lines">
+            <div class="pitch-line-half"></div>
+            <div class="pitch-center-circle"></div>
+            <div class="pitch-box left"></div>
+            <div class="pitch-box right"></div>
           </div>
 
-          <p class="modal-subtitle">
-            {{ modalMode === 'ADD' ? 'Select any unowned position to add it to your player profile.' : modalMode === 'UPDATE_PRIMARY' ? 'Choose one of your existing Secondary Positions to promote it as Primary.' : 'Select a secondary position to remove from your profile.' }}
-          </p>
-
-          <div class="modal-pitch">
-            <div class="pitch-lines">
-              <div class="pitch-line-half"></div>
-              <div class="pitch-center-circle"></div>
-              <div class="pitch-box left"></div>
-              <div class="pitch-box right"></div>
-            </div>
-
-            @for (pos of allPitchPositions; track pos.id) {
-              <button
-                class="pitch-node-btn"
-                [class.selectable]="isPositionSelectable(pos.id)"
-                [class.disabled-node]="isPositionDisabled(pos.id)"
-                [class.selected]="selectedPosition === pos.id"
-                [style.top]="pos.top"
-                [style.left]="pos.left"
-                (click)="selectPositionNode(pos.id)">
-                {{ pos.name }}
-              </button>
-            }
-          </div>
-
-          @if (positionError) {
-            <p class="modal-error">{{ positionError }}</p>
+          @for (pos of allPitchPositions; track pos.id) {
+          <button class="pitch-node-btn" [class.selectable]="isPositionSelectable(pos.id)"
+            [class.disabled-node]="isPositionDisabled(pos.id)" [class.selected]="selectedPosition === pos.id"
+            [style.top]="pos.top" [style.left]="pos.left" (click)="selectPositionNode(pos.id)">
+            {{ pos.name }}
+          </button>
           }
+        </div>
 
-          <div class="modal-footer">
-            @if (modalMode === 'ADD') {
-              <app-toggle
-                [(checked)]="setAsPrimaryCheck"
-                label="Set as Primary position immediately">
-              </app-toggle>
-            }
-            @else {
-              <span></span>
-            }
-            <div class="modal-footer-btns">
-              <app-button variant="slate" (click)="closePositionModal()">Cancel</app-button>
-              <app-button [variant]="modalMode === 'REMOVE' ? 'coral' : tierButtonVariant" [loading]="isSavingPosition" (click)="confirmPositionSelection()">Confirm Selection</app-button>
-            </div>
+        @if (positionError) {
+        <p class="modal-error">{{ positionError }}</p>
+        }
+
+        <div class="modal-footer">
+          @if (modalMode === 'ADD') {
+          <app-toggle [(checked)]="setAsPrimaryCheck" label="Set as Primary position immediately">
+          </app-toggle>
+          }
+          @else {
+          <span></span>
+          }
+          <div class="modal-footer-btns">
+            <app-button variant="slate" (click)="closePositionModal()">Cancel</app-button>
+            <app-button [variant]="modalMode === 'REMOVE' ? 'coral' : tierButtonVariant" [loading]="isSavingPosition"
+              (click)="confirmPositionSelection()">Confirm Selection</app-button>
           </div>
         </div>
       </div>
+    </div>
     }
 
     <!-- =============== CONFIRM DIALOG =============== -->
-    <app-confirm-dialog
-      [isOpen]="showConfirmDialog"
-      [title]="confirmTitle"
-      [message]="confirmMessage"
-      level="info"
-      [confirmText]="confirmActionText"
-      cancelText="Cancel"
-      (confirm)="onConfirmAction()"
-      (cancel)="onCancelAction()">
+    <app-confirm-dialog [isOpen]="showConfirmDialog" [title]="confirmTitle" [message]="confirmMessage" level="info"
+      [confirmText]="confirmActionText" cancelText="Cancel" (confirm)="onConfirmAction()" (cancel)="onCancelAction()">
     </app-confirm-dialog>
 
   </div>
-}
+  }
 </div>
 
 <!-- =============== ARCHETYPE PACK OVERLAY =============== -->
 @if (showArchetypeOverlay) {
-  <div
-    class="pack-overlay"
-    [style.--tier-neon]="tierNeon"
-    [style.--tier-glow]="'color-mix(in srgb, ' + tierNeon + ' 22%, transparent)'"
-    [style.--tier-border-glow]="'color-mix(in srgb, ' + tierNeon + ' 40%, transparent)'"
-    [style.--tier-bg-glow]="'color-mix(in srgb, ' + tierNeon + ' 14%, transparent)'"
-    (click)="closeArchetypeOverlay()">
+<div class="pack-overlay" [style.--tier-neon]="tierNeon"
+  [style.--tier-glow]="'color-mix(in srgb, ' + tierNeon + ' 22%, transparent)'"
+  [style.--tier-border-glow]="'color-mix(in srgb, ' + tierNeon + ' 40%, transparent)'"
+  [style.--tier-bg-glow]="'color-mix(in srgb, ' + tierNeon + ' 14%, transparent)'" (click)="closeArchetypeOverlay()">
 
-    <button class="close-pack-btn" (click)="closeArchetypeOverlay()" aria-label="Close">✕</button>
+  <button class="close-pack-btn" (click)="closeArchetypeOverlay()" aria-label="Close">✕</button>
 
-    <div class="pack-spotlight"></div>
+  <div class="pack-spotlight"></div>
 
-    <div class="pack-card-container"
-      (click)="$event.stopPropagation(); flipArchetypeCard()"
-      [attr.aria-label]="isCardFlipped ? 'Archetype revealed' : 'Tap to reveal archetype'">
-      <div class="pack-card-inner" [class.flipped]="isCardFlipped">
+  <div class="pack-card-container" (click)="$event.stopPropagation(); flipArchetypeCard()"
+    [attr.aria-label]="isCardFlipped ? 'Archetype revealed' : 'Tap to reveal archetype'">
+    <div class="pack-card-inner" [class.flipped]="isCardFlipped">
 
-        <div class="card-face card-face-back">
-          <div class="mystery-logo">KORALYTICS</div>
-          <div class="tap-hint">TAP TO REVEAL</div>
-        </div>
-
-        <div class="card-face card-face-front">
-          <div class="archetype-badge-icon">⚽</div>
-          <div class="arch-label">PLAYER ARCHETYPE</div>
-          <div class="arch-title">{{ archetypeLabel }}</div>
-          <div class="arch-subline">AI-powered playing style analysis</div>
-        </div>
-
+      <div class="card-face card-face-back">
+        <div class="mystery-logo">KORALYTICS</div>
+        <div class="tap-hint">TAP TO REVEAL</div>
       </div>
-    </div>
 
+      <div class="card-face card-face-front">
+        <div class="archetype-badge-icon">⚽</div>
+        <div class="arch-label">PLAYER ARCHETYPE</div>
+        <div class="arch-title">{{ archetypeLabel }}</div>
+        <div class="arch-subline">AI-powered playing style analysis</div>
+      </div>
+
+    </div>
   </div>
+
+</div>
 }
 
 <app-footer scrollReveal direction="bottom" [delay]="200"></app-footer>

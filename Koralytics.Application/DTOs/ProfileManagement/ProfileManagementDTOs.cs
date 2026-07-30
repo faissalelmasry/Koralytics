@@ -30,6 +30,8 @@ namespace Koralytics.Application.DTOs.ProfileManagement
         public int? Age { get; set; }
         public string? Nationality { get; set; }
         public PreferredFoot? PreferredFoot { get; set; }
+        public decimal? HeightCm { get; set; }
+        public decimal? WeightKg { get; set; }
         public int? WeakFootRating { get; set; }
         public string? PlayStyleTag { get; set; }
         public string? ArchetypePlayerName { get; set; }
@@ -71,10 +73,10 @@ namespace Koralytics.Application.DTOs.ProfileManagement
         // Player-specific properties
         public string? Nationality { get; set; }
         public PreferredFoot? PreferredFoot { get; set; }
+        public decimal? HeightCm { get; set; }
+        public decimal? WeightKg { get; set; }
         public int? WeakFootRating { get; set; }
         public string? PlayStyleTag { get; set; }
-        public string? ArchetypePlayerName { get; set; }
-        public string? ArchetypeText { get; set; }
         public List<PlayerPositionDto>? Positions { get; set; }
     }
 

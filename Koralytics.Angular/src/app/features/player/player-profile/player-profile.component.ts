@@ -153,7 +153,7 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
     }
   }
 
-  ngAfterViewInit() {}
+  ngAfterViewInit() { }
 
   goToTimeline() {
     if (this.playerId) {

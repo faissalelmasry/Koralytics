@@ -58,6 +58,7 @@ using Koralytics.Application.Services.Scouter.ScouterSearchService;
 using Koralytics.Application.Services.Scouter.ScouterShortlistService;
 using Koralytics.Application.Services.Storage;
 using Koralytics.Application.Services.Subscription;
+using Koralytics.Application.Services.ProfileManagement;
 using Koralytics.Application.Services.Tournaments;
 using Koralytics.Application.Validators.Academies;
 using Koralytics.Application.Validators.Auth;
@@ -114,6 +115,7 @@ using Koralytics.Application.Services.Scouter.ScouterSearchService;
 using Koralytics.Application.Services.Scouter.ScouterShortlistService;
 using StackExchange.Redis;
 using Koralytics.Application.Services.SystemAdmin.UserManagement;
+
 
 namespace Koralytics.API
 {
@@ -283,7 +285,7 @@ namespace Koralytics.API
             builder.Services.AddScoped<IScouterShortlistService, ScouterShortlistService>();
             builder.Services.AddScoped<IScouterFollowService, ScouterFollowService>();
             builder.Services.AddScoped<IScouterReportService, ScouterReportService>();
-            //builder.Services.AddScoped<IStorageService, StorageService>();
+            builder.Services.AddScoped<IStorageService, StorageService>();
             builder.Services.AddSignalR();
             builder.Services.AddScoped<IRealTimeBridge, RealTimeBridge>();
             builder.Services.AddScoped<IMatchLiveUpdateService, MatchLiveUpdateService>();
@@ -292,6 +294,7 @@ namespace Koralytics.API
             builder.Services.AddScoped<IAnnouncementNotificationService, AnnouncementNotificationService>();
             builder.Services.AddScoped<IParentService, ParentService>();
             builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
+            builder.Services.AddScoped<IProfileManagementService, ProfileManagementService>();
             // Register FluentValidation validators
             builder.Services.AddValidatorsFromAssemblyContaining<LoginRequestValidator>();
             builder.Services.AddValidatorsFromAssemblyContaining<ChangePasswordValidator>();

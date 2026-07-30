@@ -6,6 +6,8 @@ namespace Koralytics.Application.DTOs.AuthDTOs.RegisterDTOs
         public string? Nationality { get; set; }
         public string PreferredFoot { get; set; } = "Right";
         public int WeakFootRating { get; set; } = 3;
+        public decimal? HeightCm { get; set; }
+        public decimal? WeightKg { get; set; }
         public string? PlayStyleTag { get; set; }
         public string? ArchetypePlayerName { get; set; }
         public string? ArchetypeText { get; set; }

@@ -7,6 +7,7 @@ import { CustomInputComponent } from '../../../../../shared/components/custom-in
 import { CustomButtonComponent } from '../../../../../shared/components/custom-button/custom-button';
 import { LoadingSpinnerComponent } from '../../../../../shared/components/loading-spinner/loading-spinner';
 import { CustomSelect, SelectOption } from '../../../../../shared/components/custom-select/custom-select';
+import { ConfirmDialogComponent } from '../../../../../shared/components/confirm-dialog/confirm-dialog';
 
 @Component({
   selector: 'app-manage-badges-section',
@@ -18,7 +19,8 @@ import { CustomSelect, SelectOption } from '../../../../../shared/components/cus
     CustomInputComponent,
     CustomButtonComponent,
     LoadingSpinnerComponent,
-    CustomSelect
+    CustomSelect,
+    ConfirmDialogComponent
   ],
   templateUrl: './manage-badges-section.html',
   styleUrls: ['./manage-badges-section.css']
@@ -41,6 +43,11 @@ export class ManageBadgesSectionComponent implements OnInit {
   showAwardModal = false;
   awardForm!: FormGroup;
   isAwarding = false;
+
+  isConfirmDialogOpen = false;
+  badgeToRevoke: any = null;
+  confirmDialogTitle = '';
+  confirmDialogMessage = '';
 
   badgeTypes: SelectOption[] = [
     { value: 'Verified', label: 'Verified Academy' },
@@ -75,7 +82,7 @@ export class ManageBadgesSectionComponent implements OnInit {
         this.isLoadingAcademies = false;
         if (res.isSuccess && res.data) {
           const data: any = res.data;
-          this.academies = Array.isArray(data) ? data : (data.academies || data.items || data.data || []);
+          this.academies = Array.isArray(data) ? data : (data.items || data.academies || data.data || []);
           if (this.academies.length > 0 && !this.selectedAcademyId) {
             this.selectedAcademyId = this.academies[0].id;
             this.loadBadges();
@@ -126,21 +133,19 @@ export class ManageBadgesSectionComponent implements OnInit {
 
   onAwardSubmit() {
     if (this.awardForm.invalid) return;
-
     this.isAwarding = true;
-    const { academyId, badgeType } = this.awardForm.value;
-    const payload = {
-      badgeType: badgeType,
-      awardedAt: new Date().toISOString()
-    };
+    const formVal = this.awardForm.value;
 
-    this.systemAdminService.createBadge(academyId, payload).subscribe({
+    this.systemAdminService.createBadge(formVal.academyId, {
+      badgeType: formVal.badgeType,
+      description: formVal.description,
+      awardedAt: new Date().toISOString()
+    }).subscribe({
       next: (res) => {
         this.isAwarding = false;
-        if (res.isSuccess || res.statusCode === 201 || res.statusCode === 200) {
-          this.toast.show('Badge awarded successfully!', 'success');
+        if (res.isSuccess || res.statusCode === 200 || res.statusCode === 201) {
+          this.toast.show('Badge awarded successfully', 'success');
           this.closeAwardModal();
-          this.selectedAcademyId = academyId;
           this.loadBadges();
         } else {
           this.toast.show(res.message || 'Error awarding badge', 'error');
@@ -155,10 +160,20 @@ export class ManageBadgesSectionComponent implements OnInit {
 
   deleteBadge(badge: any) {
     if (!this.selectedAcademyId) return;
+    this.badgeToRevoke = badge;
+    this.confirmDialogTitle = 'Revoke Recognition Badge';
+    this.confirmDialogMessage = `Are you sure you want to revoke the "${badge.badgeType}" badge from this academy?`;
+    this.isConfirmDialogOpen = true;
+  }
 
-    if (!confirm(`Are you sure you want to revoke the "${badge.badgeType}" badge?`)) {
+  onConfirmBadgeRevoke() {
+    if (!this.selectedAcademyId || !this.badgeToRevoke) {
+      this.isConfirmDialogOpen = false;
       return;
     }
+    const badge = this.badgeToRevoke;
+    this.isConfirmDialogOpen = false;
+    this.badgeToRevoke = null;
 
     this.systemAdminService.deleteBadge(this.selectedAcademyId, badge.id).subscribe({
       next: (res) => {

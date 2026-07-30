@@ -32,7 +32,7 @@ namespace Koralytics.API.Controllers.Academies
         }
 
         [HttpGet("{academyId}/age-groups")]
-        [Authorize(Roles = "AcademyAdmin,Coach,Player,Parent")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAgeGroups(int academyId)
         {
             var result = await _academyTeamService.GetAgeGroupsByAcademyAsync(academyId);
@@ -49,7 +49,7 @@ namespace Koralytics.API.Controllers.Academies
         }
 
         [HttpGet("{academyId}/teams")]
-        [Authorize(Roles = "AcademyAdmin,Coach,Player,Parent")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetTeams(int academyId)
         {
             var result = await _academyTeamService.GetTeamsByAcademyAsync(academyId);
@@ -93,7 +93,7 @@ namespace Koralytics.API.Controllers.Academies
         }
 
         [HttpGet("{academyId}/teams/summary")]
-        [Authorize(Roles = "AcademyAdmin,Coach,Player")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAcademyTeams(int academyId)
         {
             var result = await _academyTeamService.GetAcademyTeamsAsync(academyId);

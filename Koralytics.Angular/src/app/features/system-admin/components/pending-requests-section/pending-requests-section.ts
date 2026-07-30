@@ -112,7 +112,17 @@ export class PendingRequestsSectionComponent implements OnInit {
     if (this.approveForm.invalid) return;
 
     this.isApproving = true;
-    const dto = this.approveForm.value;
+    const formVal = this.approveForm.value;
+
+    const dto = {
+      academyRequestId: Number(formVal.requestId),
+      name: formVal.name,
+      logoUrl: formVal.logoUrl || 'images/logo/primary/logo-primary-dark.png',
+      primaryColor: formVal.primaryColor || '#3b82f6',
+      secondaryColor: formVal.secondaryColor || '#8b5cf6',
+      foundedAt: formVal.foundedDate ? new Date(formVal.foundedDate).toISOString() : new Date().toISOString(),
+      adminUserId: Number(formVal.adminUserId)
+    };
 
     this.systemAdminService.approveAcademyRequest(dto).subscribe({
       next: (res) => {

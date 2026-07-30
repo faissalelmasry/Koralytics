@@ -39,12 +39,23 @@
           <td><span class="date-text">{{ req.requestedAt | date:'mediumDate' }}</span></td>
           <td class="text-right">
             <div class="table-actions-hub">
-              <app-button variant="accent" size="sm" (click)="openApproveModal(req)">
-                Approve
-              </app-button>
-              <app-button variant="coral" size="sm" (click)="openRejectModal(req)">
-                Reject
-              </app-button>
+              <button 
+                class="action-icon-btn approve-btn" 
+                (click)="openApproveModal(req)" 
+                title="Approve Academy Onboarding">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </button>
+              <button 
+                class="action-icon-btn reject-btn" 
+                (click)="openRejectModal(req)" 
+                title="Reject Onboarding Request">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
             </div>
           </td>
         </tr>
@@ -53,78 +64,125 @@
   </div>
 
   <div class="empty-state" *ngIf="!isLoading && pendingRequests.length === 0">
-    <div class="empty-icon">✓</div>
+    <div class="empty-icon">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+      </svg>
+    </div>
     <h4>All Caught Up!</h4>
     <p>There are currently no pending academy join requests.</p>
   </div>
 </div>
 
 <!-- Approve Modal -->
-<div class="modal-backdrop" *ngIf="selectedRequestForApprove" (click)="closeApproveModal()">
-  <div class="modal-card" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h4>Approve Academy Onboarding</h4>
-      <button class="btn-close" (click)="closeApproveModal()">&times;</button>
+<div class="modal-backdrop-cyber" *ngIf="selectedRequestForApprove" (click)="closeApproveModal()">
+  <div class="cyber-modal-card approve-modal fade-in" (click)="$event.stopPropagation()">
+    <div class="tactical-tag">
+      <span>01 // ONBOARDING APPROVAL PROTOCOL</span>
     </div>
 
-    <form [formGroup]="approveForm" (ngSubmit)="onApproveSubmit()" class="modal-form">
-      <app-text-input
-        label="Academy Name"
-        type="text"
-        formControlName="name">
-      </app-text-input>
+    <div class="modal-header-cyber">
+      <div class="modal-header-left">
+        <div class="modal-icon-badge approve">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a3e635" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            <polyline points="9 12 11 14 15 10"></polyline>
+          </svg>
+        </div>
+        <div>
+          <h4>APPROVE ACADEMY ONBOARDING</h4>
+          <p class="modal-subtitle">Verify and activate this academy on the Koralytics network.</p>
+        </div>
+      </div>
+      <button class="btn-close-cyber" (click)="closeApproveModal()" title="Close Modal">&times;</button>
+    </div>
 
-      <app-text-input
-        label="Founded Date (YYYY-MM-DD)"
-        type="date"
-        formControlName="foundedDate">
-      </app-text-input>
-
-      <div class="color-row">
+    <form [formGroup]="approveForm" (ngSubmit)="onApproveSubmit()" class="modal-form-cyber">
+      <div class="modal-form-fields">
         <app-text-input
-          label="Primary Brand Color"
+          label="Academy Official Name"
           type="text"
-          formControlName="primaryColor">
+          formControlName="name">
         </app-text-input>
 
         <app-text-input
-          label="Secondary Brand Color"
-          type="text"
-          formControlName="secondaryColor">
+          label="Founded Date (YYYY-MM-DD)"
+          type="date"
+          formControlName="foundedDate">
         </app-text-input>
+
+        <div class="color-row-cyber">
+          <app-text-input
+            label="Primary Brand Color"
+            type="text"
+            formControlName="primaryColor">
+          </app-text-input>
+
+          <app-text-input
+            label="Secondary Brand Color"
+            type="text"
+            formControlName="secondaryColor">
+          </app-text-input>
+        </div>
       </div>
 
-      <div class="modal-footer">
-        <app-button variant="slate" type="button" (click)="closeApproveModal()">Cancel</app-button>
-        <app-button variant="accent" type="submit" [disabled]="isApproving">
-          {{ isApproving ? 'Creating Academy...' : 'Approve & Create' }}
-        </app-button>
+      <div class="modal-footer-cyber">
+        <button type="button" class="btn-cyber-cancel" (click)="closeApproveModal()">CANCEL</button>
+        <button type="submit" class="btn-cyber-confirm approve-btn" [disabled]="isApproving">
+          <svg *ngIf="!isApproving" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          <span>{{ isApproving ? 'CREATING ACADEMY...' : 'APPROVE & CREATE' }}</span>
+        </button>
       </div>
     </form>
   </div>
 </div>
 
 <!-- Reject Modal -->
-<div class="modal-backdrop" *ngIf="selectedRequestForReject" (click)="closeRejectModal()">
-  <div class="modal-card" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h4>Reject Academy Request</h4>
-      <button class="btn-close" (click)="closeRejectModal()">&times;</button>
+<div class="modal-backdrop-cyber" *ngIf="selectedRequestForReject" (click)="closeRejectModal()">
+  <div class="cyber-modal-card reject-modal fade-in" (click)="$event.stopPropagation()">
+    <div class="tactical-tag alert-tag">
+      <span>ALERT // REJECTION PROTOCOL</span>
     </div>
 
-    <form [formGroup]="rejectForm" (ngSubmit)="onRejectSubmit()" class="modal-form">
-      <app-text-input
-        label="Rejection Reason"
-        type="text"
-        placeholder="Explain why this request is being rejected..."
-        formControlName="reason">
-      </app-text-input>
+    <div class="modal-header-cyber">
+      <div class="modal-header-left">
+        <div class="modal-icon-badge reject">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="15" y1="9" x2="9" y2="15"></line>
+            <line x1="9" y1="9" x2="15" y2="15"></line>
+          </svg>
+        </div>
+        <div>
+          <h4>REJECT ACADEMY REQUEST</h4>
+          <p class="modal-subtitle">Provide a clear explanation for declining this onboarding application.</p>
+        </div>
+      </div>
+      <button class="btn-close-cyber" (click)="closeRejectModal()" title="Close Modal">&times;</button>
+    </div>
 
-      <div class="modal-footer">
-        <app-button variant="slate" type="button" (click)="closeRejectModal()">Cancel</app-button>
-        <app-button variant="coral" type="submit" [disabled]="isRejecting || rejectForm.invalid">
-          {{ isRejecting ? 'Rejecting...' : 'Confirm Rejection' }}
-        </app-button>
+    <form [formGroup]="rejectForm" (ngSubmit)="onRejectSubmit()" class="modal-form-cyber">
+      <div class="modal-form-fields">
+        <app-text-input
+          label="Rejection Notice / Reason"
+          type="text"
+          placeholder="Explain why this request is being rejected..."
+          formControlName="reason">
+        </app-text-input>
+      </div>
+
+      <div class="modal-footer-cyber">
+        <button type="button" class="btn-cyber-cancel" (click)="closeRejectModal()">CANCEL</button>
+        <button type="submit" class="btn-cyber-confirm reject-btn" [disabled]="isRejecting || rejectForm.invalid">
+          <svg *ngIf="!isRejecting" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+          <span>{{ isRejecting ? 'REJECTING...' : 'CONFIRM REJECTION' }}</span>
+        </button>
       </div>
     </form>
   </div>

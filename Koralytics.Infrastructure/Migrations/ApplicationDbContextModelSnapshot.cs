@@ -1947,7 +1947,10 @@ namespace Koralytics.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
@@ -1962,6 +1965,57 @@ namespace Koralytics.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("ParentPlayers", (string)null);
+                });
+
+            modelBuilder.Entity("Koralytics.Domain.Entities.Parents.ParentPlayerJoinRequest", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("CreatedById")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("ParentId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PlayerId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("RequestedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("RespondedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("UpdatedById")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("ParentId");
+
+                    b.HasIndex("PlayerId");
+
+                    b.HasIndex("UpdatedById");
+
+                    b.ToTable("ParentPlayerJoinRequests", (string)null);
                 });
 
             modelBuilder.Entity("Koralytics.Domain.Entities.Player.PlayerAcademy", b =>
@@ -3446,6 +3500,9 @@ namespace Koralytics.Infrastructure.Migrations
                     b.Property<DateTime>("DateOfBirth")
                         .HasColumnType("datetime2");
 
+                    b.Property<decimal?>("HeightCm")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<string>("Nationality")
                         .HasColumnType("nvarchar(max)");
 
@@ -3461,7 +3518,17 @@ namespace Koralytics.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasDefaultValue(3);
 
-                    b.ToTable("Players", (string)null);
+                    b.Property<decimal?>("WeightKg")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.ToTable("Players", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Player_HeightCm", "[HeightCm] BETWEEN 50 AND 220");
+
+                            t.HasCheckConstraint("CK_Player_WeakFootRating", "[WeakFootRating] BETWEEN 1 AND 5");
+
+                            t.HasCheckConstraint("CK_Player_WeightKg", "[WeightKg] BETWEEN 20 AND 150");
+                        });
                 });
 
             modelBuilder.Entity("Koralytics.Domain.Entities.Scouter.Scouter", b =>
@@ -4401,6 +4468,39 @@ namespace Koralytics.Infrastructure.Migrations
                     b.Navigation("Parent");
 
                     b.Navigation("Player");
+                });
+
+            modelBuilder.Entity("Koralytics.Domain.Entities.Parents.ParentPlayerJoinRequest", b =>
+                {
+                    b.HasOne("Koralytics.Domain.Entities.Identity.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Koralytics.Domain.Entities.Parents.Parent", "Parent")
+                        .WithMany()
+                        .HasForeignKey("ParentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Koralytics.Domain.Entities.Player.Player", "Player")
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Koralytics.Domain.Entities.Identity.User", "UpdatedByUser")
+                        .WithMany()
+                        .HasForeignKey("UpdatedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("Parent");
+
+                    b.Navigation("Player");
+
+                    b.Navigation("UpdatedByUser");
                 });
 
             modelBuilder.Entity("Koralytics.Domain.Entities.Player.PlayerAcademy", b =>

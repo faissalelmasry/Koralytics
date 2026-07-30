@@ -14,6 +14,7 @@ import { CustomSelect, SelectOption } from '@shared/components/custom-select/cus
 import { SearchBarComponent } from '@shared/components/search-bar/search-bar';
 import { CustomDatePicker } from '@shared/components/custom-date-picker/custom-date-picker';
 import { CustomNumberInputComponent } from '@shared/components/custom-number-input/custom-number-input';
+import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog';
 
 export interface PlayerOption {
   id: number;
@@ -33,7 +34,8 @@ export interface PlayerOption {
     CustomSelect,
     SearchBarComponent,
     CustomDatePicker,
-    CustomNumberInputComponent
+    CustomNumberInputComponent,
+    ConfirmDialogComponent
   ],
   templateUrl: './academy-admin-subscriptions.component.html',
   styleUrls: ['./academy-admin-subscriptions.component.css']
@@ -356,9 +358,29 @@ export class AcademyAdminSubscriptionsComponent implements OnInit {
     });
   }
 
+  // CONFIRM DIALOG STATE
+  isConfirmDialogOpen = false;
+  confirmDialogTitle = '';
+  confirmDialogMessage = '';
+  targetSubForCash: PlayerSubscriptionDto | null = null;
+
   // MARK AS PAID BY CASH HANDLER
   onMarkAsPaidByCash(sub: PlayerSubscriptionDto): void {
-    if (!confirm(`Confirm cash payment of ${sub.amount} EGP for ${sub.playerName}?`)) return;
+    this.targetSubForCash = sub;
+    this.confirmDialogTitle = 'Confirm Cash Payment';
+    this.confirmDialogMessage = `Confirm cash payment of ${sub.amount} EGP for ${sub.playerName}?`;
+    this.isConfirmDialogOpen = true;
+  }
+
+  onConfirmDialogExecute(): void {
+    if (!this.targetSubForCash) {
+      this.isConfirmDialogOpen = false;
+      return;
+    }
+
+    const sub = this.targetSubForCash;
+    this.isConfirmDialogOpen = false;
+    this.targetSubForCash = null;
 
     this.isProcessingCashId = sub.id;
     this.errorMessage = '';

@@ -48,7 +48,7 @@ namespace Koralytics.API.Controllers.Academies
 
 
         [HttpGet("{academyId}")]
-        [Authorize(Roles = "AcademyAdmin,SystemAdmin,Coach,Player")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAcademy(int academyId)
         {
             var result = await _academyService.GetAcademyAsync(academyId);
@@ -83,7 +83,7 @@ namespace Koralytics.API.Controllers.Academies
         }
 
         [HttpGet("{academyId}/locations")]
-        [Authorize(Roles = "AcademyAdmin,SystemAdmin,Coach,Parent,Player")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetLocations(int academyId)
         {
             var result = await _academyService.GetLocationsAsync(academyId);
@@ -348,7 +348,7 @@ namespace Koralytics.API.Controllers.Academies
         }
 
         [HttpGet("{academyId}/members")]
-        [Authorize(Roles = "AcademyAdmin,SystemAdmin")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAcademyMembers(int academyId, [FromQuery] Koralytics.Application.DTOs.Common.PaginationRequestDto request)
         {
             var result = await _academyService.GetAcademyMembersAsync(academyId, request);
@@ -373,7 +373,7 @@ namespace Koralytics.API.Controllers.Academies
         }
 
         [HttpGet("search")]
-        [Authorize(Roles = "AcademyAdmin,SystemAdmin,Coach,Player")]
+        [AllowAnonymous]
         public async Task<IActionResult> SearchAcademies([FromQuery] string name)
         {
             var result = await _academyService.SearchAcademiesByNameAsync(name);

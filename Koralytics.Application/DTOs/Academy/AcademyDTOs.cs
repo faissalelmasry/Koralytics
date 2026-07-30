@@ -54,6 +54,7 @@ namespace Koralytics.Application.DTOs.Academies
         public string FullName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string Role { get; set; } = string.Empty; // e.g., "Player", "Coach"
+        public string? ProfileImageUrl { get; set; }
         public string? Position { get; set; }
         public string? SquadStatus { get; set; }
         public DateTime JoinedAt { get; set; }
@@ -64,6 +65,7 @@ namespace Koralytics.Application.DTOs.Academies
         public int UserId { get; set; }
         public string FullName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
+        public string? ProfileImageUrl { get; set; }
         public bool IsOwner { get; set; }
     }
 

@@ -32,8 +32,15 @@
    Keyframes
    =================================================== */
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ===================================================
@@ -138,8 +145,17 @@
 }
 
 @keyframes avatarPulse {
-  0%, 100% { box-shadow: 0 0 10px var(--tier-glow); border-color: var(--tier-neon); }
-  50% { box-shadow: 0 0 25px var(--tier-neon); border-color: #ffffff; }
+
+  0%,
+  100% {
+    box-shadow: 0 0 10px var(--tier-glow);
+    border-color: var(--tier-neon);
+  }
+
+  50% {
+    box-shadow: 0 0 25px var(--tier-neon);
+    border-color: #ffffff;
+  }
 }
 
 .player-identity h1 {
@@ -202,9 +218,17 @@
   font-family: 'Inter', sans-serif;
 }
 
-.bio-val.status-available { color: #22c55e; }
-.bio-val.status-transferred { color: #fbbf24; }
-.bio-val.status-injured { color: #ef4444; }
+.bio-val.status-available {
+  color: #22c55e;
+}
+
+.bio-val.status-transferred {
+  color: #fbbf24;
+}
+
+.bio-val.status-injured {
+  color: #ef4444;
+}
 
 /* ===================================================
    2. MAIN GRID
@@ -355,8 +379,15 @@
   border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
-.pitch-box.left { left: 0; border-left: none; }
-.pitch-box.right { right: 0; border-right: none; }
+.pitch-box.left {
+  left: 0;
+  border-left: none;
+}
+
+.pitch-box.right {
+  right: 0;
+  border-right: none;
+}
 
 .heatmap-overlay {
   position: absolute;
@@ -474,9 +505,20 @@
   transition: color 0.3s;
 }
 
-.gk-rating-value.tier-base { color: #c8ff4d; text-shadow: 0 0 18px rgba(200, 255, 77, 0.3); }
-.gk-rating-value.tier-gold { color: #ffd700; text-shadow: 0 0 18px rgba(255, 215, 0, 0.3); }
-.gk-rating-value.tier-elite { color: #ff6a00; text-shadow: 0 0 18px rgba(255, 94, 0, 0.3); }
+.gk-rating-value.tier-base {
+  color: #c8ff4d;
+  text-shadow: 0 0 18px rgba(200, 255, 77, 0.3);
+}
+
+.gk-rating-value.tier-gold {
+  color: #ffd700;
+  text-shadow: 0 0 18px rgba(255, 215, 0, 0.3);
+}
+
+.gk-rating-value.tier-elite {
+  color: #ff6a00;
+  text-shadow: 0 0 18px rgba(255, 94, 0, 0.3);
+}
 
 .gk-bar-track {
   width: 100%;
@@ -619,9 +661,17 @@
   transform: translateY(-4px);
 }
 
-.comp-box.comp-hover-0:hover { border-color: #c8ff4d; }
-.comp-box.comp-hover-1:hover { border-color: #ffd700; }
-.comp-box.comp-hover-2:hover { border-color: #ff6a00; }
+.comp-box.comp-hover-0:hover {
+  border-color: #c8ff4d;
+}
+
+.comp-box.comp-hover-1:hover {
+  border-color: #ffd700;
+}
+
+.comp-box.comp-hover-2:hover {
+  border-color: #ff6a00;
+}
 
 .comp-name {
   font-size: 14px;
@@ -662,29 +712,65 @@
    Pack Opening Overlay
    =================================================== */
 @keyframes overlayFadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes pulseSpotlight {
-  0%, 100% { transform: scale(0.88); opacity: 0.45; }
-  50%       { transform: scale(1.18); opacity: 0.85; }
+
+  0%,
+  100% {
+    transform: scale(0.88);
+    opacity: 0.45;
+  }
+
+  50% {
+    transform: scale(1.18);
+    opacity: 0.85;
+  }
 }
 
 @keyframes floatLogo {
-  0%, 100% { transform: translateY(0px);   }
-  50%       { transform: translateY(-12px); }
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-12px);
+  }
 }
 
 @keyframes cardEntrance {
-  from { transform: scale(0.7) translateY(40px); opacity: 0; }
-  to   { transform: scale(1) translateY(0);      opacity: 1; }
+  from {
+    transform: scale(0.7) translateY(40px);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
 }
 
 @keyframes revealGlow {
-  0%   { box-shadow: 0 0 30px var(--tier-neon, #c8ff4d); }
-  50%  { box-shadow: 0 0 70px var(--tier-neon, #c8ff4d), 0 0 120px var(--tier-glow, rgba(200,255,77,0.3)); }
-  100% { box-shadow: 0 0 30px var(--tier-neon, #c8ff4d); }
+  0% {
+    box-shadow: 0 0 30px var(--tier-neon, #c8ff4d);
+  }
+
+  50% {
+    box-shadow: 0 0 70px var(--tier-neon, #c8ff4d), 0 0 120px var(--tier-glow, rgba(200, 255, 77, 0.3));
+  }
+
+  100% {
+    box-shadow: 0 0 30px var(--tier-neon, #c8ff4d);
+  }
 }
 
 .pack-overlay {
@@ -705,7 +791,7 @@
   position: absolute;
   width: 540px;
   height: 540px;
-  background: radial-gradient(circle, var(--tier-glow, rgba(200,255,77,0.22)) 0%, transparent 70%);
+  background: radial-gradient(circle, var(--tier-glow, rgba(200, 255, 77, 0.22)) 0%, transparent 70%);
   border-radius: 50%;
   pointer-events: none;
   animation: pulseSpotlight 2.8s ease-in-out infinite;
@@ -749,8 +835,8 @@
 
 .card-face-back {
   background: linear-gradient(160deg, #1c1a10 0%, #0a0c10 100%);
-  border: 2px solid var(--tier-border-glow, rgba(200,255,77,0.4));
-  box-shadow: 0 0 32px var(--tier-glow, rgba(200,255,77,0.2));
+  border: 2px solid var(--tier-border-glow, rgba(200, 255, 77, 0.4));
+  box-shadow: 0 0 32px var(--tier-glow, rgba(200, 255, 77, 0.2));
 }
 
 .mystery-logo {
@@ -773,7 +859,7 @@
 }
 
 .card-face-front {
-  background: radial-gradient(ellipse at 50% 15%, var(--tier-bg-glow, rgba(200,255,77,0.18)) 0%, #0f1115 70%);
+  background: radial-gradient(ellipse at 50% 15%, var(--tier-bg-glow, rgba(200, 255, 77, 0.18)) 0%, #0f1115 70%);
   border: 2px solid var(--tier-neon, #c8ff4d);
   transform: rotateY(180deg);
   text-align: center;
@@ -786,15 +872,15 @@
 .archetype-badge-icon {
   width: 72px;
   height: 72px;
-  background: var(--tier-bg-glow, rgba(200,255,77,0.12));
-  border: 2px solid var(--tier-border-glow, rgba(200,255,77,0.4));
+  background: var(--tier-bg-glow, rgba(200, 255, 77, 0.12));
+  border: 2px solid var(--tier-border-glow, rgba(200, 255, 77, 0.4));
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 34px;
   margin-bottom: 18px;
-  box-shadow: 0 0 22px var(--tier-glow, rgba(200,255,77,0.2));
+  box-shadow: 0 0 22px var(--tier-glow, rgba(200, 255, 77, 0.2));
 }
 
 .arch-label {
@@ -812,7 +898,7 @@
   font-size: 30px;
   letter-spacing: 1.5px;
   color: var(--tier-neon, #c8ff4d);
-  text-shadow: 0 0 12px var(--tier-glow, rgba(200,255,77,0.5));
+  text-shadow: 0 0 12px var(--tier-glow, rgba(200, 255, 77, 0.5));
   line-height: 1.1;
   margin-bottom: 14px;
 }
@@ -926,6 +1012,7 @@
    Reduced Motion
    =================================================== */
 @media (prefers-reduced-motion: reduce) {
+
   .kpi-card:hover,
   .comp-box:hover,
   .pos-pin:hover {
@@ -970,7 +1057,7 @@
   align-self: stretch;
 }
 
-.pitch-actions ::ng-deep > * {
+.pitch-actions ::ng-deep>* {
   flex: 1;
 }
 

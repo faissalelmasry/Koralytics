@@ -4,16 +4,16 @@ import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { AcademyService } from '../../../../../core/services/academy/academy.service';
 import { ToastService } from '../../../../../core/services/Toast/toast';
 import { AcademyMemberResponseDto } from '../../../../../core/interfaces/academy.models';
-import { CustomInputComponent } from '../../../../../shared/components/custom-input-component/custom-input-component';
 import { CustomButtonComponent } from '../../../../../shared/components/custom-button/custom-button';
 import { DataTable, TableColumn } from '../../../../../shared/components/data-table/data-table';
 import { LoadingSpinnerComponent } from '../../../../../shared/components/loading-spinner/loading-spinner';
 import { Pagination } from '../../../../../shared/components/pagination/pagination';
+import { ConfirmDialogComponent } from '../../../../../shared/components/confirm-dialog/confirm-dialog';
 
 @Component({
   selector: 'app-academy-coaches-section',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, CustomInputComponent, CustomButtonComponent, DataTable, LoadingSpinnerComponent, Pagination],
+  imports: [CommonModule, ReactiveFormsModule, CustomButtonComponent, DataTable, LoadingSpinnerComponent, Pagination, ConfirmDialogComponent],
   templateUrl: './academy-coaches-section.html',
   styleUrls: ['./academy-coaches-section.css']
 })
@@ -126,19 +126,18 @@ export class AcademyCoachesSectionComponent implements OnInit, OnChanges {
     });
   }
 
+  isConfirmDialogOpen = false;
+  confirmDialogTitle = '';
+  confirmDialogMessage = '';
+  confirmActionType: 'cancelRequest' | 'removeCoach' | null = null;
+  targetIdForConfirm: number | null = null;
+
   onCancelRequest(requestId: number) {
-    if (confirm('Are you sure you want to cancel this request?')) {
-      this.academyService.cancelCoachJoinRequest(requestId).subscribe({
-        next: (res: any) => {
-          if (res.isSuccess) {
-            this.toast.show('Request cancelled', 'success');
-            this.loadData();
-          } else {
-            this.toast.show(res.message || 'Error cancelling request', 'error');
-          }
-        }
-      });
-    }
+    this.confirmActionType = 'cancelRequest';
+    this.targetIdForConfirm = requestId;
+    this.confirmDialogTitle = 'Cancel Join Request';
+    this.confirmDialogMessage = 'Are you sure you want to cancel this pending coach join request?';
+    this.isConfirmDialogOpen = true;
   }
 
   isUserPending(userId: number): boolean {
@@ -150,8 +149,38 @@ export class AcademyCoachesSectionComponent implements OnInit, OnChanges {
   }
 
   onRemoveCoach(coachId: number) {
-    if (confirm('Are you sure you want to remove this coach?')) {
-      this.academyService.removeCoach(this.academyId, coachId).subscribe({
+    this.confirmActionType = 'removeCoach';
+    this.targetIdForConfirm = coachId;
+    this.confirmDialogTitle = 'Remove Coach';
+    this.confirmDialogMessage = 'Are you sure you want to remove this coach from the academy?';
+    this.isConfirmDialogOpen = true;
+  }
+
+  onConfirmDialogExecute() {
+    if (!this.confirmActionType || !this.targetIdForConfirm) {
+      this.isConfirmDialogOpen = false;
+      return;
+    }
+
+    const action = this.confirmActionType;
+    const targetId = this.targetIdForConfirm;
+    this.isConfirmDialogOpen = false;
+    this.confirmActionType = null;
+    this.targetIdForConfirm = null;
+
+    if (action === 'cancelRequest') {
+      this.academyService.cancelCoachJoinRequest(targetId).subscribe({
+        next: (res: any) => {
+          if (res.isSuccess) {
+            this.toast.show('Request cancelled', 'success');
+            this.loadData();
+          } else {
+            this.toast.show(res.message || 'Error cancelling request', 'error');
+          }
+        }
+      });
+    } else if (action === 'removeCoach') {
+      this.academyService.removeCoach(this.academyId, targetId).subscribe({
         next: (res: any) => {
           if (res.isSuccess) {
             this.toast.show('Coach removed successfully', 'success');
@@ -162,6 +191,42 @@ export class AcademyCoachesSectionComponent implements OnInit, OnChanges {
         }
       });
     }
+  }
+
+  isAnalyticsModalOpen = false;
+  isLoadingAnalytics = false;
+  coachesAnalytics: any[] = [];
+  topCoach: any = null;
+  avgAcademyImprovement = 0;
+
+  openCoachesAnalyticsModal() {
+    this.isAnalyticsModalOpen = true;
+    this.isLoadingAnalytics = true;
+    this.academyService.getCoachPerformance(this.academyId).subscribe({
+      next: (res) => {
+        this.isLoadingAnalytics = false;
+        if (res.isSuccess && res.data) {
+          this.coachesAnalytics = Array.isArray(res.data) ? res.data : [];
+          if (this.coachesAnalytics.length > 0) {
+            this.coachesAnalytics.sort((a, b) => (a.rank || 999) - (b.rank || 999));
+            this.topCoach = this.coachesAnalytics[0];
+            const totalImp = this.coachesAnalytics.reduce((sum, c) => sum + (c.averagePlayerImprovementRate || 0), 0);
+            this.avgAcademyImprovement = parseFloat((totalImp / this.coachesAnalytics.length).toFixed(1));
+          } else {
+            this.topCoach = null;
+            this.avgAcademyImprovement = 0;
+          }
+        }
+      },
+      error: (err) => {
+        this.isLoadingAnalytics = false;
+        this.toast.show(err.error?.message || 'Failed to load coaches analytics.', 'error');
+      }
+    });
+  }
+
+  closeCoachesAnalyticsModal() {
+    this.isAnalyticsModalOpen = false;
   }
 
   onActionClick(event: { row: any, action: string }) {

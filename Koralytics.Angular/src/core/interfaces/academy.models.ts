@@ -10,6 +10,8 @@ export interface AcademyResponseDto {
   adminUserId: number;
   adminFullName: string;
   locationCount: number;
+  status?: string;
+  foundedAt?: string;
 }
 
 export interface CreateAcademyRequestDto {
@@ -20,10 +22,25 @@ export interface CreateAcademyRequestDto {
   location: string;
 }
 
+export interface CreateAcademyDto {
+  academyRequestId: number;
+  name: string;
+  logoUrl?: string;
+  primaryColor?: string;
+  secondaryColor?: string;
+  foundedAt: string;
+  adminUserId: number;
+}
+
 export interface AcademyRequestResponseDto {
   id: number;
   academyName: string;
-  status: number;
+  contactPersonName?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  location?: string;
+  requestStatus: 'Pending' | 'Approved' | 'Rejected' | string;
+  status?: number | string;
   requestedAt: string;
   requestedById: number;
   requestedByFullName: string;
@@ -102,7 +119,7 @@ export interface CreateAgeGroupDto { name: string; minAge: number; maxAge: numbe
 export interface AgeGroupResponseDto { id: number; academyId: number; name: string; minAge: number; maxAge: number; }
 export interface CreateTeamDto { name: string; ageGroupId: number; locationId: number; }
 export interface TeamResponseDto { id: number; academyId: number; name: string; ageGroupId: number; ageGroupName: string; locationId: number; locationName: string; coaches: any[]; players: any[]; }
-export interface AcademyLocationResponseDto { id: number; name: string; address: string; city: string; isMain: boolean; academyId: number; }
+export interface AcademyLocationResponseDto { id: number; name: string; address: string; city: string; isMain: boolean; isMainLocation?: boolean; academyId: number; }
 
 export interface CreateAnnouncementDto {
   targetAudience: number; // 0=Everyone, 1=Coaches, 2=Players, 3=Parents

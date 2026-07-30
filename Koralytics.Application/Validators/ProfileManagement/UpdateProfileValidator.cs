@@ -37,13 +37,13 @@ namespace Koralytics.Application.Validators.ProfileManagement
                 .MaximumLength(50).WithMessage("Play style tag must not exceed 50 characters.")
                 .When(x => x.PlayStyleTag != null);
 
-            RuleFor(x => x.ArchetypePlayerName)
-                .MaximumLength(100).WithMessage("Archetype player name must not exceed 100 characters.")
-                .When(x => x.ArchetypePlayerName != null);
+            RuleFor(x => x.HeightCm)
+                .InclusiveBetween(50, 220).WithMessage("Height must be between 50 and 220 cm.")
+                .When(x => x.HeightCm.HasValue);
 
-            RuleFor(x => x.ArchetypeText)
-                .MaximumLength(500).WithMessage("Archetype text must not exceed 500 characters.")
-                .When(x => x.ArchetypeText != null);
+            RuleFor(x => x.WeightKg)
+                .InclusiveBetween(20, 150).WithMessage("Weight must be between 20 and 150 kg.")
+                .When(x => x.WeightKg.HasValue);
 
             RuleFor(x => x.Positions)
                 .Must(positions => positions!.Count > 0)

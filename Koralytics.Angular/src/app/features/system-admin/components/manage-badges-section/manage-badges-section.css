@@ -101,17 +101,26 @@
   font-size: 24px;
 }
 
-.btn-revoke {
-  background: transparent;
-  border: none;
-  color: #7b8293;
-  font-size: 20px;
+.action-icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #8b909a;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  transition: color 0.2s ease;
+  transition: all 0.25s ease;
 }
 
-.btn-revoke:hover {
+.action-icon-btn.delete-btn:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
   color: #ef4444;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.25);
+  transform: translateY(-2px);
 }
 
 .badge-card h4 {
@@ -153,7 +162,10 @@
 }
 
 /* Modal */
-.modal-backdrop {
+/* ===================================================
+   CYBER-COMMAND HUD MODAL (AWARD RECOGNITION BADGE)
+   =================================================== */
+.modal-backdrop-cyber {
   position: fixed;
   top: 0;
   left: 0;
@@ -161,66 +173,190 @@
   bottom: 0;
   width: 100%;
   height: 100%;
-  background: rgba(6, 8, 10, 0.8);
-  backdrop-filter: blur(8px);
+  background: rgba(6, 8, 12, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  padding: 20px;
 }
 
-.modal-card {
-  background: #11141a;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
+.cyber-modal-card.award-modal {
+  background: rgba(13, 16, 23, 0.98);
+  border: 1px solid rgba(0, 229, 255, 0.35);
+  border-radius: 20px;
   width: 100%;
-  max-width: 480px;
-  padding: 24px;
+  max-width: 560px;
+  padding: 32px 36px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 229, 255, 0.12);
+  position: relative;
+  overflow: hidden;
+  animation: modalScaleIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.modal-header {
+@keyframes modalScaleIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.cyber-modal-card.award-modal::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, #00e5ff, #a3e635, transparent 85%);
+}
+
+.modal-header-cyber {
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 20px;
+  margin-bottom: 24px;
+}
+
+.modal-header-left {
+  display: flex;
   align-items: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  padding-bottom: 16px;
-  margin-bottom: 20px;
+  gap: 16px;
 }
 
-.modal-header h4 {
-  margin: 0;
+.modal-icon-badge.badge {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(163, 230, 53, 0.12);
+  border: 1px solid rgba(163, 230, 53, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.modal-header-cyber h4 {
+  font-family: 'Bebas Neue', 'Oswald', sans-serif;
+  font-size: 26px;
+  font-weight: 400;
+  letter-spacing: 1.5px;
+  margin: 0 0 4px 0;
   color: #fff;
-  font-size: 18px;
 }
 
-.btn-close {
-  background: none;
-  border: none;
-  color: #7b8293;
-  font-size: 24px;
+.modal-subtitle {
+  margin: 0;
+  font-size: 13px;
+  color: #8b909a;
+}
+
+.btn-close-cyber {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  color: #8b909a;
+  font-size: 22px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
+  transition: all 0.25s ease;
 }
 
-.form-group {
+.btn-close-cyber:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #ef4444;
+}
+
+.modal-form-cyber {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-bottom: 16px;
+  gap: 24px;
 }
 
-.form-group label {
-  font-size: 13px;
-  color: #a0aab5;
-  font-weight: 500;
+.modal-form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 
-.cyber-select {
-  width: 100%;
+.form-group-cyber {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.modal-footer {
+.modal-footer-cyber {
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
-  margin-top: 24px;
+  align-items: center;
+  gap: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 20px;
+  margin-top: 4px;
+}
+
+.btn-cyber-cancel {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #8b909a;
+  border-radius: 10px;
+  padding: 12px 22px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  font-family: 'Inter', sans-serif;
+}
+
+.btn-cyber-cancel:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.btn-cyber-confirm.award-btn {
+  background: rgba(163, 230, 53, 0.15);
+  border: 1px solid rgba(163, 230, 53, 0.6);
+  color: #a3e635;
+  border-radius: 10px;
+  padding: 12px 28px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: 'Inter', sans-serif;
+}
+
+.btn-cyber-confirm.award-btn:hover:not([disabled]) {
+  background: #a3e635;
+  color: #06080a;
+  box-shadow: 0 0 25px rgba(163, 230, 53, 0.5);
+  transform: translateY(-2px);
+}
+
+.btn-cyber-confirm[disabled] {
+  opacity: 0.4;
+  cursor: not-allowed;
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #8b909a;
 }

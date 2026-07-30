@@ -15,6 +15,8 @@ namespace Koralytics.Domain.Entities.Player
         public DateTime DateOfBirth { get; set; }
         public string? Nationality { get; set; }
         public PreferredFoot PreferredFoot { get; set; }
+        public decimal? HeightCm { get; set; }
+        public decimal? WeightKg { get; set; }
         public int WeakFootRating { get; set; }
         public string? PlayStyleTag { get; set; }
         public string? ArchetypePlayerName { get; set; }

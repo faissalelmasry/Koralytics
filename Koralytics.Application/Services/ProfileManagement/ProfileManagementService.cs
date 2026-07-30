@@ -5,7 +5,7 @@ using Koralytics.Application.Services.Storage;
 using Koralytics.Domain.Entities.Academy;
 using CoachEntity = Koralytics.Domain.Entities.Coach.Coach;
 using Koralytics.Domain.Entities.Identity;
-using Koralytics.Domain.Entities.Parents;
+using ParentEntity = Koralytics.Domain.Entities.Parents.Parent;
 using PlayerEntity = Koralytics.Domain.Entities.Player.Player;
 using PlayerPosition = Koralytics.Domain.Entities.Player.PlayerPosition;
 using ScouterEntity = Koralytics.Domain.Entities.Scouter.Scouter;
@@ -155,9 +155,9 @@ namespace Koralytics.Application.Services.ProfileManagement
                     if (dto.WeakFootRating.HasValue)
                         player.WeakFootRating = dto.WeakFootRating.Value;
 
+                    player.HeightCm = dto.HeightCm;
+                    player.WeightKg = dto.WeightKg;
                     player.PlayStyleTag = dto.PlayStyleTag;
-                    player.ArchetypePlayerName = dto.ArchetypePlayerName;
-                    player.ArchetypeText = dto.ArchetypeText;
 
                     if (dto.Positions != null)
                     {
