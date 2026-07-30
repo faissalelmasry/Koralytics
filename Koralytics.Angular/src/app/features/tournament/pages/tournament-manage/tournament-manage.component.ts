@@ -94,29 +94,25 @@ export class TournamentManageComponent implements OnInit {
   private loadAgeGroups() {
     const user = this.authService.currentUser$;
     user.subscribe(u => {
-      if (u?.academyId) {
-        this.academyService.getAgeGroups(u.academyId).pipe(
-          catchError(() => of(null))
-        ).subscribe(response => {
-          const data = response?.data || response;
-          if (Array.isArray(data) && data.length > 0) {
-            this.ageGroupOptions = data.map((ag: any) => ({
-              value: ag.id,
-              label: ag.name
-            }));
-          } else {
-            this.setFallbackAgeGroups();
-          }
-          // Set default form value to first available age group
-          if (this.ageGroupOptions.length > 0) {
-            this.tournamentForm.get('ageGroupId')?.setValue(this.ageGroupOptions[0].value);
-          }
-          this.cdr.markForCheck();
-        });
-      } else {
-        this.setFallbackAgeGroups();
+      const academyId = u?.academyId || 1;
+      this.academyService.getAgeGroups(academyId).pipe(
+        catchError(() => of(null))
+      ).subscribe(response => {
+        const data = response?.data || response;
+        if (Array.isArray(data) && data.length > 0) {
+          this.ageGroupOptions = data.map((ag: any) => ({
+            value: ag.id,
+            label: ag.name
+          }));
+        } else {
+          this.setFallbackAgeGroups();
+        }
+        // Set default form value to first available age group
+        if (this.ageGroupOptions.length > 0) {
+          this.tournamentForm.get('ageGroupId')?.setValue(this.ageGroupOptions[0].value);
+        }
         this.cdr.markForCheck();
-      }
+      });
     });
   }
 
@@ -124,7 +120,8 @@ export class TournamentManageComponent implements OnInit {
     // Fallback: use placeholder options when API is unavailable
     this.ageGroupOptions = [
       { value: 1, label: 'Under 15 (U15)' },
-      { value: 2, label: 'Under 18 (U18)' }
+      { value: 2, label: 'Under 18 (U18)' },
+      { value: 3, label: 'First Team' }
     ];
   }
 
