@@ -6,6 +6,7 @@ import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { TournamentService } from '../../../../../core/services/tournament/tournament.service';
 import { AcademyService } from '../../../../../core/services/academy/academy.service';
+import { AuthService } from '../../../../../core/services/auth/auth.service';
 import { MatchFormat, Tournament, TournamentStatus, TournamentStructure, CreateTournamentDto } from '../../../../../core/interfaces/tournament.models';
 
 import { CustomInputComponent } from '../../../../../shared/components/custom-input-component/custom-input-component';
@@ -39,6 +40,7 @@ export class TournamentManageComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private tournamentService = inject(TournamentService);
   private academyService = inject(AcademyService);
+  private authService = inject(AuthService);
   private cdr = inject(ChangeDetectorRef);
 
   tournamentForm!: FormGroup;
@@ -76,20 +78,51 @@ export class TournamentManageComponent implements OnInit {
     { value: TournamentStatus.Cancelled, label: 'Cancelled' }
   ];
 
-  ageGroupOptions = [
-    { value: 1, label: 'Under 15 (U15)' },
-    { value: 2, label: 'Under 18 (U18)' },
-    { value: 3, label: 'First Team' }
-  ];
+  ageGroupOptions: { value: number; label: string }[] = [];
 
   ngOnInit() {
     this.initForm();
+    this.loadAgeGroups();
     const id = this.route.snapshot.paramMap.get('id');
 
     if (id) {
       this.tournamentId = +id;
       this.loadManagementData();
     }
+  }
+
+  private loadAgeGroups() {
+    const user = this.authService.currentUser$;
+    user.subscribe(u => {
+      const academyId = u?.academyId || 1;
+      this.academyService.getAgeGroups(academyId).pipe(
+        catchError(() => of(null))
+      ).subscribe(response => {
+        const data = response?.data || response;
+        if (Array.isArray(data) && data.length > 0) {
+          this.ageGroupOptions = data.map((ag: any) => ({
+            value: ag.id,
+            label: ag.name
+          }));
+        } else {
+          this.setFallbackAgeGroups();
+        }
+        // Set default form value to first available age group
+        if (this.ageGroupOptions.length > 0) {
+          this.tournamentForm.get('ageGroupId')?.setValue(this.ageGroupOptions[0].value);
+        }
+        this.cdr.markForCheck();
+      });
+    });
+  }
+
+  private setFallbackAgeGroups() {
+    // Fallback: use placeholder options when API is unavailable
+    this.ageGroupOptions = [
+      { value: 1, label: 'Under 15 (U15)' },
+      { value: 2, label: 'Under 18 (U18)' },
+      { value: 3, label: 'First Team' }
+    ];
   }
 
   get isEditMode(): boolean {

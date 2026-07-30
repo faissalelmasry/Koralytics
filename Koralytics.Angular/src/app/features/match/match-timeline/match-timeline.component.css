@@ -94,6 +94,17 @@
   text-shadow: 0 0 20px rgba(250, 204, 21, 0.4);
 }
 
+.penalties-score-badge {
+  font-family: 'Chakra Petch', sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--neon-yellow);
+  letter-spacing: 1px;
+  margin-top: 2px;
+  margin-bottom: 4px;
+  text-shadow: 0 0 10px rgba(250, 204, 21, 0.3);
+}
+
 .ft-badge {
   font-size: 10px;
   font-weight: 800;
@@ -152,12 +163,12 @@
 
 .swipe-track {
   display: flex;
-  width: 300%;
+  width: 400%;
   transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .slide-page {
-  width: 33.3333%;
+  width: 25%;
   flex-shrink: 0;
   transition: opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }

@@ -170,6 +170,10 @@ export class MatchService {
     return this.http.post<ApiResponse<any>>(`${this.apiUrl}/${matchId}/session-events`, dto);
   }
 
+  deleteMatchEvent(matchId: number, eventId: number): Observable<ApiResponse<any>> {
+    return this.http.delete<ApiResponse<any>>(`${this.apiUrl}/${matchId}/events/${eventId}`);
+  }
+
   startMatch(matchId: number): Observable<ApiResponse<any>> {
     return this.http.patch<ApiResponse<any>>(`${this.apiUrl}/${matchId}/start`, {});
   }
@@ -189,6 +193,17 @@ export class MatchService {
   getMatchRatings(matchId: number): Observable<ApiResponse<any>> {
     return this.http.get<ApiResponse<any>>(`${this.apiUrl}/${matchId}/ratings`);
   }
+
+  getHeadToHead(teamAId: number, teamBId: number): Observable<ApiResponse<HeadToHeadResponseDto>> {
+    const params = new HttpParams()
+      .set('teamAId', teamAId.toString())
+      .set('teamBId', teamBId.toString());
+    return this.http.get<ApiResponse<HeadToHeadResponseDto>>(`${this.apiUrl}/head-to-head`, { params });
+  }
+
+  getPostMatchAnalysis(teamId: number): Observable<ApiResponse<PostMatchAnalysisResponseDto>> {
+    return this.http.get<ApiResponse<PostMatchAnalysisResponseDto>>(`${this.apiUrl}/team/${teamId}/analysis`);
+  }
 }
 
 export interface CreateTournamentMatchDto {
@@ -199,3 +214,53 @@ export interface CreateTournamentMatchDto {
   matchDate: string;
   location?: string;
 }
+
+export interface HeadToHeadMatchDto {
+  matchId: number;
+  matchDate: string;
+  homeTeamId: number;
+  homeTeamName: string;
+  homeAcademyName?: string;
+  awayTeamId: number;
+  awayTeamName: string;
+  awayAcademyName?: string;
+  homeScore: number;
+  awayScore: number;
+  homePenaltyScore?: number | null;
+  awayPenaltyScore?: number | null;
+}
+
+export interface HeadToHeadResponseDto {
+  teamAId: number;
+  teamAName: string;
+  teamAAcademyName?: string;
+  teamBId: number;
+  teamBName: string;
+  teamBAcademyName?: string;
+  totalMatches: number;
+  teamAWins: number;
+  teamBWins: number;
+  draws: number;
+  matches: HeadToHeadMatchDto[];
+}
+
+export interface PostMatchAnalysisMatchDto {
+  matchId: number;
+  matchDate: string;
+  opponentName: string;
+  result: string;
+  goalsFor: number;
+  goalsAgainst: number;
+}
+
+export interface PostMatchAnalysisResponseDto {
+  teamId: number;
+  teamName: string;
+  wins: number;
+  losses: number;
+  draws: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  recentMatches: PostMatchAnalysisMatchDto[];
+}
+

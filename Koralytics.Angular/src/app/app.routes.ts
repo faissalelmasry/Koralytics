@@ -148,13 +148,13 @@ export const routes: Routes = [
     path: 'match/:id/submit-lineup',
     loadComponent: () => import('./features/match/pages/submit-lineup/submit-lineup.component').then(m => m.SubmitLineupComponent),
     canActivate: [authGuard, roleGuard],
-    data: { roles: ['Coach', 'AcademyAdmin'] }
+    data: { roles: ['Coach'] }
   },
   {
     path: 'session/:sessionId/create-match',
     loadComponent: () => import('./features/match/pages/session-match/session-match.component').then(m => m.SessionMatchComponent),
     canActivate: [authGuard, roleGuard],
-    data: { roles: ['Coach', 'AcademyAdmin'] }
+    data: { roles: ['Coach'] }
   },
   {
     path: 'tournament/fixture/:fixtureId/create-match',
@@ -165,7 +165,7 @@ export const routes: Routes = [
     path: 'academy/matches',
     loadComponent: () => import('./features/match/pages/academy-match-list/academy-match-list.component').then(m => m.AcademyMatchListComponent),
     canActivate: [authGuard, roleGuard],
-    data: { roles: ['AcademyAdmin', 'SuperAdmin'] }
+    data: { roles: ['AcademyAdmin', 'SystemAdmin'] }
   },
   {
     path: 'academy-admin/dashboard',
@@ -238,6 +238,11 @@ export const routes: Routes = [
   },
 
   // Notifications & Utilities
+  {
+    path: 'player/academy-comparison/:playerId',
+    loadComponent: () => import('./features/player/player-academy-comparison/player-academy-comparison.component').then(m => m.PlayerAcademyComparisonComponent),
+    canActivate: [authGuard]
+  },
   {
     path: 'academy-announcement/:academyId',
     loadComponent: () => import('./features/notification/pages/academy-announcement/academy-announcement').then(m => m.AcademyAnnouncement),

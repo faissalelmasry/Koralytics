@@ -1,4 +1,4 @@
-﻿using Koralytics.Application.DTOs.Player;
+using Koralytics.Application.DTOs.Player;
 
 namespace Koralytics.Application.Services.Player.PlayerProfileServices
 {
@@ -12,6 +12,7 @@ namespace Koralytics.Application.Services.Player.PlayerProfileServices
         Task<AchievementTimelineDto> GetAchievementTimelineAsync(int playerId, int page = 1, int pageSize = 20);
         Task<PlayerVsAcademyAverageDto> GetPlayerVsAcademyAverageAsync(
             int playerId, int academyId);
+        Task<PlayerVsAcademyAverageDto> GetPlayerAcademyComparisonByIdAsync(int playerId);
         Task<ScouterViewsCountDto> GetScouterViewsCountAsync(
             int playerId, int year, int month);
         Task<TeamScheduledEventsResponseDto> GetTeamScheduledEventsAsync(int playerId, int page = 1, int pageSize = 20,

@@ -342,7 +342,15 @@
       </div>
     </div>
     } @else {
-    <app-empty-state title="No Lineup" [description]="homeName + ' has no lineup submitted for this match.'" />
+      @if (isCurrentSelectedTeamCoachTeam) {
+        <app-empty-state 
+          title="No Lineup Submitted" 
+          [description]="homeName + ' has no lineup submitted for this match yet. As the coach, you can submit the lineup now.'" 
+          actionText="Submit Lineup"
+          (actionClick)="goToSubmitLineup()" />
+      } @else {
+        <app-empty-state title="No Lineup" [description]="homeName + ' has no lineup submitted for this match.'" />
+      }
     }
   </div>
 
@@ -378,7 +386,15 @@
       </div>
     </div>
     } @else {
-    <app-empty-state title="No Lineup" [description]="awayName + ' has no lineup submitted for this match.'" />
+      @if (isCurrentSelectedTeamCoachTeam) {
+        <app-empty-state 
+          title="No Lineup Submitted" 
+          [description]="awayName + ' has no lineup submitted for this match yet. As the coach, you can submit the lineup now.'" 
+          actionText="Submit Lineup"
+          (actionClick)="goToSubmitLineup()" />
+      } @else {
+        <app-empty-state title="No Lineup" [description]="awayName + ' has no lineup submitted for this match.'" />
+      }
     }
   </div>
 

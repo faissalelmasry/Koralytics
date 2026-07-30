@@ -170,6 +170,20 @@
   gap: 16px;
 }
 
+.form-stack {
+  position: relative;
+  overflow: visible;
+}
+
+.form-stack > section.surface {
+  position: relative;
+  overflow: visible;
+}
+
+.form-stack > section.surface:nth-of-type(1) { z-index: 30; }
+.form-stack > section.surface:nth-of-type(2) { z-index: 20; }
+.form-stack > section.surface:nth-of-type(3) { z-index: 15; }
+
 .surface,
 .overview-surface {
   padding: 22px;
@@ -222,6 +236,17 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
+  align-items: start;
+}
+
+.two-column app-select,
+.status-control-row app-select {
+  min-width: 0;
+  --dropdown-min-width: 240px;
+}
+
+.form-stack app-select {
+  --dropdown-min-width: 260px;
 }
 
 .status-control-row {
@@ -295,7 +320,7 @@
 .sticky-actions {
   position: sticky;
   bottom: 0;
-  z-index: 5;
+  z-index: 1;
   display: flex;
   justify-content: flex-end;
   gap: 10px;
@@ -388,6 +413,8 @@
 }
 
 .participants-panel {
+  position: relative;
+  z-index: 5;
   grid-column: 2;
   grid-row: 1 / span 3;
 }

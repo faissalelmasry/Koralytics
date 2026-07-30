@@ -3,10 +3,19 @@
     <div class="timeline-row">
       @if (event.side === 'home') {
         <div class="timeline-event-box home">
-          <app-mini-player-card [player]="event.player" size="xs" />
+          @if (canLogEvents) {
+            <button class="disallow-btn" [disabled]="deletingEventId === event.id" (click)="onDisallowEvent(event.id)" title="Disallow Event">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <circle cx="12" cy="12" r="9" stroke="currentColor" />
+                <line x1="5.7" y1="5.7" x2="18.3" y2="18.3" stroke="currentColor" />
+              </svg>
+              <span>Disallow</span>
+            </button>
+          }
+          <app-mini-player-card [player]="event.player" size="xs" (cardClick)="onPlayerClick($event)" />
           <div class="event-label-group">
             <span class="event-type-label" [style.color]="getLabelColor(event.rawType)">{{ event.eventType }}</span>
-            <span class="event-player-name">{{ event.player.fullName }}</span>
+            <span class="event-player-name clickable-player-name" (click)="onPlayerClick(event.player.playerId)">{{ event.player.fullName }}</span>
             @if (event.eventSubtext) {
               <span class="event-assist">{{ event.eventSubtext }}</span>
             }
@@ -24,12 +33,21 @@
           <div class="event-icon" [innerHTML]="event.iconSvg"></div>
           <div class="event-label-group">
             <span class="event-type-label" [style.color]="getLabelColor(event.rawType)">{{ event.eventType }}</span>
-            <span class="event-player-name">{{ event.player.fullName }}</span>
+            <span class="event-player-name clickable-player-name" (click)="onPlayerClick(event.player.playerId)">{{ event.player.fullName }}</span>
             @if (event.eventSubtext) {
               <span class="event-assist">{{ event.eventSubtext }}</span>
             }
           </div>
-          <app-mini-player-card [player]="event.player" size="xs" />
+          <app-mini-player-card [player]="event.player" size="xs" (cardClick)="onPlayerClick($event)" />
+          @if (canLogEvents) {
+            <button class="disallow-btn" [disabled]="deletingEventId === event.id" (click)="onDisallowEvent(event.id)" title="Disallow Event">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <circle cx="12" cy="12" r="9" stroke="currentColor" />
+                <line x1="5.7" y1="5.7" x2="18.3" y2="18.3" stroke="currentColor" />
+              </svg>
+              <span>Disallow</span>
+            </button>
+          }
         </div>
       } @else {
         <div class="timeline-event-box empty"></div>

@@ -3,277 +3,260 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Koralytics - Premium Match Ratings</title>
-
+  <title>Koralytics - Post-Match Analysis</title>
+  
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Alpine.js -->
   <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
   <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
-
-  <style>
-    body {
-      font-family: 'Outfit', sans-serif;
-      background-color: #05080f; /* Deep cyber dark */
-      color: #e2e8f0;
-      background-image: 
-        radial-gradient(circle at 15% 50%, rgba(16, 185, 129, 0.04), transparent 25%),
-        radial-gradient(circle at 85% 30%, rgba(56, 189, 248, 0.04), transparent 25%);
-    }
-
-    /* Hide Number Input Arrows */
-    input[type="number"]::-webkit-inner-spin-button,
-    input[type="number"]::-webkit-outer-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
-    }
-    input[type="number"] {
-      -moz-appearance: textfield;
-    }
-
-    /* Premium Card Glass Effect */
-    .premium-card {
-      background: linear-gradient(145deg, #0f172a 0%, #090e17 100%);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
-    }
-    
-    .premium-card:hover {
-      border-color: rgba(16, 185, 129, 0.2);
-    }
-
-    /* MOTM Glow Effect */
-    .motm-card {
-      background: linear-gradient(145deg, #181814 0%, #090e17 100%);
-      border: 1px solid rgba(234, 179, 8, 0.4);
-      box-shadow: 0 0 30px rgba(234, 179, 8, 0.1);
-    }
-
-    /* Custom Scrollbar */
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: #05080f; }
-    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
-    ::-webkit-scrollbar-thumb:hover { background: #334155; }
-  </style>
-</head>
-<body x-data="matchRatingApp()" class="min-h-screen pb-32 select-none">
-
-  <!-- TOP HEADER -->
-  <header class="sticky top-0 z-40 bg-[#05080f]/90 backdrop-blur-xl border-b border-white/5 py-5 px-6">
-    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-      <div class="flex items-center gap-4">
-        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
-          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-        </div>
-        <div>
-          <h1 class="text-2xl font-black text-white tracking-tight">Post-Match Ratings</h1>
-          <p class="text-sm text-slate-400 font-medium mt-1">Koralytics 1st Team vs Academy • <span class="text-emerald-400">Match Completed</span></p>
-        </div>
-      </div>
-      
-      <div class="flex items-center gap-3">
-        <button @click="fillDefaultRatings()" class="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-sm font-semibold text-white transition-all flex items-center gap-2">
-          <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-          Auto-Fill (7.0)
-        </button>
-      </div>
-    </div>
-  </header>
-
-  <!-- MAIN GRID -->
-  <main class="max-w-7xl mx-auto px-6 mt-8">
-    <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-      
-      <template x-for="player in players" :key="player.id">
-        <!-- PLAYER CARD -->
-        <div :class="player.isMOTM ? 'motm-card' : 'premium-card'" class="rounded-2xl p-6 transition-all duration-300 flex flex-col h-full relative overflow-hidden group">
-          
-          <!-- MOTM Background Highlight -->
-          <div x-show="player.isMOTM" class="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 blur-3xl rounded-full pointer-events-none"></div>
-
-          <!-- Header: Player Info -->
-          <div class="flex justify-between items-start mb-6 z-10">
-            <div class="flex items-center gap-4">
-              <div class="relative">
-                <div class="w-14 h-14 rounded-xl bg-slate-800 flex items-center justify-center text-2xl font-black text-white border border-white/10 shadow-inner">
-                  <span x-text="player.number"></span>
-                </div>
-                <div class="absolute -bottom-2 -right-2 bg-emerald-500 text-black text-[10px] font-bold px-1.5 py-0.5 rounded-md border border-[#05080f]" x-text="player.position"></div>
-              </div>
-              <div>
-                <h3 class="font-bold text-lg text-white" x-text="player.name"></h3>
-                <div class="flex items-center gap-3 text-xs font-semibold text-slate-400 mt-1">
-                  <span class="flex items-center gap-1"><svg class="w-3.5 h-3.5 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1-11a1 1 0 112 0v3.586l2.293 2.293a1 1 0 01-1.414 1.414l-3-3A1 1 0 019 10.586V7z"></path></svg> <span x-text="player.minutesPlayed + ' Min'"></span></span>
-                  <span class="flex items-center gap-1 text-emerald-400" x-show="player.goals > 0"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg> <span x-text="player.goals"></span></span>
-                  <span class="flex items-center gap-1 text-teal-400" x-show="player.assists > 0"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg> <span x-text="player.assists"></span></span>
-                </div>
-              </div>
-            </div>
-
-            <!-- MOTM Toggle Button -->
-            <button @click="setMOTM(player.id)" 
-                    :class="player.isMOTM ? 'bg-amber-500 text-black border-amber-400 shadow-[0_0_15px_rgba(234,179,8,0.4)]' : 'bg-slate-800/50 text-slate-400 border-white/5 hover:bg-white/10 hover:text-white'"
-                    class="w-10 h-10 rounded-xl border flex items-center justify-center transition-all z-10" title="Set Man of the Match">
-              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-            </button>
-          </div>
-
-          <!-- Minutes & Note Input -->
-          <div class="flex gap-3 mb-6 z-10">
-            <div class="w-24 bg-slate-900/50 rounded-xl border border-white/5 p-2 flex flex-col justify-center">
-              <label class="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">Minutes</label>
-              <input type="number" min="0" max="120" x-model.number="player.minutesPlayed" @blur="enforceMaxMin(player, 'minutesPlayed', 0, 120)" class="bg-transparent text-white font-bold text-lg outline-none w-full">
-            </div>
-            <div class="flex-1 bg-slate-900/50 rounded-xl border border-white/5 p-2 flex flex-col justify-center">
-              <label class="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">Coach Note</label>
-              <input type="text" placeholder="Add feedback..." x-model="player.coachNote" class="bg-transparent text-slate-300 text-sm outline-none w-full placeholder-slate-700">
-            </div>
-          </div>
-
-          <div class="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent mb-5"></div>
-
-          <!-- Category Ratings Grid (The Steppers) -->
-          <div class="flex-1 space-y-3 z-10">
-            <template x-for="cat in categories" :key="cat.id">
-              <div class="flex items-center justify-between bg-[#0a0f18] rounded-xl p-2.5 border border-white/5 hover:border-white/10 transition-colors">
-                <span class="text-sm font-semibold text-slate-300" x-text="cat.name"></span>
-                
-                <!-- NEW STEPPER CONTROLS -->
-                <div class="flex items-center gap-1 bg-[#131b2c] rounded-lg p-1 border border-white/5">
-                  <!-- Minus Button -->
-                  <button @click="updateRating(player, cat.id, -1)" class="w-8 h-8 flex items-center justify-center rounded-md bg-white/5 text-slate-400 hover:bg-rose-500/20 hover:text-rose-400 transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
-                  </button>
-                  
-                  <!-- Manual Input -->
-                  <input type="number" step="1"
-                         x-model="player.ratings[cat.id]"
-                         @blur="validateRatingInput(player, cat.id, $event)"
-                         class="w-10 bg-transparent text-center font-black text-white text-lg outline-none">
-                  
-                  <!-- Plus Button -->
-                  <button @click="updateRating(player, cat.id, 1)" class="w-8 h-8 flex items-center justify-center rounded-md bg-white/5 text-slate-400 hover:bg-emerald-500/20 hover:text-emerald-400 transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                  </button>
-                </div>
-
-              </div>
-            </template>
-          </div>
-
-        </div>
-      </template>
-
-    </div>
-  </main>
-
-  <!-- FIXED BOTTOM ACTION BAR -->
-  <div class="fixed bottom-0 left-0 right-0 bg-[#05080f]/95 backdrop-blur-xl border-t border-white/10 p-4 z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
-    <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
-      
-      <div class="flex items-center gap-4">
-        <div class="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 border border-white/5">
-          <div :class="selectedMotmId ? 'bg-emerald-500' : 'bg-rose-500'" class="w-2 h-2 rounded-full animate-pulse"></div>
-          <span class="text-xs font-bold text-white" x-text="selectedMotmId ? 'MOTM Selected' : 'Missing MOTM'"></span>
-        </div>
-      </div>
-
-      <button @click="submitRatings()" 
-              :disabled="!selectedMotmId"
-              :class="selectedMotmId ? 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-black shadow-[0_0_20px_rgba(16,185,129,0.3)]' : 'bg-slate-800 text-slate-500 cursor-not-allowed'"
-              class="px-8 py-3.5 rounded-xl text-sm font-black transition-all flex items-center gap-2">
-        <span>Submit Match Data</span>
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-      </button>
-
-    </div>
-  </div>
-
+  <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;600;700&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  
   <script>
-    function matchRatingApp() {
-      return {
-        // Data
-        categories: [
-          { id: 101, name: 'Tactical Awareness' },
-          { id: 102, name: 'Passing Accuracy' },
-          { id: 103, name: 'Physicality' },
-          { id: 104, name: 'Work Rate' }
-        ],
-        players: [
-          { id: 10, name: 'Karim Benchaf', number: 9, position: 'ST', goals: 2, assists: 0, minutesPlayed: 90, isMOTM: false, coachNote: '', ratings: { 101: 7, 102: 8, 103: 9, 104: 6 } },
-          { id: 11, name: 'Youssef Soliman', number: 10, position: 'CAM', goals: 1, assists: 2, minutesPlayed: 85, isMOTM: true, coachNote: 'Perfect vision.', ratings: { 101: 9, 102: 9, 103: 7, 104: 8 } },
-          { id: 12, name: 'Omar Gaber', number: 7, position: 'RW', goals: 0, assists: 1, minutesPlayed: 70, isMOTM: false, coachNote: '', ratings: { 101: 7, 102: 7, 103: 8, 104: 7 } },
-          { id: 13, name: 'Ahmed Hegazi', number: 4, position: 'CB', goals: 0, assists: 0, minutesPlayed: 90, isMOTM: false, coachNote: '', ratings: { 101: 8, 102: 6, 103: 9, 104: 8 } },
-        ],
-
-        // Computed
-        get selectedMotmId() {
-          const motm = this.players.find(p => p.isMOTM);
-          return motm ? motm.id : null;
-        },
-
-        // Methods
-        setMOTM(playerId) {
-          this.players.forEach(p => p.isMOTM = (p.id === playerId));
-        },
-
-        // STEPPER LOGIC (+ / - Buttons)
-        updateRating(player, categoryId, delta) {
-          let currentVal = parseInt(player.ratings[categoryId]) || 5;
-          let newVal = currentVal + delta;
-          
-          // Cap between 1 and 10
-          if (newVal > 10) newVal = 10;
-          if (newVal < 1) newVal = 1;
-          
-          player.ratings[categoryId] = newVal;
-        },
-
-        // MANUAL INPUT LOGIC (On Blur)
-        validateRatingInput(player, categoryId, event) {
-          let val = parseInt(event.target.value);
-          
-          if (isNaN(val) || val < 1) val = 1;
-          if (val > 10) val = 10;
-          
-          player.ratings[categoryId] = val;
-        },
-
-        enforceMaxMin(player, field, min, max) {
-          let val = parseInt(player[field]);
-          if(isNaN(val) || val < min) player[field] = min;
-          if(val > max) player[field] = max;
-        },
-
-        fillDefaultRatings() {
-          this.players.forEach(p => {
-            this.categories.forEach(c => p.ratings[c.id] = 7);
-          });
-        },
-
-        async submitRatings() {
-          if (!this.selectedMotmId) return;
-
-          // Generating DTO
-          const payload = {
-            ratings: this.players.map(p => ({
-              playerId: p.id,
-              isMOTM: p.isMOTM,
-              minutesPlayed: p.minutesPlayed,
-              coachNote: p.coachNote || null,
-              categoryRatings: Object.keys(p.ratings).map(catId => ({
-                drillCategoryId: parseInt(catId),
-                rating: p.ratings[catId]
-              }))
-            }))
-          };
-
-          console.log("Submitting Payload to C#:", JSON.stringify(payload, null, 2));
-          alert("Ratings built successfully! Check browser console for the exact JSON Payload.");
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            koralime: '#ccff00',
+            koradark: '#090b10',
+            koracard: '#121620',
+            koraborder: '#1f2533'
+          },
+          fontFamily: {
+            teko: ['Teko', 'sans-serif'],
+            inter: ['Inter', 'sans-serif'],
+          }
         }
       }
     }
+  </script>
+
+  <style>
+    body {
+      background-color: #090b10;
+      color: #e2e8f0;
+      font-family: 'Inter', sans-serif;
+      /* Subtle pitch outline in background + glowing gradients */
+      background-image: 
+        radial-gradient(circle at 0% 0%, rgba(204, 255, 0, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 100% 100%, rgba(139, 92, 246, 0.08) 0%, transparent 40%),
+        url("data:image/svg+xml,%3Csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M100,50 L900,50 L900,550 L100,550 Z' fill='none' stroke='rgba(255,255,255,0.02)' stroke-width='2'/%3E%3Cpath d='M500,50 L500,550' fill='none' stroke='rgba(255,255,255,0.02)' stroke-width='2'/%3E%3Ccircle cx='500' cy='300' r='70' fill='none' stroke='rgba(255,255,255,0.02)' stroke-width='2'/%3E%3C/svg%3E");
+      background-attachment: fixed;
+      background-size: cover;
+    }
+
+    .kora-card {
+      background-color: #121620;
+      border: 1px solid #1f2533;
+      border-radius: 1rem;
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+    }
+    
+    .text-outline {
+      -webkit-text-stroke: 1px rgba(255,255,255,0.1);
+      color: transparent;
+    }
+  </style>
+</head>
+<body class="min-h-screen p-4 sm:p-8" x-data="postMatchAnalysisApp()">
+
+  <!-- Top Navbar Mockup (Matching the image) -->
+  <header class="max-w-6xl mx-auto flex justify-between items-center mb-12 relative z-10">
+    <div class="flex items-center gap-2">
+      <div class="w-6 h-6 border-2 border-koralime flex items-center justify-center">
+        <span class="text-koralime text-xs font-bold font-teko">K</span>
+      </div>
+      <h1 class="text-xl font-bold tracking-widest uppercase font-teko flex flex-col leading-none">
+        <span class="text-white">Koralytics</span>
+        <span class="text-[8px] text-gray-500 tracking-[0.2em]">Data. Performance. Future.</span>
+      </h1>
+    </div>
+    <nav class="hidden md:flex gap-6 text-sm text-gray-400">
+      <a href="#" class="hover:text-white transition">my profile</a>
+      <a href="#" class="hover:text-white transition">home</a>
+      <a href="#" class="hover:text-white transition">about</a>
+      <a href="#" class="hover:text-white transition">clubs</a>
+      <a href="#" class="hover:text-white transition">contact</a>
+    </nav>
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-6xl mx-auto relative z-10">
+    
+    <!-- Section Header -->
+    <div class="mb-8">
+      <div class="inline-flex items-center gap-2 mb-2">
+        <span class="w-2 h-2 rounded-full bg-koralime"></span>
+        <span class="text-xs font-bold text-koralime tracking-widest uppercase">Post-Match Report</span>
+      </div>
+      <div class="flex justify-between items-end">
+        <h2 class="text-4xl sm:text-5xl font-bold uppercase tracking-wide font-teko text-white" x-text="analysisData.teamName + ' ANALYSIS'">
+        </h2>
+        <div class="px-4 py-1 border border-koralime/30 rounded-full text-koralime text-xs uppercase tracking-widest bg-koralime/5">
+          Season Overview
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <!-- Left Column: Aggregated Stats -->
+      <div class="lg:col-span-1 space-y-6">
+        
+        <!-- Win/Draw/Loss Card -->
+        <div class="kora-card p-6 relative overflow-hidden">
+          <div class="absolute -right-4 -bottom-4 text-8xl font-teko text-outline opacity-20 pointer-events-none">FORM</div>
+          <h3 class="text-xs text-gray-400 font-bold tracking-widest uppercase mb-4">Overall Record</h3>
+          
+          <div class="flex justify-between items-end mb-6">
+            <div class="text-center">
+              <div class="text-4xl font-teko text-koralime" x-text="analysisData.wins"></div>
+              <div class="text-[10px] text-gray-500 uppercase tracking-widest">Wins</div>
+            </div>
+            <div class="text-center">
+              <div class="text-4xl font-teko text-gray-400" x-text="analysisData.draws"></div>
+              <div class="text-[10px] text-gray-500 uppercase tracking-widest">Draws</div>
+            </div>
+            <div class="text-center">
+              <div class="text-4xl font-teko text-red-400" x-text="analysisData.losses"></div>
+              <div class="text-[10px] text-gray-500 uppercase tracking-widest">Losses</div>
+            </div>
+          </div>
+
+          <!-- Win Rate Bar -->
+          <div class="h-2 w-full bg-koraborder rounded-full overflow-hidden flex">
+            <div class="bg-koralime h-full" :style="'width: ' + getWinRate() + '%'"></div>
+            <div class="bg-gray-500 h-full" :style="'width: ' + getDrawRate() + '%'"></div>
+            <div class="bg-red-500 h-full" :style="'width: ' + getLossRate() + '%'"></div>
+          </div>
+        </div>
+
+        <!-- Goals Card -->
+        <div class="kora-card p-6">
+          <h3 class="text-xs text-gray-400 font-bold tracking-widest uppercase mb-4">Goal Statistics</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="bg-koradark border border-koraborder rounded-lg p-4 flex flex-col items-center justify-center">
+              <span class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Goals For</span>
+              <span class="text-3xl font-teko text-white" x-text="analysisData.goalsFor"></span>
+            </div>
+            <div class="bg-koradark border border-koraborder rounded-lg p-4 flex flex-col items-center justify-center">
+              <span class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Goals Against</span>
+              <span class="text-3xl font-teko text-white" x-text="analysisData.goalsAgainst"></span>
+            </div>
+          </div>
+          <div class="mt-4 bg-koradark border border-koraborder rounded-lg p-3 flex justify-between items-center">
+            <span class="text-[10px] text-gray-400 uppercase tracking-widest">Goal Difference</span>
+            <span class="text-xl font-teko" 
+                  :class="getGoalDiff() > 0 ? 'text-koralime' : (getGoalDiff() < 0 ? 'text-red-400' : 'text-gray-400')"
+                  x-text="(getGoalDiff() > 0 ? '+' : '') + getGoalDiff()"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Recent Matches (The 'Last 5' from the DTO) -->
+      <div class="lg:col-span-2 kora-card p-6 sm:p-8">
+        <div class="flex justify-between items-center border-b border-koraborder pb-4 mb-6">
+          <h3 class="text-sm text-gray-300 font-bold tracking-widest uppercase">Recent Form (Last 5 Matches)</h3>
+        </div>
+
+        <div class="space-y-4">
+          <template x-for="(match, index) in analysisData.recentMatches" :key="match.matchId">
+            
+            <!-- Match Row -->
+            <div class="group flex flex-col sm:flex-row justify-between items-center bg-koradark/50 border border-transparent hover:border-koraborder rounded-xl p-4 transition-all duration-300">
+              
+              <!-- Date & Result Badge -->
+              <div class="flex items-center gap-4 w-full sm:w-auto mb-4 sm:mb-0">
+                <div class="w-8 h-8 rounded flex items-center justify-center font-bold text-sm"
+                     :class="{
+                       'bg-koralime text-black': match.result === 'W',
+                       'bg-red-500 text-white': match.result === 'L',
+                       'bg-gray-600 text-white': match.result === 'D'
+                     }" x-text="match.result">
+                </div>
+                <div class="text-xs text-gray-500 uppercase tracking-wider font-semibold" x-text="formatDate(match.matchDate)"></div>
+              </div>
+
+              <!-- Matchup VS -->
+              <div class="flex-1 flex items-center justify-center gap-4 sm:gap-8 w-full">
+                <div class="text-right flex-1 text-sm sm:text-base font-bold text-white truncate" x-text="analysisData.teamName"></div>
+                
+                <!-- Score Block -->
+                <div class="shrink-0 bg-koraborder px-4 py-1.5 rounded text-lg font-teko tracking-wider flex items-center gap-2 shadow-inner">
+                  <span :class="match.result === 'W' ? 'text-koralime' : 'text-white'" x-text="match.goalsFor"></span>
+                  <span class="text-gray-500 text-sm">-</span>
+                  <span :class="match.result === 'L' ? 'text-red-400' : 'text-white'" x-text="match.goalsAgainst"></span>
+                </div>
+                
+                <div class="text-left flex-1 text-sm sm:text-base font-bold text-gray-400 truncate" x-text="match.opponentName"></div>
+              </div>
+
+            </div>
+          </template>
+          
+          <!-- Empty State if no matches -->
+          <div x-show="analysisData.recentMatches.length === 0" class="text-center py-8 text-gray-500 text-sm uppercase tracking-widest">
+            No completed matches found for this team.
+          </div>
+        </div>
+
+        <!-- Action Button (Matching the image's Schedule Match button style) -->
+        <div class="mt-8 flex justify-end">
+          <button class="bg-koralime hover:bg-[#b3e600] text-black font-bold text-sm uppercase tracking-widest py-3 px-8 rounded-lg transition-colors shadow-[0_0_15px_rgba(204,255,0,0.2)]">
+            Download Full Report
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <script>
+    document.addEventListener('alpine:init', () => {
+      Alpine.data('postMatchAnalysisApp', () => ({
+        // This object maps exactly to your C# PostMatchAnalysisResponseDto
+        analysisData: {
+          teamId: 1,
+          teamName: 'U17 TEAM A',
+          wins: 3,
+          losses: 1,
+          draws: 1,
+          goalsFor: 12,
+          goalsAgainst: 5,
+          recentMatches: [
+            { matchId: 105, matchDate: '2026-07-28T18:00:00', opponentName: 'Zamalek Academy', result: 'W', goalsFor: 2, goalsAgainst: 0 },
+            { matchId: 104, matchDate: '2026-07-21T16:00:00', opponentName: 'Wadi Degla', result: 'D', goalsFor: 1, goalsAgainst: 1 },
+            { matchId: 103, matchDate: '2026-07-14T17:30:00', opponentName: 'Al Masry Academy', result: 'L', goalsFor: 1, goalsAgainst: 2 },
+            { matchId: 102, matchDate: '2026-07-07T16:00:00', opponentName: 'Pyramids FC', result: 'W', goalsFor: 4, goalsAgainst: 1 },
+            { matchId: 101, matchDate: '2026-06-30T15:00:00', opponentName: 'Smouha Club', result: 'W', goalsFor: 4, goalsAgainst: 1 }
+          ]
+        },
+
+        // Helper calculations
+        getTotalMatches() {
+          return this.analysisData.wins + this.analysisData.draws + this.analysisData.losses;
+        },
+        getWinRate() {
+          const total = this.getTotalMatches();
+          return total === 0 ? 0 : (this.analysisData.wins / total) * 100;
+        },
+        getDrawRate() {
+          const total = this.getTotalMatches();
+          return total === 0 ? 0 : (this.analysisData.draws / total) * 100;
+        },
+        getLossRate() {
+          const total = this.getTotalMatches();
+          return total === 0 ? 0 : (this.analysisData.losses / total) * 100;
+        },
+        getGoalDiff() {
+          return this.analysisData.goalsFor - this.analysisData.goalsAgainst;
+        },
+        formatDate(dateString) {
+          const options = { month: 'short', day: 'numeric', year: 'numeric' };
+          return new Date(dateString).toLocaleDateString('en-US', options);
+        }
+      }))
+    })
   </script>
 </body>
 </html>

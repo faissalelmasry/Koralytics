@@ -9,6 +9,7 @@ using ParentEntity = Koralytics.Domain.Entities.Parents.Parent;
 using PlayerEntity = Koralytics.Domain.Entities.Player.Player;
 using PlayerPosition = Koralytics.Domain.Entities.Player.PlayerPosition;
 using ScouterEntity = Koralytics.Domain.Entities.Scouter.Scouter;
+using ParentEntity = Koralytics.Domain.Entities.Parents.Parent;
 using Koralytics.Domain.Entities.SystemAdmin;
 using Koralytics.Domain.Exceptions;
 using Koralytics.Application.Services.Player.Helpers;

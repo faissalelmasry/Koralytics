@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { MatchService } from '../../../../../core/services/match/match.service';
 import { AcademyService } from '../../../../../core/services/academy/academy.service';
 import { TokenStorageService } from '../../../../../core/services/auth/token-storage.service';
@@ -29,6 +30,7 @@ import { Subscription } from 'rxjs';
   styleUrls: ['./academy-match-list.component.css']
 })
 export class AcademyMatchListComponent implements OnInit, OnDestroy {
+  private router = inject(Router);
   private matchService = inject(MatchService);
   private academyService = inject(AcademyService);
   private tokenStorage = inject(TokenStorageService);
@@ -264,5 +266,8 @@ export class AcademyMatchListComponent implements OnInit, OnDestroy {
   }
 
   onMatchClick(matchId: number): void {
+    if (matchId) {
+      this.router.navigate(['/match', matchId]);
+    }
   }
 }

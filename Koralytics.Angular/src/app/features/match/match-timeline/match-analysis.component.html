@@ -1,0 +1,188 @@
+<div class="h2h-wrapper fade-in-content">
+
+  @if (isLoading) {
+    <div class="loading-state">
+      <app-loading-spinner text="Loading team post-match analysis..."></app-loading-spinner>
+    </div>
+  } @else if (error) {
+    <app-empty-state
+      title="Error Loading Analysis"
+      [description]="error"
+    ></app-empty-state>
+  } @else if (!analysisData) {
+    <app-empty-state
+      title="No Analysis Available"
+      description="No post-match analysis data is currently available for this team."
+    ></app-empty-state>
+  } @else {
+
+    <!-- HEADER SECTION -->
+    <div class="h2h-header-section">
+      <div class="header-top-row">
+        <div class="header-tag">
+          <span class="tag-dot"></span>
+          <span>Match Analytics</span>
+        </div>
+
+        @if (hasTeamToggle) {
+          <div class="team-toggle-group">
+            <button 
+              class="toggle-btn" 
+              [class.active]="selectedSide === 'home'" 
+              (click)="selectSide('home')">
+              <span class="team-dot home-dot"></span>
+              {{ homeTeamName || 'Home Team' }}
+            </button>
+            <button 
+              class="toggle-btn" 
+              [class.active]="selectedSide === 'away'" 
+              (click)="selectSide('away')">
+              <span class="team-dot away-dot"></span>
+              {{ awayTeamName || 'Away Team' }}
+            </button>
+          </div>
+        }
+      </div>
+
+      <h2 class="h2h-title">Post-Match Performance Analysis</h2>
+      <p class="h2h-subtitle">Season overview &amp; recent match form breakdown for {{ activeTeamName }}</p>
+    </div>
+
+    <!-- MAIN SUMMARY HERO CARD -->
+    <div class="hero-card">
+      <div class="h2h-teams-header">
+        
+        <!-- Active Team Display -->
+        <div class="team-display team-a">
+          <div class="team-badge team-a-badge">{{ getTeamInitials(analysisData.teamName || activeTeamName) }}</div>
+          <div class="team-info">
+            <span class="team-sub">{{ (selectedSide === 'home' ? 'HOME TEAM' : 'AWAY TEAM') }}</span>
+            <h3 class="team-name">{{ analysisData.teamName || activeTeamName }}</h3>
+          </div>
+        </div>
+
+        <!-- Season Overview Badge -->
+        <div class="vs-badge-container">
+          <span class="vs-badge">SEASON OVERVIEW</span>
+        </div>
+
+      </div>
+
+      <!-- Primary Stats Grid (W / D / L / Total) -->
+      <div class="h2h-stats-grid">
+        <div class="stat-card">
+          <span class="val total-val">{{ totalMatches }}</span>
+          <span class="lbl">Total Matches</span>
+        </div>
+        <div class="stat-card team-a-card">
+          <span class="val team-a-val">{{ analysisData.wins }}</span>
+          <span class="lbl">Wins</span>
+        </div>
+        <div class="stat-card draws-card">
+          <span class="val draws-val">{{ analysisData.draws }}</span>
+          <span class="lbl">Draws</span>
+        </div>
+        <div class="stat-card team-b-card">
+          <span class="val team-b-val">{{ analysisData.losses }}</span>
+          <span class="lbl">Losses</span>
+        </div>
+      </div>
+
+      <!-- Secondary Stats Grid (Goals For, Goals Against, Goal Diff, Win Rate) -->
+      <div class="h2h-stats-grid secondary-stats-grid">
+        <div class="stat-card">
+          <span class="val goal-for-val">{{ analysisData.goalsFor }}</span>
+          <span class="lbl">Goals For</span>
+        </div>
+        <div class="stat-card">
+          <span class="val goal-against-val">{{ analysisData.goalsAgainst }}</span>
+          <span class="lbl">Goals Against</span>
+        </div>
+        <div class="stat-card">
+          <span 
+            class="val"
+            [class.team-a-val]="goalDifference > 0"
+            [class.team-b-val]="goalDifference < 0"
+            [class.draws-val]="goalDifference === 0">
+            {{ (goalDifference > 0 ? '+' : '') + goalDifference }}
+          </span>
+          <span class="lbl">Goal Diff</span>
+        </div>
+        <div class="stat-card">
+          <span class="val win-rate-val">{{ winRate | number:'1.0-0' }}%</span>
+          <span class="lbl">Win Rate</span>
+        </div>
+      </div>
+
+      <!-- Form Proportion Bar -->
+      <div class="proportion-section">
+        <div class="proportion-bar">
+          <div class="bar-segment win-segment" [style.width.%]="winRate" [attr.title]="'Wins: ' + analysisData.wins"></div>
+          <div class="bar-segment draw-segment" [style.width.%]="drawRate" [attr.title]="'Draws: ' + analysisData.draws"></div>
+          <div class="bar-segment loss-segment" [style.width.%]="lossRate" [attr.title]="'Losses: ' + analysisData.losses"></div>
+        </div>
+        <div class="proportion-legend">
+          <span class="leg-item win-leg"><span class="dot"></span>Wins: {{ analysisData.wins }} ({{ winRate | number:'1.0-0' }}%)</span>
+          <span class="leg-item draw-leg"><span class="dot"></span>Draws: {{ analysisData.draws }} ({{ drawRate | number:'1.0-0' }}%)</span>
+          <span class="leg-item loss-leg"><span class="dot"></span>Losses: {{ analysisData.losses }} ({{ lossRate | number:'1.0-0' }}%)</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RECENT MATCHES FORM LIST -->
+    <div class="history-section">
+      <div class="section-header">
+        <h3 class="section-title">Recent Matches Form</h3>
+        <span class="match-count-badge">Last {{ analysisData.recentMatches.length }} Matches</span>
+      </div>
+
+      @if (analysisData.recentMatches.length === 0) {
+        <app-empty-state
+          title="No Recent Matches"
+          description="No completed matches recorded for this team."
+        ></app-empty-state>
+      } @else {
+        <div class="match-history-list">
+          @for (m of analysisData.recentMatches; track m.matchId) {
+            <div class="match-item" (click)="onMatchClick(m.matchId)">
+              <div class="match-date-box">
+                <svg class="calendar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                  <line x1="16" y1="2" x2="16" y2="6"/>
+                  <line x1="8" y1="2" x2="8" y2="6"/>
+                  <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+                <span>{{ formatDate(m.matchDate) }}</span>
+              </div>
+              
+              <div class="match-team home" [class.team-a-winner]="m.result === 'W'">
+                {{ analysisData.teamName }}
+              </div>
+              
+              <div class="score-badge-container">
+                <div class="score-result-box">
+                  <span 
+                    class="result-tag" 
+                    [class.res-win]="m.result === 'W'"
+                    [class.res-draw]="m.result === 'D'"
+                    [class.res-loss]="m.result === 'L'">
+                    {{ m.result }}
+                  </span>
+                  <span class="score-badge">{{ m.goalsFor }} - {{ m.goalsAgainst }}</span>
+                </div>
+              </div>
+              
+              <div class="match-team away" [class.team-b-winner]="m.result === 'L'">
+                {{ m.opponentName }}
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+  }
+
+</div>
+

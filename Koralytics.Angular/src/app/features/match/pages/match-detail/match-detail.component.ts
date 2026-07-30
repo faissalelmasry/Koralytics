@@ -32,6 +32,7 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
   private cdr = inject(ChangeDetectorRef);
   private signalrService = inject(MatchSignalrService);
 
+  private routeSub?: Subscription;
   private signalrSub?: Subscription;
 
   matchId!: number;
@@ -67,7 +68,7 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
   }
 
   get isSuperAdmin(): boolean {
-    return this.userRoles.includes('SuperAdmin');
+    return this.userRoles.includes('SystemAdmin');
   }
 
   get canLogEvents(): boolean {
@@ -120,21 +121,28 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    const id = this.route.snapshot.paramMap.get('id');
-    if (id) {
-      this.matchId = Number(id);
-      this.loadMatch();
-      this.signalrService.joinMatchGroup(this.matchId);
-      this.subscribeToLiveUpdates();
-    }
+    this.routeSub = this.route.paramMap.subscribe(params => {
+      const idStr = params.get('id');
+      if (idStr) {
+        const newMatchId = Number(idStr);
+        if (this.matchId && this.matchId !== newMatchId) {
+          this.signalrService.leaveMatchGroup(this.matchId);
+        }
+        this.matchId = newMatchId;
+        this.isCoachForThisMatch = false;
+        this.loadMatch();
+        this.signalrService.joinMatchGroup(this.matchId);
+      }
+    });
+    this.subscribeToLiveUpdates();
   }
 
   ngOnDestroy(): void {
     if (this.matchId) {
       this.signalrService.leaveMatchGroup(this.matchId);
     }
-    if (this.signalrSub) {
-      this.signalrSub.unsubscribe();
+    if (this.routeSub) {
+      this.routeSub.unsubscribe();
     }
     if (this.signalrSub) {
       this.signalrSub.unsubscribe();
@@ -143,7 +151,9 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
 
   private subscribeToLiveUpdates(): void {
     this.signalrSub = this.signalrService.matchScoreUpdate$.subscribe(update => {
-      if (update.matchId === this.matchId) {
+      // Use loose equality (==) to handle potential string/number type mismatch from SignalR
+      // eslint-disable-next-line eqeqeq
+      if (update.matchId == this.matchId) {
         this.matchInfo.homeScore = update.homeScore;
         this.matchInfo.awayScore = update.awayScore;
         this.matchInfo.homePenaltyScore = update.homePenaltyScore;

@@ -63,7 +63,7 @@ export class TransferCanvasComponent {
   }
 
   get transferGap(): number {
-    return Math.round(this.overallTrainingAvg - this.overallTournamentAvg);
+    return Math.round(this.overallTournamentAvg - this.overallTrainingAvg);
   }
 
   get transferEfficiency(): string {
