@@ -16,34 +16,51 @@
   @else if (data) {
     <div class="dashboard">
 
-      <!-- HEADER BANNER -->
-      <div class="hero-banner">
+      <!-- HEADER BANNER – same style as player-profile hero-banner, clickable -->
+      <div class="hero-banner profile-style-banner" (click)="goToProfile()" role="button" tabindex="0"
+           (keydown.enter)="goToProfile()" title="View Player Profile">
         <div class="player-identity">
-          <div class="brand-avatar">{{ data.playerName.charAt(0) }}{{ data.playerName.split(' ')[1]?.charAt(0) || '' }}</div>
-          <div class="player-details">
+          <div class="avatar-circle">{{ playerInitials }}</div>
+          <div>
             <h1>{{ data.playerName }}</h1>
-            <div class="sub-meta">{{ data.academyName }} &bull; Category Benchmark Analysis</div>
+            <div class="meta-pills">
+              <span class="pill">{{ data.academyName }}</span>
+              @if (data.ageGroupName) {
+                <span class="pill">{{ data.ageGroupName }}</span>
+              }
+            </div>
           </div>
         </div>
 
-        <div class="benchmark-pills">
-          <div class="pill-stat">
-            <span class="pill-lbl">Above Avg</span>
-            <span class="pill-val" style="color: var(--status-gold, #ffd700);">{{ aboveAvgCount }}</span>
+        <div class="bio-quick-list">
+          <div class="bio-item">
+            <span class="bio-lbl">Above Avg</span>
+            <span class="bio-val" style="color: var(--tier-neon);">{{ aboveAvgCount }}</span>
           </div>
-          <div class="pill-stat">
-            <span class="pill-lbl">Avg Rating</span>
-            <span class="pill-val">{{ avgRating }}</span>
+          <div class="bio-item">
+            <span class="bio-lbl">Avg Rating</span>
+            <span class="bio-val">{{ avgRating }}</span>
           </div>
+          <div class="bio-item">
+            <span class="bio-lbl">Position</span>
+            <span class="bio-val" style="color: var(--tier-neon);">{{ data.isGoalkeeper ? 'GK' : 'Field' }}</span>
+          </div>
+        </div>
+
+        <div class="profile-link-hint">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+          </svg>
         </div>
       </div>
 
       <!-- MAIN CONTENT -->
-      @if (data.categories.length <= 1) {
+      @if (data.isGoalkeeper) {
+        <!-- ── GOALKEEPER: always single Goalkeeping bar ── -->
         @for (cat of data.categories; track cat.categoryId) {
           <div class="gk-full-card">
             <div class="gk-full-card-header">
-              <span class="card-title">Player {{ cat.categoryName }} vs Academy Avg</span>
+              <span class="card-title">Player Goalkeeping vs Academy GK Avg</span>
               <span class="diff-badge" [class.gold]="isAboveAvg(cat)" [class.green]="!isAboveAvg(cat)">
                 {{ categoryDiffLabel(cat) }}
               </span>
@@ -56,7 +73,7 @@
               </div>
               <div class="gk-full-vs">VS</div>
               <div class="gk-full-acad">
-                <span class="gk-full-lbl">Academy Avg</span>
+                <span class="gk-full-lbl">Academy GK Avg</span>
                 <span class="gk-full-val">{{ cat.academyAverage.toFixed(1) }}</span>
               </div>
             </div>
@@ -69,12 +86,12 @@
 
             <div class="gk-full-legend">
               <span><span class="legend-dot" style="color:var(--status-gold, #ffd700);">●</span> Player</span>
-              <span><span class="legend-dot" style="color:var(--electric-cyan, #00e5ff);">●</span> Academy Avg</span>
+              <span><span class="legend-dot" style="color:var(--electric-cyan, #00e5ff);">●</span> Academy GK Avg</span>
             </div>
           </div>
         }
-      }
-      @else {
+      } @else if (data.categories.length > 1) {
+        <!-- ── FIELD PLAYER: radar + metric cards ── -->
         <div class="dashboard-grid">
           <div class="radar-card">
             <div class="card-title">
@@ -119,6 +136,41 @@
             }
           </div>
         </div>
+      } @else {
+        <!-- ── FIELD PLAYER with only 1 category: single bar ── -->
+        @for (cat of data.categories; track cat.categoryId) {
+          <div class="gk-full-card">
+            <div class="gk-full-card-header">
+              <span class="card-title">Player {{ cat.categoryName }} vs Academy Avg</span>
+              <span class="diff-badge" [class.gold]="isAboveAvg(cat)" [class.green]="!isAboveAvg(cat)">
+                {{ categoryDiffLabel(cat) }}
+              </span>
+            </div>
+
+            <div class="gk-full-scores">
+              <div class="gk-full-player" [class.gold]="isAboveAvg(cat)" [class.green]="!isAboveAvg(cat)">
+                <span class="gk-full-lbl">Player</span>
+                <span class="gk-full-val">{{ cat.playerAverage.toFixed(1) }}</span>
+              </div>
+              <div class="gk-full-vs">VS</div>
+              <div class="gk-full-acad">
+                <span class="gk-full-lbl">Academy Avg</span>
+                <span class="gk-full-val">{{ cat.academyAverage.toFixed(1) }}</span>
+              </div>
+            </div>
+
+            <div class="gk-full-track">
+              <div class="gk-full-fill" [class.gold]="isAboveAvg(cat)" [class.green]="!isAboveAvg(cat)"
+                [style.width.%]="clampPercent(cat.playerAverage)"></div>
+              <div class="gk-full-pin" [style.left.%]="clampPercent(cat.academyAverage)"></div>
+            </div>
+
+            <div class="gk-full-legend">
+              <span><span class="legend-dot" style="color:var(--status-gold, #ffd700);">●</span> Player</span>
+              <span><span class="legend-dot" style="color:var(--electric-cyan, #00e5ff);">●</span> Academy Avg</span>
+            </div>
+          </div>
+        }
       }
 
     </div>

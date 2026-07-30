@@ -7,6 +7,7 @@ namespace Koralytics.Application.DTOs.Player
         public int AcademyId { get; set; }
         public string AcademyName { get; set; } = string.Empty;
         public string? AgeGroupName { get; set; }
+        public bool IsGoalkeeper { get; set; }
         public List<CategoryComparison> Categories { get; set; } = [];
     }
 

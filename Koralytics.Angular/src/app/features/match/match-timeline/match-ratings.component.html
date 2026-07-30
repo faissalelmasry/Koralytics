@@ -50,9 +50,9 @@
 
         <div class="card-top-section">
           <div class="player-info-wrap">
-            <app-mini-player-card [player]="rating.player" size="xs" [useNaturalPosition]="true"></app-mini-player-card>
+            <app-mini-player-card [player]="rating.player" size="xs" [useNaturalPosition]="true" (cardClick)="navigateToPlayerProfile($event)"></app-mini-player-card>
             <div class="player-details">
-              <span class="full-name-label block">{{ rating.player.fullName }}</span>
+              <span class="full-name-label block clickable-player-name" (click)="navigateToPlayerProfile(rating.playerId)">{{ rating.player.fullName }}</span>
               <span class="mins-played-label">{{ rating.minutesPlayed }} mins played</span>
               @if (rating.isMOTM) {
                 <span class="motm-badge">MOTM</span>
@@ -142,8 +142,8 @@
         <div class="player-rating-card" [class.is-motm]="playerForm.isMOTM" [class.is-skipped]="playerForm.skipRating">
           <div class="card-header">
             <div class="player-info-wrap">
-              <app-mini-player-card [player]="playerForm.player" size="xs" [useNaturalPosition]="true"></app-mini-player-card>
-              <span class="full-name-label">{{ playerForm.player.fullName }}</span>
+              <app-mini-player-card [player]="playerForm.player" size="xs" [useNaturalPosition]="true" (cardClick)="navigateToPlayerProfile($event)"></app-mini-player-card>
+              <span class="full-name-label clickable-player-name" (click)="navigateToPlayerProfile(playerForm.player.playerId)">{{ playerForm.player.fullName }}</span>
             </div>
             <div class="header-actions">
               <button type="button" class="skip-btn" [class.active]="playerForm.skipRating"

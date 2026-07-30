@@ -13,6 +13,9 @@ import { LoadingSpinnerComponent } from '../../../../../shared/components/loadin
 import { EmptyStateComponent } from '../../../../../shared/components/empty-state/empty-state';
 import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
 
+import { NavbarComponent } from '../../../../../shared/components/navbar/navbar';
+import { Footer } from '../../../../../shared/components/footer/footer';
+
 export interface PositionSlot {
   slotId: string;
   role: string;
@@ -105,6 +108,8 @@ const FORMATIONS_5v5: Record<string, string[][]> = {
   standalone: true,
   imports: [
     CommonModule,
+    NavbarComponent,
+    Footer,
     MiniPlayerCardComponent,
     CustomSelect,
     CustomButtonComponent,

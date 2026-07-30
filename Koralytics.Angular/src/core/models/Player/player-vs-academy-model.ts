@@ -4,6 +4,7 @@ export interface PlayerVsAcademyModel {
   academyId: number;
   academyName: string;
   ageGroupName: string | null;
+  isGoalkeeper: boolean;
   categories: CategoryComparisonModel[];
 }
 

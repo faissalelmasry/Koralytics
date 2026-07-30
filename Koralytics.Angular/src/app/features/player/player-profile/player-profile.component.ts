@@ -93,8 +93,8 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
 
   // ── Position pin mapping ────────────────────────────────────
   private readonly posPinMap: Record<string, { top: string; left: string }> = {
-    'GK': { top: '85%', left: '8%' },
-    'Goalkeeper': { top: '85%', left: '8%' },
+    'GK': { top: '50%', left: '8%' },
+    'Goalkeeper': { top: '50%', left: '8%' },
     'CB': { top: '50%', left: '20%' },
     'Center Back': { top: '50%', left: '20%' },
     'Centre Back': { top: '50%', left: '20%' },

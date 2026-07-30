@@ -1,24 +1,25 @@
-//using AutoMapper;
-//using Koralytics.Application.DTOs.ProfileManagement;
-//using Koralytics.Application.Interfaces;
-//using Koralytics.Application.Services.Storage;
-//using Koralytics.Domain.Entities.Academy;
-//using CoachEntity = Koralytics.Domain.Entities.Coach.Coach;
-//using Koralytics.Domain.Entities.Identity;
-//using Koralytics.Domain.Entities.Parents;
-//using PlayerEntity = Koralytics.Domain.Entities.Player.Player;
-//using PlayerPosition = Koralytics.Domain.Entities.Player.PlayerPosition;
-//using ScouterEntity = Koralytics.Domain.Entities.Scouter.Scouter;
-//using Koralytics.Domain.Entities.SystemAdmin;
-//using Koralytics.Domain.Exceptions;
-//using Koralytics.Application.Services.Player.Helpers;
-//using Microsoft.AspNetCore.Http;
-//using Microsoft.AspNetCore.Identity;
-//using Microsoft.EntityFrameworkCore;
-//using Microsoft.Extensions.Logging;
-//using System;
-//using System.Linq;
-//using System.Threading.Tasks;
+using AutoMapper;
+using Koralytics.Application.DTOs.ProfileManagement;
+using Koralytics.Application.Interfaces;
+using Koralytics.Application.Services.Storage;
+using Koralytics.Domain.Entities.Academy;
+using CoachEntity = Koralytics.Domain.Entities.Coach.Coach;
+using Koralytics.Domain.Entities.Identity;
+using Koralytics.Domain.Entities.Parents;
+using PlayerEntity = Koralytics.Domain.Entities.Player.Player;
+using PlayerPosition = Koralytics.Domain.Entities.Player.PlayerPosition;
+using ScouterEntity = Koralytics.Domain.Entities.Scouter.Scouter;
+using ParentEntity = Koralytics.Domain.Entities.Parents.Parent;
+using Koralytics.Domain.Entities.SystemAdmin;
+using Koralytics.Domain.Exceptions;
+using Koralytics.Application.Services.Player.Helpers;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 //namespace Koralytics.Application.Services.ProfileManagement
 //{
@@ -62,54 +63,54 @@
 
 //            BaseUserProfileResponseDto dto;
 
-//            if (user is PlayerEntity || primaryRole == "Player")
-//            {
-//                var player = await _unitOfWork.Repository<PlayerEntity>()
-//                    .GetQueryableAsNoTracking()
-//                    .Include(p => p.PlayerPositions)
-//                    .FirstOrDefaultAsync(p => p.Id == userId);
-//                dto = _mapper.Map<PlayerProfileResponseDto>(player ?? (object)user);
-//            }
-//            else if (user is AcademyAdmin || primaryRole == "AcademyAdmin")
-//            {
-//                var admin = await _unitOfWork.Repository<AcademyAdmin>()
-//                    .GetQueryableAsNoTracking()
-//                    .Include(a => a.Academy)
-//                    .FirstOrDefaultAsync(a => a.Id == userId);
-//                dto = _mapper.Map<AcademyAdminProfileResponseDto>(admin ?? (object)user);
-//            }
-//            else if (user is ScouterEntity || primaryRole == "Scouter")
-//            {
-//                var scouter = await _unitOfWork.Repository<ScouterEntity>()
-//                    .GetQueryableAsNoTracking()
-//                    .FirstOrDefaultAsync(s => s.Id == userId);
-//                dto = _mapper.Map<ScouterProfileResponseDto>(scouter ?? (object)user);
-//            }
-//            else if (user is CoachEntity || primaryRole == "Coach")
-//            {
-//                var coach = await _unitOfWork.Repository<CoachEntity>()
-//                    .GetQueryableAsNoTracking()
-//                    .FirstOrDefaultAsync(c => c.Id == userId);
-//                dto = _mapper.Map<CoachProfileResponseDto>(coach ?? (object)user);
-//            }
-//            else if (user is Parent || primaryRole == "Parent")
-//            {
-//                var parent = await _unitOfWork.Repository<Parent>()
-//                    .GetQueryableAsNoTracking()
-//                    .FirstOrDefaultAsync(p => p.Id == userId);
-//                dto = _mapper.Map<ParentProfileResponseDto>(parent ?? (object)user);
-//            }
-//            else if (user is SystemAdminUser || primaryRole == "SystemAdmin")
-//            {
-//                var sysAdmin = await _unitOfWork.Repository<SystemAdminUser>()
-//                    .GetQueryableAsNoTracking()
-//                    .FirstOrDefaultAsync(sa => sa.Id == userId);
-//                dto = _mapper.Map<SystemAdminProfileResponseDto>(sysAdmin ?? (object)user);
-//            }
-//            else
-//            {
-//                dto = _mapper.Map<BaseUserProfileResponseDto>(user);
-//            }
+            if (user is PlayerEntity || primaryRole == "Player")
+            {
+                var player = await _unitOfWork.Repository<PlayerEntity>()
+                    .GetQueryableAsNoTracking()
+                    .Include(p => p.PlayerPositions)
+                    .FirstOrDefaultAsync(p => p.Id == userId);
+                dto = _mapper.Map<PlayerProfileResponseDto>(player ?? (object)user);
+            }
+            else if (user is AcademyAdmin || primaryRole == "AcademyAdmin")
+            {
+                var admin = await _unitOfWork.Repository<AcademyAdmin>()
+                    .GetQueryableAsNoTracking()
+                    .Include(a => a.Academy)
+                    .FirstOrDefaultAsync(a => a.Id == userId);
+                dto = _mapper.Map<AcademyAdminProfileResponseDto>(admin ?? (object)user);
+            }
+            else if (user is ScouterEntity || primaryRole == "Scouter")
+            {
+                var scouter = await _unitOfWork.Repository<ScouterEntity>()
+                    .GetQueryableAsNoTracking()
+                    .FirstOrDefaultAsync(s => s.Id == userId);
+                dto = _mapper.Map<ScouterProfileResponseDto>(scouter ?? (object)user);
+            }
+            else if (user is CoachEntity || primaryRole == "Coach")
+            {
+                var coach = await _unitOfWork.Repository<CoachEntity>()
+                    .GetQueryableAsNoTracking()
+                    .FirstOrDefaultAsync(c => c.Id == userId);
+                dto = _mapper.Map<CoachProfileResponseDto>(coach ?? (object)user);
+            }
+            else if (user is ParentEntity || primaryRole == "Parent")
+            {
+                var parent = await _unitOfWork.Repository<ParentEntity>()
+                    .GetQueryableAsNoTracking()
+                    .FirstOrDefaultAsync(p => p.Id == userId);
+                dto = _mapper.Map<ParentProfileResponseDto>(parent ?? (object)user);
+            }
+            else if (user is SystemAdminUser || primaryRole == "SystemAdmin")
+            {
+                var sysAdmin = await _unitOfWork.Repository<SystemAdminUser>()
+                    .GetQueryableAsNoTracking()
+                    .FirstOrDefaultAsync(sa => sa.Id == userId);
+                dto = _mapper.Map<SystemAdminProfileResponseDto>(sysAdmin ?? (object)user);
+            }
+            else
+            {
+                dto = _mapper.Map<BaseUserProfileResponseDto>(user);
+            }
 
 //            dto.Role = primaryRole;
 //            return dto;

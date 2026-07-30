@@ -1,5 +1,6 @@
 import { Component, Input, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { MatchService } from '../../../../core/services/match/match.service';
@@ -46,6 +47,7 @@ export class MatchRatingsComponent implements OnInit {
   @Input() awayPlayers: MiniPlayerCardModel[] = [];
   @Input() canSubmitRatings: boolean = false;
 
+  private router = inject(Router);
   private matchService = inject(MatchService);
   private drillTemplateService = inject(DrillTemplateService);
   private toastService = inject(ToastService);
@@ -78,7 +80,7 @@ export class MatchRatingsComponent implements OnInit {
   }
 
   get isSuperAdmin(): boolean {
-    return this.userRoles.includes('SuperAdmin');
+    return this.userRoles.includes('SystemAdmin');
   }
   
   get isCoach(): boolean {
@@ -101,6 +103,12 @@ export class MatchRatingsComponent implements OnInit {
   
   selectTeam(team: 'home' | 'away'): void {
     this.selectedTeam = team;
+  }
+
+  navigateToPlayerProfile(playerId: number): void {
+    if (playerId) {
+      this.router.navigate(['/player/profile', playerId]);
+    }
   }
 
   ngOnInit(): void {

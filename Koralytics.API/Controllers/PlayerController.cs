@@ -172,7 +172,7 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpGet("{playerId}/academy/{academyId}/comparison")]
-        [Authorize(Roles = "Player")]
+        [Authorize]
         public async Task<IActionResult> GetPlayerVsAcademyAverage(int playerId, int academyId)
         {
             var requesterId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -182,6 +182,15 @@ namespace Koralytics.API.Controllers
 
             var comparison = await _playerProfileService.GetPlayerVsAcademyAverageAsync(
                 playerId, academyId);
+            return Ok(comparison);
+        }
+
+        [HttpGet("{playerId}/academy-comparison")]
+        [Authorize]
+        public async Task<IActionResult> GetPlayerAcademyComparisonById(int playerId)
+        {
+            // Resolve the player's current academy from DB so any authenticated viewer can access this
+            var comparison = await _playerProfileService.GetPlayerAcademyComparisonByIdAsync(playerId);
             return Ok(comparison);
         }
 
