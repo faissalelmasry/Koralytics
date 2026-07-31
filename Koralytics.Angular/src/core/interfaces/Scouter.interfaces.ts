@@ -1,16 +1,10 @@
-// ── DTOs still not provided (PlayerCardDto, ScouterProfileDto,
-// ScouterShortlistDto, PlayerProfileViewAnalyticsDto, ScouterReport) ──
-// Shapes below remain inferred from field usage in the C# services. Replace
-// with the real DTOs when available.
+
 
 export interface ApiEnvelope<T> {
   message: string;
   data: T;
 }
 
-// GenerateScoutingReport uniquely returns `report` instead of `data` --
-// see the controller review. Kept as a separate type so the mismatch is
-// visible in the type system rather than silently handled.
 export interface GenerateReportResponse {
   message: string;
   report: string;
@@ -27,12 +21,6 @@ export interface PaginatedResult<T> {
   pageSize: number;
 }
 
-// Confirmed against the real backend DTO
-// (Koralytics.Application.DTOs.Player.PlayerCardDto), 2026-07-23.
-// Note there is no firstName/lastName (just a combined playerName) and no
-// matchesPlayed/goals/assists -- those were an earlier inferred guess and
-// don't exist on this response at all. PlayerId was added to the backend
-// DTO specifically so this list can support unfollow/view-profile actions.
 export interface PlayerCardDto {
   playerId: number;
   playerName: string;
@@ -48,7 +36,7 @@ export interface PlayerCardDto {
   transferClassification: string;
   archetypePlayerName?: string;
   playStyleTag?: string;
-  preferredFoot: string;
+  preferredFoot: number;
   weakFootRating: number;
   profileImageUrl?: string;
 }
@@ -56,7 +44,7 @@ export interface PlayerCardDto {
 export interface PlayerSearchFiltersDto {
   minAge?: number;
   maxAge?: number;
-  preferredFoot?: string;
+  preferredFoot?: number;
   positions?: string[];
   academyId?: number;
   format?: string;
@@ -81,8 +69,6 @@ export interface ScouterShortlistDto {
   addedAt: string;
 }
 
-// Confirmed against a real API response (2026-07-21):
-// { scouterId, scouterName, isScouterVerified, viewedAt }
 export interface ProfileViewerDetailDto {
   scouterId: number;
   scouterName: string;
@@ -95,8 +81,6 @@ export interface PlayerProfileViewAnalyticsDto {
   recentViews: ProfileViewerDetailDto[];
 }
 
-// GetScoutingReportAsync returns the raw entity server-side (see review) --
-// shape here is a best guess from field names used elsewhere.
 export interface ScouterReport {
   id: number;
   scouterUserId: number;

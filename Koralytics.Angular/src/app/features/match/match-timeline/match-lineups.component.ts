@@ -11,6 +11,7 @@ import { ConfirmDialogComponent } from '../../../../shared/components/confirm-di
 import { AuthService } from '../../../../core/services/auth/auth.service';
 
 import { CoachSquadService } from '../../../../core/services/coach/coach-squad.service';
+import { NotificationService } from '@core/services/SignalR/notificationservice';
 
 export type ActionTool = 'goal_solo' | 'goal_assist' | 'penalty_scored' | 'penalty_missed' | 'own_goal' | 'sub' | 'yellow' | 'red';
 
@@ -28,6 +29,7 @@ export class MatchLineupsComponent implements OnInit, OnChanges {
   private cdr = inject(ChangeDetectorRef);
   private authService = inject(AuthService);
   private coachSquadService = inject(CoachSquadService);
+  private notificationService = inject(NotificationService);
 
   get currentUser() {
     return this.authService.getCurrentUserValue();
@@ -336,27 +338,69 @@ export class MatchLineupsComponent implements OnInit, OnChanges {
 
     obs.subscribe({
       next: () => {
+        let eventTitle = "Match Update";
+        let eventMessage = `${player.fullName} has a new match event.`;
+        let eventCategory = "MatchEvent";
+
         if (eventType === 'PenaltyScored') {
+          eventTitle = "Penalty Scored! ⚽";
+          eventMessage = `${player.fullName} scored a penalty!`;
+          eventCategory = "GoalScored";
+          
           this.hasShootoutStarted = true;
           if (this.isShootoutMode) {
+            if (isHome) {
+              this.homePenaltyScore++;
+              if (this.matchInfo) this.matchInfo.homePenaltyScore = this.homePenaltyScore;
+            } else {
+              this.awayPenaltyScore++;
+              if (this.matchInfo) this.matchInfo.awayPenaltyScore = this.awayPenaltyScore;
+            }
             this.toastService.show(`Penalty Scored by ${player.fullName}! (${this.homeName} ${this.homePenaltyScore} - ${this.awayPenaltyScore} ${this.awayName})`, 'success');
           } else {
+            if (isHome) this.matchInfo.homeScore++; else this.matchInfo.awayScore++;
             this.toastService.show(`Penalty Goal by ${player.fullName}!`, 'success');
           }
         } else if (eventType === 'PenaltyMissed') {
+          eventTitle = "Penalty Missed ❌";
+          eventMessage = `${player.fullName} missed a penalty.`;
+          eventCategory = "PenaltyMissed";
+
           if (this.isShootoutMode) {
             this.hasShootoutStarted = true;
           }
           this.toastService.show(`Penalty Missed by ${player.fullName}`, 'info');
         } else if (eventType === 'Goal') {
+          eventTitle = "GOAAAL! ⚽";
+          eventMessage = secondaryPlayer 
+            ? `${player.fullName} scored a goal! Assist by ${secondaryPlayer.fullName}.` 
+            : `${player.fullName} scored a solo goal!`;
+          eventCategory = "GoalScored";
+
+          if (isHome) this.matchInfo.homeScore++; else this.matchInfo.awayScore++;
           this.toastService.show(`GOAL by ${player.fullName}!`, 'success');
         } else if (eventType === 'OwnGoal') {
+          eventTitle = "Own Goal 🥅";
+          eventMessage = `${player.fullName} scored an own goal.`;
+          eventCategory = "OwnGoal";
+
+          if (isHome) this.matchInfo.awayScore++; else this.matchInfo.homeScore++;
           this.toastService.show(`Own Goal by ${player.fullName}!`, 'info');
         } else if (eventType === 'YellowCard') {
+          eventTitle = "Yellow Card 🟨";
+          eventMessage = `${player.fullName} received a yellow card.`;
+          eventCategory = "YellowCard";
           this.toastService.show(`Yellow Card: ${player.fullName}`, 'info');
         } else if (eventType === 'RedCard') {
+          eventTitle = "Red Card 🟥";
+          eventMessage = `${player.fullName} was sent off with a red card.`;
+          eventCategory = "PlayerSentOff";
           this.toastService.show(`Red Card: ${player.fullName}`, 'error');
         } else if (eventType === 'Substitution' && secondaryPlayer) {
+          eventTitle = "Substitution 🔄";
+          eventMessage = `Substitution: ${player.fullName} off, ${secondaryPlayer.fullName} on.`;
+          eventCategory = "Substitution";
+
           const startersMatrix = isHome ? this.homeStarters : this.awayStarters;
           const benchList = isHome ? this.homeBench : this.awayBench;
 
@@ -385,6 +429,12 @@ export class MatchLineupsComponent implements OnInit, OnChanges {
 
           this.toastService.show(`Sub: OUT ${player.fullName} ➔ IN ${secondaryPlayer.fullName}`, 'success');
         }
+       this.notificationService.triggerMatchEventNotification(
+          this.matchId,
+          eventTitle,
+          eventMessage,
+          eventCategory
+        ).subscribe({ error: (e) => console.error('Failed to dispatch event notification', e) });
 
         this.eventLogged.emit();
         this.cdr.detectChanges();

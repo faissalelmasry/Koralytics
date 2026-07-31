@@ -17,6 +17,7 @@ import { MatchSignalrService } from '../../../../core/services/match-signalr.ser
 import { Subscription } from 'rxjs';
 
 import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner';
+import { NotificationService } from '@core/services/SignalR/notificationservice';
 
 @Component({
   selector: 'app-match-timeline',
@@ -33,6 +34,7 @@ export class MatchTimelineComponent implements OnInit, OnDestroy, OnChanges {
   private signalrService = inject(MatchSignalrService);
 
   private signalrSub?: Subscription;
+  private notificationService = inject(NotificationService);
 
   @Input() matchId!: number;
   @Input() matchInfo!: {
@@ -275,8 +277,25 @@ export class MatchTimelineComponent implements OnInit, OnDestroy, OnChanges {
         this.canLogEvents = true;
         this.canStartMatch = false;
         this.toastService.show('Match started successfully! The match is now Live.', 'success');
+        //  TRIGGER START MATCH NOTIFICATION
+        const homeTeamName = this.matchInfo?.homeTeam || 'Home Team';
+        const awayTeamName = this.matchInfo?.awayTeam || 'Away Team';
+        this.notificationService.triggerMatchEventNotification(
+          this.matchId,
+          "Match Started! ⚽",
+          `${homeTeamName} vs ${awayTeamName} has officially kicked off.`,
+          "MatchStarted"
+        ).subscribe({
+          error: (e) => {
+            console.error('Failed to dispatch start match notification', e);
+            const detail = e?.error?.detail || e?.error?.message || e?.message || 'Unknown error';
+            this.toastService.show(`Match started, but the notification failed to send: ${detail}`, 'warning');
+          }
+        });
+
         this.refresh();
         this.cdr.detectChanges();
+
       },
       error: (err) => {
         this.isStartingMatch = false;
@@ -302,6 +321,21 @@ export class MatchTimelineComponent implements OnInit, OnDestroy, OnChanges {
         }
         this.canLogEvents = false;
         this.toastService.show('Match ended successfully!', 'success');
+        //TRIGGER END MATCH NOTIFICATION
+        const homeTeamName = this.matchInfo?.homeTeam || 'Home Team';
+        const awayTeamName = this.matchInfo?.awayTeam || 'Away Team';
+        this.notificationService.triggerMatchEventNotification(
+          this.matchId,
+          "Full Time! 🛑",
+          `The match between ${homeTeamName} and ${awayTeamName} has ended.`,
+          "MatchEnded"
+        ).subscribe({
+          error: (e) => {
+            console.error('Failed to dispatch end match notification', e);
+            const detail = e?.error?.detail || e?.error?.message || e?.message || 'Unknown error';
+            this.toastService.show(`Match ended, but the notification failed to send: ${detail}`, 'warning');
+          }
+        });
         this.eventLogged.emit();
         this.refresh();
         this.cdr.detectChanges();

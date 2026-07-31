@@ -9,6 +9,7 @@ import { LoadingSpinnerComponent } from '@shared/components/loading-spinner/load
 import { EmptyStateComponent } from '@shared/components/empty-state/empty-state';
 import { CustomButtonComponent } from '@shared/components/custom-button/custom-button';
 import { StatusChipComponent } from '@shared/components/status-chip/status-chip';
+import { NotificationService } from '@core/services/SignalR/notificationservice';
 
 @Component({
   selector: 'app-parent-subscriptions',
@@ -49,7 +50,7 @@ export class ParentSubscriptionsComponent implements OnInit {
   readonly Status = SubscriptionStatus;
   readonly Duration = SubscriptionDuration;
 
-  constructor(private subscriptionService: SubscriptionService) { }
+  constructor(private subscriptionService: SubscriptionService ,private notificationService: NotificationService) { }
 
   ngOnInit(): void {
     this.loadSubscriptions();
@@ -201,6 +202,15 @@ export class ParentSubscriptionsComponent implements OnInit {
       this.subscriptionService.paySubscription(sub.id).subscribe({
         next: () => {
           this.successMessage = `Visa Payment Successful! ${sub.amount} EGP paid for ${sub.playerName}.`;
+          // notification
+          this.notificationService.notifyAcademySubscriptionPaid(sub.academyId, sub.id).subscribe({
+            error: (e) => console.error('Failed to notify academy of payment', e)
+          });
+
+          const parentMsg = `Your online payment of ${sub.amount} EGP for ${sub.playerName} was successful.`;
+          this.notificationService.notifyPlayerParents(sub.playerId, parentMsg).subscribe({
+             error: (e) => console.error('Failed to notify parent of payment success', e)
+          });
           this.isProcessingId = null;
           this.closePaymentModal();
           this.loadSubscriptions();

@@ -1,32 +1,94 @@
-
-
 :host {
   display: block;
   min-height: 100vh;
   color: #ffffff;
-  background-color: transparent;
+  
+  --tier-neon: #c8ff4d;
+  --tier-glow: rgba(200, 255, 77, 0.2);
+  --tier-border-glow: rgba(200, 255, 77, 0.4);
+  --tier-bg-glow: rgba(200, 255, 77, 0.12);
 }
 
 .notifications-page {
-  --accent-neon: #c8ff4d;
-  --accent-glow: rgba(200, 255, 77, 0.2);
-  --accent-border-glow: rgba(200, 255, 77, 0.4);
-  --accent-bg-glow: rgba(200, 255, 77, 0.12);
-
-  max-width: 760px;
+  max-width: 1180px;
   margin: 0 auto;
-  padding: 110px 30px 40px;
+  padding: 160px 30px 20px; 
   position: relative;
-  z-index: 10;
+  z-index: 1; 
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 28px;
 }
 
 /* ===================================================
-   Header banner (mirrors .hero-banner)
+   Loading & Empty States
    =================================================== */
-.notif-header {
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  min-height: 400px;
+  color: #8b909a;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+}
+
+.no-data-placeholder {
+  width: 100%;
+  min-height: 420px;
+  border: 2px dashed rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  background: linear-gradient(160deg, #0f1115 0%, #14171c 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px 20px;
+  text-align: center;
+  transition: border-color 0.3s ease;
+}
+
+.no-data-placeholder.compact {
+  min-height: 200px;
+}
+
+.no-data-placeholder:hover {
+  border-color: var(--tier-border-glow);
+}
+
+/* Was a unicode emoji glyph -- swapped for an inline SVG so the icon
+   language stays consistent with the bell icon in the hero avatar and the
+   action-button icons throughout this page, rather than mixing emoji with
+   custom stroke icons. */
+.no-data-icon {
+  margin-bottom: 4px;
+  animation: avatarPulse 3s infinite ease-in-out;
+  color: var(--tier-neon);
+}
+
+.no-data-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 26px;
+  letter-spacing: 1.5px;
+  color: #ffffff;
+  margin: 0;
+}
+
+.no-data-sub {
+  font-size: 13px;
+  font-family: 'Inter', sans-serif;
+  color: #808897;
+  margin: 0 0 16px;
+  line-height: 1.5;
+}
+
+/* ===================================================
+   1. HERO BANNER
+   =================================================== */
+.hero-banner {
   background: linear-gradient(135deg, #11141a 0%, #0c0e12 100%);
   border: 1px solid #1e232d;
   border-radius: 20px;
@@ -39,262 +101,299 @@
   transition: border-color 0.3s ease;
 }
 
-.notif-header:hover {
+.hero-banner:hover {
   border-color: #383e4a;
 }
 
-.notif-header::before {
+.hero-banner::before {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 2px;
-  background: linear-gradient(90deg, var(--accent-neon), transparent 70%);
+  background: linear-gradient(90deg, var(--tier-neon), transparent 70%);
 }
 
-.notif-header h1 {
-  font-size: 24px;
+.page-identity {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.avatar-circle {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--tier-glow) 0%, #171b22 100%);
+  border: 2px solid var(--tier-neon);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--tier-neon);
+  flex-shrink: 0;
+  box-shadow: 0 0 15px var(--tier-glow);
+  animation: avatarPulse 3s infinite ease-in-out;
+}
+
+@keyframes avatarPulse {
+  0%, 100% { box-shadow: 0 0 10px var(--tier-glow); border-color: var(--tier-neon); }
+  50% { box-shadow: 0 0 25px var(--tier-neon); border-color: #ffffff; }
+}
+
+.page-identity h1 {
+  font-size: 26px;
   font-weight: 800;
   line-height: 1.1;
-  margin: 0;
+  margin: 0 0 4px;
   font-family: 'Inter', sans-serif;
 }
 
-.unread-pill {
-  background: var(--accent-bg-glow);
-  border: 1px solid var(--accent-border-glow);
-  color: var(--accent-neon);
-  padding: 5px 14px;
+.meta-pills {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.pill {
+  background: #181c24;
+  border: 1px solid #272d3a;
+  padding: 3px 10px;
   border-radius: 20px;
-  font-size: 12px;
-  font-weight: 800;
+  font-size: 11px;
+  color: #e2e8f0;
+  font-weight: 600;
   font-family: 'Inter', sans-serif;
-  white-space: nowrap;
 }
 
-/* ===================================================
-   Loading & Error & Empty states (mirrors .loading-state/.error-state)
-   =================================================== */
-.loading-state,
-.error-state,
-.empty-state {
+.pill.gold {
+  background: var(--tier-bg-glow);
+  border-color: var(--tier-border-glow);
+  color: var(--tier-neon);
+}
+
+.bio-quick-list {
+  display: flex;
+  gap: 12px;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 10px 18px;
+  border-radius: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.bio-item {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  min-height: 300px;
-  color: #8b909a;
-  font-family: 'Inter', sans-serif;
-  font-size: 15px;
-  background: #11141a;
-  border: 1px solid #1e232d;
-  border-radius: 20px;
-  padding: 40px 20px;
-}
-
-.error-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: rgba(255, 71, 87, 0.15);
-  border: 2px solid rgba(255, 71, 87, 0.3);
-  color: #ff4757;
-  font-size: 22px;
-  font-weight: 800;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.empty-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: var(--accent-bg-glow);
-  border: 2px solid var(--accent-border-glow);
-  color: var(--accent-neon);
-  font-size: 22px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 /* ===================================================
-   List panel (mirrors .pitch-panel / .breakdown-section)
+   2. STACKED BANNER NOTIFICATIONS LIST
    =================================================== */
-.notif-list-panel {
+.notifications-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.notification-banner {
   background: #11141a;
   border: 1px solid #1e232d;
-  border-radius: 20px;
-  padding: 8px;
-  transition: border-color 0.3s ease;
-}
-
-.notif-list-panel:hover {
-  border-color: #383e4a;
-}
-
-.notif-item {
+  border-radius: 16px;
+  padding: 18px 24px;
   display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  padding: 16px 18px;
-  border-radius: 14px;
-  transition: background 0.2s ease, transform 0.2s ease;
-  position: relative;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-.notif-item + .notif-item {
-  border-top: 1px solid #1c2027;
+.notification-banner:hover {
+  transform: translateY(-3px);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
 }
 
-.notif-item:hover {
-  background: rgba(255, 255, 255, 0.03);
+.notification-banner.is-unread {
+  border-color: var(--tier-border-glow);
+  background: radial-gradient(100% 100% at 0% 50%, var(--tier-glow), #11141a);
 }
 
-.notif-item.unread {
-  background: var(--accent-bg-glow);
+.notification-banner.is-unread:hover {
+  border-color: var(--tier-neon);
+  box-shadow: 0 10px 25px var(--tier-glow);
 }
 
-.notif-item.unread:hover {
-  background: color-mix(in srgb, var(--accent-bg-glow) 160%, transparent);
-}
-
-.notif-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  margin-top: 6px;
-  flex-shrink: 0;
-  background: transparent;
-}
-
-.notif-item.unread .notif-dot {
-  background: var(--accent-neon);
-  box-shadow: 0 0 8px var(--accent-glow);
-}
-
-.notif-body {
+.banner-left {
+  display: flex;
+  align-items: center;
+  gap: 18px;
   flex: 1;
   min-width: 0;
 }
 
-.notif-title {
-  font-size: 14px;
-  font-weight: 700;
-  color: #ffffff;
-  font-family: 'Inter', sans-serif;
-  margin: 0 0 4px;
-}
-
-.notif-item.unread .notif-title {
-  color: var(--accent-neon);
-}
-
-.notif-message {
-  font-size: 13px;
-  color: #b7bcc6;
-  font-family: 'Inter', sans-serif;
-  line-height: 1.5;
-  margin: 0 0 6px;
-  word-break: break-word;
-}
-
-.notif-time {
-  font-size: 11px;
-  font-weight: 700;
-  color: #808897;
-  text-transform: uppercase;
-  font-family: 'Inter', sans-serif;
-  letter-spacing: 0.3px;
-}
-
-.mark-read-btn {
-  background: transparent;
-  border: 1px solid #272d3a;
-  color: #808897;
-  padding: 5px 12px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 700;
-  font-family: 'Inter', sans-serif;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: all 0.2s ease;
-}
-
-.mark-read-btn:hover {
-  border-color: var(--accent-border-glow);
-  color: var(--accent-neon);
-  background: var(--accent-bg-glow);
-}
-
-/* ===================================================
-   Load more (mirrors .archetype-reveal-btn, without shimmer)
-   =================================================== */
-.load-more-btn {
+/* Status badge now reflects the notification TYPE (announcement, milestone,
+   parent alert, subscription grace, scouter alert) rather than read/unread
+   state -- read/unread is already communicated clearly by the banner-level
+   border/background treatment (.is-unread) plus the small dot next to the
+   title, so reusing the badge for type identity adds new scannable
+   information instead of repeating what's already shown elsewhere. */
+.status-badge {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  width: 100%;
-  background: linear-gradient(135deg, var(--accent-bg-glow), transparent);
-  border: 1px solid var(--accent-border-glow);
-  color: var(--accent-neon);
-  padding: 12px 16px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 800;
+  flex-shrink: 0;
+  background: color-mix(in srgb, var(--type-color, #8b909a) 15%, transparent);
+  border: 1.5px solid color-mix(in srgb, var(--type-color, #8b909a) 40%, transparent);
+  color: var(--type-color, #8b909a);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--type-color, transparent) 20%, transparent);
+}
+
+.banner-text-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.banner-meta-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.banner-title {
   font-family: 'Inter', sans-serif;
-  letter-spacing: 0.3px;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 0 10px var(--accent-glow);
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.load-more-btn:hover:not(:disabled) {
-  background: var(--accent-neon);
-  color: #06080a;
-  transform: scale(1.02);
-  box-shadow: 0 0 22px var(--accent-neon);
+.notification-banner.is-unread .banner-title {
+  color: var(--tier-neon);
 }
 
-.load-more-btn:disabled {
-  opacity: 0.5;
+.unread-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.7);
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+.banner-time {
+  font-size: 11px;
+  font-weight: 600;
+  color: #808897;
+  text-transform: uppercase;
+  white-space: nowrap;
   cursor: default;
 }
 
-.spinner-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: currentColor;
-  animation: dotPulse 1s infinite ease-in-out;
+.banner-desc {
+  font-size: 13.5px;
+  color: #94a3b8;
+  font-family: 'Inter', sans-serif;
+  margin: 0;
+  line-height: 1.5;
+  /* Two-line clamp instead of a single-line ellipsis -- previously this
+     truncated to one line even on wide desktop viewports where there was
+     plenty of room, hiding more content on the screens that could show
+     the most. Clamping consistently to 2 lines at every breakpoint reads
+     more content while still keeping row heights predictable. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-@keyframes dotPulse {
-  0%, 100% { opacity: 0.3; transform: scale(0.8); }
-  50% { opacity: 1; transform: scale(1.1); }
+.notification-banner.is-unread .banner-desc {
+  color: #e2e8f0;
+}
+
+.banner-actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.cleared-text {
+  font-size: 11px;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* ===================================================
+   Pagination Wrapper
+   =================================================== */
+.pagination-wrapper {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  background: #11141a;
+  border: 1px solid #1e232d;
+  border-radius: 16px;
+  padding: 12px;
+}
+
+/* ===================================================
+   Accessibility: focus-visible
+   =================================================== */
+:host ::ng-deep button:focus-visible,
+:host ::ng-deep a:focus-visible {
+  outline: 2px solid var(--tier-border-glow);
+  outline-offset: 2px;
 }
 
 /* ===================================================
    Responsive
    =================================================== */
-@media (max-width: 600px) {
-  .notifications-page {
-    padding: 90px 16px 24px;
+@media (max-width: 900px) {
+  .hero-banner {
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
   }
-
-  .notif-header {
+  .bio-quick-list {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+  .notification-banner {
     flex-direction: column;
     align-items: flex-start;
-    gap: 10px;
+    gap: 16px;
   }
+  .banner-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
 
-  .notif-item {
-    padding: 14px;
+@media (max-width: 600px) {
+  .notifications-page {
+    padding: 120px 16px 16px; 
+  }
+  .page-identity h1 {
+    font-size: 22px;
+  }
+  .banner-meta-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
   }
 }
 
@@ -302,11 +401,10 @@
    Reduced Motion
    =================================================== */
 @media (prefers-reduced-motion: reduce) {
-  .load-more-btn:hover:not(:disabled) {
+  .notification-banner:hover {
     transform: none;
   }
-
-  .spinner-dot {
+  .no-data-icon {
     animation: none;
   }
 }

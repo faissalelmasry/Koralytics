@@ -15,6 +15,8 @@ import { PlayerProfileService } from '../../../../core/services/player/player-pr
 import { PlayerCardService } from '../../../../core/services/player/player-card.service';
 import { TokenStorageService } from '../../../../core/services/auth/token-storage.service';
 import { PlayerProfileModel } from '../../../../core/models/Player/player-profile-model';
+import { ScouterService } from '@core/services/Scouter/scouter.service';
+import { NotificationService } from '@core/services/SignalR/notificationservice';
 
 Chart.register(...registerables);
 
@@ -34,6 +36,8 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
   private playerCardService = inject(PlayerCardService);
   private tokenStorage = inject(TokenStorageService);
   private cdr = inject(ChangeDetectorRef);
+  private scouterService = inject(ScouterService);
+  private notificationService = inject(NotificationService);
 
   // ── View children ───────────────────────────────────────────
   @ViewChild('countersSection') countersSection!: ElementRef<HTMLElement>;
@@ -132,19 +136,23 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
 
   // ── Lifecycle ───────────────────────────────────────────────
   ngOnInit() {
+    let userRoles: string[] = [];
     const token = this.tokenStorage.getAccessToken();
     if (token) {
       const decoded = this.decodeTokenPayload(token);
       if (decoded) {
         this.loggedInUserId = decoded.userId;
+        userRoles = decoded.roles;
       }
     }
+    
 
     const paramId = this.route.snapshot.paramMap.get('playerId');
 
     if (paramId) {
       this.playerId = Number(paramId);
       this.loadProfile(this.playerId);
+      this.logAndNotifyIfScouter(userRoles);
     } else if (this.loggedInUserId) {
       this.playerId = this.loggedInUserId;
       this.loadProfile(this.playerId);
@@ -152,7 +160,19 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
       this.error = 'Authentication required';
     }
   }
+private logAndNotifyIfScouter(roles: string[]) {
+    if (!this.playerId || !this.loggedInUserId || this.playerId === this.loggedInUserId) {
+      return; 
+    }
 
+    const isScouter = roles.some(r => r.toLowerCase() === 'scouter');
+
+    if (isScouter) {
+      this.scouterService.logProfileView(this.loggedInUserId, this.playerId).subscribe({
+        error: (err) => console.error('Failed to log scouter profile view in backend:', err)
+      });
+    }
+  }
   ngAfterViewInit() { }
 
   goToTimeline() {

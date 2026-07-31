@@ -1,56 +1,164 @@
 <app-navbar></app-navbar>
+
 <div class="notifications-page">
 
-  <div class="notif-header">
-    <h1>Notifications</h1>
-    @if (unreadCount() > 0) {
-      <span class="unread-pill">{{ unreadCount() }} unread</span>
-    }
-  </div>
-
+  <!-- Loading State -->
   @if (isLoading()) {
     <div class="loading-state">
-      <p>Loading notifications...</p>
+      <app-loading-spinner size="lg"></app-loading-spinner>
+      <p>Syncing system notifications...</p>
     </div>
   }
-  @else if (notifications().length === 0) {
-    <div class="empty-state">
-      <div class="empty-icon">✓</div>
-      <p>You're all caught up -- no notifications yet.</p>
+
+  <!-- True Empty State: no notifications at all -->
+  @else if (allNotifications().length === 0) {
+    <div class="no-data-placeholder" scrollReveal direction="bottom" [delay]="0">
+      <svg class="no-data-icon" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+      </svg>
+      <p class="no-data-title">ALL CLEAR</p>
+      <p class="no-data-sub">No new system alerts or activities found.</p>
+      <app-button variant="accent" [shimmer]="true" [loading]="isLoading()" (click)="loadMyNotifications()">
+        Refresh Feed
+      </app-button>
     </div>
   }
+
   @else {
-    <div class="notif-list-panel">
-      @for (notif of notifications(); track notif.id) {
-        <div class="notif-item" [class.unread]="!notif.isRead">
-          <span class="notif-dot"></span>
-          <div class="notif-body">
-            @if (notif.title) {
-              <p class="notif-title">{{ notif.title }}</p>
-            }
-            <p class="notif-message">{{ notif.content }}</p>
-            <span class="notif-time">{{ notif.sentAt | date: 'MMM d, y, h:mm a' }}</span>
-          </div>
-          @if (!notif.isRead) {
-            <button class="mark-read-btn" (click)="markAsRead(notif.id)">
-              Mark read
-            </button>
-          }
+    <!-- 1. HERO BANNER WITH QUICK ACCESS CONTROLS -->
+    <div class="hero-banner" scrollReveal direction="bottom" [delay]="0">
+      <div class="page-identity">
+        <div class="avatar-circle">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+          </svg>
         </div>
-      }
+        <div>
+          <h1>NOTIFICATIONS</h1>
+          <div class="meta-pills">
+            <span class="pill gold">System Feed</span>
+            @if (showUnreadOnly()) {
+              <span class="pill" style="color: #22c55e; border-color: rgba(34, 197, 94, 0.3);">Filtering: Unread Only</span>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="bio-quick-list">
+        <!-- Quick Access Unread Filter Toggle -->
+        <div class="bio-item">
+          <app-button
+            [variant]="showUnreadOnly() ? 'accent' : 'slate'"
+            (click)="toggleUnreadFilter()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            &nbsp;{{ showUnreadOnly() ? 'Show All (' + allNotifications().length + ')' : 'Unread Only (' + unreadCount() + ')' }}
+          </app-button>
+        </div>
+
+        @if (unreadCount() > 0) {
+          <div class="bio-item">
+            <app-button variant="accent" (click)="markAllAsRead()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              &nbsp;Mark All Read
+            </app-button>
+          </div>
+        }
+
+        <div class="bio-item">
+          <app-button variant="slate" (click)="loadMyNotifications()" [loading]="isLoading()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="21 12a9 9 0 1 1-3.5-7.1"/><polyline points="21 3 21 9 15 9"/></svg>
+            &nbsp;Sync
+          </app-button>
+        </div>
+      </div>
     </div>
 
-    @if (hasMore()) {
-      <button class="load-more-btn" [disabled]="isLoadingMore()" (click)="loadMore()">
-        @if (isLoadingMore()) {
-          <span class="spinner-dot"></span>
-          <span>Loading more...</span>
+    <!-- Filtered-empty state: unread filter is on but nothing matches it.
+         Keeps the hero banner (and the toggle to turn the filter back off)
+         visible instead of falling through to a blank stack area. -->
+    @if (notifications().length === 0) {
+      <div class="no-data-placeholder compact" scrollReveal direction="bottom" [delay]="40">
+        <svg class="no-data-icon" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        <p class="no-data-title">YOU'RE ALL CAUGHT UP</p>
+        <p class="no-data-sub">No unread notifications right now.</p>
+        <app-button variant="slate" (click)="toggleUnreadFilter()">Show All Notifications</app-button>
+      </div>
+    }
+    @else {
+      <!-- 2. STACKED BANNER NOTIFICATIONS LIST -->
+      <div class="notifications-stack">
+        @for (notif of notifications(); track notif.id; let i = $index) {
+          <div
+            class="notification-banner"
+            [class.is-unread]="!notif.isRead"
+            scrollReveal direction="bottom"
+            [delay]="(i % 10) * 30">
+
+            <div class="banner-left">
+              <div class="status-badge" [style.--type-color]="getNotifVisual(notif.type).color" [title]="notif.type">
+                @switch (getNotifVisual(notif.type).icon) {
+                  @case ('megaphone') {
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
+                  }
+                  @case ('trophy') {
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0V4Z"/><path d="M17 5a3 3 0 0 1 3 3c0 2-2 3-3 3"/><path d="M7 5a3 3 0 0 0-3 3c0 2 2 3 3 3"/></svg>
+                  }
+                  @case ('clock') {
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg>
+                  }
+                  @case ('eye') {
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                  }
+                  @default {
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                  }
+                }
+              </div>
+
+              <div class="banner-text-content">
+                <div class="banner-meta-row">
+                  <h3 class="banner-title">
+                    {{ notif.title || 'System Alert' }}
+                    @if (!notif.isRead) {
+                      <span class="unread-dot" title="Unread"></span>
+                    }
+                  </h3>
+                  <span class="banner-time" [title]="notif.sentAt | date: 'MMM d, y, h:mm a'">{{ formatRelativeTime(notif.sentAt) }}</span>
+                </div>
+                <p class="banner-desc">{{ notif.content }}</p>
+              </div>
+            </div>
+
+            <div class="banner-actions">
+              @if (!notif.isRead) {
+                <app-button variant="slate" (click)="markAsRead(notif.id)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  &nbsp;Acknowledge
+                </app-button>
+              } @else {
+                <span class="cleared-text">Read</span>
+              }
+            </div>
+          </div>
         }
-        @else {
-          <span>Load More</span>
-        }
-      </button>
+      </div>
+
+      <!-- 3. PAGINATION -->
+      <div class="pagination-wrapper" scrollReveal direction="bottom" [delay]="150">
+        <app-pagination
+          [totalItems]="totalCount()"
+          [pageSize]="pageSizeValue"
+          [currentPage]="pageNumber()"
+          (pageChange)="goToPage($event)">
+        </app-pagination>
+      </div>
     }
   }
 
 </div>
+
+<app-footer scrollReveal direction="bottom" [delay]="200"></app-footer>

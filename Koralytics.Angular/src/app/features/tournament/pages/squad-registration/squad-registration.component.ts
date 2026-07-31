@@ -10,6 +10,7 @@ import { MatchFormat, Tournament, TournamentStatus, TournamentStructure } from '
 import { CustomSelect } from '../../../../../shared/components/custom-select/custom-select';
 import { StatusChipComponent } from '../../../../../shared/components/status-chip/status-chip';
 import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
+import { NotificationService } from '@core/services/SignalR/notificationservice';
 
 @Component({
   selector: 'app-squad-registration',
@@ -32,7 +33,7 @@ export class SquadRegistrationComponent implements OnInit {
   private coachSquadService = inject(CoachSquadService);
   private tokenStorage = inject(TokenStorageService);
   private cdr = inject(ChangeDetectorRef);
-
+ private notificationService = inject(NotificationService); 
   tournamentId!: number;
   tournament: Tournament | null = null;
   tournamentTeams: any[] = [];
@@ -343,6 +344,19 @@ export class SquadRegistrationComponent implements OnInit {
         playerIds.forEach(id => this.registeredPlayerIds.add(id));
         this.selectedPlayerIds.clear();
         this.successMessage = 'Squad registered successfully.';
+        playerIds.forEach(playerId => {
+            const tournamentName = this.tournament?.name || `Tournament #${this.tournamentId}`;
+            const playerMsg = `Congratulations! You have been selected for the squad in ${tournamentName}.`;
+            const parentMsg = `Your child has been selected for the squad in ${tournamentName}.`;
+
+            this.notificationService.notifyPlayerMilestone(playerId, playerMsg).subscribe({
+                error: (e) => console.error(`Failed to notify player ${playerId}`, e)
+            });
+            
+            this.notificationService.notifyPlayerParents(playerId, parentMsg).subscribe({
+                error: (e) => console.error(`Failed to notify parents for player ${playerId}`, e)
+            });
+        });
         this.isSubmitting = false;
         this.cdr.markForCheck();
       },

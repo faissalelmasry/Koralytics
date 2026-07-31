@@ -32,6 +32,7 @@ interface PlayerRatingForm {
 }
 
 import { CustomNumberInputComponent } from '../../../../shared/components/custom-number-input/custom-number-input';
+import { NotificationService } from '@core/services/SignalR/notificationservice';
 
 @Component({
   selector: 'app-match-ratings',
@@ -55,18 +56,19 @@ export class MatchRatingsComponent implements OnInit {
   private coachSquadService = inject(CoachSquadService);
   private cdr = inject(ChangeDetectorRef);
   private sanitizer = inject(DomSanitizer);
+  private notificationService = inject(NotificationService);
 
   isLoading = true;
   isSubmitting = false;
   hasSubmitted = false; // Need to check if ratings were already submitted
-  
+
   targetCategories: { id: number, name: string }[] = [];
-  
+
   homeRatings: PlayerRatingForm[] = [];
   awayRatings: PlayerRatingForm[] = [];
-  
+
   selectedTeam: 'home' | 'away' = 'home';
-  
+
   canSeeHome: boolean = true;
   canSeeAway: boolean = true;
   coachTeamId: number | null = null;
@@ -82,7 +84,7 @@ export class MatchRatingsComponent implements OnInit {
   get isSuperAdmin(): boolean {
     return this.userRoles.includes('SystemAdmin');
   }
-  
+
   get isCoach(): boolean {
     return this.userRoles.includes('Coach');
   }
@@ -90,7 +92,7 @@ export class MatchRatingsComponent implements OnInit {
   get matchType(): string {
     return (this.matchInfo?.type || '').toString().toLowerCase();
   }
-  
+
   get matchFormatStr(): string {
     return (this.matchInfo?.format || '').toString().toLowerCase();
   }
@@ -100,7 +102,7 @@ export class MatchRatingsComponent implements OnInit {
     if (this.matchFormatStr.includes('7') || this.matchFormatStr.includes('seven')) return 60;
     return 90;
   }
-  
+
   selectTeam(team: 'home' | 'away'): void {
     this.selectedTeam = team;
   }
@@ -114,7 +116,7 @@ export class MatchRatingsComponent implements OnInit {
   ngOnInit(): void {
     this.determineVisibleTeams();
   }
-  
+
   private determineVisibleTeams(): void {
     if (this.isSuperAdmin) {
       this.canSeeHome = true;
@@ -123,7 +125,7 @@ export class MatchRatingsComponent implements OnInit {
       this.checkExistingRatings();
       return;
     }
-    
+
     if (this.isCoach) {
       this.isLoading = true;
       this.coachSquadService.getCoachTeams().subscribe({
@@ -132,12 +134,12 @@ export class MatchRatingsComponent implements OnInit {
           const coachTeam = teams.find((t: any) =>
             (t.teamId ?? t.TeamId) === this.matchInfo.homeTeamId || (t.teamId ?? t.TeamId) === this.matchInfo.awayTeamId
           );
-          
+
           if (coachTeam) {
             this.coachTeamId = coachTeam.teamId ?? coachTeam.TeamId;
             this.canSeeHome = this.coachTeamId === this.matchInfo.homeTeamId;
             this.canSeeAway = this.coachTeamId === this.matchInfo.awayTeamId;
-            
+
             if (this.matchType.includes('session') && this.canSeeHome && this.canSeeAway) {
               this.canSeeHome = true;
               this.canSeeAway = true;
@@ -146,7 +148,7 @@ export class MatchRatingsComponent implements OnInit {
             this.canSeeHome = false;
             this.canSeeAway = false;
           }
-          
+
           this.selectedTeam = this.canSeeHome ? 'home' : (this.canSeeAway ? 'away' : 'home');
           this.checkExistingRatings();
         },
@@ -174,13 +176,13 @@ export class MatchRatingsComponent implements OnInit {
           // Split ratings into home and away based on the players list
           const homeIds = this.homePlayers.map(p => p.playerId);
           const awayIds = this.awayPlayers.map(p => p.playerId);
-          
+
           this.submittedHomeRatings = ratingsData.filter((r: any) => homeIds.includes(r.playerId))
             .map((r: any) => this.mapSubmittedRatingToUI(r, this.homePlayers.find(p => p.playerId === r.playerId)));
-            
+
           this.submittedAwayRatings = ratingsData.filter((r: any) => awayIds.includes(r.playerId))
             .map((r: any) => this.mapSubmittedRatingToUI(r, this.awayPlayers.find(p => p.playerId === r.playerId)));
-            
+
           this.isLoading = false;
           this.cdr.detectChanges();
         } else {
@@ -207,16 +209,16 @@ export class MatchRatingsComponent implements OnInit {
     const categories = rating.categoryRatings || [];
     const total = categories.reduce((sum: number, cat: any) => sum + cat.rating, 0);
     const avg = categories.length > 0 ? total / categories.length : 0;
-    
+
     return {
       ...rating,
       player: player,
       overallAverage: avg,
       categories: categories.map((c: any) => ({
-         name: c.categoryName, // Assuming DTO has categoryName, if not we might need to map it
-         score: c.rating,
-         colorClass: this.getCategoryColorClass(c.rating),
-         icon: this.getCategoryIcon(c.categoryName || 'General')
+        name: c.categoryName, // Assuming DTO has categoryName, if not we might need to map it
+        score: c.rating,
+        colorClass: this.getCategoryColorClass(c.rating),
+        icon: this.getCategoryIcon(c.categoryName || 'General')
       }))
     };
   }
@@ -236,12 +238,12 @@ export class MatchRatingsComponent implements OnInit {
   getCategoryIcon(name: string): SafeHtml {
     const n = name.toLowerCase();
     let svg = `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>`;
-    
+
     if (n.includes('tactical') || n.includes('defending')) svg = `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>`;
     else if (n.includes('attack') || n.includes('shooting')) svg = `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>`;
     else if (n.includes('physical') || n.includes('speed') || n.includes('stamina')) svg = `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>`;
     else if (n.includes('passing') || n.includes('dribbling')) svg = `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>`;
-    
+
     return this.sanitizer.bypassSecurityTrustHtml(svg);
   }
 
@@ -270,7 +272,7 @@ export class MatchRatingsComponent implements OnInit {
 
   createPlayerForm(player: MiniPlayerCardModel, teamId: number, isHomeSide: boolean): PlayerRatingForm {
     const isGK = player.position?.toUpperCase() === 'GK';
-    
+
     const playerCats = this.targetCategories.filter(c => {
       const isGoalKeepingCat = c.name.toLowerCase() === 'goalkeeping';
       if (isGK) {
@@ -306,7 +308,7 @@ export class MatchRatingsComponent implements OnInit {
 
   toggleMOTM(playerForm: PlayerRatingForm): void {
     if (playerForm.skipRating) return;
-    
+
     if (this.matchType.includes('tournament') || this.matchType.includes('session')) {
       // 1 overall MOTM for Tournament and Session matches
       this.homeRatings.forEach(r => r.isMOTM = false);
@@ -320,7 +322,7 @@ export class MatchRatingsComponent implements OnInit {
       playerForm.isMOTM = true;
     }
   }
-  
+
   toggleSkipRating(playerForm: PlayerRatingForm): void {
     playerForm.skipRating = !playerForm.skipRating;
     if (playerForm.skipRating) {
@@ -330,36 +332,36 @@ export class MatchRatingsComponent implements OnInit {
       playerForm.minutesPlayed = this.defaultMinutes;
     }
   }
-  
+
   canRatePlayer(playerForm: PlayerRatingForm): boolean {
     if (this.matchType.includes('tournament')) {
       return this.isSuperAdmin;
     }
-    
+
     // Friendly or Session:
     // If Session, coach rates both teams.
     if (this.matchType.includes('session')) {
       return true; // Coach or Superadmin can rate both
     }
-    
+
     // Friendly: coach rates only their team. Wait, we don't have coachTeamId here easily.
     // If the coach is assigned to the team, they rate them. But we passed all players.
     // We should allow rating if the coach has access. Since we're in the frontend, let's just show all for now and backend will validate if they don't have permission for that team, OR we only submit ratings for players that were changed, but API takes a list of players.
     // To be safe, we allow them to fill it out and API will handle unauthorized ratings if they try to rate opponent in friendly.
-    return true; 
+    return true;
   }
 
   submitRatings(): void {
     this.isSubmitting = true;
-    
+
     let allRatingsToSubmit: PlayerRatingForm[] = [];
     if (this.canSeeHome) {
-       allRatingsToSubmit.push(...this.homeRatings);
+      allRatingsToSubmit.push(...this.homeRatings);
     }
     if (this.canSeeAway) {
-       allRatingsToSubmit.push(...this.awayRatings);
+      allRatingsToSubmit.push(...this.awayRatings);
     }
-    
+
     const payload = {
       ratings: allRatingsToSubmit
         .filter(r => !r.skipRating)
@@ -379,7 +381,20 @@ export class MatchRatingsComponent implements OnInit {
       next: () => {
         this.isSubmitting = false;
         this.toastService.show('Match ratings submitted successfully!', 'success');
+        //  TRIGGER MOTM NOTIFICATIONS USING NotificationService
+        allRatingsToSubmit.filter(r => !r.skipRating && r.isMOTM).forEach(motmPlayer => {
 
+          this.notificationService.notifyPlayerMilestone(
+            motmPlayer.player.playerId,
+            "Man of the Match"
+          ).subscribe({ error: (e) => console.error('Failed to notify player', e) });
+
+          this.notificationService.notifyScouterFollowers(
+            motmPlayer.player.playerId,
+            "Awarded MOTM"
+          ).subscribe({ error: (e) => console.error('Failed to notify scouters', e) });
+
+        });
         // Build the read-only view from the forms that were just submitted
         const buildSubmitted = (forms: PlayerRatingForm[]) =>
           forms

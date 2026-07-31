@@ -237,15 +237,36 @@ export const routes: Routes = [
     data: { roles: ['Player'] }
   },
 
-  // Notifications & Utilities
   {
     path: 'player/academy-comparison/:playerId',
     loadComponent: () => import('./features/player/player-academy-comparison/player-academy-comparison.component').then(m => m.PlayerAcademyComparisonComponent),
     canActivate: [authGuard]
   },
+
+  // Notifications & Utilities
   {
     path: 'academy-announcement/:academyId',
     loadComponent: () => import('./features/notification/pages/academy-announcement/academy-announcement').then(m => m.AcademyAnnouncement),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'notifications-list',
+    loadComponent: () => import('./features/notification/pages/notifications-list/notifications-list').then(m => m.NotificationsList),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'followed-players/:scouterId',
+    loadComponent: () => import('./features/scouter/followed-player/followed-player').then(m => m.FollowedPlayersComponent),
+    canActivate: [authGuard]
+  },
+   {
+    path: 'shortlist/:scouterId',
+    loadComponent: () => import('./features/scouter/scouter-shortlist/scouter-shortlist').then(m => m.ScouterShortlistComponent),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'search/:scouterId',
+    loadComponent: () => import('./features/scouter/scoutersearch/scoutersearch').then(m => m.ScouterSearchComponent),
     canActivate: [authGuard]
   },
   { path: 'referenceshowcase', loadComponent: () => import('./reference-showcase').then(m => m.App) },

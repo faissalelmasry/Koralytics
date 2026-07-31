@@ -14,11 +14,14 @@ import { SearchBarComponent } from '../../../../shared/components/search-bar/sea
 import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state';
 import { CustomButtonComponent } from '../../../../shared/components/custom-button/custom-button';
+import { Pagination } from '../../../../shared/components/pagination/pagination';
 import { PlayerCardComponent } from '../../player/player-card/player-card';
 import { TokenStorageService } from '../../../../core/services/auth/token-storage.service';
 import { NavbarComponent } from '../../../../shared/components/navbar/navbar';
 import { Footer } from '../../../../shared/components/footer/footer';
 import { ScrollRevealDirective } from '../../../../shared/directives/scroll-reveal.directive';
+
+
 @Component({
   selector: 'app-scouter-shortlist',
   standalone: true,
@@ -30,6 +33,7 @@ import { ScrollRevealDirective } from '../../../../shared/directives/scroll-reve
     LoadingSpinnerComponent,
     EmptyStateComponent,
     CustomButtonComponent,
+    Pagination,
     PlayerCardComponent,
     NavbarComponent,
     Footer,
@@ -47,18 +51,18 @@ export class ScouterShortlistComponent implements OnInit {
   private readonly router = inject(Router);
 
   public players = signal<PlayerCardDto[]>([]);
+  public totalCount = signal<number>(0);
   public isLoading = signal<boolean>(true);
-  public isLoadingMore = signal<boolean>(false);
   public isRemoving = signal<number | null>(null);
-  public hasMore = signal<boolean>(true);
+  public pageNumber = signal<number>(1);
   public searchTerm = signal<string>('');
 
-  private currentPage = 1;
-  private readonly PAGE_SIZE = 12;
+  public readonly PAGE_SIZE = 12;
   private currentScouterId = 0;
   private searchSubject = new Subject<string>();
 
   ngOnInit(): void {
+    
     const paramId = this.route.snapshot.paramMap.get('scouterId');
 
     if (paramId) {
@@ -90,50 +94,44 @@ export class ScouterShortlistComponent implements OnInit {
     this.searchSubject.next(term);
   }
 
-  public loadShortlist(isLoadMore = false): void {
-    if (!isLoadMore) {
-      this.isLoading.set(true);
-      this.currentPage = 1;
-    }
+  public loadShortlist(): void {
+    this.isLoading.set(true);
 
     this.scouterService.getShortlist(
       this.currentScouterId,
-      this.currentPage,
+      this.pageNumber(),
       this.PAGE_SIZE,
       this.searchTerm()
     )
     .pipe(takeUntilDestroyed(this.destroyRef))
     .subscribe({
       next: (result) => {
-        if (isLoadMore) {
-          this.players.update(current => [...current, ...result.items]);
-        } else {
-          this.players.set(result.items);
+        if (result.items.length === 0 && this.pageNumber() > 1) {
+          this.pageNumber.update(p => p - 1);
+          this.loadShortlist();
+          return;
         }
 
-        this.hasMore.set(result.items.length === this.PAGE_SIZE);
+        this.players.set(result.items);
+        this.totalCount.set(result.totalCount);
         this.isLoading.set(false);
-        this.isLoadingMore.set(false);
       },
       error: (err: HttpErrorResponse) => {
         console.error('Failed to load shortlist', err);
         this.toastService.show('Failed to load your shortlist.', 'error');
         this.isLoading.set(false);
-        this.isLoadingMore.set(false);
       }
     });
   }
 
-  public loadMore(): void {
-    if (!this.hasMore() || this.isLoading() || this.isLoadingMore()) return;
-    this.isLoadingMore.set(true);
-    this.currentPage++;
-    this.loadShortlist(true);
+  public goToPage(page: number): void {
+    if (page < 1 || page === this.pageNumber() || this.isLoading()) return;
+    this.pageNumber.set(page);
+    this.loadShortlist();
   }
 
   public resetAndLoad(): void {
-    this.players.set([]);
-    this.hasMore.set(true);
+    this.pageNumber.set(1);
     this.loadShortlist();
   }
 
@@ -145,9 +143,10 @@ export class ScouterShortlistComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
-          this.players.update(list => list.filter(p => p.playerId !== playerId));
           this.toastService.show('Removed from shortlist.', 'success');
           this.isRemoving.set(null);
+          
+          this.loadShortlist();
         },
         error: (err: HttpErrorResponse) => {
           console.error('Failed to remove player from shortlist', err);
@@ -158,7 +157,7 @@ export class ScouterShortlistComponent implements OnInit {
   }
   public viewProfile(playerId: number): void {
   if (!playerId) return;
-  this.router.navigate(['/player-profile', playerId]);
+  this.router.navigate(['/player/profile/', playerId]);
 }
 
   private decodeTokenPayload(token: string): { userId: number; roles: string[] } | null {

@@ -1,91 +1,191 @@
-/* ===================================================
- 
-   =================================================== */
-
 :host {
   display: block;
   min-height: 100vh;
   color: #ffffff;
-  background-color: #06080a;
 }
 
-/* ===================================================
-   Page Wrapper (Aligned with Player Profile Reference)
-   =================================================== */
 .shortlist-page {
-  --tier-neon: #c8ff4d;
-  --tier-glow: rgba(200, 255, 77, 0.2);
-  --tier-border-glow: rgba(200, 255, 77, 0.4);
-  --tier-bg-glow: rgba(200, 255, 77, 0.12);
+  --accent-neon: #c8ff4d;
+  --accent-glow: rgba(200, 255, 77, 0.2);
+  --accent-border-glow: rgba(200, 255, 77, 0.4);
+  --accent-bg-glow: rgba(200, 255, 77, 0.12);
   --panel-bg: #11141a;
   --border-color: #1e232d;
   --text-muted: #8b909a;
 
   max-width: 1180px;
   margin: 0 auto;
-  padding: 110px 30px 20px;
-  position: relative;
-  z-index: 10;
+  padding: 110px 24px 40px;
   font-family: 'Inter', sans-serif;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-/* ===================================================
-   Header & Search
-   =================================================== */
-.page-header {
+/* =========================================
+   Hero Banner
+   ========================================= */
+.hero-banner {
+  background: linear-gradient(135deg, #11141a 0%, #0c0e12 100%);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  padding: 20px 28px;
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
-  margin-bottom: 32px;
+  align-items: center;
   flex-wrap: wrap;
+  gap: 16px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.3s ease;
+}
+
+.hero-banner:hover {
+  border-color: #383e4a;
+}
+
+.hero-banner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent-neon), transparent 70%);
+}
+
+.header-identity {
+  display: flex;
+  align-items: center;
   gap: 16px;
 }
 
-.header-titles h1 {
-  font-size: 28px;
-  font-weight: 800;
-  line-height: 1.1;
-  margin: 0 0 8px 0;
-  background: linear-gradient(90deg, #fff, #b7bcc6);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  font-family: 'Inter', sans-serif;
+.avatar-circle {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--accent-glow) 0%, #171b22 100%);
+  border: 2px solid var(--accent-neon);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-neon);
+  flex-shrink: 0;
+  box-shadow: 0 0 15px var(--accent-glow);
 }
 
-.header-titles p {
+.header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.page-eyebrow {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--accent-neon);
+}
+
+.header-text h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 30px;
+  letter-spacing: 0.5px;
+  margin: 0;
+  line-height: 1.1;
+}
+
+.meta-pills {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.pill {
+  background: #181c24;
+  border: 1px solid #272d3a;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  color: #e2e8f0;
+  font-weight: 600;
+}
+
+.pill.gold {
+  background: var(--accent-bg-glow);
+  border-color: var(--accent-border-glow);
+  color: var(--accent-neon);
+}
+
+.search-container {
+  min-width: 240px;
+}
+
+.hero-subtext {
   color: var(--text-muted);
   margin: 0;
-  font-size: 14px;
-  max-width: 480px;
-  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  max-width: 520px;
 }
 
-/* ===================================================
-   Loading / Empty / Error States
-   =================================================== */
+/* =========================================
+   Status States (loading / empty)
+   ========================================= */
 .status-state {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 16px;
-  min-height: 400px;
+  gap: 10px;
+  min-height: 340px;
   width: 100%;
+  background: var(--panel-bg);
+  border: 2px dashed var(--border-color);
+  border-radius: 20px;
   color: var(--text-muted);
-  font-family: 'Inter', sans-serif;
-  font-size: 15px;
+  text-align: center;
+  padding: 32px;
+  transition: border-color 0.3s ease;
 }
 
-/* ===================================================
-   Shortlist Grid Layout
-   =================================================== */
+.status-state:hover {
+  border-color: var(--accent-border-glow);
+}
+
+.status-icon {
+  color: var(--accent-neon);
+  margin-bottom: 4px;
+  animation: statusIconPulse 3s infinite ease-in-out;
+}
+
+@keyframes statusIconPulse {
+  0%, 100% { filter: drop-shadow(0 0 4px var(--accent-glow)); }
+  50% { filter: drop-shadow(0 0 12px var(--accent-neon)); }
+}
+
+.status-state h3 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  letter-spacing: 1px;
+  color: #fff;
+  margin: 0;
+}
+
+.status-state p {
+  font-size: 13px;
+  margin: 0;
+  max-width: 320px;
+}
+
+/* =========================================
+   Shortlist Grid
+   ========================================= */
 .shortlist-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 28px 20px;
   justify-items: center;
-  margin-top: 20px;
 }
 
 .shortlist-item {
@@ -101,18 +201,9 @@
   transform: translateY(-4px);
 }
 
-/* Custom Button overrides for shortlist item container */
-.remove-btn {
-  width: 100%;
-  display: block;
-}
-
-/* ===================================================
-   Quick-View Hint
-   ===================================================
-   app-player-card already flips on click (its own click handler) -- this
-   is just a small discoverability nudge so scouters know the card is
-   interactive, without touching the shared component itself. */
+/* Quick-View Hint -- app-player-card already flips on click (its own click
+   handler); this is just a discoverability nudge, without touching the
+   shared component itself. */
 .card-wrap {
   display: flex;
   flex-direction: column;
@@ -129,33 +220,52 @@
   opacity: 0.75;
 }
 
-/* ===================================================
-   Load More Action Container
-   =================================================== */
-.load-more-container {
+/* =========================================
+   Card Actions & Load More
+   ========================================= */
+.card-actions {
   display: flex;
-  justify-content: center;
-  margin-top: 36px;
+  width: 100%;
+  gap: 8px;
+  margin-top: 2px;
 }
 
-/* ===================================================
-   Responsive Breakpoints
-   =================================================== */
+.action-btn {
+  flex: 1;
+  width: 100%;
+}
+
+/* =========================================
+   Accessibility
+   ========================================= */
+.search-container :focus-visible,
+.card-actions :focus-visible,
+app-pagination :focus-visible {
+  outline: 2px solid var(--accent-border-glow);
+  outline-offset: 2px;
+}
+
+/* =========================================
+   Responsive
+   ========================================= */
 @media (max-width: 900px) {
-  .page-header {
+  .hero-banner {
     flex-direction: column;
     align-items: flex-start;
-    gap: 16px;
+  }
+
+  .search-container {
+    width: 100%;
   }
 }
 
 @media (max-width: 600px) {
   .shortlist-page {
-    padding: 90px 16px 16px;
+    padding: 90px 16px 24px;
   }
 
-  .header-titles h1 {
-    font-size: 22px;
+  .header-text h1 {
+    font-size: 24px;
   }
 
   .shortlist-grid {
@@ -168,26 +278,16 @@
   }
 }
 
-/* ===================================================
-   Reduced Motion Accessibility
-   =================================================== */
+/* =========================================
+   Reduced Motion
+   ========================================= */
 @media (prefers-reduced-motion: reduce) {
   .shortlist-item {
     transition: none;
+    transform: none;
   }
-}
-/* ===================================================
-   Card Actions & Hover Effects
-   =================================================== */
-.card-actions {
-  display: flex;
-  width: 100%;
-  gap: 8px; 
-  margin-top: 2px;
-}
 
-
-.action-btn {
-  flex: 1;
-  width: 100%;
+  .status-icon {
+    animation: none;
+  }
 }

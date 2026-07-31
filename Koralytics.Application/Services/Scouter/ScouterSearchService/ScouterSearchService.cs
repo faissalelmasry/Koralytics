@@ -1,5 +1,4 @@
-﻿
-using Koralytics.Application.DTOs.Player;
+﻿using Koralytics.Application.DTOs.Player;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -37,44 +36,70 @@ namespace Koralytics.Application.Services.Scouter.ScouterSearchService
             _mapper = mapper;
             _logger = logger;
         }
+
         public async Task<PaginatedResult<PlayerCardDto>> SearchPlayersAsync(PlayerSearchFiltersDto filters)
         {
-
             _logger.LogInformation("Executing structured player search. Search filters input payload received.");
 
-            var query = _unitOfWork.Repository<Domain.Entities.Player.Player>().GetQueryableAsNoTracking();
+          
+            var query = _unitOfWork.Repository<Domain.Entities.Player.Player>().GetQueryableAsNoTracking()
+                .Where(p => _unitOfWork.Repository<PlayerCard>().GetQueryableAsNoTracking().Any(pc => pc.PlayerId == p.Id));
+
             var today = DateTime.UtcNow.Date;
 
             if (filters != null)
             {
-               
-                if (filters.MinAge != null)
+                if (filters.MinAge.HasValue)
                 {
+                    var minAge = filters.MinAge.Value;
                     query = query.Where(p => today.Year - p.DateOfBirth.Year -
-                        (today.Month < p.DateOfBirth.Month || (today.Month == p.DateOfBirth.Month && today.Day < p.DateOfBirth.Day) ? 1 : 0) >= filters.MinAge);
+                        (today.Month < p.DateOfBirth.Month || (today.Month == p.DateOfBirth.Month && today.Day < p.DateOfBirth.Day) ? 1 : 0) >= minAge);
                 }
 
-                if (filters.MaxAge != null)
+                if (filters.MaxAge.HasValue)
                 {
+                    var maxAge = filters.MaxAge.Value;
                     query = query.Where(p => today.Year - p.DateOfBirth.Year -
-                        (today.Month < p.DateOfBirth.Month || (today.Month == p.DateOfBirth.Month && today.Day < p.DateOfBirth.Day) ? 1 : 0) <= filters.MaxAge);
+                        (today.Month < p.DateOfBirth.Month || (today.Month == p.DateOfBirth.Month && today.Day < p.DateOfBirth.Day) ? 1 : 0) <= maxAge);
                 }
 
-                if (filters.PreferredFoot != null) query = query.Where(p => p.PreferredFoot == filters.PreferredFoot);
-                if (filters.Positions != null && filters.Positions.Any()) query = query.Where(p => p.PlayerPositions.Any(pp => filters.Positions.Contains(pp.Position)));
-                if (filters.AcademyId != null) query = query.Where(p => p.PlayerAcademies.OrderByDescending(pa => pa.Id).Select(pa => (int?)pa.AcademyId).FirstOrDefault() == filters.AcademyId);
-                if (filters.Format != null) query = query.Where(p => _unitOfWork.Repository<MatchLineup>().GetQueryableAsNoTracking().Any(ml => ml.PlayerId == p.Id && ml.Match.Format == filters.Format));
-
-                if (filters.MinRating != null)
+                if (filters.PreferredFoot.HasValue)
                 {
-                    query = query.Where(p => _unitOfWork.Repository<PlayerCard>().GetQueryableAsNoTracking()
-                        .Where(pc => pc.PlayerId == p.Id).Select(pc => pc.OverallRating).FirstOrDefault() >= filters.MinRating);
+                  
+                    int footValue = filters.PreferredFoot.Value;
+                    query = query.Where(p => (int)p.PreferredFoot == footValue);
                 }
 
-                if (filters.MaxRating != null)
+                if (filters.Positions != null && filters.Positions.Any())
                 {
+                    var positions = filters.Positions;
+                    query = query.Where(p => p.PlayerPositions.Any(pp => positions.Contains(pp.Position)));
+                }
+
+                if (filters.AcademyId.HasValue)
+                {
+                    var academyId = filters.AcademyId.Value;
+                    query = query.Where(p => p.PlayerAcademies.Any(pa => pa.AcademyId == academyId && pa.LeftAt == null));
+                }
+
+                if (filters.Format.HasValue)
+                {
+                    var format = filters.Format.Value;
+                    query = query.Where(p => _unitOfWork.Repository<MatchLineup>().GetQueryableAsNoTracking().Any(ml => ml.PlayerId == p.Id && ml.Match.Format == format));
+                }
+
+                if (filters.MinRating.HasValue)
+                {
+                    var minRating = filters.MinRating.Value;
                     query = query.Where(p => _unitOfWork.Repository<PlayerCard>().GetQueryableAsNoTracking()
-                        .Where(pc => pc.PlayerId == p.Id).Select(pc => pc.OverallRating).FirstOrDefault() <= filters.MaxRating);
+                        .Any(pc => pc.PlayerId == p.Id && pc.OverallRating >= minRating));
+                }
+
+                if (filters.MaxRating.HasValue)
+                {
+                    var maxRating = filters.MaxRating.Value;
+                    query = query.Where(p => _unitOfWork.Repository<PlayerCard>().GetQueryableAsNoTracking()
+                        .Any(pc => pc.PlayerId == p.Id && pc.OverallRating <= maxRating));
                 }
             }
 
@@ -91,27 +116,37 @@ namespace Koralytics.Application.Services.Scouter.ScouterSearchService
                     PageSize = filters?.PageSize ?? 10
                 };
             }
+
             var playerCardQuery = _unitOfWork.Repository<PlayerCard>().GetQueryableAsNoTracking();
 
-           
-            var playerCardDtos = await query
+            // Step 1: Get only the paginated Player IDs (Can easily be translated to SQL)
+            var paginatedPlayerIds = await query
                 .OrderByDescending(p => p.Id)
                 .Skip((filters.PageNumber - 1) * filters.PageSize)
                 .Take(filters.PageSize)
-                .Select(p => playerCardQuery.FirstOrDefault(pc => pc.PlayerId == p.Id)) 
-                .ProjectTo<PlayerCardDto>(_mapper.ConfigurationProvider) 
+                .Select(p => p.Id)
                 .ToListAsync();
 
-            _logger.LogInformation("Successfully completed player search execution. Returned {Count} item records.", playerCardDtos.Count);
+            // Step 2: Fetch the PlayerCards for those IDs and Project directly
+            var validDtos = await playerCardQuery
+                .Where(pc => paginatedPlayerIds.Contains(pc.PlayerId))
+                .ProjectTo<PlayerCardDto>(_mapper.ConfigurationProvider)
+                .ToListAsync();
+
+            // Step 3: Re-order them descending by Id to match the original pagination order
+            validDtos = validDtos.OrderByDescending(pc => pc.PlayerId).ToList();
+
+            _logger.LogInformation("Successfully completed player search execution. Returned {Count} item records.", validDtos.Count);
 
             return new PaginatedResult<PlayerCardDto>
             {
-                Items = playerCardDtos,
+                Items = validDtos,
                 TotalCount = totalCount,
                 PageNumber = filters.PageNumber,
                 PageSize = filters.PageSize
             };
         }
+
         public async Task<ScouterProfileDto> GetScouterByIdAsync(int scouterId)
         {
             _logger.LogInformation("Retrieving profile for ScouterId: {ScouterId}", scouterId);

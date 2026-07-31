@@ -73,4 +73,20 @@ export class NotificationService {
       {}
     );
   }
+  
+  triggerMatchEventNotification(matchId: number, eventTitle: string, eventMessage: string, eventType: string) {
+    const url = `${this.baseUrl}/matches/${matchId}/events?eventTitle=${encodeURIComponent(eventTitle)}&eventMessage=${encodeURIComponent(eventMessage)}&eventType=${encodeURIComponent(eventType)}`;
+    
+    return this.http.post(url, {});
+  }
+  
+  notifyAcademySubscriptionPaid(playerId: number, academyId: number): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(
+      `${this.baseUrl}/players/${playerId}/academies/${academyId}/subscription-paid`,
+      {}
+    );
+  }
+  notifyAcademy(academyId: number, message: string) {
+  return this.http.post(`${this.baseUrl}/academy/${academyId}?message=${encodeURIComponent(message)}`, null);
+}
 }

@@ -14,6 +14,7 @@ import { CustomSelect } from '../../../../../shared/components/custom-select/cus
 import { CustomToggle } from '../../../../../shared/components/custom-toggle/custom-toggle';
 import { StatusChipComponent } from '../../../../../shared/components/status-chip/status-chip';
 import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
+import { NotificationService } from '@core/services/SignalR/notificationservice';
 
 type ManagementAction = 'status' | 'invite' | 'seeding' | 'draw' | 'advance' | 'complete';
 
@@ -42,6 +43,7 @@ export class TournamentManageComponent implements OnInit {
   private academyService = inject(AcademyService);
   private authService = inject(AuthService);
   private cdr = inject(ChangeDetectorRef);
+  private notificationService = inject(NotificationService);
 
   tournamentForm!: FormGroup;
   tournamentId: number | null = null;
@@ -316,6 +318,11 @@ export class TournamentManageComponent implements OnInit {
   inviteSelectedAcademy() {
     if (!this.tournamentId || !this.selectedAcademyId) return;
     this.runAction('invite', () => this.tournamentService.inviteAcademy(this.tournamentId!, this.selectedAcademyId!), 'Academy invited successfully.');
+    //notification
+     const message = `Your academy has been invited to participate in the upcoming tournament.`;
+    this.notificationService.notifyAcademy(this.selectedAcademyId, message).subscribe({
+      error: (e) => console.error('Failed to send invite notification', e)
+    });
   }
 
   generateSeeding() {

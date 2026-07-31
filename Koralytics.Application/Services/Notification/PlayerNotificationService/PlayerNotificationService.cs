@@ -24,7 +24,7 @@ namespace Koralytics.Application.Services.Notification.PlayerNotificationService
         /// <summary>
         /// Notifies a player of an earned achievement, storing it directly in their notification cache.
         /// </summary>
-        public async Task NotifyPlayerMilestoneAsync(int playerId, string achievementType, CancellationToken cancellationToken = default)
+        public async Task NotifyPlayerMilestoneAsync(int playerId, string message, CancellationToken cancellationToken = default)
         {
             var playerExists = await _unitOfWork.Repository<Domain.Entities.Player.Player>()
                 .ExistsAsync(p => p.Id == playerId);
@@ -36,12 +36,13 @@ namespace Koralytics.Application.Services.Notification.PlayerNotificationService
 
             var notification = new CachedNotification
             {
-                Title = "New Achievement! 🏆",
-                Content = $"Congratulations! You have achieved a new milestone: {achievementType}",
-                Type = "PlayerMilestone",
-                Payload = new { PlayerId = playerId, AchievementType = achievementType }
+                Title = "New Update", 
+                Content = message,    
+                Type = "PlayerNotification", 
+                Payload = new { PlayerId = playerId, Message = message }
             };
 
+          
             await _realTimeBridge.SendAndCacheToUserAsync(playerId, "ReceiveMilestoneNotification", notification, cancellationToken);
         }
 
@@ -58,7 +59,7 @@ namespace Koralytics.Application.Services.Notification.PlayerNotificationService
 
             var notification = new CachedNotification
             {
-                Title = "Parent Alert 📢",
+                Title = "Parent Alert ",
                 Content = $"There is an update regarding your child: {eventType}",
                 Type = "ParentNotification",
                 Payload = new { PlayerId = playerId, EventType = eventType }
@@ -116,6 +117,49 @@ namespace Koralytics.Application.Services.Notification.PlayerNotificationService
             };
 
             await _realTimeBridge.SendAndCacheToUserAsync(playerId, "ReceiveSubscriptionGraceNotification", notification, cancellationToken);
+        }
+        public async Task NotifyAcademySubscriptionPaidAsync(int playerId, int academyId, CancellationToken cancellationToken = default)
+        { 
+            var academy = await _unitOfWork.Repository<Domain.Entities.Academy.Academy>()
+                .GetByIdAsync(academyId);
+
+            if (academy == null || academy.IsDeleted)
+            {
+                throw new NotFoundException($"Academy with ID {academyId} does not exist or is inactive.");
+            }
+
+            // 2. Validate Player
+            var player = await _unitOfWork.Repository<Domain.Entities.Player.Player>()
+                .GetByIdAsync(playerId);
+
+            if (player == null)
+            {
+                throw new NotFoundException($"Player with ID {playerId} does not exist.");
+            }
+
+            // 3. Validate Player belongs to Academy
+            var playerBelongsToAcademy = await _unitOfWork.Repository<PlayerAcademy>()
+                .ExistsAsync(pa => pa.PlayerId == playerId && pa.AcademyId == academyId);
+
+            if (!playerBelongsToAcademy)
+            {
+                throw new BadRequestException($"Player {playerId} is not enrolled in Academy {academyId}.");
+            }
+
+          
+            await SendAcademySubscriptionPaidInternalAsync(player, academy, cancellationToken);
+        }
+
+        private async Task SendAcademySubscriptionPaidInternalAsync(Domain.Entities.Player.Player player, Domain.Entities.Academy.Academy academy, CancellationToken cancellationToken)
+        {
+            var notification = new CachedNotification
+            {
+                Title = "New Subscription Payment",
+                Content = $"A subscription payment has been successfully processed for player {player.FirstName} {player.LastName}.",
+                Type = "SubscriptionPaid",
+                Payload = new { PlayerId = player.Id, AcademyId = academy.Id }
+            };
+            await _realTimeBridge.SendAndCacheToUserAsync(academy.AdminUserId, "ReceiveSubscriptionPaidNotification", notification, cancellationToken);
         }
     }
 }

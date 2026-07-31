@@ -10,7 +10,7 @@ namespace Koralytics.Application.DTOs.ScouterDtos
     public class PlayerSearchFiltersDto
     {
         public List<string>? Positions { get; set; }
-        public PreferredFoot? PreferredFoot { get; set; }
+        public int? PreferredFoot { get; set; }
         public MatchFormat? Format { get; set; }
         public int? AcademyId { get; set; }
 

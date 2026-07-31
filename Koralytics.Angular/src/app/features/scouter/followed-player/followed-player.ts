@@ -14,6 +14,7 @@ import { SearchBarComponent } from '../../../../shared/components/search-bar/sea
 import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state';
 import { CustomButtonComponent } from '../../../../shared/components/custom-button/custom-button';
+import { Pagination } from '../../../../shared/components/pagination/pagination';
 import { TokenStorageService } from '../../../../core/services/auth/token-storage.service';
 import { NavbarComponent } from '../../../../shared/components/navbar/navbar';
 import { Footer } from '../../../../shared/components/footer/footer';
@@ -30,6 +31,7 @@ import { PlayerCardComponent } from '../../player/player-card/player-card';
     LoadingSpinnerComponent,
     EmptyStateComponent,
     CustomButtonComponent,
+    Pagination,
     NavbarComponent,
     Footer,
     ScrollRevealDirective,
@@ -46,13 +48,13 @@ export class FollowedPlayersComponent implements OnInit {
   private toastService = inject(ToastService);
   private destroyRef = inject(DestroyRef);
   public players = signal<PlayerCardDto[]>([]);
+  public totalCount = signal<number>(0);
   public isLoading = signal<boolean>(true);
   public isUnfollowing = signal<number | null>(null);
-  public hasMore = signal<boolean>(true);
+  public pageNumber = signal<number>(1);
   public searchTerm = signal<string>('');
 
-  private currentPage = 1;
-  private readonly PAGE_SIZE = 10;
+  public readonly PAGE_SIZE = 10;
   private currentScouterId = 0;
   private searchSubject = new Subject<string>();
 
@@ -84,32 +86,31 @@ export class FollowedPlayersComponent implements OnInit {
     });
   }
 
-  public onSearch(term: string): void {
-    this.searchSubject.next(term);
+  public onSearch(event: string | Event): void {
+    const value = typeof event === 'string' ? event : ((event.target as HTMLInputElement)?.value ?? '');
+    this.searchSubject.next(value);
   }
 
-  public loadPlayers(isLoadMore = false): void {
-    if (!isLoadMore) {
-      this.isLoading.set(true);
-      this.currentPage = 1;
-    }
+  public loadPlayers(): void {
+    this.isLoading.set(true);
 
     this.scouterService.getFollowedPlayers(
       this.currentScouterId,
-      this.currentPage,
+      this.pageNumber(),
       this.PAGE_SIZE,
       this.searchTerm()
     )
     .pipe(takeUntilDestroyed(this.destroyRef))
     .subscribe({
       next: (result) => {
-        if (isLoadMore) {
-          this.players.update(current => [...current, ...result.items]);
-        } else {
-          this.players.set(result.items);
+        if (result.items.length === 0 && this.pageNumber() > 1) {
+          this.pageNumber.update(p => p - 1);
+          this.loadPlayers();
+          return;
         }
 
-        this.hasMore.set(result.items.length === this.PAGE_SIZE);
+        this.players.set(result.items);
+        this.totalCount.set(result.totalCount);
         this.isLoading.set(false);
       },
       error: (err: HttpErrorResponse) => {
@@ -120,15 +121,14 @@ export class FollowedPlayersComponent implements OnInit {
     });
   }
 
-  public loadMore(): void {
-    if (!this.hasMore() || this.isLoading()) return;
-    this.currentPage++;
-    this.loadPlayers(true);
+  public goToPage(page: number): void {
+    if (page < 1 || page === this.pageNumber() || this.isLoading()) return;
+    this.pageNumber.set(page);
+    this.loadPlayers();
   }
 
   public resetAndLoad(): void {
-    this.players.set([]);
-    this.hasMore.set(true);
+    this.pageNumber.set(1);
     this.loadPlayers();
   }
 
@@ -140,10 +140,10 @@ export class FollowedPlayersComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
-         
-          this.players.update(list => list.filter(p => p.playerId !== playerId));
           this.toastService.show('Player unfollowed successfully.', 'success');
           this.isUnfollowing.set(null);
+          
+          this.loadPlayers();
         },
         error: (err: HttpErrorResponse) => {
           console.error('Failed to unfollow player', err);
@@ -154,7 +154,7 @@ export class FollowedPlayersComponent implements OnInit {
   }
 
   public viewProfile(playerId: number): void {
-    this.router.navigate(['/player-profile', playerId]);
+    this.router.navigate(['/player/profile/', playerId]);
   }
 
   private decodeTokenPayload(token: string): { userId: number; roles: string[] } | null {
