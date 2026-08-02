@@ -1,4 +1,4 @@
-﻿
+
 using Koralytics.Application.DTOs.Player;
 using Koralytics.Application.DTOs.Scouter;
 using Koralytics.Application.DTOs.ScouterDtos;
@@ -12,8 +12,8 @@ namespace Koralytics.Application.Interfaces.ScouterInterfaces
 {
     public interface IScouterSearchService
     {
-       Task<PaginatedResult<PlayerCardDto>> SearchPlayersAsync(PlayerSearchFiltersDto filters);
+        Task<PaginatedResult<PlayerCardDto>> SearchPlayersAsync(PlayerSearchFiltersDto filters);
         Task<ScouterProfileDto> GetScouterByIdAsync(int scouterId);
-
+        Task<string> AIChatBotAsync(AIChatBotRequestDto request);
     }
 }

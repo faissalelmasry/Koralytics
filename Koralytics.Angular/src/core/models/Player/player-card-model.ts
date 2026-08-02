@@ -13,6 +13,7 @@ export interface PlayerCardModel {
   overallTournamentAvg: number;
   transferClassification: string;
   archetypePlayerName: string | null;
+  archetypeLastRevealedAt?: string | null;
   playStyleTag: string | null;
   preferredFoot: string;
   weakFootRating: number;

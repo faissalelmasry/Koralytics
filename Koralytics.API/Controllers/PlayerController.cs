@@ -163,6 +163,14 @@ namespace Koralytics.API.Controllers
             return NoContent();
         }
 
+        [HttpPost("{playerId}/reveal-archetype")]
+        [Authorize]
+        public async Task<IActionResult> RevealArchetypeName(int playerId)
+        {
+            var result = await _playerCardService.RevealArchetypeNameAsync(playerId);
+            return Ok(result);
+        }
+
         [HttpGet("mini-cards")]
         [Authorize]
         public async Task<IActionResult> GetMiniPlayerCards([FromQuery] int[] playerIds)

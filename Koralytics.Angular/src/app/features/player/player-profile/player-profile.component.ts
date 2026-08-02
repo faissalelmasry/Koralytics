@@ -50,6 +50,8 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
   // ── Archetype overlay ───────────────────────────────────────
   showArchetypeOverlay = false;
   isCardFlipped = false;
+  isRevealingArchetype = false;
+  revealError = '';
 
   // ── Position modal ──────────────────────────────────────────
   showPositionModal = false;
@@ -174,16 +176,42 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
   // ── Archetype overlay actions ───────────────────────────────
   openArchetypeOverlay() {
     this.isCardFlipped = false;
+    this.revealError = '';
     this.showArchetypeOverlay = true;
   }
 
   flipArchetypeCard() {
-    this.isCardFlipped = true;
+    if (this.isCardFlipped || this.isRevealingArchetype || !this.playerId) return;
+
+    this.isRevealingArchetype = true;
+    this.revealError = '';
+
+    this.playerCardService.revealArchetype(this.playerId).subscribe({
+      next: (res) => {
+        this.isRevealingArchetype = false;
+        if (this.profile) {
+          this.profile.archetypeText = res.archetypeText;
+          if (this.profile.playerCard) {
+            this.profile.playerCard.archetypePlayerName = res.archetypePlayerName;
+            this.profile.playerCard.archetypeLastRevealedAt = res.archetypeLastRevealedAt;
+          }
+        }
+        this.isCardFlipped = true;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.isRevealingArchetype = false;
+        this.revealError = err?.error?.message || 'Failed to reveal archetype. Please try again.';
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   closeArchetypeOverlay() {
     this.showArchetypeOverlay = false;
     this.isCardFlipped = false;
+    this.isRevealingArchetype = false;
+    this.revealError = '';
   }
 
   fetchPlayerCard() {
@@ -229,6 +257,13 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
     if (rating >= 80) return '#ff6a00';
     if (rating >= 70) return '#ffd700';
     return '#c8ff4d';
+  }
+
+  get tierLogoUrl(): string {
+    const rating = this.profile?.playerCard?.overallRating ?? 0;
+    if (rating >= 80) return 'images/logo/app-icon/logo-icon-orange.png';
+    if (rating >= 70) return 'images/logo/app-icon/logo-icon-yellow.png';
+    return 'images/logo/app-icon/logo-icon-dark.png';
   }
 
   get tierButtonVariant(): 'accent' | 'amber' | 'gold' {
@@ -308,8 +343,31 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
     ];
   }
 
-  get archetypeLabel(): string {
-    return this.profile?.archetypeText ?? 'Under Evaluation...';
+  get archetypeTitle(): string {
+    return this.profile?.playerCard?.archetypePlayerName || 'AI ARCHETYPE';
+  }
+
+  get archetypeTextDescription(): string {
+    return this.profile?.archetypeText || 'Under Evaluation...';
+  }
+
+  get daysUntilNextReveal(): number {
+    const lastRevealed = this.profile?.playerCard?.archetypeLastRevealedAt;
+    if (!lastRevealed) return 0;
+    const date = new Date(lastRevealed);
+    if (isNaN(date.getTime())) return 0;
+    const diffMs = Date.now() - date.getTime();
+    const diffDays = diffMs / (1000 * 60 * 60 * 24);
+    const remaining = 7 - diffDays;
+    return remaining > 0 ? Math.ceil(remaining) : 0;
+  }
+
+  get nextRevealNotice(): string {
+    const days = this.daysUntilNextReveal;
+    if (days > 0) {
+      return `Next AI re-evaluation in ${days} day${days > 1 ? 's' : ''}`;
+    }
+    return 'AI-powered playing style analysis';
   }
 
   get ownedPositionIds(): string[] {

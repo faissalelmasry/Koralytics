@@ -1,4 +1,4 @@
-﻿
+
 using Koralytics.Application.DTOs.Player;
 using System;
 using System.Collections.Generic;
@@ -17,7 +17,11 @@ using Koralytics.Application.Services.Player.Helpers;
 using Koralytics.Application.Services.Player.PlayerCardService;
 using Koralytics.Application.DTOs.Scouter;
 using Koralytics.Domain.Exceptions;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using System.Net.Http;
+using System.Text;
+using System.Text.Json;
 using ScouterEntity = Koralytics.Domain.Entities.Scouter.Scouter;
 
 namespace Koralytics.Application.Services.Scouter.ScouterSearchService
@@ -27,15 +31,21 @@ namespace Koralytics.Application.Services.Scouter.ScouterSearchService
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly ILogger<ScouterSearchService> _logger;
+        private readonly HttpClient _httpClient;
+        private readonly IConfiguration _configuration;
 
         public ScouterSearchService(
             IUnitOfWork unitOfWork,
             IMapper mapper,
-            ILogger<ScouterSearchService> logger)
+            ILogger<ScouterSearchService> logger,
+            HttpClient httpClient,
+            IConfiguration configuration)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _logger = logger;
+            _httpClient = httpClient;
+            _configuration = configuration;
         }
         public async Task<PaginatedResult<PlayerCardDto>> SearchPlayersAsync(PlayerSearchFiltersDto filters)
         {
@@ -128,6 +138,67 @@ namespace Koralytics.Application.Services.Scouter.ScouterSearchService
 
             _logger.LogInformation("Successfully loaded profile for ScouterId: {ScouterId}", scouterId);
             return scouterDto;
+        }
+
+        public async Task<string> AIChatBotAsync(AIChatBotRequestDto request)
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.Message))
+            {
+                throw new ArgumentException("Chat message cannot be empty.", nameof(request));
+            }
+
+            var baseUrl = _configuration["Langflow:BaseUrl"] ?? "http://localhost:7860/";
+            var flowId = _configuration["Langflow:ScouterFlowId"] ?? "8174dfb9-ed41-44af-8e6f-f93040a33f15";
+            var apiKey = _configuration["Langflow:ScouterApiKey"] ?? "sk-xolbieoNFGE495pN0a0GCBqLM318zmTS0sq3enjaPbw";
+
+            _logger.LogInformation("Sending request to Scouter Langflow AI ChatBot (FlowId: {FlowId})...", flowId);
+
+            var requestPayload = new
+            {
+                input_value = request.Message,
+                input_type = "chat",
+                output_type = "chat"
+            };
+
+            var httpRequestMessage = new HttpRequestMessage(
+                HttpMethod.Post,
+                $"{baseUrl.TrimEnd('/')}/api/v1/run/{flowId}?stream=false")
+            {
+                Content = new StringContent(
+                    JsonSerializer.Serialize(requestPayload),
+                    Encoding.UTF8,
+                    "application/json"
+                )
+            };
+
+            if (!string.IsNullOrEmpty(apiKey))
+            {
+                httpRequestMessage.Headers.Add("x-api-key", apiKey);
+            }
+
+            var response = await _httpClient.SendAsync(httpRequestMessage);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                _logger.LogError("Scouter Langflow API failed with status {StatusCode}: {Error}", response.StatusCode, errorContent);
+                response.EnsureSuccessStatusCode();
+            }
+
+            var responseBody = await response.Content.ReadAsStringAsync();
+            using var jsonDoc = JsonDocument.Parse(responseBody);
+
+            string botReply = jsonDoc.RootElement
+                .GetProperty("outputs")[0]
+                .GetProperty("outputs")[0]
+                .GetProperty("results")
+                .GetProperty("message")
+                .GetProperty("text")
+                .GetString() ?? string.Empty;
+
+            _logger.LogInformation("Scouter Langflow AI ChatBot response generated successfully.");
+
+            return botReply;
         }
     }
 }

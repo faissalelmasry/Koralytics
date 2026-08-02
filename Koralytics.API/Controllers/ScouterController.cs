@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Koralytics.Application.DTOs.Player;
+using Koralytics.Application.DTOs.Scouter;
 using Koralytics.Application.DTOs.ScouterDtos;
 using Koralytics.Application.Interfaces.Scouter;
 using Koralytics.Application.Interfaces.ScouterInterfaces;
@@ -116,6 +117,21 @@ namespace Koralytics.API.Controllers
             return Ok(new
             {
                 message = "Search query completed successfully.",
+                data = result
+            });
+        }
+
+        [HttpPost("ai-chatbot")]
+        //[Authorize(Roles = "Scouter,SystemAdmin")]
+        public async Task<IActionResult> AIChatBot([FromBody] AIChatBotRequestDto request)
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.Message))
+                return BadRequest(new { message = "Message is required." });
+
+            var result = await _searchService.AIChatBotAsync(request);
+            return Ok(new
+            {
+                message = "AI ChatBot query completed successfully.",
                 data = result
             });
         }
