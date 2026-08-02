@@ -26,6 +26,10 @@ interface NotificationVisual {
   color: string;
 }
 
+// Mirrors the type -> category mapping already established in
+// SignalRService.resolveToastType(), just extended with an icon + accent
+// color per type instead of just a toast severity, so the list itself is
+// scannable at a glance instead of every row looking identical.
 const TYPE_VISUALS: Record<string, NotificationVisual> = {
   AcademyAnnouncement: { icon: 'megaphone', color: '#4fd8ff' },
   PlayerMilestone: { icon: 'trophy', color: '#c8ff4d' },
@@ -80,6 +84,14 @@ export class NotificationsList implements OnInit {
     return list;
   });
 
+  // NOTE: GetMyNotifications on the backend only accepts skip/take and
+  // returns a bare array -- no total count. So this can only be a lower
+  // bound: if we've loaded exactly `loadedTake` items, there may be more
+  // beyond that we haven't fetched yet, and we nudge the count up so the
+  // pagination control still lets the user page forward instead of
+  // silently capping at whatever the first fetch happened to return.
+  // The correct long-term fix is for the backend to return
+  // { items, totalCount } like every other paginated endpoint in this app.
   public totalCount = computed(() => {
     const loaded = this.filteredNotifications().length;
     const mayHaveMore = !this.showUnreadOnly() && this.allNotifications().length >= this.loadedTake;
@@ -112,6 +124,9 @@ export class NotificationsList implements OnInit {
 
   public loadMyNotifications(): void {
     this.isLoading.set(true);
+    // Grow the fetch window to cover whatever page we're currently on, in
+    // case goToPage() triggered this reload because the user paged past
+    // what was previously loaded.
     this.loadedTake = Math.max(50, this.pageNumber() * this.pageSizeValue);
 
     this.notificationApi
@@ -135,6 +150,9 @@ export class NotificationsList implements OnInit {
     if (page === this.pageNumber() || this.isLoading()) return;
     this.pageNumber.set(page);
 
+    // Paged beyond what we've fetched so far -- pull a bigger window rather
+    // than showing an empty page for notifications that exist but were
+    // never loaded.
     if (!this.showUnreadOnly() && page * this.pageSizeValue > this.loadedTake) {
       this.loadMyNotifications();
     }
@@ -167,7 +185,10 @@ export class NotificationsList implements OnInit {
     const unreadList = this.allNotifications().filter(n => !n.isRead);
     if (unreadList.length === 0) return;
 
-    
+    // Optimistic update as before, but now each request's actual outcome is
+    // tracked individually -- only items that genuinely fail get rolled
+    // back, and the toast reflects what actually happened instead of
+    // assuming success for everything the moment the optimistic update ran.
     this.allNotifications.update(list => list.map(n => ({ ...n, isRead: true })));
 
     const requests = unreadList.map(notif =>
@@ -205,7 +226,7 @@ export class NotificationsList implements OnInit {
     return TYPE_VISUALS[type] ?? DEFAULT_VISUAL;
   }
 
-  public formatRelativeTime(dateStr: string|Date): string {
+  public formatRelativeTime(dateStr: string |Date): string {
     const date = new Date(dateStr);
     const diffSec = Math.floor((Date.now() - date.getTime()) / 1000);
 

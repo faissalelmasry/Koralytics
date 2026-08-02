@@ -2,6 +2,7 @@
 using Koralytics.Application.Interfaces;
 using Koralytics.Application.Interfaces.Notification;
 using Koralytics.Domain.Entities.Academy;
+using Koralytics.Domain.Entities.Identity;
 using Koralytics.Domain.Entities.Parents;
 using Koralytics.Domain.Entities.Player;
 using Koralytics.Domain.Exceptions;
@@ -89,7 +90,8 @@ namespace Koralytics.Application.Services.Notification
                     Title = eventTitle,
                     Content = eventMessage,
                     Type = eventType,
-                    Payload = new { MatchId = matchId }
+                    Payload = new { MatchId = matchId },
+                    SentAt = DateTime.UtcNow
                 };
 
                 await _realTimeBridge.SendAndCacheToUsersAsync(
@@ -101,7 +103,6 @@ namespace Koralytics.Application.Services.Notification
         }
         public async Task NotifyAcademyAsync(int academyId, string message, CancellationToken cancellationToken = default)
         {
-            
             var academyExists = await _unitOfWork.Repository<Domain.Entities.Academy.Academy>()
                 .ExistsAsync(a => a.Id == academyId);
 
@@ -110,19 +111,33 @@ namespace Koralytics.Application.Services.Notification
                 throw new NotFoundException($"Academy with ID {academyId} does not exist.");
             }
 
-          
+            var academyAdmins = await _unitOfWork.Repository<AcademyAdmin>()
+                .FindAllAsync(u => u.AcademyId == academyId);
+
+            if (academyAdmins == null || !academyAdmins.Any())
+            {
+                return;
+            }
+
+            var adminIds = academyAdmins.Select(a => a.Id).ToList();
+
             var notification = new CachedNotification
             {
-                Title = "Academy Update", 
-                Content = message,        
+                Id = Guid.NewGuid().ToString(),
+                Title = "Academy Update",
+                Content = message,
                 Type = "AcademyNotification",
-                Payload = new { AcademyId = academyId, Message = message }
+                Payload = new { AcademyId = academyId, Message = message },
+                IsRead = false,
+                SentAt = DateTime.UtcNow
             };
 
-           
-            string groupName = $"Academy_{academyId}_Admins";
-
-            await _realTimeBridge.SendToGroupAsync(groupName, "ReceiveAcademyNotification", notification, cancellationToken);
+            await _realTimeBridge.SendAndCacheToUsersAsync(
+                adminIds,
+                "ReceiveAcademyNotification",
+                notification,
+                cancellationToken
+            );
         }
     }
 }
