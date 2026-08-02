@@ -1,5 +1,6 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { forkJoin, of } from 'rxjs';
@@ -7,13 +8,13 @@ import { catchError } from 'rxjs/operators';
 import { CoachSquadService } from '../../../../../core/services/coach/coach-squad.service';
 import { MatchAnalyticsService } from '../../../../../core/services/match/match-analytics.service';
 import { AuthService } from '../../../../../core/services/auth/auth.service';
-import { SquadOverviewDto } from '../../../../../core/interfaces/coach.interfaces';
+import { SquadOverviewDto, CoachTeamDto } from '../../../../../core/interfaces/coach.interfaces';
 import { PlayerReadinessDto } from '../../../../../core/interfaces/match-request.interfaces';
 
 @Component({
   selector: 'app-player-readiness',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './player-readiness.component.html',
   styleUrls: ['./player-readiness.component.css']
 })
@@ -23,9 +24,10 @@ export class PlayerReadinessComponent implements OnInit {
   private authService = inject(AuthService);
   private destroyRef = inject(DestroyRef);
 
-  // Resolved from auth context
+  // Team selection — fetched from API
+  teams = signal<CoachTeamDto[]>([]);
+  selectedTeamId = 0;
   coachId = 0;
-  teamId = 0; // TODO: resolve from coach profile API or route params
 
   squad = signal<SquadOverviewDto | null>(null);
   readinessData = signal<PlayerReadinessDto[]>([]);
@@ -67,13 +69,34 @@ export class PlayerReadinessComponent implements OnInit {
     if (user) {
       this.coachId = user.userId;
     }
+    // Fetch coach's assigned teams, then auto-load the first team's data
+    this.squadService.getCoachTeams()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (teams) => {
+          this.teams.set(teams);
+          if (teams.length > 0) {
+            this.selectedTeamId = teams[0].teamId;
+            this.loadData();
+          }
+        },
+        error: () => {
+          this.error.set('Failed to load your assigned teams.');
+        }
+      });
+  }
+
+  onTeamChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    this.selectedTeamId = +select.value;
+    this.readinessData.set([]);
     this.loadData();
   }
 
   loadData(): void {
     this.loading.set(true);
     this.error.set('');
-    this.squadService.getSquad(this.teamId, this.coachId)
+    this.squadService.getSquad(this.selectedTeamId)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (squadData) => {

@@ -2,6 +2,14 @@
   <div class="page-header">
     <h1 class="page-title">Player <span class="accent">Notes</span></h1>
     <p class="page-subtitle">Private tactical evaluations and feedback for your squad.</p>
+    <div class="team-selector" *ngIf="teams().length > 1">
+      <label for="teamSelect">Team:</label>
+      <select id="teamSelect" [value]="selectedTeamId" (change)="onTeamChange($event)">
+        <option *ngFor="let t of teams()" [value]="t.teamId">
+          {{ t.teamName }} ({{ t.ageGroupName }})
+        </option>
+      </select>
+    </div>
   </div>
 
   <div class="layout-grid">

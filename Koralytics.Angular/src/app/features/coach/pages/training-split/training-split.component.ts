@@ -1,10 +1,12 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CoachSquadService } from '../../../../../core/services/coach/coach-squad.service';
+import { DrillSessionService } from '../../../../../core/services/drill/drill-session.service';
 import { TrainingTeamSplitDto, SquadPlayerDto } from '../../../../../core/interfaces/coach.interfaces';
+import { DrillSessionDto, SessionFilterDto } from '../../../../../core/interfaces/drill-session.model';
 
 @Component({
   selector: 'app-training-split',
@@ -13,16 +15,15 @@ import { TrainingTeamSplitDto, SquadPlayerDto } from '../../../../../core/interf
   templateUrl: './training-split.component.html',
   styleUrls: ['./training-split.component.css']
 })
-export class TrainingSplitComponent {
+export class TrainingSplitComponent implements OnInit {
   private squadService = inject(CoachSquadService);
+  private sessionService = inject(DrillSessionService);
   private destroyRef = inject(DestroyRef);
 
-  // TODO: Replace with real session data from a session service API
-  availableSessions = [
-    { id: 101, title: 'Morning Tactics & Passing', date: new Date().toISOString() },
-    { id: 102, title: 'Afternoon Match Practice', date: new Date().toISOString() }
-  ];
-  selectedSessionId: number = this.availableSessions[0].id;
+  // Sessions loaded from API
+  availableSessions = signal<DrillSessionDto[]>([]);
+  selectedSessionId = 0;
+  loadingSessions = signal(false);
 
   splitResult = signal<TrainingTeamSplitDto | null>(null);
   loading = signal(false);
@@ -49,6 +50,30 @@ export class TrainingSplitComponent {
     const total = avgA + avgB;
     return (avgA / total) * 100;
   });
+
+  ngOnInit(): void {
+    this.loadSessions();
+  }
+
+  loadSessions(): void {
+    this.loadingSessions.set(true);
+    const filter: SessionFilterDto = { pageNumber: 1, pageSize: 50 };
+    this.sessionService.getCoachSessions(filter)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (sessions) => {
+          this.availableSessions.set(sessions);
+          if (sessions.length > 0) {
+            this.selectedSessionId = sessions[0].id;
+          }
+          this.loadingSessions.set(false);
+        },
+        error: () => {
+          this.error.set('Failed to load training sessions.');
+          this.loadingSessions.set(false);
+        }
+      });
+  }
 
   generateSplit(): void {
     if (!this.selectedSessionId) return;

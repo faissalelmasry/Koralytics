@@ -6,6 +6,7 @@ import {
   SquadOverviewDto,
   SquadComparisonDto,
   TrainingTeamSplitDto,
+  CoachTeamDto,
 } from '../../../core/interfaces/coach.interfaces';
 
 @Injectable({
@@ -26,8 +27,8 @@ export class CoachSquadService {
     return this.http.get<any>(`${this.baseUrl}/teams/${first}/squad`);
   }
 
-  getCoachTeams(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.baseUrl}/teams`);
+  getCoachTeams(): Observable<CoachTeamDto[]> {
+    return this.http.get<CoachTeamDto[]>(`${this.baseUrl}/teams`);
   }
 
   /** POST /api/Coach/sessions/{sessionId}/split */

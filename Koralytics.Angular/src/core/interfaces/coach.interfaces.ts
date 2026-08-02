@@ -81,3 +81,10 @@ export interface PagedResult<T> {
   hasPreviousPage: boolean;
   hasNextPage: boolean;
 }
+
+export interface CoachTeamDto {
+  teamId: number;
+  teamName: string;
+  ageGroupName: string;
+  academyId: number;
+}

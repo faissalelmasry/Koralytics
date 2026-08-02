@@ -1,5 +1,6 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { forkJoin, of } from 'rxjs';
@@ -11,13 +12,14 @@ import {
   SquadOverviewDto,
   SquadPlayerDto,
   SquadComparisonDto,
+  CoachTeamDto,
 } from '../../../../../core/interfaces/coach.interfaces';
 import { PlayerReadinessDto } from '../../../../../core/interfaces/match-request.interfaces';
 
 @Component({
   selector: 'app-coach-squad',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './coach-squad.component.html',
   styleUrls: ['./coach-squad.component.css'],
 })
@@ -33,9 +35,10 @@ export class CoachSquadComponent implements OnInit {
   loading = signal(false);
   error = signal('');
 
-  // Resolved from auth context
+  // Team selection — fetched from API
+  teams = signal<CoachTeamDto[]>([]);
+  selectedTeamId = 0;
   coachId = 0;
-  teamId = 0; // TODO: resolve from coach profile API or route params
 
   // Comparison selection
   selectedPlayerA: number | null = null;
@@ -47,13 +50,33 @@ export class CoachSquadComponent implements OnInit {
     if (user) {
       this.coachId = user.userId;
     }
+    // Fetch coach's assigned teams, then auto-load the first team's squad
+    this.squadService.getCoachTeams()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (teams) => {
+          this.teams.set(teams);
+          if (teams.length > 0) {
+            this.selectedTeamId = teams[0].teamId;
+            this.loadSquad();
+          }
+        },
+        error: () => {
+          this.error.set('Failed to load your assigned teams.');
+        }
+      });
+  }
+
+  onTeamChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    this.selectedTeamId = +select.value;
     this.loadSquad();
   }
 
   loadSquad(): void {
     this.loading.set(true);
     this.error.set('');
-    this.squadService.getSquad(this.teamId, this.coachId)
+    this.squadService.getSquad(this.selectedTeamId)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (data) => {
