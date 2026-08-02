@@ -169,6 +169,15 @@ namespace Koralytics.Infrastructure.Seeding
                     MaxAge = 17
                 };
                 context.AgeGroups.Add(ageGroup);
+
+                var firstTeamAgeGroup = new AgeGroup
+                {
+                    AcademyId = academy.Id,
+                    Name = "First Team",
+                    MinAge = 18,
+                    MaxAge = 40
+                };
+                context.AgeGroups.Add(firstTeamAgeGroup);
                 await context.SaveChangesAsync();
 
                 // --- Team ---
@@ -191,6 +200,15 @@ namespace Koralytics.Infrastructure.Seeding
                     MaxAge = 17
                 };
                 context.AgeGroups.Add(zamalekAgeGroup);
+
+                var zamalekFirstTeamAgeGroup = new AgeGroup
+                {
+                    AcademyId = zamalekAcademy.Id,
+                    Name = "First Team",
+                    MinAge = 18,
+                    MaxAge = 40
+                };
+                context.AgeGroups.Add(zamalekFirstTeamAgeGroup);
                 await context.SaveChangesAsync();
 
                 var zamalekLocation = new AcademyLocation

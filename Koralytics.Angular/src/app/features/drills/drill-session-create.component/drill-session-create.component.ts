@@ -11,6 +11,7 @@ import { SessionType, SessionStatus } from '../../../../core/enums/koralytics.en
 import { CustomSelect, SelectOption } from '../../../../shared/components/custom-select/custom-select';
 import { CustomButtonComponent } from '../../../../shared/components/custom-button/custom-button';
 import { CustomDatePicker } from '../../../../shared/components/custom-date-picker/custom-date-picker';
+import { NotificationService } from '@core/services/SignalR/notificationservice';
 
 @Component({
   selector: 'app-drill-session-create',
@@ -59,7 +60,8 @@ export class DrillSessionCreateComponent implements OnInit {
     private sessionService: DrillSessionService,
     private academyService: AcademyService,
     private router: Router,
-    private authService: AuthService // 🟢 Auth Service Injected
+    private authService: AuthService ,// 🟢 Auth Service Injected
+    private notificationService: NotificationService
   ) { }
 
   ngOnInit(): void {
@@ -184,6 +186,19 @@ export class DrillSessionCreateComponent implements OnInit {
     this.sessionService.createSession(payload).subscribe({
       next: (response) => {
         this.isSubmitting = false;
+        //notification
+        selectedPlayerIds.forEach(playerId => {
+          const playerMsg = "A new training session has been scheduled for your team.";
+          const parentMsg = "A new training session has been scheduled for your child's team.";
+
+          this.notificationService.notifyPlayerMilestone(playerId, playerMsg).subscribe({
+            error: (e) => console.error(`Failed to notify player ${playerId} for new session`, e)
+          });
+
+          this.notificationService.notifyPlayerParents(playerId, parentMsg).subscribe({
+            error: (e) => console.error(`Failed to notify parent for player ${playerId} new session`, e)
+          });
+        });
         this.router.navigate(['/drills/sessions']);
       },
       error: (err) => {

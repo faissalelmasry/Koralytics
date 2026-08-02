@@ -301,6 +301,104 @@ namespace Koralytics.Application.Services.Match
             };
         }
 
+        public async Task DeleteMatchEventAsync(int matchId, int eventId)
+        {
+            _logger.LogInformation("Disallowing/Deleting event {EventId} for match {MatchId}", eventId, matchId);
+
+            var match = await _unitOfWork.Repository<MatchEntity>()
+                .GetQueryable()
+                .FirstOrDefaultAsync(m => m.Id == matchId);
+
+            if (match is null)
+                throw new NotFoundException($"Match with Id {matchId} not found");
+
+            if (match.Status != DomainEnums.MatchStatus.Live)
+                throw new BadRequestException("Match events can only be disallowed while the match is live.");
+
+            var matchEvent = await _unitOfWork.Repository<MatchEventEntity>()
+                .GetQueryable()
+                .FirstOrDefaultAsync(e => e.Id == eventId && e.MatchId == matchId);
+
+            if (matchEvent is null)
+                throw new NotFoundException($"Event with Id {eventId} for match {matchId} not found");
+
+            bool isHomeSide = matchEvent.IsHomeSide ?? (matchEvent.TeamId == match.HomeTeamId);
+
+            if (IsGoalEvent(matchEvent.EventType))
+            {
+                if (isHomeSide)
+                    match.HomeScore = Math.Max(0, match.HomeScore - 1);
+                else
+                    match.AwayScore = Math.Max(0, match.AwayScore - 1);
+            }
+            else if (IsOwnGoalEvent(matchEvent.EventType))
+            {
+                if (isHomeSide)
+                    match.AwayScore = Math.Max(0, match.AwayScore - 1);
+                else
+                    match.HomeScore = Math.Max(0, match.HomeScore - 1);
+            }
+            else if (IsPenaltyShootoutEvent(matchEvent.EventType))
+            {
+                if (isHomeSide)
+                {
+                    if (match.HomePenaltyScore.HasValue && match.HomePenaltyScore > 0)
+                        match.HomePenaltyScore--;
+                }
+                else
+                {
+                    if (match.AwayPenaltyScore.HasValue && match.AwayPenaltyScore > 0)
+                        match.AwayPenaltyScore--;
+                }
+            }
+            else if (matchEvent.EventType == DomainEnums.MatchEventType.Substitution)
+            {
+                if (matchEvent.AssistPlayerId.HasValue)
+                {
+                    var subOutLineup = await _unitOfWork.Repository<MatchLineupEntity>()
+                        .GetQueryable()
+                        .FirstOrDefaultAsync(ml => ml.MatchId == matchId && ml.PlayerId == matchEvent.PlayerId);
+
+                    var subInLineup = await _unitOfWork.Repository<MatchLineupEntity>()
+                        .GetQueryable()
+                        .FirstOrDefaultAsync(ml => ml.MatchId == matchId && ml.PlayerId == matchEvent.AssistPlayerId.Value);
+
+                    if (subOutLineup != null && subInLineup != null)
+                    {
+                        var inPosition = subInLineup.PositionInMatch;
+                        subOutLineup.IsStarting = true;
+                        if (!string.IsNullOrEmpty(inPosition) && inPosition != "SUB")
+                            subOutLineup.PositionInMatch = inPosition;
+
+                        subInLineup.IsStarting = false;
+                        subInLineup.PositionInMatch = "SUB";
+                    }
+                }
+            }
+
+            _unitOfWork.Repository<MatchEventEntity>().SoftDelete(matchEvent);
+            await _unitOfWork.SaveChangesAsync();
+
+            _logger.LogInformation("Match event {EventId} deleted successfully for match {MatchId}", eventId, matchId);
+
+            await _liveUpdateService.BroadcastMatchScoreUpdateAsync(new LiveMatchScoreUpdateDto
+            {
+                MatchId = matchId,
+                HomeScore = match.HomeScore,
+                AwayScore = match.AwayScore,
+                HomePenaltyScore = match.HomePenaltyScore,
+                AwayPenaltyScore = match.AwayPenaltyScore,
+                Status = match.Status.ToString()
+            });
+
+            // Notify all viewers to remove this event from their timeline in real-time
+            await _liveUpdateService.BroadcastMatchEventDeletedAsync(new LiveMatchEventDeletedDto
+            {
+                MatchId = matchId,
+                EventId = eventId
+            });
+        }
+
         private static bool IsGoalEvent(DomainEnums.MatchEventType eventType)
         {
             return eventType == DomainEnums.MatchEventType.Goal;

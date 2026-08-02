@@ -6,7 +6,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CoachNoteService } from '../../../../../core/services/coach/coach-note.service';
 import { CoachSquadService } from '../../../../../core/services/coach/coach-squad.service';
 import { AuthService } from '../../../../../core/services/auth/auth.service';
-import { CoachNoteDto, SquadOverviewDto, WriteNoteDto } from '../../../../../core/interfaces/coach.interfaces';
+import { CoachNoteDto, SquadOverviewDto, WriteNoteDto, CoachTeamDto } from '../../../../../core/interfaces/coach.interfaces';
+import { NotificationService } from '@core/services/SignalR/notificationservice';
 
 @Component({
   selector: 'app-coach-notes',
@@ -20,22 +21,24 @@ export class CoachNotesComponent implements OnInit {
   private squadService = inject(CoachSquadService);
   private authService = inject(AuthService);
   private destroyRef = inject(DestroyRef);
+  private notificationService = inject(NotificationService);
 
-  // Resolved from auth context
+  // Team selection — fetched from API
+  teams = signal<CoachTeamDto[]>([]);
+  selectedTeamId = 0;
   coachId = 0;
-  teamId = 0; // TODO: resolve from coach profile API or route params
 
   squad = signal<SquadOverviewDto | null>(null);
   selectedPlayerId: number | null = null;
-  
+
   notes = signal<CoachNoteDto[]>([]);
   loadingNotes = signal(false);
-  
+
   // Pagination
   currentPage = 1;
   pageSize = 10;
   hasNextPage = false;
-  
+
   // New Note Form
   newNote: WriteNoteDto = {
     playerId: 0,
@@ -51,11 +54,33 @@ export class CoachNotesComponent implements OnInit {
     if (user) {
       this.coachId = user.userId;
     }
+    // Fetch coach's assigned teams, then auto-load the first team's squad
+    this.squadService.getCoachTeams()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (teams) => {
+          this.teams.set(teams);
+          if (teams.length > 0) {
+            this.selectedTeamId = teams[0].teamId;
+            this.loadSquad();
+          }
+        },
+        error: () => {
+          this.error.set('Failed to load your assigned teams.');
+        }
+      });
+  }
+
+  onTeamChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    this.selectedTeamId = +select.value;
+    this.selectedPlayerId = null;
+    this.notes.set([]);
     this.loadSquad();
   }
 
   loadSquad(): void {
-    this.squadService.getSquad(this.teamId, this.coachId)
+    this.squadService.getSquad(this.selectedTeamId)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (data) => {
@@ -80,7 +105,7 @@ export class CoachNotesComponent implements OnInit {
 
   loadNotes(): void {
     if (!this.selectedPlayerId) return;
-    
+
     this.loadingNotes.set(true);
     this.noteService.getPlayerNotes(this.selectedPlayerId, this.currentPage, this.pageSize)
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -114,22 +139,37 @@ export class CoachNotesComponent implements OnInit {
     this.submittingNote.set(true);
     this.error.set('');
     this.successMsg.set('');
-
+    const targetPlayerId = this.selectedPlayerId;
+    const isPublicNote = this.newNote.isPublic;
     this.noteService.writeNote(this.newNote)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (savedNote) => {
           // Prepend new note
           this.notes.update(existing => [savedNote, ...existing]);
+          //notification
+          if (isPublicNote && targetPlayerId) {
+            const playerMessage = "A new coach note has been added to your profile.";
+            const parentMessage = "A new coach note has been added to your child's profile.";
+
+            this.notificationService.notifyPlayerMilestone(targetPlayerId, playerMessage).subscribe({
+              error: (e) => console.error('Failed to notify player about the note', e)
+            });
+
+
+            this.notificationService.notifyPlayerParents(targetPlayerId, parentMessage).subscribe({
+              error: (e) => console.error('Failed to notify parent about the note', e)
+            });
+          }
           // Reset form
           this.newNote.note = '';
           this.newNote.isPublic = false;
           this.newNote.sessionId = undefined;
           this.newNote.matchId = undefined;
-          
+
           this.successMsg.set('Note saved successfully.');
           this.submittingNote.set(false);
-          
+
           setTimeout(() => this.successMsg.set(''), 3000);
         },
         error: (err) => {

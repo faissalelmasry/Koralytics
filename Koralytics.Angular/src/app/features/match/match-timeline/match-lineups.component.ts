@@ -1,5 +1,6 @@
 import { Component, Input, Output, EventEmitter, inject, ChangeDetectorRef, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { MiniPlayerCardComponent } from '../mini-player-card/mini-player-card.component';
 import { MiniPlayerCardModel } from '../../../../core/models/Player/mini-player-card-model';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state';
@@ -8,6 +9,9 @@ import { MatchService } from '../../../../core/services/match/match.service';
 import { ToastService } from '../../../../core/services/Toast/toast';
 import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 import { AuthService } from '../../../../core/services/auth/auth.service';
+
+import { CoachSquadService } from '../../../../core/services/coach/coach-squad.service';
+import { NotificationService } from '@core/services/SignalR/notificationservice';
 
 export type ActionTool = 'goal_solo' | 'goal_assist' | 'penalty_scored' | 'penalty_missed' | 'own_goal' | 'sub' | 'yellow' | 'red';
 
@@ -19,17 +23,24 @@ export type ActionTool = 'goal_solo' | 'goal_assist' | 'penalty_scored' | 'penal
   styleUrls: ['./match-lineups.component.css']
 })
 export class MatchLineupsComponent implements OnInit, OnChanges {
+  private router = inject(Router);
   private matchService = inject(MatchService);
   private toastService = inject(ToastService);
   private cdr = inject(ChangeDetectorRef);
   private authService = inject(AuthService);
+  private coachSquadService = inject(CoachSquadService);
+  private notificationService = inject(NotificationService);
 
   get currentUser() {
     return this.authService.getCurrentUserValue();
   }
 
+  get isCoach(): boolean {
+    return this.currentUser?.roles?.includes('Coach') ?? false;
+  }
+
   get isSuperAdmin(): boolean {
-    return this.currentUser?.roles?.includes('SuperAdmin') ?? false;
+    return this.currentUser?.roles?.includes('SystemAdmin') ?? false;
   }
 
   @Input({ required: true }) homeName!: string;
@@ -45,10 +56,13 @@ export class MatchLineupsComponent implements OnInit, OnChanges {
   @Input() canLogEvents: boolean = false;
   @Input() matchId!: number;
   @Input() matchInfo!: any;
+  @Input() isCoachForThisMatch: boolean = false;
 
   @Output() eventLogged = new EventEmitter<void>();
 
   selectedTeam: 'home' | 'away' = 'home';
+  coachTeamIds: Set<number> = new Set();
+  isCheckingCoachTeams = false;
 
   // Penalty Shootout Mode & Scores
   isShootoutMode = false;
@@ -74,13 +88,40 @@ export class MatchLineupsComponent implements OnInit, OnChanges {
       this.isShootoutMode;
   }
 
+  get isCurrentSelectedTeamCoachTeam(): boolean {
+    if (!this.isCoach) return false;
+    const currentTeamId = this.selectedTeam === 'home' ? this.matchInfo?.homeTeamId : this.matchInfo?.awayTeamId;
+    return this.coachTeamIds.has(currentTeamId);
+  }
+
   ngOnInit(): void {
     this.syncPenaltyScores();
+    this.checkCoachTeams();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['matchInfo']) {
       this.syncPenaltyScores();
+      this.checkCoachTeams();
+    }
+  }
+
+  private checkCoachTeams(): void {
+    if (this.isCoach && !this.isCheckingCoachTeams && this.coachTeamIds.size === 0) {
+      this.isCheckingCoachTeams = true;
+      this.coachSquadService.getCoachTeams().subscribe({
+        next: (res: any) => {
+          const teams = res?.data ?? res ?? [];
+          const ids = teams.map((t: any) => t.teamId ?? t.TeamId);
+          this.coachTeamIds = new Set(ids);
+          this.isCheckingCoachTeams = false;
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.isCheckingCoachTeams = false;
+          this.cdr.detectChanges();
+        }
+      });
     }
   }
 
@@ -110,6 +151,12 @@ export class MatchLineupsComponent implements OnInit, OnChanges {
   selectTeam(team: 'home' | 'away'): void {
     this.selectedTeam = team;
     this.firstPickedPlayer = null;
+  }
+
+  goToSubmitLineup(): void {
+    if (this.matchId) {
+      this.router.navigate(['/match', this.matchId, 'submit-lineup']);
+    }
   }
 
   get instructionText(): string {
@@ -210,7 +257,12 @@ export class MatchLineupsComponent implements OnInit, OnChanges {
   }
 
   onPlayerCardClick(player: MiniPlayerCardModel): void {
-    if (!this.canLogEvents) return;
+    if (!this.canLogEvents) {
+      if (player?.playerId) {
+        this.router.navigate(['/player/profile', player.playerId]);
+      }
+      return;
+    }
 
     if (this.activeTool === 'goal_solo') {
       this.executeLogEvent('Goal', player, null);
@@ -239,7 +291,12 @@ export class MatchLineupsComponent implements OnInit, OnChanges {
   }
 
   onBenchPlayerClick(benchPlayer: MiniPlayerCardModel): void {
-    if (!this.canLogEvents) return;
+    if (!this.canLogEvents) {
+      if (benchPlayer?.playerId) {
+        this.router.navigate(['/player/profile', benchPlayer.playerId]);
+      }
+      return;
+    }
 
     if (this.activeTool === 'sub') {
       if (this.firstPickedPlayer) {
@@ -281,7 +338,15 @@ export class MatchLineupsComponent implements OnInit, OnChanges {
 
     obs.subscribe({
       next: () => {
+        let eventTitle = "Match Update";
+        let eventMessage = `${player.fullName} has a new match event.`;
+        let eventCategory = "MatchEvent";
+
         if (eventType === 'PenaltyScored') {
+          eventTitle = "Penalty Scored! ⚽";
+          eventMessage = `${player.fullName} scored a penalty!`;
+          eventCategory = "GoalScored";
+          
           this.hasShootoutStarted = true;
           if (this.isShootoutMode) {
             if (isHome) {
@@ -297,21 +362,45 @@ export class MatchLineupsComponent implements OnInit, OnChanges {
             this.toastService.show(`Penalty Goal by ${player.fullName}!`, 'success');
           }
         } else if (eventType === 'PenaltyMissed') {
+          eventTitle = "Penalty Missed ❌";
+          eventMessage = `${player.fullName} missed a penalty.`;
+          eventCategory = "PenaltyMissed";
+
           if (this.isShootoutMode) {
             this.hasShootoutStarted = true;
           }
           this.toastService.show(`Penalty Missed by ${player.fullName}`, 'info');
         } else if (eventType === 'Goal') {
+          eventTitle = "GOAAAL! ⚽";
+          eventMessage = secondaryPlayer 
+            ? `${player.fullName} scored a goal! Assist by ${secondaryPlayer.fullName}.` 
+            : `${player.fullName} scored a solo goal!`;
+          eventCategory = "GoalScored";
+
           if (isHome) this.matchInfo.homeScore++; else this.matchInfo.awayScore++;
           this.toastService.show(`GOAL by ${player.fullName}!`, 'success');
         } else if (eventType === 'OwnGoal') {
+          eventTitle = "Own Goal 🥅";
+          eventMessage = `${player.fullName} scored an own goal.`;
+          eventCategory = "OwnGoal";
+
           if (isHome) this.matchInfo.awayScore++; else this.matchInfo.homeScore++;
           this.toastService.show(`Own Goal by ${player.fullName}!`, 'info');
         } else if (eventType === 'YellowCard') {
+          eventTitle = "Yellow Card 🟨";
+          eventMessage = `${player.fullName} received a yellow card.`;
+          eventCategory = "YellowCard";
           this.toastService.show(`Yellow Card: ${player.fullName}`, 'info');
         } else if (eventType === 'RedCard') {
+          eventTitle = "Red Card 🟥";
+          eventMessage = `${player.fullName} was sent off with a red card.`;
+          eventCategory = "PlayerSentOff";
           this.toastService.show(`Red Card: ${player.fullName}`, 'error');
         } else if (eventType === 'Substitution' && secondaryPlayer) {
+          eventTitle = "Substitution 🔄";
+          eventMessage = `Substitution: ${player.fullName} off, ${secondaryPlayer.fullName} on.`;
+          eventCategory = "Substitution";
+
           const startersMatrix = isHome ? this.homeStarters : this.awayStarters;
           const benchList = isHome ? this.homeBench : this.awayBench;
 
@@ -340,6 +429,12 @@ export class MatchLineupsComponent implements OnInit, OnChanges {
 
           this.toastService.show(`Sub: OUT ${player.fullName} ➔ IN ${secondaryPlayer.fullName}`, 'success');
         }
+       this.notificationService.triggerMatchEventNotification(
+          this.matchId,
+          eventTitle,
+          eventMessage,
+          eventCategory
+        ).subscribe({ error: (e) => console.error('Failed to dispatch event notification', e) });
 
         this.eventLogged.emit();
         this.cdr.detectChanges();

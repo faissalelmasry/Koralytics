@@ -1,56 +1,153 @@
 <app-navbar></app-navbar>
+
 <div class="notifications-page">
 
-  <div class="notif-header">
-    <h1>Notifications</h1>
-    @if (unreadCount() > 0) {
-      <span class="unread-pill">{{ unreadCount() }} unread</span>
-    }
-  </div>
-
+  <!-- Loading State -->
   @if (isLoading()) {
     <div class="loading-state">
-      <p>Loading notifications...</p>
+      <app-loading-spinner size="lg"></app-loading-spinner>
+      <p>Loading notifications…</p>
     </div>
   }
-  @else if (notifications().length === 0) {
-    <div class="empty-state">
-      <div class="empty-icon">✓</div>
-      <p>You're all caught up -- no notifications yet.</p>
+
+  <!-- True Empty State: no notifications at all -->
+  @else if (allNotifications().length === 0) {
+    <div class="empty-state" scrollReveal direction="bottom" [delay]="0">
+      <div class="empty-icon-wrap">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+        </svg>
+      </div>
+      <h2 class="empty-title">No notifications yet</h2>
+      <p class="empty-sub">You'll see academy announcements, milestones, and alerts here as they come in.</p>
+      <app-button variant="slate" [loading]="isLoading()" (click)="loadMyNotifications()">
+        Refresh
+      </app-button>
     </div>
   }
+
   @else {
-    <div class="notif-list-panel">
-      @for (notif of notifications(); track notif.id) {
-        <div class="notif-item" [class.unread]="!notif.isRead">
-          <span class="notif-dot"></span>
-          <div class="notif-body">
-            @if (notif.title) {
-              <p class="notif-title">{{ notif.title }}</p>
-            }
-            <p class="notif-message">{{ notif.content }}</p>
-            <span class="notif-time">{{ notif.sentAt | date: 'MMM d, y, h:mm a' }}</span>
-          </div>
-          @if (!notif.isRead) {
-            <button class="mark-read-btn" (click)="markAsRead(notif.id)">
-              Mark read
-            </button>
+    <!-- Page Header -->
+    <div class="page-toolbar" scrollReveal direction="bottom" [delay]="0">
+      <div class="toolbar-title-group">
+        <h1 class="page-title">Notifications</h1>
+        <p class="page-subtitle">
+          @if (unreadCount() > 0) {
+            {{ unreadCount() }} unread
+          } @else {
+            You're all caught up
           }
+        </p>
+      </div>
+
+      <div class="toolbar-actions">
+        <div class="segmented-control" role="tablist" aria-label="Filter notifications">
+          <button
+            type="button"
+            role="tab"
+            class="segment"
+            [class.segment-active]="!showUnreadOnly()"
+            [attr.aria-selected]="!showUnreadOnly()"
+            (click)="showUnreadOnly() && toggleUnreadFilter()">
+            All
+            <span class="segment-count">{{ allNotifications().length }}</span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            class="segment"
+            [class.segment-active]="showUnreadOnly()"
+            [attr.aria-selected]="showUnreadOnly()"
+            (click)="!showUnreadOnly() && toggleUnreadFilter()">
+            Unread
+            <span class="segment-count">{{ unreadCount() }}</span>
+          </button>
         </div>
-      }
+
+        @if (unreadCount() > 0) {
+          <button type="button" class="text-action" (click)="markAllAsRead()">
+            Mark all as read
+          </button>
+        }
+      </div>
     </div>
 
-    @if (hasMore()) {
-      <button class="load-more-btn" [disabled]="isLoadingMore()" (click)="loadMore()">
-        @if (isLoadingMore()) {
-          <span class="spinner-dot"></span>
-          <span>Loading more...</span>
+    <!-- Filtered-empty state: unread filter on, nothing matches -->
+    @if (notifications().length === 0) {
+      <div class="empty-state compact" scrollReveal direction="bottom" [delay]="40">
+        <div class="empty-icon-wrap success">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </div>
+        <h2 class="empty-title">Nothing unread</h2>
+        <p class="empty-sub">You've caught up on everything.</p>
+      </div>
+    }
+    @else {
+      <!-- Notification List -->
+      <div class="notification-list" scrollReveal direction="bottom" [delay]="40">
+        @for (notif of notifications(); track notif.id; let i = $index) {
+          <div
+            class="notification-row"
+            [class.is-unread]="!notif.isRead"
+            scrollReveal direction="bottom"
+            [delay]="(i % 10) * 20">
+
+            <span class="row-accent" [style.--type-color]="getNotifVisual(notif.type).color"></span>
+
+            <div class="row-icon" [style.--type-color]="getNotifVisual(notif.type).color">
+              @switch (getNotifVisual(notif.type).icon) {
+                @case ('megaphone') {
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
+                }
+                @case ('trophy') {
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0V4Z"/><path d="M17 5a3 3 0 0 1 3 3c0 2-2 3-3 3"/><path d="M7 5a3 3 0 0 0-3 3c0 2 2 3 3 3"/></svg>
+                }
+                @case ('clock') {
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg>
+                }
+                @case ('eye') {
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                }
+                @default {
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                }
+              }
+            </div>
+
+            <div class="row-body">
+              <div class="row-top-line">
+                <span class="row-title">{{ notif.title || 'System Alert' }}</span>
+                <span class="row-time" [title]="notif.sentAt | date: 'MMM d, y, h:mm a'">{{ formatRelativeTime(notif.sentAt) }}</span>
+              </div>
+              <p class="row-desc">{{ notif.content }}</p>
+            </div>
+
+            <div class="row-action">
+              @if (!notif.isRead) {
+                <button type="button" class="mark-read-btn" (click)="markAsRead(notif.id)" aria-label="Mark as read" title="Mark as read">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </button>
+              }
+            </div>
+          </div>
         }
-        @else {
-          <span>Load More</span>
-        }
-      </button>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination-row" scrollReveal direction="bottom" [delay]="150">
+        <app-pagination
+          [totalItems]="totalCount()"
+          [pageSize]="pageSizeValue"
+          [currentPage]="pageNumber()"
+          (pageChange)="goToPage($event)">
+        </app-pagination>
+      </div>
     }
   }
 
 </div>
+
+<app-footer scrollReveal direction="bottom" [delay]="200"></app-footer>

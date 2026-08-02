@@ -140,15 +140,21 @@ namespace Koralytics.Application.Services.Auth.Register
             _logger.LogInformation("Starting parent registration for email: {email}", request.Email);
             await ValidateRegistrationRequestAsync(request);
 
-            var child = await _unitOfWork.Repository<Domain.Entities.Player.Player>().GetByIdAsync(request.ChildPlayerId);
-            if (child is null) throw new NotFoundException("Child player not found.");
+            if (request.ChildPlayerId.HasValue && request.ChildPlayerId.Value > 0)
+            {
+                var child = await _unitOfWork.Repository<Domain.Entities.Player.Player>().GetByIdAsync(request.ChildPlayerId.Value);
+                if (child is null) throw new NotFoundException("Child player not found.");
+            }
 
             var parent = _mapper.Map<ParentEntity>(request);
 
             await ExecuteRegistrationInTransactionAsync(async () =>
             {
                 await CreateUserWithRoleAsync(parent, request.Password, AuthConstants.Roles.Parent);
-                await CreateParentSpecificDataAsync(parent.Id, request.ChildPlayerId);
+                if (request.ChildPlayerId.HasValue && request.ChildPlayerId.Value > 0)
+                {
+                    await CreateParentSpecificDataAsync(parent.Id, request.ChildPlayerId.Value);
+                }
                 await _unitOfWork.SaveChangesAsync();
                 return true;
             });
@@ -213,15 +219,21 @@ namespace Koralytics.Application.Services.Auth.Register
 
         public async Task CompleteProfileAsParentAsync(User existingUser, CompleteProfileAsParentDto profileData)
         {
-            var child = await _unitOfWork.Repository<Domain.Entities.Player.Player>().GetByIdAsync(profileData.ChildPlayerId);
-            if (child is null) throw new NotFoundException("Child player not found.");
+            if (profileData.ChildPlayerId.HasValue && profileData.ChildPlayerId.Value > 0)
+            {
+                var child = await _unitOfWork.Repository<Domain.Entities.Player.Player>().GetByIdAsync(profileData.ChildPlayerId.Value);
+                if (child is null) throw new NotFoundException("Child player not found.");
+            }
 
             await ExecuteRegistrationInTransactionAsync(async () =>
             {
                 await ReplacePendingProfileRoleAsync(existingUser, AuthConstants.Roles.Parent);
 
                 await _unitOfWork.ExecuteSqlRawAsync("INSERT INTO Parents (Id) VALUES ({0})", existingUser.Id);
-                await CreateParentSpecificDataAsync(existingUser.Id, profileData.ChildPlayerId);
+                if (profileData.ChildPlayerId.HasValue && profileData.ChildPlayerId.Value > 0)
+                {
+                    await CreateParentSpecificDataAsync(existingUser.Id, profileData.ChildPlayerId.Value);
+                }
 
                 await _unitOfWork.SaveChangesAsync();
                 return true;

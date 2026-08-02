@@ -17,40 +17,48 @@ namespace Koralytics.API.Controllers
         private readonly IAnnouncementNotificationService _announcementService;
         private readonly IPlayerNotificationService _playerNotificationService;
         private readonly IScouterNotificationService _scouterNotificationService;
+        private readonly IMatchNotificationService _matchNotificationService;
         private readonly IRealTimeBridge _realTimeBridge; // Injected to manage Redis operations directly
 
         public NotificationController(
-            IAnnouncementNotificationService announcementService,
-            IPlayerNotificationService playerNotificationService,
-            IScouterNotificationService scouterNotificationService,
-            IRealTimeBridge realTimeBridge)
+           IAnnouncementNotificationService announcementService,
+           IPlayerNotificationService playerNotificationService,
+           IScouterNotificationService scouterNotificationService,
+           IMatchNotificationService matchNotificationService,
+           IRealTimeBridge realTimeBridge)
         {
             _announcementService = announcementService;
             _playerNotificationService = playerNotificationService;
             _scouterNotificationService = scouterNotificationService;
+            _matchNotificationService = matchNotificationService;
             _realTimeBridge = realTimeBridge;
         }
 
-      
+
         private bool TryGetRequester(out int requesterId, out string requesterRole, out IActionResult? errorResult)
         {
             requesterId = 0;
             requesterRole = string.Empty;
             errorResult = null;
 
-            var idClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var roleClaim = User.FindFirstValue(ClaimTypes.Role);
+           
+            var idClaim = User.FindFirst("id")?.Value
+                       ?? User.FindFirst("sub")?.Value
+                       ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            if (string.IsNullOrEmpty(idClaim) || !int.TryParse(idClaim, out requesterId) || string.IsNullOrEmpty(roleClaim))
+            
+            var roleClaim = User.FindFirst("role")?.Value
+                         ?? User.FindFirstValue(ClaimTypes.Role);
+
+            if (string.IsNullOrEmpty(idClaim) || !int.TryParse(idClaim, out requesterId))
             {
                 errorResult = Unauthorized(new { message = "Unable to resolve caller identity from the provided credentials." });
                 return false;
             }
 
-            requesterRole = roleClaim;
+            requesterRole = roleClaim ?? string.Empty;
             return true;
         }
-
         #region 1. User Notification Management (Active Feed & Reading Status)
 
         /// <summary>
@@ -219,5 +227,54 @@ namespace Koralytics.API.Controllers
         }
 
         #endregion
+       
+        /// <summary>
+        /// Notifies the academy administration that a player has successfully completed a subscription payment.
+        /// </summary>
+        [HttpPost("players/{playerId:int}/academies/{academyId:int}/subscription-paid")]
+        [Authorize(Roles = "SystemAdmin,Parent,Player")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> TriggerAcademySubscriptionPaidNotification([FromRoute] int playerId, [FromRoute] int academyId)
+        {
+            await _playerNotificationService.NotifyAcademySubscriptionPaidAsync(playerId, academyId, HttpContext.RequestAborted);
+            return Ok(new { message = "Academy administration notified of successful payment." });
+        }
+
+
+        #region 4. Match & Live Events
+
+        /// <summary>
+        /// Broadcasts live match events (kickoff, goals, full-time) to all involved players, parents, and academy admins.
+        /// </summary>
+        /// <param name="matchId">The target match identifier.</param>
+        /// <param name="eventTitle">The headline for the notification (e.g. "Goal Scored!").</param>
+        /// <param name="eventMessage">The detailed body of the match event.</param>
+        /// <param name="eventType">Internal event classification string.</param>
+        [HttpPost("matches/{matchId:int}/events")]
+        [Authorize(Roles = "Coach,SystemAdmin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> TriggerMatchEventNotification(
+            [FromRoute] int matchId,
+            [FromQuery] string eventTitle,
+            [FromQuery] string eventMessage,
+            [FromQuery] string eventType)
+        {
+            await _matchNotificationService.NotifyMatchEventAsync(matchId, eventTitle, eventMessage, eventType, HttpContext.RequestAborted);
+            return Ok(new { message = "Match event successfully broadcasted to all related participants." });
+        }
+
+        #endregion
+        [HttpPost("academy/{academyId}")]
+        public async Task<IActionResult> NotifyAcademy(
+    [FromRoute] int academyId,
+    [FromQuery] string message)
+        {
+            await _matchNotificationService.NotifyAcademyAsync(academyId, message, HttpContext.RequestAborted);
+
+            return Ok(new { message = "Academy notification successfully broadcasted." });
+        }
     }
 }

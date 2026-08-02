@@ -74,6 +74,7 @@ namespace Koralytics.Infrastructure.Context
         
         public DbSet<Parent> Parents { get; set; }
         public DbSet<ParentPlayer> ParentPlayers { get; set; }
+        public DbSet<ParentPlayerJoinRequest> ParentPlayerJoinRequests { get; set; }
         #endregion
 
         #region Bishoy's Entities (Drills & Platform Settings)
@@ -124,22 +125,6 @@ namespace Koralytics.Infrastructure.Context
             builder.Entity<Scouter>().ToTable("Scouters");
             builder.Entity<Parent>().ToTable("Parents");
             builder.Entity<AcademyAdmin>().ToTable("AcademyAdmins");
-
-            // Explicit ParentPlayer Junction Table Mapping to Prevent Shadow Key Warnings
-            builder.Entity<ParentPlayer>(entity =>
-            {
-                entity.HasKey(pp => new { pp.ParentId, pp.PlayerId });
-
-                entity.HasOne(pp => pp.Parent)
-                      .WithMany()
-                      .HasForeignKey(pp => pp.ParentId)
-                      .OnDelete(DeleteBehavior.Restrict);
-
-                entity.HasOne(pp => pp.Player)
-                      .WithMany(p => p.ParentPlayers)
-                      .HasForeignKey(pp => pp.PlayerId)
-                      .OnDelete(DeleteBehavior.Restrict);
-            });
 
             // The DrillSessions.Status column is nvarchar in the DB (storing "0", "1", etc.)
             // This converter ensures EF Core queries use the integer STRING ("0") not the enum name ("Scheduled").

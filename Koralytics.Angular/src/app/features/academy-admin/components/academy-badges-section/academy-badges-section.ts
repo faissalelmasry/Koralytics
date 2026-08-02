@@ -49,13 +49,13 @@ export class AcademyBadgesSectionComponent implements OnInit, OnChanges {
     });
   }
 
-  getBadgeIcon(type: any): string {
+  getBadgeTypeKey(type: any): string {
     const t = Number(type) || type;
     switch (t) {
-      case AcademyBadgeType.Verified: case 'Verified': return '✓';
-      case AcademyBadgeType.TopPerformer: case 'TopPerformer': return '⭐';
-      case AcademyBadgeType.Premium: case 'Premium': return '👑';
-      default: return '🏅';
+      case AcademyBadgeType.Verified: case 'Verified': case 1: return 'Verified';
+      case AcademyBadgeType.TopPerformer: case 'TopPerformer': case 2: return 'TopPerformer';
+      case AcademyBadgeType.Premium: case 'Premium': case 3: return 'Premium';
+      default: return 'Default';
     }
   }
 

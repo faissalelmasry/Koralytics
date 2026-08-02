@@ -66,6 +66,7 @@ export class SignalRService {
         this.scheduleRetry();
       }
     });
+    
 
     this.registerServerEvents();
   }
@@ -137,6 +138,10 @@ export class SignalRService {
       this.triggerToastNotification(data);
       this.notification$.next(data);
     });
+    this.hubConnection.on('ReceiveMatchEventNotification', (data: CachedNotification) => {
+      this.triggerToastNotification(data);
+      this.notification$.next(data);
+    });
   }
 
   private triggerToastNotification(notification: CachedNotification): void {
@@ -144,23 +149,27 @@ export class SignalRService {
     this.toastService.show(fullMessage, this.resolveToastType(notification.type));
   }
 
-  private resolveToastType(type: string): ToastType {
+ private resolveToastType(type: string): ToastType {
     switch (type) {
       case 'AcademyAnnouncement':
         return 'info';
       case 'PlayerMilestone':
+      case 'MatchStarted':
+      case 'GoalScored':
         return 'success';
       case 'SubscriptionGrace':
-        return 'warning';
       case 'ParentNotification':
         return 'warning';
       case 'ScouterNotification':
+      case 'MatchEnded':
         return 'info';
+      case 'PlayerSentOff':
+      case 'PenaltyMissed':
+        return 'error';
       default:
         return 'info';
     }
   }
-
   public stopConnection(): void {
     this.manuallyStopped = true;
 

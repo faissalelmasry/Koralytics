@@ -1,6 +1,7 @@
 import { MiniPlayerCardModel } from '../../../../core/models/Player/mini-player-card-model';
 
 export interface TimelineEvent {
+  id?: number;
   minute: number;
   eventType: string;
   eventSubtext: string;

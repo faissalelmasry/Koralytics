@@ -12,6 +12,7 @@ namespace Koralytics.Application.Services.Storage
         Task<bool> PinHighlightAsync(int highlightId, int playerId);
         Task<IEnumerable<PlayerHighlightDto>> GetHighlightsAsync(int playerId);       
         Task<string> UploadImageAsync(IFormFile file, string folderName = "images");
+        Task<bool> DeleteImageAsync(string imageUrl);
         Task<bool> DeleteFileAsync(string fileUrl);
     }
 }

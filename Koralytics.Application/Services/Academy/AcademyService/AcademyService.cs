@@ -4,12 +4,15 @@ using Koralytics.Application.DTOs.Academies;
 using Koralytics.Application.DTOs.Academy;
 using Koralytics.Application.Interfaces;
 using Koralytics.Application.Validators.Academies;
+using Koralytics.Domain.Entities;
 using Koralytics.Domain.Entities.Academy;
 using Koralytics.Domain.Entities.Coach;
 using Koralytics.Domain.Entities.Player;
 using Koralytics.Domain.Entities.SystemAdmin;
 using Koralytics.Domain.Enums;
 using Koralytics.Domain.Exceptions;
+using Koralytics.Application.Services.Storage;
+using Microsoft.AspNetCore.Http;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -21,15 +24,18 @@ namespace Koralytics.Application.Services.Academy.AcademyService
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly ILogger<AcademyService> _logger;
+        private readonly IStorageService _storageService;
 
         public AcademyService(
             IUnitOfWork unitOfWork,
             IMapper mapper,
-            ILogger<AcademyService> logger)
+            ILogger<AcademyService> logger,
+            IStorageService storageService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _logger = logger;
+            _storageService = storageService;
         }
 
         // ──────────────────────────────────────────────────────────────────────
@@ -183,6 +189,43 @@ namespace Koralytics.Application.Services.Academy.AcademyService
                 .FirstOrDefaultAsync(a => a.Id == academyId);
 
             return _mapper.Map<AcademyResponseDto>(updated!);
+        }
+
+        // ──────────────────────────────────────────────────────────────────────
+        // UpdateAcademyLogoAsync
+        // ──────────────────────────────────────────────────────────────────────
+        public async Task<string> UpdateAcademyLogoAsync(int academyId, IFormFile image, int performedByUserId)
+        {
+            _logger.LogInformation("User {UserId} updating logo for academy {AcademyId}", performedByUserId, academyId);
+
+            var academy = await _unitOfWork.Repository<Domain.Entities.Academy.Academy>()
+                .FindAsync(a => a.Id == academyId);
+
+            if (academy is null)
+                throw new NotFoundException($"Academy with Id {academyId} not found.");
+
+            if (!string.IsNullOrEmpty(academy.LogoUrl))
+            {
+                try
+                {
+                    await _storageService.DeleteFileAsync(academy.LogoUrl);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to delete old academy logo {Url} for academy Id {AcademyId}", academy.LogoUrl, academyId);
+                }
+            }
+
+            var newImageUrl = await _storageService.UploadImageAsync(image, "academy-logos");
+            academy.LogoUrl = newImageUrl;
+            academy.UpdatedById = performedByUserId;
+            academy.UpdatedAt = DateTime.UtcNow;
+
+            await _unitOfWork.SaveChangesAsync();
+
+            _logger.LogInformation("Academy {AcademyId} logo updated successfully.", academyId);
+
+            return newImageUrl;
         }
 
         // ──────────────────────────────────────────────────────────────────────
@@ -621,6 +664,8 @@ namespace Koralytics.Application.Services.Academy.AcademyService
 
             await _unitOfWork.Repository<Domain.Entities.Player.PlayerAcademy>().AddAsync(playerAcademy);
 
+            var academyPlan = await _unitOfWork.Repository<AcademyPlan>().FindAsNoTrackingAsync(ap => ap.AcademyId == academyId && ap.Name == "Standard Monthly Plan");
+
             // Create an unpaid subscription for the player at this academy
             var subscription = new PlayerSubscription
             {
@@ -628,7 +673,9 @@ namespace Koralytics.Application.Services.Academy.AcademyService
                 AcademyId = academyId,
                 PaidByUserId = playerUserId,
                 Status = SubscriptionStatus.Unpaid,
-                CreatedById = performedByUserId
+                CreatedById = performedByUserId,
+                Amount = academyPlan?.Amount ?? 1500m,
+                DueDate = DateTime.UtcNow.AddMonths((int)(academyPlan?.Duration??SubscriptionDuration.OneMonth)),
             };
 
             await _unitOfWork.Repository<PlayerSubscription>().AddAsync(subscription);
@@ -679,7 +726,9 @@ namespace Koralytics.Application.Services.Academy.AcademyService
             if (!string.IsNullOrWhiteSpace(name))
             {
                 var lowerName = name.ToLower();
-                query = query.Where(p => (p.FirstName + " " + p.LastName).ToLower().Contains(lowerName));
+                query = query.Where(p => (p.FirstName + " " + p.LastName).ToLower().Contains(lowerName)
+                                      || (p.UserName != null && p.UserName.ToLower().Contains(lowerName))
+                                      || (p.Email != null && p.Email.ToLower().Contains(lowerName)));
             }
 
             var players = await query.ToListAsync();
@@ -688,7 +737,8 @@ namespace Koralytics.Application.Services.Academy.AcademyService
                 PlayerId = p.Id,
                 FirstName = p.FirstName,
                 LastName = p.LastName,
-                ImageUrl = p.ProfileImageUrl
+                ImageUrl = p.ProfileImageUrl,
+                Username = p.UserName
             });
         }
 
@@ -702,7 +752,9 @@ namespace Koralytics.Application.Services.Academy.AcademyService
             if (!string.IsNullOrWhiteSpace(name))
             {
                 var lowerName = name.ToLower();
-                query = query.Where(c => (c.FirstName + " " + c.LastName).ToLower().Contains(lowerName));
+                query = query.Where(c => (c.FirstName + " " + c.LastName).ToLower().Contains(lowerName)
+                                      || (c.UserName != null && c.UserName.ToLower().Contains(lowerName))
+                                      || (c.Email != null && c.Email.ToLower().Contains(lowerName)));
             }
 
             var coaches = await query.ToListAsync();
@@ -711,7 +763,8 @@ namespace Koralytics.Application.Services.Academy.AcademyService
                 CoachId = c.Id,
                 FirstName = c.FirstName,
                 LastName = c.LastName,
-                ImageUrl = c.ProfileImageUrl
+                ImageUrl = c.ProfileImageUrl,
+                Username = c.UserName
             });
         }
 
@@ -725,7 +778,9 @@ namespace Koralytics.Application.Services.Academy.AcademyService
             if (!string.IsNullOrWhiteSpace(name))
             {
                 var lowerName = name.ToLower();
-                query = query.Where(a => (a.FirstName + " " + a.LastName).ToLower().Contains(lowerName));
+                query = query.Where(a => (a.FirstName + " " + a.LastName).ToLower().Contains(lowerName)
+                                      || (a.UserName != null && a.UserName.ToLower().Contains(lowerName))
+                                      || (a.Email != null && a.Email.ToLower().Contains(lowerName)));
             }
 
             var admins = await query.ToListAsync();
@@ -742,7 +797,8 @@ namespace Koralytics.Application.Services.Academy.AcademyService
                 AdminId = a.Id,
                 FirstName = a.FirstName,
                 LastName = a.LastName,
-                ImageUrl = a.ProfileImageUrl
+                ImageUrl = a.ProfileImageUrl,
+                Username = a.UserName
             });
         }
 
@@ -1041,7 +1097,9 @@ namespace Koralytics.Application.Services.Academy.AcademyService
                 AdminFullName = (r.Admin.FirstName + " " + r.Admin.LastName).Trim(),
                 Status = r.Status,
                 RequestedAt = r.RequestedAt,
-                RespondedAt = r.RespondedAt
+                RespondedAt = r.RespondedAt,
+                Username = r.Admin.UserName,
+                ImageUrl = r.Admin.ProfileImageUrl
             });
         }
 
@@ -1090,7 +1148,9 @@ namespace Koralytics.Application.Services.Academy.AcademyService
                 RequestedAt = r.RequestedAt,
                 RespondedAt = r.RespondedAt,
                 RequestedById = r.Academy.AdminUserId,
-                RequestedByFullName = r.Academy.Admin != null ? (r.Academy.Admin.FirstName + " " + r.Academy.Admin.LastName).Trim() : ""
+                RequestedByFullName = r.Academy.Admin != null ? (r.Academy.Admin.FirstName + " " + r.Academy.Admin.LastName).Trim() : "",
+                Username = r.Admin.UserName,
+                ImageUrl = r.Admin.ProfileImageUrl
             });
         }
 
@@ -1111,6 +1171,7 @@ namespace Koralytics.Application.Services.Academy.AcademyService
                                   pa.Player.AvailabilityStatus == Domain.Enums.AvailabilityStatus.Injured ? "Injured" :
                                   pa.Player.AvailabilityStatus == Domain.Enums.AvailabilityStatus.Resting ? "Resting" :
                                   pa.Player.AvailabilityStatus == Domain.Enums.AvailabilityStatus.Suspended ? "Suspended" : "Available",
+                    ProfileImageUrl = pa.Player.ProfileImageUrl,
                     JoinedAt = pa.JoinedAt
                 });
 
@@ -1125,6 +1186,7 @@ namespace Koralytics.Application.Services.Academy.AcademyService
                     Role = "Coach",
                     Position = null,
                     SquadStatus = null,
+                    ProfileImageUrl = ca.Coach.ProfileImageUrl,
                     JoinedAt = ca.JoinedAt
                 });
 
@@ -1163,6 +1225,7 @@ namespace Koralytics.Application.Services.Academy.AcademyService
                     UserId = a.Id,
                     FullName = (a.FirstName + " " + a.LastName).Trim(),
                     Email = a.Email ?? string.Empty,
+                    ProfileImageUrl = a.ProfileImageUrl,
                     IsOwner = a.Id == ownerId
                 });
 

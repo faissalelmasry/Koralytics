@@ -67,13 +67,21 @@ namespace Koralytics.Application.Mappings.Academies
                 .ForMember(dest => dest.AcademyName,
                     opt => opt.MapFrom(src => src.Academy != null ? src.Academy.Name : string.Empty))
                 .ForMember(dest => dest.PlayerName,
-                    opt => opt.MapFrom(src => src.Player != null ? $"{src.Player.FirstName} {src.Player.LastName}" : string.Empty));
+                    opt => opt.MapFrom(src => src.Player != null ? $"{src.Player.FirstName} {src.Player.LastName}" : string.Empty))
+                .ForMember(dest => dest.Username,
+                    opt => opt.MapFrom(src => src.Player != null ? src.Player.UserName : null))
+                .ForMember(dest => dest.ImageUrl,
+                    opt => opt.MapFrom(src => src.Player != null ? src.Player.ProfileImageUrl : null));
 
             CreateMap<AcademyCoachJoinRequest, AcademyCoachJoinRequestResponseDto>()
                 .ForMember(dest => dest.AcademyName,
                     opt => opt.MapFrom(src => src.Academy != null ? src.Academy.Name : string.Empty))
                 .ForMember(dest => dest.CoachName,
-                    opt => opt.MapFrom(src => src.Coach != null ? $"{src.Coach.FirstName} {src.Coach.LastName}" : string.Empty));
+                    opt => opt.MapFrom(src => src.Coach != null ? $"{src.Coach.FirstName} {src.Coach.LastName}" : string.Empty))
+                .ForMember(dest => dest.Username,
+                    opt => opt.MapFrom(src => src.Coach != null ? src.Coach.UserName : null))
+                .ForMember(dest => dest.ImageUrl,
+                    opt => opt.MapFrom(src => src.Coach != null ? src.Coach.ProfileImageUrl : null));
         }
     }
 }

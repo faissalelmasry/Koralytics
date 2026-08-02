@@ -77,13 +77,15 @@ export interface RegisterPlayerRequest extends BaseRegistrationRequest {
   nationality?: string;
   preferredFoot: string;
   weakFootRating: number;
+  heightCm?: number;
+  weightKg?: number;
   playStyleTag?: string;
   archetypePlayerName?: string;
   archetypeText?: string;
 }
 
 export interface RegisterParentRequest extends BaseRegistrationRequest {
-  childPlayerId: number;
+  childPlayerId?: number | null;
 }
 
 export interface RegisterCoachRequest extends BaseRegistrationRequest {}
@@ -101,10 +103,12 @@ export interface CompleteProfileAsPlayer extends CompleteProfileBase {
   nationality?: string;
   preferredFoot?: string;
   weakFootRating?: number;
+  heightCm?: number;
+  weightKg?: number;
 }
 
 export interface CompleteProfileAsParent extends CompleteProfileBase {
-  childPlayerId: number;
+  childPlayerId?: number | null;
 }
 
 export interface CompleteProfileAsCoach extends CompleteProfileBase {}

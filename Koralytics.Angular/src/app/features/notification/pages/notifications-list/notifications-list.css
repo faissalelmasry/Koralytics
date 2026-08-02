@@ -1,312 +1,406 @@
-
-
 :host {
   display: block;
   min-height: 100vh;
-  color: #ffffff;
-  background-color: transparent;
+  color: #f4f5f7;
+
+  /* Single restrained accent, used sparingly (unread dot, active tab,
+     primary actions) rather than as a glowing theme color everywhere. */
+  --accent: #c8ff4d;
+  --accent-soft: rgba(200, 255, 77, 0.14);
+
+  --surface: #131519;
+  --surface-hover: #17191f;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --text-primary: #f4f5f7;
+  --text-secondary: #9096a3;
+  --text-tertiary: #62687a;
 }
 
 .notifications-page {
-  --accent-neon: #c8ff4d;
-  --accent-glow: rgba(200, 255, 77, 0.2);
-  --accent-border-glow: rgba(200, 255, 77, 0.4);
-  --accent-bg-glow: rgba(200, 255, 77, 0.12);
-
   max-width: 760px;
   margin: 0 auto;
-  padding: 110px 30px 40px;
-  position: relative;
-  z-index: 10;
+  padding: 140px 24px 48px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
+  font-family: 'Inter', sans-serif;
 }
 
-/* ===================================================
-   Header banner (mirrors .hero-banner)
-   =================================================== */
-.notif-header {
-  background: linear-gradient(135deg, #11141a 0%, #0c0e12 100%);
-  border: 1px solid #1e232d;
-  border-radius: 20px;
-  padding: 20px 28px;
+/* =========================================
+   Loading / Empty states
+   ========================================= */
+.loading-state {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
-  position: relative;
-  overflow: hidden;
-  transition: border-color 0.3s ease;
+  justify-content: center;
+  gap: 14px;
+  min-height: 360px;
+  color: var(--text-secondary);
+  font-size: 14px;
 }
 
-.notif-header:hover {
-  border-color: #383e4a;
-}
-
-.notif-header::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background: linear-gradient(90deg, var(--accent-neon), transparent 70%);
-}
-
-.notif-header h1 {
-  font-size: 24px;
-  font-weight: 800;
-  line-height: 1.1;
-  margin: 0;
-  font-family: 'Inter', sans-serif;
-}
-
-.unread-pill {
-  background: var(--accent-bg-glow);
-  border: 1px solid var(--accent-border-glow);
-  color: var(--accent-neon);
-  padding: 5px 14px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 800;
-  font-family: 'Inter', sans-serif;
-  white-space: nowrap;
-}
-
-/* ===================================================
-   Loading & Error & Empty states (mirrors .loading-state/.error-state)
-   =================================================== */
-.loading-state,
-.error-state,
 .empty-state {
+  width: 100%;
+  min-height: 320px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 6px;
+  padding: 32px 24px;
+  text-align: center;
+}
+
+.empty-state.compact {
+  min-height: 160px;
+  padding: 28px 20px;
+}
+
+.empty-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+}
+
+.empty-icon-wrap.success {
+  background: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.3);
+  color: #4ade80;
+}
+
+.empty-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 4px;
+  letter-spacing: -0.01em;
+}
+
+.empty-sub {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 0 0 18px;
+  line-height: 1.5;
+  max-width: 320px;
+}
+
+.empty-state.compact .empty-sub {
+  margin-bottom: 0;
+}
+
+/* =========================================
+   Page toolbar (title + filters + actions)
+   ========================================= */
+.page-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
   gap: 16px;
-  min-height: 300px;
-  color: #8b909a;
+  padding-bottom: 4px;
+}
+
+.toolbar-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.page-title {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.page-subtitle {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Segmented control (All / Unread) -- replaces the two loud pill-shaped
+   toggle buttons with a compact, single-piece control, the way most
+   modern dashboards (Linear, GitHub, Vercel) present a binary filter. */
+.segmented-control {
+  display: inline-flex;
+  padding: 3px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  gap: 2px;
+}
+
+.segment {
+  appearance: none;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
   font-family: 'Inter', sans-serif;
-  font-size: 15px;
-  background: #11141a;
-  border: 1px solid #1e232d;
-  border-radius: 20px;
-  padding: 40px 20px;
-}
-
-.error-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: rgba(255, 71, 87, 0.15);
-  border: 2px solid rgba(255, 71, 87, 0.3);
-  color: #ff4757;
-  font-size: 22px;
-  font-weight: 800;
-  display: flex;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
+  gap: 6px;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
-.empty-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: var(--accent-bg-glow);
-  border: 2px solid var(--accent-border-glow);
-  color: var(--accent-neon);
-  font-size: 22px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.segment:hover {
+  color: var(--text-primary);
 }
 
-/* ===================================================
-   List panel (mirrors .pitch-panel / .breakdown-section)
-   =================================================== */
-.notif-list-panel {
-  background: #11141a;
-  border: 1px solid #1e232d;
-  border-radius: 20px;
-  padding: 8px;
-  transition: border-color 0.3s ease;
+.segment-active {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
 }
 
-.notif-list-panel:hover {
-  border-color: #383e4a;
+.segment-count {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 1px 6px;
+  min-width: 18px;
+  text-align: center;
 }
 
-.notif-item {
+.segment-active .segment-count {
+  color: var(--text-secondary);
+}
+
+.text-action {
+  appearance: none;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px 4px;
+  transition: color 0.15s ease;
+}
+
+.text-action:hover {
+  color: var(--accent);
+}
+
+/* =========================================
+   Notification list
+   ========================================= */
+.notification-list {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.notification-row {
+  position: relative;
   display: flex;
   align-items: flex-start;
   gap: 14px;
-  padding: 16px 18px;
-  border-radius: 14px;
-  transition: background 0.2s ease, transform 0.2s ease;
-  position: relative;
+  padding: 16px 18px 16px 20px;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s ease;
 }
 
-.notif-item + .notif-item {
-  border-top: 1px solid #1c2027;
+.notification-row:last-child {
+  border-bottom: none;
 }
 
-.notif-item:hover {
-  background: rgba(255, 255, 255, 0.03);
+.notification-row:hover {
+  background: var(--surface-hover);
 }
 
-.notif-item.unread {
-  background: var(--accent-bg-glow);
-}
-
-.notif-item.unread:hover {
-  background: color-mix(in srgb, var(--accent-bg-glow) 160%, transparent);
-}
-
-.notif-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  margin-top: 6px;
-  flex-shrink: 0;
+/* Thin left accent bar, colored by type -- a common, restrained pattern
+   for signaling category without a big glowing badge. */
+.row-accent {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
   background: transparent;
 }
 
-.notif-item.unread .notif-dot {
-  background: var(--accent-neon);
-  box-shadow: 0 0 8px var(--accent-glow);
+.notification-row.is-unread .row-accent {
+  background: var(--type-color, var(--accent));
 }
 
-.notif-body {
-  flex: 1;
-  min-width: 0;
-}
-
-.notif-title {
-  font-size: 14px;
-  font-weight: 700;
-  color: #ffffff;
-  font-family: 'Inter', sans-serif;
-  margin: 0 0 4px;
-}
-
-.notif-item.unread .notif-title {
-  color: var(--accent-neon);
-}
-
-.notif-message {
-  font-size: 13px;
-  color: #b7bcc6;
-  font-family: 'Inter', sans-serif;
-  line-height: 1.5;
-  margin: 0 0 6px;
-  word-break: break-word;
-}
-
-.notif-time {
-  font-size: 11px;
-  font-weight: 700;
-  color: #808897;
-  text-transform: uppercase;
-  font-family: 'Inter', sans-serif;
-  letter-spacing: 0.3px;
-}
-
-.mark-read-btn {
-  background: transparent;
-  border: 1px solid #272d3a;
-  color: #808897;
-  padding: 5px 12px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 700;
-  font-family: 'Inter', sans-serif;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: all 0.2s ease;
-}
-
-.mark-read-btn:hover {
-  border-color: var(--accent-border-glow);
-  color: var(--accent-neon);
-  background: var(--accent-bg-glow);
-}
-
-/* ===================================================
-   Load more (mirrors .archetype-reveal-btn, without shimmer)
-   =================================================== */
-.load-more-btn {
+.row-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  color: var(--type-color, var(--text-secondary));
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  width: 100%;
-  background: linear-gradient(135deg, var(--accent-bg-glow), transparent);
-  border: 1px solid var(--accent-border-glow);
-  color: var(--accent-neon);
-  padding: 12px 16px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 800;
-  font-family: 'Inter', sans-serif;
-  letter-spacing: 0.3px;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 0 10px var(--accent-glow);
+  flex-shrink: 0;
+  margin-top: 1px;
 }
 
-.load-more-btn:hover:not(:disabled) {
-  background: var(--accent-neon);
-  color: #06080a;
-  transform: scale(1.02);
-  box-shadow: 0 0 22px var(--accent-neon);
+.row-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
 }
 
-.load-more-btn:disabled {
-  opacity: 0.5;
-  cursor: default;
+.row-top-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
 }
 
-.spinner-dot {
-  width: 8px;
-  height: 8px;
+.row-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.notification-row.is-unread .row-title::after {
+  content: '';
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  background: currentColor;
-  animation: dotPulse 1s infinite ease-in-out;
+  background: var(--accent);
+  display: inline-block;
+  flex-shrink: 0;
 }
 
-@keyframes dotPulse {
-  0%, 100% { opacity: 0.3; transform: scale(0.8); }
-  50% { opacity: 1; transform: scale(1.1); }
+.row-time {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  cursor: default;
+  flex-shrink: 0;
 }
 
-/* ===================================================
+.row-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.row-action {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  min-width: 28px;
+  justify-content: flex-end;
+}
+
+.mark-read-btn {
+  appearance: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.mark-read-btn:hover {
+  border-color: rgba(34, 197, 94, 0.4);
+  color: #4ade80;
+  background: rgba(34, 197, 94, 0.08);
+}
+
+/* =========================================
+   Pagination
+   ========================================= */
+.pagination-row {
+  display: flex;
+  justify-content: center;
+  padding-top: 4px;
+}
+
+/* =========================================
+   Accessibility: focus-visible
+   ========================================= */
+.segment:focus-visible,
+.text-action:focus-visible,
+.mark-read-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+:host ::ng-deep button:focus-visible,
+:host ::ng-deep a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* =========================================
    Responsive
-   =================================================== */
+   ========================================= */
 @media (max-width: 600px) {
   .notifications-page {
-    padding: 90px 16px 24px;
+    padding: 110px 16px 32px;
   }
-
-  .notif-header {
+  .page-toolbar {
     flex-direction: column;
     align-items: flex-start;
-    gap: 10px;
   }
-
-  .notif-item {
-    padding: 14px;
+  .toolbar-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .row-top-line {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
   }
 }
 
-/* ===================================================
+/* =========================================
    Reduced Motion
-   =================================================== */
+   ========================================= */
 @media (prefers-reduced-motion: reduce) {
-  .load-more-btn:hover:not(:disabled) {
-    transform: none;
-  }
-
-  .spinner-dot {
-    animation: none;
+  .notification-row,
+  .segment,
+  .mark-read-btn {
+    transition: none;
   }
 }

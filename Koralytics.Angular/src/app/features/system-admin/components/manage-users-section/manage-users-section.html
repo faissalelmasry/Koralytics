@@ -7,13 +7,25 @@
 
     <!-- Filters Bar -->
     <div class="filter-bar">
-      <div class="search-box">
-        <input 
-          type="text" 
-          [(ngModel)]="searchTerm" 
-          (keyup.enter)="onFilterChange()" 
-          placeholder="Search name, email, or username..." />
-        <button class="btn-filter" (click)="onFilterChange()">Search</button>
+      <div class="cyber-search-bar">
+        <div class="search-input-wrapper">
+          <svg class="search-icon-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input 
+            type="text" 
+            [(ngModel)]="searchTerm" 
+            (keyup.enter)="onFilterChange()" 
+            placeholder="Search name, email, or username..." 
+            class="cyber-input" />
+          <button *ngIf="searchTerm" class="clear-btn" (click)="searchTerm = ''; onFilterChange()" title="Clear">
+            &times;
+          </button>
+        </div>
+        <button class="btn-search-cyber" (click)="onFilterChange()">
+          <span>Search</span>
+        </button>
       </div>
 
       <div class="select-box">
@@ -58,11 +70,12 @@
         <tr *ngFor="let u of users">
           <td>
             <div class="user-info-cell">
-              <div class="avatar-circle">
-                {{ u.firstName.charAt(0) || u.email.charAt(0) || 'U' }}
+              <div class="avatar-circle clickable-user-elem" (click)="viewMemberProfile(u.id); $event.stopPropagation()" title="View Member Profile">
+                <img *ngIf="u.profileImageUrl" [src]="u.profileImageUrl" alt="avatar" class="avatar-img" />
+                <span *ngIf="!u.profileImageUrl">{{ u.firstName.charAt(0) || u.email.charAt(0) || 'U' }}</span>
               </div>
               <div>
-                <span class="user-fullname">{{ u.fullName || u.userName }}</span>
+                <span class="user-fullname clickable-user-elem" (click)="viewMemberProfile(u.id); $event.stopPropagation()" title="View Member Profile">{{ u.fullName || u.userName }}</span>
                 <span class="user-id">User ID: #{{ u.id }}</span>
               </div>
             </div>
@@ -88,16 +101,31 @@
           </td>
           <td class="text-right">
             <div class="table-actions-hub">
-              <!-- User Governance Actions -->
-              <app-button variant="cyan" size="sm" (click)="openEditRolesModal(u)">
-                Roles
-              </app-button>
-              <app-button 
-                [variant]="u.isDeleted ? 'accent' : 'amber'" 
-                size="sm"
-                (click)="toggleStatus(u)">
-                {{ u.isDeleted ? 'Activate' : 'Deactivate' }}
-              </app-button>
+              <!-- Manage Roles Icon Button -->
+              <button 
+                class="action-icon-btn role-btn" 
+                (click)="openEditRolesModal(u)" 
+                title="Manage User Roles & Permissions">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
+              </button>
+              <!-- Activate / Deactivate Icon Button -->
+              <button 
+                class="action-icon-btn" 
+                [class.activate-btn]="u.isDeleted"
+                [class.deactivate-btn]="!u.isDeleted"
+                (click)="toggleStatus(u)" 
+                [title]="u.isDeleted ? 'Activate Account' : 'Deactivate Account'">
+                <svg *ngIf="!u.isDeleted" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                <svg *ngIf="u.isDeleted" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
+                </svg>
+              </button>
             </div>
           </td>
         </tr>
@@ -106,7 +134,14 @@
   </div>
 
   <div class="empty-state" *ngIf="!isLoading && users.length === 0">
-    <div class="empty-icon">👥</div>
+    <div class="empty-icon">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+        <circle cx="9" cy="7" r="4"></circle>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+      </svg>
+    </div>
     <h4>No Users Found</h4>
     <p>Try adjusting your search filters or status selection.</p>
   </div>
@@ -123,40 +158,75 @@
 </div>
 
 <!-- Edit Roles Modal -->
-<div class="modal-backdrop" *ngIf="selectedUserForRoles" (click)="closeEditRolesModal()">
-  <div class="modal-card" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h4>Assign Roles - {{ selectedUserForRoles.fullName }}</h4>
-      <button class="btn-close" (click)="closeEditRolesModal()">&times;</button>
+<div class="modal-backdrop-cyber" *ngIf="selectedUserForRoles" (click)="closeEditRolesModal()">
+  <div class="cyber-modal-card roles-modal fade-in" (click)="$event.stopPropagation()">
+    <div class="tactical-tag">
+      <span>03 // ACCOUNT GOVERNANCE & PERMISSIONS</span>
     </div>
 
-    <div class="modal-body">
-      <p class="helper-text">Select one or multiple platform roles to assign to this account:</p>
+    <div class="modal-header-cyber">
+      <div class="modal-header-left">
+        <div class="modal-icon-badge roles">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00e5ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            <path d="M12 8v4"></path>
+            <path d="M12 16h.01"></path>
+          </svg>
+        </div>
+        <div>
+          <h4>ASSIGN PLATFORM ROLES</h4>
+          <p class="modal-subtitle">Configure access privileges for <strong style="color: #00e5ff;">{{ selectedUserForRoles.fullName || selectedUserForRoles.email }}</strong></p>
+        </div>
+      </div>
+      <button class="btn-close-cyber" (click)="closeEditRolesModal()" title="Close Modal">&times;</button>
+    </div>
 
-      <div class="roles-list">
+    <div class="modal-body-cyber">
+      <div class="roles-list-cyber">
         <div 
-          class="role-checkbox-card" 
+          class="role-checkbox-card-cyber" 
           *ngFor="let r of availableRoles"
           [class.selected]="selectedRoles[r]"
           (click)="toggleRoleSelection(r)">
-          <input 
-            type="checkbox" 
-            [checked]="selectedRoles[r]" 
-            (change)="toggleRoleSelection(r)" 
-            (click)="$event.stopPropagation()" />
-          <div class="role-desc">
-            <strong>{{ r }}</strong>
-            <small>{{ r === 'SystemAdmin' ? 'Full platform administration rights' : 'Specialized access for ' + r }}</small>
+          <div class="checkbox-wrapper">
+            <input 
+              type="checkbox" 
+              [checked]="selectedRoles[r]" 
+              (change)="toggleRoleSelection(r)" 
+              (click)="$event.stopPropagation()" />
+            <span class="custom-cyber-check"></span>
+          </div>
+          <div class="role-desc-cyber">
+            <h6>{{ r }}</h6>
+            <p>{{ r === 'SystemAdmin' ? 'Full platform administration rights across Koralytics.' : 'Specialized access for ' + r }}</p>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="modal-footer">
-      <app-button variant="slate" type="button" (click)="closeEditRolesModal()">Cancel</app-button>
-      <app-button variant="accent" type="button" [disabled]="isUpdatingRoles" (click)="saveRoles()">
-        {{ isUpdatingRoles ? 'Saving...' : 'Save Permissions' }}
-      </app-button>
+    <div class="modal-footer-cyber">
+      <button type="button" class="btn-cyber-cancel" (click)="closeEditRolesModal()">CANCEL</button>
+      <button type="button" class="btn-cyber-confirm roles-btn" [disabled]="isUpdatingRoles" (click)="saveRoles()">
+        <svg *ngIf="!isUpdatingRoles" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+          <polyline points="17 21 17 13 7 13 7 21"></polyline>
+          <polyline points="7 3 7 8 15 8"></polyline>
+        </svg>
+        <span>{{ isUpdatingRoles ? 'SAVING PERMISSIONS...' : 'SAVE PERMISSIONS' }}</span>
+      </button>
     </div>
   </div>
 </div>
+
+<!-- Shared Cyber Confirm Dialog for Activate / Deactivate Account -->
+<app-confirm-dialog
+  [isOpen]="isConfirmDialogOpen"
+  [title]="confirmDialogTitle"
+  [message]="confirmDialogMessage"
+  level="danger"
+  confirmText="Yes, Confirm"
+  cancelText="Cancel"
+  [requiresConfirmation]="false"
+  (confirm)="onConfirmStatusToggle()"
+  (cancel)="isConfirmDialogOpen = false; userToToggle = null">
+</app-confirm-dialog>

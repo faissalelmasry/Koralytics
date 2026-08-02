@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ApiResponse } from '../../interfaces/api-response.model';
+import { CreateAcademyDto } from '../../interfaces/academy.models';
 
 export interface UserSummaryDto {
   id: number;
@@ -78,7 +79,7 @@ export class SystemAdminService {
     return this.http.get<ApiResponse<any[]>>(`${this.academyUrl}/requests/pending`);
   }
 
-  approveAcademyRequest(dto: any): Observable<ApiResponse<any>> {
+  approveAcademyRequest(dto: CreateAcademyDto | any): Observable<ApiResponse<any>> {
     return this.http.post<ApiResponse<any>>(`${this.academyUrl}/approve`, dto);
   }
 

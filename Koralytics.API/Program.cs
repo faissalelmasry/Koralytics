@@ -17,14 +17,14 @@ using Koralytics.Application.Interfaces.ScouterInterfaces;
 using Koralytics.Application.Interfaces.Tournament;
 using Koralytics.Application.Interfaces.Tournaments;
 using Koralytics.Application.Mappings.Academies;
-using Koralytics.Application.Mappings.SystemAdmin;
 using Koralytics.Application.Mappings.Auth;
 using Koralytics.Application.Mappings.Drills;
 using Koralytics.Application.Mappings.Match;
 using Koralytics.Application.Mappings.Player;
+using Koralytics.Application.Mappings.ProfileManagement;
 using Koralytics.Application.Mappings.ScouterProfile;
+using Koralytics.Application.Mappings.SystemAdmin;
 using Koralytics.Application.Mappings.Tournaments;
-using Koralytics.Application.Options;
 using Koralytics.Application.Options;
 using Koralytics.Application.Services.Academy.AcademyAnalyticsService;
 using Koralytics.Application.Services.Academy.AcademyAnnouncementService;
@@ -43,6 +43,7 @@ using Koralytics.Application.Services.Drill.DrillResult;
 using Koralytics.Application.Services.Drill.DrillSession;
 using Koralytics.Application.Services.Drill.DrillTemplate;
 using Koralytics.Application.Services.Match;
+using Koralytics.Application.Services.Notification;
 using Koralytics.Application.Services.Notification.AnnouncementNotificationService;
 using Koralytics.Application.Services.Notification.PlayerNotificationService;
 using Koralytics.Application.Services.Notification.ScouterNotificationService;
@@ -52,28 +53,27 @@ using Koralytics.Application.Services.Player.PlayerCardService;
 using Koralytics.Application.Services.Player.PlayerGoalService;
 using Koralytics.Application.Services.Player.PlayerProfileServices;
 using Koralytics.Application.Services.Player.PlayerTransferService;
+using Koralytics.Application.Services.ProfileManagement;
 using Koralytics.Application.Services.Scouter.ScouterFollowService;
 using Koralytics.Application.Services.Scouter.ScouterReportService;
 using Koralytics.Application.Services.Scouter.ScouterSearchService;
 using Koralytics.Application.Services.Scouter.ScouterShortlistService;
 using Koralytics.Application.Services.Storage;
 using Koralytics.Application.Services.Subscription;
+using Koralytics.Application.Services.SystemAdmin.UserManagement;
 using Koralytics.Application.Services.Tournaments;
 using Koralytics.Application.Validators.Academies;
 using Koralytics.Application.Validators.Auth;
 using Koralytics.Application.Validators.Match;
+using Koralytics.Application.Validators.ProfileManagement;
 using Koralytics.Application.Validators.Tournament;
 using Koralytics.Application.Validators.UserBusiness;
-using Koralytics.Application.Services.ProfileManagement;
-using Koralytics.Application.Mappings.ProfileManagement;
-using Koralytics.Application.Validators.ProfileManagement;
 using Koralytics.Domain.Entities;
 using Koralytics.Domain.Entities.Identity;
 using Koralytics.Infrastructure.Context;
 using Koralytics.Infrastructure.ExternalServices;
 using Koralytics.Infrastructure.ExternalServices.Email;
 using Koralytics.Infrastructure.Repositories;
-using Koralytics.Infrastructure.Seeding;
 using Koralytics.Infrastructure.Services.Parents;
 using Koralytics.Infrastructure.UnitOfWork;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -115,6 +115,7 @@ using Koralytics.Application.Services.Scouter.ScouterSearchService;
 using Koralytics.Application.Services.Scouter.ScouterShortlistService;
 using StackExchange.Redis;
 using Koralytics.Application.Services.SystemAdmin.UserManagement;
+
 
 namespace Koralytics.API
 {
@@ -284,7 +285,7 @@ namespace Koralytics.API
             builder.Services.AddScoped<IScouterShortlistService, ScouterShortlistService>();
             builder.Services.AddScoped<IScouterFollowService, ScouterFollowService>();
             builder.Services.AddScoped<IScouterReportService, ScouterReportService>();
-            //builder.Services.AddScoped<IStorageService, StorageService>();
+            builder.Services.AddScoped<IStorageService, StorageService>();
             builder.Services.AddSignalR();
             builder.Services.AddScoped<IRealTimeBridge, RealTimeBridge>();
             builder.Services.AddScoped<IMatchLiveUpdateService, MatchLiveUpdateService>();
@@ -293,6 +294,8 @@ namespace Koralytics.API
             builder.Services.AddScoped<IAnnouncementNotificationService, AnnouncementNotificationService>();
             builder.Services.AddScoped<IParentService, ParentService>();
             builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
+            builder.Services.AddScoped<IProfileManagementService, ProfileManagementService>();
+            builder.Services.AddScoped<IMatchNotificationService, MatchNotificationService>();
             // Register FluentValidation validators
             builder.Services.AddValidatorsFromAssemblyContaining<LoginRequestValidator>();
             builder.Services.AddValidatorsFromAssemblyContaining<ChangePasswordValidator>();
@@ -314,25 +317,19 @@ namespace Koralytics.API
                 .AddFluentValidationAutoValidation()
                 .AddFluentValidationClientsideAdapters();
 
-            // Register mapping profiles
+            // Register mapping profiles (single consolidated call — all profiles in one configuration)
             builder.Services.AddAutoMapper(op =>
             {
                 op.AddProfile<RegisterProfile>();
-                op.AddProfile<DrillMappingProfile>(); // <-- This is the one fixing the 500 Error
+                op.AddProfile<DrillMappingProfile>();
                 op.AddProfile<TournamentProfile>();
                 op.AddProfile<AcademyProfile>();
                 op.AddProfile<PlayerProfile>();
                 op.AddProfile<ScouterProfile>();
                 op.AddProfile<ProfileManagementProfile>();
+                op.AddProfile<MatchProfile>();
+                op.AddProfile<UserManagementProfile>();
             });
-            builder.Services.AddAutoMapper(op => op.AddProfile<RegisterProfile>());
-            builder.Services.AddAutoMapper(op => op.AddProfile<TournamentProfile>());
-            builder.Services.AddAutoMapper(op => op.AddProfile<AcademyProfile>());
-            builder.Services.AddAutoMapper(op => op.AddProfile<PlayerProfile>());
-            builder.Services.AddAutoMapper(op => op.AddProfile<MatchProfile>());
-            builder.Services.AddAutoMapper(op=>op.AddProfile<ScouterProfile>());
-            builder.Services.AddAutoMapper(op => op.AddProfile<UserManagementProfile>());
-            builder.Services.AddAutoMapper(op => op.AddProfile<ProfileManagementProfile>());
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
@@ -416,7 +413,7 @@ namespace Koralytics.API
                     var context = services.GetRequiredService<ApplicationDbContext>();
                     var userManager = services.GetRequiredService<UserManager<User>>();
                     var roleManager = services.GetRequiredService<RoleManager<Domain.Entities.Identity.Role>>();
-                    await DbInitializer.SeedAsync(context, userManager, roleManager);
+                    //await DbInitializer.SeedAsync(context, userManager, roleManager);
                 }
                 catch (Exception ex)
                 {

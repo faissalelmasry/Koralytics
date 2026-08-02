@@ -4,16 +4,17 @@ using Koralytics.Application.DTOs.Player;
 using Koralytics.Application.DTOs.Scouter;
 using Koralytics.Application.DTOs.ScouterDtos;
 using Koralytics.Application.Interfaces;
+using Koralytics.Application.Interfaces.Notification;
 using Koralytics.Application.Interfaces.Scouter;
 using Koralytics.Application.Mappings.ScouterProfile;
 using Koralytics.Application.Services.Player.Helpers;
 using Koralytics.Application.Services.Player.PlayerCardService;
 using Koralytics.Domain.Entities.Player;
-using ScouterEntity = Koralytics.Domain.Entities.Scouter.Scouter;
-using ScouterFollow = Koralytics.Domain.Entities.Scouter.ScouterFollow;
 using Koralytics.Domain.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using ScouterEntity = Koralytics.Domain.Entities.Scouter.Scouter;
+using ScouterFollow = Koralytics.Domain.Entities.Scouter.ScouterFollow;
 
 
 namespace Koralytics.Application.Services.Scouter.ScouterFollowService
@@ -23,14 +24,18 @@ namespace Koralytics.Application.Services.Scouter.ScouterFollowService
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly ILogger<ScouterFollowService> _logger;
+        private readonly IPlayerNotificationService _playerNotificationService;
+
         public ScouterFollowService(
              IUnitOfWork unitOfWork,
              IMapper mapper,
-             ILogger<ScouterFollowService> logger)
+             ILogger<ScouterFollowService> logger,
+             IPlayerNotificationService playerNotificationService) 
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _logger = logger;
+            _playerNotificationService = playerNotificationService;
         }
         public async Task FollowPlayerAsync(int scouterId, int playerId)
         {
@@ -121,6 +126,7 @@ namespace Koralytics.Application.Services.Scouter.ScouterFollowService
         public async Task LogProfileViewAsync(int scouterId, int playerId)
         {
             _logger.LogInformation("Logging profile view audit. ScouterId: {ScouterId}, PlayerId: {PlayerId}", scouterId, playerId);
+
             var scouterExists = await _unitOfWork.Repository<ScouterEntity>().ExistsAsync(s => s.Id == scouterId);
             if (!scouterExists)
             {
@@ -130,8 +136,10 @@ namespace Koralytics.Application.Services.Scouter.ScouterFollowService
             var playerExists = await _unitOfWork.Repository<Domain.Entities.Player.Player>().ExistsAsync(p => p.Id == playerId);
             if (!playerExists)
             {
-                throw new NotFoundException($"Player with ID {playerId} not found.");
+                throw new NotFoundException($"Player with ID {playerId} does not exist.");
             }
+
+           
             var profileView = new ScouterView
             {
                 ScouterId = scouterId,
@@ -139,11 +147,14 @@ namespace Koralytics.Application.Services.Scouter.ScouterFollowService
                 ViewedAt = DateTime.UtcNow
             };
 
-            _logger.LogDebug("Saving profile view record into database registry.");
             await _unitOfWork.Repository<ScouterView>().AddAsync(profileView);
             await _unitOfWork.SaveChangesAsync();
-            _logger.LogInformation("Successfully logged profile view audit. ScouterId: {ScouterId}, PlayerId: {PlayerId}", scouterId, playerId);
 
+           
+            string message = "A Scouter is currently viewing your profile!";
+            await _playerNotificationService.NotifyPlayerMilestoneAsync(playerId, message);
+
+            _logger.LogInformation("Successfully logged profile view and sent real-time notification. ScouterId: {ScouterId}, PlayerId: {PlayerId}", scouterId, playerId);
         }
         public async Task<PaginatedResult<PlayerCardDto>> GetFollowedPlayersAsync(int scouterId, int pageNumber = 1, int pageSize = 10, string? searchTerm = null)
         {

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,7 +17,14 @@ namespace Koralytics.Infrastructure.EntitiesConfigurations.Player
             builder.Property(p => p.ArchetypePlayerName).HasMaxLength(100);
             builder.Property(p => p.ArchetypeText).HasMaxLength(1000);
             builder.Property(p => p.WeakFootRating).HasDefaultValue(3);
-            builder.ToTable("Players");
+            builder.Property(p => p.HeightCm).HasColumnType("decimal(18,2)");
+            builder.Property(p => p.WeightKg).HasColumnType("decimal(18,2)");
+            builder.ToTable("Players", t =>
+            {
+                t.HasCheckConstraint("CK_Player_HeightCm", "[HeightCm] BETWEEN 50 AND 220");
+                t.HasCheckConstraint("CK_Player_WeightKg", "[WeightKg] BETWEEN 20 AND 150");
+                t.HasCheckConstraint("CK_Player_WeakFootRating","[WeakFootRating] BETWEEN 1 AND 5");
+            });
         }
     }
 }

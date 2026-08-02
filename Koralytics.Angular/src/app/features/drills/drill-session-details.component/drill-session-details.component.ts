@@ -11,6 +11,7 @@ import { StatusChipComponent } from '../../../../shared/components/status-chip/s
 import { CustomButtonComponent } from '../../../../shared/components/custom-button/custom-button';
 import { CustomInputComponent } from '../../../../shared/components/custom-input-component/custom-input-component';
 import { CustomNumberInputComponent } from '../../../../shared/components/custom-number-input/custom-number-input';
+import { NotificationService } from '@core/services/SignalR/notificationservice';
 
 @Component({
   selector: 'app-drill-session-details',
@@ -72,7 +73,8 @@ export class DrillSessionDetailsComponent implements OnInit {
     private router: Router,
     private sessionService: DrillSessionService,
     private templateService: DrillTemplateService,
-    private authService: AuthService
+    private authService: AuthService,
+    private notificationService: NotificationService
   ) { }
 
   ngOnInit(): void {
@@ -163,6 +165,21 @@ export class DrillSessionDetailsComponent implements OnInit {
     };
 
     this.sessionService.updateAttendance(this.sessionId, payload).subscribe({
+      //notification
+      next: () => {
+       
+        if (!isPresent) {
+          const playerMsg = "You were marked absent from today's drill session.";
+          const parentMsg = `Your child has been marked absent from today's drill session.`;
+
+          this.notificationService.notifyPlayerMilestone(player.playerId, playerMsg).subscribe({
+            error: (e) => console.error(`Failed to notify player ${player.playerId} for absence`, e)
+          });
+          this.notificationService.notifyPlayerParents(player.playerId, parentMsg).subscribe({
+            error: (e) => console.error(`Failed to notify parent for player ${player.playerId} absence`, e)
+          });
+        }
+      },
       error: (err) => console.error('Failed to auto-save attendance', err)
     });
   }
@@ -318,6 +335,17 @@ export class DrillSessionDetailsComponent implements OnInit {
     this.sessionService.submitDrillResults(this.sessionId, this.activeDrillForResults.id, payload).subscribe({
       next: () => {
         this.isSubmittingResults = false;
+        // notification
+        this.playerScoreEntries.forEach(entry => {
+          const playerMsg = "A new drill result has been recorded.";
+          const parentMsg = "A new drill result has been recorded for your child."; 
+          this.notificationService.notifyPlayerMilestone(entry.playerId, playerMsg).subscribe({
+            error: (e) => console.error(`Failed to notify player ${entry.playerId}`, e)
+          });
+          this.notificationService.notifyPlayerParents(entry.playerId, parentMsg).subscribe({
+            error: (e) => console.error(`Failed to notify parent for player ${entry.playerId}`, e)
+          });
+        });
         this.closeResultsModal();
         this.showToast('Drill results saved successfully!', 'success');
       },

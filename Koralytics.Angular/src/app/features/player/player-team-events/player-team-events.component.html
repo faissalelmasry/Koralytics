@@ -75,7 +75,9 @@
           direction="bottom"
           [delay]="250 + i * 70"
           [class.card-match]="isMatchEvent(event)"
-          [class.card-drill]="!isMatchEvent(event)">
+          [class.card-drill]="!isMatchEvent(event)"
+          [class.clickable]="isMatchEvent(event) && event.matchId"
+          [routerLink]="isMatchEvent(event) && event.matchId ? ['/match', event.matchId] : null">
 
           <div class="card-left-info">
             <div class="meta-header">

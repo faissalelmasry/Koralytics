@@ -7,5 +7,6 @@ namespace Koralytics.Application.Interfaces.Match
         Task<MatchEventResponseDto> LogMatchEventAsync(int matchId, LogMatchEventDto dto);
         Task<MatchEventResponseDto> LogSessionMatchEventAsync(int matchId, LogSessionMatchEventDto dto);
         Task<MatchTimelineResponseDto> GetMatchTimelineAsync(int matchId);
+        Task DeleteMatchEventAsync(int matchId, int eventId);
     }
 }

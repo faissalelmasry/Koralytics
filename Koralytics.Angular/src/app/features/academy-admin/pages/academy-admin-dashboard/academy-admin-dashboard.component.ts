@@ -11,7 +11,6 @@ import { AcademyMembersComponent } from '../../components/academy-members/academ
 import { NavbarComponent } from '../../../../../shared/components/navbar/navbar';
 import { LoadingSpinnerComponent } from '../../../../../shared/components/loading-spinner/loading-spinner';
 
-import { AcademyHeroBannerComponent } from '../../components/academy-hero-banner/academy-hero-banner';
 import { AcademyBadgesSectionComponent } from '../../components/academy-badges-section/academy-badges-section';
 import { AcademyAdminsSectionComponent } from '../../components/academy-admins-section/academy-admins-section';
 import { AcademyCoachesSectionComponent } from '../../components/academy-coaches-section/academy-coaches-section';
@@ -22,19 +21,19 @@ import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-r
 
 import { AcademyLocationsSectionComponent } from '../../components/academy-locations-section/academy-locations-section';
 import { PhoneInputComponent } from '../../../../../shared/components/phone-input/phone-input.component';
+import { ImageUpload } from '../../../../../shared/components/image-upload/image-upload';
 
 @Component({
   selector: 'app-academy-admin-dashboard',
   standalone: true,
   imports: [
-    CommonModule, 
-    ReactiveFormsModule, 
-    CustomInputComponent, 
+    CommonModule,
+    ReactiveFormsModule,
+    CustomInputComponent,
     PhoneInputComponent,
-    CustomButtonComponent, 
-    AcademyMembersComponent, 
-    NavbarComponent, 
-    AcademyHeroBannerComponent,
+    CustomButtonComponent,
+    AcademyMembersComponent,
+    NavbarComponent,
     AcademyBadgesSectionComponent,
     AcademyAdminsSectionComponent,
     AcademyCoachesSectionComponent,
@@ -42,7 +41,8 @@ import { PhoneInputComponent } from '../../../../../shared/components/phone-inpu
     AcademyCommSubsSectionComponent,
     AcademyLocationsSectionComponent,
     LoadingSpinnerComponent,
-    ScrollRevealDirective
+    ScrollRevealDirective,
+    ImageUpload
   ],
   templateUrl: './academy-admin-dashboard.component.html',
   styleUrls: ['./academy-admin-dashboard.component.css']
@@ -55,13 +55,19 @@ export class AcademyAdminDashboardComponent implements OnInit {
   private router = inject(Router);
 
   currentUser = this.authService.getCurrentUserValue();
-  
+
   // State
   isLoading = true;
   hasAcademy = false;
   academyDetails: AcademyResponseDto | null = null;
   totalMembersCount = 0;
+  adminsCount = 0;
+  coachesCount = 0;
+  locationsCount = 0;
+  initials = '';
+  activeTab = 'all';
   pendingRequest: any = null;
+  rejectedRequest: any = null;
 
   requestForm = this.fb.nonNullable.group({
     academyName: ['', [Validators.required]],
@@ -77,6 +83,10 @@ export class AcademyAdminDashboardComponent implements OnInit {
     this.checkAcademyStatus();
   }
 
+  setTab(tab: string) {
+    this.activeTab = tab;
+  }
+
   checkAcademyStatus() {
     if (this.currentUser?.academyId) {
       this.hasAcademy = true;
@@ -86,17 +96,22 @@ export class AcademyAdminDashboardComponent implements OnInit {
       this.academyService.getMyAcademyRequests().subscribe({
         next: (res) => {
           if (res.isSuccess && res.data && res.data.length > 0) {
-            const request = res.data[0]; 
-            if (request.status === 1) { // Approved
+            const request = res.data[0];
+            const status = request.requestStatus || request.status;
+            if (status === 'Approved' || status === 2 || status === '2') { // Approved
               this.toast.show('Your academy request was approved! Please log in again to sync your account.', 'success');
               this.authService.logoutAll().subscribe();
-            } else {
+            } else if (status === 'Pending' || status === 1 || status === '1') {
               this.pendingRequest = request;
+              this.rejectedRequest = null;
+            } else if (status === 'Rejected' || status === 3 || status === '3') {
+              this.rejectedRequest = request;
+              this.pendingRequest = null;
             }
           }
         }
       });
-      
+
       // Check if user has pending invitations to JOIN an academy
       this.academyService.getMyPendingAdminRequests().subscribe({
         next: (res) => {
@@ -117,6 +132,10 @@ export class AcademyAdminDashboardComponent implements OnInit {
       next: (res) => {
         if (res.isSuccess && res.data) {
           this.academyDetails = res.data;
+          this.updateInitials();
+          if (res.data.locationCount !== undefined) {
+            this.locationsCount = res.data.locationCount;
+          }
         }
         this.isLoading = false;
       },
@@ -124,14 +143,34 @@ export class AcademyAdminDashboardComponent implements OnInit {
         this.isLoading = false;
       }
     });
-    
-    this.academyService.getAcademyMembers(academyId, { pageNumber: 1, pageSize: 1 }).subscribe({
+
+    this.academyService.getAcademyMembers(academyId, { pageNumber: 1, pageSize: 500 }).subscribe({
       next: (res) => {
         if (res.isSuccess && res.data) {
-          this.totalMembersCount = res.data.totalCount;
+          this.totalMembersCount = res.data.totalCount || res.data.items?.length || 0;
+          this.coachesCount = res.data.items?.filter((m: any) => m.role === 'Coach').length || 0;
         }
       }
     });
+
+    this.academyService.getAcademyAdmins(academyId, { pageNumber: 1, pageSize: 100 }).subscribe({
+      next: (res) => {
+        if (res.isSuccess && res.data) {
+          this.adminsCount = res.data.totalCount || res.data.items?.length || 0;
+        }
+      }
+    });
+  }
+
+  updateInitials() {
+    if (this.academyDetails?.name) {
+      const words = this.academyDetails.name.split(' ');
+      if (words.length > 1) {
+        this.initials = (words[0].charAt(0) + words[1].charAt(0)).toUpperCase();
+      } else {
+        this.initials = this.academyDetails.name.substring(0, 2).toUpperCase();
+      }
+    }
   }
 
   onRequestAcademy() {
@@ -139,7 +178,7 @@ export class AcademyAdminDashboardComponent implements OnInit {
       this.requestForm.markAllAsTouched();
       return;
     }
-    
+
     this.isLoading = true;
     this.academyService.requestAcademy(this.requestForm.getRawValue()).subscribe({
       next: (res) => {
@@ -147,6 +186,7 @@ export class AcademyAdminDashboardComponent implements OnInit {
         if (res.isSuccess) {
           this.toast.show('Academy request submitted successfully', 'success');
           this.pendingRequest = res.data;
+          this.rejectedRequest = null;
         } else {
           this.toast.show(res.message || 'Error submitting request', 'error');
         }
@@ -179,4 +219,47 @@ export class AcademyAdminDashboardComponent implements OnInit {
       }
     });
   }
+
+  viewPublicProfile() {
+    if (this.academyDetails?.id) {
+      this.router.navigate(['/academy/profile', this.academyDetails.id]);
+    }
+  }
+
+  showLogoUploadModal = false;
+  isUploadingLogo = false;
+
+  openLogoUpload(): void {
+    this.showLogoUploadModal = true;
+  }
+
+  closeLogoUpload(): void {
+    this.showLogoUploadModal = false;
+  }
+
+  onLogoSelected(file: File): void {
+    if (!this.academyDetails?.id) {
+      this.toast.show('Academy ID not found.', 'error');
+      return;
+    }
+    this.isUploadingLogo = true;
+    this.academyService.updateAcademyLogo(this.academyDetails.id, file).subscribe({
+      next: (res) => {
+        this.isUploadingLogo = false;
+        if (res.isSuccess && res.data && this.academyDetails) {
+          this.academyDetails.logoUrl = res.data.logoUrl || res.data;
+          this.showLogoUploadModal = false;
+          this.toast.show('Academy logo updated successfully.', 'success');
+        } else {
+          this.toast.show(res.message || 'Failed to update logo.', 'error');
+        }
+      },
+      error: (err) => {
+        this.isUploadingLogo = false;
+        const msg = err.error?.message || 'Failed to update academy logo.';
+        this.toast.show(msg, 'error');
+      }
+    });
+  }
 }
+

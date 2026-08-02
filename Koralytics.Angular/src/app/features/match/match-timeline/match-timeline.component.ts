@@ -1,9 +1,11 @@
-import { Component, Input, Output, EventEmitter, inject, ChangeDetectorRef, OnInit, OnDestroy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, ChangeDetectorRef, OnInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MiniPlayerCardModel } from '../../../../core/models/Player/mini-player-card-model';
 import { MatchTimelineEventsComponent } from './match-timeline-events.component';
 import { MatchLineupsComponent } from './match-lineups.component';
 import { MatchRatingsComponent } from './match-ratings.component';
+import { MatchH2hComponent } from './match-h2h.component';
+import { MatchAnalysisComponent } from './match-analysis.component';
 import { TimelineEvent } from './match-timeline.types';
 import { MatchService } from '../../../../core/services/match/match.service';
 import { PlayerCardService } from '../../../../core/services/player/player-card.service';
@@ -12,18 +14,19 @@ import { CustomButtonComponent } from '../../../../shared/components/custom-butt
 import { ToastService } from '../../../../core/services/Toast/toast';
 import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 import { MatchSignalrService } from '../../../../core/services/match-signalr.service';
-import { Subscription, forkJoin, of, catchError } from 'rxjs';
+import { Subscription } from 'rxjs';
 
 import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner';
+import { NotificationService } from '@core/services/SignalR/notificationservice';
 
 @Component({
   selector: 'app-match-timeline',
   standalone: true,
-  imports: [CommonModule, MatchTimelineEventsComponent, MatchLineupsComponent, MatchRatingsComponent, EmptyStateComponent, CustomButtonComponent, ConfirmDialogComponent, LoadingSpinnerComponent],
+  imports: [CommonModule, MatchTimelineEventsComponent, MatchLineupsComponent, MatchRatingsComponent, MatchH2hComponent, MatchAnalysisComponent, EmptyStateComponent, CustomButtonComponent, ConfirmDialogComponent, LoadingSpinnerComponent],
   templateUrl: './match-timeline.component.html',
   styleUrls: ['./match-timeline.component.css']
 })
-export class MatchTimelineComponent implements OnInit, OnDestroy {
+export class MatchTimelineComponent implements OnInit, OnDestroy, OnChanges {
   private matchService = inject(MatchService);
   private playerCardService = inject(PlayerCardService);
   private toastService = inject(ToastService);
@@ -31,6 +34,7 @@ export class MatchTimelineComponent implements OnInit, OnDestroy {
   private signalrService = inject(MatchSignalrService);
 
   private signalrSub?: Subscription;
+  private notificationService = inject(NotificationService);
 
   @Input() matchId!: number;
   @Input() matchInfo!: {
@@ -57,7 +61,8 @@ export class MatchTimelineComponent implements OnInit, OnDestroy {
 
   @Output() eventLogged = new EventEmitter<void>();
 
-  selectedTab: 'timeline' | 'lineups' | 'ratings' = 'timeline';
+  selectedTab: 'timeline' | 'lineups' | 'h2h' | 'ratings' | 'analysis' = 'timeline';
+  hasUserSelectedTab = false;
 
   timelineEvents: TimelineEvent[] = [];
   eventsLoading = false;
@@ -76,27 +81,134 @@ export class MatchTimelineComponent implements OnInit, OnDestroy {
 
   lineupsLoading = false;
   lineupsLoaded = false;
+  h2hInitialized = false;
+  analysisInitialized = false;
+
+  private signalrEventSub?: Subscription;
+  private signalrScoreSub?: Subscription;
+  private signalrDeletedSub?: Subscription;
 
   ngOnInit(): void {
-    this.loadEvents();
-    this.loadLineups();
+    const status = (this.matchInfo?.status || '').toString().toLowerCase();
+    if (status === 'scheduled') {
+      this.selectedTab = 'lineups';
+    }
+    this.selectTab(this.selectedTab);
+
+    if (this.canStartMatch && !this.lineupsLoaded && !this.lineupsLoading) {
+      this.loadLineups();
+    }
+
     this.subscribeToLiveEvents();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['matchInfo'] && changes['matchInfo'].currentValue) {
+      const status = (this.matchInfo?.status || '').toString().toLowerCase();
+      if (status === 'scheduled' && !this.hasUserSelectedTab && this.selectedTab !== 'lineups') {
+        this.selectedTab = 'lineups';
+        this.selectTab('lineups');
+      }
+    }
+    if (changes['canStartMatch'] && this.canStartMatch && !this.lineupsLoaded && !this.lineupsLoading) {
+      this.loadLineups();
+    }
   }
 
   ngOnDestroy(): void {
     if (this.signalrSub) {
       this.signalrSub.unsubscribe();
     }
+    if (this.signalrEventSub) {
+      this.signalrEventSub.unsubscribe();
+    }
+    if (this.signalrScoreSub) {
+      this.signalrScoreSub.unsubscribe();
+    }
+    if (this.signalrDeletedSub) {
+      this.signalrDeletedSub.unsubscribe();
+    }
   }
 
   private subscribeToLiveEvents(): void {
-    this.signalrSub = this.signalrService.matchEventUpdate$.subscribe(update => {
-      if (update.matchId === this.matchId) {
-        setTimeout(() => {
-          this.loadEvents();
-        }, 500);
+    // New event added → append at end to preserve chronological (minute-asc) order
+    this.signalrEventSub = this.signalrService.matchEventUpdate$.subscribe(update => {
+      // Use loose equality (==) to handle potential string/number type mismatch from SignalR
+      // eslint-disable-next-line eqeqeq
+      if (update.matchId == this.matchId && update.event) {
+        const raw = update.event;
+        const eventId = raw.id ?? raw.Id ?? raw.eventId ?? raw.EventId ?? 0;
+        if (!eventId) return; // guard: skip events with no ID
+
+        const exists = this.timelineEvents.some(evt => !!evt.id && evt.id === eventId);
+        if (!exists) {
+          const newEvt = this.mapSingleEventToTimelineEvent(raw);
+          // Append at the end — API returns events ordered by minute asc (oldest top, newest bottom)
+          this.timelineEvents = [...this.timelineEvents, newEvt];
+          this.attachEventsToLineups();
+          this.cdr.detectChanges();
+        }
       }
     });
+
+    // Event deleted/disallowed → remove from list for ALL viewers in real-time
+    this.signalrDeletedSub = this.signalrService.matchEventDeleted$.subscribe(update => {
+      // eslint-disable-next-line eqeqeq
+      if (update.matchId == this.matchId && update.eventId) {
+        const before = this.timelineEvents.length;
+        this.timelineEvents = this.timelineEvents.filter(e => e.id !== update.eventId);
+        if (this.timelineEvents.length !== before) {
+          this.attachEventsToLineups();
+          this.cdr.detectChanges();
+        }
+      }
+    });
+
+    this.signalrScoreSub = this.signalrService.matchScoreUpdate$.subscribe(update => {
+      // Use loose equality (==) to handle potential string/number type mismatch from SignalR
+      // eslint-disable-next-line eqeqeq
+      if (update.matchId == this.matchId && this.matchInfo) {
+        this.matchInfo.homeScore = update.homeScore;
+        this.matchInfo.awayScore = update.awayScore;
+        if (update.homePenaltyScore != null) this.matchInfo.homePenaltyScore = update.homePenaltyScore;
+        if (update.awayPenaltyScore != null) this.matchInfo.awayPenaltyScore = update.awayPenaltyScore;
+        if (update.status) this.matchInfo.status = update.status;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  public onEventDisallowed(eventId: number): void {
+    if (eventId) {
+      this.timelineEvents = this.timelineEvents.filter(e => e.id !== eventId);
+      this.attachEventsToLineups();
+      this.cdr.detectChanges();
+    }
+  }
+
+  private mapSingleEventToTimelineEvent(e: any): TimelineEvent {
+    const allPlayers = [...this.allHomePlayers, ...this.allAwayPlayers];
+    const foundPlayer = allPlayers.find(p => p.playerId === e.playerId);
+
+    return {
+      id: e.id ?? e.Id ?? e.eventId ?? e.EventId ?? e.matchEventId ?? e.MatchEventId ?? 0,
+      minute: e.minute ?? 0,
+      eventType: this.formatEventType(e.eventType),
+      eventSubtext: e.assistPlayerName ? `Assist: ${e.assistPlayerName}` : '',
+      rawType: e.eventType,
+      side: e.isHomeSide === true ? 'home' :
+        e.isHomeSide === false ? 'away' :
+          e.teamId === this.matchInfo?.homeTeamId ? 'home' : 'away',
+      accentColor: this.eventAccentColor(e.eventType),
+      player: {
+        playerId: e.playerId,
+        fullName: e.playerName ?? foundPlayer?.fullName ?? 'Player',
+        position: foundPlayer?.position ?? foundPlayer?.naturalPosition ?? '',
+        profileImageUrl: foundPlayer?.profileImageUrl ?? null,
+        overallRating: foundPlayer?.overallRating ?? 0
+      },
+      assistPlayerId: e.assistPlayerId
+    };
   }
 
   get areBothLineupsSubmitted(): boolean {
@@ -122,14 +234,30 @@ export class MatchTimelineComponent implements OnInit, OnDestroy {
     return s === 'completed' || s === 'finished';
   }
 
-  get isScheduled(): boolean {
-    return (this.matchInfo?.status || '').toString().toLowerCase() === 'scheduled';
+  get isSessionMatch(): boolean {
+    const t = (this.matchInfo?.type || '').toString().toLowerCase();
+    return t === 'session';
+  }
+
+  get trackWidth(): string {
+    return this.isSessionMatch ? '300%' : '500%';
+  }
+
+  get slidePageWidth(): string {
+    return this.isSessionMatch ? '33.3333%' : '20%';
   }
 
   get trackTransform(): string {
+    if (this.isSessionMatch) {
+      if (this.selectedTab === 'timeline') return 'translateX(0%)';
+      if (this.selectedTab === 'lineups') return 'translateX(-33.3333%)';
+      return 'translateX(-66.6666%)';
+    }
     if (this.selectedTab === 'timeline') return 'translateX(0%)';
-    if (this.selectedTab === 'lineups') return 'translateX(-33.3333%)';
-    return 'translateX(-66.6666%)';
+    if (this.selectedTab === 'lineups') return 'translateX(-20%)';
+    if (this.selectedTab === 'h2h') return 'translateX(-40%)';
+    if (this.selectedTab === 'analysis') return 'translateX(-60%)';
+    return 'translateX(-80%)';
   }
 
   onStartMatchClick(): void {
@@ -149,8 +277,25 @@ export class MatchTimelineComponent implements OnInit, OnDestroy {
         this.canLogEvents = true;
         this.canStartMatch = false;
         this.toastService.show('Match started successfully! The match is now Live.', 'success');
+        //  TRIGGER START MATCH NOTIFICATION
+        const homeTeamName = this.matchInfo?.homeTeam || 'Home Team';
+        const awayTeamName = this.matchInfo?.awayTeam || 'Away Team';
+        this.notificationService.triggerMatchEventNotification(
+          this.matchId,
+          "Match Started! ⚽",
+          `${homeTeamName} vs ${awayTeamName} has officially kicked off.`,
+          "MatchStarted"
+        ).subscribe({
+          error: (e) => {
+            console.error('Failed to dispatch start match notification', e);
+            const detail = e?.error?.detail || e?.error?.message || e?.message || 'Unknown error';
+            this.toastService.show(`Match started, but the notification failed to send: ${detail}`, 'warning');
+          }
+        });
+
         this.refresh();
         this.cdr.detectChanges();
+
       },
       error: (err) => {
         this.isStartingMatch = false;
@@ -176,6 +321,21 @@ export class MatchTimelineComponent implements OnInit, OnDestroy {
         }
         this.canLogEvents = false;
         this.toastService.show('Match ended successfully!', 'success');
+        //TRIGGER END MATCH NOTIFICATION
+        const homeTeamName = this.matchInfo?.homeTeam || 'Home Team';
+        const awayTeamName = this.matchInfo?.awayTeam || 'Away Team';
+        this.notificationService.triggerMatchEventNotification(
+          this.matchId,
+          "Full Time! 🛑",
+          `The match between ${homeTeamName} and ${awayTeamName} has ended.`,
+          "MatchEnded"
+        ).subscribe({
+          error: (e) => {
+            console.error('Failed to dispatch end match notification', e);
+            const detail = e?.error?.detail || e?.error?.message || e?.message || 'Unknown error';
+            this.toastService.show(`Match ended, but the notification failed to send: ${detail}`, 'warning');
+          }
+        });
         this.eventLogged.emit();
         this.refresh();
         this.cdr.detectChanges();
@@ -189,12 +349,21 @@ export class MatchTimelineComponent implements OnInit, OnDestroy {
     });
   }
 
-  selectTab(tab: 'timeline' | 'lineups' | 'ratings'): void {
+  selectTab(tab: 'timeline' | 'lineups' | 'h2h' | 'ratings' | 'analysis', isUserAction: boolean = false): void {
+    if (isUserAction) {
+      this.hasUserSelectedTab = true;
+    }
     this.selectedTab = tab;
+    if (tab === 'h2h') {
+      this.h2hInitialized = true;
+    }
+    if (tab === 'analysis') {
+      this.analysisInitialized = true;
+    }
     if (tab === 'ratings') {
       this.ratingsInitialized = true;
     }
-    if (tab === 'timeline' && !this.eventsLoaded) {
+    if (tab === 'timeline' && !this.eventsLoaded && !this.eventsLoading) {
       if (this.mockTimelineEvents?.length) {
         this.timelineEvents = this.mockTimelineEvents;
         this.eventsLoaded = true;
@@ -203,14 +372,19 @@ export class MatchTimelineComponent implements OnInit, OnDestroy {
         this.loadEvents();
       }
     }
-    if ((tab === 'lineups' || tab === 'ratings') && !this.lineupsLoaded) {
+    if ((tab === 'lineups' || tab === 'ratings') && !this.lineupsLoaded && !this.lineupsLoading) {
       this.loadLineups();
     }
   }
 
   public refresh(): void {
-    this.eventsLoaded = false;
-    this.lineupsLoaded = false;
+    if (this.selectedTab === 'timeline') {
+      this.eventsLoaded = false;
+      this.loadEvents();
+    } else if (this.selectedTab === 'lineups' || this.selectedTab === 'ratings') {
+      this.lineupsLoaded = false;
+      this.loadLineups();
+    }
 
     if (this.matchId) {
       this.matchService.getMatch(this.matchId).subscribe({
@@ -285,13 +459,14 @@ export class MatchTimelineComponent implements OnInit, OnDestroy {
     this.timelineEvents = events.map((e: any) => {
       const fetched = fetchedMap.get(e.playerId);
       return {
+        id: e.id ?? e.Id ?? e.eventId ?? e.EventId ?? e.matchEventId ?? e.MatchEventId ?? 0,
         minute: e.minute,
         eventType: this.formatEventType(e.eventType),
         eventSubtext: e.assistPlayerName ? `Assist: ${e.assistPlayerName}` : '',
         rawType: e.eventType,
         side: e.isHomeSide === true ? 'home' :
-              e.isHomeSide === false ? 'away' :
-              e.teamId === this.matchInfo.homeTeamId ? 'home' : 'away',
+          e.isHomeSide === false ? 'away' :
+            e.teamId === this.matchInfo.homeTeamId ? 'home' : 'away',
         accentColor: this.eventAccentColor(e.eventType),
         player: {
           playerId: e.playerId,
@@ -328,7 +503,7 @@ export class MatchTimelineComponent implements OnInit, OnDestroy {
         });
 
         const playerIds = lineups.map((l: any) => l.playerId ?? l.PlayerId).filter((id: number) => id > 0);
-        
+
         if (playerIds.length > 0) {
           this.playerCardService.getMiniPlayerCards(playerIds).subscribe({
             next: (cards: MiniPlayerCardModel[]) => {
@@ -349,7 +524,7 @@ export class MatchTimelineComponent implements OnInit, OnDestroy {
               lineups.forEach((l: any) => {
                 const pId = l.playerId ?? l.PlayerId;
                 const fetched = fetchedMap.get(pId);
-                
+
                 if (fetched) {
                   l.overallRating = fetched.overallRating;
                   l.profileImageUrl = fetched.profileImageUrl;
@@ -410,40 +585,40 @@ export class MatchTimelineComponent implements OnInit, OnDestroy {
       const p = (pos || '').toUpperCase();
       switch (p) {
         // ── Defenders ──────────────────────────────
-        case 'LB':   return 0 * 10 + 0;
-        case 'LWB':  return 0 * 10 + 0;
-        case 'CB':   return 0 * 10 + 1;
-        case 'SW':   return 0 * 10 + 1;
-        case 'DEF':  return 0 * 10 + 1;
-        case 'DF':   return 0 * 10 + 1;
-        case 'RB':   return 0 * 10 + 2;
-        case 'RWB':  return 0 * 10 + 2;
+        case 'LB': return 0 * 10 + 0;
+        case 'LWB': return 0 * 10 + 0;
+        case 'CB': return 0 * 10 + 1;
+        case 'SW': return 0 * 10 + 1;
+        case 'DEF': return 0 * 10 + 1;
+        case 'DF': return 0 * 10 + 1;
+        case 'RB': return 0 * 10 + 2;
+        case 'RWB': return 0 * 10 + 2;
         // ── Defensive Midfielders ───────────────────
-        case 'CDM':  return 1 * 10 + 1;
-        case 'DM':   return 1 * 10 + 1;
-        case 'DMF':  return 1 * 10 + 1;
+        case 'CDM': return 1 * 10 + 1;
+        case 'DM': return 1 * 10 + 1;
+        case 'DMF': return 1 * 10 + 1;
         // ── Central / Wide Midfielders ──────────────
-        case 'LM':   return 2 * 10 + 0;
-        case 'CM':   return 2 * 10 + 1;
-        case 'MID':  return 2 * 10 + 1;
-        case 'MF':   return 2 * 10 + 1;
-        case 'RM':   return 2 * 10 + 2;
+        case 'LM': return 2 * 10 + 0;
+        case 'CM': return 2 * 10 + 1;
+        case 'MID': return 2 * 10 + 1;
+        case 'MF': return 2 * 10 + 1;
+        case 'RM': return 2 * 10 + 2;
         // ── Attacking Midfielders ───────────────────
-        case 'LAM':  return 3 * 10 + 0;
-        case 'CAM':  return 3 * 10 + 1;
-        case 'AM':   return 3 * 10 + 1;
-        case 'AMF':  return 3 * 10 + 1;
-        case 'RAM':  return 3 * 10 + 2;
+        case 'LAM': return 3 * 10 + 0;
+        case 'CAM': return 3 * 10 + 1;
+        case 'AM': return 3 * 10 + 1;
+        case 'AMF': return 3 * 10 + 1;
+        case 'RAM': return 3 * 10 + 2;
         // ── Forwards ───────────────────────────────
-        case 'LW':   return 4 * 10 + 0;
-        case 'SS':   return 4 * 10 + 1;
-        case 'CF':   return 4 * 10 + 1;
-        case 'ST':   return 4 * 10 + 1;
-        case 'FW':   return 4 * 10 + 1;
-        case 'ATT':  return 4 * 10 + 1;
-        case 'FOR':  return 4 * 10 + 1;
-        case 'RW':   return 4 * 10 + 2;
-        default:     return 2 * 10 + 1; // unknown → CM
+        case 'LW': return 4 * 10 + 0;
+        case 'SS': return 4 * 10 + 1;
+        case 'CF': return 4 * 10 + 1;
+        case 'ST': return 4 * 10 + 1;
+        case 'FW': return 4 * 10 + 1;
+        case 'ATT': return 4 * 10 + 1;
+        case 'FOR': return 4 * 10 + 1;
+        case 'RW': return 4 * 10 + 2;
+        default: return 2 * 10 + 1; // unknown → CM
       }
     };
     const sortedOutfield = [...outfield].sort((a, b) =>
@@ -483,7 +658,7 @@ export class MatchTimelineComponent implements OnInit, OnDestroy {
 
   private attachEventsToLineups(): void {
     if (!this.eventsLoaded || !this.lineupsLoaded) return;
-    
+
     // 1. Group events by player Id
     const playerEvents = new Map<number, { [type: string]: number }>();
     for (const e of this.timelineEvents) {
@@ -493,7 +668,7 @@ export class MatchTimelineComponent implements OnInit, OnDestroy {
         const evMap = playerEvents.get(pId)!;
         evMap[e.rawType] = (evMap[e.rawType] || 0) + 1;
       }
-      
+
       const aId = e.assistPlayerId;
       if (aId) {
         if (!playerEvents.has(aId)) playerEvents.set(aId, {});

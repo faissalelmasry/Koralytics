@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NavbarComponent } from '../../../../shared/components/navbar/navbar';
 import { Footer } from '../../../../shared/components/footer/footer';
 import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner';
@@ -19,6 +19,7 @@ import { MatchTimelineEventModel } from '../../../../core/models/Player/match-ti
   standalone: true,
   imports: [
     CommonModule,
+    RouterLink,
     NavbarComponent,
     Footer,
     LoadingSpinnerComponent,

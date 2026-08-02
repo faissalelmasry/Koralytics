@@ -1,7 +1,6 @@
 :host {
   display: block;
   min-height: 100vh;
-  background-color: #06080a;
   color: #ffffff;
   font-family: 'Inter', sans-serif;
 }
@@ -9,148 +8,187 @@
 .followed-players-page {
   --accent-neon: #c8ff4d;
   --accent-glow: rgba(200, 255, 77, 0.2);
+  --accent-border-glow: rgba(200, 255, 77, 0.4);
+  --accent-bg-glow: rgba(200, 255, 77, 0.12);
   --panel-bg: #11141a;
   --border-color: #1e232d;
   --text-muted: #8b909a;
-  
+
   max-width: 1200px;
   margin: 0 auto;
-  padding: 40px 24px;
+  padding: 110px 24px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
 }
 
 /* =========================================
-   Header & Search Layout
+   Hero Banner
    ========================================= */
-.page-header {
+.hero-banner {
+  background: linear-gradient(135deg, #11141a 0%, #0c0e12 100%);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  padding: 20px 28px;
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
-  margin-bottom: 32px;
+  align-items: center;
   flex-wrap: wrap;
+  gap: 16px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.3s ease;
+}
+
+.hero-banner:hover {
+  border-color: #383e4a;
+}
+
+.hero-banner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent-neon), transparent 70%);
+}
+
+.header-identity {
+  display: flex;
+  align-items: center;
   gap: 16px;
 }
 
-.header-titles h1 {
-  font-size: 28px;
-  font-weight: 800;
-  margin: 0 0 8px 0;
-  background: linear-gradient(90deg, #fff, #b7bcc6);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.header-titles p {
-  color: var(--text-muted);
-  margin: 0;
-  font-size: 14px;
-}
-
-/* =========================================
-   Loading State Container
-   ========================================= */
-.status-state {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 300px;
-  width: 100%;
-}
-
-/* =========================================
-   Grid Layout & Player Card
-   ========================================= */
-.players-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 20px;
-}
-
-.player-card {
-  background: var(--panel-bg);
-  border: 1px solid var(--border-color);
-  border-radius: 16px;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  transition: transform 0.2s ease, border-color 0.2s ease;
-}
-
-.player-card:hover {
-  border-color: #383e4a;
-  transform: translateY(-2px);
-}
-
-.card-header {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.player-avatar {
-  width: 56px;
-  height: 56px;
+.avatar-circle {
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid var(--border-color);
+  background: radial-gradient(circle, var(--accent-glow) 0%, #171b22 100%);
+  border: 2px solid var(--accent-neon);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-neon);
+  flex-shrink: 0;
+  box-shadow: 0 0 15px var(--accent-glow);
 }
 
-.player-info h4 {
-  margin: 0 0 8px 0;
-  font-size: 16px;
-  font-weight: 700;
-}
-
-/* =========================================
-   Stats Grid
-   ========================================= */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  background: #0c0e12;
-  border-radius: 12px;
-  padding: 12px;
-}
-
-.stat-box {
+.header-text {
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 4px;
 }
 
-.stat-label {
+.page-eyebrow {
   font-size: 11px;
-  color: var(--text-muted);
+  font-weight: 800;
+  letter-spacing: 2.5px;
   text-transform: uppercase;
+  color: var(--accent-neon);
+}
+
+.header-text h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 30px;
+  letter-spacing: 0.5px;
+  margin: 0;
+  line-height: 1.1;
+}
+
+.meta-pills {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.pill {
+  background: #181c24;
+  border: 1px solid #272d3a;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  color: #e2e8f0;
   font-weight: 600;
 }
 
-.stat-value {
-  font-size: 16px;
-  font-weight: 800;
-  font-family: 'Bebas Neue', sans-serif; 
-  letter-spacing: 0.5px;
-}
-
-/* Rating tier colors — mirrors the tier system in player-card.css /
-   player-profile.component.ts (<70 lime, 70-79 gold, 80+ orange), so a
-   followed player's rating reads the same way it does on their own card. */
-.stat-value.tier-base {
+.pill.gold {
+  background: var(--accent-bg-glow);
+  border-color: var(--accent-border-glow);
   color: var(--accent-neon);
-  text-shadow: 0 0 8px var(--accent-glow);
 }
 
-.stat-value.tier-gold {
-  color: #ffd700;
-  text-shadow: 0 0 8px rgba(255, 215, 0, 0.2);
+.search-container {
+  min-width: 240px;
 }
 
-.stat-value.tier-elite {
-  color: #ff6a00;
-  text-shadow: 0 0 8px rgba(255, 106, 0, 0.2);
+/* =========================================
+   Status States (loading / empty)
+   ========================================= */
+.status-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 320px;
+  width: 100%;
+  background: var(--panel-bg);
+  border: 2px dashed var(--border-color);
+  border-radius: 20px;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 32px;
+  transition: border-color 0.3s ease;
+}
+
+.status-state:hover {
+  border-color: var(--accent-border-glow);
+}
+
+.status-icon {
+  color: var(--accent-neon);
+  margin-bottom: 4px;
+  animation: statusIconPulse 3s infinite ease-in-out;
+}
+
+@keyframes statusIconPulse {
+  0%, 100% { filter: drop-shadow(0 0 4px var(--accent-glow)); }
+  50% { filter: drop-shadow(0 0 12px var(--accent-neon)); }
+}
+
+.status-state h3 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  letter-spacing: 1px;
+  color: #fff;
+  margin: 0;
+}
+
+.status-state p {
+  font-size: 13px;
+  margin: 0;
+  max-width: 320px;
+}
+
+/* =========================================
+   Grid Layout
+   ========================================= */
+.players-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
+}
+
+.player-card-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.player-card-wrapper:hover {
+  transform: translateY(-4px);
 }
 
 /* =========================================
@@ -161,13 +199,54 @@
   gap: 10px;
 }
 
-
 .flex-1 {
   flex: 1;
 }
 
-.load-more-container {
-  display: flex;
-  justify-content: center;
-  margin-top: 32px;
+/* =========================================
+   Accessibility
+   ========================================= */
+.search-container :focus-visible,
+.card-actions :focus-visible,
+app-pagination :focus-visible {
+  outline: 2px solid var(--accent-border-glow);
+  outline-offset: 2px;
+}
+
+/* =========================================
+   Responsive
+   ========================================= */
+@media (max-width: 900px) {
+  .hero-banner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .search-container {
+    width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .followed-players-page {
+    padding: 90px 16px 24px;
+  }
+
+  .header-text h1 {
+    font-size: 24px;
+  }
+}
+
+/* =========================================
+   Reduced Motion
+   ========================================= */
+@media (prefers-reduced-motion: reduce) {
+  .player-card-wrapper {
+    transition: none;
+    transform: none;
+  }
+
+  .status-icon {
+    animation: none;
+  }
 }

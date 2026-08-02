@@ -14,6 +14,8 @@ import { CustomSelect, SelectOption } from '@shared/components/custom-select/cus
 import { SearchBarComponent } from '@shared/components/search-bar/search-bar';
 import { CustomDatePicker } from '@shared/components/custom-date-picker/custom-date-picker';
 import { CustomNumberInputComponent } from '@shared/components/custom-number-input/custom-number-input';
+import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog';
+import { NotificationService } from '@core/services/SignalR/notificationservice';
 
 export interface PlayerOption {
   id: number;
@@ -33,7 +35,8 @@ export interface PlayerOption {
     CustomSelect,
     SearchBarComponent,
     CustomDatePicker,
-    CustomNumberInputComponent
+    CustomNumberInputComponent,
+    ConfirmDialogComponent
   ],
   templateUrl: './academy-admin-subscriptions.component.html',
   styleUrls: ['./academy-admin-subscriptions.component.css']
@@ -104,7 +107,8 @@ export class AcademyAdminSubscriptionsComponent implements OnInit {
   constructor(
     private subscriptionService: SubscriptionService,
     private academyService: AcademyService,
-    private authService: AuthService
+    private authService: AuthService,
+    private notificationService: NotificationService
   ) { }
 
   ngOnInit(): void {
@@ -303,6 +307,17 @@ export class AcademyAdminSubscriptionsComponent implements OnInit {
       next: () => {
         const selectedPlayerName = this.availablePlayers.find(p => p.id === this.newSub.playerId)?.name || `ID #${this.newSub.playerId}`;
         this.successMessage = `New subscription issued successfully for ${selectedPlayerName}!`;
+        // notifications
+        const playerMsg = "A new subscription payment is due for you.";
+        const parentMsg = "A new subscription payment is due for your child.";
+        
+        this.notificationService.notifyPlayerMilestone(this.newSub.playerId, playerMsg).subscribe({
+          error: (e) => console.error('Failed to notify player', e)
+        });
+        
+        this.notificationService.notifyPlayerParents(this.newSub.playerId, parentMsg).subscribe({
+          error: (e) => console.error('Failed to notify parent', e)
+        });
         this.isSubmitting = false;
         this.closeCreateModal();
         this.loadSubscriptions();
@@ -356,9 +371,29 @@ export class AcademyAdminSubscriptionsComponent implements OnInit {
     });
   }
 
+  // CONFIRM DIALOG STATE
+  isConfirmDialogOpen = false;
+  confirmDialogTitle = '';
+  confirmDialogMessage = '';
+  targetSubForCash: PlayerSubscriptionDto | null = null;
+
   // MARK AS PAID BY CASH HANDLER
   onMarkAsPaidByCash(sub: PlayerSubscriptionDto): void {
-    if (!confirm(`Confirm cash payment of ${sub.amount} EGP for ${sub.playerName}?`)) return;
+    this.targetSubForCash = sub;
+    this.confirmDialogTitle = 'Confirm Cash Payment';
+    this.confirmDialogMessage = `Confirm cash payment of ${sub.amount} EGP for ${sub.playerName}?`;
+    this.isConfirmDialogOpen = true;
+  }
+
+  onConfirmDialogExecute(): void {
+    if (!this.targetSubForCash) {
+      this.isConfirmDialogOpen = false;
+      return;
+    }
+
+    const sub = this.targetSubForCash;
+    this.isConfirmDialogOpen = false;
+    this.targetSubForCash = null;
 
     this.isProcessingCashId = sub.id;
     this.errorMessage = '';
@@ -367,6 +402,17 @@ export class AcademyAdminSubscriptionsComponent implements OnInit {
     this.subscriptionService.markAsPaidByCash(sub.id).subscribe({
       next: () => {
         this.successMessage = `Cash payment confirmed for ${sub.playerName}! Status set to Paid.`;
+        // notification
+        const playerMsg = `Your cash payment of ${sub.amount} EGP has been confirmed successfully.`;
+        const parentMsg = `Cash payment of ${sub.amount} EGP for your child's subscription has been confirmed.`;
+        
+        this.notificationService.notifyPlayerMilestone(sub.playerId, playerMsg).subscribe({
+          error: (e) => console.error('Failed to notify player', e)
+        });
+        
+        this.notificationService.notifyPlayerParents(sub.playerId, parentMsg).subscribe({
+          error: (e) => console.error('Failed to notify parent', e)
+        });
         this.isProcessingCashId = null;
         this.loadSubscriptions();
       },

@@ -28,5 +28,11 @@ namespace Koralytics.API.Services
             // Send to the specific match group
             await _hubContext.Clients.Group($"Match_{eventDto.MatchId}").SendAsync("ReceiveMatchEventUpdate", eventDto);
         }
+
+        public async Task BroadcastMatchEventDeletedAsync(LiveMatchEventDeletedDto deletedDto)
+        {
+            // Notify all viewers in the match group to remove this event from their timeline
+            await _hubContext.Clients.Group($"Match_{deletedDto.MatchId}").SendAsync("ReceiveMatchEventDeleted", deletedDto);
+        }
     }
 }

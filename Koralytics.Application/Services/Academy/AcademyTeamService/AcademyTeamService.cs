@@ -197,6 +197,7 @@ namespace Koralytics.Application.Services.Academy.AcademyTeamService
             {
                 CoachId = coachUserId,
                 CoachFullName = coach is not null ? $"{coach.FirstName} {coach.LastName}" : string.Empty,
+                ProfileImageUrl = coach?.ProfileImageUrl,
                 TeamId = teamId,
                 TeamName = team.Name,
                 AssignedAt = coachTeam.AssignedAt
@@ -267,6 +268,7 @@ namespace Koralytics.Application.Services.Academy.AcademyTeamService
                 {
                     CoachId = c.CoachUserId,
                     CoachFullName = c.Coach != null ? $"{c.Coach.FirstName} {c.Coach.LastName}" : string.Empty,
+                    ProfileImageUrl = c.Coach?.ProfileImageUrl,
                     AssignedAt = c.AssignedAt
                 }).ToList();
 
@@ -274,6 +276,7 @@ namespace Koralytics.Application.Services.Academy.AcademyTeamService
                 {
                     PlayerId = p.PlayerId,
                     PlayerFullName = p.Player != null ? $"{p.Player.FirstName} {p.Player.LastName}" : string.Empty,
+                    ProfileImageUrl = p.Player?.ProfileImageUrl,
                     JoinedAt = p.JoinedAt,
                     Position = p.Player != null
                         ? p.Player.PlayerPositions

@@ -1,0 +1,306 @@
+<app-navbar></app-navbar>
+
+<div class="search-page">
+
+  <!-- =============== COMPACT HEADER =============== -->
+  <header class="page-header" scrollReveal direction="bottom" [delay]="0">
+    <div class="page-header-title">
+      <h1>Player Finder</h1>
+      <span class="page-header-status">
+        <span class="status-dot" aria-hidden="true"></span>
+        {{ isLoading() ? 'Scanning…' : (hasSearched() ? totalCount() + ' found' : 'Ready') }}
+      </span>
+    </div>
+    <div class="page-header-stats">
+      <span class="stat-chip">
+        <strong>{{ hasSearched() ? totalCount() : '—' }}</strong> Prospects
+      </span>
+      <span class="stat-chip">
+        <strong>{{ getActiveFilterTags().length }}</strong> Filters
+      </span>
+      <span class="stat-chip">
+        <strong>{{ hasSearched() ? pageNumber() + '/' + totalPages() : '—' }}</strong> Page
+      </span>
+    </div>
+  </header>
+
+  @if (apiErrorMessage()) {
+    <div class="api-error-banner" role="alert" scrollReveal direction="bottom" [delay]="0">
+      <span class="api-error-icon" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg>
+      </span>
+      <span class="api-error-text">{{ apiErrorMessage() }}</span>
+      <button type="button" class="api-error-dismiss" (click)="dismissApiError()" aria-label="Dismiss error">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+  }
+
+  <div class="search-layout">
+
+    <!-- ============ SIDEBAR: Filters ============ -->
+    <aside class="filter-sidebar" scrollReveal direction="left" [delay]="60">
+
+      <div class="sidebar-scroll">
+
+        <!-- AI Natural Language Search -->
+        <div class="nl-search-block">
+          <div class="nl-glow" aria-hidden="true"></div>
+          <div class="nl-search-label">
+            <span class="nl-title">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>
+             Scouting Assistant
+            </span>
+            <span class="ai-badge">Soon</span>
+          </div>
+          <p class="nl-hint">Describe the player you're looking for.</p>
+          <div class="nl-search-row">
+            <input
+              type="text"
+              class="nl-search-input"
+              placeholder="e.g. tall left-footed striker under 22…"
+              aria-label="Natural language player search"
+              [(ngModel)]="nlQuery"
+              (keydown.enter)="onNlSearchSubmit()" />
+            <button type="button" class="nl-search-btn" (click)="onNlSearchSubmit()" aria-label="Search with AI">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12h14M13 6l6 6-6 6"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Tactical position picker -->
+        <section class="filter-section">
+          <div class="section-head">
+            <label class="filter-label">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/></svg>
+              Tactical Position
+            </label>
+            @if (filters.positions.length > 0) {
+              <span class="count-badge">{{ filters.positions.length }}</span>
+            }
+          </div>
+
+          <div class="mini-pitch" role="group" aria-label="Filter by position">
+            <div class="pitch-lines" aria-hidden="true">
+              <div class="pitch-stripes"></div>
+              <div class="pitch-line-half"></div>
+              <div class="pitch-center-circle"></div>
+              <div class="pitch-center-dot"></div>
+              <div class="pitch-box left"></div>
+              <div class="pitch-box right"></div>
+              <div class="pitch-six left"></div>
+              <div class="pitch-six right"></div>
+            </div>
+            @for (pos of positionOptions; track pos) {
+              <button
+                type="button"
+                class="pos-pin"
+                [class.pos-pin-active]="isPositionSelected(pos)"
+                [style.top]="getPositionCoords(pos).top"
+                [style.left]="getPositionCoords(pos).left"
+                [style.--line-color]="getPositionLineColor(pos)"
+                [attr.aria-pressed]="isPositionSelected(pos)"
+                (click)="togglePosition(pos)">
+                {{ pos }}
+              </button>
+            }
+          </div>
+
+          <div class="pitch-legend" aria-hidden="true">
+            <span class="legend-item"><i style="background:#4fd8ff"></i>Keeper</span>
+            <span class="legend-item"><i style="background:#5b8cff"></i>Defence</span>
+            <span class="legend-item"><i style="background:#b58cff"></i>Midfield</span>
+            <span class="legend-item"><i style="background:#ff7a5c"></i>Attack</span>
+          </div>
+        </section>
+
+        <div class="sidebar-divider"></div>
+
+        <!-- Age -->
+        <section class="filter-section">
+          <div class="section-head">
+            <label class="filter-label" for="minAgeInput">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+              Age Range
+            </label>
+          </div>
+          <div class="range-row">
+            <div class="field">
+              <input id="minAgeInput" type="number" class="filter-input" placeholder="Min" min="5" max="45" [(ngModel)]="filters.minAge" (keydown.enter)="search()" />
+              <span class="field-hint">yrs</span>
+            </div>
+            <span class="range-sep" aria-hidden="true"></span>
+            <div class="field">
+              <input type="number" class="filter-input" placeholder="Max" min="5" max="45" aria-label="Maximum age" [(ngModel)]="filters.maxAge" (keydown.enter)="search()" />
+              <span class="field-hint">yrs</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Rating -->
+        <section class="filter-section">
+          <div class="section-head">
+            <label class="filter-label" for="minRatingInput">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.8 6.2 20.9l1.1-6.5L2.6 9.8l6.5-.9z"/></svg>
+              Overall Rating
+            </label>
+          </div>
+          <div class="range-row">
+            <div class="field">
+              <input id="minRatingInput" type="number" class="filter-input" placeholder="Min" min="0" max="99" [(ngModel)]="filters.minRating" (keydown.enter)="search()" />
+              <span class="field-hint">ovr</span>
+            </div>
+            <span class="range-sep" aria-hidden="true"></span>
+            <div class="field">
+              <input type="number" class="filter-input" placeholder="Max" min="0" max="99" aria-label="Maximum rating" [(ngModel)]="filters.maxRating" (keydown.enter)="search()" />
+              <span class="field-hint">ovr</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Foot -->
+        <section class="filter-section">
+          <div class="section-head">
+            <label class="filter-label">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 21c-1.7 0-3-1.4-3-3.1 0-1.6.6-2.6.6-4.4C4.6 9 6.5 3 11 3c3 0 4 2.4 4 5.4 0 2.6-.8 3.6-.8 5.6 0 2.3 1.3 3 1.3 4.6 0 1.4-1.2 2.4-2.7 2.4z"/></svg>
+              Preferred Foot
+            </label>
+          </div>
+          <div class="chip-row" role="group" aria-label="Filter by preferred foot">
+            @for (foot of footOptions; track foot) {
+              <button
+                type="button"
+                class="chip"
+                [attr.aria-pressed]="filters.preferredFoot === foot"
+                [class.chip-active]="filters.preferredFoot === foot"
+                (click)="setFoot(foot)">
+                {{ foot }}
+              </button>
+            }
+          </div>
+        </section>
+
+        <!-- Academy -->
+        <section class="filter-section">
+          <div class="section-head">
+            <label class="filter-label" for="academyIdInput">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V9l7-5 7 5v12M10 21v-6h4v6"/></svg>
+              Academy ID
+            </label>
+          </div>
+          <div class="field">
+            <span class="field-prefix" aria-hidden="true">#</span>
+            <input id="academyIdInput" type="number" class="filter-input has-prefix" placeholder="e.g. 12" min="1" [(ngModel)]="filters.academyId" (keydown.enter)="search()" />
+          </div>
+        </section>
+
+      </div>
+
+      <div class="sidebar-actions">
+        <app-button variant="accent" [disabled]="isLoading()" (click)="search()">
+          {{ isLoading() ? 'Searching…' : 'Search Players' }}
+        </app-button>
+        <app-button variant="slate" (click)="resetFilters()">Reset Filters</app-button>
+      </div>
+    </aside>
+
+    <!-- ============ MAIN: Results ============ -->
+    <main class="results-pane">
+
+      @if (isLoading()) {
+        <div class="results-header">
+          <div class="results-meta">
+            <app-loading-spinner size="sm"></app-loading-spinner>
+            Searching player database…
+          </div>
+        </div>
+        <div class="results-grid" aria-hidden="true">
+          @for (s of [1,2,3,4,5,6,7,8]; track s) {
+            <div class="skeleton-item">
+              <div class="skeleton-card"></div>
+              <div class="skeleton-actions">
+                <span></span><span></span><span></span>
+              </div>
+            </div>
+          }
+        </div>
+        <span class="sr-only" role="status">Loading player results</span>
+      }
+      @else if (hasSearched() && results().length === 0 && !apiErrorMessage()) {
+        <div class="status-state">
+          <div class="status-icon">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3M8 8l6 6M14 8l-6 6"/></svg>
+          </div>
+          <h3>No Players Found</h3>
+          <p>No players match your current filters. Try widening the age range, removing a position, or clearing all filters to start fresh.</p>
+          <button type="button" class="ghost-action" (click)="resetFilters()">Clear all filters</button>
+        </div>
+      }
+      @else if (!hasSearched()) {
+        <div class="status-state">
+          <div class="status-icon">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M6 12h12M10 18h4"/></svg>
+          </div>
+          <h3>Set Your Filters</h3>
+          <p>Choose a position on the pitch, set an age bracket, or enter a rating range — then hit <strong>Search Players</strong> to see matching prospects.</p>
+          <button type="button" class="ghost-action" (click)="search()">Browse all players</button>
+        </div>
+      }
+      @else if (results().length > 0) {
+
+        <div class="results-header" scrollReveal direction="bottom" [delay]="40">
+          <div class="results-header-top">
+            <div class="results-meta">
+              <span class="live-dot" aria-hidden="true"></span>
+              <strong>{{ totalCount() }}</strong> Player{{ totalCount() === 1 ? '' : 's' }} Found
+            </div>
+            <div class="results-page-meta">Page {{ pageNumber() }} of {{ totalPages() }}</div>
+          </div>
+
+          @if (getActiveFilterTags().length > 0) {
+            <div class="filter-tag-row">
+              @for (tag of getActiveFilterTags(); track tag.label) {
+                <button type="button" class="filter-tag" (click)="tag.clear()" [attr.aria-label]="'Remove filter ' + tag.label">
+                  {{ tag.label }}
+                  <span class="filter-tag-x" aria-hidden="true">
+                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                  </span>
+                </button>
+              }
+              <button type="button" class="filter-tag-clear-all" (click)="resetFilters()">Clear all</button>
+            </div>
+          }
+        </div>
+
+        <div class="results-grid" scrollReveal direction="bottom" [delay]="100">
+          @for (player of results(); track player.playerId) {
+            <div class="result-item">
+              <div class="result-card-shell">
+                <app-player-card [player]="$any(player)" [autoLoad]="false" [compact]="true" [cardWidth]="220" [cardHeight]="340">
+                </app-player-card>
+              </div>
+
+             <div class="result-actions">
+  <button type="button" class="card-action-btn primary" (click)="viewProfile(player.playerId)">Profile</button>
+  <button type="button" class="card-action-btn cyan" (click)="followPlayer(player.playerId)">Follow</button>
+  <button type="button" class="card-action-btn slate" (click)="addToShortlist(player.playerId)">List</button>
+</div>
+            </div>
+          }
+        </div>
+
+        <app-pagination
+          [totalItems]="totalCount()"
+          [pageSize]="pageSizeValue"
+          [currentPage]="pageNumber()"
+          (pageChange)="goToPage($event)">
+        </app-pagination>
+      }
+
+    </main>
+
+  </div>
+
+</div>
+
+<app-footer scrollReveal direction="bottom" [delay]="200"></app-footer>

@@ -188,13 +188,13 @@ export const routes: Routes = [
     path: 'match/:id/submit-lineup',
     loadComponent: () => import('./features/match/pages/submit-lineup/submit-lineup.component').then(m => m.SubmitLineupComponent),
     canActivate: [authGuard, roleGuard],
-    data: { roles: ['Coach', 'AcademyAdmin'] }
+    data: { roles: ['Coach'] }
   },
   {
     path: 'session/:sessionId/create-match',
     loadComponent: () => import('./features/match/pages/session-match/session-match.component').then(m => m.SessionMatchComponent),
     canActivate: [authGuard, roleGuard],
-    data: { roles: ['Coach', 'AcademyAdmin'] }
+    data: { roles: ['Coach'] }
   },
   {
     path: 'tournament/fixture/:fixtureId/create-match',
@@ -205,13 +205,17 @@ export const routes: Routes = [
     path: 'academy/matches',
     loadComponent: () => import('./features/match/pages/academy-match-list/academy-match-list.component').then(m => m.AcademyMatchListComponent),
     canActivate: [authGuard, roleGuard],
-    data: { roles: ['AcademyAdmin', 'SuperAdmin'] }
+    data: { roles: ['AcademyAdmin', 'SystemAdmin'] }
   },
   {
     path: 'academy-admin/dashboard',
     loadComponent: () => import('./features/academy-admin/pages/academy-admin-dashboard/academy-admin-dashboard.component').then(m => m.AcademyAdminDashboardComponent),
     canActivate: [authGuard, roleGuard],
     data: { roles: ['AcademyAdmin'] }
+  },
+  {
+    path: 'academy/profile/:id',
+    loadComponent: () => import('./features/academy-profile/academy-profile.component').then(m => m.AcademyProfileComponent)
   },
 
   // Player Features
@@ -273,10 +277,36 @@ export const routes: Routes = [
     data: { roles: ['Player'] }
   },
 
+  {
+    path: 'player/academy-comparison/:playerId',
+    loadComponent: () => import('./features/player/player-academy-comparison/player-academy-comparison.component').then(m => m.PlayerAcademyComparisonComponent),
+    canActivate: [authGuard]
+  },
+
   // Notifications & Utilities
   {
     path: 'academy-announcement/:academyId',
     loadComponent: () => import('./features/notification/pages/academy-announcement/academy-announcement').then(m => m.AcademyAnnouncement),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'notifications-list',
+    loadComponent: () => import('./features/notification/pages/notifications-list/notifications-list').then(m => m.NotificationsList),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'followed-players/:scouterId',
+    loadComponent: () => import('./features/scouter/followed-player/followed-player').then(m => m.FollowedPlayersComponent),
+    canActivate: [authGuard]
+  },
+   {
+    path: 'shortlist/:scouterId',
+    loadComponent: () => import('./features/scouter/scouter-shortlist/scouter-shortlist').then(m => m.ScouterShortlistComponent),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'search/:scouterId',
+    loadComponent: () => import('./features/scouter/scoutersearch/scoutersearch').then(m => m.ScouterSearchComponent),
     canActivate: [authGuard]
   },
   { path: 'referenceshowcase', loadComponent: () => import('./reference-showcase').then(m => m.App) },

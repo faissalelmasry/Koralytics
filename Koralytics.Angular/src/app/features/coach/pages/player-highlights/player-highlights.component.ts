@@ -8,6 +8,7 @@ import { AuthService } from '../../../../../core/services/auth/auth.service';
 import { ModalService } from '../../../../../core/services/Modal/modal';
 import { ToastService } from '../../../../../core/services/Toast/toast';
 import { PlayerHighlightDto } from '../../../../../core/interfaces/highlight.interfaces';
+import { NotificationService } from '@core/services/SignalR/notificationservice';
 
 @Component({
   selector: 'app-player-highlights',
@@ -22,6 +23,7 @@ export class PlayerHighlightsComponent implements OnInit {
   private modalService = inject(ModalService);
   private toastService = inject(ToastService);
   private destroyRef = inject(DestroyRef);
+  private notificationService = inject(NotificationService);
 
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
@@ -83,7 +85,7 @@ export class PlayerHighlightsComponent implements OnInit {
 
     this.uploading.set(true);
     this.uploadError.set('');
-
+    const targetPlayerId = this.playerId;
     this.highlightService.uploadHighlight(this.playerId, this.academyId, this.selectedFile, this.highlightTitle)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
@@ -95,6 +97,17 @@ export class PlayerHighlightsComponent implements OnInit {
           // Reset file input via ViewChild
           if (this.fileInput) {
             this.fileInput.nativeElement.value = '';
+          }
+          // notification
+          if (targetPlayerId) {
+            const scouterMessage = `Player #${targetPlayerId} has posted a new highlight video.`;
+
+            this.notificationService.notifyScouterFollowers(
+              targetPlayerId, 
+              scouterMessage
+            ).subscribe({
+              error: (e) => console.error('Failed to notify scouter followers about new highlight', e)
+            });
           }
         },
         error: (err) => {

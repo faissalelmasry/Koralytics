@@ -9,6 +9,7 @@ import { StatusChipComponent } from '../../../../../shared/components/status-chi
 import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { NotificationService } from '@core/services/SignalR/notificationservice';
 
 @Component({
   selector: 'app-tournament-details',
@@ -31,6 +32,7 @@ export class TournamentDetailsComponent implements OnInit {
   private tournamentService = inject(TournamentService);
   private academyService = inject(AcademyService);
   private cdr = inject(ChangeDetectorRef);
+  private notificationService = inject(NotificationService);
 
   tournamentId!: number;
   tournament: Tournament | null = null;
@@ -127,8 +129,8 @@ export class TournamentDetailsComponent implements OnInit {
           this.allFixtures = this.groups.flatMap((g: any) =>
             (g.fixtures || []).map((f: any) => ({ ...f, groupName: g.groupName }))
           );
-          
-          const roundFixtures = this.rounds.flatMap((r: any) => 
+
+          const roundFixtures = this.rounds.flatMap((r: any) =>
             (r.fixtures || []).map((f: any) => ({ ...f, groupName: r.roundName }))
           );
           this.allFixtures = [...this.allFixtures, ...roundFixtures];
@@ -307,6 +309,13 @@ export class TournamentDetailsComponent implements OnInit {
     this.tournamentService.inviteAcademy(this.tournamentId, academy.id).subscribe({
       next: () => {
         academy.inviteStatus = 'Invited';
+        //notification
+       const tournamentName = this.tournament?.name || `Tournament #${this.tournamentId}`;
+        const message = `Your academy has been invited to participate in ${tournamentName}.`;
+        
+        this.notificationService.notifyAcademy(academy.id, message).subscribe({
+          error: (e) => console.error('Failed to notify academy', e)
+        });
         this.cdr.markForCheck();
       },
       error: (err) => {

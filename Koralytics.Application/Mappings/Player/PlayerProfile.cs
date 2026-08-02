@@ -42,7 +42,7 @@ namespace Koralytics.Application.Mappings.Player
                 .ForMember(d => d.PlayerName,
                     o => o.MapFrom(s => $"{s.Player.FirstName} {s.Player.LastName}"))
                 .ForMember(d => d.TransferGap,
-                    o => o.MapFrom(s => s.OverallTrainingAvg - s.OverallTournamentAvg))
+                    o => o.MapFrom(s => s.OverallTournamentAvg - s.OverallTrainingAvg))
                 .ForMember(d => d.Classification,
                     o => o.MapFrom(s => s.TransferClassification.ToString()));
 

@@ -7,13 +7,15 @@
   <div class="controls-card">
     <div class="input-group">
       <label for="sessionSelect">Select Training Session</label>
-      <select id="sessionSelect" [(ngModel)]="selectedSessionId" class="glass-input">
-        <option *ngFor="let session of availableSessions" [value]="session.id">
-          {{ session.title }} - {{ session.date | date:'shortDate' }}
+      <select id="sessionSelect" [(ngModel)]="selectedSessionId" class="glass-input" [disabled]="loadingSessions()">
+        <option *ngIf="loadingSessions()" [value]="0">Loading sessions...</option>
+        <option *ngIf="!loadingSessions() && availableSessions().length === 0" [value]="0">No sessions available</option>
+        <option *ngFor="let session of availableSessions()" [value]="session.id">
+          {{ session.teamName || 'Session' }} — {{ session.sessionDate | date:'mediumDate' }} ({{ session.type }})
         </option>
       </select>
     </div>
-    <button class="btn-primary" (click)="generateSplit()" [disabled]="loading()">
+    <button class="btn-primary" (click)="generateSplit()" [disabled]="loading() || !selectedSessionId">
       <span *ngIf="!loading()">⚔️ Split Teams</span>
       <span *ngIf="loading()" class="spinner-small"></span>
     </button>

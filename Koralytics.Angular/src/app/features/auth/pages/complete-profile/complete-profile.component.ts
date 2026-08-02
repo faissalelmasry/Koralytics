@@ -76,7 +76,9 @@ export class CompleteProfileComponent implements OnInit {
     dateOfBirth: ['', [Validators.required]],
     nationality: ['Egypt'],
     preferredFoot: ['Right', [Validators.required]],
-    weakFootRating: [3, [Validators.required, Validators.min(1), Validators.max(5)]]
+    weakFootRating: [3, [Validators.required, Validators.min(1), Validators.max(5)]],
+    heightCm: [null as number | null, [Validators.min(50), Validators.max(220)]],
+    weightKg: [null as number | null, [Validators.min(20), Validators.max(150)]]
   });
 
   parentForm = this.fb.group({
@@ -112,6 +114,11 @@ export class CompleteProfileComponent implements OnInit {
       this.toast.show('Please select a role to continue.', 'warning');
       return;
     }
+    // Coach, Scouter, Parent, and Admin don't have step 2 (Profile details)
+    if (['Coach', 'Scouter', 'Parent', 'AcademyAdmin'].includes(this.selectedRole!)) {
+      this.onSubmit();
+      return;
+    }
     this.currentStep++;
   }
 
@@ -135,7 +142,6 @@ export class CompleteProfileComponent implements OnInit {
     if (this.isLoading) return true;
     if (this.baseForm.invalid) return true;
     if (this.selectedRole === 'Player' && this.playerForm.invalid) return true;
-    if (this.selectedRole === 'Parent' && this.parentForm.invalid) return true;
     return false;
   }
 
@@ -145,13 +151,11 @@ export class CompleteProfileComponent implements OnInit {
       return;
     }
 
-    if (this.selectedRole === 'Player' && this.playerForm.invalid) {
-      this.playerForm.markAllAsTouched();
-      return;
-    }
-    if (this.selectedRole === 'Parent' && this.parentForm.invalid) {
-      this.parentForm.markAllAsTouched();
-      return;
+    if (this.currentStep === 1) {
+      if (this.selectedRole === 'Player' && this.playerForm.invalid) {
+        this.playerForm.markAllAsTouched();
+        return;
+      }
     }
 
     this.isLoading = true;
@@ -172,7 +176,9 @@ export class CompleteProfileComponent implements OnInit {
           dateOfBirth: playerData.dateOfBirth!,
           nationality: playerData.nationality!,
           preferredFoot: playerData.preferredFoot!,
-          weakFootRating: playerData.weakFootRating!
+          weakFootRating: playerData.weakFootRating!,
+          heightCm: playerData.heightCm || undefined,
+          weightKg: playerData.weightKg || undefined
         };
         requestObservable = this.authService.completeProfileAsPlayer(playerReq);
         break;
@@ -186,11 +192,10 @@ export class CompleteProfileComponent implements OnInit {
         break;
         
       case 'Parent':
-        const parentData = this.parentForm.getRawValue();
         const parentReq: CompleteProfileAsParent = {
           userName: baseData.userName || '',
           phoneNumber: baseData.phoneNumber || undefined,
-          childPlayerId: parentData.childPlayerId!
+          childPlayerId: null
         };
         requestObservable = this.authService.completeProfileAsParent(parentReq);
         break;

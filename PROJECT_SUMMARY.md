@@ -319,6 +319,12 @@ The database context (`ApplicationDbContext`) inherits from `IdentityDbContext<U
 #### Match/ (Youssef's contribution) — **✅ IMPLEMENTED**
 > `GetPlayerReadinessAsync` has been successfully implemented under `MatchAnalyticsService`.
 
+#### ProfileManagement/ — **✅ IMPLEMENTED** ⚡ *(new, not in original plan)*
+**`IProfileManagementService` / `ProfileManagementService`**
+- `GetMyProfileAsync(userId)` → resolve user role → load role-specific entity (Player, Coach, Scouter, AcademyAdmin, Parent, SystemAdmin) → return role-specific profile DTO via AutoMapper
+- `UpdateProfileAsync(userId, dto)` → update shared user fields (name, phone) → if Player: update nationality, preferred foot, weak foot, height, weight, play style, positions → invalidate player card if primary position changed → return updated profile DTO
+- `UpdateProfileImageAsync(userId, image)` → delete old image from Cloudflare R2 → upload new image → update `User.ProfileImageUrl` → return new URL
+
 ---
 
 ## 4. Service Dependency Order
@@ -367,6 +373,7 @@ The presentation and infrastructure are wired together in `Program.cs`.
 * `AcademyProfile` — Academy DTOs → Domain Entities (`Academy`, `AgeGroup`, `Team`, `AcademyLocation`, `AcademyAnnouncement`)
 * `DrillMappingProfile` — Drill DTOs → Domain Entities (`DrillTemplate`, `DrillSession`, `DrillResult`, etc.)
 * `ScouterProfile` — Scouter DTOs → Domain Entities (`ScouterShortlist`, `ScouterFollow`, `ScouterReport`)
+* `ProfileManagementProfile` — User/Player/Coach/Scouter/AcademyAdmin/Parent/SystemAdmin → role-specific profile response DTOs
 
 ### FluentValidation Validators Currently Registered
 * `LoginRequestValidator`
@@ -381,6 +388,7 @@ The presentation and infrastructure are wired together in `Program.cs`.
 * `CreateTeamValidator`
 * `SendAnnouncementValidator`
 * `UserBusinessValidator` (injected directly in workflows via `IUserBusinessValidator`)
+* `UpdateProfileValidator`
 
 ### Unit Test Projects
 * **`Koralytics.Application.UnitTests`**: xUnit test project covering Application layer logic.
@@ -406,6 +414,7 @@ The presentation and infrastructure are wired together in `Program.cs`.
 * **`AcademyAnalyticsController`**: Returns coach performance dashboard and subscription status.
 * **`MatchController`**: Interface for match-related operations (requests, events, analytics).
 * **`NotificationController`**: Interface for push notifications and SignalR endpoints.
+* **`ProfileController`**: Universal profile management — `GET /me` returns role-specific profile, `PUT /me` updates profile fields, `PATCH /me/image` updates profile image via Cloudflare R2. Accessible by all authenticated roles.
 
 ---
 

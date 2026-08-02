@@ -44,6 +44,7 @@ namespace Koralytics.Application.DTOs.Academies
     {
         public int PlayerId { get; set; }
         public string PlayerFullName { get; set; } = string.Empty;
+        public string? ProfileImageUrl { get; set; }
         public DateTime JoinedAt { get; set; }
         public string? Position { get; set; }
     }
@@ -52,6 +53,7 @@ namespace Koralytics.Application.DTOs.Academies
     {
         public int CoachId { get; set; }
         public string CoachFullName { get; set; } = string.Empty;
+        public string? ProfileImageUrl { get; set; }
         public int TeamId { get; set; }
         public string TeamName { get; set; } = string.Empty;
         public DateTime AssignedAt { get; set; }
