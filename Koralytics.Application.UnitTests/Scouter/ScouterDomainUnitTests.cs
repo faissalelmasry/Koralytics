@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -27,6 +27,9 @@ using Koralytics.Application.Services.Scouter.ScouterFollowService;
 using Koralytics.Application.Services.Scouter.ScouterShortlistService;
 using Koralytics.Application.Services.Scouter.ScouterSearchService;
 using Koralytics.Application.Services.Scouter.ScouterReportService;
+
+using System.Net.Http;
+using Microsoft.Extensions.Configuration;
 
 namespace Koralytics.Tests.ScouterTests
 {
@@ -149,7 +152,7 @@ namespace Koralytics.Tests.ScouterTests
         }
 
         private ScouterSearchService CreateSearchService() =>
-            new ScouterSearchService(_mockUnitOfWork.Object, _mockMapper.Object, _mockSearchLogger.Object);
+            new ScouterSearchService(_mockUnitOfWork.Object, _mockMapper.Object, _mockSearchLogger.Object, new HttpClient(), new ConfigurationBuilder().Build());
 
         private ScouterShortlistService CreateShortlistService() =>
             new ScouterShortlistService(_mockUnitOfWork.Object, _mockMapper.Object, _mockShortlistLogger.Object);

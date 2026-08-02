@@ -631,5 +631,105 @@ namespace Koralytics.Application.Services.Match
                 PageSize = pageSize
             };
         }
+
+        public async Task<MatchCombinedDetailsResponseDto> GetCombinedMatchDetailsAsync(int matchId)
+        {
+            var match = await _unitOfWork.Repository<MatchEntity>()
+                .GetQueryableAsNoTracking()
+                .AsSplitQuery()
+                .Include(m => m.HomeTeam).ThenInclude(t => t.AgeGroup).ThenInclude(ag => ag.Academy)
+                .Include(m => m.AwayTeam).ThenInclude(t => t.AgeGroup).ThenInclude(ag => ag.Academy)
+                .Include(m => m.WinningTeam)
+                .Include(m => m.Tournament)
+                .Include(m => m.MatchEvents).ThenInclude(e => e.Team)
+                .Include(m => m.MatchEvents).ThenInclude(e => e.Player)
+                .Include(m => m.MatchEvents).ThenInclude(e => e.AssistPlayer)
+                .Include(m => m.MatchPlayerRatings).ThenInclude(r => r.Player)
+                .Include(m => m.MatchPlayerRatings).ThenInclude(r => r.CategoryRatings).ThenInclude(cr => cr.DrillCategory)
+                .FirstOrDefaultAsync(m => m.Id == matchId);
+
+            if (match is null)
+                throw new NotFoundException($"Match with Id {matchId} not found");
+
+            var ratedPlayerIds = match.MatchPlayerRatings.Select(r => r.PlayerId).Distinct().ToList();
+
+            var playerCards = new Dictionary<int, decimal>();
+            if (ratedPlayerIds.Count > 0)
+            {
+                playerCards = await _unitOfWork.Repository<Domain.Entities.Player.PlayerCard>()
+                    .GetQueryableAsNoTracking()
+                    .Where(pc => ratedPlayerIds.Contains(pc.PlayerId))
+                    .ToDictionaryAsync(pc => pc.PlayerId, pc => pc.OverallRating);
+            }
+
+            var eventDtos = match.MatchEvents
+                .OrderBy(e => e.Minute)
+                .Select(e => new CombinedMatchEventDto
+                {
+                    Id = e.Id,
+                    TeamName = e.Team?.Name ?? (e.IsHomeSide.HasValue ? (e.IsHomeSide.Value ? match.HomeTeam?.Name ?? "" : match.AwayTeam?.Name ?? "") : ""),
+                    PlayerName = e.Player != null ? $"{e.Player.FirstName} {e.Player.LastName}".Trim() : "",
+                    AssistPlayerName = e.AssistPlayer != null ? $"{e.AssistPlayer.FirstName} {e.AssistPlayer.LastName}".Trim() : null,
+                    IsHomeSide = e.IsHomeSide ?? (e.TeamId == match.HomeTeamId ? true : e.TeamId == match.AwayTeamId ? false : null),
+                    EventType = e.EventType.ToString(),
+                    Minute = e.Minute
+                })
+                .ToList();
+
+            var ratingDtos = match.MatchPlayerRatings
+                .Select(r =>
+                {
+                    var categoryRatings = r.CategoryRatings
+                        .Select(cr => new CombinedCategoryRatingDto
+                        {
+                            CategoryName = cr.DrillCategory?.Name ?? "Unknown",
+                            Rating = cr.Rating
+                        })
+                        .ToList();
+
+                    decimal overallRating = playerCards.GetValueOrDefault(r.PlayerId, 0m);
+                    decimal overallAvgRating = Math.Round(overallRating / 10m, 2);
+
+                    decimal avgMatchRating = categoryRatings.Count > 0
+                        ? Math.Round(categoryRatings.Average(c => c.Rating), 2)
+                        : 0m;
+
+                    return new CombinedMatchPlayerRatingDto
+                    {
+                        PlayerId = r.PlayerId,
+                        PlayerName = r.Player != null ? $"{r.Player.FirstName} {r.Player.LastName}".Trim() : "",
+                        Goals = r.Goals,
+                        Assists = r.Assists,
+                        IsMOTM = r.IsMOTM,
+                        CoachNote = r.CoachNote,
+                        OverallAvgRating = overallAvgRating,
+                        AvgMatchRating = avgMatchRating,
+                        CategoryRatings = categoryRatings
+                    };
+                })
+                .ToList();
+
+            return new MatchCombinedDetailsResponseDto
+            {
+                MatchId = match.Id,
+                HomeTeamName = match.HomeTeam?.Name ?? "",
+                AwayTeamName = match.AwayTeam?.Name ?? "",
+                HomeTeamAcademyName = match.HomeTeam?.AgeGroup?.Academy?.Name ?? "",
+                AwayTeamAcademyName = match.AwayTeam?.AgeGroup?.Academy?.Name ?? "",
+                Type = match.Type.ToString(),
+                TournamentName = match.Type == DomainEnums.MatchType.Tournament ? match.Tournament?.Name : null,
+                MatchDate = match.MatchDate,
+                Location = match.Location ?? "",
+                HomeScore = match.HomeScore,
+                AwayScore = match.AwayScore,
+                HomePenaltyScore = match.HomePenaltyScore,
+                AwayPenaltyScore = match.AwayPenaltyScore,
+                WinningTeamName = match.WinningTeam?.Name,
+                HomeFormation = match.Formation,
+                AwayFormation = match.AwayFormation,
+                Events = eventDtos,
+                Ratings = ratingDtos
+            };
+        }
     }
 }

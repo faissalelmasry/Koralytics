@@ -21,6 +21,7 @@ namespace Koralytics.Domain.Entities.Player
         public string? PlayStyleTag { get; set; }
         public string? ArchetypePlayerName { get; set; }
         public string? ArchetypeText { get; set; }
+        public DateTime? ArchetypeLastRevealedAt { get; set; }
         public AvailabilityStatus AvailabilityStatus { get; set; }
 
         public ICollection<PlayerAcademy> PlayerAcademies { get; set; } = new List<PlayerAcademy>();

@@ -37,11 +37,16 @@ namespace Koralytics.Application.UnitTests.Player
             
             _invalidationListMock = new Mock<ICardInvalidationList>();
 
+            var groqOptions = Microsoft.Extensions.Options.Options.Create(new Koralytics.Application.Options.GroqOptions());
+            var httpClient = new System.Net.Http.HttpClient();
+
             _service = new PlayerCardService(
                 _unitOfWorkMock.Object,
                 _loggerMock.Object,
                 _mapperMock.Object,
-                _invalidationListMock.Object);
+                _invalidationListMock.Object,
+                httpClient,
+                groqOptions);
         }
         [Fact]
         public async Task GetDrillToMatchTransferRateAsync_PlayerNotFound_ThrowsNotFoundException()

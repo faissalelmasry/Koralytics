@@ -1,0 +1,352 @@
+CREATE OR ALTER VIEW vw_ScouterCategoryRatings AS
+SELECT
+    p.Id                                                        AS PlayerId,
+    u.FirstName + ' ' + u.LastName                              AS FullName,
+    latestCard.PlayerCardId                                     AS PlayerCardId,
+    dc.Id                                                       AS DrillCategoryId,
+    dc.Name                                                     AS DrillCategoryName,
+    pcr.Score                                                   AS Score
+FROM Players p
+INNER JOIN AspNetUsers u
+    ON u.Id = p.Id
+-- Pick each player's single most recent PlayerCard by LastCalculatedAt
+CROSS APPLY (
+    SELECT TOP 1 pc.Id AS PlayerCardId
+    FROM PlayerCards pc
+    WHERE pc.PlayerId = p.Id AND pc.IsDeleted = 0
+    ORDER BY pc.LastCalculatedAt DESC
+) latestCard
+INNER JOIN PlayerCategoryRatings pcr
+    ON pcr.PlayerCardId = latestCard.PlayerCardId AND pcr.IsDeleted = 0
+INNER JOIN DrillCategories dc
+    ON dc.Id = pcr.DrillCategoryId AND dc.IsDeleted = 0
+WHERE u.IsDeleted = 0;
+GO
+-- ============================================================================
+-- VIEW 1: vw_ScouterSearchDirectory
+-- ============================================================================
+CREATE OR ALTER VIEW vw_ScouterSearchDirectory AS
+SELECT
+    p.Id                                                        AS PlayerId,
+    u.FirstName + ' ' + u.LastName                              AS FullName,
+    curAcademy.Name                                             AS CurrentAcademy,
+    curLocation.City                                            AS AcademyCity,
+    p.DateOfBirth                                               AS DateOfBirth,
+    DATEDIFF(YEAR, p.DateOfBirth, GETDATE())
+        - CASE WHEN (MONTH(GETDATE()) < MONTH(p.DateOfBirth))
+                 OR (MONTH(GETDATE()) = MONTH(p.DateOfBirth) AND DAY(GETDATE()) < DAY(p.DateOfBirth))
+               THEN 1 ELSE 0 END                                AS Age,
+    p.Nationality                                                AS Nationality,
+    CASE p.PreferredFoot
+        WHEN 1 THEN 'Right'
+        WHEN 2 THEN 'Left'
+        WHEN 3 THEN 'Both'
+        ELSE NULL
+    END                                                          AS PreferredFoot,
+    p.WeakFootRating                                             AS WeakFootRating,
+    p.PlayStyleTag                                               AS PlayStyleTag,
+    p.ArchetypePlayerName                                        AS ArchetypePlayerName,
+    p.ArchetypeText                                              AS ArchetypeText,
+    CASE p.AvailabilityStatus
+        WHEN 1 THEN 'Available'
+        WHEN 2 THEN 'Injured'
+        WHEN 3 THEN 'Resting'
+        WHEN 4 THEN 'Suspended'
+        ELSE NULL
+    END                                                          AS AvailabilityStatus,
+    (SELECT TOP 1 pp.Position
+     FROM PlayerPositions pp
+     WHERE pp.PlayerId = p.Id AND pp.IsPrimary = 1 AND pp.IsDeleted = 0)               AS PrimaryPosition,
+    pc.OverallRating                                             AS OverallRating,
+    pc.OverallTrainingAvg                                        AS OverallTrainingAvg,
+    pc.OverallTournamentAvg                                      AS OverallTournamentAvg,
+    CASE pc.TransferClassification
+        WHEN 1 THEN 'Elite'
+        WHEN 2 THEN 'Trainable'
+        WHEN 3 THEN 'Natural'
+        WHEN 4 THEN 'NeedsWork'
+        WHEN 5 THEN 'Developing'
+        WHEN 0 THEN 'InsufficientData'
+        ELSE NULL
+    END                                                          AS TransferClassification,
+    ISNULL(matchCounts.TotalMatchesPlayed, 0)                    AS TotalMatchesPlayed,
+    ISNULL(attendanceCounts.TotalSessionsAttended, 0)            AS TotalSessionsAttended,
+    recentForm.RecentFormRating                                  AS RecentFormRating
+FROM Players p
+INNER JOIN AspNetUsers u
+    ON u.Id = p.Id AND u.IsDeleted = 0
+OUTER APPLY (
+    SELECT TOP 1 pa.AcademyId
+    FROM PlayerAcademies pa
+    WHERE pa.PlayerId = p.Id AND pa.LeftAt IS NULL AND pa.IsDeleted = 0
+    ORDER BY pa.JoinedAt DESC
+) currentPA
+LEFT JOIN Academies curAcademy
+    ON curAcademy.Id = currentPA.AcademyId AND curAcademy.IsDeleted = 0
+LEFT JOIN AcademyLocations curLocation
+    ON curLocation.AcademyId = curAcademy.Id AND curLocation.IsMain = 1 AND curLocation.IsDeleted = 0
+LEFT JOIN PlayerCards pc
+    ON pc.PlayerId = p.Id AND pc.IsDeleted = 0
+OUTER APPLY (
+    SELECT COUNT(*) AS TotalMatchesPlayed
+    FROM MatchPlayerRatings mpr
+    WHERE mpr.PlayerId = p.Id AND mpr.IsDeleted = 0
+) matchCounts
+OUTER APPLY (
+    SELECT COUNT(*) AS TotalSessionsAttended
+    FROM SessionAttendances sa
+    WHERE sa.PlayerId = p.Id AND sa.IsPresent = 1 AND sa.IsDeleted = 0
+) attendanceCounts
+OUTER APPLY (
+    SELECT AVG(recent.MatchRating) AS RecentFormRating
+    FROM (
+        SELECT TOP 5 mpr2.PlayerId,
+               (SELECT AVG(mpcr.Rating)
+                FROM MatchPlayerCategoryRatings mpcr
+                WHERE mpcr.MatchPlayerRatingId = mpr2.Id AND mpcr.IsDeleted = 0) AS MatchRating,
+ m2.MatchDate
+        FROM MatchPlayerRatings mpr2
+        INNER JOIN Matches m2 ON m2.Id = mpr2.MatchId AND m2.IsDeleted = 0
+        WHERE mpr2.PlayerId = p.Id AND mpr2.IsDeleted = 0
+        ORDER BY m2.MatchDate DESC
+    ) recent
+) recentForm;
+GO
+
+
+-- ============================================================================
+-- VIEW 2: vw_ScouterTrainingPerformance
+-- ============================================================================
+CREATE OR ALTER VIEW vw_ScouterTrainingPerformance AS
+SELECT
+    dr.Id                                                       AS ResultId,
+    dr.PlayerId                                                 AS PlayerId,
+    u.FirstName + ' ' + u.LastName                              AS FullName,
+    aca.Name                                                    AS AcademyName,
+    tm.Name                                                     AS TeamName,
+    dt.Name                                                     AS DrillTemplateName,
+    dc.Name                                                     AS DrillCategoryName,
+    ds.SessionDate                                              AS SessionDate,
+    CASE WHEN d.DifficultyLevel IN ('Beginner','Intermediate','Advanced')
+         THEN d.DifficultyLevel ELSE NULL END                   AS SessionDrillDifficulty,
+    CASE WHEN d.Mode IN ('Manual','SuccessOrMissed')
+         THEN d.Mode ELSE NULL END                               AS DrillMode,
+    CASE WHEN ds.Type IN ('OffSeason','Regular','SessionMatch')
+         THEN ds.Type ELSE NULL END                              AS SessionType,
+    dr.ManualScore                                              AS ManualScore,
+    dr.DoneCount                                                AS DoneCount,
+    dr.MissedCount                                              AS MissedCount,
+    dr.FinalScore                                               AS FinalScore,
+    dr.CoachNotes                                                AS TrainingCoachNotes
+FROM DrillResults dr
+INNER JOIN AspNetUsers u
+    ON u.Id = dr.PlayerId AND u.IsDeleted = 0
+INNER JOIN Drills d
+    ON d.Id = dr.DrillId AND d.IsDeleted = 0
+INNER JOIN DrillSessions ds
+    ON ds.Id = d.SessionId AND ds.IsDeleted = 0
+INNER JOIN DrillTemplates dt
+    ON dt.Id = d.DrillTemplateId AND dt.IsDeleted = 0
+INNER JOIN DrillCategories dc
+    ON dc.Id = dt.CategoryId AND dc.IsDeleted = 0
+INNER JOIN Academies aca
+    ON aca.Id = ds.AcademyId AND aca.IsDeleted = 0
+INNER JOIN Teams tm
+    ON tm.Id = ds.TeamId AND tm.IsDeleted = 0
+WHERE dr.IsDeleted = 0;
+GO
+-- VIEW 3: vw_ScouterMatchPerformance
+-- ============================================================================
+CREATE OR ALTER VIEW vw_ScouterMatchPerformance AS
+SELECT
+    mpr.Id                                                      AS MatchPerformanceId,
+    mpr.PlayerId                                                AS PlayerId,
+    u.FirstName + ' ' + u.LastName                              AS FullName,
+    m.MatchDate                                                 AS MatchDate,
+    m.Type                                                       AS MatchType,
+    tr.Name                                                     AS TournamentName,
+    m.Location                                                  AS MatchVenue,
+    playerTeamAca.Name                                          AS AcademyName,
+    playerTeam.Name                                             AS TeamName,
+    CASE
+        WHEN playerTeamId IS NULL THEN NULL
+        WHEN playerTeamId = m.WinningTeamId THEN 'Win'
+        WHEN m.WinningTeamId IS NULL AND m.HomeScore = m.AwayScore THEN 'Draw'
+        WHEN m.WinningTeamId IS NOT NULL AND playerTeamId <> m.WinningTeamId THEN 'Loss'
+        ELSE 'Unknown'
+    END                                                          AS MatchResult,
+    catRating.MatchRating                                       AS MatchRating,
+    mpr.Goals                                                   AS Goals,
+    mpr.Assists                                                 AS Assists,
+    (mpr.Goals + mpr.Assists)                                   AS GoalContributions,
+    mpr.MinutesPlayed                                           AS MinutesPlayed,
+    mpr.IsMOTM                                                  AS IsMOTM,
+    awards.TournamentAwards                                     AS TournamentAwards,
+    mpr.CoachNote                                                AS MatchCoachNotes
+FROM MatchPlayerRatings mpr
+INNER JOIN AspNetUsers u
+    ON u.Id = mpr.PlayerId AND u.IsDeleted = 0
+INNER JOIN Matches m
+    ON m.Id = mpr.MatchId AND m.IsDeleted = 0
+LEFT JOIN Tournaments tr
+    ON tr.Id = m.TournamentId AND tr.IsDeleted = 0
+OUTER APPLY (
+    SELECT TOP 1 pt.TeamId
+    FROM PlayerTeams pt
+    WHERE pt.PlayerId = mpr.PlayerId
+      AND pt.JoinedAt <= m.MatchDate
+      AND (pt.LeftAt IS NULL OR pt.LeftAt >= m.MatchDate)
+      AND pt.IsDeleted = 0
+    ORDER BY pt.JoinedAt DESC
+) pteam
+CROSS APPLY (SELECT pteam.TeamId AS playerTeamId) pt2
+LEFT JOIN Teams playerTeam
+    ON playerTeam.Id = pt2.playerTeamId AND playerTeam.IsDeleted = 0
+LEFT JOIN Academies playerTeamAca
+    ON playerTeamAca.Id = playerTeam.AcademyId AND playerTeamAca.IsDeleted = 0
+OUTER APPLY (
+    SELECT AVG(mpcr.Rating) AS MatchRating
+    FROM MatchPlayerCategoryRatings mpcr
+    WHERE mpcr.MatchPlayerRatingId = mpr.Id AND mpcr.IsDeleted = 0
+) catRating
+OUTER APPLY (
+    SELECT STRING_AGG(thof.AwardType, ', ') AS TournamentAwards
+    FROM TournamentHallOfFames thof
+    WHERE thof.PlayerId = mpr.PlayerId
+      AND thof.TournamentId = m.TournamentId
+      AND thof.IsDeleted = 0
+) awards
+WHERE mpr.IsDeleted = 0;
+GO
+ -- ============================================================================
+-- VIEW 4: vw_ScouterPlayerComparison
+-- ============================================================================
+CREATE OR ALTER VIEW vw_ScouterPlayerComparison AS
+SELECT
+    p.Id                                                        AS PlayerId,
+    u.FirstName + ' ' + u.LastName                              AS FullName,
+    curAcademy.Name                                             AS AcademyName,
+    (SELECT TOP 1 pp.Position
+     FROM PlayerPositions pp
+     WHERE pp.PlayerId = p.Id AND pp.IsPrimary = 1 AND pp.IsDeleted = 0)               AS PrimaryPosition,
+    DATEDIFF(YEAR, p.DateOfBirth, GETDATE())
+        - CASE WHEN (MONTH(GETDATE()) < MONTH(p.DateOfBirth))
+                 OR (MONTH(GETDATE()) = MONTH(p.DateOfBirth) AND DAY(GETDATE()) < DAY(p.DateOfBirth))
+               THEN 1 ELSE 0 END                                AS Age,
+    pc.OverallRating                                             AS OverallRating,
+    matchAgg.AvgMatchRating                                      AS AvgMatchRating,
+    ISNULL(matchAgg.TotalGoals, 0)                               AS TotalGoals,
+    ISNULL(matchAgg.TotalAssists, 0)                             AS TotalAssists,
+    ISNULL(matchAgg.MOTMCount, 0)                                AS MOTMCount,
+    trainingAgg.AvgTrainingScore                                 AS AvgTrainingScore
+FROM Players p
+INNER JOIN AspNetUsers u
+    ON u.Id = p.Id AND u.IsDeleted = 0
+OUTER APPLY (
+    SELECT TOP 1 pa.AcademyId
+    FROM PlayerAcademies pa
+    WHERE pa.PlayerId = p.Id AND pa.LeftAt IS NULL AND pa.IsDeleted = 0
+    ORDER BY pa.JoinedAt DESC
+) currentPA
+LEFT JOIN Academies curAcademy
+    ON curAcademy.Id = currentPA.AcademyId AND curAcademy.IsDeleted = 0
+LEFT JOIN PlayerCards pc
+    ON pc.PlayerId = p.Id AND pc.IsDeleted = 0
+OUTER APPLY (
+    SELECT
+        AVG(catRating.MatchRating)  AS AvgMatchRating,
+        SUM(mpr.Goals)              AS TotalGoals,
+        SUM(mpr.Assists)            AS TotalAssists,
+        SUM(CASE WHEN mpr.IsMOTM = 1 THEN 1 ELSE 0 END) AS MOTMCount
+    FROM MatchPlayerRatings mpr
+    OUTER APPLY (
+        SELECT AVG(mpcr.Rating) AS MatchRating
+        FROM MatchPlayerCategoryRatings mpcr
+        WHERE mpcr.MatchPlayerRatingId = mpr.Id AND mpcr.IsDeleted = 0
+    ) catRating
+    WHERE mpr.PlayerId = p.Id AND mpr.IsDeleted = 0
+) matchAgg
+OUTER APPLY (
+    SELECT AVG(dr.FinalScore) AS AvgTrainingScore
+    FROM DrillResults dr
+    WHERE dr.PlayerId = p.Id AND dr.IsDeleted = 0
+) trainingAgg;
+GO
+ -- ============================================================================
+-- VIEW 5: vw_ScouterProgressionTrend
+-- ============================================================================
+CREATE OR ALTER VIEW vw_ScouterProgressionTrend AS
+SELECT
+    dr.PlayerId                                                 AS PlayerId,
+    u.FirstName + ' ' + u.LastName                              AS FullName,
+    curAcademy.Name                                             AS CurrentAcademyName,
+    dc.Name                                                     AS DrillCategory,
+    YEAR(ds.SessionDate)                                        AS YearNum,
+    MONTH(ds.SessionDate)                                       AS MonthNum,
+    AVG(dr.FinalScore)                                          AS AvgScoreThisPeriod,
+    COUNT(*)                                                    AS SessionCount
+FROM DrillResults dr
+INNER JOIN AspNetUsers u
+    ON u.Id = dr.PlayerId AND u.IsDeleted = 0
+INNER JOIN Drills d
+    ON d.Id = dr.DrillId AND d.IsDeleted = 0
+INNER JOIN DrillSessions ds
+    ON ds.Id = d.SessionId AND ds.IsDeleted = 0
+INNER JOIN DrillTemplates dt
+    ON dt.Id = d.DrillTemplateId AND dt.IsDeleted = 0
+INNER JOIN DrillCategories dc
+    ON dc.Id = dt.CategoryId AND dc.IsDeleted = 0
+OUTER APPLY (
+    SELECT TOP 1 pa.AcademyId
+    FROM PlayerAcademies pa
+    WHERE pa.PlayerId = dr.PlayerId AND pa.LeftAt IS NULL AND pa.IsDeleted = 0
+    ORDER BY pa.JoinedAt DESC
+) currentPA
+LEFT JOIN Academies curAcademy
+    ON curAcademy.Id = currentPA.AcademyId AND curAcademy.IsDeleted = 0
+WHERE dr.IsDeleted = 0
+GROUP BY
+    dr.PlayerId,
+    u.FirstName,
+    u.LastName,
+    curAcademy.Name,
+    dc.Name,
+    YEAR(ds.SessionDate),
+    MONTH(ds.SessionDate);
+GO
+
+
+-- ============================================================================
+-- VIEW 6: vw_ScouterCategoryRatings
+-- ============================================================================
+CREATE OR ALTER VIEW vw_ScouterCategoryRatings AS
+SELECT
+    p.Id                                                        AS PlayerId,
+    u.FirstName + ' ' + u.LastName                              AS FullName,
+    latestCard.PlayerCardId                                     AS PlayerCardId,
+    dc.Id                                                       AS DrillCategoryId,
+    dc.Name                                                     AS DrillCategoryName,
+    pcr.Score                                                   AS Score
+FROM Players p
+INNER JOIN AspNetUsers u
+    ON u.Id = p.Id
+CROSS APPLY (
+    SELECT TOP 1 pc.Id AS PlayerCardId
+    FROM PlayerCards pc
+    WHERE pc.PlayerId = p.Id AND pc.IsDeleted = 0
+    ORDER BY pc.LastCalculatedAt DESC
+) latestCard
+INNER JOIN PlayerCategoryRatings pcr
+    ON pcr.PlayerCardId = latestCard.PlayerCardId AND pcr.IsDeleted = 0
+INNER JOIN DrillCategories dc
+    ON dc.Id = pcr.DrillCategoryId AND dc.IsDeleted = 0
+WHERE u.IsDeleted = 0;
+GO
+
+CREATE TABLE SearchableEntities (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    EntityType VARCHAR(50) NOT NULL,
+    ReferenceId INT NOT NULL,
+    TextValue NVARCHAR(255) NOT NULL,
+    Embedding VECTOR(1024) NOT NULL
+);

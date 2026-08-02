@@ -17,6 +17,6 @@ namespace Koralytics.Application.Interfaces.Match
         Task<CoachMatchesResponseDto> GetCoachMatchesAsync(int coachId, MatchStatus? status, Domain.Enums.MatchType? type, DateTime? dateFrom, DateTime? dateTo, int page, int pageSize);
         Task<AcademyMatchesResponseDto> GetAcademyMatchesAsync(int academyId, int? teamId, int? ageGroupId, MatchStatus? status, Domain.Enums.MatchType? type, DateTime? dateFrom, DateTime? dateTo, int page, int pageSize);
         Task CancelMatchAsync(int matchId);
-
+        Task<MatchCombinedDetailsResponseDto> GetCombinedMatchDetailsAsync(int matchId);
     }
 }

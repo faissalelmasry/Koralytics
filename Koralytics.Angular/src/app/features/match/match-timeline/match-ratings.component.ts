@@ -1,6 +1,6 @@
 import { Component, Input, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { MatchService } from '../../../../core/services/match/match.service';
@@ -37,7 +37,11 @@ import { NotificationService } from '@core/services/SignalR/notificationservice'
 @Component({
   selector: 'app-match-ratings',
   standalone: true,
-  imports: [CommonModule, FormsModule, CustomButtonComponent, LoadingSpinnerComponent, EmptyStateComponent, MiniPlayerCardComponent, CustomNumberInputComponent],
+  imports: [
+    CommonModule,
+    RouterModule,
+    FormsModule,
+    CustomButtonComponent, LoadingSpinnerComponent, EmptyStateComponent, MiniPlayerCardComponent, CustomNumberInputComponent],
   templateUrl: './match-ratings.component.html',
   styleUrls: ['./match-ratings.component.css']
 })

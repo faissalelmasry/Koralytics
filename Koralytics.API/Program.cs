@@ -8,6 +8,8 @@ using Koralytics.API.Services;
 using Koralytics.Application;
 using Koralytics.Application.DTOs.AuthDTOs.RegisterDTOs;
 using Koralytics.Application.Interfaces;
+using Koralytics.Infrastructure.Configuration;
+using Koralytics.Infrastructure.Persistence;
 using Koralytics.Application.Interfaces.Auth;
 using Koralytics.Application.Interfaces.Email;
 using Koralytics.Application.Interfaces.Match;
@@ -115,6 +117,8 @@ using Koralytics.Application.Services.Scouter.ScouterSearchService;
 using Koralytics.Application.Services.Scouter.ScouterShortlistService;
 using StackExchange.Redis;
 using Koralytics.Application.Services.SystemAdmin.UserManagement;
+using Infrastructure.Services.Match;
+using Koralytics.Infrastructure.BackGroundJobs;
 
 
 namespace Koralytics.API
@@ -220,7 +224,19 @@ namespace Koralytics.API
             
             builder.Services.Configure<EmailSettings>(
                 builder.Configuration.GetSection(EmailSettings.SectionName));
+            builder.Services.Configure<GroqOptions>(
+                builder.Configuration.GetSection(GroqOptions.SectionName));
+            builder.Services.Configure<CohereOptions>(
+                builder.Configuration.GetSection("Cohere"));
+            builder.Services.AddHttpClient<ICohereEmbeddingClient, CohereEmbeddingClient>();
+            builder.Services.AddScoped<ISearchableEntityIndexer>(sp =>
+                new SearchableEntityIndexer(
+                    sp.GetRequiredService<ICohereEmbeddingClient>(),
+                    builder.Configuration.GetConnectionString("DefaultConnection")!));
+
             builder.Services.AddSingleton<IEmailTemplateProvider, EmailTemplateProvider>();
+            builder.Services.AddSingleton<IBackgroundTaskQueue>(_ => new BackgroundTaskQueue(capacity: 100));
+            builder.Services.AddHostedService<QueuedHostedService>();
             builder.Services.AddScoped<IEmailService, SmtpEmailService>();
 
             builder.Services.AddSingleton<IAmazonS3>(sp =>
@@ -261,7 +277,7 @@ namespace Koralytics.API
             builder.Services.AddScoped<ITournamentDrawService, TournamentDrawService>();
             builder.Services.AddScoped<ITournamentFixtureService, TournamentFixtureService>();
             builder.Services.AddScoped<ITournamentReportService, TournamentReportService>();
-            builder.Services.AddScoped<IPlayerCardService, PlayerCardService>();
+            builder.Services.AddHttpClient<IPlayerCardService, PlayerCardService>();
             builder.Services.AddScoped<IPlayerProfileService, PlayerProfileService>();
             builder.Services.AddScoped<IPlayerGoalService, PlayerGoalService>();
             builder.Services.AddScoped<IAcademyService, AcademyService>();
@@ -281,7 +297,7 @@ namespace Koralytics.API
             builder.Services.AddSingleton<CardInvalidationList>();
             builder.Services.AddSingleton<ICardInvalidationList>(sp => sp.GetRequiredService<CardInvalidationList>());
             builder.Services.AddHostedService(sp => sp.GetRequiredService<CardInvalidationList>());
-            builder.Services.AddScoped<IScouterSearchService, ScouterSearchService>();
+            builder.Services.AddHttpClient<IScouterSearchService, ScouterSearchService>();
             builder.Services.AddScoped<IScouterShortlistService, ScouterShortlistService>();
             builder.Services.AddScoped<IScouterFollowService, ScouterFollowService>();
             builder.Services.AddScoped<IScouterReportService, ScouterReportService>();
@@ -294,6 +310,22 @@ namespace Koralytics.API
             builder.Services.AddScoped<IAnnouncementNotificationService, AnnouncementNotificationService>();
             builder.Services.AddScoped<IParentService, ParentService>();
             builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
+            builder.Services.AddScoped<IMatchService, MatchService>();
+            builder.Services.AddScoped<IMatchReportService, MatchReportService>();
+
+            builder.Services.AddHttpClient<IMatchReportService, MatchReportService>((serviceProvider, client) =>
+            {
+                var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+                var baseUrl = configuration["Langflow:BaseUrl"] ?? "http://localhost:7860/";
+                var apiKey = configuration["Langflow:ApiKey"];
+
+                client.BaseAddress = new Uri(baseUrl);
+
+                if (!string.IsNullOrEmpty(apiKey))
+                {
+                    client.DefaultRequestHeaders.Add("x-api-key", apiKey);
+                }
+            });
             builder.Services.AddScoped<IProfileManagementService, ProfileManagementService>();
             builder.Services.AddScoped<IMatchNotificationService, MatchNotificationService>();
             // Register FluentValidation validators

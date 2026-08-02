@@ -5,6 +5,27 @@
     <p>Loading ratings form...</p>
   </div>
   } @else if (hasSubmitted) {
+  <div class="ai-report-banner">
+    <div class="ai-report-info">
+      <div class="sparkle-badge">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d4ff00"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path
+            d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z" />
+        </svg>
+        <span>AI Match Tactical Report</span>
+      </div>
+    </div>
+    <a [routerLink]="['/match', matchId, 'report']" class="btn-view-report">
+      <span>Show Match AI Report</span>
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+        <polyline points="12 5 19 12 12 19"></polyline>
+      </svg>
+    </a>
+  </div>
+
   <div class="team-subtabs" style="margin-bottom: 2rem;">
     @if (canSeeHome) {
     <button class="subtab-btn" [class.active]="selectedTeam === 'home'" (click)="selectTeam('home')">
@@ -20,22 +41,22 @@
 
   <div class="teams-container">
     @if (selectedTeam === 'home') {
-      <div class="team-section fade-in-content">
-        @if (submittedHomeRatings.length === 0) {
-          <app-empty-state title="No Ratings" description="No ratings found for this team."></app-empty-state>
-        } @else {
-          <ng-container *ngTemplateOutlet="readonlyList; context: { $implicit: submittedHomeRatings }"></ng-container>
-        }
-      </div>
+    <div class="team-section fade-in-content">
+      @if (submittedHomeRatings.length === 0) {
+      <app-empty-state title="No Ratings" description="No ratings found for this team."></app-empty-state>
+      } @else {
+      <ng-container *ngTemplateOutlet="readonlyList; context: { $implicit: submittedHomeRatings }"></ng-container>
+      }
+    </div>
     }
     @if (selectedTeam === 'away') {
-      <div class="team-section fade-in-content">
-        @if (submittedAwayRatings.length === 0) {
-          <app-empty-state title="No Ratings" description="No ratings found for this team."></app-empty-state>
-        } @else {
-          <ng-container *ngTemplateOutlet="readonlyList; context: { $implicit: submittedAwayRatings }"></ng-container>
-        }
-      </div>
+    <div class="team-section fade-in-content">
+      @if (submittedAwayRatings.length === 0) {
+      <app-empty-state title="No Ratings" description="No ratings found for this team."></app-empty-state>
+      } @else {
+      <ng-container *ngTemplateOutlet="readonlyList; context: { $implicit: submittedAwayRatings }"></ng-container>
+      }
+    </div>
     }
   </div>
 
@@ -43,19 +64,21 @@
     <div class="readonly-players-grid">
       @for (rating of ratings; track rating.playerId) {
       <div class="glass-card player-readonly-card">
-        
+
         <!-- Ambient Background Glows inside card -->
         <div class="ambient-glow glow-emerald"></div>
         <div class="ambient-glow glow-cyan"></div>
 
         <div class="card-top-section">
           <div class="player-info-wrap">
-            <app-mini-player-card [player]="rating.player" size="xs" [useNaturalPosition]="true" (cardClick)="navigateToPlayerProfile($event)"></app-mini-player-card>
+            <app-mini-player-card [player]="rating.player" size="xs" [useNaturalPosition]="true"
+              (cardClick)="navigateToPlayerProfile($event)"></app-mini-player-card>
             <div class="player-details">
-              <span class="full-name-label block clickable-player-name" (click)="navigateToPlayerProfile(rating.playerId)">{{ rating.player.fullName }}</span>
+              <span class="full-name-label block clickable-player-name"
+                (click)="navigateToPlayerProfile(rating.playerId)">{{ rating.player.fullName }}</span>
               <span class="mins-played-label">{{ rating.minutesPlayed }} mins played</span>
               @if (rating.isMOTM) {
-                <span class="motm-badge">MOTM</span>
+              <span class="motm-badge">MOTM</span>
               }
             </div>
           </div>
@@ -85,9 +108,7 @@
 
             <!-- Animated Progress Bar -->
             <div class="progress-bar-track">
-              <div class="progress-bar-fill"
-                   [ngClass]="cat.colorClass"
-                   [style.width.%]="(cat.score / 10) * 100">
+              <div class="progress-bar-fill" [ngClass]="cat.colorClass" [style.width.%]="(cat.score / 10) * 100">
                 <div class="progress-bar-glow"></div>
               </div>
             </div>
@@ -96,10 +117,10 @@
         </div>
 
         @if (rating.coachNote) {
-          <div class="coach-note-box">
-            <span class="coach-note-label">Coach Note</span>
-            <p class="coach-note-text">"{{ rating.coachNote }}"</p>
-          </div>
+        <div class="coach-note-box">
+          <span class="coach-note-label">Coach Note</span>
+          <p class="coach-note-text">"{{ rating.coachNote }}"</p>
+        </div>
         }
       </div>
       }
@@ -142,8 +163,10 @@
         <div class="player-rating-card" [class.is-motm]="playerForm.isMOTM" [class.is-skipped]="playerForm.skipRating">
           <div class="card-header">
             <div class="player-info-wrap">
-              <app-mini-player-card [player]="playerForm.player" size="xs" [useNaturalPosition]="true" (cardClick)="navigateToPlayerProfile($event)"></app-mini-player-card>
-              <span class="full-name-label clickable-player-name" (click)="navigateToPlayerProfile(playerForm.player.playerId)">{{ playerForm.player.fullName }}</span>
+              <app-mini-player-card [player]="playerForm.player" size="xs" [useNaturalPosition]="true"
+                (cardClick)="navigateToPlayerProfile($event)"></app-mini-player-card>
+              <span class="full-name-label clickable-player-name"
+                (click)="navigateToPlayerProfile(playerForm.player.playerId)">{{ playerForm.player.fullName }}</span>
             </div>
             <div class="header-actions">
               <button type="button" class="skip-btn" [class.active]="playerForm.skipRating"
@@ -172,7 +195,8 @@
             <div class="minutes-note-row" [class.disabled-row]="playerForm.skipRating">
               <div class="input-group mins-group">
                 <label>Mins Played</label>
-                <app-number-input [(ngModel)]="playerForm.minutesPlayed" [min]="0" [max]="defaultMinutes" [disabled]="playerForm.skipRating" [step]="1"></app-number-input>
+                <app-number-input [(ngModel)]="playerForm.minutesPlayed" [min]="0" [max]="defaultMinutes"
+                  [disabled]="playerForm.skipRating" [step]="1"></app-number-input>
               </div>
               <div class="input-group note-group">
                 <label>Coach Note</label>
@@ -185,7 +209,8 @@
               @for (cat of playerForm.categories; track cat.drillCategoryId) {
               <div class="category-counter-box">
                 <span class="cat-label">{{ cat.name }}</span>
-                <app-number-input [(ngModel)]="cat.rating" [min]="0" [max]="10" [disabled]="playerForm.skipRating" [step]="1"></app-number-input>
+                <app-number-input [(ngModel)]="cat.rating" [min]="0" [max]="10" [disabled]="playerForm.skipRating"
+                  [step]="1"></app-number-input>
               </div>
               }
             </div>
@@ -204,7 +229,8 @@
         <div class="player-rating-card" [class.is-motm]="playerForm.isMOTM" [class.is-skipped]="playerForm.skipRating">
           <div class="card-header">
             <div class="player-info-wrap">
-              <app-mini-player-card [player]="playerForm.player" size="xs" [useNaturalPosition]="true"></app-mini-player-card>
+              <app-mini-player-card [player]="playerForm.player" size="xs"
+                [useNaturalPosition]="true"></app-mini-player-card>
               <span class="full-name-label">{{ playerForm.player.fullName }}</span>
             </div>
             <div class="header-actions">
@@ -234,7 +260,8 @@
             <div class="minutes-note-row" [class.disabled-row]="playerForm.skipRating">
               <div class="input-group mins-group">
                 <label>Mins Played</label>
-                <app-number-input [(ngModel)]="playerForm.minutesPlayed" [min]="0" [max]="defaultMinutes" [disabled]="playerForm.skipRating" [step]="1"></app-number-input>
+                <app-number-input [(ngModel)]="playerForm.minutesPlayed" [min]="0" [max]="defaultMinutes"
+                  [disabled]="playerForm.skipRating" [step]="1"></app-number-input>
               </div>
               <div class="input-group note-group">
                 <label>Coach Note</label>
@@ -247,7 +274,8 @@
               @for (cat of playerForm.categories; track cat.drillCategoryId) {
               <div class="category-counter-box">
                 <span class="cat-label">{{ cat.name }}</span>
-                <app-number-input [(ngModel)]="cat.rating" [min]="0" [max]="10" [disabled]="playerForm.skipRating" [step]="1"></app-number-input>
+                <app-number-input [(ngModel)]="cat.rating" [min]="0" [max]="10" [disabled]="playerForm.skipRating"
+                  [step]="1"></app-number-input>
               </div>
               }
             </div>

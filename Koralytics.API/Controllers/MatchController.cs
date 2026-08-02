@@ -18,19 +18,22 @@ namespace Koralytics.API.Controllers
         private readonly IMatchRatingService _matchRatingService;
         private readonly IMatchAnalyticsService _matchAnalyticsService;
         private readonly IMatchRequestService _matchRequestService;
+        private readonly IMatchReportService _matchReportService;
 
         public MatchController(
             IMatchService matchService,
             IMatchEventService matchEventService,
             IMatchRatingService matchRatingService,
             IMatchAnalyticsService matchAnalyticsService,
-            IMatchRequestService matchRequestService)
+            IMatchRequestService matchRequestService,
+            IMatchReportService matchReportService)
         {
             _matchService = matchService;
             _matchEventService = matchEventService;
             _matchRatingService = matchRatingService;
             _matchAnalyticsService = matchAnalyticsService;
             _matchRequestService = matchRequestService;
+            _matchReportService = matchReportService;
         }
 
         [HttpPost("request")]
@@ -351,6 +354,37 @@ namespace Koralytics.API.Controllers
         {
             await _matchService.CancelMatchAsync(matchId);
             return NoContent();
+        }
+
+        [HttpGet("{matchId:int}/details")]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetCombinedMatchDetails(int matchId)
+        {
+            var result = await _matchService.GetCombinedMatchDetailsAsync(matchId);
+            return OkResponse(result);
+        }
+
+        [HttpGet("{matchId:int}/report")]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetMatchReport(int matchId, [FromQuery] AIReportType reportType = AIReportType.Match)
+        {
+            var result = await _matchReportService.GetMatchReportAsync(matchId, reportType);
+            return OkResponse(result);
+        }
+
+        [HttpPost("{matchId:int}/generate-report")]
+        [Authorize(Roles = "SystemAdmin,Coach,AcademyAdmin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GenerateMatchReport(int matchId)
+        {
+            var reportText = await _matchReportService.GenerateMatchReportAsync(matchId);
+            return OkResponse(new { Report = reportText }, "AI match report generated successfully");
         }
     }
 }
