@@ -9,6 +9,7 @@ import { DataTable, TableColumn } from '../../../../../shared/components/data-ta
 import { LoadingSpinnerComponent } from '../../../../../shared/components/loading-spinner/loading-spinner';
 import { Pagination } from '../../../../../shared/components/pagination/pagination';
 import { ConfirmDialogComponent } from '../../../../../shared/components/confirm-dialog/confirm-dialog';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-academy-coaches-section',
@@ -19,19 +20,20 @@ import { ConfirmDialogComponent } from '../../../../../shared/components/confirm
 })
 export class AcademyCoachesSectionComponent implements OnInit, OnChanges {
   @Input() academyId!: number;
-  
+
   private academyService = inject(AcademyService);
   private toast = inject(ToastService);
   private fb = inject(FormBuilder);
-  
+  private router = inject(Router);
+
   coaches: AcademyMemberResponseDto[] = [];
   pendingRequests: any[] = [];
   searchResults: any[] = [];
-  
+
   isLoading = true;
   isSearching = false;
   isSending = false;
-  
+
   searchForm = this.fb.nonNullable.group({
     searchTerm: ['']
   });
@@ -59,14 +61,14 @@ export class AcademyCoachesSectionComponent implements OnInit, OnChanges {
   loadData() {
     if (!this.academyId) return;
     this.isLoading = true;
-    
+
     // Load members and filter coaches
     this.academyService.getAcademyMembers(this.academyId, { pageNumber: this.pageNumber, pageSize: 100 }).subscribe({
       next: (res) => {
         if (res.isSuccess && res.data) {
           const filtered = res.data.items.filter(m => m.role === 'Coach');
           this.totalCount = filtered.length; // Fake pagination for now
-          
+
           this.coaches = filtered.slice((this.pageNumber - 1) * this.pageSize, this.pageNumber * this.pageSize).map(m => {
             const dateStr = new Date(m.joinedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
             return { ...m, joinedAtFormatted: dateStr };
@@ -232,8 +234,17 @@ export class AcademyCoachesSectionComponent implements OnInit, OnChanges {
   onActionClick(event: { row: any, action: string }) {
     if (event.action === 'delete') {
       this.onRemoveCoach(event.row.userId);
-    } else if (event.action === 'view') {
-      // Analyze logic here
+    } else if (event.action === 'view' || event.action === 'viewProfile') {
+      const targetId = event.row.coachId || event.row.userId || event.row.id;
+      if (targetId) {
+        this.router.navigate(['/Coach/profile', targetId]);
+      }
+    }
+  }
+
+  viewMemberProfile(userId: number | undefined) {
+    if (userId) {
+      this.router.navigate(['/Coach/profile', userId]);
     }
   }
 

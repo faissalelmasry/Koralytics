@@ -21,6 +21,7 @@ import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-r
 
 import { AcademyLocationsSectionComponent } from '../../components/academy-locations-section/academy-locations-section';
 import { PhoneInputComponent } from '../../../../../shared/components/phone-input/phone-input.component';
+import { ImageUpload } from '../../../../../shared/components/image-upload/image-upload';
 
 @Component({
   selector: 'app-academy-admin-dashboard',
@@ -40,7 +41,8 @@ import { PhoneInputComponent } from '../../../../../shared/components/phone-inpu
     AcademyCommSubsSectionComponent,
     AcademyLocationsSectionComponent,
     LoadingSpinnerComponent,
-    ScrollRevealDirective
+    ScrollRevealDirective,
+    ImageUpload
   ],
   templateUrl: './academy-admin-dashboard.component.html',
   styleUrls: ['./academy-admin-dashboard.component.css']
@@ -222,6 +224,42 @@ export class AcademyAdminDashboardComponent implements OnInit {
     if (this.academyDetails?.id) {
       this.router.navigate(['/academy/profile', this.academyDetails.id]);
     }
+  }
+
+  showLogoUploadModal = false;
+  isUploadingLogo = false;
+
+  openLogoUpload(): void {
+    this.showLogoUploadModal = true;
+  }
+
+  closeLogoUpload(): void {
+    this.showLogoUploadModal = false;
+  }
+
+  onLogoSelected(file: File): void {
+    if (!this.academyDetails?.id) {
+      this.toast.show('Academy ID not found.', 'error');
+      return;
+    }
+    this.isUploadingLogo = true;
+    this.academyService.updateAcademyLogo(this.academyDetails.id, file).subscribe({
+      next: (res) => {
+        this.isUploadingLogo = false;
+        if (res.isSuccess && res.data && this.academyDetails) {
+          this.academyDetails.logoUrl = res.data.logoUrl || res.data;
+          this.showLogoUploadModal = false;
+          this.toast.show('Academy logo updated successfully.', 'success');
+        } else {
+          this.toast.show(res.message || 'Failed to update logo.', 'error');
+        }
+      },
+      error: (err) => {
+        this.isUploadingLogo = false;
+        const msg = err.error?.message || 'Failed to update academy logo.';
+        this.toast.show(msg, 'error');
+      }
+    });
   }
 }
 

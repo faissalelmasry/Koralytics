@@ -64,6 +64,16 @@ namespace Koralytics.API.Controllers.Academies
             return OkResponse(result, "Academy updated successfully.");
         }
 
+        [HttpPatch("{academyId}/logo")]
+        [Authorize(Roles = "AcademyAdmin,SystemAdmin")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> UpdateAcademyLogo(int academyId, [FromForm] UpdateAcademyLogoDto dto)
+        {
+            var userId = GetCurrentUserId();
+            var logoUrl = await _academyService.UpdateAcademyLogoAsync(academyId, dto.Image, userId);
+            return OkResponse(new { logoUrl = logoUrl }, "Academy logo updated successfully.");
+        }
+
         [HttpPut("{academyId}/status")]
         [Authorize(Roles = "SystemAdmin")]
         public async Task<IActionResult> UpdateAcademyStatus(int academyId, [FromBody] UpdateAcademyStatusDto dto)

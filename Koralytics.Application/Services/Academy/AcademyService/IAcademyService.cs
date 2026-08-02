@@ -1,6 +1,7 @@
 using Koralytics.Application.DTOs.Academies;
 using Koralytics.Application.DTOs.Academy;
 using Koralytics.Domain.Enums;
+using Microsoft.AspNetCore.Http;
 namespace Koralytics.Application.Services.Academy.AcademyService
 {
     public interface IAcademyService
@@ -20,6 +21,11 @@ namespace Koralytics.Application.Services.Academy.AcademyService
         /// Updates mutable academy properties: Name, LogoUrl, PrimaryColor, SecondaryColor.
         /// </summary>
         Task<AcademyResponseDto> UpdateAcademyAsync(int academyId, UpdateAcademyDto dto, int performedByUserId);
+
+        /// <summary>
+        /// Updates the academy logo image. Deletes old logo if one exists.
+        /// </summary>
+        Task<string> UpdateAcademyLogoAsync(int academyId, IFormFile image, int performedByUserId);
 
         /// <summary>
         /// Updates the status of an academy (e.g. Active, Suspended, Inactive).

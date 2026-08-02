@@ -13,21 +13,24 @@
     <!-- Has Academy (Scrolling Single Page + Filter Panel) -->
     <div class="profile-container" *ngIf="hasAcademy">
 
-      <!-- TACTICAL TAG & HEADER ROW
+      <!-- TACTICAL TAG & HEADER ROW -->
       <div>
         <div class="tactical-tag" scrollReveal direction="bottom" [delay]="0">Academy Command Protocol</div>
         <div class="header-row" scrollReveal direction="bottom" [delay]="40">
           <h1 class="section-title">Academy Operations Command</h1>
           <span class="badge-count">{{ academyDetails?.name || 'Academy Hub' }}</span>
         </div>
-      </div> -->
+      </div>
 
       <!-- =============== 1. HERO BANNER =============== -->
       <div class="hero-banner" scrollReveal direction="bottom" [delay]="90">
         <div class="admin-identity">
-          <div class="avatar-circle">
-            <img *ngIf="academyDetails?.logoUrl" [src]="academyDetails?.logoUrl" alt="Academy Logo" />
+          <div class="avatar-circle" (click)="openLogoUpload()" title="Click to update academy logo">
+            <img *ngIf="academyDetails?.logoUrl" [src]="academyDetails?.logoUrl" alt="Academy Logo" class="avatar-img" />
             <span *ngIf="!academyDetails?.logoUrl">{{ initials || 'AC' }}</span>
+            <div class="avatar-overlay">
+              <span class="camera-icon">📷</span>
+            </div>
           </div>
           <div>
             <h1>{{ academyDetails?.name || 'Academy Administration' }}</h1>
@@ -58,8 +61,7 @@
           </div>
           <div class="bio-item">
             <span class="bio-lbl">Public Profile</span>
-            <button type="button" class="action-btn" (click)="viewPublicProfile()"
-              style="padding: 5px 12px; font-size: 0.8rem; font-weight: 600; background: rgba(0, 229, 255, 0.15); color: #00e5ff; border: 1px solid rgba(0, 229, 255, 0.4); border-radius: 6px; cursor: pointer; transition: all 0.2s;">
+            <button type="button" class="cyber-btn-sm" (click)="viewPublicProfile()">
               View Profile ↗
             </button>
           </div>
@@ -379,4 +381,22 @@
 
     </div>
   </ng-container>
+
+  <!-- ================= IMAGE UPLOAD MODAL ================= -->
+  @if (showLogoUploadModal) {
+  <div class="modal-backdrop active" (click)="closeLogoUpload()">
+    <div class="upload-modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Update Academy Logo</h3>
+        <button class="close-btn" (click)="closeLogoUpload()">✕</button>
+      </div>
+      <p class="modal-sub">Upload a new academy logo image (.jpg, .jpeg, .png, .webp, max 5MB).</p>
+      <div class="upload-wrapper">
+        <app-image-upload [maxFileSizeMb]="5" [isUploading]="isUploadingLogo" [aspectRatio]="'circle'"
+          (imageSelected)="onLogoSelected($event)">
+        </app-image-upload>
+      </div>
+    </div>
+  </div>
+  }
 </div>
