@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Coach Squad - Clone</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=Oswald:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    /* Global Styles */
+    html, body {
+      margin: 0; padding: 0; width: 100%;
+      background-color: #06080a; 
+      overflow-x: hidden; 
+      font-family: 'Inter', sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+
+    /* coach-shared.css */
+    .page-container { padding: 32px 24px; max-width: 1400px; margin: 0 auto; }
+    .page-header { margin-bottom: 32px; }
+    .page-title { font-family: 'Bebas Neue', sans-serif; font-size: 42px; color: #f2f3f5; margin: 0; letter-spacing: 1px; }
+    .accent { color: #c8ff4d; }
+    .page-subtitle { color: #8b909a; font-size: 15px; margin-top: 8px; }
+    .glass-input, .glass-textarea { background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.1); color: #f2f3f5; padding: 12px 16px; border-radius: 8px; outline: none; font-size: 14px; font-family: inherit; transition: border-color 0.2s; width: 100%; }
+    .btn-primary { background: #c8ff4d; color: #0a0c0f; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 700; cursor: pointer; height: 44px; display: flex; align-items: center; justify-content: center; transition: transform 0.2s, background 0.2s; }
+    .btn-primary:hover { transform: translateY(-2px); background: #b5e645; }
+    
+    /* coach-squad.component.css */
+    .page-container { max-width: 1400px; }
+    .action-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; padding: 12px 20px; background: rgba(20, 23, 28, 0.5); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 12px; }
+    .selection-hint { color: #8b909a; font-size: 13px; }
+    .btn-compare { padding: 8px 20px; border: 1px solid #c8ff4d; background: transparent; color: #c8ff4d; border-radius: 8px; font-size: 13px; cursor: pointer; transition: all 0.2s ease; }
+    .btn-compare:hover { background: #c8ff4d; color: #0a0c0f; }
+    .squad-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+    .player-card { background: rgba(20, 23, 28, 0.6); border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 16px; padding: 20px; backdrop-filter: blur(10px); cursor: pointer; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); animation: scaleUpCard 0.4s backwards; }
+    @keyframes scaleUpCard { from { opacity: 0; transform: scale(0.95) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+    .player-card:hover { border-color: rgba(200, 255, 77, 0.3); transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2); }
+    .card-header { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+    .player-avatar { width: 48px; height: 48px; overflow: hidden; border-radius: 50%; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; }
+    .avatar-initial { font-size: 22px; color: #c8ff4d; font-family: 'Bebas Neue', sans-serif;}
+    .player-info { flex: 1; min-width: 0; }
+    .player-name { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: #f2f3f5; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .player-position { font-size: 12px; color: #8b909a; text-transform: uppercase; letter-spacing: 0.5px; }
+    .overall-rating { width: 48px; height: 48px; border-radius: 10px; background: linear-gradient(135deg, #c8ff4d, #88cc22); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .rating-number { font-family: 'Bebas Neue', sans-serif; font-size: 24px; color: #0a0c0f; font-weight: 700; }
+    .status-row { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+    .status-chip { padding: 3px 10px; border-radius: 99px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+    .status-available { background: rgba(76, 175, 80, 0.15); color: #66bb6a; border: 1px solid rgba(76, 175, 80, 0.3); }
+    .readiness-chip { padding: 3px 10px; border-radius: 99px; font-size: 11px; color: #f2f3f5; border: 1px solid; display: flex; align-items: center; gap: 6px; }
+    .readiness-dot { width: 6px; height: 6px; border-radius: 50%; }
+    .ratings-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+    .rating-item { display: flex; justify-content: space-between; align-items: center; padding: 4px 8px; background: rgba(255, 255, 255, 0.03); border-radius: 6px; transition: background 0.2s, transform 0.2s; }
+    .rating-label { font-size: 10px; color: #8b909a; font-weight: 600; letter-spacing: 0.5px; }
+    .rating-value { font-family: 'Bebas Neue', sans-serif; font-size: 16px; color: #f2f3f5; }
+    .meta-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .meta-tag { font-size: 11px; color: #8b909a; background: rgba(255, 255, 255, 0.04); padding: 2px 8px; border-radius: 4px; text-transform: capitalize; }
+  </style>
+</head>
+<body>
+  <div class="page-container">
+    <div class="page-header">
+      <h1 class="page-title">Squad <span class="accent">Overview</span></h1>
+      <p class="page-subtitle">U18 Pro Team</p>
+    </div>
+    
+    <div class="action-bar">
+      <span class="selection-hint">Select 2 players to compare</span>
+      <button class="btn-compare">⚔️ Compare Players</button>
+    </div>
+
+    <div class="squad-grid">
+      <!-- Player 1 -->
+      <div class="player-card">
+        <div class="card-header">
+          <div class="player-avatar">
+            <span class="avatar-initial">J</span>
+          </div>
+          <div class="player-info">
+            <h3 class="player-name">John Doe</h3>
+            <span class="player-position">ST</span>
+          </div>
+          <div class="overall-rating"><span class="rating-number">85</span></div>
+        </div>
+        <div class="status-row">
+          <span class="status-chip status-available">Available</span>
+          <span class="readiness-chip" style="border-color: #66bb6a;"><span class="readiness-dot" style="background: #66bb6a;"></span>92%</span>
+        </div>
+        <div class="ratings-grid">
+          <div class="rating-item"><span class="rating-label">PAC</span><span class="rating-value">88</span></div>
+          <div class="rating-item"><span class="rating-label">SHO</span><span class="rating-value">85</span></div>
+          <div class="rating-item"><span class="rating-label">PAS</span><span class="rating-value">78</span></div>
+          <div class="rating-item"><span class="rating-label">DRI</span><span class="rating-value">84</span></div>
+          <div class="rating-item"><span class="rating-label">DEF</span><span class="rating-value">40</span></div>
+          <div class="rating-item"><span class="rating-label">PHY</span><span class="rating-value">75</span></div>
+        </div>
+        <div class="meta-row">
+          <span class="meta-tag">Right foot</span><span class="meta-tag">Target Man</span>
+        </div>
+      </div>
+      
+      <!-- Player 2 -->
+      <div class="player-card">
+        <div class="card-header">
+          <div class="player-avatar">
+            <span class="avatar-initial">M</span>
+          </div>
+          <div class="player-info">
+            <h3 class="player-name">Mike Smith</h3>
+            <span class="player-position">CB</span>
+          </div>
+          <div class="overall-rating"><span class="rating-number">82</span></div>
+        </div>
+        <div class="status-row">
+          <span class="status-chip status-available">Available</span>
+          <span class="readiness-chip" style="border-color: #ffa726;"><span class="readiness-dot" style="background: #ffa726;"></span>75%</span>
+        </div>
+        <div class="ratings-grid">
+          <div class="rating-item"><span class="rating-label">PAC</span><span class="rating-value">70</span></div>
+          <div class="rating-item"><span class="rating-label">SHO</span><span class="rating-value">45</span></div>
+          <div class="rating-item"><span class="rating-label">PAS</span><span class="rating-value">68</span></div>
+          <div class="rating-item"><span class="rating-label">DRI</span><span class="rating-value">65</span></div>
+          <div class="rating-item"><span class="rating-label">DEF</span><span class="rating-value">85</span></div>
+          <div class="rating-item"><span class="rating-label">PHY</span><span class="rating-value">88</span></div>
+        </div>
+        <div class="meta-row">
+          <span class="meta-tag">Left foot</span><span class="meta-tag">Ball Playing Defender</span>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+</body>
+</html>

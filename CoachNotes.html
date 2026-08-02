@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Coach Notes - Clone</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=Oswald:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    /* Global Styles */
+    html, body { margin: 0; padding: 0; width: 100%; background-color: #06080a; overflow-x: hidden; font-family: 'Inter', sans-serif; }
+    *, *::before, *::after { box-sizing: border-box; }
+    
+    /* coach-shared.css essentials */
+    .page-container { padding: 32px 24px; max-width: 1400px; margin: 0 auto; }
+    .page-header { margin-bottom: 32px; }
+    .page-title { font-family: 'Bebas Neue', sans-serif; font-size: 42px; color: #f2f3f5; margin: 0; letter-spacing: 1px; }
+    .accent { color: #c8ff4d; }
+    .page-subtitle { color: #8b909a; font-size: 15px; margin-top: 8px; }
+    .glass-input, .glass-textarea { background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.1); color: #f2f3f5; padding: 12px 16px; border-radius: 8px; outline: none; font-size: 14px; font-family: inherit; transition: border-color 0.2s; width: 100%; }
+    .glass-textarea { resize: vertical; min-height: 100px; }
+    .glass-input:focus, .glass-textarea:focus { border-color: #c8ff4d; }
+    .btn-primary { background: #c8ff4d; color: #0a0c0f; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 700; cursor: pointer; height: 44px; display: flex; align-items: center; justify-content: center; transition: transform 0.2s, background 0.2s; }
+    .btn-primary:hover:not(:disabled) { transform: translateY(-2px); background: #b5e645; }
+    .form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+    .form-group label { font-size: 12px; color: #8b909a; font-weight: 600; }
+    .form-row { display: flex; gap: 16px; }
+    .half { flex: 1; }
+
+    /* coach-notes CSS */
+    .layout-grid { display: grid; grid-template-columns: 300px 1fr; gap: 32px; align-items: start; }
+    
+    .player-sidebar { background: rgba(20, 23, 28, 0.4); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 16px; overflow: hidden; position: sticky; top: 100px; max-height: calc(100vh - 140px); display: flex; flex-direction: column; }
+    .sidebar-header { padding: 20px; background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+    .sidebar-header h3 { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: #f2f3f5; margin: 0; letter-spacing: 0.5px; }
+    .player-list { overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+    .player-list::-webkit-scrollbar { width: 6px; }
+    .player-list::-webkit-scrollbar-track { background: transparent; }
+    .player-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+    
+    .player-item { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px; background: transparent; border: 1px solid transparent; border-radius: 12px; cursor: pointer; text-align: left; transition: all 0.2s; }
+    .player-item:hover { background: rgba(255, 255, 255, 0.03); }
+    .player-item.active { background: rgba(200, 255, 77, 0.1); border-color: rgba(200, 255, 77, 0.2); }
+    .player-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(255, 255, 255, 0.05); flex-shrink: 0; }
+    .avatar-initial { font-family: 'Bebas Neue', sans-serif; color: #f2f3f5; font-size: 18px; }
+    .player-item.active .avatar-initial { color: #c8ff4d; }
+    .player-info { display: flex; flex-direction: column; }
+    .player-name { font-size: 14px; font-weight: 600; color: #f2f3f5; }
+    .player-pos { font-size: 11px; color: #8b909a; text-transform: uppercase; }
+    
+    .notes-content { display: flex; flex-direction: column; gap: 32px; }
+    .compose-card { background: rgba(20, 23, 28, 0.6); border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 16px; padding: 24px; backdrop-filter: blur(12px); transition: border-color 0.3s, box-shadow 0.3s; }
+    .compose-card:focus-within { border-color: rgba(200, 255, 77, 0.3); box-shadow: 0 0 20px rgba(200, 255, 77, 0.05); }
+    .compose-card h3 { font-family: 'Bebas Neue', sans-serif; font-size: 24px; color: #f2f3f5; margin: 0 0 20px; }
+    .compose-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 24px; }
+    .toggle-label { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+    .toggle-text { font-size: 14px; color: #f2f3f5; }
+    
+    .notes-history { display: flex; flex-direction: column; gap: 16px; }
+    .history-title { font-family: 'Bebas Neue', sans-serif; font-size: 24px; color: #f2f3f5; margin: 0 0 8px; }
+    .note-list { display: flex; flex-direction: column; gap: 16px; }
+    .note-card { background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 20px; transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s; animation: fadeInNote 0.5s ease backwards; }
+    @keyframes fadeInNote { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .note-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); border-color: rgba(255, 255, 255, 0.1); }
+    .note-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .note-date { font-size: 12px; color: #8b909a; }
+    .badge { font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 600; text-transform: uppercase; }
+    .badge.private { background: rgba(255, 255, 255, 0.1); color: #8b909a; }
+    .badge.public { background: rgba(0, 188, 212, 0.15); color: #00bcd4; border: 1px solid rgba(0, 188, 212, 0.3); }
+    .note-text { font-size: 14px; color: #f2f3f5; line-height: 1.6; margin: 0 0 16px; white-space: pre-wrap; }
+    .note-links { display: flex; gap: 12px; border-top: 1px dashed rgba(255, 255, 255, 0.1); padding-top: 12px; }
+    .link-tag { font-size: 12px; color: #c8ff4d; background: rgba(200, 255, 77, 0.1); padding: 4px 10px; border-radius: 6px; }
+    .btn-load-more { background: transparent; border: 1px solid rgba(255, 255, 255, 0.1); color: #f2f3f5; padding: 12px; border-radius: 8px; cursor: pointer; margin-top: 8px; }
+    .btn-load-more:hover { background: rgba(255, 255, 255, 0.05); }
+    @media (max-width: 900px) { .layout-grid { grid-template-columns: 1fr; } .player-sidebar { position: static; max-height: 300px; } }
+  </style>
+</head>
+<body>
+  <div class="page-container">
+    <div class="page-header">
+      <h1 class="page-title">Player <span class="accent">Notes</span></h1>
+      <p class="page-subtitle">Private tactical evaluations and feedback for your squad.</p>
+    </div>
+
+    <div class="layout-grid">
+      
+      <!-- Left Sidebar: Player List -->
+      <div class="player-sidebar">
+        <div class="sidebar-header">
+          <h3>Squad Players</h3>
+        </div>
+        
+        <div class="player-list">
+          <button class="player-item active">
+            <div class="player-avatar"><span class="avatar-initial">J</span></div>
+            <div class="player-info">
+              <span class="player-name">John Doe</span>
+              <span class="player-pos">ST</span>
+            </div>
+          </button>
+          
+          <button class="player-item">
+            <div class="player-avatar"><span class="avatar-initial">M</span></div>
+            <div class="player-info">
+              <span class="player-name">Mike Smith</span>
+              <span class="player-pos">CB</span>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Right Content: Notes Area -->
+      <div class="notes-content">
+        
+        <!-- Compose Note Card -->
+        <div class="compose-card">
+          <h3>Write a Note</h3>
+          
+          <div class="form-group">
+            <textarea class="glass-textarea" placeholder="Type your feedback or tactical observation here..." rows="4"></textarea>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group half">
+              <label>Link to Session (Optional)</label>
+              <input type="number" class="glass-input" placeholder="Session ID">
+            </div>
+            <div class="form-group half">
+              <label>Link to Match (Optional)</label>
+              <input type="number" class="glass-input" placeholder="Match ID">
+            </div>
+          </div>
+
+          <div class="compose-actions">
+            <label class="toggle-label">
+              <input type="checkbox">
+              <span class="toggle-text">Visible to Player</span>
+            </label>
+            <button class="btn-primary">Post Note</button>
+          </div>
+        </div>
+
+        <!-- Notes History -->
+        <div class="notes-history">
+          <h3 class="history-title">Previous Notes</h3>
+
+          <div class="note-list">
+            <div class="note-card">
+              <div class="note-header">
+                <span class="note-date">Oct 12, 2026 - 4:30 PM</span>
+                <span class="badge private">Private</span>
+              </div>
+              <p class="note-text">Needs to work on tracking back during defensive transitions. Frequently left space behind.</p>
+              <div class="note-links">
+                <span class="link-tag">🎯 Session #402</span>
+              </div>
+            </div>
+            
+            <div class="note-card">
+              <div class="note-header">
+                <span class="note-date">Oct 10, 2026 - 1:15 PM</span>
+                <span class="badge public">Public</span>
+              </div>
+              <p class="note-text">Excellent finishing in today's drill. Keep that same composure in front of goal for the upcoming match!</p>
+              <div class="note-links">
+                <span class="link-tag">🎯 Session #400</span>
+                <span class="link-tag">⚽ Match #85</span>
+              </div>
+            </div>
+          </div>
+
+          <button class="btn-load-more">Load Older Notes</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</body>
+</html>

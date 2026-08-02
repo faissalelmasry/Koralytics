@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Player Readiness - Clone</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=Oswald:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; padding: 0; width: 100%; background-color: #06080a; overflow-x: hidden; font-family: 'Inter', sans-serif; }
+    *, *::before, *::after { box-sizing: border-box; }
+    
+    .page-container { padding: 32px 24px; max-width: 1200px; margin: 0 auto; }
+    .page-header { margin-bottom: 32px; }
+    .page-title { font-family: 'Bebas Neue', sans-serif; font-size: 42px; color: #f2f3f5; margin: 0; letter-spacing: 1px; }
+    .accent { color: #c8ff4d; }
+    .page-subtitle { color: #8b909a; font-size: 15px; margin-top: 8px; }
+    
+    .readiness-card { background: rgba(20, 23, 28, 0.6); border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 16px; padding: 0; backdrop-filter: blur(12px); overflow: hidden; }
+    .readiness-table { width: 100%; border-collapse: collapse; }
+    .readiness-table th { background: rgba(255, 255, 255, 0.02); padding: 16px 20px; text-align: left; font-size: 13px; color: #8b909a; font-weight: 600; text-transform: uppercase; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+    .readiness-table td { padding: 16px 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.03); vertical-align: middle; }
+    .readiness-table tr:hover { background: rgba(255, 255, 255, 0.04); }
+    .text-center { text-align: center !important; }
+    
+    .player-name-cell { display: flex; align-items: center; gap: 12px; }
+    .avatar-initial { width: 36px; height: 36px; border-radius: 50%; background: rgba(255, 255, 255, 0.05); display: flex; align-items: center; justify-content: center; color: #c8ff4d; }
+    .name-text { font-size: 15px; font-weight: 600; color: #f2f3f5; }
+    
+    .avail-chip { display: inline-block; padding: 4px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; text-transform: uppercase; white-space: nowrap; }
+    .avail-available { background: rgba(76, 175, 80, 0.15); color: #66bb6a; border: 1px solid rgba(76, 175, 80, 0.3); }
+    .avail-resting { background: rgba(33, 150, 243, 0.15); color: #42a5f5; border: 1px solid rgba(33, 150, 243, 0.3); }
+    
+    .score-wrapper { display: inline-block; width: 50px; height: 50px; }
+    .radial-progress { width: 100%; height: 100%; }
+    .circle-bg { fill: none; stroke: rgba(255, 255, 255, 0.1); stroke-width: 3; }
+    .circle { fill: none; stroke-width: 3; stroke-linecap: round; }
+    .percentage { fill: #f2f3f5; font-family: 'Bebas Neue', sans-serif; font-size: 14px; text-anchor: middle; dominant-baseline: middle; }
+    
+    .session-scores { display: flex; flex-direction: column; gap: 4px; }
+    .session-score-item { display: flex; align-items: center; gap: 6px; }
+    .session-label { font-size: 11px; color: #8b909a; font-weight: 600; min-width: 20px; text-align: right; }
+    .session-bar-track { flex: 1; height: 6px; background: rgba(255, 255, 255, 0.08); border-radius: 3px; overflow: hidden; min-width: 60px; }
+    .session-bar-fill { height: 100%; border-radius: 3px; }
+    .session-value { font-family: 'Bebas Neue', sans-serif; font-size: 14px; min-width: 24px; text-align: right; }
+    
+    .match-count { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: #f2f3f5; }
+    .match-count.high-fatigue { color: #ef5350; }
+    
+    .rec-box { background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); padding: 10px 14px; border-radius: 6px; font-size: 13px; color: #f2f3f5; line-height: 1.4; border-left: 4px solid; }
+  </style>
+</head>
+<body>
+  <div class="page-container">
+    <div class="page-header">
+      <h1 class="page-title">Match <span class="accent">Readiness</span></h1>
+      <p class="page-subtitle">Track player fatigue and physical readiness before matches.</p>
+    </div>
+
+    <div class="readiness-card">
+      <table class="readiness-table">
+        <thead>
+          <tr>
+            <th>Player Name</th>
+            <th class="text-center">Availability</th>
+            <th class="text-center">Readiness Score</th>
+            <th class="text-center">Last 3 Sessions</th>
+            <th class="text-center">Matches (7 Days)</th>
+            <th>Recommendation</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="player-name-cell">
+              <div class="avatar-initial">J</div>
+              <span class="name-text">John Doe</span>
+            </td>
+            <td class="text-center">
+              <span class="avail-chip avail-available">Available</span>
+            </td>
+            <td class="text-center">
+              <div class="score-wrapper">
+                <svg class="radial-progress" viewBox="0 0 36 36">
+                  <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                  <path class="circle" stroke-dasharray="92, 100" style="stroke: #66bb6a;" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                  <text x="18" y="20.35" class="percentage">92</text>
+                </svg>
+              </div>
+            </td>
+            <td class="text-center">
+              <div class="session-scores">
+                <div class="session-score-item"><span class="session-label">S1</span><div class="session-bar-track"><div class="session-bar-fill" style="width: 85%; background: #66bb6a;"></div></div><span class="session-value" style="color: #66bb6a;">85</span></div>
+                <div class="session-score-item"><span class="session-label">S2</span><div class="session-bar-track"><div class="session-bar-fill" style="width: 90%; background: #66bb6a;"></div></div><span class="session-value" style="color: #66bb6a;">90</span></div>
+              </div>
+            </td>
+            <td class="text-center"><span class="match-count">1</span></td>
+            <td><div class="rec-box" style="border-left-color: #66bb6a;">Optimal Match Fitness</div></td>
+          </tr>
+          
+          <tr>
+            <td class="player-name-cell">
+              <div class="avatar-initial">M</div>
+              <span class="name-text">Mike Smith</span>
+            </td>
+            <td class="text-center">
+              <span class="avail-chip avail-resting">Resting</span>
+            </td>
+            <td class="text-center">
+              <div class="score-wrapper">
+                <svg class="radial-progress" viewBox="0 0 36 36">
+                  <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                  <path class="circle" stroke-dasharray="45, 100" style="stroke: #ef5350;" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                  <text x="18" y="20.35" class="percentage">45</text>
+                </svg>
+              </div>
+            </td>
+            <td class="text-center">
+              <div class="session-scores">
+                <div class="session-score-item"><span class="session-label">S1</span><div class="session-bar-track"><div class="session-bar-fill" style="width: 40%; background: #ef5350;"></div></div><span class="session-value" style="color: #ef5350;">40</span></div>
+              </div>
+            </td>
+            <td class="text-center"><span class="match-count high-fatigue">3</span></td>
+            <td><div class="rec-box" style="border-left-color: #ef5350;">High Fatigue Risk. Rest required.</div></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html>
