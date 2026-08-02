@@ -401,7 +401,11 @@
                       @for (c of team.coaches; track c.coachId) {
                       <button type="button" class="member-chip coach-chip"
                         (click)="viewMemberProfile(c.coachId, 'Coach')">
-                        <span class="chip-dot coach-dot"></span>
+                        @if (c.profileImageUrl || c.imageUrl) {
+                        <img [src]="c.profileImageUrl || c.imageUrl" [alt]="c.coachFullName" class="chip-avatar" />
+                        } @else {
+                        <span class="chip-avatar-initial coach-initial">{{ (c.coachFullName || 'C')[0].toUpperCase() }}</span>
+                        }
                         <span>{{ c.coachFullName }}</span>
                         <span class="ext-icon">↗</span>
                       </button>
@@ -417,7 +421,11 @@
                       @for (p of team.players; track p.playerId) {
                       <button type="button" class="member-chip player-chip"
                         (click)="viewMemberProfile(p.playerId, 'Player')">
-                        <span class="chip-dot player-dot"></span>
+                        @if (p.profileImageUrl || p.imageUrl) {
+                        <img [src]="p.profileImageUrl || p.imageUrl" [alt]="p.playerFullName" class="chip-avatar" />
+                        } @else {
+                        <span class="chip-avatar-initial player-initial">{{ (p.playerFullName || 'P')[0].toUpperCase() }}</span>
+                        }
                         <span>{{ p.playerFullName }}</span>
                         @if (p.position) {
                         <span class="chip-pos">({{ p.position }})</span>
@@ -487,7 +495,13 @@
           <div class="members-grid">
             @for (mem of filteredMembers; track mem.userId) {
             <div class="member-card clickable-member" (click)="viewMemberProfile(mem.userId, mem.role)" tabindex="0">
-              <div class="member-avatar">{{ (mem.fullName || 'M')[0].toUpperCase() }}</div>
+              <div class="member-avatar">
+                @if (mem.profileImageUrl || mem.imageUrl) {
+                <img [src]="mem.profileImageUrl || mem.imageUrl" [alt]="mem.fullName" class="avatar-img" />
+                } @else {
+                {{ (mem.fullName || 'M')[0].toUpperCase() }}
+                }
+              </div>
               <div class="member-info">
                 <div class="member-name">{{ mem.fullName }} <span class="ext-arrow">↗</span></div>
                 <div class="member-meta">

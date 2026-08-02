@@ -71,6 +71,8 @@ export interface AcademyMemberResponseDto {
   joinedAt: string;
   subscriptionStatus?: number;
   graceUntil?: string;
+  profileImageUrl?: string;
+  imageUrl?: string;
 }
 
 export interface AcademyAdminResponseDto {
@@ -118,7 +120,22 @@ export interface PagedResponseDto<T> {
 export interface CreateAgeGroupDto { name: string; minAge: number; maxAge: number; }
 export interface AgeGroupResponseDto { id: number; academyId: number; name: string; minAge: number; maxAge: number; }
 export interface CreateTeamDto { name: string; ageGroupId: number; locationId: number; }
-export interface TeamResponseDto { id: number; academyId: number; name: string; ageGroupId: number; ageGroupName: string; locationId: number; locationName: string; coaches: any[]; players: any[]; }
+export interface TeamCoachDto {
+  coachId: number;
+  coachFullName: string;
+  profileImageUrl?: string;
+  imageUrl?: string;
+  assignedAt?: string;
+}
+export interface TeamPlayerDto {
+  playerId: number;
+  playerFullName: string;
+  profileImageUrl?: string;
+  imageUrl?: string;
+  position?: string;
+  joinedAt?: string;
+}
+export interface TeamResponseDto { id: number; academyId: number; name: string; ageGroupId: number; ageGroupName: string; locationId: number; locationName: string; coaches: TeamCoachDto[]; players: TeamPlayerDto[]; }
 export interface AcademyLocationResponseDto { id: number; name: string; address: string; city: string; isMain: boolean; isMainLocation?: boolean; academyId: number; }
 
 export interface CreateAnnouncementDto {

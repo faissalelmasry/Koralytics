@@ -17,6 +17,8 @@ namespace Koralytics.Application.DTOs.Academy
         public string AcademyName { get; set; } = string.Empty;
         public int PlayerId { get; set; }
         public string PlayerName { get; set; } = string.Empty;
+        public string? Username { get; set; }
+        public string? ImageUrl { get; set; }
         public JoinRequestStatus Status { get; set; }
         public DateTime RequestedAt { get; set; }
         public DateTime? RespondedAt { get; set; }
@@ -29,6 +31,8 @@ namespace Koralytics.Application.DTOs.Academy
         public string AcademyName { get; set; } = string.Empty;
         public int CoachId { get; set; }
         public string CoachName { get; set; } = string.Empty;
+        public string? Username { get; set; }
+        public string? ImageUrl { get; set; }
         public JoinRequestStatus Status { get; set; }
         public DateTime RequestedAt { get; set; }
         public DateTime? RespondedAt { get; set; }
@@ -39,6 +43,7 @@ namespace Koralytics.Application.DTOs.Academy
         public int PlayerId { get; set; }
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
+        public string? Username { get; set; }
         public string? ImageUrl { get; set; }
     }
 
@@ -47,6 +52,7 @@ namespace Koralytics.Application.DTOs.Academy
         public int CoachId { get; set; }
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
+        public string? Username { get; set; }
         public string? ImageUrl { get; set; }
     }
 
@@ -57,6 +63,8 @@ namespace Koralytics.Application.DTOs.Academy
         public string AcademyName { get; set; } = string.Empty;
         public int AdminId { get; set; }
         public string AdminFullName { get; set; } = string.Empty;
+        public string? Username { get; set; }
+        public string? ImageUrl { get; set; }
         public JoinRequestStatus Status { get; set; }
         public DateTime RequestedAt { get; set; }
         public DateTime? RespondedAt { get; set; }
@@ -69,6 +77,7 @@ namespace Koralytics.Application.DTOs.Academy
         public int AdminId { get; set; }
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
+        public string? Username { get; set; }
         public string? ImageUrl { get; set; }
     }
 }

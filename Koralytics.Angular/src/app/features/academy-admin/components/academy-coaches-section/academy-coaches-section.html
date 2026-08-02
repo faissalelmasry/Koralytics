@@ -38,14 +38,13 @@
       <h4>Search Results</h4>
       <div class="user-card" *ngFor="let user of searchResults">
         <div class="user-info">
-          <div class="avatar-small">
-            <img *ngIf="user.profileImageUrl" [src]="user.profileImageUrl" alt="avatar" class="avatar-img" />
-            <span *ngIf="!user.profileImageUrl">{{ user.firstName?.charAt(0) || user.fullName?.charAt(0) || 'C'
-              }}</span>
+          <div class="avatar-small clickable-user-elem" (click)="viewMemberProfile(user.coachId || user.userId || user.id); $event.stopPropagation()" title="View Member Profile">
+            <img *ngIf="user.imageUrl || user.profileImageUrl" [src]="user.imageUrl || user.profileImageUrl" alt="avatar" class="avatar-img" />
+            <span *ngIf="!(user.imageUrl || user.profileImageUrl)">{{ user.firstName?.charAt(0) || user.fullName?.charAt(0) || 'C' }}</span>
           </div>
           <div class="user-details">
-            <span class="user-name">{{ user.firstName }} {{ user.lastName }}</span>
-            <span class="user-email">{{ user.email || 'Coach' }}</span>
+            <span class="user-name clickable-user-elem" (click)="viewMemberProfile(user.coachId || user.userId || user.id); $event.stopPropagation()" title="View Member Profile">{{ user.firstName }} {{ user.lastName }}</span>
+            <span class="user-email">Coach{{ user.username ? ' • @' + user.username : '' }}</span>
           </div>
         </div>
         <app-button variant="accent" size="small"
@@ -63,16 +62,13 @@
     <h4>Pending Join Requests</h4>
     <div class="user-card pending-card" *ngFor="let req of pendingRequests">
       <div class="user-info">
-        <div class="status-indicator">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"></circle>
-            <polyline points="12 6 12 12 16 14"></polyline>
-          </svg>
+        <div class="avatar-small clickable-user-elem" (click)="viewMemberProfile(req.coachId || req.userId || req.id); $event.stopPropagation()" title="View Member Profile">
+          <img *ngIf="req.imageUrl || req.profileImageUrl" [src]="req.imageUrl || req.profileImageUrl" alt="avatar" class="avatar-img" />
+          <span *ngIf="!(req.imageUrl || req.profileImageUrl)">{{ req.coachName?.charAt(0) || req.fullName?.charAt(0) || 'C' }}</span>
         </div>
         <div class="user-details">
-          <span class="user-name">{{ req.coachName || req.fullName || 'Coach Request' }}</span>
-          <span class="user-email">Sent on {{ req.requestedAt | date:'short' }}</span>
+          <span class="user-name clickable-user-elem" (click)="viewMemberProfile(req.coachId || req.userId || req.id); $event.stopPropagation()" title="View Member Profile">{{ req.coachName || req.fullName || 'Coach Request' }}</span>
+          <span class="user-email">Coach{{ req.username ? ' • @' + req.username : '' }} • Sent on {{ req.requestedAt | date:'short' }}</span>
         </div>
       </div>
       <app-button variant="slate" size="small" (click)="onCancelRequest(req.id)">

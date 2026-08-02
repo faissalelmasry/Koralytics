@@ -216,6 +216,12 @@ export class AcademyMembersComponent implements OnInit, OnChanges {
     }
   }
 
+  viewMemberProfile(userId: number | undefined) {
+    if (userId) {
+      this.router.navigate(['/player/profile', userId]);
+    }
+  }
+
   onPageChange(page: number) {
     this.pageNumber = page;
     this.loadData();
