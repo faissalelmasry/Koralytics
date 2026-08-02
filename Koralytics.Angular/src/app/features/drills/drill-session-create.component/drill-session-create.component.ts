@@ -63,6 +63,11 @@ export class DrillSessionCreateComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    const currentUser = this.authService.getCurrentUserValue();
+    if (currentUser?.roles?.some(r => r.toLowerCase() === 'academyadmin')) {
+      this.router.navigate(['/drills/sessions']);
+      return;
+    }
     this.initForm();
     this.setDynamicAcademyId(); // Load the ID before making API calls
   }
