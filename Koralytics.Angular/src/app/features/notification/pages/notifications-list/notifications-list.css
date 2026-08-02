@@ -1,410 +1,406 @@
 :host {
   display: block;
   min-height: 100vh;
-  color: #ffffff;
-  
-  --tier-neon: #c8ff4d;
-  --tier-glow: rgba(200, 255, 77, 0.2);
-  --tier-border-glow: rgba(200, 255, 77, 0.4);
-  --tier-bg-glow: rgba(200, 255, 77, 0.12);
+  color: #f4f5f7;
+
+  /* Single restrained accent, used sparingly (unread dot, active tab,
+     primary actions) rather than as a glowing theme color everywhere. */
+  --accent: #c8ff4d;
+  --accent-soft: rgba(200, 255, 77, 0.14);
+
+  --surface: #131519;
+  --surface-hover: #17191f;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --text-primary: #f4f5f7;
+  --text-secondary: #9096a3;
+  --text-tertiary: #62687a;
 }
 
 .notifications-page {
-  max-width: 1180px;
+  max-width: 760px;
   margin: 0 auto;
-  padding: 160px 30px 20px; 
-  position: relative;
-  z-index: 1; 
+  padding: 140px 24px 48px;
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 20px;
+  font-family: 'Inter', sans-serif;
 }
 
-/* ===================================================
-   Loading & Empty States
-   =================================================== */
+/* =========================================
+   Loading / Empty states
+   ========================================= */
 .loading-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 16px;
-  min-height: 400px;
-  color: #8b909a;
-  font-family: 'Inter', sans-serif;
-  font-size: 15px;
-}
-
-.no-data-placeholder {
-  width: 100%;
-  min-height: 420px;
-  border: 2px dashed rgba(255, 255, 255, 0.12);
-  border-radius: 18px;
-  background: linear-gradient(160deg, #0f1115 0%, #14171c 100%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 24px 20px;
-  text-align: center;
-  transition: border-color 0.3s ease;
-}
-
-.no-data-placeholder.compact {
-  min-height: 200px;
-}
-
-.no-data-placeholder:hover {
-  border-color: var(--tier-border-glow);
-}
-
-/* Was a unicode emoji glyph -- swapped for an inline SVG so the icon
-   language stays consistent with the bell icon in the hero avatar and the
-   action-button icons throughout this page, rather than mixing emoji with
-   custom stroke icons. */
-.no-data-icon {
-  margin-bottom: 4px;
-  animation: avatarPulse 3s infinite ease-in-out;
-  color: var(--tier-neon);
-}
-
-.no-data-title {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 26px;
-  letter-spacing: 1.5px;
-  color: #ffffff;
-  margin: 0;
-}
-
-.no-data-sub {
-  font-size: 13px;
-  font-family: 'Inter', sans-serif;
-  color: #808897;
-  margin: 0 0 16px;
-  line-height: 1.5;
-}
-
-/* ===================================================
-   1. HERO BANNER
-   =================================================== */
-.hero-banner {
-  background: linear-gradient(135deg, #11141a 0%, #0c0e12 100%);
-  border: 1px solid #1e232d;
-  border-radius: 20px;
-  padding: 20px 28px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  position: relative;
-  overflow: hidden;
-  transition: border-color 0.3s ease;
-}
-
-.hero-banner:hover {
-  border-color: #383e4a;
-}
-
-.hero-banner::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background: linear-gradient(90deg, var(--tier-neon), transparent 70%);
-}
-
-.page-identity {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.avatar-circle {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: radial-gradient(circle, var(--tier-glow) 0%, #171b22 100%);
-  border: 2px solid var(--tier-neon);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--tier-neon);
-  flex-shrink: 0;
-  box-shadow: 0 0 15px var(--tier-glow);
-  animation: avatarPulse 3s infinite ease-in-out;
-}
-
-@keyframes avatarPulse {
-  0%, 100% { box-shadow: 0 0 10px var(--tier-glow); border-color: var(--tier-neon); }
-  50% { box-shadow: 0 0 25px var(--tier-neon); border-color: #ffffff; }
-}
-
-.page-identity h1 {
-  font-size: 26px;
-  font-weight: 800;
-  line-height: 1.1;
-  margin: 0 0 4px;
-  font-family: 'Inter', sans-serif;
-}
-
-.meta-pills {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.pill {
-  background: #181c24;
-  border: 1px solid #272d3a;
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-size: 11px;
-  color: #e2e8f0;
-  font-weight: 600;
-  font-family: 'Inter', sans-serif;
-}
-
-.pill.gold {
-  background: var(--tier-bg-glow);
-  border-color: var(--tier-border-glow);
-  color: var(--tier-neon);
-}
-
-.bio-quick-list {
-  display: flex;
-  gap: 12px;
-  background: rgba(0, 0, 0, 0.3);
-  padding: 10px 18px;
-  border-radius: 12px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.bio-item {
-  display: flex;
-  flex-direction: column;
-}
-
-/* ===================================================
-   2. STACKED BANNER NOTIFICATIONS LIST
-   =================================================== */
-.notifications-stack {
-  display: flex;
-  flex-direction: column;
   gap: 14px;
+  min-height: 360px;
+  color: var(--text-secondary);
+  font-size: 14px;
 }
 
-.notification-banner {
-  background: #11141a;
-  border: 1px solid #1e232d;
-  border-radius: 16px;
-  padding: 18px 24px;
+.empty-state {
+  width: 100%;
+  min-height: 320px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease, box-shadow 0.3s ease;
+  justify-content: center;
+  gap: 6px;
+  padding: 32px 24px;
+  text-align: center;
 }
 
-.notification-banner:hover {
-  transform: translateY(-3px);
-  border-color: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+.empty-state.compact {
+  min-height: 160px;
+  padding: 28px 20px;
 }
 
-.notification-banner.is-unread {
-  border-color: var(--tier-border-glow);
-  background: radial-gradient(100% 100% at 0% 50%, var(--tier-glow), #11141a);
-}
-
-.notification-banner.is-unread:hover {
-  border-color: var(--tier-neon);
-  box-shadow: 0 10px 25px var(--tier-glow);
-}
-
-.banner-left {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  flex: 1;
-  min-width: 0;
-}
-
-/* Status badge now reflects the notification TYPE (announcement, milestone,
-   parent alert, subscription grace, scouter alert) rather than read/unread
-   state -- read/unread is already communicated clearly by the banner-level
-   border/background treatment (.is-unread) plus the small dot next to the
-   title, so reusing the badge for type identity adds new scannable
-   information instead of repeating what's already shown elsewhere. */
-.status-badge {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
+.empty-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  background: color-mix(in srgb, var(--type-color, #8b909a) 15%, transparent);
-  border: 1.5px solid color-mix(in srgb, var(--type-color, #8b909a) 40%, transparent);
-  color: var(--type-color, #8b909a);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--type-color, transparent) 20%, transparent);
+  color: var(--text-secondary);
+  margin-bottom: 10px;
 }
 
-.banner-text-content {
+.empty-icon-wrap.success {
+  background: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.3);
+  color: #4ade80;
+}
+
+.empty-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 4px;
+  letter-spacing: -0.01em;
+}
+
+.empty-sub {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 0 0 18px;
+  line-height: 1.5;
+  max-width: 320px;
+}
+
+.empty-state.compact .empty-sub {
+  margin-bottom: 0;
+}
+
+/* =========================================
+   Page toolbar (title + filters + actions)
+   ========================================= */
+.page-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding-bottom: 4px;
+}
+
+.toolbar-title-group {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  flex: 1;
-  min-width: 0;
+  gap: 2px;
 }
 
-.banner-meta-row {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-}
-
-.banner-title {
-  font-family: 'Inter', sans-serif;
-  font-size: 16px;
+.page-title {
+  font-size: 22px;
   font-weight: 700;
-  color: #ffffff;
+  letter-spacing: -0.015em;
   margin: 0;
+  color: var(--text-primary);
+}
+
+.page-subtitle {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Segmented control (All / Unread) -- replaces the two loud pill-shaped
+   toggle buttons with a compact, single-piece control, the way most
+   modern dashboards (Linear, GitHub, Vercel) present a binary filter. */
+.segmented-control {
+  display: inline-flex;
+  padding: 3px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  gap: 2px;
+}
+
+.segment {
+  appearance: none;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
-.notification-banner.is-unread .banner-title {
-  color: var(--tier-neon);
+.segment:hover {
+  color: var(--text-primary);
 }
 
-.unread-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #22c55e;
-  box-shadow: 0 0 8px rgba(34, 197, 94, 0.7);
-  flex-shrink: 0;
-  display: inline-block;
+.segment-active {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
 }
 
-.banner-time {
+.segment-count {
   font-size: 11px;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 1px 6px;
+  min-width: 18px;
+  text-align: center;
+}
+
+.segment-active .segment-count {
+  color: var(--text-secondary);
+}
+
+.text-action {
+  appearance: none;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
   font-weight: 600;
-  color: #808897;
-  text-transform: uppercase;
+  cursor: pointer;
+  padding: 6px 4px;
+  transition: color 0.15s ease;
+}
+
+.text-action:hover {
+  color: var(--accent);
+}
+
+/* =========================================
+   Notification list
+   ========================================= */
+.notification-list {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.notification-row {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 18px 16px 20px;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s ease;
+}
+
+.notification-row:last-child {
+  border-bottom: none;
+}
+
+.notification-row:hover {
+  background: var(--surface-hover);
+}
+
+/* Thin left accent bar, colored by type -- a common, restrained pattern
+   for signaling category without a big glowing badge. */
+.row-accent {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: transparent;
+}
+
+.notification-row.is-unread .row-accent {
+  background: var(--type-color, var(--accent));
+}
+
+.row-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  color: var(--type-color, var(--text-secondary));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.row-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.row-top-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.row-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.notification-row.is-unread .row-title::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.row-time {
+  font-size: 12px;
+  color: var(--text-tertiary);
   white-space: nowrap;
   cursor: default;
+  flex-shrink: 0;
 }
 
-.banner-desc {
-  font-size: 13.5px;
-  color: #94a3b8;
-  font-family: 'Inter', sans-serif;
+.row-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
   margin: 0;
   line-height: 1.5;
-  /* Two-line clamp instead of a single-line ellipsis -- previously this
-     truncated to one line even on wide desktop viewports where there was
-     plenty of room, hiding more content on the screens that could show
-     the most. Clamping consistently to 2 lines at every breakpoint reads
-     more content while still keeping row heights predictable. */
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-.notification-banner.is-unread .banner-desc {
-  color: #e2e8f0;
-}
-
-.banner-actions {
+.row-action {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
-  flex-shrink: 0;
+  min-width: 28px;
+  justify-content: flex-end;
 }
 
-.cleared-text {
-  font-size: 11px;
-  font-weight: 700;
-  color: #475569;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+.mark-read-btn {
+  appearance: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
 
-/* ===================================================
-   Pagination Wrapper
-   =================================================== */
-.pagination-wrapper {
-  margin-top: 20px;
+.mark-read-btn:hover {
+  border-color: rgba(34, 197, 94, 0.4);
+  color: #4ade80;
+  background: rgba(34, 197, 94, 0.08);
+}
+
+/* =========================================
+   Pagination
+   ========================================= */
+.pagination-row {
   display: flex;
   justify-content: center;
-  background: #11141a;
-  border: 1px solid #1e232d;
-  border-radius: 16px;
-  padding: 12px;
+  padding-top: 4px;
 }
 
-/* ===================================================
+/* =========================================
    Accessibility: focus-visible
-   =================================================== */
-:host ::ng-deep button:focus-visible,
-:host ::ng-deep a:focus-visible {
-  outline: 2px solid var(--tier-border-glow);
+   ========================================= */
+.segment:focus-visible,
+.text-action:focus-visible,
+.mark-read-btn:focus-visible {
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
-/* ===================================================
-   Responsive
-   =================================================== */
-@media (max-width: 900px) {
-  .hero-banner {
-    flex-direction: column;
-    gap: 16px;
-    align-items: flex-start;
-  }
-  .bio-quick-list {
-    width: 100%;
-    justify-content: flex-start;
-    flex-wrap: wrap;
-  }
-  .notification-banner {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-  }
-  .banner-actions {
-    width: 100%;
-    justify-content: flex-end;
-  }
+:host ::ng-deep button:focus-visible,
+:host ::ng-deep a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
+/* =========================================
+   Responsive
+   ========================================= */
 @media (max-width: 600px) {
   .notifications-page {
-    padding: 120px 16px 16px; 
+    padding: 110px 16px 32px;
   }
-  .page-identity h1 {
-    font-size: 22px;
-  }
-  .banner-meta-row {
+  .page-toolbar {
     flex-direction: column;
     align-items: flex-start;
-    gap: 4px;
+  }
+  .toolbar-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .row-top-line {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
   }
 }
 
-/* ===================================================
+/* =========================================
    Reduced Motion
-   =================================================== */
+   ========================================= */
 @media (prefers-reduced-motion: reduce) {
-  .notification-banner:hover {
-    transform: none;
-  }
-  .no-data-icon {
-    animation: none;
+  .notification-row,
+  .segment,
+  .mark-read-btn {
+    transition: none;
   }
 }

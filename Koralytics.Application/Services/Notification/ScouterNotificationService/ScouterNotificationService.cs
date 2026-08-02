@@ -43,7 +43,7 @@ namespace Koralytics.Application.Services.Notification.ScouterNotificationServic
             var notification = new CachedNotification
             {
                 Title = "Followed Player Activity",
-                Content = $"The player you follow has triggered a new event: {eventType}",
+                Content = $"The player you follow has shared new activity: {eventType}",
                 Type = "ScouterNotification",
                 Payload = new { PlayerId = playerId, EventType = eventType }
             };

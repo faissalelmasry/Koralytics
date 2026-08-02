@@ -5,7 +5,12 @@
   <!-- =============== HERO BANNER =============== -->
   <div class="hero-banner" scrollReveal direction="bottom" [delay]="0">
     <div class="aa-identity">
-      <div class="aa-icon-circle">📢</div>
+      <div class="aa-icon-circle">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m3 11 18-5v12L3 14v-3z"/>
+          <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>
+        </svg>
+      </div>
       <div>
         <h1>Academy Announcements</h1>
         <div class="meta-pills">
@@ -55,13 +60,28 @@
           (valueChange)="onTargetTypeChange($event)">
         </app-select>
 
-        <app-text-input
-          *ngIf="selectedTargetType() === AnnouncementTargetType.Team || selectedTargetType() === AnnouncementTargetType.AgeGroup"
-          [label]="selectedTargetType() === AnnouncementTargetType.Team ? 'team id' : 'age group id'"
-          type="number"
-          formControlName="targetId"
-          [errorMessage]="targetIdError">
-        </app-text-input>
+        <!-- Team picker: real dropdown fed by AcademyAnnouncementService.getTeams(),
+             replacing the old raw numeric "team id" input. -->
+        <app-select
+          *ngIf="selectedTargetType() === AnnouncementTargetType.Team"
+          label="team"
+          [options]="teamOptions()"
+          [value]="announcementForm.get('targetId')?.value"
+          [errorMessage]="targetIdError"
+          [disabled]="isLoadingTargetOptions()"
+          (valueChange)="onTargetIdChange($event)">
+        </app-select>
+
+        <!-- Age group picker: same pattern, fed by getAgeGroups(). -->
+        <app-select
+          *ngIf="selectedTargetType() === AnnouncementTargetType.AgeGroup"
+          label="age group"
+          [options]="ageGroupOptions()"
+          [value]="announcementForm.get('targetId')?.value"
+          [errorMessage]="targetIdError"
+          [disabled]="isLoadingTargetOptions()"
+          (valueChange)="onTargetIdChange($event)">
+        </app-select>
 
         <app-select
           *ngIf="selectedTargetType() === AnnouncementTargetType.Role"
@@ -72,6 +92,13 @@
           (valueChange)="onRoleChange($event)">
         </app-select>
 
+      </div>
+
+      <!-- Team/Age-group lookup failed to load -- surfaced separately from
+           the target row itself so a fetch failure doesn't just make the
+           dropdown silently look empty with no explanation. -->
+      <div class="aa-banner aa-banner-error" *ngIf="targetOptionsError()">
+        {{ targetOptionsError() }}
       </div>
 
       <!-- Feedback Banners -->
@@ -95,7 +122,8 @@
   <div scrollReveal direction="bottom" [delay]="200">
     <app-announcement-history
       [announcements]="announcements()"
-      [isLoading]="isLoading()">
+      [isLoading]="isLoading()"
+      [academyId]="academyId()">
     </app-announcement-history>
   </div>
 
