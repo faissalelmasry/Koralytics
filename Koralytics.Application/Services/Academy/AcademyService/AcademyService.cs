@@ -31,7 +31,7 @@ namespace Koralytics.Application.Services.Academy.AcademyService
         public AcademyService(
             IUnitOfWork unitOfWork,
             IMapper mapper,
-            IBackgroundTaskQueue taskQueue)
+            IBackgroundTaskQueue taskQueue,
             ILogger<AcademyService> logger,
             IStorageService storageService)
         {
