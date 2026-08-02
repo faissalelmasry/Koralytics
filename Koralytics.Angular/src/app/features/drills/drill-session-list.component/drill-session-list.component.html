@@ -22,7 +22,7 @@
                 <span>Weak Categories</span>
                 <span class="analytics-chip">ANALYTICS</span>
             </button>
-            @if (!isAdmin) {
+            @if (canManageDrills) {
             <button class="btn-accent" (click)="openCreateSession()">+ Schedule Session</button>
             }
         </div>
@@ -145,10 +145,14 @@
                 <button class="btn-full btn-secondary" style="border-color: #ff4757; color: #ff4757;"
                     (click)="viewSessionDetails(session.id)">View Cancellation Reason</button>
                 } @else {
+                @if (canManageDrills) {
                 <button class="btn-full btn-secondary" (click)="openEditModal(session)">Edit Details</button>
-                <button class="btn-full btn-primary" (click)="viewSessionDetails(session.id)">Enter Session</button>
+                }
+                <button class="btn-full btn-primary" (click)="viewSessionDetails(session.id)">View Session</button>
+                @if (canManageDrills) {
                 <button class="btn-full btn-secondary" style="margin-top: 8px; color: #ff4757; border-color: #ff4757;"
                     (click)="openCancelModal(session)">Cancel Session</button>
+                }
                 }
             </div>
         </article>
@@ -166,7 +170,7 @@
             </svg>
         </div>
         <h3 class="empty-title">No training sessions found</h3>
-        @if (!isAdmin) {
+        @if (canManageDrills) {
         <button class="btn-accent" (click)="openCreateSession()">+ Schedule Session</button>
         }
     </div>

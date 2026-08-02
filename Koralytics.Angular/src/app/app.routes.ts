@@ -34,16 +34,56 @@ export const routes: Routes = [
       { path: 'dashboard', loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent) },
 
       // Drills
-      { path: 'drills', loadComponent: () => import('./features/drills/drill-template-list/drill-template-list.component').then(m => m.DrillTemplateListComponent) },
-      { path: 'drills/sessions', loadComponent: () => import('./features/drills/drill-session-list.component/drill-session-list.component').then(m => m.DrillSessionListComponent) },
-      { path: 'drills/sessions/new', loadComponent: () => import('./features/drills/drill-session-create.component/drill-session-create.component').then(m => m.DrillSessionCreateComponent) },
-      { path: 'drills/sessions/:id', loadComponent: () => import('./features/drills/drill-session-details.component/drill-session-details.component').then(m => m.DrillSessionDetailsComponent) },
-      { path: 'drills/players/:playerId/progression', loadComponent: () => import('./features/drills/player-drill-progression.component/player-drill-progression.component').then(m => m.PlayerDrillProgressionComponent) },
+      {
+        path: 'drills',
+        loadComponent: () => import('./features/drills/drill-template-list/drill-template-list.component').then(m => m.DrillTemplateListComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['AcademyAdmin', 'Coach', 'SystemAdmin'] }
+      },
+      {
+        path: 'drills/sessions',
+        loadComponent: () => import('./features/drills/drill-session-list.component/drill-session-list.component').then(m => m.DrillSessionListComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['AcademyAdmin', 'Coach'] }
+      },
+      {
+        path: 'drills/sessions/new',
+        loadComponent: () => import('./features/drills/drill-session-create.component/drill-session-create.component').then(m => m.DrillSessionCreateComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['Coach'] }
+      },
+      {
+        path: 'drills/sessions/:id',
+        loadComponent: () => import('./features/drills/drill-session-details.component/drill-session-details.component').then(m => m.DrillSessionDetailsComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['AcademyAdmin', 'Coach'] }
+      },
+      {
+        path: 'drills/players/:playerId/progression',
+        loadComponent: () => import('./features/drills/player-drill-progression.component/player-drill-progression.component').then(m => m.PlayerDrillProgressionComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['AcademyAdmin', 'Coach', 'Player', 'Parent', 'SystemAdmin'] }
+      },
 
       // Drill Analytics
-      { path: 'drills/analytics/weak-categories', loadComponent: () => import('./features/drills/squad-weak-categories.component/squad-weak-categories.component').then(m => m.SquadWeakCategoriesComponent) },
-      { path: 'drills/analytics/coach-bias', loadComponent: () => import('./features/drills/coach-bias-analytics.component/coach-bias-analytics.component').then(m => m.CoachBiasAnalyticsComponent) },
-      { path: 'drills/analytics/coach-bias/:coachId', loadComponent: () => import('./features/drills/coach-bias-analytics.component/coach-bias-analytics.component').then(m => m.CoachBiasAnalyticsComponent) },
+      {
+        path: 'drills/analytics/weak-categories',
+        loadComponent: () => import('./features/drills/squad-weak-categories.component/squad-weak-categories.component').then(m => m.SquadWeakCategoriesComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['AcademyAdmin', 'Coach', 'SystemAdmin'] }
+      },
+      {
+        path: 'drills/analytics/coach-bias',
+        loadComponent: () => import('./features/drills/coach-bias-analytics.component/coach-bias-analytics.component').then(m => m.CoachBiasAnalyticsComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['AcademyAdmin', 'Coach', 'SystemAdmin'] }
+      },
+      {
+        path: 'drills/analytics/coach-bias/:coachId',
+        loadComponent: () => import('./features/drills/coach-bias-analytics.component/coach-bias-analytics.component').then(m => m.CoachBiasAnalyticsComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['AcademyAdmin', 'Coach', 'SystemAdmin'] }
+      },
       { path: 'drills/analytics/coach_bias', redirectTo: 'drills/analytics/coach-bias' },
       { path: 'drills/analytics/coach_bias/:coachId', redirectTo: 'drills/analytics/coach-bias/:coachId' },
 
@@ -167,8 +207,6 @@ export const routes: Routes = [
     canActivate: [authGuard, roleGuard],
     data: { roles: ['AcademyAdmin', 'SuperAdmin'] }
   },
-  {
-    path: 'academy-admin/dashboard',
   {
     path: 'academy-admin/dashboard',
     loadComponent: () => import('./features/academy-admin/pages/academy-admin-dashboard/academy-admin-dashboard.component').then(m => m.AcademyAdminDashboardComponent),

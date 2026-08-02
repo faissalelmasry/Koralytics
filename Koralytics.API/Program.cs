@@ -114,6 +114,7 @@ using Koralytics.Application.Services.Scouter.ScouterReportService;
 using Koralytics.Application.Services.Scouter.ScouterSearchService;
 using Koralytics.Application.Services.Scouter.ScouterShortlistService;
 using StackExchange.Redis;
+using Koralytics.Application.Services.SystemAdmin.UserManagement;
 
 namespace Koralytics.API
 {

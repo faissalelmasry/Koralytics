@@ -147,6 +147,18 @@ export class DrillSessionListComponent implements OnInit, OnDestroy {
     );
   }
 
+  get canManageDrills(): boolean {
+    const user = this.authService.getCurrentUserValue();
+    if (!user || !user.roles) return false;
+    const isAcademyAdmin = user.roles.some(r => r.toLowerCase() === 'academyadmin');
+    if (isAcademyAdmin) return false;
+    return user.roles.some(r =>
+      r.toLowerCase() === 'coach' ||
+      r.toLowerCase() === 'systemadmin' ||
+      r.toLowerCase() === 'admin'
+    );
+  }
+
   constructor(
     private sessionService: DrillSessionService,
     private authService: AuthService,

@@ -92,9 +92,9 @@ namespace Koralytics.Application.Services.ProfileManagement
                     .FirstOrDefaultAsync(c => c.Id == userId);
                 dto = _mapper.Map<CoachProfileResponseDto>(coach ?? (object)user);
             }
-            else if (user is Parent || primaryRole == "Parent")
+            else if (user is Koralytics.Domain.Entities.Parents.Parent || primaryRole == "Parent")
             {
-                var parent = await _unitOfWork.Repository<Parent>()
+                var parent = await _unitOfWork.Repository<Koralytics.Domain.Entities.Parents.Parent>()
                     .GetQueryableAsNoTracking()
                     .FirstOrDefaultAsync(p => p.Id == userId);
                 dto = _mapper.Map<ParentProfileResponseDto>(parent ?? (object)user);
