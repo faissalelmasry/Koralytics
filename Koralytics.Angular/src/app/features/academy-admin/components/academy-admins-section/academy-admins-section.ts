@@ -9,6 +9,7 @@ import { DataTable, TableColumn } from '../../../../../shared/components/data-ta
 import { Pagination } from '../../../../../shared/components/pagination/pagination';
 import { LoadingSpinnerComponent } from '../../../../../shared/components/loading-spinner/loading-spinner';
 import { ConfirmDialogComponent } from '../../../../../shared/components/confirm-dialog/confirm-dialog';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-academy-admins-section',
@@ -20,19 +21,20 @@ import { ConfirmDialogComponent } from '../../../../../shared/components/confirm
 export class AcademyAdminsSectionComponent implements OnInit, OnChanges {
   @Input() academyId!: number;
   @Input() isOwner: boolean = false; // from dashboard
-  
+
   private academyService = inject(AcademyService);
   private toast = inject(ToastService);
   private fb = inject(FormBuilder);
-  
+  private router = inject(Router);
+
   admins: AcademyAdminResponseDto[] = [];
   pendingRequests: any[] = [];
   searchResults: any[] = [];
-  
+
   isLoading = true;
   isSearching = false;
   isSending = false;
-  
+
   searchForm = this.fb.nonNullable.group({
     searchTerm: ['']
   });
@@ -59,16 +61,16 @@ export class AcademyAdminsSectionComponent implements OnInit, OnChanges {
 
   loadData() {
     if (!this.academyId) return;
-    
+
     this.isLoading = true;
-    
+
     this.academyService.getAcademyAdmins(this.academyId, { pageNumber: this.pageNumber, pageSize: this.pageSize }).subscribe({
       next: (res) => {
         if (res.isSuccess && res.data) {
           this.totalCount = res.data.totalCount || res.data.items.length;
           this.admins = res.data.items.map((m: any) => {
-            return { 
-              ...m, 
+            return {
+              ...m,
               adminRole: m.isOwner ? 'owner' : 'admin',
               hideDelete: m.isOwner || !this.isOwner, // Only owner can remove others
               hideAnalyze: m.isOwner
@@ -211,8 +213,17 @@ export class AcademyAdminsSectionComponent implements OnInit, OnChanges {
   onActionClick(event: { row: any, action: string }) {
     if (event.action === 'delete') {
       this.onRemoveAdmin(event.row.id || event.row.userId || event.row.adminUserId);
-    } else if (event.action === 'view') {
-      // Analyze logic here
+    } else if (event.action === 'view' || event.action === 'viewProfile') {
+      const targetId = event.row.adminId || event.row.userId || event.row.id;
+      if (targetId) {
+        this.router.navigate(['/admin/profile', targetId]);
+      }
+    }
+  }
+
+  viewMemberProfile(userId: number | undefined) {
+    if (userId) {
+      this.router.navigate(['/admin/profile', userId]);
     }
   }
 

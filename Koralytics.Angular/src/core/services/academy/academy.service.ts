@@ -42,6 +42,12 @@ export class AcademyService {
     return this.http.get<ApiResponse<AcademyResponseDto>>(`${this.apiUrl}/${academyId}`);
   }
 
+  updateAcademyLogo(academyId: number, image: File): Observable<ApiResponse<any>> {
+    const formData = new FormData();
+    formData.append('image', image);
+    return this.http.patch<ApiResponse<any>>(`${this.apiUrl}/${academyId}/logo`, formData);
+  }
+
   getAcademyBadges(academyId: number): Observable<ApiResponse<AcademyBadgeResponseDto[]>> {
     return this.http.get<ApiResponse<AcademyBadgeResponseDto[]>>(`${this.apiUrl}/${academyId}/badges`);
   }

@@ -27,6 +27,11 @@ namespace Koralytics.Application.DTOs.Academies
         public string? SecondaryColor { get; set; }
     }
 
+    public class UpdateAcademyLogoDto
+    {
+        public Microsoft.AspNetCore.Http.IFormFile Image { get; set; } = default!;
+    }
+
     public class UpdateAcademyStatusDto
     {
         public AcademyStatus Status { get; set; }

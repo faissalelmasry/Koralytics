@@ -35,6 +35,8 @@
 
 .search-panel,
 .pending-section {
+  position: relative;
+  z-index: 50;
   background: rgba(15, 23, 42, 0.65);
   backdrop-filter: blur(12px);
   border: 1px solid rgba(0, 229, 255, 0.25);
@@ -153,6 +155,8 @@ h4 {
 }
 
 .table-container {
+  position: relative;
+  z-index: 1;
   overflow-x: auto;
 }
 
@@ -608,4 +612,18 @@ h4 {
     grid-template-columns: 1fr;
     gap: 12px;
   }
+}
+
+.clickable-user-elem {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.avatar-small.clickable-user-elem:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.5);
+  border: 1px solid #00e5ff;
+}
+.user-name.clickable-user-elem:hover {
+  color: #00e5ff;
+  text-decoration: underline;
 }
