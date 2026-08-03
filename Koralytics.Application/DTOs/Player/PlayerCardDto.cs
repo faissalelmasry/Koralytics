@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -27,6 +27,7 @@ namespace Koralytics.Application.DTOs.Player
         public decimal OverallTournamentAvg { get; set; }
         public string TransferClassification { get; set; } = string.Empty;
         public string? ArchetypePlayerName { get; set; }  
+        public DateTime? ArchetypeLastRevealedAt { get; set; }
         public string? PlayStyleTag { get; set; }         
         public PreferredFoot PreferredFoot { get; set; }
         public int WeakFootRating { get; set; }     

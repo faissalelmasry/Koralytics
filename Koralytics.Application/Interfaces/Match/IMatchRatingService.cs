@@ -8,5 +8,6 @@ namespace Koralytics.Application.Interfaces.Match
         Task<List<LineupResponseDto>> GetLineupAsync(int matchId);
         Task SubmitMatchRatingsAsync(int matchId, int coachId, SubmitMatchRatingsDto dto);
         Task<MatchRatingsResponseDto> GetMatchRatingsAsync(int matchId);
+        Task<AIReportResponseDto> GetMatchReportAsync(int matchId);
     }
 }

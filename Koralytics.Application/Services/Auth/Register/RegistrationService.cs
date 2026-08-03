@@ -25,6 +25,7 @@ using Koralytics.Domain.Exceptions;
 
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 using AcademyEntity = Koralytics.Domain.Entities.Academy.Academy;
@@ -45,6 +46,7 @@ namespace Koralytics.Application.Services.Auth.Register
         private readonly IMapper _mapper;
         private readonly IEmailService _emailService;
         private readonly IConfiguration _configuration;
+        private readonly IBackgroundTaskQueue _taskQueue;
 
         public RegistrationService(
             UserManager<User> userManager,
@@ -56,7 +58,8 @@ namespace Koralytics.Application.Services.Auth.Register
             ILogger<RegistrationService> logger,
             IMapper mapper,
             IEmailService emailService,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IBackgroundTaskQueue taskQueue)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -68,6 +71,7 @@ namespace Koralytics.Application.Services.Auth.Register
             _mapper = mapper;
             _emailService = emailService;
             _configuration = configuration;
+            _taskQueue = taskQueue;
         }
 
         public async Task<AuthResultDto> RegisterPlayerAsync(RegisterPlayerRequestDto request)
@@ -91,6 +95,9 @@ namespace Koralytics.Application.Services.Auth.Register
 
             _logger.LogInformation("Player successfully registered. UserId: {userId}", player.Id);
             await TrySendConfirmationEmailAsync(player.Id);
+
+            EnqueuePlayerEmbeddingIndex(player.Id, player.FirstName, player.LastName, player.UserName);
+
             return await GenerateAuthResultAsync(player, AuthConstants.Roles.Player, null);
         }
 
@@ -202,6 +209,8 @@ namespace Koralytics.Application.Services.Auth.Register
                 await _unitOfWork.SaveChangesAsync();
                 return true;
             });
+
+            EnqueuePlayerEmbeddingIndex(existingUser.Id, existingUser.FirstName, existingUser.LastName, existingUser.UserName);
         }
 
         public async Task CompleteProfileAsCoachAsync(User existingUser, CompleteProfileAsCoachDto profileData)
@@ -412,6 +421,28 @@ namespace Koralytics.Application.Services.Auth.Register
             };
             
             return new AuthResultDto(response, tokens);
+        }
+
+        private void EnqueuePlayerEmbeddingIndex(int playerId, string? firstName, string? lastName, string? userName)
+        {
+            var fullName = string.Join(" ", new[] { firstName, lastName }.Where(x => !string.IsNullOrWhiteSpace(x)));
+            if (string.IsNullOrWhiteSpace(fullName))
+            {
+                fullName = userName ?? $"Player_{playerId}";
+            }
+
+            _taskQueue.QueueBackgroundWorkItem(async (serviceProvider, ct) =>
+            {
+                try
+                {
+                    var indexer = serviceProvider.GetRequiredService<ISearchableEntityIndexer>();
+                    await indexer.IndexAsync("Player", playerId, fullName, ct);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to index embedding for Player {PlayerId} ({FullName})", playerId, fullName);
+                }
+            });
         }
     }
 }

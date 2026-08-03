@@ -337,17 +337,28 @@
     [attr.aria-label]="isCardFlipped ? 'Archetype revealed' : 'Tap to reveal archetype'">
     <div class="pack-card-inner" [class.flipped]="isCardFlipped">
 
-      <div class="card-face card-face-back">
-        <div class="mystery-logo">KORALYTICS</div>
-        <div class="tap-hint">TAP TO REVEAL</div>
-      </div>
+        <div class="card-face card-face-back">
+          <div class="mystery-logo">KORALYTICS</div>
+          @if (isRevealingArchetype) {
+            <div class="tap-hint loading-spin">
+              <span class="spinner-dot"></span> REVEALING ARCHETYPE...
+            </div>
+          } @else if (revealError) {
+            <div class="tap-hint error-hint">{{ revealError }}</div>
+          } @else {
+            <div class="tap-hint">TAP TO REVEAL</div>
+          }
+        </div>
 
-      <div class="card-face card-face-front">
-        <div class="archetype-badge-icon">⚽</div>
-        <div class="arch-label">PLAYER ARCHETYPE</div>
-        <div class="arch-title">{{ archetypeLabel }}</div>
-        <div class="arch-subline">AI-powered playing style analysis</div>
-      </div>
+        <div class="card-face card-face-front">
+          <div class="archetype-badge-icon">
+            <img [src]="tierLogoUrl" alt="Koralytics Logo" class="arch-badge-logo" />
+          </div>
+          <div class="arch-label">PLAYER ARCHETYPE</div>
+          <div class="arch-title">{{ archetypeTitle }}</div>
+          <div class="arch-text">{{ archetypeTextDescription }}</div>
+          <div class="arch-subline">{{ nextRevealNotice }}</div>
+        </div>
 
     </div>
   </div>

@@ -1,262 +1,689 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Koralytics - Post-Match Analysis</title>
+  <title>Koralytics - AI Match Tactical Report</title>
   
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Alpine.js -->
-  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;600;700&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <!-- Google Fonts: Cairo & Tajawal -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
   
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            koralime: '#ccff00',
-            koradark: '#090b10',
-            koracard: '#121620',
-            koraborder: '#1f2533'
-          },
-          fontFamily: {
-            teko: ['Teko', 'sans-serif'],
-            inter: ['Inter', 'sans-serif'],
-          }
-        }
-      }
-    }
-  </script>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
-    body {
-      background-color: #090b10;
-      color: #e2e8f0;
-      font-family: 'Inter', sans-serif;
-      /* Subtle pitch outline in background + glowing gradients */
-      background-image: 
-        radial-gradient(circle at 0% 0%, rgba(204, 255, 0, 0.08) 0%, transparent 40%),
-        radial-gradient(circle at 100% 100%, rgba(139, 92, 246, 0.08) 0%, transparent 40%),
-        url("data:image/svg+xml,%3Csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M100,50 L900,50 L900,550 L100,550 Z' fill='none' stroke='rgba(255,255,255,0.02)' stroke-width='2'/%3E%3Cpath d='M500,50 L500,550' fill='none' stroke='rgba(255,255,255,0.02)' stroke-width='2'/%3E%3Ccircle cx='500' cy='300' r='70' fill='none' stroke='rgba(255,255,255,0.02)' stroke-width='2'/%3E%3C/svg%3E");
-      background-attachment: fixed;
-      background-size: cover;
+    /* =========================================================
+       1. VARIABLES & RESET
+       ========================================================= */
+    :root {
+      --bg-dark: #080c14;
+      --bg-card: rgba(15, 23, 42, 0.7);
+      --bg-card-hover: rgba(22, 32, 54, 0.85);
+      --border-color: rgba(212, 255, 0, 0.15);
+      --border-light: rgba(255, 255, 255, 0.08);
+      
+      --neon-yellow: #d4ff00;
+      --neon-glow: rgba(212, 255, 0, 0.35);
+      --cyan-accent: #00f2fe;
+      
+      --text-white: #ffffff;
+      --text-gray: #94a3b8;
+      --text-dark-gray: #64748b;
+      
+      --font-primary: 'Cairo', sans-serif;
+      --font-secondary: 'Tajawal', sans-serif;
     }
 
-    .kora-card {
-      background-color: #121620;
-      border: 1px solid #1f2533;
-      border-radius: 1rem;
-      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
-    
-    .text-outline {
-      -webkit-text-stroke: 1px rgba(255,255,255,0.1);
-      color: transparent;
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-white);
+      font-family: var(--font-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.6;
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(212, 255, 0, 0.05) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(0, 242, 254, 0.05) 0%, transparent 40%);
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-dark);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(212, 255, 0, 0.2);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--neon-yellow);
+    }
+
+    /* =========================================================
+       2. NAVIGATION BAR
+       ========================================================= */
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.2rem 3rem;
+      background: rgba(8, 12, 20, 0.85);
+      backdrop-filter: blur(15px);
+      border-bottom: 1px solid var(--border-light);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.6rem;
+      font-weight: 900;
+      letter-spacing: 2px;
+      color: var(--text-white);
+    }
+
+    .brand-logo span {
+      color: var(--neon-yellow);
+      text-shadow: 0 0 12px var(--neon-glow);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1.8rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--text-gray);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      text-transform: lowercase;
+    }
+
+    .nav-links a:hover, .nav-links a.active {
+      color: var(--neon-yellow);
+      text-shadow: 0 0 8px var(--neon-glow);
+    }
+
+    /* =========================================================
+       3. LAYOUT & DASHBOARD CONTAINER
+       ========================================================= */
+    .container {
+      max-width: 1400px;
+      margin: 2rem auto;
+      padding: 0 2rem;
+    }
+
+    /* Header Banner */
+    .match-header {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      position: relative;
+      overflow: hidden;
+      animation: fadeInDown 0.8s ease-out;
+    }
+
+    .match-header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 6px;
+      height: 100%;
+      background: var(--neon-yellow);
+      box-shadow: 0 0 15px var(--neon-yellow);
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .ai-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(212, 255, 0, 0.08);
+      border: 1px solid var(--neon-yellow);
+      color: var(--neon-yellow);
+      padding: 6px 16px;
+      border-radius: 30px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--neon-yellow);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--neon-yellow);
+      animation: pulse 1.5s infinite;
+    }
+
+    .match-title {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--text-white);
+      margin-bottom: 0.5rem;
+    }
+
+    .match-meta-list {
+      display: flex;
+      gap: 2rem;
+      color: var(--text-gray);
+      font-size: 0.95rem;
+      flex-wrap: wrap;
+    }
+
+    .match-meta-list i {
+      color: var(--neon-yellow);
+      margin-left: 6px;
+    }
+
+    /* Grid Layout */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 2.2fr 1fr;
+      gap: 2rem;
+    }
+
+    @media (max-width: 1024px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* =========================================================
+       4. CARDS & WIDGETS
+       ========================================================= */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
+      border-radius: 20px;
+      padding: 1.8rem;
+      margin-bottom: 2rem;
+      backdrop-filter: blur(12px);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      animation: fadeInUp 0.8s ease-out forwards;
+      opacity: 0;
+    }
+
+    .card:hover {
+      border-color: var(--border-color);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 25px rgba(0, 0, 0, 0.4), 0 0 15px rgba(212, 255, 0, 0.05);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 1.2rem;
+      border-bottom: 1px solid var(--border-light);
+      padding-bottom: 1rem;
+    }
+
+    .card-icon {
+      width: 42px;
+      height: 42px;
+      background: rgba(212, 255, 0, 0.08);
+      border: 1px solid rgba(212, 255, 0, 0.2);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--neon-yellow);
+      font-size: 1.2rem;
+    }
+
+    .card-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--text-white);
+    }
+
+    .card-body {
+      color: #cbd5e1;
+      font-size: 1rem;
+      line-height: 1.8;
+      font-family: var(--font-secondary);
+    }
+
+    /* =========================================================
+       5. MAN OF THE MATCH (MOTM) CARD
+       ========================================================= */
+    .motm-card {
+      background: linear-gradient(165deg, rgba(25, 35, 52, 0.9) 0%, rgba(10, 14, 22, 0.95) 100%);
+      border: 1px solid var(--neon-yellow);
+      box-shadow: 0 0 25px var(--neon-glow);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .motm-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(212, 255, 0, 0.1) 0%, transparent 60%);
+      pointer-events: none;
+      animation: rotateGlow 12s linear infinite;
+    }
+
+    .motm-badge {
+      display: inline-block;
+      background: var(--neon-yellow);
+      color: #000;
+      font-weight: 900;
+      font-size: 0.8rem;
+      padding: 6px 18px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 0 12px var(--neon-yellow);
+    }
+
+    .motm-avatar-container {
+      position: relative;
+      width: 110px;
+      height: 110px;
+      margin: 0 auto 1.2rem;
+    }
+
+    .motm-avatar {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 3px solid var(--neon-yellow);
+      background: #1e293b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: var(--neon-yellow);
+      box-shadow: 0 0 20px var(--neon-glow);
+    }
+
+    .motm-star-icon {
+      position: absolute;
+      bottom: -5px;
+      right: 5px;
+      background: #000;
+      color: #fbbf24;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #fbbf24;
+      font-size: 0.9rem;
+    }
+
+    .motm-name {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--text-white);
+      margin-bottom: 0.8rem;
+    }
+
+    .motm-desc {
+      color: #94a3b8;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+      font-family: var(--font-secondary);
+    }
+
+    .motm-stat-pill {
+      background: rgba(212, 255, 0, 0.05);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .motm-stat-label {
+      font-size: 0.9rem;
+      color: var(--text-gray);
+      font-weight: 600;
+    }
+
+    .motm-stat-value {
+      font-size: 1.5rem;
+      font-weight: 900;
+      color: var(--neon-yellow);
+    }
+
+    /* =========================================================
+       6. INDIVIDUAL PLAYERS GRID
+       ========================================================= */
+    .player-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .player-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 15px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-light);
+      padding: 1.2rem;
+      border-radius: 14px;
+      transition: all 0.3s ease;
+    }
+
+    .player-item:hover {
+      background: rgba(212, 255, 0, 0.03);
+      border-color: rgba(212, 255, 0, 0.3);
+    }
+
+    .player-badge-initials {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: rgba(212, 255, 0, 0.1);
+      border: 1px solid var(--neon-yellow);
+      color: var(--neon-yellow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+
+    .player-details h4 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-white);
+      margin-bottom: 4px;
+    }
+
+    .player-details p {
+      font-size: 0.92rem;
+      color: #cbd5e1;
+      font-family: var(--font-secondary);
+      line-height: 1.6;
+    }
+
+    /* =========================================================
+       7. ANIMATIONS
+       ========================================================= */
+    @keyframes pulse {
+      0% { opacity: 0.4; transform: scale(0.95); }
+      50% { opacity: 1; transform: scale(1.15); }
+      100% { opacity: 0.4; transform: scale(0.95); }
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes rotateGlow {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
     }
   </style>
 </head>
-<body class="min-h-screen p-4 sm:p-8" x-data="postMatchAnalysisApp()">
+<body>
 
-  <!-- Top Navbar Mockup (Matching the image) -->
-  <header class="max-w-6xl mx-auto flex justify-between items-center mb-12 relative z-10">
-    <div class="flex items-center gap-2">
-      <div class="w-6 h-6 border-2 border-koralime flex items-center justify-center">
-        <span class="text-koralime text-xs font-bold font-teko">K</span>
-      </div>
-      <h1 class="text-xl font-bold tracking-widest uppercase font-teko flex flex-col leading-none">
-        <span class="text-white">Koralytics</span>
-        <span class="text-[8px] text-gray-500 tracking-[0.2em]">Data. Performance. Future.</span>
-      </h1>
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="brand-logo">
+      KORALYTICS<span>.</span>
     </div>
-    <nav class="hidden md:flex gap-6 text-sm text-gray-400">
-      <a href="#" class="hover:text-white transition">my profile</a>
-      <a href="#" class="hover:text-white transition">home</a>
-      <a href="#" class="hover:text-white transition">about</a>
-      <a href="#" class="hover:text-white transition">clubs</a>
-      <a href="#" class="hover:text-white transition">contact</a>
-    </nav>
-  </header>
+    <ul class="nav-links">
+      <li><a href="#">my profile</a></li>
+      <li><a href="#" class="active">home</a></li>
+      <li><a href="#">about</a></li>
+      <li><a href="#">clubs</a></li>
+      <li><a href="#">contact</a></li>
+      <li><a href="#">squad</a></li>
+      <li><a href="#">training</a></li>
+      <li><a href="#">notes</a></li>
+      <li><a href="#">highlights</a></li>
+    </ul>
+  </nav>
 
-  <!-- Main Content -->
-  <main class="max-w-6xl mx-auto relative z-10">
+  <!-- MAIN CONTAINER -->
+  <div class="container">
     
-    <!-- Section Header -->
-    <div class="mb-8">
-      <div class="inline-flex items-center gap-2 mb-2">
-        <span class="w-2 h-2 rounded-full bg-koralime"></span>
-        <span class="text-xs font-bold text-koralime tracking-widest uppercase">Post-Match Report</span>
-      </div>
-      <div class="flex justify-between items-end">
-        <h2 class="text-4xl sm:text-5xl font-bold uppercase tracking-wide font-teko text-white" x-text="analysisData.teamName + ' ANALYSIS'">
-        </h2>
-        <div class="px-4 py-1 border border-koralime/30 rounded-full text-koralime text-xs uppercase tracking-widest bg-koralime/5">
-          Season Overview
+    <!-- MATCH HEADER BANNER -->
+    <header class="match-header">
+      <div class="header-top">
+        <div class="ai-badge">
+          <span class="pulse-dot"></span>
+          AI Tactical Intelligence
         </div>
+        <span id="report-date" style="color: var(--text-gray); font-size: 0.85rem;">---</span>
       </div>
-    </div>
-
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       
-      <!-- Left Column: Aggregated Stats -->
-      <div class="lg:col-span-1 space-y-6">
+      <h1 class="match-title">التقرير التحليلي الفني للمباراة</h1>
+      
+      <div class="match-meta-list">
+        <span><i class="fa-solid fa-hashtag"></i> مرجع المباراة: <strong id="match-ref">#---</strong></span>
+        <span><i class="fa-solid fa-trophy"></i> النوع: <strong id="match-type">---</strong></span>
+        <span><i class="fa-solid fa-shield-halved"></i> الحالة: <strong style="color: var(--neon-yellow);">مكتملة</strong></span>
+      </div>
+    </header>
+
+    <!-- DASHBOARD GRID -->
+    <div class="dashboard-grid">
+      
+      <!-- LEFT MAIN COLUMN -->
+      <div class="main-column">
         
-        <!-- Win/Draw/Loss Card -->
-        <div class="kora-card p-6 relative overflow-hidden">
-          <div class="absolute -right-4 -bottom-4 text-8xl font-teko text-outline opacity-20 pointer-events-none">FORM</div>
-          <h3 class="text-xs text-gray-400 font-bold tracking-widest uppercase mb-4">Overall Record</h3>
-          
-          <div class="flex justify-between items-end mb-6">
-            <div class="text-center">
-              <div class="text-4xl font-teko text-koralime" x-text="analysisData.wins"></div>
-              <div class="text-[10px] text-gray-500 uppercase tracking-widest">Wins</div>
-            </div>
-            <div class="text-center">
-              <div class="text-4xl font-teko text-gray-400" x-text="analysisData.draws"></div>
-              <div class="text-[10px] text-gray-500 uppercase tracking-widest">Draws</div>
-            </div>
-            <div class="text-center">
-              <div class="text-4xl font-teko text-red-400" x-text="analysisData.losses"></div>
-              <div class="text-[10px] text-gray-500 uppercase tracking-widest">Losses</div>
-            </div>
+        <!-- CARD 1: OVERVIEW -->
+        <div class="card" style="animation-delay: 0.1s;">
+          <div class="card-header">
+            <div class="card-icon"><i class="fa-solid fa-stadium"></i></div>
+            <h2 class="card-title">بطاقة الماتش والملخص العام</h2>
           </div>
-
-          <!-- Win Rate Bar -->
-          <div class="h-2 w-full bg-koraborder rounded-full overflow-hidden flex">
-            <div class="bg-koralime h-full" :style="'width: ' + getWinRate() + '%'"></div>
-            <div class="bg-gray-500 h-full" :style="'width: ' + getDrawRate() + '%'"></div>
-            <div class="bg-red-500 h-full" :style="'width: ' + getLossRate() + '%'"></div>
+          <div class="card-body" id="section-overview">
+            جاري تحميل البيانات...
           </div>
         </div>
 
-        <!-- Goals Card -->
-        <div class="kora-card p-6">
-          <h3 class="text-xs text-gray-400 font-bold tracking-widest uppercase mb-4">Goal Statistics</h3>
-          <div class="grid grid-cols-2 gap-4">
-            <div class="bg-koradark border border-koraborder rounded-lg p-4 flex flex-col items-center justify-center">
-              <span class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Goals For</span>
-              <span class="text-3xl font-teko text-white" x-text="analysisData.goalsFor"></span>
-            </div>
-            <div class="bg-koradark border border-koraborder rounded-lg p-4 flex flex-col items-center justify-center">
-              <span class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Goals Against</span>
-              <span class="text-3xl font-teko text-white" x-text="analysisData.goalsAgainst"></span>
-            </div>
+        <!-- CARD 2: GOALS & TIMELINE -->
+        <div class="card" style="animation-delay: 0.2s;">
+          <div class="card-header">
+            <div class="card-icon"><i class="fa-solid fa-futbol"></i></div>
+            <h2 class="card-title">سير اللقاء والأهداف</h2>
           </div>
-          <div class="mt-4 bg-koradark border border-koraborder rounded-lg p-3 flex justify-between items-center">
-            <span class="text-[10px] text-gray-400 uppercase tracking-widest">Goal Difference</span>
-            <span class="text-xl font-teko" 
-                  :class="getGoalDiff() > 0 ? 'text-koralime' : (getGoalDiff() < 0 ? 'text-red-400' : 'text-gray-400')"
-                  x-text="(getGoalDiff() > 0 ? '+' : '') + getGoalDiff()"></span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Right Column: Recent Matches (The 'Last 5' from the DTO) -->
-      <div class="lg:col-span-2 kora-card p-6 sm:p-8">
-        <div class="flex justify-between items-center border-b border-koraborder pb-4 mb-6">
-          <h3 class="text-sm text-gray-300 font-bold tracking-widest uppercase">Recent Form (Last 5 Matches)</h3>
-        </div>
-
-        <div class="space-y-4">
-          <template x-for="(match, index) in analysisData.recentMatches" :key="match.matchId">
-            
-            <!-- Match Row -->
-            <div class="group flex flex-col sm:flex-row justify-between items-center bg-koradark/50 border border-transparent hover:border-koraborder rounded-xl p-4 transition-all duration-300">
-              
-              <!-- Date & Result Badge -->
-              <div class="flex items-center gap-4 w-full sm:w-auto mb-4 sm:mb-0">
-                <div class="w-8 h-8 rounded flex items-center justify-center font-bold text-sm"
-                     :class="{
-                       'bg-koralime text-black': match.result === 'W',
-                       'bg-red-500 text-white': match.result === 'L',
-                       'bg-gray-600 text-white': match.result === 'D'
-                     }" x-text="match.result">
-                </div>
-                <div class="text-xs text-gray-500 uppercase tracking-wider font-semibold" x-text="formatDate(match.matchDate)"></div>
-              </div>
-
-              <!-- Matchup VS -->
-              <div class="flex-1 flex items-center justify-center gap-4 sm:gap-8 w-full">
-                <div class="text-right flex-1 text-sm sm:text-base font-bold text-white truncate" x-text="analysisData.teamName"></div>
-                
-                <!-- Score Block -->
-                <div class="shrink-0 bg-koraborder px-4 py-1.5 rounded text-lg font-teko tracking-wider flex items-center gap-2 shadow-inner">
-                  <span :class="match.result === 'W' ? 'text-koralime' : 'text-white'" x-text="match.goalsFor"></span>
-                  <span class="text-gray-500 text-sm">-</span>
-                  <span :class="match.result === 'L' ? 'text-red-400' : 'text-white'" x-text="match.goalsAgainst"></span>
-                </div>
-                
-                <div class="text-left flex-1 text-sm sm:text-base font-bold text-gray-400 truncate" x-text="match.opponentName"></div>
-              </div>
-
-            </div>
-          </template>
-          
-          <!-- Empty State if no matches -->
-          <div x-show="analysisData.recentMatches.length === 0" class="text-center py-8 text-gray-500 text-sm uppercase tracking-widest">
-            No completed matches found for this team.
+          <div class="card-body" id="section-goals">
+            جاري تحميل البيانات...
           </div>
         </div>
 
-        <!-- Action Button (Matching the image's Schedule Match button style) -->
-        <div class="mt-8 flex justify-end">
-          <button class="bg-koralime hover:bg-[#b3e600] text-black font-bold text-sm uppercase tracking-widest py-3 px-8 rounded-lg transition-colors shadow-[0_0_15px_rgba(204,255,0,0.2)]">
-            Download Full Report
-          </button>
+        <!-- CARD 3: INDIVIDUAL PERFORMANCE -->
+        <div class="card" style="animation-delay: 0.3s;">
+          <div class="card-header">
+            <div class="card-icon"><i class="fa-solid fa-user-gear"></i></div>
+            <h2 class="card-title">التقييم الفردي وتفاصيل العناصر الفنية</h2>
+          </div>
+          <div class="card-body">
+            <div class="player-list" id="section-players">
+              <!-- Players list rendered here -->
+            </div>
+          </div>
         </div>
 
       </div>
+
+      <!-- RIGHT SIDEBAR COLUMN -->
+      <div class="sidebar-column">
+        
+        <!-- MOTM CARD -->
+        <div class="card motm-card" style="animation-delay: 0.4s;">
+          <span class="motm-badge"><i class="fa-solid fa-crown"></i> MAN OF THE MATCH</span>
+          
+          <div class="motm-avatar-container">
+            <div class="motm-avatar" id="motm-initials">--</div>
+            <div class="motm-star-icon"><i class="fa-solid fa-star"></i></div>
+          </div>
+
+          <h2 class="motm-name" id="motm-name">---</h2>
+          <p class="motm-desc" id="motm-desc">---</p>
+
+          <div class="motm-stat-pill">
+            <span class="motm-stat-label">التقييم الفني الفردي</span>
+            <span class="motm-stat-value" id="motm-rating">0.0</span>
+          </div>
+        </div>
+
+      </div>
+
     </div>
-  </main>
 
+  </div>
+
+  <!-- JAVASCRIPT FOR PARSING & RENDERING -->
   <script>
-    document.addEventListener('alpine:init', () => {
-      Alpine.data('postMatchAnalysisApp', () => ({
-        // This object maps exactly to your C# PostMatchAnalysisResponseDto
-        analysisData: {
-          teamId: 1,
-          teamName: 'U17 TEAM A',
-          wins: 3,
-          losses: 1,
-          draws: 1,
-          goalsFor: 12,
-          goalsAgainst: 5,
-          recentMatches: [
-            { matchId: 105, matchDate: '2026-07-28T18:00:00', opponentName: 'Zamalek Academy', result: 'W', goalsFor: 2, goalsAgainst: 0 },
-            { matchId: 104, matchDate: '2026-07-21T16:00:00', opponentName: 'Wadi Degla', result: 'D', goalsFor: 1, goalsAgainst: 1 },
-            { matchId: 103, matchDate: '2026-07-14T17:30:00', opponentName: 'Al Masry Academy', result: 'L', goalsFor: 1, goalsAgainst: 2 },
-            { matchId: 102, matchDate: '2026-07-07T16:00:00', opponentName: 'Pyramids FC', result: 'W', goalsFor: 4, goalsAgainst: 1 },
-            { matchId: 101, matchDate: '2026-06-30T15:00:00', opponentName: 'Smouha Club', result: 'W', goalsFor: 4, goalsAgainst: 1 }
-          ]
-        },
+    // 1. البيانات القادمة من الـ API (الـ Response JSON بتاعك)
+    const apiResponse = {
+      "isSuccess": true,
+      "statusCode": 200,
+      "message": "Success",
+      "data": {
+        "id": 1,
+        "reportType": "Match",
+        "referenceId": 4,
+        "academyId": null,
+        "reportText": "🏟️ **1. بطاقة الماتش والملخص العام**:\nاللقاء كان بين فريق \"U17 Team A\" والفريق نفسه في ملعب \"Training Ground - Pitch B\" في تاريخ 2026-07-25T10:12:51.3003504، وانتهى بفوز الفريق الخارجي بنتيجة 2-1. اللقاء كان جزءًا من جلسة تدريبية، ويمكن ملاحظة أن الفريقين كانا يتنافسان بجدية رغم كونهما نفس الفريق. التكتيك العام للفريق الفائز كان يعتمد على الهجمات السريعة والتمريرات الدقيقة، بينما كان الفريق الخاسر يعتمد على الدفاع الصلب والهجمات المضادة.\n\n⚽ **2. سير اللقاء والأهداف**:\nسجل عمر خالد هدف الفريق المحلي في الدقيقة 15، بينما سجل محمد علي أهداف الفريق الخارجي في الدقائق 28 و55. يمكن ملاحظة أن محمد علي كان هو النجم الحقيقي في هذا اللقاء، حيث سجل هدفين رائعين.\n\n🌟 **3. رجل المباراة (MOTM)**:\nمحمد علي كان رجل المباراة بلا منازع، حيث سجل هدفين رائعين وتميز بأدائه المتميز. تقييمه في هذا اللقاء كان 7.50، وهو أعلى تقييم بين جميع اللاعبين. يمكن ملاحظة أن محمد علي يمتلك مهارات دفاعية قوية، حيث حصل على تقييم 8.00 في الفئة الدفاعية، كما يمتلك قوة بدنية جيدة حيث حصل على تقييم 7.00.\n\n🧠 **4. التقييم الفردي وتفاصيل العناصر الفنية**:\n- عمر خالد: سجل هدفًا واحدًا في اللقاء، وتقييمه كان 6.50، وهو أقل من معدله التاريخي البالغ 7.39. يمكن ملاحظة أن عمر خالد يمتلك مهارات تمرير جيدة، حيث حصل على تقييم 7.00 في الفئة التمريرية.\n- أحمد سعيد: لم يسجل أي أهداف، ولكن قدم أداء جيدًا حيث حصل على تقييم 6.75. يمكن ملاحظة أن أحمد سعيد يمتلك مهارات مراوغة جيدة، حيث حصل على تقييم 7.00 في الفئة المراوغة.\n- محمد علي: كما ذكرنا سابقًا، كان محمد علي هو النجم الحقيقي في هذا اللقاء. تقييمه كان 7.50، وهو أعلى تقييم بين جميع اللاعبين. يمكن ملاحظة أن محمد علي يمتلك مهارات دفاعية قوية، حيث حصل على تقييم 8.00 في الفئة الدفاعية، كما يمتلك قوة بدنية جيدة حيث حصل على تقييم 7.00.\n\nلا توجد ملاحظات من المدربين لأي من اللاعبين.",
+        "createdAt": "2026-07-31T12:28:26.6964342"
+      }
+    };
 
-        // Helper calculations
-        getTotalMatches() {
-          return this.analysisData.wins + this.analysisData.draws + this.analysisData.losses;
-        },
-        getWinRate() {
-          const total = this.getTotalMatches();
-          return total === 0 ? 0 : (this.analysisData.wins / total) * 100;
-        },
-        getDrawRate() {
-          const total = this.getTotalMatches();
-          return total === 0 ? 0 : (this.analysisData.draws / total) * 100;
-        },
-        getLossRate() {
-          const total = this.getTotalMatches();
-          return total === 0 ? 0 : (this.analysisData.losses / total) * 100;
-        },
-        getGoalDiff() {
-          return this.analysisData.goalsFor - this.analysisData.goalsAgainst;
-        },
-        formatDate(dateString) {
-          const options = { month: 'short', day: 'numeric', year: 'numeric' };
-          return new Date(dateString).toLocaleDateString('en-US', options);
-        }
-      }))
-    })
+    // 2. دالة تحليل وتفريغ النص الـ Regex
+    function parseReport(rawText) {
+      const summaryMatch = rawText.match(/🏟️ \*\*1\. (.*?)\*\*:\n([\s\S]*?)(?=\n\n⚽|\n\n🌟|\n\n🧠|$)/);
+      const goalsMatch = rawText.match(/⚽ \*\*2\. (.*?)\*\*:\n([\s\S]*?)(?=\n\n🌟|\n\n🧠|$)/);
+      const motmMatch = rawText.match(/🌟 \*\*3\. (.*?)\*\*:\n([\s\S]*?)(?=\n\n🧠|$)/);
+      const individualMatch = rawText.match(/🧠 \*\*4\. (.*?)\*\*:\n([\s\S]*?)$/);
+
+      return {
+        summary: summaryMatch ? summaryMatch[2].trim() : '',
+        goals: goalsMatch ? goalsMatch[2].trim() : '',
+        motm: motmMatch ? motmMatch[2].trim() : '',
+        individual: individualMatch ? individualMatch[2].trim() : ''
+      };
+    }
+
+    // 3. استخراج تقييمات اللاعبين الفردية
+    function parsePlayers(individualText) {
+      const lines = individualText.split('\n').filter(l => l.trim().startsWith('-'));
+      return lines.map(line => {
+        const clean = line.replace('-', '').trim();
+        const parts = clean.split(':');
+        return {
+          name: parts[0]?.trim() || '',
+          desc: parts.slice(1).join(':').trim()
+        };
+      });
+    }
+
+    // 4. عرض البيانات في الصفحة
+    document.addEventListener('DOMContentLoaded', () => {
+      const data = apiResponse.data;
+
+      // Header Meta
+      document.getElementById('match-ref').textContent = `#${data.referenceId}`;
+      document.getElementById('match-type').textContent = data.reportType;
+      document.getElementById('report-date').textContent = new Date(data.createdAt).toLocaleDateString('ar-EG', {
+        year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+      });
+
+      // Parse Sections
+      const parsed = parseReport(data.reportText);
+
+      // Render Section 1: Overview
+      document.getElementById('section-overview').textContent = parsed.summary;
+
+      // Render Section 2: Goals
+      document.getElementById('section-goals').textContent = parsed.goals;
+
+      // Render Section 3: MOTM Widget
+      const motmNameMatch = parsed.motm.match(/^(.*?) كان رجل المباراة/);
+      const motmName = motmNameMatch ? motmNameMatch[1] : 'محمد علي';
+      
+      document.getElementById('motm-name').textContent = motmName;
+      document.getElementById('motm-initials').textContent = motmName.split(' ').map(n => n[0]).join('');
+      document.getElementById('motm-desc').textContent = parsed.motm;
+      document.getElementById('motm-rating').textContent = '7.50';
+
+      // Render Section 4: Player List
+      const players = parsePlayers(parsed.individual);
+      const playersContainer = document.getElementById('section-players');
+      playersContainer.innerHTML = '';
+
+      players.forEach(p => {
+        const initials = p.name.split(' ').map(n => n[0]).join('');
+        const playerHtml = `
+          <div class="player-item">
+            <div class="player-badge-initials">${initials}</div>
+            <div class="player-details">
+              <h4>${p.name}</h4>
+              <p>${p.desc}</p>
+            </div>
+          </div>
+        `;
+        playersContainer.innerHTML += playerHtml;
+      });
+    });
   </script>
 </body>
 </html>

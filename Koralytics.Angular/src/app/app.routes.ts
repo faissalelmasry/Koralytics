@@ -185,6 +185,11 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
+    path: 'match/:id/report',
+    loadComponent: () => import('./features/match/pages/match-report/match-report.component').then(m => m.MatchReportComponent),
+    canActivate: [authGuard]
+  },
+  {
     path: 'match/:id/submit-lineup',
     loadComponent: () => import('./features/match/pages/submit-lineup/submit-lineup.component').then(m => m.SubmitLineupComponent),
     canActivate: [authGuard, roleGuard],

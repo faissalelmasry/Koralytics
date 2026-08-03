@@ -32,6 +32,8 @@ namespace Koralytics.Application.UnitTests.Match
         private readonly Mock<IMapper> _mapperMock;
         private readonly Mock<ILogger<MatchRatingService>> _loggerMock;
         private readonly Mock<ICardInvalidationList> _invalidationListMock;
+        private readonly Mock<IMatchReportService> _matchReportServiceMock;
+        private readonly Mock<IBackgroundTaskQueue> _taskQueueMock;
         private readonly MatchRatingService _service;
 
         public MatchRatingServiceTests()
@@ -40,8 +42,10 @@ namespace Koralytics.Application.UnitTests.Match
             _mapperMock = new();
             _loggerMock = new();
             _invalidationListMock = new();
+            _matchReportServiceMock = new();
+            _taskQueueMock = new();
             _service = new MatchRatingService(
-                _unitOfWorkMock.Object, _mapperMock.Object, _loggerMock.Object, _invalidationListMock.Object);
+                _unitOfWorkMock.Object, _mapperMock.Object, _loggerMock.Object, _invalidationListMock.Object, _matchReportServiceMock.Object, _taskQueueMock.Object);
         }
 
         private void SetupRepository<T>(Mock<IRepository<T>> repo) where T : class, Koralytics.Domain.Interfaces.ISoftDelete
@@ -519,6 +523,9 @@ namespace Koralytics.Application.UnitTests.Match
                 }
             };
 
+            var ratingQueryable = new List<MatchPlayerRating>().BuildMock();
+            ratingRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(ratingQueryable);
+
             await _service.SubmitMatchRatingsAsync(1, 10, dto);
 
             ratingRepo.Verify(r => r.AddAsync(It.IsAny<MatchPlayerRating>()), Times.Exactly(2));
@@ -526,6 +533,181 @@ namespace Koralytics.Application.UnitTests.Match
             _invalidationListMock.Verify(i => i.Invalidate(2), Times.Once);
             transactionMock.Verify(t => t.CommitAsync(default), Times.Once);
             _unitOfWorkMock.Verify(u => u.SaveChangesAsync(), Times.Once);
+        }
+
+        [Fact]
+        public async Task SubmitMatchRatingsAsync_FriendlyMatch_OnlyOneTeamRated_DoesNotQueueReport()
+        {
+            var match = new MatchEntity { Id = 1, Status = DomainEnums.MatchStatus.Completed, Type = DomainEnums.MatchType.Friendly, HomeTeamId = 1, AwayTeamId = 2 };
+            var matchRepo = new Mock<IRepository<MatchEntity>>();
+            matchRepo.Setup(r => r.FindAsync(It.IsAny<Expression<Func<MatchEntity, bool>>>())).ReturnsAsync(match);
+            SetupRepository(matchRepo);
+
+            var lineups = new List<MatchLineupEntity>
+            {
+                new MatchLineupEntity { MatchId = 1, PlayerId = 101, TeamId = 1 },
+                new MatchLineupEntity { MatchId = 1, PlayerId = 201, TeamId = 2 }
+            };
+            var lineupRepo = new Mock<IRepository<MatchLineupEntity>>();
+            lineupRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(lineups.BuildMock());
+            SetupRepository(lineupRepo);
+
+            var coachTeamRepo = new Mock<IRepository<CoachTeam>>();
+            coachTeamRepo.Setup(r => r.GetQueryableAsNoTracking())
+                .Returns(new List<CoachTeam> { new CoachTeam { CoachUserId = 10, TeamId = 1 } }.BuildMock());
+            SetupRepository(coachTeamRepo);
+
+            var eventRepo = new Mock<IRepository<MatchEvent>>();
+            eventRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(new List<MatchEvent>().BuildMock());
+            SetupRepository(eventRepo);
+
+            var categoryRepo = new Mock<IRepository<DrillCategory>>();
+            categoryRepo.Setup(r => r.GetQueryableAsNoTracking())
+                .Returns(new List<DrillCategory> { new DrillCategory { Id = 1, Name = "Passing" } }.BuildMock());
+            SetupRepository(categoryRepo);
+
+            var transactionMock = new Mock<IDbContextTransaction>();
+            _unitOfWorkMock.Setup(u => u.BeginTransactionAsync()).ReturnsAsync(transactionMock.Object);
+
+            // Only Home team player (101) has ratings saved in DB
+            var existingRatings = new List<MatchPlayerRating>
+            {
+                new MatchPlayerRating { MatchId = 1, PlayerId = 101, CoachId = 10 }
+            };
+            var ratingRepo = new Mock<IRepository<MatchPlayerRating>>();
+            ratingRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(existingRatings.BuildMock());
+            SetupRepository(ratingRepo);
+
+            var dto = new SubmitMatchRatingsDto
+            {
+                Ratings = new List<SubmitMatchRatingPlayerDto>
+                {
+                    new SubmitMatchRatingPlayerDto
+                    {
+                        PlayerId = 101, IsMOTM = true, MinutesPlayed = 90,
+                        CategoryRatings = new List<CategoryRatingDto> { new CategoryRatingDto { DrillCategoryId = 1, Rating = 8m } }
+                    }
+                }
+            };
+
+            await _service.SubmitMatchRatingsAsync(1, 10, dto);
+
+            _taskQueueMock.Verify(t => t.QueueBackgroundWorkItem(It.IsAny<Func<IServiceProvider, CancellationToken, Task>>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task SubmitMatchRatingsAsync_FriendlyMatch_BothTeamsRated_QueuesReport()
+        {
+            var match = new MatchEntity { Id = 1, Status = DomainEnums.MatchStatus.Completed, Type = DomainEnums.MatchType.Friendly, HomeTeamId = 1, AwayTeamId = 2 };
+            var matchRepo = new Mock<IRepository<MatchEntity>>();
+            matchRepo.Setup(r => r.FindAsync(It.IsAny<Expression<Func<MatchEntity, bool>>>())).ReturnsAsync(match);
+            SetupRepository(matchRepo);
+
+            var lineups = new List<MatchLineupEntity>
+            {
+                new MatchLineupEntity { MatchId = 1, PlayerId = 101, TeamId = 1 },
+                new MatchLineupEntity { MatchId = 1, PlayerId = 201, TeamId = 2 }
+            };
+            var lineupRepo = new Mock<IRepository<MatchLineupEntity>>();
+            lineupRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(lineups.BuildMock());
+            SetupRepository(lineupRepo);
+
+            var coachTeamRepo = new Mock<IRepository<CoachTeam>>();
+            coachTeamRepo.Setup(r => r.GetQueryableAsNoTracking())
+                .Returns(new List<CoachTeam> { new CoachTeam { CoachUserId = 20, TeamId = 2 } }.BuildMock());
+            SetupRepository(coachTeamRepo);
+
+            var eventRepo = new Mock<IRepository<MatchEvent>>();
+            eventRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(new List<MatchEvent>().BuildMock());
+            SetupRepository(eventRepo);
+
+            var categoryRepo = new Mock<IRepository<DrillCategory>>();
+            categoryRepo.Setup(r => r.GetQueryableAsNoTracking())
+                .Returns(new List<DrillCategory> { new DrillCategory { Id = 1, Name = "Passing" } }.BuildMock());
+            SetupRepository(categoryRepo);
+
+            var transactionMock = new Mock<IDbContextTransaction>();
+            _unitOfWorkMock.Setup(u => u.BeginTransactionAsync()).ReturnsAsync(transactionMock.Object);
+
+            // Both Home player (101) and Away player (201) have ratings saved in DB
+            var existingRatings = new List<MatchPlayerRating>
+            {
+                new MatchPlayerRating { MatchId = 1, PlayerId = 101, CoachId = 10 },
+                new MatchPlayerRating { MatchId = 1, PlayerId = 201, CoachId = 20 }
+            };
+            var ratingRepo = new Mock<IRepository<MatchPlayerRating>>();
+            ratingRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(existingRatings.BuildMock());
+            SetupRepository(ratingRepo);
+
+            var dto = new SubmitMatchRatingsDto
+            {
+                Ratings = new List<SubmitMatchRatingPlayerDto>
+                {
+                    new SubmitMatchRatingPlayerDto
+                    {
+                        PlayerId = 201, IsMOTM = true, MinutesPlayed = 90,
+                        CategoryRatings = new List<CategoryRatingDto> { new CategoryRatingDto { DrillCategoryId = 1, Rating = 8m } }
+                    }
+                }
+            };
+
+            await _service.SubmitMatchRatingsAsync(1, 20, dto);
+
+            _taskQueueMock.Verify(t => t.QueueBackgroundWorkItem(It.IsAny<Func<IServiceProvider, CancellationToken, Task>>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task SubmitMatchRatingsAsync_NonFriendlyMatch_QueuesReport()
+        {
+            var match = new MatchEntity { Id = 1, Status = DomainEnums.MatchStatus.Completed, Type = DomainEnums.MatchType.Tournament, HomeTeamId = 1, AwayTeamId = 2 };
+            var matchRepo = new Mock<IRepository<MatchEntity>>();
+            matchRepo.Setup(r => r.FindAsync(It.IsAny<Expression<Func<MatchEntity, bool>>>())).ReturnsAsync(match);
+            SetupRepository(matchRepo);
+
+            var lineups = new List<MatchLineupEntity>
+            {
+                new MatchLineupEntity { MatchId = 1, PlayerId = 101, TeamId = 1 }
+            };
+            var lineupRepo = new Mock<IRepository<MatchLineupEntity>>();
+            lineupRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(lineups.BuildMock());
+            SetupRepository(lineupRepo);
+
+            var coachTeamRepo = new Mock<IRepository<CoachTeam>>();
+            coachTeamRepo.Setup(r => r.GetQueryableAsNoTracking())
+                .Returns(new List<CoachTeam> { new CoachTeam { CoachUserId = 10, TeamId = 1 } }.BuildMock());
+            SetupRepository(coachTeamRepo);
+
+            var eventRepo = new Mock<IRepository<MatchEvent>>();
+            eventRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(new List<MatchEvent>().BuildMock());
+            SetupRepository(eventRepo);
+
+            var categoryRepo = new Mock<IRepository<DrillCategory>>();
+            categoryRepo.Setup(r => r.GetQueryableAsNoTracking())
+                .Returns(new List<DrillCategory> { new DrillCategory { Id = 1, Name = "Passing" } }.BuildMock());
+            SetupRepository(categoryRepo);
+
+            var transactionMock = new Mock<IDbContextTransaction>();
+            _unitOfWorkMock.Setup(u => u.BeginTransactionAsync()).ReturnsAsync(transactionMock.Object);
+
+            var ratingRepo = new Mock<IRepository<MatchPlayerRating>>();
+            ratingRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(new List<MatchPlayerRating>().BuildMock());
+            SetupRepository(ratingRepo);
+
+            var dto = new SubmitMatchRatingsDto
+            {
+                Ratings = new List<SubmitMatchRatingPlayerDto>
+                {
+                    new SubmitMatchRatingPlayerDto
+                    {
+                        PlayerId = 101, IsMOTM = true, MinutesPlayed = 90,
+                        CategoryRatings = new List<CategoryRatingDto> { new CategoryRatingDto { DrillCategoryId = 1, Rating = 8m } }
+                    }
+                }
+            };
+
+            await _service.SubmitMatchRatingsAsync(1, 10, dto);
+
+            _taskQueueMock.Verify(t => t.QueueBackgroundWorkItem(It.IsAny<Func<IServiceProvider, CancellationToken, Task>>()), Times.Once);
         }
 
         #endregion

@@ -6,6 +6,13 @@ import { PlayerCardModel } from '../../models/Player/player-card-model';
 import { MiniPlayerCardModel } from '../../models/Player/mini-player-card-model';
 import { TransferRateModel } from '../../models/Player/transfer-rate-model';
 
+export interface PlayerArchetypeModel {
+  playerId: number;
+  archetypePlayerName: string;
+  archetypeText: string;
+  archetypeLastRevealedAt: string | null;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -15,6 +22,10 @@ export class PlayerCardService {
 
   getPlayerCard(playerId: number): Observable<PlayerCardModel> {
     return this.http.get<PlayerCardModel>(`${this.apiUrl}/Player/${playerId}/card`);
+  }
+
+  revealArchetype(playerId: number): Observable<PlayerArchetypeModel> {
+    return this.http.post<PlayerArchetypeModel>(`${this.apiUrl}/Player/${playerId}/reveal-archetype`, {});
   }
 
   recalculatePlayerCard(playerId: number): Observable<void> {

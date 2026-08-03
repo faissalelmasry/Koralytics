@@ -15,6 +15,7 @@ using Koralytics.Application.Services.Storage;
 using Microsoft.AspNetCore.Http;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Koralytics.Application.Services.Academy.AcademyService
@@ -24,18 +25,20 @@ namespace Koralytics.Application.Services.Academy.AcademyService
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly ILogger<AcademyService> _logger;
+        private readonly IBackgroundTaskQueue _taskQueue;
         private readonly IStorageService _storageService;
 
         public AcademyService(
             IUnitOfWork unitOfWork,
             IMapper mapper,
+            IBackgroundTaskQueue taskQueue,
             ILogger<AcademyService> logger,
             IStorageService storageService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _logger = logger;
-            _storageService = storageService;
+            _taskQueue = taskQueue;
         }
 
         // ──────────────────────────────────────────────────────────────────────
@@ -120,6 +123,21 @@ namespace Koralytics.Application.Services.Academy.AcademyService
                     "Academy '{Name}' (Id={Id}) created. Request {RequestId} marked Approved.",
                     academy.Name, academy.Id, dto.AcademyRequestId);
 
+                var createdAcademyId = academy.Id;
+                var createdAcademyName = academy.Name;
+                _taskQueue.QueueBackgroundWorkItem(async (sp, ct) =>
+                {
+                    try
+                    {
+                        var indexer = sp.GetRequiredService<ISearchableEntityIndexer>();
+                        await indexer.IndexAsync("Academy", createdAcademyId, createdAcademyName, ct);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to index embedding for Academy {AcademyId} ({Name})", createdAcademyId, createdAcademyName);
+                    }
+                });
+
                 // Reload with Admin navigation for mapping
                 var created = await _unitOfWork.Repository<Domain.Entities.Academy.Academy>()
                     .GetQueryableAsNoTracking()
@@ -182,6 +200,21 @@ namespace Koralytics.Application.Services.Academy.AcademyService
             await _unitOfWork.SaveChangesAsync();
 
             _logger.LogInformation("Academy {AcademyId} updated successfully.", academyId);
+
+            var updatedAcademyId = academy.Id;
+            var updatedAcademyName = academy.Name;
+            _taskQueue.QueueBackgroundWorkItem(async (sp, ct) =>
+            {
+                try
+                {
+                    var indexer = sp.GetRequiredService<ISearchableEntityIndexer>();
+                    await indexer.IndexAsync("Academy", updatedAcademyId, updatedAcademyName, ct);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to index embedding for Academy {AcademyId} ({Name})", updatedAcademyId, updatedAcademyName);
+                }
+            });
 
             var updated = await _unitOfWork.Repository<Domain.Entities.Academy.Academy>()
                 .GetQueryableAsNoTracking()

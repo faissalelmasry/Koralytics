@@ -13,6 +13,7 @@ using Koralytics.Domain.Entities.Academy;
 using Koralytics.Domain.Enums;
 using Koralytics.Domain.Exceptions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Koralytics.Application.Services.Tournaments
@@ -22,15 +23,18 @@ namespace Koralytics.Application.Services.Tournaments
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly ILogger<TournamentService> _logger;
+        private readonly IBackgroundTaskQueue _taskQueue;
 
         public TournamentService(
             IUnitOfWork unitOfWork,
             IMapper mapper,
-            ILogger<TournamentService> logger)
+            ILogger<TournamentService> logger,
+            IBackgroundTaskQueue taskQueue)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _logger = logger;
+            _taskQueue = taskQueue;
         }
 
         public async Task<IEnumerable<TournamentDto>> GetAllAsync()
@@ -138,6 +142,21 @@ namespace Koralytics.Application.Services.Tournaments
                 }
 
                 await transaction.CommitAsync();
+
+                var createdTournamentId = tournament.Id;
+                var createdTournamentName = tournament.Name;
+                _taskQueue.QueueBackgroundWorkItem(async (sp, ct) =>
+                {
+                    try
+                    {
+                        var indexer = sp.GetRequiredService<ISearchableEntityIndexer>();
+                        await indexer.IndexAsync("Tournament", createdTournamentId, createdTournamentName, ct);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to index embedding for Tournament {TournamentId} ({Name})", createdTournamentId, createdTournamentName);
+                    }
+                });
 
                 var created = await _unitOfWork.Repository<TournamentEntity>()
                     .GetQueryable()

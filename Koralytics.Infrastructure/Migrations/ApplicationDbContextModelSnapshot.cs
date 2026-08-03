@@ -3486,6 +3486,9 @@ namespace Koralytics.Infrastructure.Migrations
                 {
                     b.HasBaseType("Koralytics.Domain.Entities.Identity.User");
 
+                    b.Property<DateTime?>("ArchetypeLastRevealedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("ArchetypePlayerName")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");

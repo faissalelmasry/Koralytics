@@ -8,6 +8,7 @@ using Koralytics.Domain.Entities.Player;
 using Koralytics.Domain.Exceptions;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Koralytics.Application.Services.Academy.AcademyTeamService
@@ -17,15 +18,18 @@ namespace Koralytics.Application.Services.Academy.AcademyTeamService
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly ILogger<AcademyTeamService> _logger;
+        private readonly IBackgroundTaskQueue _taskQueue;
 
         public AcademyTeamService(
             IUnitOfWork unitOfWork,
             IMapper mapper,
-            ILogger<AcademyTeamService> logger)
+            ILogger<AcademyTeamService> logger,
+            IBackgroundTaskQueue taskQueue)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _logger = logger;
+            _taskQueue = taskQueue;
         }
 
         // ──────────────────────────────────────────────────────────────────────
@@ -124,6 +128,21 @@ namespace Koralytics.Application.Services.Academy.AcademyTeamService
             _logger.LogInformation(
                 "Team '{Name}' (Id={Id}) created for academy {AcademyId}.",
                 team.Name, team.Id, academyId);
+
+            var createdTeamId = team.Id;
+            var createdTeamName = team.Name;
+            _taskQueue.QueueBackgroundWorkItem(async (sp, ct) =>
+            {
+                try
+                {
+                    var indexer = sp.GetRequiredService<ISearchableEntityIndexer>();
+                    await indexer.IndexAsync("Team", createdTeamId, createdTeamName, ct);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to index embedding for Team {TeamId} ({Name})", createdTeamId, createdTeamName);
+                }
+            });
 
             // Reload with navigation properties for mapping
             var created = await _unitOfWork.Repository<Team>()

@@ -14,6 +14,7 @@ using Microsoft.Extensions.Logging;
 using PlayerEntity = Koralytics.Domain.Entities.Player.Player;
 using DomainEnums = Koralytics.Domain.Enums;
 using MatchEntity = Koralytics.Domain.Entities.Match.Match;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Koralytics.Application.Services.Match
 {
@@ -23,17 +24,25 @@ namespace Koralytics.Application.Services.Match
         private readonly IMapper _mapper;
         private readonly ILogger<MatchRatingService> _logger;
         private readonly ICardInvalidationList _invalidationList;
+        private readonly IMatchReportService _matchReportService;
+        private readonly IBackgroundTaskQueue _taskQueue;
 
         public MatchRatingService(
             IUnitOfWork unitOfWork,
             IMapper mapper,
             ILogger<MatchRatingService> logger,
-            ICardInvalidationList invalidationList)
+            ICardInvalidationList invalidationList,
+            IMatchReportService matchReportService,
+            IBackgroundTaskQueue taskQueue
+
+            )
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _logger = logger;
-            _invalidationList = invalidationList;
+            _invalidationList = invalidationList;            _matchReportService = matchReportService;
+            _taskQueue = taskQueue;
+
         }
 
         public async Task SubmitLineupAsync(int matchId, int coachId, SubmitLineupDto dto)
@@ -134,7 +143,6 @@ namespace Koralytics.Application.Services.Match
             var lineup = await _unitOfWork.Repository<MatchLineup>()
                 .GetQueryableAsNoTracking()
                 .Include(ml => ml.Player)
-                .Include(ml => ml.Team)
                 .Where(ml => ml.MatchId == matchId)
                 .ToListAsync();
 
@@ -273,6 +281,53 @@ namespace Koralytics.Application.Services.Match
             _logger.LogInformation(
                 "Ratings submitted for match {MatchId} by coach {CoachId}",
                 matchId, coachId);
+
+            bool shouldQueueReport = true;
+            if (match.Type == DomainEnums.MatchType.Friendly)
+            {
+                var ratedPlayerIds = await _unitOfWork.Repository<MatchPlayerRating>()
+                    .GetQueryableAsNoTracking()
+                    .Where(r => r.MatchId == matchId)
+                    .Select(r => r.PlayerId)
+                    .Distinct()
+                    .ToListAsync();
+
+                var homePlayerIds = lineups.Where(ml => ml.TeamId == match.HomeTeamId).Select(ml => ml.PlayerId).ToHashSet();
+                var awayPlayerIds = lineups.Where(ml => ml.TeamId == match.AwayTeamId).Select(ml => ml.PlayerId).ToHashSet();
+
+                bool hasHomeRating = ratedPlayerIds.Any(id => homePlayerIds.Contains(id));
+                bool hasAwayRating = ratedPlayerIds.Any(id => awayPlayerIds.Contains(id));
+
+                if (!hasHomeRating || !hasAwayRating)
+                {
+                    shouldQueueReport = false;
+                    _logger.LogInformation(
+                        "Skipping AI match report generation for friendly match {MatchId} because not all teams have player ratings yet (Home: {HasHome}, Away: {HasAway}).",
+                        matchId, hasHomeRating, hasAwayRating);
+                }
+            }
+
+            if (shouldQueueReport)
+            {
+                _logger.LogInformation("Queuing AI match report generation for match {MatchId}...", matchId);
+
+                _taskQueue.QueueBackgroundWorkItem(async (serviceProvider, cancellationToken) =>
+                {
+                    var reportService = serviceProvider.GetRequiredService<IMatchReportService>();
+                    var logger = serviceProvider.GetRequiredService<ILogger<MatchRatingService>>();
+
+                    try
+                    {
+                        logger.LogInformation("Generating AI match report for match {MatchId}...", matchId);
+                        await reportService.GenerateMatchReportAsync(matchId);
+                        logger.LogInformation("AI match report generated successfully for match {MatchId}.", matchId);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex, "Failed to generate AI match report for match {MatchId}", matchId);
+                    }
+                });
+            }
         }
 
         public async Task<MatchRatingsResponseDto> GetMatchRatingsAsync(int matchId)
@@ -320,6 +375,10 @@ namespace Koralytics.Application.Services.Match
             };
         }
 
+        public async Task<AIReportResponseDto> GetMatchReportAsync(int matchId)
+        {
+            return await _matchReportService.GetMatchReportAsync(matchId, DomainEnums.AIReportType.Match);
+        }
 
         private async Task<HashSet<int>> GetEligiblePlayerIdsAsync(
             DomainEnums.MatchType matchType,
@@ -349,6 +408,7 @@ namespace Koralytics.Application.Services.Match
                 .Select(ml => ml.PlayerId)
                 .ToHashSet();
         }
+
         private static bool IsGoalEvent(DomainEnums.MatchEventType eventType)
         {
             return eventType == DomainEnums.MatchEventType.Goal;

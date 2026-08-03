@@ -194,6 +194,15 @@ export class MatchService {
     return this.http.get<ApiResponse<any>>(`${this.apiUrl}/${matchId}/ratings`);
   }
 
+  getMatchReport(matchId: number, reportType: string = 'Match'): Observable<ApiResponse<any>> {
+    const params = new HttpParams().set('reportType', reportType);
+    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/${matchId}/report`, { params });
+  }
+
+  generateMatchReport(matchId: number): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.apiUrl}/${matchId}/generate-report`, {});
+  }
+
   getHeadToHead(teamAId: number, teamBId: number): Observable<ApiResponse<HeadToHeadResponseDto>> {
     const params = new HttpParams()
       .set('teamAId', teamAId.toString())
