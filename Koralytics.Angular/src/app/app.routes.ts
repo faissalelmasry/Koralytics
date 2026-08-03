@@ -214,6 +214,12 @@ export const routes: Routes = [
     data: { roles: ['AcademyAdmin'] }
   },
   {
+    path: 'academy-admin/drills-dashboard',
+    loadComponent: () => import('./features/academy-admin/pages/drills-dashboard/drills-dashboard.component').then(m => m.DrillsDashboardComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['AcademyAdmin'] }
+  },
+  {
     path: 'academy/profile/:id',
     loadComponent: () => import('./features/academy-profile/academy-profile.component').then(m => m.AcademyProfileComponent)
   },
@@ -262,7 +268,13 @@ export const routes: Routes = [
     path: 'player/team-events',
     loadComponent: () => import('./features/player/player-team-events/player-team-events.component').then(m => m.PlayerTeamEventsComponent),
     canActivate: [authGuard, roleGuard],
-    data: { roles: ['Player'] }
+    data: { roles: ['Player', 'Parent'] }
+  },
+  {
+    path: 'player/team-events/:playerId',
+    loadComponent: () => import('./features/player/player-team-events/player-team-events.component').then(m => m.PlayerTeamEventsComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Player', 'Parent'] }
   },
   {
     path: 'player/scouter-views',

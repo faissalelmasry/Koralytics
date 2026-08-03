@@ -61,13 +61,20 @@ export class PlayerTeamEventsComponent implements OnInit {
   ];
 
   ngOnInit() {
-    const user = this.tokenStorage.getUser();
-    if (!user?.userId) {
-      this.error = 'Invalid session';
-      return;
-    }
-    this.playerId = user.userId;
-    this.fetchPlayerDetailsAndTimeline();
+    this.route.paramMap.subscribe(params => {
+      const idParam = params.get('playerId') || params.get('id');
+      if (idParam) {
+        this.playerId = +idParam;
+      } else {
+        const user = this.tokenStorage.getUser();
+        if (!user?.userId) {
+          this.error = 'Invalid session';
+          return;
+        }
+        this.playerId = user.userId;
+      }
+      this.fetchPlayerDetailsAndTimeline();
+    });
   }
 
   fetchPlayerDetailsAndTimeline() {
@@ -158,7 +165,8 @@ export class PlayerTeamEventsComponent implements OnInit {
 
   formatDate(dateStr: string): string {
     if (!dateStr) return '';
-    const date = new Date(dateStr);
+    const normalized = dateStr.endsWith('Z') || dateStr.includes('+') ? dateStr : dateStr + 'Z';
+    const date = new Date(normalized);
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -168,7 +176,8 @@ export class PlayerTeamEventsComponent implements OnInit {
 
   formatTime(dateStr: string): string {
     if (!dateStr) return '';
-    const date = new Date(dateStr);
+    const normalized = dateStr.endsWith('Z') || dateStr.includes('+') ? dateStr : dateStr + 'Z';
+    const date = new Date(normalized);
     return date.toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit'
@@ -187,7 +196,10 @@ export class PlayerTeamEventsComponent implements OnInit {
       sessionType: e.sessionType ?? e.SessionType ?? null,
       teamId: e.teamId ?? e.TeamId ?? 0,
       teamName: e.teamName ?? e.TeamName ?? '',
-      notes: e.notes ?? e.Notes ?? null
+      notes: e.notes ?? e.Notes ?? null,
+      location: e.location ?? e.Location ?? null,
+      coachName: e.coachName ?? e.CoachName ?? null,
+      isCancelled: e.isCancelled ?? e.IsCancelled ?? false
     }));
   }
 }

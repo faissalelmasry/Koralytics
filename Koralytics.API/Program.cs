@@ -76,6 +76,7 @@ using Koralytics.Infrastructure.ExternalServices.Email;
 using Koralytics.Infrastructure.Repositories;
 using Koralytics.Infrastructure.Services.Parents;
 using Koralytics.Infrastructure.UnitOfWork;
+using Koralytics.Infrastructure.Seeding;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
@@ -413,7 +414,8 @@ namespace Koralytics.API
                     var context = services.GetRequiredService<ApplicationDbContext>();
                     var userManager = services.GetRequiredService<UserManager<User>>();
                     var roleManager = services.GetRequiredService<RoleManager<Domain.Entities.Identity.Role>>();
-                    //await DbInitializer.SeedAsync(context, userManager, roleManager);
+                    await context.Database.MigrateAsync();
+                    await DbInitializer.SeedAsync(context, userManager, roleManager);
                 }
                 catch (Exception ex)
                 {

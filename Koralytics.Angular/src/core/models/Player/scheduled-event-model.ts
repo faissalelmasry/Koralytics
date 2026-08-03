@@ -17,4 +17,7 @@ export interface TeamScheduledEventDto {
   teamId: number;
   teamName: string;
   notes: string | null;
+  location: string | null;
+  coachName: string | null;
+  isCancelled: boolean;
 }

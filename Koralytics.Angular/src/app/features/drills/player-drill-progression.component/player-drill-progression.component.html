@@ -126,39 +126,5 @@
         }
     </section>
 
-    <!-- HISTORICAL LOG TABLE -->
-    <section class="table-panel">
-        <h2>Session History Logs</h2>
-        @if (progressionData.length > 0) {
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Drill Name</th>
-                    <th>Rating Score</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                @for (log of progressionData; track $index) {
-                <tr>
-                    <td>{{ log.sessionDate | date:'dd MMM yyyy' }}</td>
-                    <td class="font-bold">{{ log.drillName }}</td>
-                    <td>
-                        <span class="score-pill" [class.high]="log.finalScore >= 7"
-                            [class.med]="log.finalScore >= 4 && log.finalScore < 7" [class.low]="log.finalScore < 4">
-                            {{ log.finalScore }} / 10
-                        </span>
-                    </td>
-                    <td><span class="status-tag">Recorded</span></td>
-                </tr>
-                }
-            </tbody>
-        </table>
-        } @else {
-        <p class="helper-text text-center py-4">No data available for display.</p>
-        }
-    </section>
-
     }
 </div>

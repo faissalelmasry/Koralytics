@@ -103,7 +103,6 @@
     <table class="data-table">
       <thead>
         <tr>
-          <th>Invoice ID</th>
           <th>Player Name</th>
           <th>Academy</th>
           <th>Billing Cycle</th>
@@ -114,9 +113,8 @@
         </tr>
       </thead>
       <tbody>
-        @for (sub of filteredSubscriptions; track sub.id) {
+        @for (sub of paginatedSubscriptions; track sub.id) {
         <tr>
-          <td><span class="id-tag">#SUB-{{ sub.id }}</span></td>
           <td><strong class="player-name-cell">{{ sub.playerName }}</strong></td>
           <td class="text-slate">{{ sub.academyName }}</td>
           <td><span class="cycle-tag">{{ formatDuration(sub.duration) }}</span></td>
@@ -164,6 +162,14 @@
       </tbody>
     </table>
   </div>
+
+  @if (filteredSubscriptions.length > pageSize) {
+  <div class="pagination-wrapper mt-4">
+    <app-pagination [totalItems]="filteredSubscriptions.length" [pageSize]="pageSize" [currentPage]="currentPage"
+      (pageChange)="onPageChange($event)">
+    </app-pagination>
+  </div>
+  }
   }
 
   <!-- CREATE NEW SUBSCRIPTION MODAL -->

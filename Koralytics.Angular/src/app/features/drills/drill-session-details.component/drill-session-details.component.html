@@ -97,7 +97,10 @@
             <div class="drills-header flex-between">
                 <h2 class="panel-title">2. Session Drills</h2>
                 @if (!isReadOnly) {
-                <app-button variant="accent" (click)="openAddDrillModal()">+ Add Drill</app-button>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <app-button variant="accent" (click)="openAddDrillModal()">+ Add Drill</app-button>
+                    <app-button variant="accent" (click)="createMatchSession()">+ Create Match</app-button>
+                </div>
                 }
             </div>
             <p class="helper-text">
@@ -207,15 +210,29 @@
 
                 <div class="score-input-cell">
                     @if (activeDrillForResults.mode == 0 || activeDrillForResults.mode === 'Manual') {
-                    <app-number-input
-                        label="Manual Score"
-                        [step]="0.5"
-                        [min]="0"
-                        [max]="10"
-                        [value]="entry.manualScore"
-                        (valueChange)="entry.manualScore = $event"
-                        [disabled]="isReadOnly">
-                    </app-number-input>
+                    <div class="score-preset-group" style="display: flex; gap: 8px; align-items: flex-end;">
+                        <div style="flex: 1; min-width: 90px;">
+                            <app-number-input
+                                label="Score (0-10)"
+                                [step]="0.5"
+                                [min]="0"
+                                [max]="10"
+                                [value]="entry.manualScore"
+                                (valueChange)="entry.manualScore = $event"
+                                [disabled]="isReadOnly">
+                            </app-number-input>
+                        </div>
+                        <div style="flex: 1.3; min-width: 125px;">
+                            <app-select
+                                label="Quick Rating"
+                                placeholder="Select..."
+                                [options]="ratingPresetOptions"
+                                [value]="getMatchingRatingPreset(entry.manualScore)"
+                                (valueChange)="onRatingPresetChange(entry, $event)"
+                                [disabled]="isReadOnly">
+                            </app-select>
+                        </div>
+                    </div>
                     } @else {
                     <div class="flex-group" style="display: flex; gap: 8px;">
                         <app-number-input

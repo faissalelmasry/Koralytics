@@ -47,6 +47,7 @@
 .drills-page {
   max-width: 1200px;
   margin: 0 auto;
+  padding: 135px 20px 40px;
   display: flex;
   flex-direction: column;
   gap: 30px;

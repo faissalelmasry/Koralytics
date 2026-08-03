@@ -1,0 +1,328 @@
+:host {
+    display: block;
+    background: transparent;
+    color: #ffffff;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    padding-bottom: 80px;
+}
+
+.drills-portal-page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 110px 20px 40px;
+}
+
+/* ==========================================
+   PAGE HEADER
+========================================== */
+.page-header-block {
+    padding: 20px 0 36px;
+}
+
+.header-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.eyebrow-dot {
+    width: 8px;
+    height: 8px;
+    background: linear-gradient(135deg, #00f2fe, #4facfe);
+    border-radius: 50%;
+    box-shadow: 0 0 14px rgba(0, 242, 254, 0.9);
+    animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+    0%, 100% { box-shadow: 0 0 10px rgba(0, 242, 254, 0.7); }
+    50% { box-shadow: 0 0 20px rgba(0, 242, 254, 1); }
+}
+
+.eyebrow-text {
+    color: #00f2fe;
+    font-size: 11px;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 2px;
+}
+
+.header-title {
+    font-size: 42px;
+    font-weight: 800;
+    margin: 0 0 10px 0;
+    color: #ffffff;
+    letter-spacing: -1px;
+    line-height: 1.1;
+    background: linear-gradient(135deg, #ffffff 0%, #94a3b8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.header-subtitle {
+    color: #64748b;
+    font-size: 15px;
+    font-weight: 500;
+    margin: 0;
+    max-width: 600px;
+    line-height: 1.6;
+}
+
+/* ==========================================
+   MODULES GRID
+========================================== */
+.modules-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+}
+
+/* ==========================================
+   MODULE CARD BASE
+========================================== */
+.module-card {
+    position: relative;
+    background: rgba(15, 20, 35, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 20px;
+    padding: 28px 26px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    backdrop-filter: blur(14px);
+}
+
+.module-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(255, 255, 255, 0.14);
+}
+
+/* Gloss top shine */
+.card-glass-glow {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: transparent;
+    transition: background 0.3s ease;
+}
+
+/* ==========================================
+   CARD ICON HEADER
+========================================== */
+.card-header-icon {
+    width: 54px;
+    height: 54px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 22px;
+    transition: transform 0.3s ease;
+}
+
+.module-card:hover .card-header-icon {
+    transform: scale(1.1) rotate(-2deg);
+}
+
+.card-header-icon svg {
+    width: 26px;
+    height: 26px;
+}
+
+/* ==========================================
+   CARD BODY
+========================================== */
+.card-body {
+    flex: 1;
+}
+
+.card-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-bottom: 12px;
+    background: rgba(0, 242, 254, 0.1);
+    border: 1px solid rgba(0, 242, 254, 0.25);
+    color: #00f2fe;
+}
+
+.badge-lime {
+    background: rgba(180, 242, 19, 0.1);
+    border-color: rgba(180, 242, 19, 0.25);
+    color: #b4f213;
+}
+
+.badge-amber {
+    background: rgba(251, 191, 36, 0.1);
+    border-color: rgba(251, 191, 36, 0.25);
+    color: #fbbf24;
+}
+
+.card-title {
+    font-size: 19px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0 0 10px 0;
+    letter-spacing: -0.3px;
+    line-height: 1.3;
+}
+
+.card-desc {
+    font-size: 13.5px;
+    color: #64748b;
+    line-height: 1.65;
+    margin: 0 0 20px 0;
+}
+
+/* ==========================================
+   CARD STATS ROW
+========================================== */
+.card-stats-row {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+}
+
+.stat-icon {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+}
+
+/* ==========================================
+   CARD ACTION ARROW
+========================================== */
+.card-action-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 18px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+    transition: color 0.2s ease;
+}
+
+.module-card:hover .card-action-arrow {
+    color: #94a3b8;
+}
+
+.arrow-svg {
+    width: 18px;
+    height: 18px;
+    transition: transform 0.25s ease;
+}
+
+.module-card:hover .arrow-svg {
+    transform: translateX(4px);
+}
+
+/* ==========================================
+   CARD CYAN (Templates)
+========================================== */
+.card-cyan:hover {
+    border-color: rgba(0, 242, 254, 0.35);
+    box-shadow: 0 18px 40px rgba(0, 242, 254, 0.1), 0 0 0 1px rgba(0, 242, 254, 0.08);
+}
+
+.card-cyan:hover .card-glass-glow {
+    background: linear-gradient(90deg, transparent, rgba(0, 242, 254, 0.6), transparent);
+}
+
+.card-cyan .card-header-icon {
+    background: rgba(0, 242, 254, 0.08);
+    border: 1px solid rgba(0, 242, 254, 0.2);
+    color: #00f2fe;
+}
+
+.card-cyan:hover .card-action-arrow {
+    color: #00f2fe;
+}
+
+/* ==========================================
+   CARD LIME (Sessions)
+========================================== */
+.card-lime:hover {
+    border-color: rgba(180, 242, 19, 0.35);
+    box-shadow: 0 18px 40px rgba(180, 242, 19, 0.1), 0 0 0 1px rgba(180, 242, 19, 0.08);
+}
+
+.card-lime:hover .card-glass-glow {
+    background: linear-gradient(90deg, transparent, rgba(180, 242, 19, 0.6), transparent);
+}
+
+.card-lime .card-header-icon {
+    background: rgba(180, 242, 19, 0.08);
+    border: 1px solid rgba(180, 242, 19, 0.2);
+    color: #b4f213;
+}
+
+.card-lime:hover .card-action-arrow {
+    color: #b4f213;
+}
+
+/* ==========================================
+   CARD AMBER (Coach Bias)
+========================================== */
+.card-amber:hover {
+    border-color: rgba(251, 191, 36, 0.35);
+    box-shadow: 0 18px 40px rgba(251, 191, 36, 0.1), 0 0 0 1px rgba(251, 191, 36, 0.08);
+}
+
+.card-amber:hover .card-glass-glow {
+    background: linear-gradient(90deg, transparent, rgba(251, 191, 36, 0.6), transparent);
+}
+
+.card-amber .card-header-icon {
+    background: rgba(251, 191, 36, 0.08);
+    border: 1px solid rgba(251, 191, 36, 0.2);
+    color: #fbbf24;
+}
+
+.card-amber:hover .card-action-arrow {
+    color: #fbbf24;
+}
+
+/* ==========================================
+   RESPONSIVE
+========================================== */
+@media (max-width: 768px) {
+    .header-title {
+        font-size: 28px;
+    }
+
+    .modules-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .page-header-block {
+        padding: 32px 0 24px;
+    }
+
+    .module-card {
+        padding: 22px 20px;
+    }
+}

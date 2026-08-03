@@ -15,6 +15,7 @@ import { SearchBarComponent } from '@shared/components/search-bar/search-bar';
 import { CustomDatePicker } from '@shared/components/custom-date-picker/custom-date-picker';
 import { CustomNumberInputComponent } from '@shared/components/custom-number-input/custom-number-input';
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog';
+import { Pagination } from '@shared/components/pagination/pagination';
 import { NotificationService } from '@core/services/SignalR/notificationservice';
 
 export interface PlayerOption {
@@ -36,7 +37,8 @@ export interface PlayerOption {
     SearchBarComponent,
     CustomDatePicker,
     CustomNumberInputComponent,
-    ConfirmDialogComponent
+    ConfirmDialogComponent,
+    Pagination
   ],
   templateUrl: './academy-admin-subscriptions.component.html',
   styleUrls: ['./academy-admin-subscriptions.component.css']
@@ -44,6 +46,9 @@ export interface PlayerOption {
 export class AcademyAdminSubscriptionsComponent implements OnInit {
   subscriptions: PlayerSubscriptionDto[] = [];
   filteredSubscriptions: PlayerSubscriptionDto[] = [];
+  paginatedSubscriptions: PlayerSubscriptionDto[] = [];
+  currentPage = 1;
+  pageSize = 8;
   isLoading = true;
   isSubmitting = false;
   isProcessingCashId: number | null = null;
@@ -126,7 +131,7 @@ export class AcademyAdminSubscriptionsComponent implements OnInit {
   get playerOptions(): SelectOption[] {
     return this.availablePlayers.map(p => ({
       value: p.id,
-      label: `${p.name} (ID: ${p.id})`
+      label: p.name
     }));
   }
 
@@ -233,6 +238,18 @@ export class AcademyAdminSubscriptionsComponent implements OnInit {
     }
 
     this.filteredSubscriptions = result;
+    this.currentPage = 1;
+    this.updatePaginatedSubscriptions();
+  }
+
+  updatePaginatedSubscriptions(): void {
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    this.paginatedSubscriptions = this.filteredSubscriptions.slice(startIndex, startIndex + this.pageSize);
+  }
+
+  onPageChange(page: number): void {
+    this.currentPage = page;
+    this.updatePaginatedSubscriptions();
   }
 
   onSearchChange(text: string): void {

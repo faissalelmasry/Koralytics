@@ -21,5 +21,8 @@ namespace Koralytics.Application.DTOs.Player
         public int TeamId { get; set; }
         public string TeamName { get; set; } = string.Empty;
         public string? Notes { get; set; }
+        public string? Location { get; set; }
+        public string? CoachName { get; set; }
+        public bool IsCancelled { get; set; }
     }
 }

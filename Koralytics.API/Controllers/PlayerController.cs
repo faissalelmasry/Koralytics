@@ -135,7 +135,7 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpGet("{playerId}/team/scheduled")]
-        [Authorize(Roles = "Player")]
+        [Authorize(Roles = "Player,Parent")]
         public async Task<IActionResult> GetTeamScheduledEvents(
             int playerId,
             [FromQuery] int page = 1,
@@ -144,11 +144,6 @@ namespace Koralytics.API.Controllers
             [FromQuery] DateTime? dateFrom = null,
             [FromQuery] DateTime? dateTo = null)
         {
-            var requesterId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-
-            if (requesterId != playerId)
-                return Forbid();
-
             var result = await _playerProfileService.GetTeamScheduledEventsAsync(
                 playerId, page, pageSize, eventType, dateFrom, dateTo);
 

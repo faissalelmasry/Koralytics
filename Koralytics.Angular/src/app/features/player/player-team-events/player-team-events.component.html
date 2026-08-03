@@ -12,24 +12,15 @@
   <div class="filter-panel-card" scrollReveal direction="bottom" [delay]="100">
     <div class="filter-grid">
       <div class="filter-item">
-        <app-select
-          label="Event Type"
-          [options]="eventTypeOptions"
-          [(value)]="selectedEventType">
+        <app-select label="Event Type" [options]="eventTypeOptions" [(value)]="selectedEventType">
         </app-select>
       </div>
       <div class="filter-item">
-        <app-date-picker
-          label="From"
-          [(value)]="selectedDateFrom"
-          (valueChange)="onDateFromChange()">
+        <app-date-picker label="From" [(value)]="selectedDateFrom" (valueChange)="onDateFromChange()">
         </app-date-picker>
       </div>
       <div class="filter-item">
-        <app-date-picker
-          label="To"
-          [(value)]="selectedDateTo"
-          (valueChange)="onDateToChange()">
+        <app-date-picker label="To" [(value)]="selectedDateTo" (valueChange)="onDateToChange()">
         </app-date-picker>
       </div>
       <div class="filter-actions">
@@ -40,98 +31,117 @@
   </div>
 
   @if (filterError) {
-    <div class="filter-error">{{ filterError }}</div>
+  <div class="filter-error">{{ filterError }}</div>
   }
 
   @if (isLoading) {
-    <div class="loading-state">
-      <app-loading-spinner size="lg"></app-loading-spinner>
-      <p>Loading scheduled events...</p>
-    </div>
+  <div class="loading-state">
+    <app-loading-spinner size="lg"></app-loading-spinner>
+    <p>Loading scheduled events...</p>
+  </div>
   }
   @else if (error) {
-    <div class="error-state">
-      <div class="error-icon">!</div>
-      <p>{{ error }}</p>
-      <app-button variant="accent" (click)="loadEvents()">Retry</app-button>
-    </div>
+  <div class="error-state">
+    <div class="error-icon">!</div>
+    <p>{{ error }}</p>
+    <app-button variant="accent" (click)="loadEvents()">Retry</app-button>
+  </div>
   }
   @else if (!events || events.length === 0) {
-    <div class="empty-state-wrapper">
-      <app-empty-state
-        title="No Events Found"
-        description="No scheduled events match the selected filters or no upcoming events are planned for this player's teams yet.">
-      </app-empty-state>
-    </div>
+  <div class="empty-state-wrapper">
+    <app-empty-state title="No Events Found"
+      description="No scheduled events match the selected filters or no upcoming events are planned for this player's teams yet.">
+    </app-empty-state>
+  </div>
   }
   @else {
-    <div class="group-label" scrollReveal direction="bottom" [delay]="200">Scheduled Events</div>
+  <div class="group-label" scrollReveal direction="bottom" [delay]="200">Scheduled Events</div>
 
-    <div class="events-grid">
-      @for (event of events; track $index; let i = $index) {
-        <div
-          class="koralytics-card"
-          scrollReveal
-          direction="bottom"
-          [delay]="250 + i * 70"
-          [class.card-match]="isMatchEvent(event)"
-          [class.card-drill]="!isMatchEvent(event)"
-          [class.clickable]="isMatchEvent(event) && event.matchId"
-          [routerLink]="isMatchEvent(event) && event.matchId ? ['/match', event.matchId] : null">
+  <div class="events-grid">
+    @for (event of events; track $index; let i = $index) {
+    <div class="koralytics-card" scrollReveal direction="bottom" [delay]="250 + i * 70"
+      [class.card-match]="isMatchEvent(event)" [class.card-drill]="!isMatchEvent(event)"
+      [class.card-cancelled]="event.isCancelled"
+      [class.clickable]="isMatchEvent(event) && event.matchId"
+      [routerLink]="isMatchEvent(event) && event.matchId ? ['/match', event.matchId] : null">
 
-          <div class="card-left-info">
-            <div class="meta-header">
-              @if (isMatchEvent(event)) {
-                <span class="badge badge-match">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                    <circle cx="12" cy="12" r="10"/>
-                    <path d="M12 2a14.5 14.5 0 0 0 0 20M2 12h20"/>
-                  </svg>
-                  MATCH &bull; {{ event.matchType || 'FRIENDLY' }}
-                </span>
-              } @else {
-                <span class="badge badge-drill">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
-                    <line x1="4" y1="22" x2="4" y2="15"/>
-                  </svg>
-                  DRILL &bull; {{ event.sessionType || 'SESSION' }}
-                </span>
-              }
-              <span class="meta-date">{{ formatDate(event.date) }} &bull; {{ formatTime(event.date) }}</span>
-            </div>
-
-            @if (isMatchEvent(event)) {
-              <div class="card-title">{{ event.homeTeamName || 'Home' }} <span class="vs-text">VS</span> {{ event.awayTeamName || 'Away' }}</div>
-            } @else {
-              <div class="card-title">{{ event.sessionType || 'Training Session' }}</div>
-            }
-
-            <div class="card-subtitle">{{ event.teamName }} @if (event.notes) { &bull; {{ event.notes }} }</div>
-          </div>
-
-          <div class="stats-block">
-            <div class="stat-pill">
-              <span class="lbl">TYPE</span>
-              @if (isMatchEvent(event)) {
-                <span class="val color-yellow">MATCH</span>
-              } @else {
-                <span class="val color-green">DRILL</span>
-              }
-            </div>
-          </div>
+      <div class="card-left-info">
+        <div class="meta-header">
+          @if (isMatchEvent(event)) {
+          <span class="badge badge-match">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 2a14.5 14.5 0 0 0 0 20M2 12h20" />
+            </svg>
+            MATCH &bull; {{ event.matchType || 'FRIENDLY' }}
+          </span>
+          } @else {
+          <span class="badge badge-drill">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+              <line x1="4" y1="22" x2="4" y2="15" />
+            </svg>
+            DRILL &bull; {{ event.sessionType || 'SESSION' }}
+          </span>
+          }
+          <span class="meta-date">{{ formatDate(event.date) }} &bull; {{ formatTime(event.date) }}</span>
         </div>
-      }
-    </div>
 
-    <div class="pagination-wrapper" scrollReveal direction="bottom" [delay]="400">
-      <app-pagination
-        [totalItems]="totalItems"
-        [pageSize]="pageSize"
-        [currentPage]="currentPage"
-        (pageChange)="onPageChange($event)">
-      </app-pagination>
+        @if (isMatchEvent(event)) {
+        <div class="card-title">{{ event.homeTeamName || 'Home' }} <span class="vs-text">VS</span> {{ event.awayTeamName
+          || 'Away' }}</div>
+        } @else {
+        <div class="card-title">{{ event.sessionType || 'Training Session' }}</div>
+        }
+
+        <div class="card-subtitle">{{ event.teamName }}</div>
+
+        @if (!isMatchEvent(event) && event.location) {
+        <div class="session-notes-box" [class.box-cancelled]="event.isCancelled">
+          <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span class="notes-label">Location:</span> {{ event.location }}
+        </div>
+        }
+        @if (!isMatchEvent(event) && event.coachName) {
+        <div class="session-notes-box" [class.box-cancelled]="event.isCancelled">
+          <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span class="notes-label">Coach:</span> {{ event.coachName }}
+        </div>
+        }
+        @if (event.notes) {
+        <div class="session-notes-box" [class.box-cancelled]="event.isCancelled">
+          <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          <span class="notes-label">Session Notes:</span> {{ event.notes }}
+        </div>
+        }
+      </div>
+
+      <div class="stats-block">
+        <div class="stat-pill">
+          <span class="lbl">TYPE</span>
+          @if (isMatchEvent(event)) {
+          <span class="val color-yellow">MATCH</span>
+          } @else {
+          <span class="val color-green">DRILL</span>
+          }
+        </div>
+        @if (event.isCancelled) {
+        <div class="stat-pill">
+          <span class="lbl">STATUS</span>
+          <span class="val" style="color:#ef4444;text-shadow:0 0 10px rgba(239,68,68,0.4);">CANCELLED</span>
+        </div>
+        }
+      </div>
     </div>
+    }
+  </div>
+
+  <div class="pagination-wrapper" scrollReveal direction="bottom" [delay]="400">
+    <app-pagination [totalItems]="totalItems" [pageSize]="pageSize" [currentPage]="currentPage"
+      (pageChange)="onPageChange($event)">
+    </app-pagination>
+  </div>
   }
 
 </div>

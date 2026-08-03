@@ -142,8 +142,14 @@
                 @if (session.status === SessionStatus.Completed) {
                 <button class="btn-full btn-secondary" (click)="viewSessionDetails(session.id)">View Report</button>
                 } @else if (session.status === SessionStatus.Cancelled) {
-                <button class="btn-full btn-secondary" style="border-color: #ff4757; color: #ff4757;"
-                    (click)="viewSessionDetails(session.id)">View Cancellation Reason</button>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <button class="btn-full btn-secondary" style="border-color: #ff4757; color: #ff4757;"
+                        (click)="viewSessionDetails(session.id)">View Cancellation Reason</button>
+                    @if (canManageDrills) {
+                    <button class="btn-full btn-secondary" style="border-color: #6b7280; color: #6b7280; font-size: 0.78rem;"
+                        (click)="deleteSession(session)">Delete Session</button>
+                    }
+                </div>
                 } @else {
                 @if (canManageDrills) {
                 <button class="btn-full btn-secondary" (click)="openEditModal(session)">Edit Details</button>

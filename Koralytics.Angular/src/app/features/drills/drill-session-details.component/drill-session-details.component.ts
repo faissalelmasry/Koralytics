@@ -274,6 +274,31 @@ export class DrillSessionDetailsComponent implements OnInit {
     }, 3500);
   }
 
+  // Rating preset dropdown options for quick score entry (4 performance choices)
+  ratingPresetOptions: SelectOption[] = [
+    { value: '', label: 'Select Rating...' },
+    { value: 2.5, label: 'Poor' },
+    { value: 5, label: 'Average' },
+    { value: 7.5, label: 'Good' },
+    { value: 10, label: 'Excellent' }
+  ];
+
+  getMatchingRatingPreset(score: any): string | number {
+    if (score === null || score === undefined || score === '') return '';
+    const num = Number(score);
+    if (num >= 8.75) return 10;
+    if (num >= 6.25) return 7.5;
+    if (num >= 3.75) return 5;
+    if (num > 0) return 2.5;
+    return '';
+  }
+
+  onRatingPresetChange(entry: any, val: any): void {
+    if (val !== null && val !== undefined && val !== '') {
+      entry.manualScore = Number(val);
+    }
+  }
+
   // --- Enter Results Modal ---
   openResultsModal(drill: any): void {
     this.activeDrillForResults = drill;
@@ -384,5 +409,9 @@ export class DrillSessionDetailsComponent implements OnInit {
   navigateToPlayerProgression(playerId: number): void {
     if (!playerId) return;
     this.router.navigate(['/drills/players', playerId, 'progression']);
+  }
+
+  createMatchSession(): void {
+    this.router.navigate(['/session', this.sessionId, 'create-match']);
   }
 }

@@ -206,6 +206,11 @@ export class ParentDashboardComponent implements OnInit {
     this.router.navigate(['/drills/players', this.selectedChild.playerId, 'progression']);
   }
 
+  navigateToTeamEvents(): void {
+    if (!this.selectedChild) return;
+    this.router.navigate(['/player/team-events', this.selectedChild.playerId]);
+  }
+
   navigateToSubscriptions(): void {
     this.router.navigate(['/parent/subscriptions']);
   }

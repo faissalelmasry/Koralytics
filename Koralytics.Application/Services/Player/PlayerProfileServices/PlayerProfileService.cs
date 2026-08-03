@@ -634,7 +634,8 @@ namespace Koralytics.Application.Services.Player.PlayerProfileServices
             var scheduledDrills = await _unitOfWork.Repository<DrillSession>()
                 .GetQueryableAsNoTracking()
                 .Include(ds => ds.DrillSessionTeam)
-                .Where(ds => ds.Status == SessionStatus.Scheduled
+                .Include(ds => ds.DrillSessionCoach)
+                .Where(ds => (ds.Status == SessionStatus.Scheduled || ds.Status == SessionStatus.Cancelled)
                     && ds.SessionDate > now
                     && teamIds.Contains(ds.TeamId))
                 .Select(ds => new TeamScheduledEventDto
@@ -646,6 +647,9 @@ namespace Koralytics.Application.Services.Player.PlayerProfileServices
                     TeamId = ds.TeamId,
                     TeamName = ds.DrillSessionTeam!.Name,
                     Notes = ds.Notes,
+                    Location = ds.Location,
+                    CoachName = ds.DrillSessionCoach != null ? ds.DrillSessionCoach.FirstName + " " + ds.DrillSessionCoach.LastName : null,
+                    IsCancelled = ds.Status == SessionStatus.Cancelled,
                 })
                 .ToListAsync();
 

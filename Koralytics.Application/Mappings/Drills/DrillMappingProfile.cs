@@ -22,14 +22,20 @@ namespace Koralytics.Application.Mappings.Drills
 
             CreateMap<CreateDrillSessionDto, DrillSession>();
             CreateMap<DrillSession, DrillSessionDto>()
-                .ForMember(dest => dest.SessionDate, opt => opt.MapFrom(src => DateTime.SpecifyKind(src.SessionDate, DateTimeKind.Utc)))
+                .ForMember(dest => dest.SessionDate, opt => opt.MapFrom(src =>
+                    src.SessionDate > new DateTime(2000, 1, 1)
+                        ? DateTime.SpecifyKind(src.SessionDate, DateTimeKind.Utc)
+                        : DateTime.SpecifyKind(src.CreatedAt > new DateTime(2000, 1, 1) ? src.CreatedAt : DateTime.UtcNow, DateTimeKind.Utc)))
                 .ForMember(dest => dest.CoachName, opt => opt.MapFrom(src =>
                     src.DrillSessionCoach != null ? src.DrillSessionCoach.FirstName + " " + src.DrillSessionCoach.LastName : "Unknown Coach"))
                 .ForMember(dest => dest.TeamName, opt => opt.MapFrom(src =>
                     src.DrillSessionTeam != null ? src.DrillSessionTeam.Name : "Unknown Team"));
 
             CreateMap<DrillSession, DrillSessionDetailsDto>()
-                .ForMember(dest => dest.SessionDate, opt => opt.MapFrom(src => DateTime.SpecifyKind(src.SessionDate, DateTimeKind.Utc)))
+                .ForMember(dest => dest.SessionDate, opt => opt.MapFrom(src =>
+                    src.SessionDate > new DateTime(2000, 1, 1)
+                        ? DateTime.SpecifyKind(src.SessionDate, DateTimeKind.Utc)
+                        : DateTime.SpecifyKind(src.CreatedAt > new DateTime(2000, 1, 1) ? src.CreatedAt : DateTime.UtcNow, DateTimeKind.Utc)))
                 .ForMember(dest => dest.TeamName, opt => opt.MapFrom(src => src.DrillSessionTeam != null ? src.DrillSessionTeam.Name : string.Empty))
                 .ForMember(dest => dest.CoachName, opt => opt.MapFrom(src => src.DrillSessionCoach != null ? $"{src.DrillSessionCoach.FirstName} {src.DrillSessionCoach.LastName}" : string.Empty));
             CreateMap<AddSessionDrillDto, Koralytics.Domain.Entities.Drill.Drill>();

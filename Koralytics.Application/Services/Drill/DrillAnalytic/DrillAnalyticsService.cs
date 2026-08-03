@@ -54,21 +54,82 @@ namespace Koralytics.Application.Services.Drill.DrillAnalytic
             var cutoffDate = DateTime.UtcNow.AddDays(-30);
 
             // ====================================================================
-            // 1. FETCH PRACTICE SCORES (The Subjective Data)
+            // 1. FETCH PRACTICE SCORES (Subjective — Drills + Friendly + Session Matches)
             // ====================================================================
-            var practiceScores = await _unitOfWork.Repository<Domain.Entities.Drill.DrillResult>()
+
+            // 1a. Drill results (Manual mode only)
+            var drillScores = await _unitOfWork.Repository<Domain.Entities.Drill.DrillResult>()
                 .GetQueryableAsNoTracking()
                 .Where(dr => (dr.CreatedById == targetCoachId || dr.Drill.DrillSession.CoachId == targetCoachId)
                           && (dr.Drill.Mode == Koralytics.Domain.Enums.DrillMode.Manual || dr.Drill.DrillTemplate.DrillMode == Koralytics.Domain.Enums.DrillMode.Manual)
                           && dr.CreatedAt >= cutoffDate)
-                .GroupBy(dr => new { dr.PlayerId, dr.Player.FirstName, dr.Player.LastName })
+                .GroupBy(dr => dr.PlayerId)
                 .Select(g => new
                 {
-                    g.Key.PlayerId,
-                    PlayerName = (g.Key.FirstName + " " + g.Key.LastName).Trim(),
-                    AvgPracticeScore = g.Average(x => x.FinalScore)
+                    PlayerId = g.Key,
+                    AvgDrillScore = g.Average(x => x.FinalScore),
+                    DrillCount = g.Count()
                 })
                 .ToListAsync();
+
+            // 1b. Practice match ratings: Friendly + Session matches (non-tournament)
+            var practiceMatchScores = await _unitOfWork.Repository<Domain.Entities.Match.MatchPlayerCategoryRating>()
+                .GetQueryableAsNoTracking()
+                .Where(cr => (cr.MatchPlayerRating.Match.Type == Koralytics.Domain.Enums.MatchType.Friendly
+                           || cr.MatchPlayerRating.Match.Type == Koralytics.Domain.Enums.MatchType.Session)
+                          && cr.MatchPlayerRating.CoachId == targetCoachId
+                          && cr.MatchPlayerRating.CreatedAt >= cutoffDate)
+                .GroupBy(cr => cr.MatchPlayerRating.PlayerId)
+                .Select(g => new
+                {
+                    PlayerId = g.Key,
+                    AvgPracticeMatchScore = g.Average(x => x.Rating),
+                    RatingCount = g.Count()
+                })
+                .ToListAsync();
+
+            // Merge drill + practice match scores into a weighted average per player
+            var allPracticePlayerIds = drillScores.Select(d => d.PlayerId)
+                .Union(practiceMatchScores.Select(p => p.PlayerId))
+                .Distinct()
+                .ToList();
+
+            // Also grab player names
+            var playerNames = await _unitOfWork.Repository<Domain.Entities.Player.Player>()
+                .GetQueryableAsNoTracking()
+                .Where(p => allPracticePlayerIds.Contains(p.Id))
+                .Select(p => new { p.Id, p.FirstName, p.LastName })
+                .ToListAsync();
+
+            var practiceScores = allPracticePlayerIds.Select(playerId =>
+            {
+                var drill = drillScores.FirstOrDefault(d => d.PlayerId == playerId);
+                var pracMatch = practiceMatchScores.FirstOrDefault(m => m.PlayerId == playerId);
+
+                // Weighted blend: sum of (score × count) / total count
+                decimal totalScore = 0;
+                int totalCount = 0;
+
+                if (drill != null)
+                {
+                    totalScore += drill.AvgDrillScore * drill.DrillCount;
+                    totalCount += drill.DrillCount;
+                }
+                if (pracMatch != null)
+                {
+                    totalScore += pracMatch.AvgPracticeMatchScore * pracMatch.RatingCount;
+                    totalCount += pracMatch.RatingCount;
+                }
+
+                decimal blendedAvg = totalCount > 0 ? totalScore / totalCount : 0;
+
+                var nameEntry = playerNames.FirstOrDefault(p => p.Id == playerId);
+                string name = nameEntry != null
+                    ? $"{nameEntry.FirstName} {nameEntry.LastName}".Trim()
+                    : $"Player #{playerId}";
+
+                return new { PlayerId = playerId, PlayerName = name, AvgPracticeScore = blendedAvg };
+            }).ToList();
 
             var playerIdsToAnalyze = practiceScores.Select(p => p.PlayerId).ToList();
 
@@ -80,16 +141,17 @@ namespace Koralytics.Application.Services.Drill.DrillAnalytic
                     CoachName = coachName,
                     TrustPercentage = 100,
                     PlayersAnalyzedCount = 0,
-                    Remarks = "Insufficient practice data in the last 30 days."
+                    Remarks = "Insufficient practice data (drills, friendlies, session matches) in the last 30 days."
                 };
             }
 
             // ====================================================================
-            // 2. FETCH MATCH SCORES (The Objective Reality)
+            // 2. FETCH TOURNAMENT MATCH SCORES (Objective Reality)
             // ====================================================================
             var matchScores = await _unitOfWork.Repository<Domain.Entities.Match.MatchPlayerCategoryRating>()
                 .GetQueryableAsNoTracking()
                 .Where(cr => playerIdsToAnalyze.Contains(cr.MatchPlayerRating.PlayerId)
+                          && cr.MatchPlayerRating.Match.Type == Koralytics.Domain.Enums.MatchType.Tournament
                           && cr.MatchPlayerRating.CreatedAt >= cutoffDate)
                 .GroupBy(cr => cr.MatchPlayerRating.PlayerId)
                 .Select(g => new
@@ -112,7 +174,7 @@ namespace Koralytics.Application.Services.Drill.DrillAnalytic
 
                 if (match != null)
                 {
-                    var practiceAvg = Math.Round(practice.AvgPracticeScore, 2);
+                    var practiceAvg = Math.Round((decimal)practice.AvgPracticeScore, 2);
                     var matchAvg = Math.Round(match.AvgMatchScore, 2);
                     var delta = Math.Round(Math.Abs(practiceAvg - matchAvg), 2);
 
@@ -143,7 +205,7 @@ namespace Koralytics.Application.Services.Drill.DrillAnalytic
                     CoachName = coachName,
                     TrustPercentage = 100,
                     PlayersAnalyzedCount = 0,
-                    Remarks = "Players practiced but played no matches in the last 30 days to compare against."
+                    Remarks = "Players have practice data but no tournament matches in the last 30 days to compare against."
                 };
             }
 
@@ -173,9 +235,9 @@ namespace Koralytics.Application.Services.Drill.DrillAnalytic
                 CoachName = coachName,
                 TrustPercentage = finalTrustPercentage,
                 PlayersAnalyzedCount = validPlayerComparisons,
-                Remarks = "Trust Index calculated successfully.",
+                Remarks = "Trust Index calculated: practice scores (drills + friendlies + session matches) vs. tournament performance.",
                 PlayerComparisons = playerComparisons
             };
         }
     }
-}
+}

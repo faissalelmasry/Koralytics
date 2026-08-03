@@ -186,10 +186,16 @@ export class DrillSessionListComponent implements OnInit, OnDestroy {
     ).subscribe({
       next: (response: any) => {
         const items = Array.isArray(response) ? response : (response.items || response.data || []);
-        this.sessions = items.map((s: any) => ({
-          ...s,
-          sessionDate: s.sessionDate && !s.sessionDate.endsWith('Z') && !s.sessionDate.includes('+') ? s.sessionDate + 'Z' : s.sessionDate
-        }));
+        this.sessions = items.map((s: any) => {
+          let dateVal = s.sessionDate;
+          if (!dateVal || dateVal.startsWith('0001') || dateVal.startsWith('0000')) {
+            dateVal = s.createdAt || new Date().toISOString();
+          }
+          return {
+            ...s,
+            sessionDate: dateVal && !dateVal.endsWith('Z') && !dateVal.includes('+') ? dateVal + 'Z' : dateVal
+          };
+        });
         this.totalItems = response.totalCount || this.sessions.length;
 
         this.populateTeamsDropdown();
@@ -315,7 +321,12 @@ export class DrillSessionListComponent implements OnInit, OnDestroy {
     this.isCancelling = true;
     this.cancelError = '';
 
+    const sessionToCancel = this.sessions.find(s => s.id === this.cancelSessionData.id);
+
     const payload: UpdateDrillSessionDto = {
+      sessionDate: sessionToCancel?.sessionDate || new Date().toISOString(),
+      type: sessionToCancel?.type || SessionType.Regular,
+      location: sessionToCancel?.location || '',
       status: SessionStatus.Cancelled,
       notes: this.cancelSessionData.reason.trim()
     };
@@ -462,5 +473,27 @@ export class DrillSessionListComponent implements OnInit, OnDestroy {
   }
   goToWeakCategories(): void {
     this.router.navigate(['/drills/analytics/weak-categories']);
+  }
+
+  deleteSession(session: any): void {
+    this.confirmModal = {
+      isOpen: true,
+      title: 'Delete Session',
+      message: `Are you sure you want to permanently delete this cancelled session for ${session.teamName || 'this team'}? This action cannot be undone.`,
+      confirmText: 'Delete Session',
+      action: () => {
+        this.sessionService.deleteSession(session.id).subscribe({
+          next: () => {
+            this.showToast('Session deleted.', 'success');
+            this.closeConfirm();
+            this.fetchSessions();
+          },
+          error: (err) => {
+            this.showToast(err.error?.message || 'Could not delete session.', 'error');
+            this.closeConfirm();
+          }
+        });
+      }
+    };
   }
 }

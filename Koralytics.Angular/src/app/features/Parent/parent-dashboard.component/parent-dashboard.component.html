@@ -12,7 +12,8 @@
         </div>
         <div class="header-actions">
             <button class="btn-link-player" (click)="openSearchModal()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                    stroke-linejoin="round">
                     <line x1="12" y1="5" x2="12" y2="19"></line>
                     <line x1="5" y1="12" x2="19" y2="12"></line>
                 </svg>
@@ -52,11 +53,11 @@
                 <div class="pending-card-left">
                     <div class="pending-avatar">
                         @if (req.playerPhotoUrl && !hasImageError(req.playerId)) {
-                            <img [src]="req.playerPhotoUrl" [alt]="req.playerName" (error)="onImageError(req.playerId)" />
+                        <img [src]="req.playerPhotoUrl" [alt]="req.playerName" (error)="onImageError(req.playerId)" />
                         } @else {
-                            <div class="avatar-fallback">
-                                <span>{{ getInitials(req.playerName) }}</span>
-                            </div>
+                        <div class="avatar-fallback">
+                            <span>{{ getInitials(req.playerName) }}</span>
+                        </div>
                         }
                     </div>
                     <div class="pending-info">
@@ -115,11 +116,12 @@
         <div class="hero-glow-bg"></div>
         <div class="hero-avatar">
             @if (selectedChild.photoUrl && !hasImageError(selectedChild.playerId)) {
-                <img [src]="selectedChild.photoUrl" [alt]="selectedChild.fullName" (error)="onImageError(selectedChild.playerId)" />
+            <img [src]="selectedChild.photoUrl" [alt]="selectedChild.fullName"
+                (error)="onImageError(selectedChild.playerId)" />
             } @else {
-                <div class="avatar-fallback">
-                    <span class="avatar-initials">{{ getInitials(selectedChild.fullName) }}</span>
-                </div>
+            <div class="avatar-fallback">
+                <span class="avatar-initials">{{ getInitials(selectedChild.fullName) }}</span>
+            </div>
             }
             <div class="avatar-border-ring"></div>
         </div>
@@ -140,11 +142,6 @@
                     <span class="meta-label">Position</span>
                     <span class="meta-val">{{ selectedChild.position || 'Squad Player' }}</span>
                 </div>
-                <div class="meta-divider"></div>
-                <div class="meta-item">
-                    <span class="meta-label">Player ID</span>
-                    <span class="meta-val">#{{ selectedChild.playerId }}</span>
-                </div>
             </div>
         </div>
     </section>
@@ -156,7 +153,8 @@
         <div class="module-card card-cyan" (click)="navigateToProfile()">
             <div class="card-glass-glow"></div>
             <div class="card-header-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                    stroke-linejoin="round">
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                     <circle cx="12" cy="7" r="4"></circle>
                 </svg>
@@ -178,7 +176,8 @@
         <div class="module-card card-blue" (click)="navigateToMatchTimeline()">
             <div class="card-glass-glow"></div>
             <div class="card-header-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                    stroke-linejoin="round">
                     <circle cx="12" cy="12" r="10"></circle>
                     <polyline points="12 6 12 12 16 14"></polyline>
                 </svg>
@@ -200,7 +199,8 @@
         <div class="module-card card-green" (click)="navigateToDrillProgression()">
             <div class="card-glass-glow"></div>
             <div class="card-header-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                    stroke-linejoin="round">
                     <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
                 </svg>
             </div>
@@ -217,11 +217,37 @@
             </div>
         </div>
 
-        <!-- CARD 4: SUBSCRIPTIONS & BILLING -->
+        <!-- CARD 4: TEAM EVENTS & SCHEDULE -->
+        <div class="module-card card-amber" (click)="navigateToTeamEvents()">
+            <div class="card-glass-glow"></div>
+            <div class="card-header-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+            </div>
+            <div class="card-content">
+                <h3>Team Events & Schedule</h3>
+                <p>View your child's upcoming team matches, training sessions, location, and session notes.</p>
+            </div>
+            <div class="card-action-arrow">
+                <span>View Team Events</span>
+                <svg class="arrow-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+            </div>
+        </div>
+
+        <!-- CARD 5: SUBSCRIPTIONS & BILLING -->
         <div class="module-card card-purple" (click)="navigateToSubscriptions()">
             <div class="card-glass-glow"></div>
             <div class="card-header-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                    stroke-linejoin="round">
                     <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
                     <line x1="1" y1="10" x2="23" y2="10"></line>
                 </svg>
@@ -262,12 +288,8 @@
                     <circle cx="11" cy="11" r="8"></circle>
                     <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
-                <input 
-                    type="text" 
-                    [(ngModel)]="searchQuery" 
-                    (keyup.enter)="onSearchPlayers()" 
-                    placeholder="Search player name (e.g. Karim...)" 
-                    class="search-input" />
+                <input type="text" [(ngModel)]="searchQuery" (keyup.enter)="onSearchPlayers()"
+                    placeholder="Search player name (e.g. Karim...)" class="search-input" />
                 <button class="btn-search-go" (click)="onSearchPlayers()">Search</button>
             </div>
 
@@ -287,11 +309,12 @@
                         <div class="player-result-left">
                             <div class="player-result-avatar">
                                 @if (player.photoUrl && !hasImageError(player.playerId)) {
-                                    <img [src]="player.photoUrl" [alt]="player.fullName" (error)="onImageError(player.playerId)" />
+                                <img [src]="player.photoUrl" [alt]="player.fullName"
+                                    (error)="onImageError(player.playerId)" />
                                 } @else {
-                                    <div class="avatar-fallback">
-                                        <span>{{ getInitials(player.fullName) }}</span>
-                                    </div>
+                                <div class="avatar-fallback">
+                                    <span>{{ getInitials(player.fullName) }}</span>
+                                </div>
                                 }
                             </div>
                             <div class="player-result-info">
@@ -306,9 +329,7 @@
                             } @else if (player.hasPendingRequest) {
                             <span class="badge-status badge-pending">Request Pending</span>
                             } @else {
-                            <button 
-                                class="btn-send-req" 
-                                [disabled]="isSendingRequest[player.playerId]"
+                            <button class="btn-send-req" [disabled]="isSendingRequest[player.playerId]"
                                 (click)="sendLinkRequest(player)">
                                 {{ isSendingRequest[player.playerId] ? 'Sending...' : '+ Send Request' }}
                             </button>

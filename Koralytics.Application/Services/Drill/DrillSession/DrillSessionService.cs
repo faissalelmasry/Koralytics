@@ -198,11 +198,24 @@ namespace Koralytics.Application.Services.Drill.DrillSession
                 throw new KeyNotFoundException($"Session with ID {sessionId} was not found or you do not have permission to modify it.");
             }
 
-            session.SessionDate = dto.SessionDate;
-            session.Type = dto.Type;
+            if (dto.SessionDate > DateTime.MinValue.AddYears(100))
+            {
+                session.SessionDate = dto.SessionDate;
+            }
+            if (dto.Type != 0)
+            {
+                session.Type = dto.Type;
+            }
+            if (dto.Location != null)
+            {
+                session.Location = dto.Location;
+            }
+
             session.Status = dto.Status;
-            session.Notes = dto.Notes;
-            session.Location = dto.Location; // Ensure Location is updated
+            if (dto.Notes != null)
+            {
+                session.Notes = dto.Notes;
+            }
             session.UpdatedById = currentCoachId;
 
             await _unitOfWork.SaveChangesAsync();

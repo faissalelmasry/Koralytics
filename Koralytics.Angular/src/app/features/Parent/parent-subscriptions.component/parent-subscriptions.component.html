@@ -8,7 +8,8 @@
         <span class="eyebrow-text">GUARDIAN BILLING</span>
       </div>
       <h1 class="header-title">My Children Subscriptions</h1>
-      <p class="header-subtitle">Manage membership plans, payment status, dues, and payment history for your enrolled children.</p>
+      <p class="header-subtitle">Manage membership plans, payment status, dues, and payment history for your enrolled
+        children.</p>
     </div>
   </header>
 
@@ -78,9 +79,11 @@
 
   <!-- SUBSCRIPTIONS GRID -->
   <div class="subscriptions-grid">
-    @for (sub of subscriptions; track sub.id; let i = $index) {
-    <article class="subscription-card" [class.unpaid-card]="!isPaid(sub.status)" [style.animation-delay]="(i * 60) + 'ms'">
-      <div class="card-glow-bar" [class.glow-paid]="isPaid(sub.status)" [class.glow-grace]="getStatusChipType(sub.status) === 'danger'"></div>
+    @for (sub of paginatedSubscriptions; track sub.id; let i = $index) {
+    <article class="subscription-card" [class.unpaid-card]="!isPaid(sub.status)"
+      [style.animation-delay]="(i * 60) + 'ms'">
+      <div class="card-glow-bar" [class.glow-paid]="isPaid(sub.status)"
+        [class.glow-grace]="getStatusChipType(sub.status) === 'danger'"></div>
 
       <div class="card-header">
         <div class="player-info">
@@ -89,7 +92,8 @@
           }
           <h3 class="player-name">{{ sub.playerName }}</h3>
         </div>
-        <app-status-chip [label]="sub.status | uppercase" [type]="getStatusChipType(sub.status)" [pulse]="getStatusChipType(sub.status) === 'danger'"></app-status-chip>
+        <app-status-chip [label]="sub.status | uppercase" [type]="getStatusChipType(sub.status)"
+          [pulse]="getStatusChipType(sub.status) === 'danger'"></app-status-chip>
       </div>
 
       <div class="card-body">
@@ -102,7 +106,8 @@
         <div class="meta-grid">
           <div class="meta-item">
             <span class="meta-label">Start Date</span>
-            <span class="meta-value">{{ isValidDate(sub.startDate) ? (sub.startDate | date:'mediumDate') : 'N/A' }}</span>
+            <span class="meta-value">{{ isValidDate(sub.startDate) ? (sub.startDate | date:'mediumDate') : 'N/A'
+              }}</span>
           </div>
           <div class="meta-item">
             <span class="meta-label">Due Date</span>
@@ -121,7 +126,8 @@
         <div class="footer-actions flex items-center gap-2">
           @if (!isPaid(sub.status)) {
           <app-button variant="accent" (click)="openPaymentModal(sub)">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              style="margin-right: 6px;">
               <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
               <line x1="1" y1="10" x2="23" y2="10"></line>
             </svg>
@@ -129,7 +135,8 @@
           </app-button>
           } @else {
           <app-button variant="slate" [disabled]="true">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              style="margin-right: 6px;">
               <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
               <polyline points="22 4 12 14.01 9 11.01"></polyline>
             </svg>
@@ -139,7 +146,8 @@
         </div>
 
         <app-button variant="slate" (click)="openHistoryModal(sub.playerId, sub.playerName)">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            style="margin-right: 6px;">
             <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
           </svg>
           History
@@ -148,6 +156,14 @@
     </article>
     }
   </div>
+
+  @if (subscriptions.length > pageSize) {
+  <div class="pagination-wrapper mt-4">
+    <app-pagination [totalItems]="subscriptions.length" [pageSize]="pageSize" [currentPage]="currentPage"
+      (pageChange)="onPageChange($event)">
+    </app-pagination>
+  </div>
+  }
   }
 
   <!-- STRIPE VISA CHECKOUT MODAL -->
@@ -187,7 +203,8 @@
           </div>
           <div class="summary-row">
             <span class="summary-label">Total Dues:</span>
-            <span class="summary-val text-green font-bold">{{ selectedSubForPayment.amount | currency:'EGP ':'symbol':'1.0-0' }}</span>
+            <span class="summary-val text-green font-bold">{{ selectedSubForPayment.amount | currency:'EGP
+              ':'symbol':'1.0-0' }}</span>
           </div>
         </div>
 
@@ -207,7 +224,8 @@
 
       <div class="modal-footer">
         <app-button variant="slate" (click)="closePaymentModal()">Cancel</app-button>
-        <app-button variant="accent" [loading]="isProcessingId === selectedSubForPayment.id || isStripeLoading" [disabled]="isProcessingId === selectedSubForPayment.id || isStripeLoading" (click)="confirmPayment()">
+        <app-button variant="accent" [loading]="isProcessingId === selectedSubForPayment.id || isStripeLoading"
+          [disabled]="isProcessingId === selectedSubForPayment.id || isStripeLoading" (click)="confirmPayment()">
           Pay {{ selectedSubForPayment.amount }} EGP with Visa
         </app-button>
       </div>
@@ -230,7 +248,8 @@
           </div>
           <div>
             <h3 class="modal-title">Payment & Billing History</h3>
-            <p class="modal-subtitle">Billing cycle history for <strong class="highlight">{{ selectedHistoryPlayer.name }}</strong></p>
+            <p class="modal-subtitle">Billing cycle history for <strong class="highlight">{{ selectedHistoryPlayer.name
+                }}</strong></p>
           </div>
         </div>
         <button class="modal-close-btn" (click)="closeHistoryModal()">&times;</button>
@@ -266,7 +285,8 @@
                 </td>
                 <td class="font-bold text-white">{{ item.amount }} EGP</td>
                 <td>
-                  <app-status-chip [label]="item.status | uppercase" [type]="getStatusChipType(item.status)"></app-status-chip>
+                  <app-status-chip [label]="item.status | uppercase"
+                    [type]="getStatusChipType(item.status)"></app-status-chip>
                 </td>
                 <td class="text-slate">
                   {{ isValidDate(item.paidAt) ? (item.paidAt | date:'mediumDate') : '—' }}

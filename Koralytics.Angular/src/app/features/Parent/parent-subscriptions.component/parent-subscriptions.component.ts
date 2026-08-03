@@ -9,6 +9,7 @@ import { LoadingSpinnerComponent } from '@shared/components/loading-spinner/load
 import { EmptyStateComponent } from '@shared/components/empty-state/empty-state';
 import { CustomButtonComponent } from '@shared/components/custom-button/custom-button';
 import { StatusChipComponent } from '@shared/components/status-chip/status-chip';
+import { Pagination } from '@shared/components/pagination/pagination';
 import { NotificationService } from '@core/services/SignalR/notificationservice';
 
 @Component({
@@ -20,13 +21,17 @@ import { NotificationService } from '@core/services/SignalR/notificationservice'
     LoadingSpinnerComponent,
     EmptyStateComponent,
     CustomButtonComponent,
-    StatusChipComponent
+    StatusChipComponent,
+    Pagination
   ],
   templateUrl: './parent-subscriptions.component.html',
   styleUrls: ['./parent-subscriptions.component.css']
 })
 export class ParentSubscriptionsComponent implements OnInit {
   subscriptions: PlayerSubscriptionDto[] = [];
+  paginatedSubscriptions: PlayerSubscriptionDto[] = [];
+  currentPage = 1;
+  pageSize = 6;
   isLoading = true;
   isProcessingId: number | null = null;
   errorMessage = '';
@@ -50,7 +55,7 @@ export class ParentSubscriptionsComponent implements OnInit {
   readonly Status = SubscriptionStatus;
   readonly Duration = SubscriptionDuration;
 
-  constructor(private subscriptionService: SubscriptionService ,private notificationService: NotificationService) { }
+  constructor(private subscriptionService: SubscriptionService, private notificationService: NotificationService) { }
 
   ngOnInit(): void {
     this.loadSubscriptions();
@@ -63,6 +68,8 @@ export class ParentSubscriptionsComponent implements OnInit {
     this.subscriptionService.getMyChildrenSubscriptions().subscribe({
       next: (data: PlayerSubscriptionDto[]) => {
         this.subscriptions = data || [];
+        this.currentPage = 1;
+        this.updatePaginatedSubscriptions();
         this.isLoading = false;
       },
       error: (err) => {
@@ -71,6 +78,16 @@ export class ParentSubscriptionsComponent implements OnInit {
         this.isLoading = false;
       }
     });
+  }
+
+  updatePaginatedSubscriptions(): void {
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    this.paginatedSubscriptions = this.subscriptions.slice(startIndex, startIndex + this.pageSize);
+  }
+
+  onPageChange(page: number): void {
+    this.currentPage = page;
+    this.updatePaginatedSubscriptions();
   }
 
   // Stats Counters
@@ -209,7 +226,7 @@ export class ParentSubscriptionsComponent implements OnInit {
 
           const parentMsg = `Your online payment of ${sub.amount} EGP for ${sub.playerName} was successful.`;
           this.notificationService.notifyPlayerParents(sub.playerId, parentMsg).subscribe({
-             error: (e) => console.error('Failed to notify parent of payment success', e)
+            error: (e) => console.error('Failed to notify parent of payment success', e)
           });
           this.isProcessingId = null;
           this.closePaymentModal();

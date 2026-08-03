@@ -9,7 +9,7 @@
 .parent-portal-page {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0 10px;
+    padding: 135px 10px 40px;
 }
 
 .flex-between {
@@ -311,7 +311,7 @@
 ========================================== */
 .modules-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 24px;
 }
 

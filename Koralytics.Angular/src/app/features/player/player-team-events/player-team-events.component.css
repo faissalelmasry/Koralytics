@@ -202,9 +202,9 @@
   position: relative;
   overflow: hidden;
   transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-              border-color 0.35s ease,
-              background-color 0.35s ease,
-              box-shadow 0.35s ease;
+    border-color 0.35s ease,
+    background-color 0.35s ease,
+    box-shadow 0.35s ease;
 }
 
 .koralytics-card.clickable {
@@ -243,8 +243,30 @@
   transform: translateX(0%);
 }
 
-.card-match::after { background: linear-gradient(90deg, transparent, var(--color-yellow), transparent); }
-.card-drill::after { background: linear-gradient(90deg, transparent, var(--glow-green), transparent); }
+.card-match::after {
+  background: linear-gradient(90deg, transparent, var(--color-yellow), transparent);
+}
+
+.card-drill::after {
+  background: linear-gradient(90deg, transparent, var(--glow-green), transparent);
+}
+
+.card-cancelled {
+  border: 1px solid rgba(239, 68, 68, 0.4) !important;
+  border-left: 5px solid #ef4444 !important;
+  background: rgba(239, 68, 68, 0.08) !important;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.15) !important;
+}
+
+.card-cancelled::after {
+  background: linear-gradient(90deg, transparent, #ef4444, transparent) !important;
+}
+
+.card-cancelled:hover {
+  background: rgba(239, 68, 68, 0.12) !important;
+  border-color: rgba(239, 68, 68, 0.6) !important;
+  box-shadow: 0 12px 30px -8px rgba(239, 68, 68, 0.3) !important;
+}
 
 .card-left-info {
   display: flex;
@@ -284,6 +306,49 @@
 .card-subtitle {
   font-size: 0.82rem;
   color: var(--text-muted);
+}
+
+.session-notes-box {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: rgba(163, 230, 53, 0.05);
+  border: 1px solid rgba(163, 230, 53, 0.2);
+  border-left: 3px solid var(--color-green);
+  border-radius: 6px;
+  color: #e2e8f0;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.session-notes-box .info-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  stroke: var(--color-green);
+}
+
+.session-notes-box .notes-label {
+  font-weight: 700;
+  color: var(--color-green);
+  margin-right: 2px;
+}
+
+.session-notes-box.box-cancelled {
+  background: rgba(248, 113, 113, 0.06);
+  border: 1px solid rgba(248, 113, 113, 0.25);
+  border-left: 3px solid var(--color-red);
+}
+
+.session-notes-box.box-cancelled .info-icon {
+  stroke: var(--color-red);
+}
+
+.session-notes-box.box-cancelled .notes-label {
+  color: var(--color-red);
 }
 
 .badge {
@@ -366,10 +431,13 @@
 }
 
 @keyframes pulseDot {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 0 8px var(--color-green);
     transform: scale(1);
   }
+
   50% {
     box-shadow: 0 0 18px var(--color-green), 0 0 32px var(--glow-green);
     transform: scale(1.5);
