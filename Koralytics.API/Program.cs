@@ -119,6 +119,7 @@ using StackExchange.Redis;
 using Koralytics.Application.Services.SystemAdmin.UserManagement;
 using Infrastructure.Services.Match;
 using Koralytics.Infrastructure.BackGroundJobs;
+using Koralytics.Infrastructure.Seeding;
 
 
 namespace Koralytics.API
@@ -221,7 +222,7 @@ namespace Koralytics.API
             builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
             builder.Services.Configure<CloudflareR2Options>(
                 builder.Configuration.GetSection(CloudflareR2Options.SectionName));
-            
+
             builder.Services.Configure<EmailSettings>(
                 builder.Configuration.GetSection(EmailSettings.SectionName));
             builder.Services.Configure<GroqOptions>(
@@ -445,7 +446,7 @@ namespace Koralytics.API
                     var context = services.GetRequiredService<ApplicationDbContext>();
                     var userManager = services.GetRequiredService<UserManager<User>>();
                     var roleManager = services.GetRequiredService<RoleManager<Domain.Entities.Identity.Role>>();
-                    //await DbInitializer.SeedAsync(context, userManager, roleManager);
+                    await DbInitializer.SeedAsync(context, userManager, roleManager);
                 }
                 catch (Exception ex)
                 {
