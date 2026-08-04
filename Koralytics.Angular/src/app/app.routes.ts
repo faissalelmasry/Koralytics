@@ -1,9 +1,11 @@
+import { inject } from '@angular/core';
 import { Routes } from '@angular/router';
 import { AuthLayoutComponent } from './layouts/auth-layout/auth-layout.component';
 import { DashboardLayoutComponent } from './layouts/dashboard-layout/dashboard-layout.component';
 import { authGuard } from '../core/guards/auth.guard';
 import { guestGuard } from '../core/guards/guest.guard';
 import { roleGuard } from '../core/guards/role.guard';
+import { AuthService } from '../core/services/auth/auth.service';
 
 export const routes: Routes = [
   { path: 'confirm-email', redirectTo: 'auth/confirm-email' },
@@ -31,7 +33,7 @@ export const routes: Routes = [
     component: DashboardLayoutComponent,
     canActivate: [authGuard],
     children: [
-      { path: 'dashboard', loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent) },
+      { path: 'dashboard', redirectTo: () => inject(AuthService).getRoleDashboardRoute(), pathMatch: 'full' },
 
       // Drills
       {
@@ -57,12 +59,6 @@ export const routes: Routes = [
         loadComponent: () => import('./features/drills/drill-session-details.component/drill-session-details.component').then(m => m.DrillSessionDetailsComponent),
         canActivate: [roleGuard],
         data: { roles: ['AcademyAdmin', 'Coach'] }
-      },
-      {
-        path: 'drills/players/:playerId/progression',
-        loadComponent: () => import('./features/drills/player-drill-progression.component/player-drill-progression.component').then(m => m.PlayerDrillProgressionComponent),
-        canActivate: [roleGuard],
-        data: { roles: ['AcademyAdmin', 'Coach', 'Player', 'Parent', 'SystemAdmin'] }
       },
 
       // Drill Analytics
@@ -169,7 +165,7 @@ export const routes: Routes = [
       { path: 'match/friendly-request', loadComponent: () => import('./features/match/pages/friendly-match-request/friendly-match-request.component').then(m => m.FriendlyMatchRequestComponent), canActivate: [roleGuard], data: { roles: ['Coach', 'AcademyAdmin'] } },
       { path: 'match/requests/incoming', loadComponent: () => import('./features/match/pages/match-request-incoming/match-request-incoming.component').then(m => m.MatchRequestIncomingComponent), canActivate: [roleGuard], data: { roles: ['Coach', 'AcademyAdmin'] } },
       { path: 'match/requests/outgoing', loadComponent: () => import('./features/match/pages/match-request-outgoing/match-request-outgoing.component').then(m => m.MatchRequestOutgoingComponent), canActivate: [roleGuard], data: { roles: ['Coach', 'AcademyAdmin'] } },
-      { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
+      { path: '', redirectTo: () => inject(AuthService).getRoleDashboardRoute(), pathMatch: 'full' }
     ]
   },
 
@@ -229,6 +225,18 @@ export const routes: Routes = [
     loadComponent: () => import('./features/system-admin/pages/system-admin-dashboard/system-admin-dashboard.component').then(m => m.SystemAdminDashboardComponent),
     canActivate: [authGuard, roleGuard],
     data: { roles: ['SystemAdmin'] }
+  },
+  {
+    path: 'coach/dashboard',
+    loadComponent: () => import('./features/coach/pages/coach-dashboard/coach-dashboard.component').then(m => m.CoachDashboardComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Coach'] }
+  },
+  {
+    path: 'scouter/dashboard',
+    loadComponent: () => import('./features/scouter/pages/scouter-dashboard/scouter-dashboard.component').then(m => m.ScouterDashboardComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Scouter'] }
   },
   {
     path: 'player/profile',

@@ -32,6 +32,30 @@
         </div>
       </div>
 
+      @if (isScouter && !isOwnProfile) {
+      <div class="scouter-follow-action">
+        <button type="button" class="btn-follow" [class.following]="isFollowing" [disabled]="isFollowLoading"
+          (click)="toggleFollow()">
+          @if (isFollowLoading) {
+          <span class="btn-spinner"></span>
+          } @else if (isFollowing) {
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          <span>Following</span>
+          } @else {
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          <span>Follow</span>
+          }
+        </button>
+      </div>
+      }
+
       <div class="bio-quick-list">
         <div class="bio-item">
           <span class="bio-lbl">Status</span>
@@ -127,7 +151,7 @@
               <polyline points="7 23 3 19 7 15" />
               <path d="M21 13v2a4 4 0 0 1-4 4H3" />
             </svg>
-            &nbsp;Change Primary
+            &nbsp;Primary
           </app-button>
           <app-button [variant]="tierButtonVariant" (click)="openAddPositionModal()" style="flex: 1;">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -135,7 +159,7 @@
               <line x1="12" y1="5" x2="12" y2="19" />
               <line x1="5" y1="12" x2="19" y2="12" />
             </svg>
-            &nbsp;Add Position
+            &nbsp;Position
           </app-button>
           <app-button variant="coral" (click)="openRemovePositionModal()" style="flex: 1;">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -143,7 +167,7 @@
               <polyline points="3 6 5 6 21 6" />
               <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
             </svg>
-            &nbsp;Remove Position
+            &nbsp;Position
           </app-button>
         </div>
         }
@@ -180,10 +204,22 @@
             </div>
             }
           </div>
+          <div class="radar-card-footer" style="margin-top: 10px; width: 100%;">
+            <app-button [variant]="tierButtonVariant" (click)="goToAcademyComparison()" style="width: 100%;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="20" x2="18" y2="10" />
+                <line x1="12" y1="20" x2="12" y2="4" />
+                <line x1="6" y1="20" x2="6" y2="14" />
+              </svg>
+              &nbsp;Compare To Academy
+            </app-button>
+          </div>
         </div>
 
         @if (isOwnProfile) {
-        <app-button [variant]="tierButtonVariant" [shimmer]="true" (click)="openArchetypeOverlay()">
+        <app-button [variant]="tierButtonVariant" [shimmer]="true" (click)="openArchetypeOverlay()"
+          style="width: 100%; margin-top: 10px;">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round">
             <path d="M13 2L3 14h9l-1 8 10-12h-8l1-8z" />
@@ -234,12 +270,13 @@
 
     </div>
 
-      <!-- =============== 4. COMPETITION BREAKDOWN =============== -->
-      <div class="breakdown-section">
-        <div class="panel-header" style="margin-bottom:20px; display: flex; justify-content: space-between; align-items: center;">
-          <span>Match Performance Breakdown</span>
-            <app-button [variant]="tierButtonVariant" (click)="goToTimeline()">View Full Timeline</app-button>
-        </div>
+    <!-- =============== 4. COMPETITION BREAKDOWN =============== -->
+    <div class="breakdown-section">
+      <div class="panel-header"
+        style="margin-bottom:20px; display: flex; justify-content: space-between; align-items: center;">
+        <span>Match Performance Breakdown</span>
+        <app-button [variant]="tierButtonVariant" (click)="goToTimeline()">View Full Timeline</app-button>
+      </div>
 
       <div class="breakdown-grid">
         @for (comp of competitionBreakdown; track comp.label; let i = $index) {
@@ -257,6 +294,12 @@
         }
       </div>
     </div>
+
+    <!-- =============== 5. DRILL PROGRESSION =============== -->
+    @if (playerId) {
+    <app-player-drill-progression [playerId]="playerId" [tierButtonVariant]="tierButtonVariant" scrollReveal
+      direction="bottom" [delay]="480"></app-player-drill-progression>
+    }
 
     <!-- =============== POSITION SELECTION MODAL =============== -->
     @if (showPositionModal) {
@@ -337,28 +380,28 @@
     [attr.aria-label]="isCardFlipped ? 'Archetype revealed' : 'Tap to reveal archetype'">
     <div class="pack-card-inner" [class.flipped]="isCardFlipped">
 
-        <div class="card-face card-face-back">
-          <div class="mystery-logo">KORALYTICS</div>
-          @if (isRevealingArchetype) {
-            <div class="tap-hint loading-spin">
-              <span class="spinner-dot"></span> REVEALING ARCHETYPE...
-            </div>
-          } @else if (revealError) {
-            <div class="tap-hint error-hint">{{ revealError }}</div>
-          } @else {
-            <div class="tap-hint">TAP TO REVEAL</div>
-          }
+      <div class="card-face card-face-back">
+        <div class="mystery-logo">KORALYTICS</div>
+        @if (isRevealingArchetype) {
+        <div class="tap-hint loading-spin">
+          <span class="spinner-dot"></span> REVEALING ARCHETYPE...
         </div>
+        } @else if (revealError) {
+        <div class="tap-hint error-hint">{{ revealError }}</div>
+        } @else {
+        <div class="tap-hint">TAP TO REVEAL</div>
+        }
+      </div>
 
-        <div class="card-face card-face-front">
-          <div class="archetype-badge-icon">
-            <img [src]="tierLogoUrl" alt="Koralytics Logo" class="arch-badge-logo" />
-          </div>
-          <div class="arch-label">PLAYER ARCHETYPE</div>
-          <div class="arch-title">{{ archetypeTitle }}</div>
-          <div class="arch-text">{{ archetypeTextDescription }}</div>
-          <div class="arch-subline">{{ nextRevealNotice }}</div>
+      <div class="card-face card-face-front">
+        <div class="archetype-badge-icon">
+          <img [src]="tierLogoUrl" alt="Koralytics Logo" class="arch-badge-logo" />
         </div>
+        <div class="arch-label">PLAYER ARCHETYPE</div>
+        <div class="arch-title">{{ archetypeTitle }}</div>
+        <div class="arch-text">{{ archetypeTextDescription }}</div>
+        <div class="arch-subline">{{ nextRevealNotice }}</div>
+      </div>
 
     </div>
   </div>

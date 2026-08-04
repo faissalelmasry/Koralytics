@@ -17,13 +17,15 @@ import { TokenStorageService } from '../../../../core/services/auth/token-storag
 import { PlayerProfileModel } from '../../../../core/models/Player/player-profile-model';
 import { ScouterService } from '@core/services/Scouter/scouter.service';
 import { NotificationService } from '@core/services/SignalR/notificationservice';
+import { ToastService } from '../../../../core/services/Toast/toast';
+import { PlayerDrillProgressionComponent } from '../../drills/player-drill-progression.component/player-drill-progression.component';
 
 Chart.register(...registerables);
 
 @Component({
   selector: 'app-player-profile',
   standalone: true,
-  imports: [CommonModule, NavbarComponent, Footer, PlayerCardComponent, TransferCanvasComponent, LoadingSpinnerComponent, ScrollRevealDirective, CustomButtonComponent, ConfirmDialogComponent, CustomToggle],
+  imports: [CommonModule, NavbarComponent, Footer, PlayerCardComponent, TransferCanvasComponent, LoadingSpinnerComponent, ScrollRevealDirective, CustomButtonComponent, ConfirmDialogComponent, CustomToggle, PlayerDrillProgressionComponent],
   templateUrl: './player-profile.component.html',
   styleUrls: ['./player-profile.component.css']
 })
@@ -38,6 +40,13 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
   private cdr = inject(ChangeDetectorRef);
   private scouterService = inject(ScouterService);
   private notificationService = inject(NotificationService);
+  private toastService = inject(ToastService);
+
+  // ── Scouter Follow State ─────────────────────────────────────
+  isScouter = false;
+  isFollowing = false;
+  isFollowLoading = false;
+  currentScouterId: number | null = null;
 
   // ── View children ───────────────────────────────────────────
   @ViewChild('countersSection') countersSection!: ElementRef<HTMLElement>;
@@ -139,17 +148,27 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
   // ── Lifecycle ───────────────────────────────────────────────
   ngOnInit() {
     let userRoles: string[] = [];
-    const token = this.tokenStorage.getAccessToken();
-    if (token) {
-      const decoded = this.decodeTokenPayload(token);
-      if (decoded) {
-        this.loggedInUserId = decoded.userId;
-        userRoles = decoded.roles;
+    const user = this.tokenStorage.getUser();
+    if (user) {
+      this.loggedInUserId = user.userId;
+      userRoles = user.roles || [];
+    } else {
+      const token = this.tokenStorage.getAccessToken();
+      if (token) {
+        const decoded = this.decodeTokenPayload(token);
+        if (decoded) {
+          this.loggedInUserId = decoded.userId;
+          userRoles = decoded.roles || [];
+        }
       }
     }
-    
 
     const paramId = this.route.snapshot.paramMap.get('playerId');
+
+    this.isScouter = userRoles.some(r => r.toLowerCase() === 'scouter');
+    if (this.isScouter && this.loggedInUserId) {
+      this.currentScouterId = this.loggedInUserId;
+    }
 
     if (paramId) {
       this.playerId = Number(paramId);
@@ -162,6 +181,7 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
       this.error = 'Authentication required';
     }
   }
+
 private logAndNotifyIfScouter(roles: string[]) {
     if (!this.playerId || !this.loggedInUserId || this.playerId === this.loggedInUserId) {
       return; 
@@ -182,6 +202,22 @@ private logAndNotifyIfScouter(roles: string[]) {
       this.router.navigate(['/player/timeline', this.playerId]);
     } else {
       this.router.navigate(['/player/timeline']);
+    }
+  }
+
+  goToDrillTimeline() {
+    if (this.playerId) {
+      this.router.navigate(['/player/drill-timeline', this.playerId]);
+    } else {
+      this.router.navigate(['/player/drill-timeline']);
+    }
+  }
+
+  goToAcademyComparison() {
+    if (this.playerId) {
+      this.router.navigate(['/player/academy-comparison', this.playerId]);
+    } else {
+      this.router.navigate(['/player/academy-comparison']);
     }
   }
 
@@ -547,6 +583,9 @@ private logAndNotifyIfScouter(roles: string[]) {
       next: (profile) => {
         this.profile = profile;
         this.isLoading = false;
+        if (this.isScouter && this.currentScouterId && this.playerId && !this.isOwnProfile) {
+          this.checkFollowStatus();
+        }
         this.cdr.detectChanges();
         setTimeout(() => {
           this.setupCountersObserver();
@@ -561,6 +600,59 @@ private logAndNotifyIfScouter(roles: string[]) {
       }
     });
   }
+
+  private checkFollowStatus() {
+    if (!this.currentScouterId || !this.playerId) return;
+    this.scouterService.isFollowing(this.currentScouterId, this.playerId).subscribe({
+      next: (isFollowing: boolean) => {
+        this.isFollowing = !!isFollowing;
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Failed to check follow status:', err);
+      }
+    });
+  }
+
+
+  toggleFollow() {
+    if (!this.currentScouterId || !this.playerId || this.isFollowLoading) return;
+
+    this.isFollowLoading = true;
+    if (this.isFollowing) {
+      this.scouterService.unfollowPlayer(this.currentScouterId, this.playerId).subscribe({
+        next: () => {
+          this.isFollowing = false;
+          this.isFollowLoading = false;
+          this.toastService.show('Unfollowed player successfully.', 'info');
+          this.cdr.markForCheck();
+        },
+        error: (err) => {
+          this.isFollowLoading = false;
+          console.error('Failed to unfollow player:', err);
+          this.toastService.show('Failed to unfollow player.', 'error');
+          this.cdr.markForCheck();
+        }
+      });
+    } else {
+      this.scouterService.followPlayer(this.currentScouterId, this.playerId).subscribe({
+        next: () => {
+          this.isFollowing = true;
+          this.isFollowLoading = false;
+          this.toastService.show('You are now following this player.', 'success');
+          this.cdr.markForCheck();
+        },
+        error: (err) => {
+          this.isFollowLoading = false;
+          console.error('Failed to follow player:', err);
+          this.toastService.show('Failed to follow player.', 'error');
+          this.cdr.markForCheck();
+        }
+      });
+    }
+  }
+
 
   private decodeTokenPayload(token: string): { userId: number; roles: string[] } | null {
     try {

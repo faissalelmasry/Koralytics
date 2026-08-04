@@ -252,4 +252,31 @@ export class AuthService {
   public getCurrentUserSync(): User | null {
     return this.currentUserSubject.value;
   }
+
+  public getRoleDashboardRoute(): string {
+    if (!this.isLoggedIn()) {
+      return '/auth/login';
+    }
+    const roles = this.getUserRoles();
+    if (roles.includes('SystemAdmin')) {
+      return '/system-admin/dashboard';
+    }
+    if (roles.includes('AcademyAdmin')) {
+      return '/academy-admin/dashboard';
+    }
+    if (roles.includes('Parent')) {
+      return '/parent/dashboard';
+    }
+    if (roles.includes('Player')) {
+      return '/player/profile';
+    }
+    if (roles.includes('Coach')) {
+      return '/coach/dashboard';
+    }
+    if (roles.includes('Scouter')) {
+      return '/scouter/dashboard';
+    }
+    return '/player/profile';
+  }
 }
+

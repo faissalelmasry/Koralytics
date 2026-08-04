@@ -126,6 +126,68 @@
   gap: 16px;
 }
 
+.scouter-follow-action {
+  margin: 0 16px;
+  display: flex;
+  align-items: center;
+}
+
+.btn-follow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 10px;
+  border: 1px solid var(--tier-border-glow, rgba(200, 255, 77, 0.4));
+  background: var(--tier-neon, #c8ff4d);
+  color: #0a0c0f;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 16px var(--tier-glow, rgba(200, 255, 77, 0.25));
+}
+
+.btn-follow:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.15);
+  box-shadow: 0 6px 22px var(--tier-glow, rgba(200, 255, 77, 0.4));
+}
+
+.btn-follow.following {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f2f3f5;
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: none;
+}
+
+.btn-follow.following:hover {
+  background: rgba(255, 71, 87, 0.15);
+  color: #ff4757;
+  border-color: rgba(255, 71, 87, 0.4);
+  box-shadow: 0 4px 14px rgba(255, 71, 87, 0.2);
+}
+
+.btn-follow:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: btnSpin 0.8s linear infinite;
+}
+
+@keyframes btnSpin {
+  to { transform: rotate(360deg); }
+}
+
 .avatar-circle {
   width: 60px;
   height: 60px;
@@ -469,7 +531,7 @@
 .radar-container {
   width: 100%;
   flex: 1;
-  min-height: 220px;
+  min-height: 180px;
   position: relative;
 }
 

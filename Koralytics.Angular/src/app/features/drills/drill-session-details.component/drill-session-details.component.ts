@@ -383,6 +383,6 @@ export class DrillSessionDetailsComponent implements OnInit {
   }
   navigateToPlayerProgression(playerId: number): void {
     if (!playerId) return;
-    this.router.navigate(['/drills/players', playerId, 'progression']);
+    this.router.navigate(['/player/profile', playerId]);
   }
 }
