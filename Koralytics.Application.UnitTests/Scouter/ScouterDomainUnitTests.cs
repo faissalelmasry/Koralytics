@@ -28,6 +28,9 @@
 //using Koralytics.Application.Services.Scouter.ScouterSearchService;
 //using Koralytics.Application.Services.Scouter.ScouterReportService;
 
+//using System.Net.Http;
+//using Microsoft.Extensions.Configuration;
+
 //namespace Koralytics.Tests.ScouterTests
 //{
 //    public class ScouterDomainUnitTests
@@ -37,422 +40,422 @@
 //        private readonly Mock<IPlayerCardService> _mockPlayerCardService;
 //        private readonly CardInvalidationList _invalidationList;
 
-        // Loggers
-        private readonly Mock<ILogger<ScouterFollowService>> _mockFollowLogger;
-        private readonly Mock<ILogger<ScouterShortlistService>> _mockShortlistLogger;
-        private readonly Mock<ILogger<ScouterSearchService>> _mockSearchLogger;
-        private readonly Mock<ILogger<ScouterReportService>> _mockReportLogger;
-
-        // Repositories
-        private readonly Mock<IRepository<Scouter>> _mockScouterRepo;
-        private readonly Mock<IRepository<Player>> _mockPlayerRepo;
-        private readonly Mock<IRepository<ScouterFollow>> _mockFollowRepo;
-        private readonly Mock<IRepository<ScouterView>> _mockViewRepo;
-        private readonly Mock<IRepository<ScouterShortlist>> _mockShortlistRepo;
-        private readonly Mock<IRepository<ScouterReport>> _mockReportRepo;
-        private readonly Mock<IRepository<MatchLineup>> _mockMatchLineupRepo;
-        private readonly Mock<IRepository<PlayerCard>> _mockPlayerCardRepo;
-
-        public ScouterDomainUnitTests()
-        {
-            _mockUnitOfWork = new Mock<IUnitOfWork>();
-            _mockMapper = new Mock<IMapper>();
-            _mockPlayerCardService = new Mock<IPlayerCardService>();
-
-            _mockFollowLogger = new Mock<ILogger<ScouterFollowService>>();
-            _mockShortlistLogger = new Mock<ILogger<ScouterShortlistService>>();
-            _mockSearchLogger = new Mock<ILogger<ScouterSearchService>>();
-            _mockReportLogger = new Mock<ILogger<ScouterReportService>>();
-
-            var mockScopeFactory = new Mock<IServiceScopeFactory>();
-            var mockLogger = new Mock<ILogger<CardInvalidationList>>();
-            _invalidationList = new CardInvalidationList(mockScopeFactory.Object, mockLogger.Object);
-
-            _mockScouterRepo = new Mock<IRepository<Scouter>>();
-            _mockPlayerRepo = new Mock<IRepository<Player>>();
-            _mockFollowRepo = new Mock<IRepository<ScouterFollow>>();
-            _mockViewRepo = new Mock<IRepository<ScouterView>>();
-            _mockShortlistRepo = new Mock<IRepository<ScouterShortlist>>();
-            _mockReportRepo = new Mock<IRepository<ScouterReport>>();
-            _mockMatchLineupRepo = new Mock<IRepository<MatchLineup>>();
-            _mockPlayerCardRepo = new Mock<IRepository<PlayerCard>>();
-
-            _mockUnitOfWork.Setup(uow => uow.Repository<Scouter>()).Returns(_mockScouterRepo.Object);
-            _mockUnitOfWork.Setup(uow => uow.Repository<Player>()).Returns(_mockPlayerRepo.Object);
-            _mockUnitOfWork.Setup(uow => uow.Repository<ScouterFollow>()).Returns(_mockFollowRepo.Object);
-            _mockUnitOfWork.Setup(uow => uow.Repository<ScouterView>()).Returns(_mockViewRepo.Object);
-            _mockUnitOfWork.Setup(uow => uow.Repository<ScouterShortlist>()).Returns(_mockShortlistRepo.Object);
-            _mockUnitOfWork.Setup(uow => uow.Repository<ScouterReport>()).Returns(_mockReportRepo.Object);
-            _mockUnitOfWork.Setup(uow => uow.Repository<MatchLineup>()).Returns(_mockMatchLineupRepo.Object);
-            _mockUnitOfWork.Setup(uow => uow.Repository<PlayerCard>()).Returns(_mockPlayerCardRepo.Object);
-
-            // Default empty backing sets so older tests that don't touch these repos don't NRE.
-            _mockScouterRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(new List<Scouter>().BuildMockDbSet().Object);
-            _mockPlayerRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(new List<Player>().BuildMockDbSet().Object);
-            _mockFollowRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(new List<ScouterFollow>().BuildMockDbSet().Object);
-            _mockShortlistRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(new List<ScouterShortlist>().BuildMockDbSet().Object);
-            _mockMatchLineupRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(new List<MatchLineup>().BuildMockDbSet().Object);
-            _mockPlayerCardRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(new List<PlayerCard>().BuildMockDbSet().Object);
-
-            SetupRealMapperConfiguration();
-        }
-
-        // IMPORTANT: this now loads the REAL Koralytics.Application.Mappings.ScouterProfile.ScouterProfile
-        // instead of a hand-rolled, null-guarded stand-in. The previous local mapping was safer than
-        // production and let tests pass against behavior the app doesn't actually have. ProjectTo in
-        // every service call uses whatever _mapper.ConfigurationProvider returns, so the test config
-        // must be the real one or these tests prove nothing about production correctness.
-        private void SetupRealMapperConfiguration()
-        {
-            var configExpression = new MapperConfigurationExpression();
-            configExpression.AddProfile<Koralytics.Application.Mappings.ScouterProfile.ScouterProfile>();
-
-            var config = new MapperConfiguration(configExpression, NullLoggerFactory.Instance);
-
-            _mockMapper.Setup(m => m.ConfigurationProvider).Returns(config);
-        }
-
-        // Kept as an alias so existing test bodies that call SetupPlayerCardProjection() still compile;
-        // it now just (re)applies the real mapping configuration.
-        private void SetupPlayerCardProjection() => SetupRealMapperConfiguration();
-
-        // The real PlayerCard -> PlayerCardDto map does not null-guard the root PlayerCard row, s.Player,
-        // or s.Player.PlayerPositions.FirstOrDefault(p => p.IsPrimary). Every Player fixture that will be
-        // projected through that map must carry at least one primary PlayerPosition, or ProjectTo throws
-        // a NullReferenceException the instant AutoMapper evaluates ".Position" on a null FirstOrDefault().
-        private static Player CreateProjectablePlayer(int id, string firstName = "Test", string lastName = "Player", DateTime? dateOfBirth = null)
-        {
-            return new Player
-            {
-                Id = id,
-                FirstName = firstName,
-                LastName = lastName,
-                DateOfBirth = dateOfBirth ?? DateTime.UtcNow.AddYears(-20),
-                PlayerPositions = new List<PlayerPosition>
-                {
-                    new PlayerPosition { IsPrimary = true }
-                }
-            };
-        }
-
-        // Every player that survives a filter/pagination step in the service methods under test must have
-        // a matching PlayerCard row, or the service's FirstOrDefault() returns null and ProjectTo crashes
-        // trying to read a member off that null row. This helper keeps that pairing explicit and correct.
-        private static PlayerCard CreateProjectableCard(Player player, decimal overallRating = 70)
-        {
-            return new PlayerCard
-            {
-                PlayerId = player.Id,
-                Player = player,
-                OverallRating = overallRating
-            };
-        }
+//        // Loggers
+//        private readonly Mock<ILogger<ScouterFollowService>> _mockFollowLogger;
+//        private readonly Mock<ILogger<ScouterShortlistService>> _mockShortlistLogger;
+//        private readonly Mock<ILogger<ScouterSearchService>> _mockSearchLogger;
+//        private readonly Mock<ILogger<ScouterReportService>> _mockReportLogger;
+
+//        // Repositories
+//        private readonly Mock<IRepository<Scouter>> _mockScouterRepo;
+//        private readonly Mock<IRepository<Player>> _mockPlayerRepo;
+//        private readonly Mock<IRepository<ScouterFollow>> _mockFollowRepo;
+//        private readonly Mock<IRepository<ScouterView>> _mockViewRepo;
+//        private readonly Mock<IRepository<ScouterShortlist>> _mockShortlistRepo;
+//        private readonly Mock<IRepository<ScouterReport>> _mockReportRepo;
+//        private readonly Mock<IRepository<MatchLineup>> _mockMatchLineupRepo;
+//        private readonly Mock<IRepository<PlayerCard>> _mockPlayerCardRepo;
+
+//        public ScouterDomainUnitTests()
+//        {
+//            _mockUnitOfWork = new Mock<IUnitOfWork>();
+//            _mockMapper = new Mock<IMapper>();
+//            _mockPlayerCardService = new Mock<IPlayerCardService>();
+
+//            _mockFollowLogger = new Mock<ILogger<ScouterFollowService>>();
+//            _mockShortlistLogger = new Mock<ILogger<ScouterShortlistService>>();
+//            _mockSearchLogger = new Mock<ILogger<ScouterSearchService>>();
+//            _mockReportLogger = new Mock<ILogger<ScouterReportService>>();
+
+//            var mockScopeFactory = new Mock<IServiceScopeFactory>();
+//            var mockLogger = new Mock<ILogger<CardInvalidationList>>();
+//            _invalidationList = new CardInvalidationList(mockScopeFactory.Object, mockLogger.Object);
+
+//            _mockScouterRepo = new Mock<IRepository<Scouter>>();
+//            _mockPlayerRepo = new Mock<IRepository<Player>>();
+//            _mockFollowRepo = new Mock<IRepository<ScouterFollow>>();
+//            _mockViewRepo = new Mock<IRepository<ScouterView>>();
+//            _mockShortlistRepo = new Mock<IRepository<ScouterShortlist>>();
+//            _mockReportRepo = new Mock<IRepository<ScouterReport>>();
+//            _mockMatchLineupRepo = new Mock<IRepository<MatchLineup>>();
+//            _mockPlayerCardRepo = new Mock<IRepository<PlayerCard>>();
+
+//            _mockUnitOfWork.Setup(uow => uow.Repository<Scouter>()).Returns(_mockScouterRepo.Object);
+//            _mockUnitOfWork.Setup(uow => uow.Repository<Player>()).Returns(_mockPlayerRepo.Object);
+//            _mockUnitOfWork.Setup(uow => uow.Repository<ScouterFollow>()).Returns(_mockFollowRepo.Object);
+//            _mockUnitOfWork.Setup(uow => uow.Repository<ScouterView>()).Returns(_mockViewRepo.Object);
+//            _mockUnitOfWork.Setup(uow => uow.Repository<ScouterShortlist>()).Returns(_mockShortlistRepo.Object);
+//            _mockUnitOfWork.Setup(uow => uow.Repository<ScouterReport>()).Returns(_mockReportRepo.Object);
+//            _mockUnitOfWork.Setup(uow => uow.Repository<MatchLineup>()).Returns(_mockMatchLineupRepo.Object);
+//            _mockUnitOfWork.Setup(uow => uow.Repository<PlayerCard>()).Returns(_mockPlayerCardRepo.Object);
+
+//            // Default empty backing sets so older tests that don't touch these repos don't NRE.
+//            _mockScouterRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(new List<Scouter>().BuildMockDbSet().Object);
+//            _mockPlayerRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(new List<Player>().BuildMockDbSet().Object);
+//            _mockFollowRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(new List<ScouterFollow>().BuildMockDbSet().Object);
+//            _mockShortlistRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(new List<ScouterShortlist>().BuildMockDbSet().Object);
+//            _mockMatchLineupRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(new List<MatchLineup>().BuildMockDbSet().Object);
+//            _mockPlayerCardRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(new List<PlayerCard>().BuildMockDbSet().Object);
+
+//            SetupRealMapperConfiguration();
+//        }
+
+//        // IMPORTANT: this now loads the REAL Koralytics.Application.Mappings.ScouterProfile.ScouterProfile
+//        // instead of a hand-rolled, null-guarded stand-in. The previous local mapping was safer than
+//        // production and let tests pass against behavior the app doesn't actually have. ProjectTo in
+//        // every service call uses whatever _mapper.ConfigurationProvider returns, so the test config
+//        // must be the real one or these tests prove nothing about production correctness.
+//        private void SetupRealMapperConfiguration()
+//        {
+//            var configExpression = new MapperConfigurationExpression();
+//            configExpression.AddProfile<Koralytics.Application.Mappings.ScouterProfile.ScouterProfile>();
+
+//            var config = new MapperConfiguration(configExpression, NullLoggerFactory.Instance);
+
+//            _mockMapper.Setup(m => m.ConfigurationProvider).Returns(config);
+//        }
+
+//        // Kept as an alias so existing test bodies that call SetupPlayerCardProjection() still compile;
+//        // it now just (re)applies the real mapping configuration.
+//        private void SetupPlayerCardProjection() => SetupRealMapperConfiguration();
+
+//        // The real PlayerCard -> PlayerCardDto map does not null-guard the root PlayerCard row, s.Player,
+//        // or s.Player.PlayerPositions.FirstOrDefault(p => p.IsPrimary). Every Player fixture that will be
+//        // projected through that map must carry at least one primary PlayerPosition, or ProjectTo throws
+//        // a NullReferenceException the instant AutoMapper evaluates ".Position" on a null FirstOrDefault().
+//        private static Player CreateProjectablePlayer(int id, string firstName = "Test", string lastName = "Player", DateTime? dateOfBirth = null)
+//        {
+//            return new Player
+//            {
+//                Id = id,
+//                FirstName = firstName,
+//                LastName = lastName,
+//                DateOfBirth = dateOfBirth ?? DateTime.UtcNow.AddYears(-20),
+//                PlayerPositions = new List<PlayerPosition>
+//                {
+//                    new PlayerPosition { IsPrimary = true }
+//                }
+//            };
+//        }
+
+//        // Every player that survives a filter/pagination step in the service methods under test must have
+//        // a matching PlayerCard row, or the service's FirstOrDefault() returns null and ProjectTo crashes
+//        // trying to read a member off that null row. This helper keeps that pairing explicit and correct.
+//        private static PlayerCard CreateProjectableCard(Player player, decimal overallRating = 70)
+//        {
+//            return new PlayerCard
+//            {
+//                PlayerId = player.Id,
+//                Player = player,
+//                OverallRating = overallRating
+//            };
+//        }
 
-        private ScouterSearchService CreateSearchService() =>
-            new ScouterSearchService(_mockUnitOfWork.Object, _mockMapper.Object, _mockSearchLogger.Object);
+//        private ScouterSearchService CreateSearchService() =>
+//            new ScouterSearchService(_mockUnitOfWork.Object, _mockMapper.Object, _mockSearchLogger.Object, new HttpClient(), new ConfigurationBuilder().Build());
 
-        private ScouterShortlistService CreateShortlistService() =>
-            new ScouterShortlistService(_mockUnitOfWork.Object, _mockMapper.Object, _mockShortlistLogger.Object);
+//        private ScouterShortlistService CreateShortlistService() =>
+//            new ScouterShortlistService(_mockUnitOfWork.Object, _mockMapper.Object, _mockShortlistLogger.Object);
 
-        private ScouterFollowService CreateFollowService() =>
-            new ScouterFollowService(_mockUnitOfWork.Object, _mockMapper.Object, _mockFollowLogger.Object);
+//        private ScouterFollowService CreateFollowService() =>
+//            new ScouterFollowService(_mockUnitOfWork.Object, _mockMapper.Object, _mockFollowLogger.Object);
 
-        private ScouterReportService CreateReportService() =>
-            new ScouterReportService(_mockUnitOfWork.Object, _mockReportLogger.Object);
+//        private ScouterReportService CreateReportService() =>
+//            new ScouterReportService(_mockUnitOfWork.Object, _mockReportLogger.Object);
 
-        #region SECTION 1: ScouterFollowService Tests
+//        #region SECTION 1: ScouterFollowService Tests
 
-        [Fact]
-        public async Task FollowPlayer_ShouldThrowNotFoundException_WhenScouterDoesNotExist()
-        {
-            var service = CreateFollowService();
+//        [Fact]
+//        public async Task FollowPlayer_ShouldThrowNotFoundException_WhenScouterDoesNotExist()
+//        {
+//            var service = CreateFollowService();
 
-            var emptyScouterDbSet = new List<Scouter>().BuildMockDbSet().Object;
-            var playerDbSet = new List<Player> { new Player { Id = 99 } }.BuildMockDbSet().Object;
+//            var emptyScouterDbSet = new List<Scouter>().BuildMockDbSet().Object;
+//            var playerDbSet = new List<Player> { new Player { Id = 99 } }.BuildMockDbSet().Object;
 
-            _mockScouterRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(emptyScouterDbSet);
-            _mockPlayerRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(playerDbSet);
+//            _mockScouterRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(emptyScouterDbSet);
+//            _mockPlayerRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(playerDbSet);
 
-            await Assert.ThrowsAsync<NotFoundException>(() => service.FollowPlayerAsync(1, 99));
-        }
+//            await Assert.ThrowsAsync<NotFoundException>(() => service.FollowPlayerAsync(1, 99));
+//        }
 
-        [Fact]
-        public async Task FollowPlayer_ShouldThrowNotFoundException_WhenPlayerDoesNotExist()
-        {
-            var service = CreateFollowService();
+//        [Fact]
+//        public async Task FollowPlayer_ShouldThrowNotFoundException_WhenPlayerDoesNotExist()
+//        {
+//            var service = CreateFollowService();
 
-            var scouterDbSet = new List<Scouter> { new Scouter { Id = 1 } }.BuildMockDbSet().Object;
-            var emptyPlayerDbSet = new List<Player>().BuildMockDbSet().Object;
+//            var scouterDbSet = new List<Scouter> { new Scouter { Id = 1 } }.BuildMockDbSet().Object;
+//            var emptyPlayerDbSet = new List<Player>().BuildMockDbSet().Object;
 
-            _mockScouterRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(scouterDbSet);
-            _mockPlayerRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(emptyPlayerDbSet);
+//            _mockScouterRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(scouterDbSet);
+//            _mockPlayerRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(emptyPlayerDbSet);
 
-            await Assert.ThrowsAsync<NotFoundException>(() => service.FollowPlayerAsync(1, 99));
-        }
+//            await Assert.ThrowsAsync<NotFoundException>(() => service.FollowPlayerAsync(1, 99));
+//        }
 
-        [Fact]
-        public async Task FollowPlayer_ShouldSaveFollowRelation_WhenValidAndNotAlreadyFollowing()
-        {
-            var service = CreateFollowService();
+//        [Fact]
+//        public async Task FollowPlayer_ShouldSaveFollowRelation_WhenValidAndNotAlreadyFollowing()
+//        {
+//            var service = CreateFollowService();
 
-            var scouterDbSet = new List<Scouter> { new Scouter { Id = 1 } }.BuildMockDbSet().Object;
-            var playerDbSet = new List<Player> { new Player { Id = 10 } }.BuildMockDbSet().Object;
+//            var scouterDbSet = new List<Scouter> { new Scouter { Id = 1 } }.BuildMockDbSet().Object;
+//            var playerDbSet = new List<Player> { new Player { Id = 10 } }.BuildMockDbSet().Object;
 
-            _mockScouterRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(scouterDbSet);
-            _mockPlayerRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(playerDbSet);
-            _mockFollowRepo.Setup(r => r.ExistsAsync(It.IsAny<Expression<Func<ScouterFollow, bool>>>())).ReturnsAsync(false);
+//            _mockScouterRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(scouterDbSet);
+//            _mockPlayerRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(playerDbSet);
+//            _mockFollowRepo.Setup(r => r.ExistsAsync(It.IsAny<Expression<Func<ScouterFollow, bool>>>())).ReturnsAsync(false);
 
-            await service.FollowPlayerAsync(1, 10);
+//            await service.FollowPlayerAsync(1, 10);
 
-            _mockFollowRepo.Verify(r => r.AddAsync(It.Is<ScouterFollow>(f => f.ScouterUserId == 1 && f.PlayerId == 10)), Times.Once);
-            _mockUnitOfWork.Verify(uow => uow.SaveChangesAsync(), Times.Once);
-        }
+//            _mockFollowRepo.Verify(r => r.AddAsync(It.Is<ScouterFollow>(f => f.ScouterUserId == 1 && f.PlayerId == 10)), Times.Once);
+//            _mockUnitOfWork.Verify(uow => uow.SaveChangesAsync(), Times.Once);
+//        }
 
-        [Fact]
-        public async Task FollowPlayer_ShouldShortCircuitSilently_WhenAlreadyFollowing()
-        {
-            var service = CreateFollowService();
+//        [Fact]
+//        public async Task FollowPlayer_ShouldShortCircuitSilently_WhenAlreadyFollowing()
+//        {
+//            var service = CreateFollowService();
 
-            var scouterDbSet = new List<Scouter> { new Scouter { Id = 1 } }.BuildMockDbSet().Object;
-            var playerDbSet = new List<Player> { new Player { Id = 10 } }.BuildMockDbSet().Object;
+//            var scouterDbSet = new List<Scouter> { new Scouter { Id = 1 } }.BuildMockDbSet().Object;
+//            var playerDbSet = new List<Player> { new Player { Id = 10 } }.BuildMockDbSet().Object;
 
-            _mockScouterRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(scouterDbSet);
-            _mockPlayerRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(playerDbSet);
-            _mockFollowRepo.Setup(r => r.ExistsAsync(It.IsAny<Expression<Func<ScouterFollow, bool>>>())).ReturnsAsync(true);
+//            _mockScouterRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(scouterDbSet);
+//            _mockPlayerRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(playerDbSet);
+//            _mockFollowRepo.Setup(r => r.ExistsAsync(It.IsAny<Expression<Func<ScouterFollow, bool>>>())).ReturnsAsync(true);
 
-            await service.FollowPlayerAsync(1, 10);
+//            await service.FollowPlayerAsync(1, 10);
 
-            _mockFollowRepo.Verify(r => r.AddAsync(It.IsAny<ScouterFollow>()), Times.Never);
-            _mockUnitOfWork.Verify(uow => uow.SaveChangesAsync(), Times.Never);
-        }
+//            _mockFollowRepo.Verify(r => r.AddAsync(It.IsAny<ScouterFollow>()), Times.Never);
+//            _mockUnitOfWork.Verify(uow => uow.SaveChangesAsync(), Times.Never);
+//        }
 
-        [Fact]
-        public async Task UnfollowPlayer_ShouldSoftDeleteRelation_WhenFollowExists()
-        {
-            var service = CreateFollowService();
+//        [Fact]
+//        public async Task UnfollowPlayer_ShouldSoftDeleteRelation_WhenFollowExists()
+//        {
+//            var service = CreateFollowService();
 
-            var existingFollow = new ScouterFollow { ScouterUserId = 1, PlayerId = 10 };
-            _mockFollowRepo.Setup(r => r.FindAsync(It.IsAny<Expression<Func<ScouterFollow, bool>>>())).ReturnsAsync(existingFollow);
+//            var existingFollow = new ScouterFollow { ScouterUserId = 1, PlayerId = 10 };
+//            _mockFollowRepo.Setup(r => r.FindAsync(It.IsAny<Expression<Func<ScouterFollow, bool>>>())).ReturnsAsync(existingFollow);
 
-            await service.UnfollowPlayerAsync(1, 10);
+//            await service.UnfollowPlayerAsync(1, 10);
 
-            _mockFollowRepo.Verify(r => r.SoftDelete(existingFollow), Times.Once);
-            _mockUnitOfWork.Verify(uow => uow.SaveChangesAsync(), Times.Once);
-        }
+//            _mockFollowRepo.Verify(r => r.SoftDelete(existingFollow), Times.Once);
+//            _mockUnitOfWork.Verify(uow => uow.SaveChangesAsync(), Times.Once);
+//        }
 
-        [Fact]
-        public async Task UnfollowPlayer_ShouldThrowNotFoundException_WhenScouterDoesNotExistAndFollowMissing()
-        {
-            var service = CreateFollowService();
+//        [Fact]
+//        public async Task UnfollowPlayer_ShouldThrowNotFoundException_WhenScouterDoesNotExistAndFollowMissing()
+//        {
+//            var service = CreateFollowService();
 
-            _mockFollowRepo.Setup(r => r.FindAsync(It.IsAny<Expression<Func<ScouterFollow, bool>>>())).ReturnsAsync((ScouterFollow)null);
+//            _mockFollowRepo.Setup(r => r.FindAsync(It.IsAny<Expression<Func<ScouterFollow, bool>>>())).ReturnsAsync((ScouterFollow)null);
 
-            var emptyScouterDbSet = new List<Scouter>().BuildMockDbSet().Object;
-            var playerDbSet = new List<Player> { new Player { Id = 10 } }.BuildMockDbSet().Object;
+//            var emptyScouterDbSet = new List<Scouter>().BuildMockDbSet().Object;
+//            var playerDbSet = new List<Player> { new Player { Id = 10 } }.BuildMockDbSet().Object;
 
-            _mockScouterRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(emptyScouterDbSet);
-            _mockPlayerRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(playerDbSet);
+//            _mockScouterRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(emptyScouterDbSet);
+//            _mockPlayerRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(playerDbSet);
 
-            await Assert.ThrowsAsync<NotFoundException>(() => service.UnfollowPlayerAsync(1, 10));
-        }
+//            await Assert.ThrowsAsync<NotFoundException>(() => service.UnfollowPlayerAsync(1, 10));
+//        }
 
-        [Fact]
-        public async Task UnfollowPlayer_ShouldThrowNotFoundException_WhenPlayerDoesNotExistAndFollowMissing()
-        {
-            var service = CreateFollowService();
+//        [Fact]
+//        public async Task UnfollowPlayer_ShouldThrowNotFoundException_WhenPlayerDoesNotExistAndFollowMissing()
+//        {
+//            var service = CreateFollowService();
 
-            _mockFollowRepo.Setup(r => r.FindAsync(It.IsAny<Expression<Func<ScouterFollow, bool>>>())).ReturnsAsync((ScouterFollow)null);
+//            _mockFollowRepo.Setup(r => r.FindAsync(It.IsAny<Expression<Func<ScouterFollow, bool>>>())).ReturnsAsync((ScouterFollow)null);
 
-            var scouterDbSet = new List<Scouter> { new Scouter { Id = 1 } }.BuildMockDbSet().Object;
-            var emptyPlayerDbSet = new List<Player>().BuildMockDbSet().Object;
+//            var scouterDbSet = new List<Scouter> { new Scouter { Id = 1 } }.BuildMockDbSet().Object;
+//            var emptyPlayerDbSet = new List<Player>().BuildMockDbSet().Object;
 
-            _mockScouterRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(scouterDbSet);
-            _mockPlayerRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(emptyPlayerDbSet);
+//            _mockScouterRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(scouterDbSet);
+//            _mockPlayerRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(emptyPlayerDbSet);
 
-            await Assert.ThrowsAsync<NotFoundException>(() => service.UnfollowPlayerAsync(1, 10));
-        }
+//            await Assert.ThrowsAsync<NotFoundException>(() => service.UnfollowPlayerAsync(1, 10));
+//        }
 
-        [Fact]
-        public async Task UnfollowPlayer_ShouldThrowNotFoundException_WhenFollowRecordMissingButEntitiesExist()
-        {
-            var service = CreateFollowService();
+//        [Fact]
+//        public async Task UnfollowPlayer_ShouldThrowNotFoundException_WhenFollowRecordMissingButEntitiesExist()
+//        {
+//            var service = CreateFollowService();
 
-            _mockFollowRepo.Setup(r => r.FindAsync(It.IsAny<Expression<Func<ScouterFollow, bool>>>())).ReturnsAsync((ScouterFollow)null);
+//            _mockFollowRepo.Setup(r => r.FindAsync(It.IsAny<Expression<Func<ScouterFollow, bool>>>())).ReturnsAsync((ScouterFollow)null);
 
-            var scouterDbSet = new List<Scouter> { new Scouter { Id = 1 } }.BuildMockDbSet().Object;
-            var playerDbSet = new List<Player> { new Player { Id = 10 } }.BuildMockDbSet().Object;
+//            var scouterDbSet = new List<Scouter> { new Scouter { Id = 1 } }.BuildMockDbSet().Object;
+//            var playerDbSet = new List<Player> { new Player { Id = 10 } }.BuildMockDbSet().Object;
 
-            _mockScouterRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(scouterDbSet);
-            _mockPlayerRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(playerDbSet);
+//            _mockScouterRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(scouterDbSet);
+//            _mockPlayerRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(playerDbSet);
 
-            await Assert.ThrowsAsync<NotFoundException>(() => service.UnfollowPlayerAsync(1, 10));
-        }
+//            await Assert.ThrowsAsync<NotFoundException>(() => service.UnfollowPlayerAsync(1, 10));
+//        }
 
-        [Fact]
-        public async Task LogProfileView_ShouldThrowNotFoundException_WhenScouterDoesNotExist()
-        {
-            var service = CreateFollowService();
+//        [Fact]
+//        public async Task LogProfileView_ShouldThrowNotFoundException_WhenScouterDoesNotExist()
+//        {
+//            var service = CreateFollowService();
 
-            _mockScouterRepo.Setup(r => r.ExistsAsync(It.IsAny<Expression<Func<Scouter, bool>>>())).ReturnsAsync(false);
+//            _mockScouterRepo.Setup(r => r.ExistsAsync(It.IsAny<Expression<Func<Scouter, bool>>>())).ReturnsAsync(false);
 
-            await Assert.ThrowsAsync<NotFoundException>(() => service.LogProfileViewAsync(1, 10));
+//            await Assert.ThrowsAsync<NotFoundException>(() => service.LogProfileViewAsync(1, 10));
 
-            _mockViewRepo.Verify(r => r.AddAsync(It.IsAny<ScouterView>()), Times.Never);
-        }
+//            _mockViewRepo.Verify(r => r.AddAsync(It.IsAny<ScouterView>()), Times.Never);
+//        }
 
-        [Fact]
-        public async Task LogProfileView_ShouldThrowNotFoundException_WhenPlayerDoesNotExist()
-        {
-            var service = CreateFollowService();
+//        [Fact]
+//        public async Task LogProfileView_ShouldThrowNotFoundException_WhenPlayerDoesNotExist()
+//        {
+//            var service = CreateFollowService();
 
-            _mockScouterRepo.Setup(r => r.ExistsAsync(It.IsAny<Expression<Func<Scouter, bool>>>())).ReturnsAsync(true);
-            _mockPlayerRepo.Setup(r => r.ExistsAsync(It.IsAny<Expression<Func<Player, bool>>>())).ReturnsAsync(false);
+//            _mockScouterRepo.Setup(r => r.ExistsAsync(It.IsAny<Expression<Func<Scouter, bool>>>())).ReturnsAsync(true);
+//            _mockPlayerRepo.Setup(r => r.ExistsAsync(It.IsAny<Expression<Func<Player, bool>>>())).ReturnsAsync(false);
 
-            await Assert.ThrowsAsync<NotFoundException>(() => service.LogProfileViewAsync(1, 10));
+//            await Assert.ThrowsAsync<NotFoundException>(() => service.LogProfileViewAsync(1, 10));
 
-            _mockViewRepo.Verify(r => r.AddAsync(It.IsAny<ScouterView>()), Times.Never);
-        }
+//            _mockViewRepo.Verify(r => r.AddAsync(It.IsAny<ScouterView>()), Times.Never);
+//        }
 
-        [Fact]
-        public async Task LogProfileView_ShouldCreateScouterViewRecord_WhenActorsAreValid()
-        {
-            var service = CreateFollowService();
+//        [Fact]
+//        public async Task LogProfileView_ShouldCreateScouterViewRecord_WhenActorsAreValid()
+//        {
+//            var service = CreateFollowService();
 
-            _mockScouterRepo.Setup(r => r.ExistsAsync(It.IsAny<Expression<Func<Scouter, bool>>>())).ReturnsAsync(true);
-            _mockPlayerRepo.Setup(r => r.ExistsAsync(It.IsAny<Expression<Func<Player, bool>>>())).ReturnsAsync(true);
+//            _mockScouterRepo.Setup(r => r.ExistsAsync(It.IsAny<Expression<Func<Scouter, bool>>>())).ReturnsAsync(true);
+//            _mockPlayerRepo.Setup(r => r.ExistsAsync(It.IsAny<Expression<Func<Player, bool>>>())).ReturnsAsync(true);
 
-            await service.LogProfileViewAsync(1, 10);
+//            await service.LogProfileViewAsync(1, 10);
 
-            _mockViewRepo.Verify(r => r.AddAsync(It.Is<ScouterView>(v => v.ScouterId == 1 && v.PlayerId == 10)), Times.Once);
-            _mockUnitOfWork.Verify(uow => uow.SaveChangesAsync(), Times.Once);
-        }
+//            _mockViewRepo.Verify(r => r.AddAsync(It.Is<ScouterView>(v => v.ScouterId == 1 && v.PlayerId == 10)), Times.Once);
+//            _mockUnitOfWork.Verify(uow => uow.SaveChangesAsync(), Times.Once);
+//        }
 
-        [Fact]
-        public async Task GetFollowedPlayers_ShouldThrowNotFoundException_WhenScouterDoesNotExist()
-        {
-            var service = CreateFollowService();
+//        [Fact]
+//        public async Task GetFollowedPlayers_ShouldThrowNotFoundException_WhenScouterDoesNotExist()
+//        {
+//            var service = CreateFollowService();
 
-            var emptyFollowDbSet = new List<ScouterFollow>().BuildMockDbSet().Object;
-            var emptyScouterDbSet = new List<Scouter>().BuildMockDbSet().Object;
+//            var emptyFollowDbSet = new List<ScouterFollow>().BuildMockDbSet().Object;
+//            var emptyScouterDbSet = new List<Scouter>().BuildMockDbSet().Object;
 
-            _mockFollowRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(emptyFollowDbSet);
-            _mockScouterRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(emptyScouterDbSet);
+//            _mockFollowRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(emptyFollowDbSet);
+//            _mockScouterRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(emptyScouterDbSet);
 
-            await Assert.ThrowsAsync<NotFoundException>(() => service.GetFollowedPlayersAsync(1));
-        }
+//            await Assert.ThrowsAsync<NotFoundException>(() => service.GetFollowedPlayersAsync(1));
+//        }
 
-        [Fact]
-        public async Task GetFollowedPlayers_ShouldReturnEmptyResult_WhenScouterExistsButHasNoFollowedPlayers()
-        {
-            var service = CreateFollowService();
+//        [Fact]
+//        public async Task GetFollowedPlayers_ShouldReturnEmptyResult_WhenScouterExistsButHasNoFollowedPlayers()
+//        {
+//            var service = CreateFollowService();
 
-            var emptyFollowDbSet = new List<ScouterFollow>().BuildMockDbSet().Object;
-            var scouterDbSet = new List<Scouter> { new Scouter { Id = 1 } }.BuildMockDbSet().Object;
+//            var emptyFollowDbSet = new List<ScouterFollow>().BuildMockDbSet().Object;
+//            var scouterDbSet = new List<Scouter> { new Scouter { Id = 1 } }.BuildMockDbSet().Object;
 
-            _mockFollowRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(emptyFollowDbSet);
-            _mockScouterRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(scouterDbSet);
+//            _mockFollowRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(emptyFollowDbSet);
+//            _mockScouterRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(scouterDbSet);
 
-            var result = await service.GetFollowedPlayersAsync(1);
+//            var result = await service.GetFollowedPlayersAsync(1);
 
-            Assert.Empty(result.Items);
-            Assert.Equal(0, result.TotalCount);
-        }
+//            Assert.Empty(result.Items);
+//            Assert.Equal(0, result.TotalCount);
+//        }
 
-        [Fact]
-        public async Task GetFollowedPlayers_ShouldFilterBySearchTerm()
-        {
-            var service = CreateFollowService();
-            SetupPlayerCardProjection();
+//        [Fact]
+//        public async Task GetFollowedPlayers_ShouldFilterBySearchTerm()
+//        {
+//            var service = CreateFollowService();
+//            SetupPlayerCardProjection();
 
-            var scouterDbSet = new List<Scouter> { new Scouter { Id = 1 } }.BuildMockDbSet().Object;
-            _mockScouterRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(scouterDbSet);
+//            var scouterDbSet = new List<Scouter> { new Scouter { Id = 1 } }.BuildMockDbSet().Object;
+//            _mockScouterRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(scouterDbSet);
 
-            // Every player reachable by the query below flows through the real, unguarded
-            // PlayerCard -> PlayerCardDto map, so both need PlayerPositions populated, and both
-            // need a matching PlayerCard row with Player set (not just PlayerId).
-            var matchingPlayer = CreateProjectablePlayer(10, "Leo", "Silva");
-            var nonMatchingPlayer = CreateProjectablePlayer(11, "Karim", "Ahmed");
+//            // Every player reachable by the query below flows through the real, unguarded
+//            // PlayerCard -> PlayerCardDto map, so both need PlayerPositions populated, and both
+//            // need a matching PlayerCard row with Player set (not just PlayerId).
+//            var matchingPlayer = CreateProjectablePlayer(10, "Leo", "Silva");
+//            var nonMatchingPlayer = CreateProjectablePlayer(11, "Karim", "Ahmed");
 
-            var follows = new List<ScouterFollow>
-            {
-                new ScouterFollow { Id = 1, ScouterUserId = 1, PlayerId = 10, Player = matchingPlayer, FollowedAt = DateTime.UtcNow, IsDeleted = false },
-                new ScouterFollow { Id = 2, ScouterUserId = 1, PlayerId = 11, Player = nonMatchingPlayer, FollowedAt = DateTime.UtcNow, IsDeleted = false }
-            };
-            _mockFollowRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(follows.BuildMockDbSet().Object);
+//            var follows = new List<ScouterFollow>
+//            {
+//                new ScouterFollow { Id = 1, ScouterUserId = 1, PlayerId = 10, Player = matchingPlayer, FollowedAt = DateTime.UtcNow, IsDeleted = false },
+//                new ScouterFollow { Id = 2, ScouterUserId = 1, PlayerId = 11, Player = nonMatchingPlayer, FollowedAt = DateTime.UtcNow, IsDeleted = false }
+//            };
+//            _mockFollowRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(follows.BuildMockDbSet().Object);
 
-            var cards = new List<PlayerCard>
-            {
-                CreateProjectableCard(matchingPlayer),
-                CreateProjectableCard(nonMatchingPlayer)
-            };
-            _mockPlayerCardRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(cards.BuildMockDbSet().Object);
+//            var cards = new List<PlayerCard>
+//            {
+//                CreateProjectableCard(matchingPlayer),
+//                CreateProjectableCard(nonMatchingPlayer)
+//            };
+//            _mockPlayerCardRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(cards.BuildMockDbSet().Object);
 
-            var result = await service.GetFollowedPlayersAsync(1, searchTerm: "Leo");
+//            var result = await service.GetFollowedPlayersAsync(1, searchTerm: "Leo");
 
-            Assert.Equal(1, result.TotalCount);
-        }
+//            Assert.Equal(1, result.TotalCount);
+//        }
 
-        [Fact]
-        public async Task GetFollowedPlayers_ShouldReturnPaginatedResults()
-        {
-            var service = CreateFollowService();
-            SetupPlayerCardProjection();
+//        [Fact]
+//        public async Task GetFollowedPlayers_ShouldReturnPaginatedResults()
+//        {
+//            var service = CreateFollowService();
+//            SetupPlayerCardProjection();
 
-            var players = Enumerable.Range(1, 15)
-                .Select(i => CreateProjectablePlayer(i, $"Player{i}", "Test"))
-                .ToList();
+//            var players = Enumerable.Range(1, 15)
+//                .Select(i => CreateProjectablePlayer(i, $"Player{i}", "Test"))
+//                .ToList();
 
-            var follows = players.Select(p => new ScouterFollow
-            {
-                Id = p.Id,
-                ScouterUserId = 1,
-                PlayerId = p.Id,
-                Player = p,
-                FollowedAt = DateTime.UtcNow.AddMinutes(-p.Id),
-                IsDeleted = false
-            }).ToList();
+//            var follows = players.Select(p => new ScouterFollow
+//            {
+//                Id = p.Id,
+//                ScouterUserId = 1,
+//                PlayerId = p.Id,
+//                Player = p,
+//                FollowedAt = DateTime.UtcNow.AddMinutes(-p.Id),
+//                IsDeleted = false
+//            }).ToList();
 
-            var cards = players.Select(p => CreateProjectableCard(p, 80)).ToList();
+//            var cards = players.Select(p => CreateProjectableCard(p, 80)).ToList();
 
-            _mockFollowRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(follows.BuildMockDbSet().Object);
-            _mockPlayerCardRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(cards.BuildMockDbSet().Object);
+//            _mockFollowRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(follows.BuildMockDbSet().Object);
+//            _mockPlayerCardRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(cards.BuildMockDbSet().Object);
 
-            var result = await service.GetFollowedPlayersAsync(1, pageNumber: 2, pageSize: 10);
+//            var result = await service.GetFollowedPlayersAsync(1, pageNumber: 2, pageSize: 10);
 
-            Assert.Equal(15, result.TotalCount);
-            Assert.Equal(5, result.Items.Count);
-            Assert.Equal(2, result.PageNumber);
-        }
+//            Assert.Equal(15, result.TotalCount);
+//            Assert.Equal(5, result.Items.Count);
+//            Assert.Equal(2, result.PageNumber);
+//        }
 
-        [Fact]
-        public async Task GetProfileViewsAnalytics_ShouldReturnEmptyAnalytics_WhenPlayerHasNoViews()
-        {
-            var service = CreateFollowService();
+//        [Fact]
+//        public async Task GetProfileViewsAnalytics_ShouldReturnEmptyAnalytics_WhenPlayerHasNoViews()
+//        {
+//            var service = CreateFollowService();
 
-            var playerList = new List<Player>
-            {
-                new Player { Id = 10, ScouterViews = new List<ScouterView>() }
-            };
+//            var playerList = new List<Player>
+//            {
+//                new Player { Id = 10, ScouterViews = new List<ScouterView>() }
+//            };
 
-            var mockPlayerDbSet = playerList.BuildMockDbSet().Object;
-            _mockPlayerRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(mockPlayerDbSet);
+//            var mockPlayerDbSet = playerList.BuildMockDbSet().Object;
+//            _mockPlayerRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(mockPlayerDbSet);
 
-            SetupRealMapperConfiguration();
+//            SetupRealMapperConfiguration();
 
-            var result = await service.GetProfileViewsAnalyticsAsync(10);
+//            var result = await service.GetProfileViewsAnalyticsAsync(10);
 
-            Assert.NotNull(result);
-            _mockPlayerRepo.Verify(r => r.GetQueryableAsNoTracking(), Times.Once);
-        }
+//            Assert.NotNull(result);
+//            _mockPlayerRepo.Verify(r => r.GetQueryableAsNoTracking(), Times.Once);
+//        }
 
-        [Fact]
-        public async Task GetProfileViewsAnalytics_ShouldReturnSafeDefaults_WhenPlayerDoesNotExist()
-        {
-            var service = CreateFollowService();
+//        [Fact]
+//        public async Task GetProfileViewsAnalytics_ShouldReturnSafeDefaults_WhenPlayerDoesNotExist()
+//        {
+//            var service = CreateFollowService();
 
-            var emptyPlayerList = new List<Player>();
-            var mockPlayerDbSet = emptyPlayerList.BuildMockDbSet().Object;
-            _mockPlayerRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(mockPlayerDbSet);
+//            var emptyPlayerList = new List<Player>();
+//            var mockPlayerDbSet = emptyPlayerList.BuildMockDbSet().Object;
+//            _mockPlayerRepo.Setup(r => r.GetQueryableAsNoTracking()).Returns(mockPlayerDbSet);
 
 //            SetupRealMapperConfiguration();
 

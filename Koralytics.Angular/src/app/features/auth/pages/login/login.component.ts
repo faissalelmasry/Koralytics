@@ -103,7 +103,7 @@ export class LoginComponent implements AfterViewInit {
               } 
             });
           } else {
-            this.router.navigate(['/dashboard']);
+            this.router.navigate([this.authService.getRoleDashboardRoute()]);
           }
         } else {
           this.toast.show(res.message || 'Google login failed', 'error');
@@ -128,13 +128,7 @@ export class LoginComponent implements AfterViewInit {
     this.authService.isEmailConfirmed(userId).subscribe({
       next: (res) => {
         if (res.data?.isConfirmed) {
-          const user = this.authService.getCurrentUserValue();
-          let defaultReturnUrl = '/dashboard';
-          
-          if (user?.roles?.includes('AcademyAdmin')) {
-            defaultReturnUrl = '/academy-admin/dashboard';
-          }
-          
+          const defaultReturnUrl = this.authService.getRoleDashboardRoute();
           const returnUrl = this.route.snapshot.queryParams['returnUrl'] || defaultReturnUrl;
           this.router.navigateByUrl(returnUrl);
         } else {
@@ -144,7 +138,7 @@ export class LoginComponent implements AfterViewInit {
       },
       error: () => {
         // Fallback
-        this.router.navigate(['/dashboard']);
+        this.router.navigate([this.authService.getRoleDashboardRoute()]);
       }
     });
   }

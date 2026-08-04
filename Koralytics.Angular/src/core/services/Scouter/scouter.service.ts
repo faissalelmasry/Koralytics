@@ -36,6 +36,13 @@ export class ScouterService {
     return this.http.delete<MessageOnlyResponse>(`${this.baseUrl}/${scouterId}/follow/${playerId}`);
   }
 
+  /** GET api/scouter/{scouterId}/is-following/{playerId} */
+  isFollowing(scouterId: number, playerId: number): Observable<boolean> {
+    return this.http
+      .get<ApiEnvelope<boolean>>(`${this.baseUrl}/${scouterId}/is-following/${playerId}`)
+      .pipe(map((res) => res.data));
+  }
+
   /**
    * POST api/scouter/{scouterId}/view-profile/{playerId}
    * Backend TODO notes this should move off the request thread (Redis/

@@ -22,6 +22,7 @@ export const guestGuard: CanActivateFn = (route, state) => {
     return router.createUrlTree(['/auth/complete-profile']);
   }
 
-  // Navigate to dashboard if already logged in
-  return router.createUrlTree(['/dashboard']);
+  // Navigate to role-specific dashboard if already logged in
+  return router.createUrlTree([authService.getRoleDashboardRoute()]);
 };
+

@@ -50,7 +50,7 @@
 //            _unitOfWorkMock.Setup(u => u.Repository<AcademyEntity>()).Returns(academyRepo.Object);
 
 //            var dto = new CreateAgeGroupDto { Name = "U10", MinAge = 8, MaxAge = 10 };
-
+            
 //            await Assert.ThrowsAsync<NotFoundException>(() =>
 //                _service.CreateAgeGroupAsync(1, dto, 100));
 //        }
@@ -64,7 +64,7 @@
 //            _unitOfWorkMock.Setup(u => u.Repository<AcademyEntity>()).Returns(academyRepo.Object);
 
 //            var dto = new CreateAgeGroupDto { Name = "U10", MinAge = 10, MaxAge = 8 };
-
+            
 //            await Assert.ThrowsAsync<BadRequestException>(() =>
 //                _service.CreateAgeGroupAsync(1, dto, 100));
 //        }
@@ -83,7 +83,7 @@
 //            _unitOfWorkMock.Setup(u => u.Repository<AgeGroup>()).Returns(ageGroupRepo.Object);
 
 //            var dto = new CreateAgeGroupDto { Name = "U10", MinAge = 8, MaxAge = 10 };
-
+            
 //            await Assert.ThrowsAsync<ConflictException>(() =>
 //                _service.CreateAgeGroupAsync(1, dto, 100));
 //        }
@@ -104,7 +104,7 @@
 
 //            var dto = new CreateAgeGroupDto { Name = "U10", MinAge = 8, MaxAge = 10 };
 //            var ageGroup = new AgeGroup { Id = 5, Name = "U10", AcademyId = 1 };
-
+            
 //            _mapperMock.Setup(m => m.Map<AgeGroup>(dto)).Returns(ageGroup);
 //            _mapperMock.Setup(m => m.Map<AgeGroupResponseDto>(It.IsAny<AgeGroup>()))
 //                .Returns(new AgeGroupResponseDto { Id = 5, Name = "U10" });
@@ -128,7 +128,7 @@
 //            _unitOfWorkMock.Setup(u => u.Repository<AcademyEntity>()).Returns(academyRepo.Object);
 
 //            var dto = new CreateTeamDto { Name = "Tigers", AgeGroupId = 1, LocationId = 1 };
-
+            
 //            await Assert.ThrowsAsync<NotFoundException>(() =>
 //                _service.CreateTeamAsync(1, dto, 100));
 //        }
@@ -153,11 +153,11 @@
 
 //            var teamRepo = new Mock<IRepository<Team>>();
 //            teamRepo.Setup(r => r.ExistsAsync(It.IsAny<Expression<Func<Team, bool>>>())).ReturnsAsync(false);
-
+            
 //            var teams = new List<Team> { new Team { Id = 10, Name = "Tigers", AgeGroup = new AgeGroup(), Location = new AcademyLocation() } };
 //            teamRepo.Setup(r => r.GetQueryableAsNoTracking())
 //                .Returns(teams.BuildMock());
-
+            
 //            _unitOfWorkMock.Setup(u => u.Repository<Team>()).Returns(teamRepo.Object);
 
 //            var dto = new CreateTeamDto { Name = "Tigers", AgeGroupId = 1, LocationId = 1 };

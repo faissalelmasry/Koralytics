@@ -211,7 +211,7 @@ export class CompleteProfileComponent implements OnInit {
           this.isLoading = false;
           if (res.isSuccess) {
             this.toast.show('Profile completed successfully!', 'success');
-            this.router.navigate(['/dashboard']);
+            this.router.navigate([this.authService.getRoleDashboardRoute()]);
           } else {
             this.toast.show(res.message || 'Profile completion failed', 'error');
           }
