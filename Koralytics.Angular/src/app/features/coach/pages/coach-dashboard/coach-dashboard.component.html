@@ -1,0 +1,239 @@
+<app-navbar></app-navbar>
+<div class="page-container">
+
+  <!-- Welcome Section -->
+  <div class="welcome-section">
+    <div class="welcome-avatar">
+      <span>{{ userInitial }}</span>
+    </div>
+    <div class="welcome-text">
+      <h1>Welcome back, <span class="accent">{{ userName }}</span></h1>
+      <p>{{ todayFormatted }} — Let's manage your squad</p>
+    </div>
+  </div>
+
+  <!-- Team Selector -->
+  <div class="team-selector" *ngIf="teams().length > 1">
+    <label for="dashTeamSelect">Active Team:</label>
+    <select id="dashTeamSelect" [value]="selectedTeamId" (change)="onTeamChange($event)">
+      <option *ngFor="let t of teams()" [value]="t.teamId">
+        {{ t.teamName }} ({{ t.ageGroupName }})
+      </option>
+    </select>
+  </div>
+
+  <!-- Page-level Loading -->
+  <div class="page-loading" *ngIf="pageLoading()">
+    <div class="page-spinner"></div>
+    <p>Loading your dashboard...</p>
+  </div>
+
+  <!-- Dashboard Content -->
+  <ng-container *ngIf="!pageLoading()">
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <span class="stat-icon">👥</span>
+        <div class="stat-value">{{ totalPlayers() }}</div>
+        <div class="stat-label">Squad Players</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-icon">⚽</span>
+        <div class="stat-value">{{ upcomingMatchCount() }}</div>
+        <div class="stat-label">Upcoming Matches</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-icon">🏋️</span>
+        <div class="stat-value">{{ recentSessionCount() }}</div>
+        <div class="stat-label">Recent Sessions</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-icon">📊</span>
+        <div class="stat-value">{{ avgRating() | number:'1.0-0' }}</div>
+        <div class="stat-label">Avg Squad Rating</div>
+      </div>
+    </div>
+
+    <!-- Two-Column Dashboard Grid -->
+    <div class="dashboard-grid">
+
+      <!-- Upcoming Matches -->
+      <div class="section-card">
+        <div class="section-header">
+          <h2 class="section-title">
+            <span class="section-icon">⚽</span> Upcoming Matches
+          </h2>
+          <a class="section-link" routerLink="/coach/matches">VIEW ALL →</a>
+        </div>
+
+        <div class="section-loading" *ngIf="matchesLoading()">
+          <div class="mini-spinner"></div> Loading matches...
+        </div>
+
+        <ng-container *ngIf="!matchesLoading()">
+          <div *ngIf="upcomingMatches().length === 0" class="section-empty">
+            <span class="empty-icon">📭</span>
+            No upcoming matches scheduled
+          </div>
+
+          <a *ngFor="let match of upcomingMatches()"
+             class="match-item"
+             [routerLink]="['/match', match.id]">
+            <div class="match-date-badge">
+              <span class="day">{{ match.matchDate | date:'d' }}</span>
+              <span class="month">{{ match.matchDate | date:'MMM' }}</span>
+            </div>
+            <div class="match-details">
+              <div class="match-teams">{{ match.homeTeamName }} vs {{ match.awayTeamName }}</div>
+              <div class="match-meta">
+                <span>{{ match.format }}</span>
+                <span *ngIf="match.location">📍 {{ match.location }}</span>
+              </div>
+            </div>
+            <span class="match-type-badge"
+                  [ngClass]="match.type?.toLowerCase()">{{ match.type }}</span>
+          </a>
+        </ng-container>
+      </div>
+
+      <!-- Recent Sessions -->
+      <div class="section-card">
+        <div class="section-header">
+          <h2 class="section-title">
+            <span class="section-icon">🏋️</span> Recent Sessions
+          </h2>
+          <a class="section-link" routerLink="/drills/sessions">VIEW ALL →</a>
+        </div>
+
+        <div class="section-loading" *ngIf="sessionsLoading()">
+          <div class="mini-spinner"></div> Loading sessions...
+        </div>
+
+        <ng-container *ngIf="!sessionsLoading()">
+          <div *ngIf="recentSessions().length === 0" class="section-empty">
+            <span class="empty-icon">📭</span>
+            No recent training sessions
+          </div>
+
+          <a *ngFor="let session of recentSessions()"
+             class="session-item"
+             [routerLink]="['/drills/sessions', session.id]">
+            <div class="session-icon">🏋️</div>
+            <div class="session-details">
+              <div class="session-name">{{ session.teamName || 'Training Session' }}</div>
+              <div class="session-meta">
+                {{ session.sessionDate | date:'mediumDate' }}
+                <span *ngIf="session.location"> · {{ session.location }}</span>
+              </div>
+            </div>
+            <span class="session-status"
+                  [ngClass]="getSessionStatusClass(session.status)">
+              {{ getSessionStatusLabel(session.status) }}
+            </span>
+          </a>
+        </ng-container>
+      </div>
+
+      <!-- Squad Readiness -->
+      <div class="section-card">
+        <div class="section-header">
+          <h2 class="section-title">
+            <span class="section-icon">💪</span> Squad Readiness
+          </h2>
+          <a class="section-link" routerLink="/coach/squad">DETAILS →</a>
+        </div>
+
+        <div class="section-loading" *ngIf="squadLoading()">
+          <div class="mini-spinner"></div> Loading squad...
+        </div>
+
+        <ng-container *ngIf="!squadLoading()">
+          <div *ngIf="totalPlayers() === 0" class="section-empty">
+            <span class="empty-icon">👥</span>
+            No squad data available
+          </div>
+
+          <ng-container *ngIf="totalPlayers() > 0">
+            <div class="readiness-summary">
+              <div class="readiness-stat available">
+                <div class="count">{{ availableCount() }}</div>
+                <div class="label">Available</div>
+              </div>
+              <div class="readiness-stat injured">
+                <div class="count">{{ injuredCount() }}</div>
+                <div class="label">Injured</div>
+              </div>
+              <div class="readiness-stat other">
+                <div class="count">{{ otherCount() }}</div>
+                <div class="label">Other</div>
+              </div>
+            </div>
+
+            <div class="readiness-bar-wrapper">
+              <div class="readiness-bar-segment available"
+                   [style.width.%]="readinessAvailablePercent()"></div>
+              <div class="readiness-bar-segment injured"
+                   [style.width.%]="readinessInjuredPercent()"></div>
+              <div class="readiness-bar-segment other"
+                   [style.width.%]="readinessOtherPercent()"></div>
+            </div>
+          </ng-container>
+        </ng-container>
+      </div>
+
+      <!-- Match Performance -->
+      <div class="section-card">
+        <div class="section-header">
+          <h2 class="section-title">
+            <span class="section-icon">📈</span> Match Performance
+          </h2>
+          <a class="section-link" routerLink="/coach/matches">HISTORY →</a>
+        </div>
+
+        <div class="section-loading" *ngIf="performanceLoading()">
+          <div class="mini-spinner"></div> Loading stats...
+        </div>
+
+        <ng-container *ngIf="!performanceLoading()">
+          <div *ngIf="!performance()" class="section-empty">
+            <span class="empty-icon">📊</span>
+            No match data available yet
+          </div>
+
+          <ng-container *ngIf="performance() as perf">
+            <div class="performance-grid">
+              <div class="perf-stat-card">
+                <div class="perf-value wins">{{ perf.wins }}</div>
+                <div class="perf-label">Wins</div>
+              </div>
+              <div class="perf-stat-card">
+                <div class="perf-value losses">{{ perf.losses }}</div>
+                <div class="perf-label">Losses</div>
+              </div>
+              <div class="perf-stat-card">
+                <div class="perf-value draws">{{ perf.draws }}</div>
+                <div class="perf-label">Draws</div>
+              </div>
+              <div class="perf-stat-card">
+                <div class="perf-value gd">{{ perf.goalsFor - perf.goalsAgainst >= 0 ? '+' : '' }}{{ perf.goalsFor - perf.goalsAgainst }}</div>
+                <div class="perf-label">Goal Diff</div>
+              </div>
+            </div>
+
+            <div class="win-rate-section" *ngIf="totalMatchesPlayed() > 0">
+              <div class="win-rate-label">
+                Win Rate: <strong>{{ winRate() | number:'1.0-0' }}%</strong>
+              </div>
+              <div class="win-rate-bar">
+                <div class="win-rate-fill" [style.width.%]="winRate()"></div>
+              </div>
+            </div>
+          </ng-container>
+        </ng-container>
+      </div>
+
+    </div>
+  </ng-container>
+</div>
+<app-footer></app-footer>
