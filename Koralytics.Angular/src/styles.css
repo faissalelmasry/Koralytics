@@ -12,6 +12,31 @@ html, body {
   box-sizing: border-box;
 }
 
+/* Custom Sleek Dark Theme Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #090b0e;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(200, 255, 77, 0.25);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #c8ff4d;
+  box-shadow: 0 0 10px rgba(200, 255, 77, 0.5);
+}
+
+html {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(200, 255, 77, 0.3) #090b0e;
+}
+
 /* ============================================
    Scroll Reveal Animations
    ============================================ */
@@ -50,3 +75,22 @@ html, body {
     transition: none;
   }
 }
+
+/* ============================================
+   Marquee If Overflow Directive — base styles
+   Each component defines its own animation via .is-scrolling.
+   The PARENT of [appMarqueeIfOverflow] must have overflow:hidden.
+   ============================================ */
+[appMarqueeIfOverflow] {
+  white-space: nowrap;   /* required so text stays on one line for measurement */
+  display: block;
+  /* NOTE: do NOT add overflow:hidden here — it breaks translateX scrolling.
+     The parent container is responsible for clipping. */
+}
+
+[appMarqueeIfOverflow].is-scrolling {
+  overflow: visible !important;
+  text-overflow: clip !important;
+  max-width: none !important;
+}
+

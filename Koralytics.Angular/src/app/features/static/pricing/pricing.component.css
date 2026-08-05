@@ -1,0 +1,349 @@
+.static-page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: var(--accent-dim);
+  padding: 6px 14px;
+  border-radius: 999px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(200, 255, 77, 0.2);
+}
+
+.pulse-dot {
+  width: 6px;
+  height: 6px;
+  background-color: var(--accent);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--accent);
+}
+
+.grad-text {
+  background: linear-gradient(90deg, var(--accent), #00f2fe, var(--violet), var(--accent));
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: gradShift 8s linear infinite;
+}
+
+@keyframes gradShift {
+  to { background-position: 300% 0; }
+}
+
+.hero-section {
+  text-align: center;
+  max-width: 860px;
+  margin: 0 auto 52px;
+}
+
+.hero-headline {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(42px, 6vw, 68px);
+  line-height: 1.05;
+  letter-spacing: 1px;
+  margin: 0 0 20px;
+}
+
+.hero-subheadline {
+  font-size: clamp(16px, 2vw, 19px);
+  color: var(--text-dim);
+  line-height: 1.6;
+  max-width: 720px;
+  margin: 0 auto 36px;
+}
+
+/* ---------- Billing Cycle Toggle ---------- */
+.billing-toggle-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  background: rgba(20, 23, 28, 0.6);
+  border: 1px solid var(--card-border);
+  padding: 10px 24px;
+  border-radius: 999px;
+  backdrop-filter: blur(12px);
+  font-size: 14px;
+  user-select: none;
+}
+
+.billing-toggle-wrap span {
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: color 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.billing-toggle-wrap span.active {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.discount-badge {
+  font-size: 11px;
+  background: var(--accent-dim);
+  color: var(--accent);
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(200, 255, 77, 0.2);
+}
+
+.switch {
+  width: 48px;
+  height: 26px;
+  background: var(--field-bg, #1b1f26);
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.switch.annual {
+  background: rgba(200, 255, 77, 0.2);
+  border-color: var(--accent);
+}
+
+.knob {
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.switch.annual .knob {
+  transform: translateX(22px);
+  background: var(--accent);
+}
+
+/* ---------- Pricing Grid ---------- */
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 32px;
+  margin-bottom: 60px;
+  align-items: stretch;
+}
+
+.glass-card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01));
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  padding: 36px 32px;
+  backdrop-filter: blur(16px);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.pricing-card:hover {
+  transform: translateY(-6px);
+}
+
+.pro-card {
+  border-color: var(--accent);
+  background: linear-gradient(180deg, rgba(200, 255, 77, 0.06), rgba(200, 255, 77, 0.01));
+  box-shadow: 0 0 40px -15px rgba(200, 255, 77, 0.25);
+}
+
+.popular-badge {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--accent);
+  color: #0a0c0f;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 4px 16px;
+  border-radius: 999px;
+}
+
+.tier-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 32px;
+  letter-spacing: 1px;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.tier-desc {
+  color: var(--text-dim);
+  font-size: 13.5px;
+  line-height: 1.5;
+  min-height: 40px;
+  margin: 0 0 24px;
+}
+
+.price-box {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin-bottom: 28px;
+}
+
+.price-box .currency {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
+.price-box .amount {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 54px;
+  line-height: 1;
+  color: var(--text);
+}
+
+.price-box.custom .amount {
+  font-size: 42px;
+  color: var(--cyan, #00f2fe);
+}
+
+.price-box .period {
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.card-body {
+  flex: 1;
+  margin-bottom: 32px;
+}
+
+.feature-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.feature-list li {
+  font-size: 14px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.feature-list li span {
+  color: var(--accent);
+  font-weight: bold;
+}
+
+.feature-list li.disabled {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.feature-list li.disabled span {
+  color: rgba(255, 255, 255, 0.2);
+}
+
+.card-footer {
+  margin-top: auto;
+}
+
+.full-width {
+  width: 100%;
+  text-align: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.btn {
+  padding: 14px 28px;
+  border-radius: 999px;
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 15px;
+  transition: all 0.25s ease;
+  display: inline-flex;
+  align-items: center;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #0a0c0f;
+  box-shadow: 0 0 20px rgba(200, 255, 77, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 30px rgba(200, 255, 77, 0.5);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* ---------- Note Card ---------- */
+.note-card {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  padding: 32px;
+}
+
+.note-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  color: var(--accent);
+}
+
+.note-header.violet {
+  color: var(--violet);
+}
+
+.note-header svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.note-item h4 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  letter-spacing: 0.5px;
+  margin: 0;
+  color: var(--text);
+}
+
+.note-item p {
+  color: var(--text-dim);
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .note-card { grid-template-columns: 1fr; }
+  .billing-toggle-wrap { font-size: 12.5px; padding: 8px 16px; }
+}

@@ -7,6 +7,7 @@ import { MatchRequestService } from '../../../../../core/services/match/match-re
 import { ModalService } from '../../../../../core/services/Modal/modal';
 import { ToastService } from '../../../../../core/services/Toast/toast';
 import { CreateMatchRequestDto, MatchRequestResponseDto } from '../../../../../core/interfaces/match-request.interfaces';
+import { formatToLocalISO } from '../../../../../core/utils/date.util';
 
 @Component({
   selector: 'app-match-request',
@@ -36,7 +37,7 @@ export class MatchRequestComponent implements OnInit {
     requesterTeamId: this.teamId,
     targetTeamId: 0,
     format: '11v11',
-    proposedDate: new Date(Date.now() + 86400000 * 7).toISOString().slice(0, 16), // Next week default
+    proposedDate: formatToLocalISO(new Date(Date.now() + 86400000 * 7)).slice(0, 16), // Next week default
     location: ''
   };
   submitting = signal(false);
@@ -93,7 +94,7 @@ export class MatchRequestComponent implements OnInit {
     
     // Ensure properly formatted date string
     const dto = { ...this.newRequest };
-    dto.proposedDate = new Date(dto.proposedDate).toISOString();
+    dto.proposedDate = formatToLocalISO(dto.proposedDate);
 
     this.matchService.requestFriendlyMatch(dto)
       .pipe(takeUntilDestroyed(this.destroyRef))

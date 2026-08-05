@@ -6,6 +6,8 @@ export interface PlayerProfileModel {
   dateOfBirth: string;
   age: number;
   nationality: string | null;
+  heightCm?: number | null;
+  weightKg?: number | null;
   archetypeText: string | null;
   availabilityStatus: number;
 

@@ -154,12 +154,27 @@
 }
 
 .name-band {
+  display: block;
   position: relative; z-index: 1;
   text-align: center; font-family: 'Bebas Neue', sans-serif;
-  font-size: 22px; letter-spacing: 1px;
-  padding: 8px 0 12px;
+  font-size: 22px; line-height: 1.15; letter-spacing: 1px;
+  padding: 6px 0 10px;
   border-bottom: 1px solid var(--border-cyber, #2a2f38);
-  margin-bottom: 12px;
+  margin-bottom: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.name-band.is-scrolling {
+  text-overflow: clip;
+  animation: cardNameMarquee 5s linear 0.8s infinite;
+}
+
+@keyframes cardNameMarquee {
+  0%,  20% { transform: translateX(0); }
+  50%, 80% { transform: translateX(var(--marquee-scroll, -20px)); }
+  100%     { transform: translateX(0); }
 }
 
 .stats-grid {
@@ -328,8 +343,12 @@
 
 .card3d.compact .photo,
 .card3d.compact .photo-img {
-  width: 100px;
-  height: 100px;
+  width: 90px;
+  height: 90px;
+}
+
+.card3d.compact .photo {
+  font-size: 36px;
 }
 
 .card3d.compact .photo-wrap {
@@ -338,7 +357,8 @@
 
 .card3d.compact .name-band {
   font-size: 18px;
-  padding: 6px 0 10px;
+  line-height: 1.15;
+  padding: 4px 0 8px;
   margin-bottom: 8px;
 }
 

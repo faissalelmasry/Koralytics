@@ -1,29 +1,36 @@
 import { Component, Input, Output, EventEmitter, HostBinding } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MiniPlayerCardModel } from '../../../../core/models/Player/mini-player-card-model';
+import { MarqueeIfOverflowDirective } from '../match-timeline/marquee-if-overflow.directive';
 
 const SIZE_MAP: Record<string, { w: number; h: number }> = {
-  xs: { w: 65, h: 90 },
-  sm: { w: 80, h: 110 },
-  md: { w: 100, h: 135 }
+  xxs: { w: 47, h: 65 },
+  xs:  { w: 65, h: 90 },
+  sm:  { w: 80, h: 110 },
+  md:  { w: 100, h: 135 }
 };
 
 @Component({
   selector: 'app-mini-player-card',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, MarqueeIfOverflowDirective],
   templateUrl: './mini-player-card.component.html',
   styleUrls: ['./mini-player-card.component.css']
 })
 export class MiniPlayerCardComponent {
   @Input({ required: true }) player!: MiniPlayerCardModel;
-  @Input() size: 'xs' | 'sm' | 'md' = 'md';
+  @Input() size: 'xxs' | 'xs' | 'sm' | 'md' = 'md';
   @Input() accentColor?: string;
   @Input() float: boolean = false;
   /** When true, shows player.naturalPosition instead of player.position */
   @Input() useNaturalPosition: boolean = false;
 
   @Output() cardClick = new EventEmitter<number>();
+
+  @HostBinding('attr.data-size')
+  get dataSize(): string {
+    return this.size;
+  }
 
   @HostBinding('style.width.px')
   get hostWidth(): number {

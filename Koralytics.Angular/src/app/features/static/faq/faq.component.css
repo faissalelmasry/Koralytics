@@ -1,0 +1,247 @@
+.static-page-container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: var(--accent-dim);
+  padding: 6px 14px;
+  border-radius: 999px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(200, 255, 77, 0.2);
+}
+
+.pulse-dot {
+  width: 6px;
+  height: 6px;
+  background-color: var(--accent);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--accent);
+}
+
+.grad-text {
+  background: linear-gradient(90deg, var(--accent), #00f2fe, var(--violet), var(--accent));
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: gradShift 8s linear infinite;
+}
+
+@keyframes gradShift {
+  to { background-position: 300% 0; }
+}
+
+.hero-section {
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto 48px;
+}
+
+.hero-headline {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(42px, 6vw, 68px);
+  line-height: 1.05;
+  letter-spacing: 1px;
+  margin: 0 0 20px;
+}
+
+.hero-subheadline {
+  font-size: clamp(16px, 2vw, 19px);
+  color: var(--text-dim);
+  line-height: 1.6;
+  max-width: 720px;
+  margin: 0 auto 36px;
+}
+
+/* ---------- Controls & Filter Pills ---------- */
+.faq-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
+}
+
+.search-input-wrap {
+  width: 100%;
+  max-width: 540px;
+  position: relative;
+}
+
+.search-input-wrap svg {
+  position: absolute;
+  left: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  color: var(--text-dim);
+}
+
+.search-input-wrap input {
+  width: 100%;
+  background: rgba(20, 23, 28, 0.7);
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+  padding: 14px 20px 14px 50px;
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  outline: none;
+  backdrop-filter: blur(12px);
+  box-sizing: border-box;
+  transition: border-color 0.25s ease;
+}
+
+.search-input-wrap input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 15px rgba(200, 255, 77, 0.2);
+}
+
+.category-pills {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.category-pills button {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--card-border);
+  color: var(--text-dim);
+  padding: 8px 18px;
+  border-radius: 999px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.category-pills button.active {
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* ---------- Accordion ---------- */
+.faq-accordion-section {
+  margin-bottom: 60px;
+}
+
+.faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.glass-card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01));
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  backdrop-filter: blur(16px);
+  overflow: hidden;
+  transition: border-color 0.25s ease;
+}
+
+.faq-item.open {
+  border-color: rgba(200, 255, 77, 0.3);
+}
+
+.faq-question {
+  padding: 24px 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.faq-question h3 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 24px;
+  letter-spacing: 0.5px;
+  margin: 0;
+  color: var(--text);
+}
+
+.toggle-icon {
+  font-size: 24px;
+  font-weight: bold;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.faq-answer {
+  padding: 0 28px 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.faq-answer p {
+  color: var(--text-dim);
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 16px 0 0;
+}
+
+.no-results {
+  padding: 40px;
+  text-align: center;
+  color: var(--text-dim);
+}
+
+/* ---------- Help Card Banner ---------- */
+.help-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 32px 40px;
+  background: linear-gradient(135deg, rgba(200, 255, 77, 0.06), rgba(106, 92, 255, 0.06));
+}
+
+.help-text h3 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  margin: 0 0 6px;
+}
+
+.help-text p {
+  color: var(--text-dim);
+  font-size: 14px;
+  margin: 0;
+}
+
+.btn {
+  padding: 14px 28px;
+  border-radius: 999px;
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 14.5px;
+  transition: all 0.25s ease;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #0a0c0f;
+  box-shadow: 0 0 20px rgba(200, 255, 77, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 30px rgba(200, 255, 77, 0.5);
+}
+
+@media (max-width: 768px) {
+  .help-card { flex-direction: column; text-align: center; gap: 20px; padding: 24px; }
+  .faq-question { padding: 20px; }
+  .faq-answer { padding: 0 20px 20px; }
+}

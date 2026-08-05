@@ -52,6 +52,10 @@
   position: relative;
   width: 72px;
   height: 72px;
+  min-width: 72px;
+  min-height: 72px;
+  max-width: 72px;
+  max-height: 72px;
   border-radius: 50%;
   cursor: pointer;
   border: 2px solid #facc15;
@@ -60,6 +64,10 @@
   align-items: center;
   justify-content: center;
   background: #1a202c;
+  flex-shrink: 0;
+  aspect-ratio: 1 / 1;
+  align-self: center;
+  box-sizing: border-box;
 }
 
 .avatar-img {
@@ -73,6 +81,13 @@
   font-weight: 700;
   color: #facc15;
   font-size: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  line-height: 1;
+  text-align: center;
 }
 
 .avatar-overlay {
@@ -138,6 +153,9 @@
   border-radius: 12px;
   color: #cbd5e1;
   font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .meta-stats {
@@ -209,6 +227,9 @@
   background: #facc15;
   color: #000000;
   transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .edit-btn:hover {
@@ -421,17 +442,18 @@
 .pitch-node-btn {
   position: absolute;
   transform: translate(-50%, -50%);
-  padding: 8px 16px;
-  border-radius: 20px;
+  padding: 4px 10px;
+  border-radius: 12px;
   border: 1.5px solid rgba(255, 255, 255, 0.25);
   background: rgba(0, 0, 0, 0.75);
   color: #8e9bb0;
   font-family: 'Chakra Petch', sans-serif;
-  font-size: 12px;
+  font-size: 10.5px;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
   z-index: 10;
+  white-space: nowrap;
 }
 
 .pitch-node-btn:hover {
@@ -770,11 +792,21 @@
   color: #ffffff;
 }
 
+.panel-card {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+  overflow: hidden;
+}
+
 /* ================== LINKED PARENTS / GUARDIANS SECTION ================== */
 .linked-parents-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
   margin-bottom: 20px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   padding-bottom: 14px;
@@ -800,8 +832,11 @@
 
 .linked-parents-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
 }
 
 .linked-parent-card {
@@ -815,6 +850,11 @@
   gap: 12px;
   transition: all 0.25s ease;
   backdrop-filter: blur(8px);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .linked-parent-card:hover {
@@ -935,5 +975,55 @@
 .empty-parents-box span {
   font-size: 0.8rem;
   color: #64748b;
+}
+
+/* ================== RESPONSIVE MEDIA QUERIES ================== */
+@media (max-width: 600px) {
+  .profile-page {
+    padding: 16px 12px 40px;
+  }
+
+  .header-banner {
+    padding: 16px 14px;
+    border-radius: 16px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .player-title-box {
+    width: 100%;
+  }
+
+  .meta-stats {
+    width: 100%;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .panel-card {
+    padding: 16px 14px;
+    border-radius: 16px;
+  }
+
+  .linked-parents-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .linked-parent-card {
+    padding: 12px 10px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .parent-actions {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .btn-unlink-parent {
+    width: 100%;
+    text-align: center;
+  }
 }
 

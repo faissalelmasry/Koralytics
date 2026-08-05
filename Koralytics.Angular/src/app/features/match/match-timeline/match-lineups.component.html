@@ -9,34 +9,22 @@
     </div>
     <div class="header-actions">
       @if (!isShootoutMode) {
-        <app-button [variant]="isDraw ? 'cyan' : 'slate'" [disabled]="!isDraw && !hasShootoutEvents"
-          (click)="enterShootoutMode()">
-          <span class="btn-inner-content">
-            <span>Penalty Shootouts</span>
-          </span>
-        </app-button>
+      <app-button [variant]="isDraw ? 'cyan' : 'slate'" [disabled]="!isDraw && !hasShootoutEvents"
+        (click)="enterShootoutMode()">
+        <span class="btn-inner-content">
+          <span>Penalty Shootouts</span>
+        </span>
+      </app-button>
       } @else {
-        <app-button variant="slate" [disabled]="(homePenaltyScore > 0 || awayPenaltyScore > 0)"
-          (click)="exitShootoutMode()">
-          <span class="btn-inner-content">
-            <span>◀ Exit Shootout</span>
-          </span>
-        </app-button>
+      <app-button variant="slate" [disabled]="(homePenaltyScore > 0 || awayPenaltyScore > 0)"
+        (click)="exitShootoutMode()">
+        <span class="btn-inner-content">
+          <span>◀ Exit Shootout</span>
+        </span>
+      </app-button>
       }
     </div>
   </div>
-
-  <!-- Shootout Scoreboard Banner when Shootout Mode Active -->
-  @if (isShootoutMode) {
-  <div class="shootout-score-box">
-    <span class="shootout-title">PENALTY SHOOTOUT SCORE</span>
-    <div class="shootout-readout">
-      <span class="team-name">{{ homeName }}</span>
-      <span class="shootout-score">{{ homePenaltyScore }} - {{ awayPenaltyScore }}</span>
-      <span class="team-name">{{ awayName }}</span>
-    </div>
-  </div>
-  }
 
   <!-- Action Tools Banner -->
   <div class="action-banner">
@@ -342,15 +330,13 @@
       </div>
     </div>
     } @else {
-      @if (isCurrentSelectedTeamCoachTeam) {
-        <app-empty-state 
-          title="No Lineup Submitted" 
-          [description]="homeName + ' has no lineup submitted for this match yet. As the coach, you can submit the lineup now.'" 
-          actionText="Submit Lineup"
-          (actionClick)="goToSubmitLineup()" />
-      } @else {
-        <app-empty-state title="No Lineup" [description]="homeName + ' has no lineup submitted for this match.'" />
-      }
+    @if (isCurrentSelectedTeamCoachTeam) {
+    <app-empty-state title="No Lineup Submitted"
+      [description]="homeName + ' has no lineup submitted for this match yet. As the coach, you can submit the lineup now.'"
+      actionText="Submit Lineup" (actionClick)="goToSubmitLineup()" />
+    } @else {
+    <app-empty-state title="No Lineup" [description]="homeName + ' has no lineup submitted for this match.'" />
+    }
     }
   </div>
 
@@ -386,15 +372,13 @@
       </div>
     </div>
     } @else {
-      @if (isCurrentSelectedTeamCoachTeam) {
-        <app-empty-state 
-          title="No Lineup Submitted" 
-          [description]="awayName + ' has no lineup submitted for this match yet. As the coach, you can submit the lineup now.'" 
-          actionText="Submit Lineup"
-          (actionClick)="goToSubmitLineup()" />
-      } @else {
-        <app-empty-state title="No Lineup" [description]="awayName + ' has no lineup submitted for this match.'" />
-      }
+    @if (isCurrentSelectedTeamCoachTeam) {
+    <app-empty-state title="No Lineup Submitted"
+      [description]="awayName + ' has no lineup submitted for this match yet. As the coach, you can submit the lineup now.'"
+      actionText="Submit Lineup" (actionClick)="goToSubmitLineup()" />
+    } @else {
+    <app-empty-state title="No Lineup" [description]="awayName + ' has no lineup submitted for this match.'" />
+    }
     }
   </div>
 

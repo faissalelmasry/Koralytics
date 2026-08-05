@@ -762,3 +762,29 @@
   color: #a3e635;
   text-decoration: underline;
 }
+
+/* ---- Small screen fixes (iPhone SE, ≤480px) ---- */
+@media (max-width: 480px) {
+  /* Stack player info and action buttons vertically */
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  /* Stretch buttons row to full width */
+  .header-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  /* Stack Mins Played and Coach Note vertically */
+  .minutes-note-row {
+    flex-direction: column;
+  }
+
+  /* Let the mins input take full width on small screens */
+  .mins-group {
+    width: 100%;
+  }
+}

@@ -24,7 +24,11 @@
           <div>
             <h1>{{ data.playerName }}</h1>
             <div class="meta-pills">
-              <span class="pill">{{ data.academyName }}</span>
+              @if (data.academyId) {
+                <a [routerLink]="['/academy/profile', data.academyId]" class="pill academy-link" (click)="$event.stopPropagation()">{{ data.academyName }}</a>
+              } @else {
+                <span class="pill">{{ data.academyName }}</span>
+              }
               @if (data.ageGroupName) {
                 <span class="pill">{{ data.ageGroupName }}</span>
               }

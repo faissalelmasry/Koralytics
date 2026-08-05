@@ -1,6 +1,8 @@
 <div class="timeline-container">
   @for (event of eventsWithIcons; track $index) {
     <div class="timeline-row">
+
+      <!-- ========== HOME SIDE ========== -->
       @if (event.side === 'home') {
         <div class="timeline-event-box home">
           @if (canLogEvents) {
@@ -12,10 +14,16 @@
               <span>Disallow</span>
             </button>
           }
-          <app-mini-player-card [player]="event.player" size="xs" (cardClick)="onPlayerClick($event)" />
+          <!-- Card: shown on all screens; size switches xs↔xxs via cardSize getter -->
+          <app-mini-player-card [player]="event.player" [size]="cardSize" (cardClick)="onPlayerClick($event)" />
           <div class="event-label-group">
             <span class="event-type-label" [style.color]="getLabelColor(event.rawType)">{{ event.eventType }}</span>
-            <span class="event-player-name clickable-player-name" (click)="onPlayerClick(event.player.playerId)">{{ event.player.fullName }}</span>
+            <span
+              class="event-player-name clickable-player-name"
+              appMarqueeIfOverflow
+              [marqueeText]="event.player.fullName"
+              (click)="onPlayerClick(event.player.playerId)"
+            >{{ event.player.fullName }}</span>
             @if (event.eventSubtext) {
               <span class="event-assist">{{ event.eventSubtext }}</span>
             }
@@ -28,17 +36,24 @@
 
       <div class="minute-badge">#{{ $index + 1 }}</div>
 
+      <!-- ========== AWAY SIDE ========== -->
       @if (event.side === 'away') {
         <div class="timeline-event-box away">
           <div class="event-icon" [innerHTML]="event.iconSvg"></div>
           <div class="event-label-group">
             <span class="event-type-label" [style.color]="getLabelColor(event.rawType)">{{ event.eventType }}</span>
-            <span class="event-player-name clickable-player-name" (click)="onPlayerClick(event.player.playerId)">{{ event.player.fullName }}</span>
+            <span
+              class="event-player-name clickable-player-name"
+              appMarqueeIfOverflow
+              [marqueeText]="event.player.fullName"
+              (click)="onPlayerClick(event.player.playerId)"
+            >{{ event.player.fullName }}</span>
             @if (event.eventSubtext) {
               <span class="event-assist">{{ event.eventSubtext }}</span>
             }
           </div>
-          <app-mini-player-card [player]="event.player" size="xs" (cardClick)="onPlayerClick($event)" />
+          <!-- Card: shown on all screens; size switches xs↔xxs via cardSize getter -->
+          <app-mini-player-card [player]="event.player" [size]="cardSize" (cardClick)="onPlayerClick($event)" />
           @if (canLogEvents) {
             <button class="disallow-btn" [disabled]="deletingEventId === event.id" (click)="onDisallowEvent(event.id)" title="Disallow Event">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
@@ -52,6 +67,7 @@
       } @else {
         <div class="timeline-event-box empty"></div>
       }
+
     </div>
   }
 </div>
