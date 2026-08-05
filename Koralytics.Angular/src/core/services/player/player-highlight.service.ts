@@ -14,13 +14,11 @@ export class PlayerHighlightService {
   /** POST /api/Player/{playerId}/highlights (multipart/form-data) */
   uploadHighlight(
     playerId: number,
-    academyId: number,
     file: File,
     title?: string
   ): Observable<PlayerHighlightDto> {
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('academyId', academyId.toString());
     if (title) {
       formData.append('title', title);
     }

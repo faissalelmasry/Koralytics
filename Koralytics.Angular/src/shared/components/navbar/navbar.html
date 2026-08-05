@@ -13,7 +13,7 @@
     </ng-container>
 
     <!-- Highlights Link (Desktop) -->
-    <a routerLink="/coach/highlights" routerLinkActive="active" *ngIf="isCoach || isPlayer">Highlights</a>
+    <a routerLink="/player/highlights" routerLinkActive="active" *ngIf="isPlayer">Highlights</a>
 
     <!-- Coach Links (Desktop) -->
     <ng-container *ngIf="isCoach">
@@ -79,10 +79,10 @@
           Requests</a>
       </div>
 
-      <!-- Player/Coach Highlights -->
-      <div class="sidebar-section" *ngIf="isCoach || isPlayer">
+      <!-- Player Highlights -->
+      <div class="sidebar-section" *ngIf="isPlayer">
         <span class="section-label">Media</span>
-        <a routerLink="/coach/highlights" routerLinkActive="active" (click)="toggleSidebar(false)">Highlights</a>
+        <a routerLink="/player/highlights" routerLinkActive="active" (click)="toggleSidebar(false)">Highlights</a>
       </div>
 
       <!-- Coach Links (Sidebar Hub) -->
@@ -95,7 +95,6 @@
           Split</a>
         <a routerLink="/coach/notes" routerLinkActive="active" (click)="toggleSidebar(false)">Player Notes</a>
         <a routerLink="/coach/readiness" routerLinkActive="active" (click)="toggleSidebar(false)">Player Readiness</a>
-        <a routerLink="/coach/highlights" routerLinkActive="active" (click)="toggleSidebar(false)">Highlights</a>
         <a routerLink="/coach/match-requests" routerLinkActive="active" (click)="toggleSidebar(false)">Match
           Requests</a>
         <a routerLink="/coach/access" routerLinkActive="active" (click)="toggleSidebar(false)">Temp Access</a>
