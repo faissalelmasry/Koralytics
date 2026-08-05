@@ -73,3 +73,40 @@ export interface HallOfFameDto {
   awardType: string;
   teamName: string;
 }
+
+export interface AIReportDto {
+  tournamentId: number;
+  reportText: string;
+  isPending: boolean;
+  status?: string;
+  generatedAt?: string;
+
+  winnerTeamName?: string;
+  winnerTeamId?: number;
+  bestPlayerName?: string;
+  bestPlayerId?: number;
+  topScorerName?: string;
+  topScorerId?: number;
+  topScorerGoals?: number;
+  topAssisterName?: string;
+  topAssisterId?: number;
+  topAssisterAssists?: number;
+  mostScoredClubName?: string;
+  mostScoredClubGoals?: number;
+  mostConcededClubName?: string;
+  mostConcededClubGoals?: number;
+  leastScoredClubName?: string;
+  leastScoredClubGoals?: number;
+}
+
+export interface GoalEventDto {
+  playerId: number;
+  assistPlayerId?: number;
+  minute: number;
+  isHomeSide: boolean;
+}
+
+export interface UpdateFixtureStatsDto {
+  goals: GoalEventDto[];
+  motmPlayerId?: number;
+}

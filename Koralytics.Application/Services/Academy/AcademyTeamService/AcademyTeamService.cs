@@ -326,6 +326,21 @@ namespace Koralytics.Application.Services.Academy.AcademyTeamService
             return _mapper.Map<IEnumerable<AgeGroupResponseDto>>(groups);
         }
 
+        public async Task<IEnumerable<AgeGroupResponseDto>> GetAgeGroupsByNamesAsync(IEnumerable<string> names)
+        {
+            var namesList = names?.Where(n => !string.IsNullOrWhiteSpace(n)).Select(n => n.Trim()).ToList() ?? new List<string>();
+
+            if (!namesList.Any())
+            {
+                return Enumerable.Empty<AgeGroupResponseDto>();
+            }
+
+            var groups = await _unitOfWork.Repository<AgeGroup>()
+                .FindAllAsNoTrackingAsync(ag => namesList.Contains(ag.Name));
+
+            return _mapper.Map<IEnumerable<AgeGroupResponseDto>>(groups);
+        }
+
         // ──────────────────────────────────────────────────────────────────────
         // AssignPlayerToTeamAsync
         // ──────────────────────────────────────────────────────────────────────

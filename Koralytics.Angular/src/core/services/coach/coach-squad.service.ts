@@ -22,7 +22,7 @@ export class CoachSquadService {
    */
   getSquad(first: number, second?: number): Observable<any> {
     if (second !== undefined && second > 0) {
-      return this.http.get<any>(`${this.baseUrl}/${first}/teams/${second}/squad`);
+      return this.http.get<any>(`${this.baseUrl}/${second}/teams/${first}/squad`);
     }
     return this.http.get<any>(`${this.baseUrl}/teams/${first}/squad`);
   }

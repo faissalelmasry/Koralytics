@@ -39,7 +39,7 @@ namespace Koralytics.API.Controllers.Academies
         }
 
         [HttpGet]
-        [Authorize(Roles = "SystemAdmin")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAllAcademies([FromQuery] AcademyListRequestDto request)
         {
             var result = await _academyService.GetAllAcademiesAsync(request);

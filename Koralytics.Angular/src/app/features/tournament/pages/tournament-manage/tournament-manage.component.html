@@ -74,6 +74,11 @@
               [errorMessage]="hasError('ageGroupId')">
             </app-select>
           </div>
+
+          <div *ngIf="!ageGroupOptions.length" class="field-note error-note" style="margin-top: 12px;">
+            <span *ngIf="isSystemAdmin">No eligible age groups are available. Create U17, U15, or First Team age groups in any academy first.</span>
+            <span *ngIf="!isSystemAdmin">No eligible age groups are available. Create U17, U15, or First Team age groups in your academy first.</span>
+          </div>
         </section>
 
         <section class="surface" scrollReveal direction="bottom" [delay]="200">

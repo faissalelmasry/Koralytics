@@ -23,10 +23,67 @@
       </div>
 
       <!-- =============== 1. HERO BANNER =============== -->
+      <!-- <app-academy-hero-banner *ngIf="academyDetails" [academy]="academyDetails" [membersCount]="totalMembersCount">
+      </app-academy-hero-banner> -->
+
+
+      <!-- =============== 1.5 TOURNAMENT INVITES =============== -->
+      <div class="pending-invitations-section" *ngIf="currentUser?.academyId && pendingTournamentInvitations.length > 0"
+        scrollReveal direction="bottom" [delay]="120" style="margin-top: 24px;">
+        <h3 style="color: #fff; margin-bottom: 16px; font-weight: 600;">Tournament Invitations</h3>
+        <div class="glass-card fade-in" *ngFor="let invite of pendingTournamentInvitations"
+          style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; border-color: rgba(34, 197, 94, 0.3);">
+          <div class="req-info" style="display: flex; flex-direction: column; gap: 4px;">
+            <div style="font-size: 16px; font-weight: 600; color: #fff;">{{ invite.tournamentName }}</div>
+            <div style="font-size: 12px; color: #7b8293;">Team: {{ invite.teamName }}</div>
+          </div>
+          <div class="req-actions" style="display: flex; gap: 12px;">
+            <app-button variant="accent" (click)="acceptTournamentInvitation(invite)">
+              Accept Invitation
+            </app-button>
+          </div>
+        </div>
+      </div>
+
+      <!-- =============== 2. BADGES =============== -->
+      <app-academy-badges-section scrollReveal direction="bottom" [delay]="100" *ngIf="currentUser?.academyId"
+        [academyId]="currentUser!.academyId!">
+      </app-academy-badges-section>
+
+      <!-- =============== 3. MANAGE ADMINS =============== -->
+      <app-academy-admins-section scrollReveal direction="bottom" [delay]="200" *ngIf="currentUser?.academyId"
+        [academyId]="currentUser!.academyId!" [isOwner]="academyDetails?.adminUserId === currentUser?.userId">
+      </app-academy-admins-section>
+
+      <!-- =============== 4. MANAGE COACHES =============== -->
+      <app-academy-coaches-section scrollReveal direction="bottom" [delay]="300" *ngIf="currentUser?.academyId"
+        [academyId]="currentUser!.academyId!">
+      </app-academy-coaches-section>
+
+      <!-- =============== 5. MANAGE PLAYERS =============== -->
+      <app-academy-members scrollReveal direction="bottom" [delay]="400" *ngIf="currentUser?.academyId"
+        [academyId]="currentUser!.academyId!">
+      </app-academy-members>
+
+      <!-- =============== 6. TEAMS & AGE GROUPS =============== -->
+      <app-academy-teams-section scrollReveal direction="bottom" [delay]="500" *ngIf="currentUser?.academyId"
+        [academyId]="currentUser!.academyId!">
+      </app-academy-teams-section>
+
+      <!-- =============== 7. LOCATIONS =============== -->
+      <app-academy-locations-section scrollReveal direction="bottom" [delay]="550" *ngIf="currentUser?.academyId"
+        [academyId]="currentUser!.academyId!">
+      </app-academy-locations-section>
+
+      <!-- =============== 8. COMMUNICATIONS & SUBSCRIPTIONS =============== -->
+      <app-academy-comm-subs-section scrollReveal direction="bottom" [delay]="600" *ngIf="currentUser?.academyId"
+        [academyId]="currentUser!.academyId!">
+      </app-academy-comm-subs-section>
       <div class="hero-banner" scrollReveal direction="bottom" [delay]="90">
         <div class="admin-identity">
           <div class="avatar-circle" (click)="openLogoUpload()" title="Click to update academy logo">
-            <img *ngIf="academyDetails?.logoUrl" [src]="academyDetails?.logoUrl" alt="Academy Logo" class="avatar-img" />
+            <img *ngIf="academyDetails?.logoUrl" [src]="academyDetails?.logoUrl" alt="Academy Logo"
+              class="avatar-img" />
             <span *ngIf="!academyDetails?.logoUrl">{{ initials || 'AC' }}</span>
             <div class="avatar-overlay">
               <span class="camera-icon">📷</span>
@@ -228,6 +285,23 @@
             </app-button>
             <app-button variant="coral" (click)="respondToAdminRequest(req.id, false)">
               Reject
+            </app-button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tournament Invitations -->
+      <div class="pending-invitations-section" *ngIf="pendingTournamentInvitations.length > 0">
+        <h3 style="color: #fff; margin-bottom: 16px; font-weight: 600;">Tournament Invitations</h3>
+        <div class="glass-card fade-in" *ngFor="let invite of pendingTournamentInvitations"
+          style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; border-color: rgba(34, 197, 94, 0.3);">
+          <div class="req-info" style="display: flex; flex-direction: column; gap: 4px;">
+            <div style="font-size: 16px; font-weight: 600; color: #fff;">{{ invite.tournamentName }}</div>
+            <div style="font-size: 12px; color: #7b8293;">Team: {{ invite.teamName }}</div>
+          </div>
+          <div class="req-actions" style="display: flex; gap: 12px;">
+            <app-button variant="accent" (click)="acceptTournamentInvitation(invite)">
+              Accept Invitation
             </app-button>
           </div>
         </div>
