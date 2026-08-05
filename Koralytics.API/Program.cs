@@ -27,6 +27,11 @@ using Koralytics.Application.Mappings.ProfileManagement;
 using Koralytics.Application.Mappings.ScouterProfile;
 using Koralytics.Application.Mappings.SystemAdmin;
 using Koralytics.Application.Mappings.Tournaments;
+using System.Net.Http.Headers;
+using Koralytics.Application.Options;
+using Koralytics.Application.Interfaces.AI;
+using Koralytics.API.Services.AI;
+using Koralytics.Application.Services.AI;
 using Koralytics.Application.Options;
 using Koralytics.Application.Services.Academy.AcademyAnalyticsService;
 using Koralytics.Application.Services.Academy.AcademyAnnouncementService;
@@ -73,6 +78,7 @@ using Koralytics.Application.Validators.UserBusiness;
 using Koralytics.Domain.Entities;
 using Koralytics.Domain.Entities.Identity;
 using Koralytics.Infrastructure.Context;
+using Koralytics.Infrastructure.Seeding;
 using Koralytics.Infrastructure.ExternalServices;
 using Koralytics.Infrastructure.ExternalServices.Email;
 using Koralytics.Infrastructure.Repositories;
@@ -312,6 +318,32 @@ namespace Koralytics.API
             builder.Services.AddScoped<IAnnouncementNotificationService, AnnouncementNotificationService>();
             builder.Services.AddScoped<IParentService, ParentService>();
             builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
+            builder.Services.Configure<AIOptions>(builder.Configuration.GetSection(AIOptions.SectionName));
+            var aiSection = builder.Configuration.GetSection(AIOptions.SectionName);
+            var aiProviderName = aiSection["Provider"] ?? "Local";
+
+            if (aiProviderName.Equals("OpenAI", StringComparison.OrdinalIgnoreCase))
+            {
+                var openAiApiKey = aiSection["ApiKey"];
+                if (string.IsNullOrWhiteSpace(openAiApiKey))
+                {
+                    throw new InvalidOperationException("AI:ApiKey is not configured for the OpenAI provider. Set the AI provider configuration before starting the application.");
+                }
+
+                builder.Services.AddHttpClient<IAIProvider, OpenAIClient>(client =>
+                {
+                    client.BaseAddress = new Uri(aiSection["BaseUrl"] ?? "https://api.openai.com/v1");
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", openAiApiKey);
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                });
+            }
+            else
+            {
+                builder.Services.AddScoped<IAIProvider, LocalAIClient>();
+            }
+
+            builder.Services.AddScoped<IAIReportService, AIReportService>();
+            builder.Services.AddHostedService<AIReportBackgroundService>();
             builder.Services.AddScoped<IMatchService, MatchService>();
             builder.Services.AddScoped<IMatchReportService, MatchReportService>();
 
@@ -447,6 +479,7 @@ namespace Koralytics.API
                     var context = services.GetRequiredService<ApplicationDbContext>();
                     var userManager = services.GetRequiredService<UserManager<User>>();
                     var roleManager = services.GetRequiredService<RoleManager<Domain.Entities.Identity.Role>>();
+                    await DbInitializer.SeedAsync(context, userManager, roleManager);
                     await context.Database.MigrateAsync();
                     await DbInitializer.SeedAsync(context, userManager, roleManager);
                 }

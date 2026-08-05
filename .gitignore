@@ -4,8 +4,11 @@
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
 # ASP.NET Core secrets - never commit real secrets
-Koralytics.API/appsettings.json
-# (appsettings.Development.json is intentionally tracked - keep placeholders only)
+# appsettings.json IS tracked but must only contain placeholder values
+# Real secrets go in User Secrets (dotnet user-secrets) - stored at:
+# %APPDATA%\Microsoft\UserSecrets\<UserSecretsId>\secrets.json
+appsettings*.local.json
+appsettings.Development.json
 
 # User-specific files
 *.rsuser

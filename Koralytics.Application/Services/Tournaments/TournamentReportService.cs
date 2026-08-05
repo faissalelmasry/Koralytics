@@ -89,9 +89,27 @@ namespace Koralytics.Application.Services.Tournaments
                 throw;
             }
 
-            // TODO: trigger AIReportService.GenerateTournamentReportAsync()
-            // Add try-catch here when implemented so AI failure doesn't
-            // roll back the tournament completion
+            // Create a pending AI report entry after completion so the background
+            // report worker can generate the final summary without blocking.
+            var existingReport = await _unitOfWork.Repository<Domain.Entities.AI.AIReport>()
+                .FindAsync(r =>
+                    r.ReportType == AIReportType.Tournament &&
+                    r.ReferenceId == tournamentId);
+
+            if (existingReport is null)
+            {
+                await _unitOfWork.Repository<Domain.Entities.AI.AIReport>()
+                    .AddAsync(new Domain.Entities.AI.AIReport
+                    {
+                        ReportType = AIReportType.Tournament,
+                        ReferenceId = tournamentId,
+                        AcademyId = null,
+                        ReportText = string.Empty,
+                        Status = AIReportStatus.Pending
+                    });
+
+                await _unitOfWork.SaveChangesAsync();
+            }
 
             _logger.LogInformation(
                 "Tournament {TournamentId} completed successfully", tournamentId);
@@ -185,10 +203,8 @@ namespace Koralytics.Application.Services.Tournaments
                 var finalFixture = await _unitOfWork
                     .Repository<TournamentFixtureEntity>()
                     .GetQueryable()
-                    .Where(f =>
-                        f.RoundId == finalRound.Id &&
-                        (f.LegNumber == null || f.LegNumber == 2))
-                    .OrderByDescending(f => f.LegNumber)
+                    .Where(f => f.RoundId == finalRound.Id)
+                    .OrderByDescending(f => f.LegNumber ?? 0)
                     .FirstOrDefaultAsync();
 
                 return finalFixture?.WinnerTeamId;
@@ -464,6 +480,8 @@ namespace Koralytics.Application.Services.Tournaments
             MatchId = f.MatchId,
             HomeTeamId = f.HomeTeamId,
             AwayTeamId = f.AwayTeamId,
+            HomeRealTeamId = f.HomeTeam?.TeamId ?? f.HomeTeamId,
+            AwayRealTeamId = f.AwayTeam?.TeamId ?? f.AwayTeamId,
             HomeTeamName = f.HomeTeam.Team.Name,
             AwayTeamName = f.AwayTeam.Team.Name,
             HomeScore = f.HomeScore,

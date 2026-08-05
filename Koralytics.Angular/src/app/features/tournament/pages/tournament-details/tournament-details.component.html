@@ -227,7 +227,35 @@
           </div>
 
           <div class="fixtures-list">
+
+            <!-- Knockout Generation Banner -->
+            @if (rounds.length === 0 && allFixtures.length > 0) {
+              <div class="knockout-cta-banner">
+                <div class="cta-content">
+                  <div class="cta-icon">⚔️</div>
+                  <div class="cta-text">
+                    <strong>Ready for Knockout Stage?</strong>
+                    <span>Once all group fixtures are completed, generate the knockout round with group winners.</span>
+                  </div>
+                  <button class="generate-knockout-btn" type="button" [disabled]="isGeneratingKnockout" (click)="generateKnockout()">
+                    @if (isGeneratingKnockout) {
+                      <span class="spinner-sm"></span> Generating...
+                    } @else {
+                      🏆 Generate Knockout Stage
+                    }
+                  </button>
+                </div>
+                @if (knockoutGenerateSuccess) {
+                  <div class="cta-success">{{ knockoutGenerateSuccess }}</div>
+                }
+                @if (knockoutGenerateError) {
+                  <div class="cta-error">{{ knockoutGenerateError }}</div>
+                }
+              </div>
+            }
+
             @for (fixture of allFixtures; track fixture.fixtureId) {
+
               <div class="fixture-row">
                 <div class="fixture-date">
                   <div class="f-day">{{ fixture.groupName }}</div>
@@ -239,13 +267,23 @@
                     {{ fixture.homeTeamName }}
                   </div>
 
-                  <div class="score-pill" [class.completed]="fixture.status === 'Completed'">
-                    @if (fixture.homeScore !== null && fixture.homeScore !== undefined) {
-                      <span>{{ fixture.homeScore }}</span> - <span>{{ fixture.awayScore }}</span>
-                    } @else {
-                      <span>vs</span>
-                    }
-                  </div>
+                  @if (editingFixtureId === fixture.fixtureId) {
+                    <div class="inline-score-editor">
+                      <input type="number" min="0" [(ngModel)]="editHomeScore" class="score-input" aria-label="Home team score">
+                      <span class="score-sep">-</span>
+                      <input type="number" min="0" [(ngModel)]="editAwayScore" class="score-input" aria-label="Away team score">
+                      <button class="save-score-btn" type="button" [disabled]="isSavingScore" (click)="saveFixtureResult(fixture.fixtureId)" title="Save Result">✓</button>
+                      <button class="cancel-score-btn" type="button" (click)="cancelEditingFixture()" title="Cancel">✕</button>
+                    </div>
+                  } @else {
+                    <div class="score-pill" [class.completed]="fixture.status === 'Completed'" (click)="startEditingFixture(fixture)" title="Click to edit score">
+                      @if (fixture.homeScore !== null && fixture.homeScore !== undefined) {
+                        <span>{{ fixture.homeScore }}</span> - <span>{{ fixture.awayScore }}</span>
+                      } @else {
+                        <span>vs</span>
+                      }
+                    </div>
+                  }
 
                   <div class="team away" [class.winner]="fixture.winnerTeamName === fixture.awayTeamName && fixture.winnerTeamName">
                     {{ fixture.awayTeamName }}
@@ -256,6 +294,12 @@
                   @if (fixture.legNumber) {
                     <span class="group-label">Leg {{ fixture.legNumber }}</span>
                   }
+                  <button class="action-btn-small" type="button" *ngIf="editingFixtureId !== fixture.fixtureId" (click)="startEditingFixture(fixture)">
+                    ✏️ Enter Result
+                  </button>
+                  <button class="action-btn-small stats-btn" type="button" *ngIf="fixture.status === 'Completed'" (click)="openStatsModal(fixture, $event)">
+                    📊 Stats
+                  </button>
                 </div>
               </div>
             }
@@ -347,9 +391,12 @@
           <div class="teams-grid">
             @for (team of teams; track team.tournamentTeamId) {
               <div class="team-card">
-                <div class="team-logo-placeholder">{{ team.teamName?.charAt(0) }}</div>
+                <div class="team-logo-placeholder">{{ team.academyName?.charAt(0) || team.teamName?.charAt(0) }}</div>
                 <div class="team-details">
                   <h3>{{ team.teamName }}</h3>
+                  @if (team.academyName) {
+                    <div class="t-meta academy-name">🏟 {{ team.academyName }}</div>
+                  }
                   @if (team.seedNumber) {
                     <div class="t-meta">Seed #{{ team.seedNumber }}</div>
                   }
@@ -442,9 +489,112 @@
       @if (activeTab === 'aiInsights') {
         <div class="tab-pane fade-in">
 
+          <!-- Simulation Sandbox banner for non-completed tournaments -->
+          <div class="simulation-banner glass" *ngIf="tournament.status !== 'Completed'">
+            <div class="banner-content">
+              <div class="banner-icon">🎮</div>
+              <div class="banner-text">
+                <h3>بيئة اختبار الذكاء الاصطناعي (AI Sandbox)</h3>
+                <p>قم بمحاكاة جميع مباريات البطولة، وتوليد إحصائيات اللاعبين الكاملة (أهداف وصناعة)، وإكمال البطولة فوراً للحصول على التقرير الفني الذكي.</p>
+              </div>
+            </div>
+            <button class="simulate-btn" (click)="runSimulation()" [disabled]="isSimulating">
+              <span *ngIf="isSimulating" class="btn-spinner"></span>
+              <span *ngIf="!isSimulating">🚀 محاكاة وإكمال البطولة تلقائياً</span>
+            </button>
+          </div>
+
           <!-- AI Preview Section -->
           <div class="ai-section">
             <div class="ai-section-header">
+              <div class="ai-badge preview">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                Pre-Tournament Preview
+              </div>
+              <span class="ai-powered-label">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                AI-Powered Analysis
+              </span>
+            </div>
+
+            @if (tournament.status === 'Draft' || tournament.status === 'Registration') {
+              <div class="ai-preview-grid">
+                <div class="ai-card glass">
+                  <div class="ai-card-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                  </div>
+                  <h4>Team Strength Index</h4>
+                  <p>Analysis will be available once teams are registered and seeded.</p>
+                  <div class="ai-stat-row">
+                    <span class="ai-stat-label">Registered Teams</span>
+                    <span class="ai-stat-value">{{ participatingTeamCount }}</span>
+                  </div>
+                  <div class="ai-stat-row">
+                    <span class="ai-stat-label">Groups Formed</span>
+                    <span class="ai-stat-value">{{ groupCount }}</span>
+                  </div>
+                </div>
+
+                <div class="ai-card glass">
+                  <div class="ai-card-icon accent">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                  </div>
+                  <h4>Key Matchup Predictions</h4>
+                  <p>Potential group-stage clashes and knockout-round projections.</p>
+                  <div class="ai-placeholder-shimmer">
+                    <div class="shimmer-line w80"></div>
+                    <div class="shimmer-line w60"></div>
+                    <div class="shimmer-line w70"></div>
+                  </div>
+                  <span class="ai-chip pending">Awaiting draw generation</span>
+                </div>
+
+                <div class="ai-card glass">
+                  <div class="ai-card-icon success">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                  </div>
+                  <h4>Form & Performance Outlook</h4>
+                  <p>Historical win rates, player form, and head-to-head records.</p>
+                  <div class="ai-placeholder-shimmer">
+                    <div class="shimmer-line w70"></div>
+                    <div class="shimmer-line w90"></div>
+                    <div class="shimmer-line w50"></div>
+                  </div>
+                  <span class="ai-chip pending">Processing historical data</span>
+                </div>
+              </div>
+            } @else {
+              <div class="ai-preview-grid">
+                <div class="ai-card glass live">
+                  <div class="ai-card-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                  </div>
+                  <h4>Team Strength Index</h4>
+                  <div class="ai-stat-row">
+                    <span class="ai-stat-label">Active Teams</span>
+                    <span class="ai-stat-value highlight">{{ participatingTeamCount }}</span>
+                  </div>
+                  <div class="ai-stat-row">
+                    <span class="ai-stat-label">Total Fixtures</span>
+                    <span class="ai-stat-value">{{ fixtureCount }}</span>
+                  </div>
+                  <div class="ai-stat-row">
+                    <span class="ai-stat-label">Groups / Rounds</span>
+                    <span class="ai-stat-value">{{ groupCount }} / {{ rounds.length }}</span>
+                  </div>
+                </div>
+
+                <div class="ai-card glass live">
+                  <div class="ai-card-icon accent">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                  </div>
+                  <h4>Competitive Balance</h4>
+                  <p class="ai-insight-text">The tournament shows strong competitive parity — no single team dominates the standings. Close matchups are expected in knockout rounds.</p>
+                  <span class="ai-chip success">Analysis complete</span>
+                </div>
+              </div>
+            }
+          </div>
               <div class="ai-badge preview">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
                 Pre-Tournament Preview
@@ -537,11 +687,9 @@
                   </div>
                   <h4>Performance Outlook</h4>
                   <p class="ai-insight-text">Based on current form, expect high-intensity matches in the upcoming rounds with several upsets predicted.</p>
-                  <span class="ai-chip success">Live tracking</span>
                 </div>
               </div>
             }
-          </div>
 
           <div class="section-divider"></div>
 
@@ -550,48 +698,440 @@
             <div class="ai-section-header">
               <div class="ai-badge report">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                Post-Tournament Report
+                التقرير الفني بالذكاء الاصطناعي
               </div>
             </div>
 
             @if (tournament.status === 'Completed') {
-              <div class="ai-report-card glass">
-                <div class="report-header">
-                  <h3>{{ tournament.name }} — Final Report</h3>
-                  <span class="ai-chip success">Generated</span>
-                </div>
-                <div class="report-stats-row">
-                  <div class="report-stat">
-                    <span class="stat-number">{{ participatingTeamCount }}</span>
-                    <span class="stat-label">Teams</span>
+
+              <!-- ✅ COMPLETED: Full report available (Koralytics Premium AI Theme) -->
+              @if (report && report.status === 'Completed' && report.reportText) {
+                <div class="kb-report-wrapper rtl-content">
+
+                  <!-- 🌟 HERO HEADER BANNER (Matching Screenshot Exactly) -->
+                  <div class="kb-header-card">
+                    <div class="kb-header-top">
+                      <div class="kb-ai-pill">
+                        <span class="kb-pill-dot"></span>
+                        AI TACTICAL INTELLIGENCE
+                      </div>
+                      <div style="display:flex; align-items:center; gap:12px;">
+                        <button class="simulate-btn" (click)="regenerateReport()" [disabled]="isRegenerating" style="padding: 6px 14px; font-size: 0.8rem;">
+                          <span *ngIf="isRegenerating" class="btn-spinner"></span>
+                          <span>{{ isRegenerating ? 'جاري إعادة التوليد...' : '🔄 إعادة توليد التقرير' }}</span>
+                        </button>
+                        <div class="kb-header-date" *ngIf="report.generatedAt">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                          {{ report.generatedAt | date:'medium' }}
+                        </div>
+                      </div>
+                    </div>
+
+                    <h1 class="kb-header-title">التقرير التحليلي الفني للبطولة</h1>
+
+                    <div class="kb-header-meta">
+                      <span class="kb-meta-chip lime">مكتملة</span>
+                      <span class="kb-meta-item">النوع: <strong class="kb-meta-val">Tournament</strong></span>
+                      <span class="kb-meta-item">مرجع البطولة: <strong class="kb-meta-val">#{{ tournament.id }}</strong></span>
+                    </div>
                   </div>
-                  <div class="report-stat">
-                    <span class="stat-number">{{ fixtureCount }}</span>
-                    <span class="stat-label">Matches Played</span>
+
+                  <!-- 📊 STATS CARDS GRID (Only displayed for available real stats) -->
+                  <div class="stats-dashboard" *ngIf="report.winnerTeamName || report.bestPlayerName || report.topScorerName || report.topAssisterName || report.mostScoredClubName">
+                    <!-- Winner Card -->
+                    <div class="stat-card gold" *ngIf="report.winnerTeamName">
+                      <div class="stat-card-header">
+                        <span class="stat-icon">🏆</span>
+                        <span class="stat-title">بطل البطولة</span>
+                      </div>
+                      <div class="stat-card-value">{{ report.winnerTeamName }}</div>
+                      <div class="stat-card-desc">أفضل نادي بالبطولة</div>
+                    </div>
+
+                    <!-- Best Player Card -->
+                    <div class="stat-card blue" *ngIf="report.bestPlayerName">
+                      <div class="stat-card-header">
+                        <span class="stat-icon">⭐</span>
+                        <span class="stat-title">أفضل لاعب</span>
+                      </div>
+                      <div class="stat-card-value">
+                        <a *ngIf="report.bestPlayerId" [routerLink]="['/drills/players', report.bestPlayerId, 'progression']" class="clickable-stat-link">
+                          {{ report.bestPlayerName }} ↗
+                        </a>
+                        <span *ngIf="!report.bestPlayerId">{{ report.bestPlayerName }}</span>
+                      </div>
+                      <div class="stat-card-desc">لاعب البطولة المتميز</div>
+                    </div>
+
+                    <!-- Top Scorer Card -->
+                    <div class="stat-card green" *ngIf="report.topScorerName">
+                      <div class="stat-card-header">
+                        <span class="stat-icon">⚽</span>
+                        <span class="stat-title">هداف البطولة</span>
+                      </div>
+                      <div class="stat-card-value">
+                        <a *ngIf="report.topScorerId" [routerLink]="['/drills/players', report.topScorerId, 'progression']" class="clickable-stat-link">
+                          {{ report.topScorerName }} ↗
+                        </a>
+                        <span *ngIf="!report.topScorerId">{{ report.topScorerName }}</span>
+                      </div>
+                      <div class="stat-card-desc" *ngIf="report.topScorerGoals">{{ report.topScorerGoals }} أهداف مسجلة</div>
+                      <div class="stat-card-desc" *ngIf="!report.topScorerGoals">الحذاء الذهبي</div>
+                    </div>
+
+                    <!-- Top Assister Card -->
+                    <div class="stat-card purple" *ngIf="report.topAssisterName">
+                      <div class="stat-card-header">
+                        <span class="stat-icon">👟</span>
+                        <span class="stat-title">أفضل صانع ألعاب</span>
+                      </div>
+                      <div class="stat-card-value">
+                        <a *ngIf="report.topAssisterId" [routerLink]="['/drills/players', report.topAssisterId, 'progression']" class="clickable-stat-link">
+                          {{ report.topAssisterName }} ↗
+                        </a>
+                        <span *ngIf="!report.topAssisterId">{{ report.topAssisterName }}</span>
+                      </div>
+                      <div class="stat-card-desc" *ngIf="report.topAssisterAssists">{{ report.topAssisterAssists }} صناعة أهداف</div>
+                      <div class="stat-card-desc" *ngIf="!report.topAssisterAssists">الأكثر صناعة للأهداف</div>
+                    </div>
+
+                    <!-- Most Scored Club -->
+                    <div class="stat-card orange" *ngIf="report.mostScoredClubName">
+                      <div class="stat-card-header">
+                        <span class="stat-icon">🔥</span>
+                        <span class="stat-title">الهجوم الأقوى</span>
+                      </div>
+                      <div class="stat-card-value">{{ report.mostScoredClubName }}</div>
+                      <div class="stat-card-desc" *ngIf="report.mostScoredClubGoals">سجل {{ report.mostScoredClubGoals }} أهداف</div>
+                      <div class="stat-card-desc" *ngIf="!report.mostScoredClubGoals">النادي الأكثر تسجيلاً</div>
+                    </div>
+
+                    <!-- Most Conceded Club -->
+                    <div class="stat-card red" *ngIf="report.mostConcededClubName">
+                      <div class="stat-card-header">
+                        <span class="stat-icon">🛡️</span>
+                        <span class="stat-title">الدفاع الأضعف</span>
+                      </div>
+                      <div class="stat-card-value">{{ report.mostConcededClubName }}</div>
+                      <div class="stat-card-desc" *ngIf="report.mostConcededClubGoals">استقبل {{ report.mostConcededClubGoals }} أهداف</div>
+                      <div class="stat-card-desc" *ngIf="!report.mostConcededClubGoals">النادي الأكثر استقبالاً للأهداف</div>
+                    </div>
+
+                    <!-- Least Scored Club -->
+                    <div class="stat-card gray" *ngIf="report.leastScoredClubName">
+                      <div class="stat-card-header">
+                        <span class="stat-icon">❄️</span>
+                        <span class="stat-title">الهجوم الأضعف</span>
+                      </div>
+                      <div class="stat-card-value">{{ report.leastScoredClubName }}</div>
+                      <div class="stat-card-desc" *ngIf="report.leastScoredClubGoals">سجل {{ report.leastScoredClubGoals }} أهداف فقط</div>
+                      <div class="stat-card-desc" *ngIf="!report.leastScoredClubGoals">النادي الأقل تسجيلاً</div>
+                    </div>
                   </div>
-                  <div class="report-stat">
-                    <span class="stat-number">{{ hallOfFame.length }}</span>
-                    <span class="stat-label">Awards Given</span>
+
+                  <!-- 📑 REPORT SECTION CARDS (Dynamic SaaS Card Grid) -->
+                  <div class="kb-grid" *ngIf="(parsedReport?.sections?.length ?? 0) > 0">
+                    <div
+                      *ngFor="let sec of parsedReport?.sections; let i = index"
+                      class="kb-card"
+                      [class.full-width]="i >= 2 || sec.title.includes('توصيات') || sec.title.includes('Executive')"
+                      [class.spotlight]="sec.title.includes('توصيات') || sec.title.includes('الخلاصة') || i === ((parsedReport?.sections?.length || 1) - 1)">
+                      <div class="kb-card-header">
+                        <div class="kb-icon-wrap" [class.spotlight-icon]="sec.title.includes('توصيات') || i === ((parsedReport?.sections?.length || 1) - 1)">
+                          <ng-container [ngSwitch]="i % 4">
+                            <span *ngSwitchCase="0">📌</span>
+                            <span *ngSwitchCase="1">🏆</span>
+                            <span *ngSwitchCase="2">🎯</span>
+                            <span *ngSwitchDefault>💡</span>
+                          </ng-container>
+                        </div>
+                        <h3>{{ sec.title }}</h3>
+                      </div>
+                      <div class="kb-card-body">
+                        <p *ngFor="let p of sec.content" [class.bullet-line]="isBulletLine(p)">
+                          {{ p }}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Fallback Card if Section Parsing returns 0 sections -->
+                  <div class="kb-card full-width spotlight" *ngIf="(parsedReport?.sections?.length ?? 0) === 0 && report.reportText">
+                    <div class="kb-card-header">
+                      <div class="kb-icon-wrap spotlight-icon">💡</div>
+                      <h3>التقرير التحليلي الفني والملخص الشامل</h3>
+                    </div>
+                    <div class="kb-card-body">
+                      <p *ngFor="let paragraph of report.reportText.split('\n')" [class.bullet-line]="isBulletLine(paragraph)">
+                        {{ paragraph }}
+                      </p>
+                    </div>
+                  </div>
+
+                </div>
+              }
+
+              <!-- ⏳ PENDING or GENERATING: Skeleton loader with pulsing animation -->
+              @if (!report || report.status === 'Pending' || report.status === 'Generating') {
+                <div class="ai-report-card glass generating">
+                  <div class="report-header">
+                    <div class="report-title-group">
+                      <span class="ai-sparkle-icon generating-pulse">🤖</span>
+                      <h3>{{ tournament.name }} — جاري تحليل البطولة</h3>
+                    </div>
+                    <span class="ai-chip generating">
+                      <span class="chip-dot"></span>
+                      {{ report?.status === 'Generating' ? 'جاري التوليد...' : 'في الانتظار...' }}
+                    </span>
+                  </div>
+                  <div class="report-generating-body">
+                    <div class="generating-info">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                      <p>يقوم محرك Koralytics AI بتحليل نتائج البطولة وجوائز الأكاديمية. سيتم إخطارك تلقائياً فور اكتمال التقرير.</p>
+                    </div>
+                    <!-- Skeleton lines -->
+                    <div class="skeleton-lines">
+                      <div class="skeleton-line wide"></div>
+                      <div class="skeleton-line medium"></div>
+                      <div class="skeleton-line full"></div>
+                      <div class="skeleton-line wide"></div>
+                      <div class="skeleton-line short"></div>
+                      <div class="skeleton-line full"></div>
+                      <div class="skeleton-line medium"></div>
+                    </div>
                   </div>
                 </div>
-                <div class="report-body">
-                  <p>The tournament concluded successfully with all {{ fixtureCount }} fixtures completed. The competition saw strong performances across all participating academies with a total of {{ hallOfFame.length }} individual awards distributed in the Hall of Fame ceremony.</p>
+              }
+
+              <!-- FAILED: Error state -->
+              @if (report && report.status === 'Failed') {
+                <div class="ai-report-card glass failed">
+                  <div class="report-header">
+                    <div class="report-title-group">
+                      <span class="ai-sparkle-icon">&#10060;</span>
+                      <h3>{{ tournament?.name }} - Report Failed</h3>
+                    </div>
+                    <span class="ai-chip failed">Generation Failed</span>
+                  </div>
+                  <div class="report-body rtl-content">
+                    <p class="failed-message">
+                      AI report generation failed. Please try completing the tournament again or contact support.
+                    </p>
+                  </div>
                 </div>
-              </div>
+              }
+
             } @else {
-              <div class="ai-locked-card glass">
+              <!-- Pending/locked state -->
+              <div class="ai-locked-state">
                 <div class="locked-icon">
                   <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                 </div>
-                <h4>Report Locked</h4>
-                <p>The AI post-tournament report will be generated automatically once the tournament status is set to <strong>Completed</strong>.</p>
-                <span class="ai-chip pending">Waiting for completion</span>
+                <h4>AI Report Locked</h4>
+                <p>The comprehensive AI technical report will be automatically generated once all matches are completed.</p>
+                <span class="ai-chip pending">Awaiting Completion</span>
               </div>
             }
-          </div>
         </div>
       }
-
     </div>
   }
-</div>
+
+    <!-- ================================================================
+         MATCH STATS MODAL â€” Premium Redesign
+         ================================================================ -->
+    @if (editingStatsFixture) {
+      <div class="sm-overlay" (click)="closeStatsModal()">
+        <div class="sm-panel" (click)="$event.stopPropagation()">
+
+          <!-- Header -->
+          <div class="sm-header">
+            <div class="sm-match-banner">
+              <div class="sm-team home">
+                <span class="sm-team-badge home-badge">{{ editingStatsFixture.homeTeamName?.charAt(0) }}</span>
+                <span class="sm-team-name">{{ editingStatsFixture.homeTeamName }}</span>
+              </div>
+              <div class="sm-vs-block">
+                <span class="sm-vs-score">{{ editingStatsFixture.homeScore ?? '-' }} : {{ editingStatsFixture.awayScore ?? '-' }}</span>
+                <span class="sm-vs-label">Match Stats Entry</span>
+              </div>
+              <div class="sm-team away">
+                <span class="sm-team-name">{{ editingStatsFixture.awayTeamName }}</span>
+                <span class="sm-team-badge away-badge">{{ editingStatsFixture.awayTeamName?.charAt(0) }}</span>
+              </div>
+            </div>
+            <button class="sm-close" (click)="closeStatsModal()" aria-label="Close">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+
+          <!-- Body -->
+          <div class="sm-body">
+
+            @if (isLoadingPlayers) {
+              <div class="sm-loading">
+                <div class="sm-spinner"></div>
+                <span>Loading squad rosters...</span>
+              </div>
+            } @else if (statsSaved) {
+              <div class="sm-success">
+                <div class="sm-success-icon">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <h4>Stats Saved!</h4>
+                <p>Match statistics recorded and player cards updated.</p>
+              </div>
+            } @else {
+
+              <!-- Goals Section -->
+              <div class="sm-section">
+                <div class="sm-section-header">
+                  <div class="sm-section-title">
+                    <span class="sm-section-dot goals-dot"></span>
+                    <h3>Goals <span class="sm-count-badge">{{ statsForm.goals.length }} / {{ maxHomeGoals + maxAwayGoals }}</span></h3>
+                    <span class="sm-team-goal-counts">
+                      ({{ editingStatsFixture.homeTeamName }}: {{ currentHomeGoalsCount }}/{{ maxHomeGoals }} | {{ editingStatsFixture.awayTeamName }}: {{ currentAwayGoalsCount }}/{{ maxAwayGoals }})
+                    </span>
+                  </div>
+                  <button class="sm-add-btn" [disabled]="!canAddGoal" (click)="addGoal()">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Add Goal
+                  </button>
+                </div>
+
+                @if (statsForm.goals.length === 0) {
+                  <div class="sm-empty-hint">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.35"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+                    <p>No goals recorded yet. Click <strong>Add Goal</strong> to start.</p>
+                  </div>
+                }
+
+                <div class="sm-goals-list">
+                  @for (goal of statsForm.goals; track $index) {
+                    <div class="sm-goal-card">
+                      <div class="sm-goal-num">{{ $index + 1 }}</div>
+                      <div class="sm-goal-fields">
+
+                        <div class="sm-field">
+                          <label class="sm-label">Goal Scorer <span class="sm-required">*</span></label>
+                          <select class="sm-select" [(ngModel)]="goal.playerId" (change)="onGoalPlayerChange(goal)">
+                            <option [ngValue]="0" disabled>Select scorer...</option>
+                            @if (homePlayers.length > 0) {
+                              <optgroup label="Home: {{ editingStatsFixture.homeTeamName }}">
+                                @for (p of homePlayers; track (p.playerId ?? p.id)) {
+                                  <option [ngValue]="p.playerId ?? p.id">{{ getPlayerName(p) }}</option>
+                                }
+                              </optgroup>
+                            }
+                            @if (awayPlayers.length > 0) {
+                              <optgroup label="Away: {{ editingStatsFixture.awayTeamName }}">
+                                @for (p of awayPlayers; track (p.playerId ?? p.id)) {
+                                  <option [ngValue]="p.playerId ?? p.id">{{ getPlayerName(p) }}</option>
+                                }
+                              </optgroup>
+                            }
+                          </select>
+                        </div>
+
+                        <div class="sm-field">
+                          <label class="sm-label">Assist <span class="sm-optional">(optional)</span></label>
+                          <select class="sm-select" [(ngModel)]="goal.assistPlayerId">
+                            <option [ngValue]="null">No assist</option>
+                            @if (homePlayers.length > 0) {
+                              <optgroup label="Home: {{ editingStatsFixture.homeTeamName }}">
+                                @for (p of homePlayers; track (p.playerId ?? p.id)) {
+                                  <option [ngValue]="p.playerId ?? p.id">{{ getPlayerName(p) }}</option>
+                                }
+                              </optgroup>
+                            }
+                            @if (awayPlayers.length > 0) {
+                              <optgroup label="Away: {{ editingStatsFixture.awayTeamName }}">
+                                @for (p of awayPlayers; track (p.playerId ?? p.id)) {
+                                  <option [ngValue]="p.playerId ?? p.id">{{ getPlayerName(p) }}</option>
+                                }
+                              </optgroup>
+                            }
+                          </select>
+                        </div>
+
+                        <div class="sm-field sm-field-minute">
+                          <label class="sm-label">Minute</label>
+                          <div class="sm-minute-wrap">
+                            <input type="number" class="sm-input" min="1" max="120" [(ngModel)]="goal.minute" placeholder="45">
+                            <span class="sm-prime">&#x2032;</span>
+                          </div>
+                        </div>
+
+                      </div>
+                      <button class="sm-remove-btn" (click)="removeGoal($index)" title="Remove">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+                      </button>
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <!-- Man of the Match -->
+              <div class="sm-section">
+                <div class="sm-section-header">
+                  <div class="sm-section-title">
+                    <span class="sm-section-dot motm-dot"></span>
+                    <h3>Man of the Match <span class="sm-optional">(optional)</span></h3>
+                  </div>
+                </div>
+
+                @if (allPlayers.length === 0) {
+                  <div class="sm-empty-hint">
+                    <p>No players loaded. Squad rosters may be unavailable for these teams.</p>
+                  </div>
+                } @else {
+                  <div class="sm-motm-grid">
+                    <label class="sm-motm-card" [class.selected]="!statsForm.motmPlayerId">
+                      <input type="radio" [value]="undefined" [(ngModel)]="statsForm.motmPlayerId" style="display:none">
+                      <span class="sm-motm-avatar none-av">&#8211;</span>
+                      <span class="sm-motm-name">None</span>
+                    </label>
+                    @for (p of allPlayers; track (p.playerId ?? p.id)) {
+                      <label class="sm-motm-card"
+                             [class.selected]="statsForm.motmPlayerId === (p.playerId ?? p.id)"
+                             [class.motm-home]="homePlayers.includes(p)"
+                             [class.motm-away]="awayPlayers.includes(p)">
+                        <input type="radio" [value]="p.playerId ?? p.id" [(ngModel)]="statsForm.motmPlayerId" style="display:none">
+                        <span class="sm-motm-avatar">{{ getPlayerName(p).charAt(0).toUpperCase() }}</span>
+                        <span class="sm-motm-name">{{ getPlayerName(p) }}</span>
+                        <span class="sm-motm-side">{{ homePlayers.includes(p) ? 'Home' : 'Away' }}</span>
+                      </label>
+                    }
+                  </div>
+                }
+              </div>
+
+              @if (statsError) {
+                <div class="sm-error-bar">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  {{ statsError }}
+                </div>
+              }
+
+            }
+          </div>
+
+          <!-- Footer -->
+          @if (!statsSaved) {
+            <div class="sm-footer">
+              <button class="sm-btn-cancel" (click)="closeStatsModal()">Cancel</button>
+              <button class="sm-btn-save" [disabled]="isSavingStats || isLoadingPlayers" (click)="saveStats()">
+                @if (isSavingStats) {
+                  <span class="sm-spinner-sm"></span>
+                  Saving...
+                } @else {
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                  Save Stats
+                }
+              </button>
+            </div>
+          }
+
+        </div>
+      </div>
+    }

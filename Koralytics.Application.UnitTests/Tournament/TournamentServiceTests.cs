@@ -1,49 +1,58 @@
-//using System.Linq.Expressions;
-//using AutoMapper;
-//using Koralytics.Application.DTOs.Tournament;
-//using Koralytics.Application.Interfaces;
-//using Koralytics.Domain.Entities.Academy;
-//using Koralytics.Domain.Enums;
-//using Koralytics.Domain.Exceptions;
-//using Microsoft.Extensions.Logging;
-//using Moq;
-//using MockQueryable;
-//using MockQueryable.Moq;
-//using Xunit;
-//using TournamentEntity = Koralytics.Domain.Entities.Tournamet.Tournament;
-//using TournamentTeamEntity = Koralytics.Domain.Entities.Tournamet.TournamentTeam;
-//using TournamentSquadEntity = Koralytics.Domain.Entities.Tournamet.TournamentSquad;
-//using PlayerTeamEntity = Koralytics.Domain.Entities.Player.PlayerTeam;
-//using AcademyEntity = Koralytics.Domain.Entities.Academy.Academy;
-//using Koralytics.Application.Services.Tournaments;
-//namespace Koralytics.Application.UnitTests.Tournament
-//{
-//    public class TournamentServiceTests
-//    {
-//        private readonly Mock<IUnitOfWork> _unitOfWorkMock;
-//        private readonly Mock<IMapper> _mapperMock;
-//        private readonly Mock<ILogger<TournamentService>> _loggerMock;
-//        private readonly Mock<IRepository<TournamentEntity>> _tournamentRepoMock;
-//        private readonly Mock<IRepository<AgeGroup>> _ageGroupRepoMock;
-//        private readonly Mock<IRepository<TournamentTeamEntity>> _tournamentTeamRepoMock;
-//        private readonly Mock<IRepository<TournamentSquadEntity>> _tournamentSquadRepoMock;
-//        private readonly Mock<IRepository<PlayerTeamEntity>> _playerTeamRepoMock;
-//        private readonly Mock<IRepository<AcademyEntity>> _academyRepoMock;
-//        private readonly Mock<IRepository<Team>> _teamRepoMock;
-//        private readonly TournamentService _service;
+using System.Linq.Expressions;
+using AutoMapper;
+using Koralytics.Application.DTOs.Tournament;
+using Koralytics.Application.Interfaces;
+using Koralytics.Domain.Entities.Academy;
+using Koralytics.Domain.Enums;
+using Koralytics.Domain.Exceptions;
+using Microsoft.Extensions.Logging;
+using Moq;
+using MockQueryable;
+using MockQueryable.Moq;
+using Xunit;
+using TournamentEntity = Koralytics.Domain.Entities.Tournamet.Tournament;
+using TournamentTeamEntity = Koralytics.Domain.Entities.Tournamet.TournamentTeam;
+using TournamentSquadEntity = Koralytics.Domain.Entities.Tournamet.TournamentSquad;
+using PlayerTeamEntity = Koralytics.Domain.Entities.Player.PlayerTeam;
+using AcademyEntity = Koralytics.Domain.Entities.Academy.Academy;
+using Koralytics.Application.Services.Tournaments;
+using Koralytics.Application.Interfaces.Tournament;
+using Koralytics.Application.Interfaces.Tournaments;
 
-//        public TournamentServiceTests()
-//        {
-//            _unitOfWorkMock = new Mock<IUnitOfWork>();
-//            _mapperMock = new Mock<IMapper>();
-//            _loggerMock = new Mock<ILogger<TournamentService>>();
-//            _tournamentRepoMock = new Mock<IRepository<TournamentEntity>>();
-//            _ageGroupRepoMock = new Mock<IRepository<AgeGroup>>();
-//            _tournamentTeamRepoMock = new Mock<IRepository<TournamentTeamEntity>>();
-//            _tournamentSquadRepoMock = new Mock<IRepository<TournamentSquadEntity>>();
-//            _playerTeamRepoMock = new Mock<IRepository<PlayerTeamEntity>>();
-//            _academyRepoMock = new Mock<IRepository<AcademyEntity>>();
-//            _teamRepoMock = new Mock<IRepository<Team>>();
+namespace Koralytics.Application.UnitTests.Tournament
+{
+    public class TournamentServiceTests
+    {
+        private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+        private readonly Mock<IMapper> _mapperMock;
+        private readonly Mock<ILogger<TournamentService>> _loggerMock;
+        private readonly Mock<ITournamentDrawService> _tournamentDrawServiceMock;
+        private readonly Mock<ITournamentFixtureService> _tournamentFixtureServiceMock;
+        private readonly Mock<ITournamentReportService> _tournamentReportServiceMock;
+        private readonly Mock<IRepository<TournamentEntity>> _tournamentRepoMock;
+        private readonly Mock<IRepository<AgeGroup>> _ageGroupRepoMock;
+        private readonly Mock<IRepository<TournamentTeamEntity>> _tournamentTeamRepoMock;
+        private readonly Mock<IRepository<TournamentSquadEntity>> _tournamentSquadRepoMock;
+        private readonly Mock<IRepository<PlayerTeamEntity>> _playerTeamRepoMock;
+        private readonly Mock<IRepository<AcademyEntity>> _academyRepoMock;
+        private readonly Mock<IRepository<Team>> _teamRepoMock;
+        private readonly TournamentService _service;
+
+        public TournamentServiceTests()
+        {
+            _unitOfWorkMock = new Mock<IUnitOfWork>();
+            _mapperMock = new Mock<IMapper>();
+            _loggerMock = new Mock<ILogger<TournamentService>>();
+            _tournamentDrawServiceMock = new Mock<ITournamentDrawService>();
+            _tournamentFixtureServiceMock = new Mock<ITournamentFixtureService>();
+            _tournamentReportServiceMock = new Mock<ITournamentReportService>();
+            _tournamentRepoMock = new Mock<IRepository<TournamentEntity>>();
+            _ageGroupRepoMock = new Mock<IRepository<AgeGroup>>();
+            _tournamentTeamRepoMock = new Mock<IRepository<TournamentTeamEntity>>();
+            _tournamentSquadRepoMock = new Mock<IRepository<TournamentSquadEntity>>();
+            _playerTeamRepoMock = new Mock<IRepository<PlayerTeamEntity>>();
+            _academyRepoMock = new Mock<IRepository<AcademyEntity>>();
+            _teamRepoMock = new Mock<IRepository<Team>>();
 
 //            _unitOfWorkMock
 //                .Setup(u => u.Repository<TournamentEntity>())
@@ -67,11 +76,14 @@
 //                .Setup(u => u.Repository<Team>())
 //                .Returns(_teamRepoMock.Object);
 
-//            _service = new TournamentService(
-//                _unitOfWorkMock.Object,
-//                _mapperMock.Object,
-//                _loggerMock.Object);
-//        }
+            _service = new TournamentService(
+                _unitOfWorkMock.Object,
+                _mapperMock.Object,
+                _loggerMock.Object,
+                _tournamentDrawServiceMock.Object,
+                _tournamentFixtureServiceMock.Object,
+                _tournamentReportServiceMock.Object);
+        }
 
 //        // ─── CreateTournamentAsync ───────────────────────────────────
 

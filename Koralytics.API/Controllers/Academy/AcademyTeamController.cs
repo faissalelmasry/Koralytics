@@ -31,6 +31,14 @@ namespace Koralytics.API.Controllers.Academies
             return OkResponse(result, "Age group created successfully.");
         }
 
+        [HttpGet("age-groups")]
+        [Authorize(Roles = "SystemAdmin")]
+        public async Task<IActionResult> GetGlobalAgeGroups([FromQuery] string[] names)
+        {
+            var result = await _academyTeamService.GetAgeGroupsByNamesAsync(names);
+            return OkResponse(result, "Age groups retrieved successfully.");
+        }
+
         [HttpGet("{academyId}/age-groups")]
         [AllowAnonymous]
         public async Task<IActionResult> GetAgeGroups(int academyId)

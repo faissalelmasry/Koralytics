@@ -173,6 +173,14 @@ export class AcademyService {
     return this.http.get<ApiResponse<AgeGroupResponseDto[]>>(`${this.apiUrl}/${academyId}/age-groups`);
   }
 
+  getAgeGroupsByNames(names: string[]): Observable<ApiResponse<AgeGroupResponseDto[]>> {
+    let params = new HttpParams();
+    names.forEach(name => {
+      params = params.append('names', name);
+    });
+    return this.http.get<ApiResponse<AgeGroupResponseDto[]>>(`${this.apiUrl}/age-groups`, { params });
+  }
+
   createAgeGroup(academyId: number, dto: CreateAgeGroupDto): Observable<ApiResponse<AgeGroupResponseDto>> {
     return this.http.post<ApiResponse<AgeGroupResponseDto>>(`${this.apiUrl}/${academyId}/age-groups`, dto);
   }

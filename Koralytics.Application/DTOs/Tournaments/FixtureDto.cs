@@ -13,6 +13,8 @@ namespace Koralytics.Application.DTOs.Tournaments
         public int? MatchId { get; set; }
         public int HomeTeamId { get; set; }
         public int AwayTeamId { get; set; }
+        public int HomeRealTeamId { get; set; }
+        public int AwayRealTeamId { get; set; }
         public string HomeTeamName { get; set; } = string.Empty;
         public string AwayTeamName { get; set; } = string.Empty;
         public int? HomeScore { get; set; }

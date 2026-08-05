@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -31,7 +31,7 @@ namespace Koralytics.Infrastructure.EntitiesConfigurations.Tournment
             ));
 
             entity.HasOne(x => x.Group)
-                  .WithMany()
+                  .WithMany(g => g.TournamentFixtures)
                   .HasForeignKey(x => x.GroupId)
                   .OnDelete(DeleteBehavior.Restrict);
 
