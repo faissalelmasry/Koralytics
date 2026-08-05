@@ -1,6 +1,6 @@
 import { Component, OnInit, AfterViewInit, inject, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Chart, registerables } from 'chart.js';
 import { NavbarComponent } from '../../../../shared/components/navbar/navbar';
 import { Footer } from '../../../../shared/components/footer/footer';
@@ -14,7 +14,7 @@ Chart.register(...registerables);
 @Component({
   selector: 'app-player-academy-comparison',
   standalone: true,
-  imports: [CommonModule, NavbarComponent, Footer, LoadingSpinnerComponent],
+  imports: [CommonModule, RouterLink, NavbarComponent, Footer, LoadingSpinnerComponent],
   templateUrl: './player-academy-comparison.component.html',
   styleUrls: ['./player-academy-comparison.component.css']
 })

@@ -1,10 +1,19 @@
 <header [class.scrolled]="isScrolled">
-  <div class="logo-wrapper" [routerLink]="isLoggedIn ? userDashboardRoute : '/'" style="cursor: pointer;">
+  <div class="logo-wrapper" [routerLink]="isLoggedIn ? userDashboardRoute : '/auth/login'" style="cursor: pointer;">
     <img src="images/logo/primary/logo-primary-dark.png" alt="Koralytics Logo">
   </div>
 
-  <nav>
-    <a [routerLink]="isLoggedIn ? userDashboardRoute : '/'" routerLinkActive="active">Home</a>
+  <nav class="desktop-nav">
+    <a [routerLink]="isLoggedIn ? userDashboardRoute : '/auth/login'" routerLinkActive="active">Home</a>
+
+    <!-- Logged Out Navigation -->
+    <ng-container *ngIf="!isLoggedIn">
+      <a routerLink="/about" routerLinkActive="active">About</a>
+      <a routerLink="/features" routerLinkActive="active">Features</a>
+      <a routerLink="/pricing" routerLinkActive="active">Pricing</a>
+      <a routerLink="/faq" routerLinkActive="active">FAQ</a>
+      <a routerLink="/contact" routerLinkActive="active">Contact</a>
+    </ng-container>
 
     <!-- Player Links (Desktop) -->
     <ng-container *ngIf="isPlayer">
@@ -37,6 +46,12 @@
       <a routerLink="/drills" routerLinkActive="active">drills</a>
     </ng-container>
   </nav>
+
+  <button class="mobile-nav-toggle" (click)="toggleSidebar(!isSidebarOpen)" aria-label="Toggle navigation menu">
+    <span class="hamburger-line"></span>
+    <span class="hamburger-line"></span>
+    <span class="hamburger-line"></span>
+  </button>
 </header>
 
 <div class="floating-sidebar-trigger" [class.sidebar-open]="isSidebarOpen" (click)="toggleSidebar(!isSidebarOpen)">
@@ -54,8 +69,19 @@
 
   <div class="sidebar-content">
     <nav class="sidebar-nav">
-      <a [routerLink]="isLoggedIn ? userDashboardRoute : '/'" routerLinkActive="active"
+      <a [routerLink]="isLoggedIn ? userDashboardRoute : '/auth/login'" routerLinkActive="active"
         (click)="toggleSidebar(false)">Home</a>
+
+      <!-- Public Section (Logged Out Sidebar) -->
+      <div class="sidebar-section" *ngIf="!isLoggedIn">
+        <span class="section-label">Explore</span>
+        <a routerLink="/about" routerLinkActive="active" (click)="toggleSidebar(false)">About Us</a>
+        <a routerLink="/features" routerLinkActive="active" (click)="toggleSidebar(false)">Features & Solutions</a>
+        <a routerLink="/pricing" routerLinkActive="active" (click)="toggleSidebar(false)">Pricing & Plans</a>
+        <a routerLink="/faq" routerLinkActive="active" (click)="toggleSidebar(false)">FAQ</a>
+        <a routerLink="/contact" routerLinkActive="active" (click)="toggleSidebar(false)">Contact & Support</a>
+        <a routerLink="/privacy-terms" routerLinkActive="active" (click)="toggleSidebar(false)">Privacy & Terms</a>
+      </div>
 
       <!-- Player Section -->
       <div class="sidebar-section" *ngIf="isPlayer">

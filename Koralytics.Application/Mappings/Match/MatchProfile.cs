@@ -103,6 +103,8 @@ namespace Koralytics.Application.Mappings.Match
                 .ForMember(d => d.AwayTeamName, o => o.MapFrom(s => s.AwayTeam.Name))
                 .ForMember(d => d.HomeTeamAcademyName, o => o.MapFrom(s => s.HomeTeam.AgeGroup.Academy.Name))
                 .ForMember(d => d.AwayTeamAcademyName, o => o.MapFrom(s => s.AwayTeam.AgeGroup.Academy.Name))
+                .ForMember(d => d.HomeTeamAcademyId, o => o.MapFrom(s => s.HomeTeam.AcademyId))
+                .ForMember(d => d.AwayTeamAcademyId, o => o.MapFrom(s => s.AwayTeam.AcademyId))
                 .ForMember(d => d.Formation, o => o.MapFrom(s => s.Formation));
 
             CreateMap<LogMatchEventDto, MatchEventEntity>()

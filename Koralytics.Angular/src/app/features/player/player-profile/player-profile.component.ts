@@ -1,6 +1,6 @@
 import { Component, OnInit, AfterViewInit, OnDestroy, inject, ElementRef, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Chart, registerables } from 'chart.js';
 import { NavbarComponent } from '../../../../shared/components/navbar/navbar';
 import { Footer } from '../../../../shared/components/footer/footer';
@@ -25,7 +25,7 @@ Chart.register(...registerables);
 @Component({
   selector: 'app-player-profile',
   standalone: true,
-  imports: [CommonModule, NavbarComponent, Footer, PlayerCardComponent, TransferCanvasComponent, LoadingSpinnerComponent, ScrollRevealDirective, CustomButtonComponent, ConfirmDialogComponent, CustomToggle, PlayerDrillProgressionComponent],
+  imports: [CommonModule, RouterLink, NavbarComponent, Footer, PlayerCardComponent, TransferCanvasComponent, LoadingSpinnerComponent, ScrollRevealDirective, CustomButtonComponent, ConfirmDialogComponent, CustomToggle, PlayerDrillProgressionComponent],
   templateUrl: './player-profile.component.html',
   styleUrls: ['./player-profile.component.css']
 })
@@ -710,6 +710,14 @@ private logAndNotifyIfScouter(roles: string[]) {
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        layout: {
+          padding: {
+            top: 20,
+            bottom: 20,
+            left: 25,
+            right: 25
+          }
+        },
         plugins: { legend: { display: false } },
         scales: {
           r: {
@@ -717,7 +725,7 @@ private logAndNotifyIfScouter(roles: string[]) {
             grid: { color: 'rgba(255, 255, 255, 0.1)' },
             pointLabels: {
               color: '#808897',
-              font: { size: 9, weight: 'bold' }
+              font: { size: 10, weight: 'bold' }
             },
             ticks: { display: false },
             suggestedMin: 30,

@@ -20,30 +20,34 @@
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: clamp(10px, 2.5vw, 18px);
   font-family: 'Plus Jakarta Sans', sans-serif;
   color: var(--text-main);
 }
 
-/* ---- SCOREBOARD ---- */
+/* ============================================================
+   SCOREBOARD
+   ============================================================ */
 
 .hero-scoreboard {
   position: relative;
   background: var(--card-bg);
   backdrop-filter: blur(20px);
   border: 1px solid var(--card-border);
-  border-radius: 20px;
-  padding: 20px 24px;
+  border-radius: clamp(12px, 3vw, 20px);
+  padding: clamp(12px, 3vw, 20px) clamp(12px, 4vw, 24px);
   display: grid;
-  grid-template-columns: 1fr 140px 1fr;
+  grid-template-columns: 1fr clamp(90px, 22vw, 140px) 1fr;
   align-items: center;
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8);
+  overflow: hidden;
 }
 
 .team-box {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: clamp(4px, 1vw, 8px);
+  min-width: 0; /* allow flex children to shrink */
 }
 
 .team-box.home {
@@ -59,18 +63,37 @@
 .team-text {
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
+/* clamp: 11px on 320px screens → 16px on 900px+ screens */
 .team-name {
-  font-size: 16px;
+  font-size: clamp(11px, 3.5vw, 16px);
   font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .academy-sub {
-  font-size: 11px;
+  font-size: clamp(9px, 2vw, 11px);
   font-weight: 600;
   color: var(--text-muted);
   margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+a.academy-sub.academy-link {
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+a.academy-sub.academy-link:hover {
+  color: var(--neon-cyan, #38bdf8);
+  text-decoration: underline;
 }
 
 .score-center {
@@ -81,22 +104,24 @@
 
 .start-match-box {
   position: absolute;
-  top: 20px;
-  right: 24px;
+  top: clamp(10px, 2vw, 20px);
+  right: clamp(10px, 3vw, 24px);
 }
 
+/* clamp: 24px on 320px → 38px on 900px+ */
 .score-digits {
   font-family: 'Chakra Petch', sans-serif;
-  font-size: 38px;
+  font-size: clamp(24px, 7vw, 38px);
   font-weight: 800;
   color: var(--neon-yellow);
-  letter-spacing: 2px;
+  letter-spacing: clamp(1px, 0.5vw, 2px);
   text-shadow: 0 0 20px rgba(250, 204, 21, 0.4);
+  white-space: nowrap;
 }
 
 .penalties-score-badge {
   font-family: 'Chakra Petch', sans-serif;
-  font-size: 13px;
+  font-size: clamp(10px, 2.5vw, 13px);
   font-weight: 800;
   color: var(--neon-yellow);
   letter-spacing: 1px;
@@ -106,15 +131,16 @@
 }
 
 .ft-badge {
-  font-size: 10px;
+  font-size: clamp(8px, 2vw, 10px);
   font-weight: 800;
   letter-spacing: 1px;
-  padding: 2px 10px;
+  padding: 2px clamp(6px, 2vw, 10px);
   border-radius: 12px;
   background: rgba(250, 204, 21, 0.1);
   color: var(--neon-yellow);
   border: 1px solid rgba(250, 204, 21, 0.3);
   animation: pulseGlow 2.5s ease-in-out infinite alternate;
+  white-space: nowrap;
 }
 
 @keyframes pulseGlow {
@@ -122,14 +148,17 @@
   100% { box-shadow: 0 0 18px rgba(250, 204, 21, 0.6); }
 }
 
-/* ---- TABS ---- */
+/* ============================================================
+   TABS
+   ============================================================ */
 
 .nav-tabs-container {
   background: rgba(10, 14, 23, 0.8);
   border: 1px solid var(--card-border);
-  padding: 5px;
-  border-radius: 14px;
+  padding: clamp(3px, 0.8vw, 5px);
+  border-radius: clamp(8px, 2vw, 14px);
   display: flex;
+  overflow: hidden;
 }
 
 .tab-btn {
@@ -137,13 +166,17 @@
   background: transparent;
   border: none;
   color: var(--text-muted);
-  padding: 12px 0;
-  font-size: 13px;
+  padding: clamp(8px, 2vw, 12px) clamp(2px, 1vw, 8px);
+  font-size: clamp(9px, 2.5vw, 13px);
   font-weight: 800;
   cursor: pointer;
-  border-radius: 10px;
+  border-radius: clamp(6px, 1.5vw, 10px);
   font-family: 'Plus Jakarta Sans', sans-serif;
   transition: all 0.45s cubic-bezier(0.25, 1, 0.5, 1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
 }
 
 .tab-btn.active {
@@ -153,12 +186,14 @@
   box-shadow: 0 0 20px rgba(250, 204, 21, 0.25);
 }
 
-/* ---- SLIDE VIEWPORT ---- */
+/* ============================================================
+   SLIDE VIEWPORT
+   ============================================================ */
 
 .swipe-viewport {
   width: 100%;
   overflow: hidden;
-  border-radius: 20px;
+  border-radius: clamp(12px, 3vw, 20px);
 }
 
 .swipe-track {
@@ -182,119 +217,80 @@
 }
 
 @keyframes slideFadeIn {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+  from { opacity: 0; transform: translateX(-20px); }
+  to   { opacity: 1; transform: translateX(0); }
 }
 
 @keyframes slideFadeInRight {
-  from {
-    opacity: 0;
-    transform: translateX(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0); }
 }
 
-/* ---- REDUCED MOTION ---- */
+/* ============================================================
+   BUTTON INNER
+   ============================================================ */
 
-@media (prefers-reduced-motion: reduce) {
-  .swipe-track {
-    transition: none;
-  }
-
-  .ft-badge {
-    animation: none;
-  }
-
-  .fade-in-content {
-    animation: none;
-  }
+.btn-inner-content {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
-/* ---- CONTENT FADE IN ---- */
+.tool-svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   CONTENT FADE IN
+   ============================================================ */
 
 .fade-in-content {
   animation: contentFadeIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @keyframes contentFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ---- BUTTON INNER STYLES ---- */
-.btn-inner-content {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  font-size: 11px;
-  font-weight: 800;
-  text-transform: uppercase;
-  white-space: nowrap;
+/* ============================================================
+   REDUCED MOTION
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .swipe-track    { transition: none; }
+  .ft-badge       { animation: none; }
+  .fade-in-content { animation: none; }
 }
 
-.tool-svg {
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
-}
+/* ============================================================
+   START/END MATCH — mobile: move inside grid flow
+   ============================================================ */
 
-@media (max-width: 768px) {
+@media (max-width: 600px) {
   .hero-scoreboard {
-    display: grid;
-    grid-template-columns: 1fr minmax(60px, auto) 1fr;
-    grid-template-areas: 
+    grid-template-areas:
       "home score away"
       "action action action";
-    gap: 12px;
-    padding: 16px;
+    grid-template-rows: auto auto;
   }
-  
-  .team-box.home { grid-area: home; text-align: center; flex-direction: column; justify-content: center; }
-  .score-center { grid-area: score; }
-  .team-box.away { grid-area: away; text-align: center; flex-direction: column; justify-content: center; }
-  
+
+  .team-box.home { grid-area: home; }
+  .score-center  { grid-area: score; }
+  .team-box.away { grid-area: away; }
+
   .start-match-box {
     grid-area: action;
     position: static;
     display: flex;
     justify-content: center;
-    margin-top: 12px;
+    margin-top: 8px;
   }
-  
-  .team-name { font-size: 14px; }
-  .score-digits { font-size: 28px; }
-}
-
-/* ---- BUTTON INNER STYLES ---- */
-.btn-inner-content {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  font-size: 11px;
-  font-weight: 800;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.tool-svg {
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
 }

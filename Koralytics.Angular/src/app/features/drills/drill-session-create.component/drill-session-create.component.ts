@@ -9,6 +9,8 @@ import { CreateDrillSessionDto } from '../../../../core/interfaces/drill-session
 import { SessionType, SessionStatus } from '../../../../core/enums/koralytics.enums';
 
 import { CustomSelect, SelectOption } from '../../../../shared/components/custom-select/custom-select';
+import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner';
+import { formatToLocalISO } from '../../../../core/utils/date.util';
 import { CustomButtonComponent } from '../../../../shared/components/custom-button/custom-button';
 import { CustomDatePicker } from '../../../../shared/components/custom-date-picker/custom-date-picker';
 import { NotificationService } from '@core/services/SignalR/notificationservice';
@@ -175,7 +177,7 @@ export class DrillSessionCreateComponent implements OnInit {
 
     const payload: CreateDrillSessionDto = {
       teamId: Number(formValue.teamId),
-      sessionDate: new Date(dateTimeString).toISOString(),
+      sessionDate: formatToLocalISO(dateTimeString),
       type: Number(formValue.type) as SessionType,
       status: SessionStatus.Scheduled,
       location: formValue.location,

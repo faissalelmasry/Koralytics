@@ -12,6 +12,12 @@
       </span>
     </div>
     <div class="page-header-stats">
+      <button type="button" class="stat-chip ai-chat-launcher" (click)="navigateToAiChat()" title="Open Dedicated Scouting AI Chatbot Page">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/>
+        </svg>
+        <strong>Scouting AI Chat</strong>
+      </button>
       <span class="stat-chip">
         <strong>{{ hasSearched() ? totalCount() : '—' }}</strong> Prospects
       </span>
@@ -43,29 +49,27 @@
 
       <div class="sidebar-scroll">
 
-        <!-- AI Natural Language Search -->
-        <div class="nl-search-block">
+        <!-- AI Scouting Assistant Launcher Banner -->
+        <div class="nl-search-block ai-launcher-card" (click)="navigateToAiChat()" style="cursor: pointer;">
           <div class="nl-glow" aria-hidden="true"></div>
+          
           <div class="nl-search-label">
             <span class="nl-title">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>
-             Scouting Assistant
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>
+              Scouting AI Assistant
             </span>
-            <span class="ai-badge">Soon</span>
+            <span class="ai-badge active">
+              <span class="ai-live-dot"></span>
+              Full AI Page
+            </span>
           </div>
-          <p class="nl-hint">Describe the player you're looking for.</p>
-          <div class="nl-search-row">
-            <input
-              type="text"
-              class="nl-search-input"
-              placeholder="e.g. tall left-footed striker under 22…"
-              aria-label="Natural language player search"
-              [(ngModel)]="nlQuery"
-              (keydown.enter)="onNlSearchSubmit()" />
-            <button type="button" class="nl-search-btn" (click)="onNlSearchSubmit()" aria-label="Search with AI">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12h14M13 6l6 6-6 6"/></svg>
-            </button>
-          </div>
+
+          <p class="nl-hint">Ask AI for player analysis, custom scouting queries, and intelligent recommendations in a full workspace.</p>
+
+          <button type="button" class="open-ai-page-btn" (click)="navigateToAiChat(); $event.stopPropagation()">
+            <span>Open Dedicated AI Chat</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12h14M13 6l6 6-6 6"/></svg>
+          </button>
         </div>
 
         <!-- Tactical position picker -->
@@ -183,14 +187,42 @@
         <!-- Academy -->
         <section class="filter-section">
           <div class="section-head">
-            <label class="filter-label" for="academyIdInput">
+            <label class="filter-label" for="academySearchInput">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V9l7-5 7 5v12M10 21v-6h4v6"/></svg>
-              Academy ID
+              Academy
             </label>
           </div>
-          <div class="field">
-            <span class="field-prefix" aria-hidden="true">#</span>
-            <input id="academyIdInput" type="number" class="filter-input has-prefix" placeholder="e.g. 12" min="1" [(ngModel)]="filters.academyId" (keydown.enter)="search()" />
+          <div class="autocomplete-wrapper">
+            <div class="field">
+              <input
+                id="academySearchInput"
+                type="text"
+                class="filter-input"
+                placeholder="Search academy..."
+                [value]="academySearchQuery"
+                (input)="onAcademySearch($any($event.target).value)"
+                (focus)="onFocusAcademySearch()"
+                (blur)="onBlurAcademySearch()"
+                (keydown.enter)="search()" />
+            </div>
+
+            @if (showAcademyDropdown && academySearchResults.length > 0) {
+              <div class="autocomplete-dropdown">
+                @for (academy of academySearchResults; track academy.id) {
+                  <div class="autocomplete-item" (click)="selectAcademy(academy)">
+                    <span>{{ academy.name }}</span>
+                    <span class="item-tag">Academy</span>
+                  </div>
+                }
+              </div>
+            }
+
+            @if (filters.academyId && selectedAcademyName) {
+              <div class="selected-academy-badge">
+                <span>{{ selectedAcademyName }}</span>
+                <button type="button" class="clear-badge" (click)="clearAcademy(); search()" title="Remove academy filter">&#10005;</button>
+              </div>
+            }
           </div>
         </section>
 
@@ -276,7 +308,7 @@
           @for (player of results(); track player.playerId) {
             <div class="result-item">
               <div class="result-card-shell">
-                <app-player-card [player]="$any(player)" [autoLoad]="false" [compact]="true" [cardWidth]="220" [cardHeight]="340">
+                <app-player-card [player]="$any(player)" [autoLoad]="false" [compact]="true" [cardWidth]="240" [cardHeight]="360">
                 </app-player-card>
               </div>
 

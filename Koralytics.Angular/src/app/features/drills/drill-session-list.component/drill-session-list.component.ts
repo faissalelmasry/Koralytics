@@ -19,6 +19,7 @@ import { CustomSelect, SelectOption } from '../../../../shared/components/custom
 import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner';
 import { StatusChipComponent } from '../../../../shared/components/status-chip/status-chip';
 import { CustomDatePicker } from '../../../../shared/components/custom-date-picker/custom-date-picker';
+import { formatToLocalISO } from '../../../../core/utils/date.util';
 
 @Component({
   selector: 'app-drill-session-list',
@@ -402,7 +403,7 @@ export class DrillSessionListComponent implements OnInit, OnDestroy {
       notes: this.editSessionData.notes,
       type: Number(this.editSessionData.type),
       status: Number(this.editSessionData.status),
-      sessionDate: new Date(this.editSessionData.sessionDate).toISOString()
+      sessionDate: formatToLocalISO(this.editSessionData.sessionDate)
     };
 
     this.sessionService.updateSession(this.editSessionData.id, payload).subscribe({
