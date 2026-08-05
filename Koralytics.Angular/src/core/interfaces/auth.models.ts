@@ -91,6 +91,7 @@ export interface RegisterParentRequest extends BaseRegistrationRequest {
 export interface RegisterCoachRequest extends BaseRegistrationRequest {}
 export interface RegisterScouterRequest extends BaseRegistrationRequest {}
 export interface RegisterAcademyAdminRequest extends BaseRegistrationRequest {}
+export interface RegisterCoachAndAdminRequest extends BaseRegistrationRequest {}
 
 // Profile Completion DTOs
 export interface CompleteProfileBase {

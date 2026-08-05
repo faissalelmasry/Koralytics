@@ -9,6 +9,7 @@ using PlayerPosition = Koralytics.Domain.Entities.Player.PlayerPosition;
 using ScouterEntity = Koralytics.Domain.Entities.Scouter.Scouter;
 using Koralytics.Domain.Entities.SystemAdmin;
 using System;
+using System.Linq;
 
 namespace Koralytics.Application.Mappings.ProfileManagement
 {
@@ -24,7 +25,9 @@ namespace Koralytics.Application.Mappings.ProfileManagement
             CreateMap<PlayerEntity, PlayerProfileResponseDto>()
                 .IncludeBase<User, BaseUserProfileResponseDto>()
                 .ForMember(d => d.Age, o => o.MapFrom(s => CalculateAge(s.DateOfBirth)))
-                .ForMember(d => d.Positions, o => o.MapFrom(s => s.PlayerPositions));
+                .ForMember(d => d.Positions, o => o.MapFrom(s => s.PlayerPositions))
+                .ForMember(d => d.AcademyId, o => o.MapFrom(s => s.PlayerAcademies.Where(pa => pa.LeftAt == null).Select(pa => (int?)pa.AcademyId).FirstOrDefault()))
+                .ForMember(d => d.AcademyName, o => o.MapFrom(s => s.PlayerAcademies.Where(pa => pa.LeftAt == null && pa.Academy != null).Select(pa => pa.Academy.Name).FirstOrDefault()));
 
             CreateMap<ScouterEntity, ScouterProfileResponseDto>()
                 .IncludeBase<User, BaseUserProfileResponseDto>();
@@ -34,7 +37,9 @@ namespace Koralytics.Application.Mappings.ProfileManagement
                 .ForMember(d => d.AcademyName, o => o.MapFrom(s => s.Academy != null ? s.Academy.Name : null));
 
             CreateMap<CoachEntity, CoachProfileResponseDto>()
-                .IncludeBase<User, BaseUserProfileResponseDto>();
+                .IncludeBase<User, BaseUserProfileResponseDto>()
+                .ForMember(d => d.AcademyId, o => o.MapFrom(s => s.CoachAcademies.Where(ca => ca.LeftAt == null).Select(ca => (int?)ca.AcademyId).FirstOrDefault()))
+                .ForMember(d => d.AcademyName, o => o.MapFrom(s => s.CoachAcademies.Where(ca => ca.LeftAt == null && ca.Academy != null).Select(ca => ca.Academy.Name).FirstOrDefault()));
 
             CreateMap<Parent, ParentProfileResponseDto>()
                 .IncludeBase<User, BaseUserProfileResponseDto>();

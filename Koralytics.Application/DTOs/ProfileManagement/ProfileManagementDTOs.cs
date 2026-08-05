@@ -37,6 +37,8 @@ namespace Koralytics.Application.DTOs.ProfileManagement
         public string? ArchetypePlayerName { get; set; }
         public string? ArchetypeText { get; set; }
         public AvailabilityStatus? AvailabilityStatus { get; set; }
+        public int? AcademyId { get; set; }
+        public string? AcademyName { get; set; }
         public List<PlayerPositionDto> Positions { get; set; } = new();
     }
 
@@ -54,6 +56,8 @@ namespace Koralytics.Application.DTOs.ProfileManagement
 
     public class CoachProfileResponseDto : BaseUserProfileResponseDto
     {
+        public int? AcademyId { get; set; }
+        public string? AcademyName { get; set; }
     }
 
     public class ParentProfileResponseDto : BaseUserProfileResponseDto

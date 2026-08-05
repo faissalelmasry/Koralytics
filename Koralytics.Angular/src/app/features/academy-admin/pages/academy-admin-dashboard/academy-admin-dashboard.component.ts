@@ -64,6 +64,7 @@ export class AcademyAdminDashboardComponent implements OnInit {
   hasAcademy = false;
   academyDetails: AcademyResponseDto | null = null;
   totalMembersCount = 0;
+  playersCount = 0;
   adminsCount = 0;
   coachesCount = 0;
   locationsCount = 0;
@@ -155,6 +156,7 @@ export class AcademyAdminDashboardComponent implements OnInit {
         if (res.isSuccess && res.data) {
           this.totalMembersCount = res.data.totalCount || res.data.items?.length || 0;
           this.coachesCount = res.data.items?.filter((m: any) => m.role === 'Coach').length || 0;
+          this.playersCount = res.data.items?.filter((m: any) => m.role === 'Player').length || 0;
         }
       }
     });

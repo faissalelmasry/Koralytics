@@ -57,8 +57,12 @@ namespace Koralytics.Application.Services.ProfileManagement
                 throw new NotFoundException($"User with ID {userId} was not found.");
             }
 
-            var roles = await _userManager.GetRolesAsync(user);
-            var primaryRole = roles.FirstOrDefault() ?? "User";
+            var rolesList = await _userManager.GetRolesAsync(user);
+            if (rolesList.Contains("AcademyAdmin") && rolesList.Contains("Coach"))
+            {
+                rolesList = rolesList.OrderByDescending(r => r == "AcademyAdmin").ToList();
+            }
+            var primaryRole = rolesList.FirstOrDefault() ?? "User";
 
             BaseUserProfileResponseDto dto;
 
@@ -67,6 +71,8 @@ namespace Koralytics.Application.Services.ProfileManagement
                 var player = await _unitOfWork.Repository<PlayerEntity>()
                     .GetQueryableAsNoTracking()
                     .Include(p => p.PlayerPositions)
+                    .Include(p => p.PlayerAcademies)
+                        .ThenInclude(pa => pa.Academy)
                     .FirstOrDefaultAsync(p => p.Id == userId);
                 dto = _mapper.Map<PlayerProfileResponseDto>(player ?? (object)user);
             }
@@ -89,6 +95,8 @@ namespace Koralytics.Application.Services.ProfileManagement
             {
                 var coach = await _unitOfWork.Repository<CoachEntity>()
                     .GetQueryableAsNoTracking()
+                    .Include(c => c.CoachAcademies)
+                        .ThenInclude(ca => ca.Academy)
                     .FirstOrDefaultAsync(c => c.Id == userId);
                 dto = _mapper.Map<CoachProfileResponseDto>(coach ?? (object)user);
             }

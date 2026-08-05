@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { AcademyService } from '../../../../../core/services/academy/academy.service';
 import { ToastService } from '../../../../../core/services/Toast/toast';
 import { AcademyMemberResponseDto } from '../../../../../core/interfaces/academy.models';
+import { AuthService } from '../../../../../core/services/auth/auth.service';
 import { CustomButtonComponent } from '../../../../../shared/components/custom-button/custom-button';
 import { DataTable, TableColumn } from '../../../../../shared/components/data-table/data-table';
 import { LoadingSpinnerComponent } from '../../../../../shared/components/loading-spinner/loading-spinner';
@@ -25,6 +26,7 @@ export class AcademyCoachesSectionComponent implements OnInit, OnChanges {
   private toast = inject(ToastService);
   private fb = inject(FormBuilder);
   private router = inject(Router);
+  private authService = inject(AuthService);
 
   coaches: AcademyMemberResponseDto[] = [];
   pendingRequests: any[] = [];
@@ -71,7 +73,11 @@ export class AcademyCoachesSectionComponent implements OnInit, OnChanges {
 
           this.coaches = filtered.slice((this.pageNumber - 1) * this.pageSize, this.pageNumber * this.pageSize).map(m => {
             const dateStr = new Date(m.joinedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-            return { ...m, joinedAtFormatted: dateStr };
+            return { 
+              ...m, 
+              joinedAtFormatted: dateStr,
+              hideDelete: m.userId === this.authService.getCurrentUserSync()?.userId
+            };
           });
         }
         this.isLoading = false;
@@ -151,6 +157,10 @@ export class AcademyCoachesSectionComponent implements OnInit, OnChanges {
   }
 
   onRemoveCoach(coachId: number) {
+    if (coachId === this.authService.getCurrentUserSync()?.userId) {
+      this.toast.show('You cannot remove yourself from the academy.', 'error');
+      return;
+    }
     this.confirmActionType = 'removeCoach';
     this.targetIdForConfirm = coachId;
     this.confirmDialogTitle = 'Remove Coach';
