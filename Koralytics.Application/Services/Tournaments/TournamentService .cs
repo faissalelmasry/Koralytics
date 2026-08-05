@@ -49,8 +49,7 @@ namespace Koralytics.Application.Services.Tournaments
             ILogger<TournamentService> logger,
             ITournamentDrawService tournamentDrawService,
             ITournamentFixtureService tournamentFixtureService,
-            ITournamentReportService tournamentReportService)
-            ILogger<TournamentService> logger,
+            ITournamentReportService tournamentReportService,
             IBackgroundTaskQueue taskQueue)
         {
             _unitOfWork = unitOfWork;

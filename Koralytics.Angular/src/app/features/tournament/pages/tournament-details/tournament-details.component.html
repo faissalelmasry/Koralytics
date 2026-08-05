@@ -915,8 +915,11 @@
                   </div>
                   <div class="report-body rtl-content">
                     <p class="failed-message">
-                      AI report generation failed. Please try completing the tournament again or contact support.
+                      AI report generation failed. Please click below to try regenerating the report.
                     </p>
+                    <button class="simulate-btn" (click)="regenerateReport()" [disabled]="isRegenerating" style="margin-top: 12px; padding: 8px 16px;">
+                      {{ isRegenerating ? '⏳ Regenerating...' : '🔄 Retry Report Generation' }}
+                    </button>
                   </div>
                 </div>
               }
@@ -1053,15 +1056,6 @@
                             }
                           </select>
                         </div>
-
-                        <div class="sm-field sm-field-minute">
-                          <label class="sm-label">Minute</label>
-                          <div class="sm-minute-wrap">
-                            <input type="number" class="sm-input" min="1" max="120" [(ngModel)]="goal.minute" placeholder="45">
-                            <span class="sm-prime">&#x2032;</span>
-                          </div>
-                        </div>
-
                       </div>
                       <button class="sm-remove-btn" (click)="removeGoal($index)" title="Remove">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>

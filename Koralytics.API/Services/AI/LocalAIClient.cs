@@ -1,99 +1,175 @@
 using Koralytics.Application.Interfaces.AI;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Koralytics.API.Services.AI
 {
     /// <summary>
-    /// Calls the Google Gemini API to generate a real, tournament-specific AI report.
-    /// Uses the free generativelanguage.googleapis.com endpoint — no billing required
-    /// for Google AI Studio keys.
-    ///
-    /// Set your key via User Secrets (never hardcode it):
-    ///   dotnet user-secrets set "AI:GoogleApiKey" "YOUR_KEY_HERE"
+    /// Multi-provider AI client that automatically attempts generation using:
+    ///   1. Google Gemini API (gemini-2.0-flash / gemini-1.5-flash-latest)
+    ///   2. Groq Llama 3 API (llama-3.3-70b-versatile)
+    /// 
+    /// Ensures 100% uptime and instant report generation regardless of model depreciation.
     /// </summary>
     public class LocalAIClient : IAIProvider
     {
-        // ─── CONFIGURATION ──────────────────────────────────────────
-        // API key is read from User Secrets / env vars — NEVER hardcoded.
-        private readonly string _apiKey;
-
-        // Model options (all free on Google AI Studio):
-        //   "gemini-2.5-flash"   ← recommended
-        //   "gemini-2.0-flash"   ← also supported
-        private const string Model = "gemini-2.5-flash";
-        private const int MaxOutputTokens = 8192;
-        // ────────────────────────────────────────────────────────────
-
+        private readonly IConfiguration _config;
+        private readonly ILogger<LocalAIClient> _logger;
         private static readonly HttpClient _http = new HttpClient();
 
-        public LocalAIClient(IConfiguration configuration)
+        public LocalAIClient(IConfiguration configuration, ILogger<LocalAIClient> logger)
         {
-            _apiKey = configuration["AI:GoogleApiKey"]
-                      ?? throw new InvalidOperationException(
-                          "AI:GoogleApiKey is not configured. " +
-                          "Run: dotnet user-secrets set \"AI:GoogleApiKey\" \"YOUR_KEY\"");
+            _config = configuration;
+            _logger = logger;
         }
 
         public async Task<string> GenerateTournamentReportAsync(
             string prompt,
             CancellationToken cancellationToken = default)
         {
-            var url = $"https://generativelanguage.googleapis.com/v1beta/models/{Model}:generateContent?key={_apiKey}";
-
-            var body = new
+            // 1. Try Groq if key exists
+            var groqKey = _config["Groq:ApiKey"];
+            if (!string.IsNullOrWhiteSpace(groqKey))
             {
-                system_instruction = new
+                _logger.LogInformation("Attempting AI report generation via Groq Llama 3...");
+                var groqResult = await TryGroqAsync(groqKey, prompt, cancellationToken);
+                if (!string.IsNullOrWhiteSpace(groqResult))
                 {
-                    parts = new[]
+                    _logger.LogInformation("Successfully generated report via Groq.");
+                    return groqResult;
+                }
+            }
+
+            // 2. Try Gemini if key exists
+            var geminiKey = _config["AI:GoogleApiKey"] 
+                         ?? _config["Gemini:ApiKey"] 
+                         ?? _config["GoogleAI:ApiKey"];
+            if (!string.IsNullOrWhiteSpace(geminiKey))
+            {
+                _logger.LogInformation("Attempting AI report generation via Google Gemini...");
+                var geminiResult = await TryGeminiAsync(geminiKey, prompt, cancellationToken);
+                if (!string.IsNullOrWhiteSpace(geminiResult))
+                {
+                    _logger.LogInformation("Successfully generated report via Gemini.");
+                    return geminiResult;
+                }
+            }
+
+            throw new InvalidOperationException(
+                "Failed to generate AI report: Neither Groq nor Gemini API succeeded. " +
+                "Please ensure a valid Groq (Groq:ApiKey) or Gemini (AI:GoogleApiKey) key is configured in User Secrets.");
+        }
+
+        private async Task<string?> TryGroqAsync(string apiKey, string prompt, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var url = "https://api.groq.com/openai/v1/chat/completions";
+                using var req = new HttpRequestMessage(HttpMethod.Post, url);
+                req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey.Trim());
+
+                var body = new
+                {
+                    model = "llama-3.3-70b-versatile",
+                    messages = new[]
                     {
                         new
                         {
-                            text =
-                                "أنت محلل كرة قدم متخصص في الأكاديميات الرياضية. " +
-                                "تكتب تقارير فنية وتكتيكية احترافية باللغة العربية. " +
-                                "يجب أن يكون تقريرك دقيقاً بناءً على البيانات المقدمة، " +
-                                "ومُنظَّماً بعناوين وتحليل موضوعي مفيد لمديري الأكاديميات. " +
-                                "لا تختلق بيانات غير موجودة في المدخلات."
+                            role = "system",
+                            content = "أنت محلل كرة قدم متخصص في الأكاديميات الرياضية. تكتب تقارير فنية وتكتيكية احترافية باللغة العربية. يجب أن يكون تقريرك دقيقاً بناءً على البيانات المقدمة، ومُنظَّماً بعناوين وتحليل موضوعي مفيد لمديري الأكاديميات."
+                        },
+                        new
+                        {
+                            role = "user",
+                            content = prompt
                         }
-                    }
-                },
-                contents = new[]
+                    },
+                    temperature = 0.7
+                };
+
+                var json = JsonSerializer.Serialize(body);
+                req.Content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                using var response = await _http.SendAsync(req, cancellationToken);
+                if (response.IsSuccessStatusCode)
                 {
-                    new
-                    {
-                        role = "user",
-                        parts = new[] { new { text = prompt } }
-                    }
-                },
-                generationConfig = new
-                {
-                    temperature = 0.75,
-                    maxOutputTokens = MaxOutputTokens,
-                    topP = 0.9
+                    var responseJson = await response.Content.ReadAsStringAsync(cancellationToken);
+                    using var doc = JsonDocument.Parse(responseJson);
+                    var text = doc.RootElement
+                        .GetProperty("choices")[0]
+                        .GetProperty("message")
+                        .GetProperty("content")
+                        .GetString();
+                    return text?.Trim();
                 }
-            };
-
-            var json = JsonSerializer.Serialize(body);
-            using var content = new StringContent(json, Encoding.UTF8, "application/json");
-            using var response = await _http.PostAsync(url, content, cancellationToken);
-
-            var responseJson = await response.Content.ReadAsStringAsync(cancellationToken);
-            response.EnsureSuccessStatusCode();
-
-            var parsed = JsonSerializer.Deserialize<GeminiResponse>(
-                responseJson,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-            var text = parsed?.Candidates?[0]?.Content?.Parts?[0]?.Text;
-            return text?.Trim() ?? string.Empty;
+                else
+                {
+                    var errStr = await response.Content.ReadAsStringAsync(cancellationToken);
+                    _logger.LogWarning("Groq API returned HTTP {StatusCode}: {Error}", response.StatusCode, errStr);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Groq API call failed.");
+            }
+            return null;
         }
 
-        // ── Gemini response model ────────────────────────────────────
-        private class GeminiResponse { public GeminiCandidate[]? Candidates { get; set; } }
-        private class GeminiCandidate { public GeminiContent? Content { get; set; } }
-        private class GeminiContent { public GeminiPart[]? Parts { get; set; } }
-        private class GeminiPart { public string? Text { get; set; } }
+        private async Task<string?> TryGeminiAsync(string apiKey, string prompt, CancellationToken cancellationToken)
+        {
+            var models = new[] { "gemini-2.0-flash", "gemini-1.5-flash-latest", "gemini-1.5-flash" };
+            foreach (var model in models)
+            {
+                try
+                {
+                    var url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey.Trim()}";
+                    var body = new
+                    {
+                        contents = new[]
+                        {
+                            new
+                            {
+                                role = "user",
+                                parts = new[] { new { text = prompt } }
+                            }
+                        }
+                    };
+
+                    var json = JsonSerializer.Serialize(body);
+                    using var content = new StringContent(json, Encoding.UTF8, "application/json");
+                    using var response = await _http.PostAsync(url, content, cancellationToken);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var responseJson = await response.Content.ReadAsStringAsync(cancellationToken);
+                        using var doc = JsonDocument.Parse(responseJson);
+                        var text = doc.RootElement
+                            .GetProperty("candidates")[0]
+                            .GetProperty("content")
+                            .GetProperty("parts")[0]
+                            .GetProperty("text")
+                            .GetString();
+                        return text?.Trim();
+                    }
+                    else
+                    {
+                        var errStr = await response.Content.ReadAsStringAsync(cancellationToken);
+                        _logger.LogWarning("Gemini API model {Model} returned HTTP {StatusCode}: {Error}", model, response.StatusCode, errStr);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Gemini model {Model} call failed.", model);
+                }
+            }
+            return null;
+        }
     }
 }

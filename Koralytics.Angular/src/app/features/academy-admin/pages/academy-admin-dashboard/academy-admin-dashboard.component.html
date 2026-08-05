@@ -23,8 +23,9 @@
       </div>
 
       <!-- =============== 1. HERO BANNER =============== -->
-      <app-academy-hero-banner *ngIf="academyDetails" [academy]="academyDetails" [membersCount]="totalMembersCount">
-      </app-academy-hero-banner>
+      <!-- <app-academy-hero-banner *ngIf="academyDetails" [academy]="academyDetails" [membersCount]="totalMembersCount">
+      </app-academy-hero-banner> -->
+
 
       <!-- =============== 1.5 TOURNAMENT INVITES =============== -->
       <div class="pending-invitations-section" *ngIf="currentUser?.academyId && pendingTournamentInvitations.length > 0"

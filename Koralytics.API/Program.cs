@@ -344,8 +344,6 @@ namespace Koralytics.API
 
             builder.Services.AddScoped<IAIReportService, AIReportService>();
             builder.Services.AddHostedService<AIReportBackgroundService>();
-            builder.Services.AddScoped<IMatchService, MatchService>();
-            builder.Services.AddScoped<IMatchReportService, MatchReportService>();
 
             builder.Services.AddHttpClient<IMatchReportService, MatchReportService>((serviceProvider, client) =>
             {
@@ -479,7 +477,6 @@ namespace Koralytics.API
                     var context = services.GetRequiredService<ApplicationDbContext>();
                     var userManager = services.GetRequiredService<UserManager<User>>();
                     var roleManager = services.GetRequiredService<RoleManager<Domain.Entities.Identity.Role>>();
-                    await DbInitializer.SeedAsync(context, userManager, roleManager);
                     await context.Database.MigrateAsync();
                     await DbInitializer.SeedAsync(context, userManager, roleManager);
                 }

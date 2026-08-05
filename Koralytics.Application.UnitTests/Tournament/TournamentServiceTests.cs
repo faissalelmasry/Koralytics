@@ -36,6 +36,7 @@ namespace Koralytics.Application.UnitTests.Tournament
         private readonly Mock<IRepository<PlayerTeamEntity>> _playerTeamRepoMock;
         private readonly Mock<IRepository<AcademyEntity>> _academyRepoMock;
         private readonly Mock<IRepository<Team>> _teamRepoMock;
+        private readonly Mock<IBackgroundTaskQueue> _taskQueueMock;
         private readonly TournamentService _service;
 
         public TournamentServiceTests()
@@ -46,6 +47,7 @@ namespace Koralytics.Application.UnitTests.Tournament
             _tournamentDrawServiceMock = new Mock<ITournamentDrawService>();
             _tournamentFixtureServiceMock = new Mock<ITournamentFixtureService>();
             _tournamentReportServiceMock = new Mock<ITournamentReportService>();
+            _taskQueueMock = new Mock<IBackgroundTaskQueue>();
             _tournamentRepoMock = new Mock<IRepository<TournamentEntity>>();
             _ageGroupRepoMock = new Mock<IRepository<AgeGroup>>();
             _tournamentTeamRepoMock = new Mock<IRepository<TournamentTeamEntity>>();
@@ -54,36 +56,17 @@ namespace Koralytics.Application.UnitTests.Tournament
             _academyRepoMock = new Mock<IRepository<AcademyEntity>>();
             _teamRepoMock = new Mock<IRepository<Team>>();
 
-//            _unitOfWorkMock
-//                .Setup(u => u.Repository<TournamentEntity>())
-//                .Returns(_tournamentRepoMock.Object);
-//            _unitOfWorkMock
-//                .Setup(u => u.Repository<AgeGroup>())
-//                .Returns(_ageGroupRepoMock.Object);
-//            _unitOfWorkMock
-//                .Setup(u => u.Repository<TournamentTeamEntity>())
-//                .Returns(_tournamentTeamRepoMock.Object);
-//            _unitOfWorkMock
-//                .Setup(u => u.Repository<TournamentSquadEntity>())
-//                .Returns(_tournamentSquadRepoMock.Object);
-//            _unitOfWorkMock
-//                .Setup(u => u.Repository<PlayerTeamEntity>())
-//                .Returns(_playerTeamRepoMock.Object);
-//            _unitOfWorkMock
-//                .Setup(u => u.Repository<Academy>())
-//                .Returns(_academyRepoMock.Object);
-//            _unitOfWorkMock
-//                .Setup(u => u.Repository<Team>())
-//                .Returns(_teamRepoMock.Object);
-
             _service = new TournamentService(
                 _unitOfWorkMock.Object,
                 _mapperMock.Object,
                 _loggerMock.Object,
                 _tournamentDrawServiceMock.Object,
                 _tournamentFixtureServiceMock.Object,
-                _tournamentReportServiceMock.Object);
+                _tournamentReportServiceMock.Object,
+                _taskQueueMock.Object);
         }
+    }
+}
 
 //        // ─── CreateTournamentAsync ───────────────────────────────────
 
