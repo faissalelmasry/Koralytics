@@ -27,6 +27,8 @@ export interface PlayerProfileResponse extends BaseUserProfileResponse {
   archetypePlayerName: string | null;
   archetypeText: string | null;
   availabilityStatus: string | number | null;
+  academyId?: number | null;
+  academyName?: string | null;
   positions: PlayerPositionDto[];
 }
 
@@ -40,7 +42,10 @@ export interface AcademyAdminProfileResponse extends BaseUserProfileResponse {
   academyName: string | null;
 }
 
-export interface CoachProfileResponse extends BaseUserProfileResponse {}
+export interface CoachProfileResponse extends BaseUserProfileResponse {
+  academyId?: number | null;
+  academyName?: string | null;
+}
 export interface ParentProfileResponse extends BaseUserProfileResponse {}
 export interface SystemAdminProfileResponse extends BaseUserProfileResponse {}
 

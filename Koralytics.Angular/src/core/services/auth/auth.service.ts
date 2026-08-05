@@ -20,6 +20,7 @@ import {
   RegisterScouterRequest,
   RegisterParentRequest,
   RegisterAcademyAdminRequest,
+  RegisterCoachAndAdminRequest,
   CompleteProfileAsPlayer,
   CompleteProfileAsCoach,
   CompleteProfileAsScouter,
@@ -134,6 +135,11 @@ export class AuthService {
   registerAcademyAdmin(request: RegisterAcademyAdminRequest): Observable<ApiResponse<AuthResponseDto>> {
     return this.handleRegistration(`${this.apiUrl}/Register/academy-admin`, request);
   }
+
+  registerCoachAndAdmin(request: RegisterCoachAndAdminRequest): Observable<ApiResponse<AuthResponseDto>> {
+    return this.handleRegistration(`${this.apiUrl}/Register/coach-and-admin`, request);
+  }
+
 
   private handleRegistration(url: string, request: any): Observable<ApiResponse<AuthResponseDto>> {
     return this.http.post<ApiResponse<AuthResponseDto>>(url, request).pipe(

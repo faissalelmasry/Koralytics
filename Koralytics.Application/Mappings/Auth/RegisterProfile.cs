@@ -25,7 +25,7 @@ namespace Koralytics.Application.Mappings.Auth
             CreateMap<RegisterCoachRequestDto, Coach>().ReverseMap();
             CreateMap<RegisterScouterRequestDto, Scouter>().ReverseMap();
             CreateMap<RegisterAcademyAdminRequestDto, AcademyAdmin>().ReverseMap();
-
+            CreateMap<RegisterCoachAndAdminRequestDto, Coach>().ReverseMap();
             CreateMap<CompleteProfileAsPlayerDto, PlayerEntity>().ReverseMap();
             CreateMap<CompleteProfileAsCoachDto, Coach>().ReverseMap();
             CreateMap<CompleteProfileAsParentDto, Parent>().ReverseMap();
