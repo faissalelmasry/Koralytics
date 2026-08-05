@@ -165,9 +165,14 @@ export const routes: Routes = [
       },
       {
         path: 'coach/highlights',
-        loadComponent: () => import('./features/coach/pages/player-highlights/player-highlights.component').then(m => m.PlayerHighlightsComponent),
+        redirectTo: 'player/highlights',
+        pathMatch: 'full'
+      },
+      {
+        path: 'player/highlights',
+        loadComponent: () => import('./features/player/player-highlights/player-highlights.component').then(m => m.PlayerHighlightsComponent),
         canActivate: [roleGuard],
-        data: { roles: ['Coach', 'Player'] }
+        data: { roles: ['Player'] }
       },
       {
         path: 'coach/match-requests',
