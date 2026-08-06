@@ -6,12 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Koralytics.Infrastructure.Migrations
 {
     /// <inheritdoc />
-<<<<<<<< HEAD:Koralytics.Infrastructure/Migrations/20260803221359_all.cs
-    public partial class all : Migration
-========
     public partial class parentplayer : Migration
->>>>>>>> 4b6c6467993f477d457d7671af7b90825b2e47c6:Koralytics.Infrastructure/Migrations/20260724131559_parentplayer.cs
-    {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {

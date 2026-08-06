@@ -12,14 +12,9 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Koralytics.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-<<<<<<<< HEAD:Koralytics.Infrastructure/Migrations/20260803221359_all.Designer.cs
-    [Migration("20260803221359_all")]
-    partial class all
-========
     [Migration("20260805015856_AddPlayerPhysicalAndArchetypeFields")]
     partial class AddPlayerPhysicalAndArchetypeFields
->>>>>>>> 4b6c6467993f477d457d7671af7b90825b2e47c6:Koralytics.Infrastructure/Migrations/20260805015856_AddPlayerPhysicalAndArchetypeFields.Designer.cs
-    {
+{
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
