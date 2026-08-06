@@ -2,6 +2,7 @@ using AutoMapper;
 
 using Koralytics.Application.DTOs.Academies;
 using Koralytics.Application.DTOs.Academy;
+using Koralytics.Application.DTOs.Scouter;
 using Koralytics.Application.Interfaces;
 using Koralytics.Application.Validators.Academies;
 using Koralytics.Domain.Entities;
@@ -15,8 +16,12 @@ using Koralytics.Application.Services.Storage;
 using Microsoft.AspNetCore.Http;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.Net.Http;
+using System.Text;
+using System.Text.Json;
 
 namespace Koralytics.Application.Services.Academy.AcademyService
 {
@@ -27,18 +32,25 @@ namespace Koralytics.Application.Services.Academy.AcademyService
         private readonly ILogger<AcademyService> _logger;
         private readonly IBackgroundTaskQueue _taskQueue;
         private readonly IStorageService _storageService;
+        private readonly HttpClient _httpClient;
+        private readonly IConfiguration _configuration;
 
         public AcademyService(
             IUnitOfWork unitOfWork,
             IMapper mapper,
             IBackgroundTaskQueue taskQueue,
             ILogger<AcademyService> logger,
-            IStorageService storageService)
+            IStorageService storageService,
+            HttpClient httpClient,
+            IConfiguration configuration)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _logger = logger;
             _taskQueue = taskQueue;
+            _storageService = storageService;
+            _httpClient = httpClient;
+            _configuration = configuration;
         }
 
         // ──────────────────────────────────────────────────────────────────────
@@ -981,7 +993,9 @@ namespace Koralytics.Application.Services.Academy.AcademyService
             {
                 // Register player
                 await RegisterPlayerToAcademyAsync(request.AcademyId, playerId, playerId);
-                
+
+                EnqueuePlayerAcademyUpdate(playerId, request.AcademyId);
+
                 // Cancel other pending requests since player can only be in one academy
                 var otherPendingRequests = await _unitOfWork.Repository<AcademyPlayerJoinRequest>()
                     .FindAllAsync(r => r.PlayerId == playerId && r.Status == JoinRequestStatus.Pending && r.Id != requestId);
@@ -1388,6 +1402,101 @@ namespace Koralytics.Application.Services.Academy.AcademyService
                 Id = a.Id,
                 Name = a.Name
             });
+        }
+        private void EnqueuePlayerAcademyUpdate(int playerId, int? academyId)
+        {
+            _taskQueue.QueueBackgroundWorkItem(async (sp, ct) =>
+            {
+                try
+                {
+                    var indexer = sp.GetRequiredService<ISearchableEntityIndexer>();
+                    await indexer.UpdateAcademyIdAsync("Player", playerId, academyId, ct);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to update AcademyId for Player {PlayerId} to {AcademyId}",
+                        playerId, academyId?.ToString() ?? "null (left academy)");
+                }
+            });
+        }
+
+        public async Task<string> AcademySearchAIChatBotAsync(AIChatBotRequestDto request, int academyId)
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.Message))
+            {
+                throw new ArgumentException("Chat message cannot be empty.", nameof(request));
+            }
+
+            var baseUrl = _configuration["Langflow:BaseUrl"] ?? "http://localhost:7860/";
+            var endpoint = _configuration["Langflow:AcademySearchEndpoint"] ?? "api/v1/run/AcademySearch?stream=false";
+            var apiKey = _configuration["Langflow:AcademyApiKey"];
+
+            _logger.LogInformation("Sending request to Academy Langflow AI ChatBot (AcademyId: {AcademyId})...", academyId);
+
+            var sessionId = !string.IsNullOrWhiteSpace(request.SessionId)
+                ? request.SessionId
+                : Guid.NewGuid().ToString();
+
+            var tweaks = new Dictionary<string, object>
+            {
+                {
+                    "Prompt Template-ZVQqp", new { academy_id = academyId.ToString() }
+                },
+                {
+                    "KoralyticsEntityResolver-tVPUl", new { academy_id = academyId }
+                }
+            };
+
+            var requestPayload = new
+            {
+                output_type = "chat",
+                input_type = "chat",
+                input_value = request.Message,
+                session_id = sessionId,
+                tweaks = tweaks
+            };
+
+            var fullUrl = endpoint.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+                ? endpoint
+                : $"{baseUrl.TrimEnd('/')}/{(endpoint.StartsWith('/') ? endpoint.Substring(1) : endpoint)}";
+
+            var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, fullUrl)
+            {
+                Content = new StringContent(
+                    JsonSerializer.Serialize(requestPayload),
+                    Encoding.UTF8,
+                    "application/json"
+                )
+            };
+
+            if (!string.IsNullOrEmpty(apiKey))
+            {
+                httpRequestMessage.Headers.Add("x-api-key", apiKey);
+            }
+
+            var response = await _httpClient.SendAsync(httpRequestMessage);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                _logger.LogError("Academy Langflow API failed with status {StatusCode}: {Error}", response.StatusCode, errorContent);
+                response.EnsureSuccessStatusCode();
+            }
+
+            var responseBody = await response.Content.ReadAsStringAsync();
+            using var jsonDoc = JsonDocument.Parse(responseBody);
+
+            string botReply = jsonDoc.RootElement
+                .GetProperty("outputs")[0]
+                .GetProperty("outputs")[0]
+                .GetProperty("results")
+                .GetProperty("message")
+                .GetProperty("text")
+                .GetString() ?? string.Empty;
+
+            _logger.LogInformation("Academy Langflow AI ChatBot response generated successfully.");
+
+            return botReply;
         }
     }
 }

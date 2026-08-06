@@ -188,11 +188,16 @@ namespace Koralytics.Application.Services.Scouter.ScouterSearchService
 
             _logger.LogInformation("Sending request to Scouter Langflow AI ChatBot (FlowId: {FlowId})...", flowId);
 
+            var sessionId = !string.IsNullOrWhiteSpace(request.SessionId)
+                ? request.SessionId
+                : Guid.NewGuid().ToString();
+
             var requestPayload = new
             {
                 input_value = request.Message,
                 input_type = "chat",
-                output_type = "chat"
+                output_type = "chat",
+                session_id = sessionId
             };
 
             var httpRequestMessage = new HttpRequestMessage(

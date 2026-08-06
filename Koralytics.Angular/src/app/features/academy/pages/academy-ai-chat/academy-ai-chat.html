@@ -11,17 +11,18 @@
           <span class="live-pulse-dot"></span>
         </div>
         <div>
-          <h1 class="header-title">Scouting AI Assistant</h1>
-          <p class="header-subtitle">Natural Language Scouting & Intelligent Player Analytics</p>
+          <h1 class="header-title">Academy AI Assistant</h1>
+          <p class="header-subtitle">Intelligent Academy Analytics & Player Performance Assistant</p>
         </div>
       </div>
 
       <div class="header-actions">
-        <button type="button" class="nav-search-btn" (click)="navigateToSearch()" title="Switch to Player Finder Grid">
+        <button type="button" class="nav-search-btn" (click)="navigateToDashboard()" title="Return to Dashboard">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
           </svg>
-          <span>Player Finder</span>
+          <span>Dashboard</span>
         </button>
 
         @if (chatMessages().length > 0) {
@@ -54,13 +55,13 @@
             <img src="images/logo/app-icon/logo-icon-dark.png" alt="Koralytics AI" class="hero-logo-img" />
           </div>
 
-          <h2 class="welcome-headline">How can I assist your scouting today?</h2>
+          <h2 class="welcome-headline">How can I assist your academy today?</h2>
           <p class="welcome-subtext">
-            Ask complex queries, filter by technical profiles, footedness, overall ratings, age brackets, or ask for tactical recommendations.
+            Ask queries about player passing performance, squad readiness, drill metrics, match tactics, or technical player evaluations.
           </p>
 
           <div class="prompts-grid">
-            <span class="prompts-title">Suggested Scouting Queries:</span>
+            <span class="prompts-title">Suggested Academy Queries:</span>
             <div class="prompts-chips">
               @for (prompt of suggestedPrompts; track prompt) {
                 <button type="button" class="prompt-chip-btn" (click)="useSuggestedPrompt(prompt)">
@@ -78,7 +79,7 @@
 
     <!-- CHAT MESSAGES FEED -->
     @if (chatMessages().length > 0 || isAiLoading()) {
-      <div class="chat-feed-scroll" id="scouterAiChatFeed">
+      <div class="chat-feed-scroll" id="academyAiChatFeed">
         
         @for (msg of chatMessages(); track msg.id) {
           <div class="chat-message-row" [class.is-user]="msg.sender === 'user'" [class.is-assistant]="msg.sender === 'assistant'">
@@ -101,7 +102,7 @@
             <!-- MESSAGE BUBBLE -->
             <div class="msg-bubble-wrap">
               <div class="msg-meta-bar">
-                <span class="msg-author">{{ msg.sender === 'assistant' ? 'Koralytics Scouting AI' : 'Scouter' }}</span>
+                <span class="msg-author">{{ msg.sender === 'assistant' ? 'Koralytics Academy AI' : 'User' }}</span>
                 <span class="msg-time">{{ msg.timestamp | date:'shortTime' }}</span>
               </div>
               <div class="msg-content" [innerHTML]="formatMessageText(msg.text)"></div>
@@ -121,14 +122,14 @@
 
             <div class="msg-bubble-wrap">
               <div class="msg-meta-bar">
-                <span class="msg-author">Koralytics Scouting AI</span>
+                <span class="msg-author">Koralytics Academy AI</span>
                 <span class="msg-status-tag">Analyzing Data</span>
               </div>
               
               <div class="msg-content ai-loading-content">
                 <div class="brand-loader-inline">
                   <app-loading-spinner size="sm"></app-loading-spinner>
-                  <span class="loading-text">Analyzing player metrics & database…</span>
+                  <span class="loading-text">Analyzing academy metrics & performance database…</span>
                 </div>
               </div>
             </div>
@@ -150,7 +151,7 @@
         <input
           type="text"
           class="chat-text-input"
-          placeholder="Ask Scouting AI (e.g. Find left-footed wingers with rating > 80)…"
+          placeholder="Ask Academy AI (e.g. what about his passing performance?)…"
           [ngModel]="nlQuery()"
           (ngModelChange)="nlQuery.set($event)"
           [disabled]="isAiLoading()"
@@ -162,7 +163,7 @@
           class="send-btn"
           [disabled]="isAiLoading() || !nlQuery().trim()"
           (click)="onSendQuery()"
-          aria-label="Send message to Scouting AI">
+          aria-label="Send message to Academy AI">
           @if (isAiLoading()) {
             <span class="send-spinner"></span>
           } @else {

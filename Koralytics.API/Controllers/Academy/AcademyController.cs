@@ -1,6 +1,7 @@
 using Koralytics.API.Controllers.BaseController;
 using Koralytics.Application.DTOs.Academies;
 using Koralytics.Application.DTOs.Academy;
+using Koralytics.Application.DTOs.Scouter;
 using Koralytics.Application.DTOs.SystemAdmin;
 using Koralytics.Application.Services.Academy.AcademyService;
 
@@ -388,6 +389,25 @@ namespace Koralytics.API.Controllers.Academies
         {
             var result = await _academyService.SearchAcademiesByNameAsync(name);
             return OkResponse(result, "Academies retrieved successfully.");
+        }
+
+        [HttpPost("search-ai-chat")]
+        [Authorize(Roles = "AcademyAdmin,Coach")]
+        public async Task<IActionResult> AcademySearchAIChatBot([FromBody] AIChatBotRequestDto request)
+        {
+            var academyIdStr = User.FindFirstValue("AcademyId") ?? User.FindFirstValue("academyId");
+            if (string.IsNullOrEmpty(academyIdStr) || !int.TryParse(academyIdStr, out var academyId))
+            {
+                return BadRequest(new Koralytics.Application.Common.ApiResponse<object>
+                {
+                    IsSuccess = false,
+                    StatusCode = 400,
+                    Message = "AcademyId claim missing in JWT token."
+                });
+            }
+
+            var result = await _academyService.AcademySearchAIChatBotAsync(request, academyId);
+            return OkResponse(result, "Academy AI Chat response generated successfully.");
         }
     }
 }

@@ -288,7 +288,10 @@ namespace Koralytics.API
             builder.Services.AddHttpClient<IPlayerCardService, PlayerCardService>();
             builder.Services.AddScoped<IPlayerProfileService, PlayerProfileService>();
             builder.Services.AddScoped<IPlayerGoalService, PlayerGoalService>();
-            builder.Services.AddScoped<IAcademyService, AcademyService>();
+            builder.Services.AddHttpClient<IAcademyService, AcademyService>(client =>
+            {
+                client.Timeout = TimeSpan.FromMinutes(5);
+            });
             builder.Services.AddScoped<IAcademyTeamService, AcademyTeamService>();
             builder.Services.AddScoped<IAcademyAnalyticsService, AcademyAnalyticsService>();
             builder.Services.AddScoped<IAcademyAnnouncementService, AcademyAnnouncementService>();
@@ -305,7 +308,10 @@ namespace Koralytics.API
             builder.Services.AddSingleton<CardInvalidationList>();
             builder.Services.AddSingleton<ICardInvalidationList>(sp => sp.GetRequiredService<CardInvalidationList>());
             builder.Services.AddHostedService(sp => sp.GetRequiredService<CardInvalidationList>());
-            builder.Services.AddHttpClient<IScouterSearchService, ScouterSearchService>();
+            builder.Services.AddHttpClient<IScouterSearchService, ScouterSearchService>(client =>
+            {
+                client.Timeout = TimeSpan.FromMinutes(5);
+            });
             builder.Services.AddScoped<IScouterShortlistService, ScouterShortlistService>();
             builder.Services.AddScoped<IScouterFollowService, ScouterFollowService>();
             builder.Services.AddScoped<IScouterReportService, ScouterReportService>();

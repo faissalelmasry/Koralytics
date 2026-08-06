@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ApiResponse } from '../../interfaces/api-response.model';
 import {
@@ -330,5 +330,12 @@ export class AcademyService {
 
   getAcademyTeamsSummary(academyId: number): Observable<ApiResponse<any[]>> {
     return this.http.get<ApiResponse<any[]>>(`${this.apiUrl}/${academyId}/teams/summary`);
+  }
+
+  /** POST api/Academy/search-ai-chat */
+  academySearchAiChatBot(message: string, sessionId?: string): Observable<string> {
+    return this.http
+      .post<ApiResponse<string>>(`${this.apiUrl}/search-ai-chat`, { message, sessionId })
+      .pipe(map((res) => res.data ?? ''));
   }
 }

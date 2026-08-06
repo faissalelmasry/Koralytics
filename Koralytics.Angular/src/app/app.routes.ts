@@ -385,6 +385,18 @@ export const routes: Routes = [
     loadComponent: () => import('./features/scouter/pages/scouter-ai-chat/scouter-ai-chat').then(m => m.ScouterAiChatComponent),
     canActivate: [authGuard]
   },
+  {
+    path: 'academy-ai',
+    loadComponent: () => import('./features/academy/pages/academy-ai-chat/academy-ai-chat').then(m => m.AcademyAiChatComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['AcademyAdmin', 'Coach'] }
+  },
+  {
+    path: 'academy-ai/:academyId',
+    loadComponent: () => import('./features/academy/pages/academy-ai-chat/academy-ai-chat').then(m => m.AcademyAiChatComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['AcademyAdmin', 'Coach'] }
+  },
   { path: 'referenceshowcase', loadComponent: () => import('./reference-showcase').then(m => m.App) },
 
   // Wildcard Catch-all

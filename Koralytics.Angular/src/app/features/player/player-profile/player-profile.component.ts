@@ -15,6 +15,7 @@ import { PlayerProfileService } from '../../../../core/services/player/player-pr
 import { PlayerCardService } from '../../../../core/services/player/player-card.service';
 import { TokenStorageService } from '../../../../core/services/auth/token-storage.service';
 import { PlayerProfileModel } from '../../../../core/models/Player/player-profile-model';
+import { switchMap } from 'rxjs';
 import { ScouterService } from '@core/services/Scouter/scouter.service';
 import { NotificationService } from '@core/services/SignalR/notificationservice';
 import { ToastService } from '../../../../core/services/Toast/toast';
@@ -277,16 +278,30 @@ private logAndNotifyIfScouter(roles: string[]) {
     this.playerCardService.getPlayerCard(this.playerId).subscribe({
       next: (card) => {
         if (this.profile) {
-          this.profile.playerCard = card;
+          this.profile.playerCard = { ...card };
         }
         this.isFetchingCard = false;
+
+        if (this.radarChart) {
+          this.radarChart.destroy();
+          this.radarChart = undefined;
+        }
+        this.chartInitialized = false;
+
+        this.toastService.show('Player card refreshed successfully.', 'success');
         this.cdr.detectChanges();
+
+        setTimeout(() => {
+          this.initRadarChart();
+        }, 0);
       },
       error: (err) => {
         this.isFetchingCard = false;
-        this.error = err?.status === 404
-          ? 'Unable to generate player card'
-          : 'Failed to fetch player card';
+        this.toastService.show(
+          err?.status === 404 ? 'Unable to generate player card' : 'Failed to fetch player card',
+          'error'
+        );
+        this.cdr.detectChanges();
       }
     });
   }
