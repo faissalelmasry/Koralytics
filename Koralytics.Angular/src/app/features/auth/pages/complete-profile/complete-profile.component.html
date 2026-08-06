@@ -1,7 +1,7 @@
 <div class="auth-card-content">
   <div class="header">
-    <h2>Complete your profile</h2>
-    <p>We just need a few more details to set up your account.</p>
+    <h2>{{ 'AUTH.COMPLETE_PROFILE.TITLE' | translate }}</h2>
+    <p>{{ 'AUTH.COMPLETE_PROFILE.SUBTITLE' | translate }}</p>
   </div>
 
   <app-stepper [steps]="steps" [currentStep]="currentStep" (stepClick)="onStepClick($event)"></app-stepper>
@@ -21,8 +21,8 @@
           </svg>
         </div>
         <div class="role-info">
-          <h3>{{ role.name }}</h3>
-          <p>{{ role.desc }}</p>
+          <h3>{{ role.name | translate }}</h3>
+          <p>{{ role.desc | translate }}</p>
         </div>
       </div>
     </div>
@@ -31,22 +31,22 @@
     <div *ngIf="currentStep === 1">
       
       <div [formGroup]="baseForm" class="form-grid">
-        <app-text-input label="Username" formControlName="userName" [errorMessage]="baseError('userName')" class="full-width"></app-text-input>
-        <app-phone-input label="Phone" formControlName="phoneNumber" [errorMessage]="baseError('phoneNumber')" [required]="true" class="full-width"></app-phone-input>
+        <app-text-input [label]="'AUTH.REGISTER.USERNAME' | translate" formControlName="userName" [errorMessage]="baseError('userName') | translate" class="full-width"></app-text-input>
+        <app-phone-input [label]="'AUTH.REGISTER.PHONE' | translate" formControlName="phoneNumber" [errorMessage]="baseError('phoneNumber') | translate" class="full-width"></app-phone-input>
       </div>
 
       <div *ngIf="selectedRole === 'Player'" [formGroup]="playerForm" class="form-grid" style="margin-top: 16px;">
-        <app-date-picker label="Date of Birth" formControlName="dateOfBirth" [errorMessage]="playerError('dateOfBirth')" class="full-width"></app-date-picker>
-        <app-text-input label="Nationality" formControlName="nationality" class="full-width"></app-text-input>
-        <app-select label="Preferred Foot" [options]="footOptions" formControlName="preferredFoot"></app-select>
-        <app-select label="Weak Foot Rating" [options]="ratingOptions" formControlName="weakFootRating"></app-select>
-        <app-text-input label="Height (cm)" type="number" placeholder="e.g. 178" formControlName="heightCm"></app-text-input>
-        <app-text-input label="Weight (kg)" type="number" placeholder="e.g. 72" formControlName="weightKg"></app-text-input>
+        <app-date-picker [label]="'AUTH.REGISTER.DOB' | translate" formControlName="dateOfBirth" [errorMessage]="playerError('dateOfBirth') | translate" class="full-width"></app-date-picker>
+        <app-text-input [label]="'AUTH.REGISTER.NATIONALITY' | translate" formControlName="nationality" class="full-width"></app-text-input>
+        <app-select [label]="'AUTH.REGISTER.PREFERRED_FOOT' | translate" [options]="footOptions" formControlName="preferredFoot"></app-select>
+        <app-select [label]="'AUTH.REGISTER.WEAK_FOOT' | translate" [options]="ratingOptions" formControlName="weakFootRating"></app-select>
+        <app-text-input [label]="'AUTH.REGISTER.HEIGHT' | translate" type="number" formControlName="heightCm"></app-text-input>
+        <app-text-input [label]="'AUTH.REGISTER.WEIGHT' | translate" type="number" formControlName="weightKg"></app-text-input>
       </div>
 
       <div *ngIf="selectedRole === 'Parent'" [formGroup]="parentForm" class="form-grid" style="margin-top: 16px;">
-        <app-text-input label="Child Player ID" type="number" formControlName="childPlayerId" [errorMessage]="parentError('childPlayerId')" class="full-width"></app-text-input>
-        <p class="help-text">You can find the Player ID in the player's dashboard settings.</p>
+        <app-text-input [label]="'AUTH.REGISTER.CHILD_PLAYER_ID' | translate" type="number" formControlName="childPlayerId" [errorMessage]="parentError('childPlayerId') | translate" class="full-width"></app-text-input>
+        <p class="help-text">{{ 'AUTH.REGISTER.CHILD_PLAYER_ID_HELP' | translate }}</p>
       </div>
 
     </div>
@@ -60,7 +60,7 @@
       variant="slate" 
       (click)="prevStep()"
       [disabled]="isLoading">
-      Back
+      {{ 'AUTH.COMPLETE_PROFILE.BACK_BTN' | translate }}
     </app-button>
     
     <app-button 
@@ -70,7 +70,7 @@
       (click)="nextStep()"
       [disabled]="isContinueDisabled()"
       class="full-width-btn">
-      Continue
+      {{ 'AUTH.COMPLETE_PROFILE.CONTINUE_BTN' | translate }}
     </app-button>
 
     <app-button 
@@ -80,7 +80,7 @@
       (click)="onSubmit()"
       [disabled]="isSubmitDisabled()"
       [loading]="isLoading">
-      Complete Profile
+      {{ 'AUTH.COMPLETE_PROFILE.COMPLETE_BTN' | translate }}
     </app-button>
   </div>
 

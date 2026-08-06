@@ -1,5 +1,7 @@
-import { Component, Input, Output, EventEmitter, HostListener, HostBinding, ElementRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, HostListener, HostBinding, ElementRef, forwardRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms';
+import { TranslatePipe } from '@ngx-translate/core';
 
 export interface SelectOption {
   value: any;
@@ -9,11 +11,18 @@ export interface SelectOption {
 @Component({
   selector: 'app-select',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslatePipe],
   templateUrl: './custom-select.html',
-  styleUrls: ['./custom-select.css']
+  styleUrls: ['./custom-select.css'],
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => CustomSelect),
+      multi: true
+    }
+  ]
 })
-export class CustomSelect {
+export class CustomSelect implements ControlValueAccessor {
   @Input() label: string = 'label';
   @Input() placeholder: string = '';
   @Input() options: SelectOption[] = [];
@@ -33,6 +42,27 @@ export class CustomSelect {
   }
 
   constructor(private elementRef: ElementRef) {}
+
+  onChange: any = () => {};
+  onTouch: any = () => {};
+
+  writeValue(value: any): void {
+    if (value !== undefined) {
+      this.value = value;
+    }
+  }
+
+  registerOnChange(fn: any): void {
+    this.onChange = fn;
+  }
+
+  registerOnTouched(fn: any): void {
+    this.onTouch = fn;
+  }
+
+  setDisabledState?(isDisabled: boolean): void {
+    this.disabled = isDisabled;
+  }
 
   get selectedLabel(): string {
     const selected = this.options.find(opt => opt.value === this.value);
@@ -60,6 +90,8 @@ export class CustomSelect {
   selectOption(option: SelectOption) {
     this.value = option.value;
     this.valueChange.emit(this.value);
+    this.onChange(this.value);
+    this.onTouch();
     this.isOpen = false;
     if (CustomSelect.activeSelect === this) {
       CustomSelect.activeSelect = null;

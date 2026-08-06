@@ -8,11 +8,14 @@ import { AcademyDetailPanelComponent } from '../academy-detail-panel/academy-det
 import { LoadingSpinnerComponent } from '../../../../../shared/components/loading-spinner/loading-spinner';
 import { CustomButtonComponent } from '../../../../../shared/components/custom-button/custom-button';
 import { Pagination } from '../../../../../shared/components/pagination/pagination';
+import { TranslatePipe } from '@ngx-translate/core';
+import { LocalizedDatePipe } from '../../../../../shared/pipes/localized-date.pipe';
+import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
 
 @Component({
   selector: 'app-active-academies-section',
   standalone: true,
-  imports: [CommonModule, FormsModule, AcademyDetailPanelComponent, LoadingSpinnerComponent, CustomButtonComponent, Pagination],
+  imports: [CommonModule, FormsModule, AcademyDetailPanelComponent, LoadingSpinnerComponent, CustomButtonComponent, Pagination, TranslatePipe, LocalizedDatePipe, ScrollRevealDirective],
   templateUrl: './active-academies-section.html',
   styleUrls: ['./active-academies-section.css']
 })

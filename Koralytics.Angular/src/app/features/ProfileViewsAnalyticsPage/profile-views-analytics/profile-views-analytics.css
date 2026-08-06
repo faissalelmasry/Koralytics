@@ -313,7 +313,7 @@
 .cyber-data-table {
   width: 100%;
   border-collapse: collapse;
-  text-align: left;
+  text-align: start;
   font-family: 'Inter', sans-serif;
 }
 

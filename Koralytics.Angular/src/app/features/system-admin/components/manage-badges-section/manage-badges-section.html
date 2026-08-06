@@ -1,28 +1,28 @@
-<div class="section-container fade-in">
+<div class="section-container fade-in" scrollReveal direction="bottom" [delay]="150">
   <div class="section-header">
     <div class="header-content">
-      <h3>Academy Recognition & Badges</h3>
-      <p class="subtitle">Award official verification and performance badges to highlight top academies on Koralytics</p>
+      <h3>{{ 'SYSTEM_ADMIN.MANAGE_BADGES.TITLE' | translate }}</h3>
+      <p class="subtitle">{{ 'SYSTEM_ADMIN.MANAGE_BADGES.SUBTITLE' | translate }}</p>
     </div>
 
     <div class="header-controls">
       <div class="select-wrapper" *ngIf="academies.length > 0">
         <app-select
-          label="Select Academy"
+          [label]="'SYSTEM_ADMIN.MANAGE_BADGES.LBL_SELECT_ACADEMY' | translate"
           [options]="academyOptions"
           [value]="selectedAcademyId"
           (valueChange)="selectedAcademyId = $event; onAcademyChange()">
         </app-select>
       </div>
 
-      <app-button variant="accent" (click)="openAwardModal()">+ Award New Badge</app-button>
+      <app-button variant="accent" (click)="openAwardModal()">{{ 'SYSTEM_ADMIN.MANAGE_BADGES.BTN_AWARD_NEW' | translate }}</app-button>
     </div>
   </div>
 
   <!-- Loading State -->
   <div class="loading-state" *ngIf="isLoadingAcademies || isLoadingBadges">
     <app-loading-spinner size="lg"></app-loading-spinner>
-    <p>Loading recognition badges...</p>
+    <p>{{ 'SYSTEM_ADMIN.MANAGE_BADGES.LOADING' | translate }}</p>
   </div>
 
   <!-- Badges Grid -->
@@ -35,7 +35,7 @@
             <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
           </svg>
         </div>
-        <button class="action-icon-btn delete-btn" (click)="deleteBadge(b)" title="Revoke Badge">
+        <button class="action-icon-btn delete-btn" (click)="deleteBadge(b)" [title]="'SYSTEM_ADMIN.MANAGE_BADGES.TOOLTIP_REVOKE' | translate">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="3 6 5 6 21 6"></polyline>
             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -43,9 +43,9 @@
         </button>
       </div>
       <h4>{{ getBadgeLabel(b.badgeType) }}</h4>
-      <p class="badge-desc">{{ b.description || 'Verified Koralytics partner academy recognition badge.' }}</p>
+      <p class="badge-desc">{{ getBadgeDescription(b) }}</p>
       <div class="badge-meta">
-        <span>Awarded on {{ b.awardedAt | date:'mediumDate' }}</span>
+        <span>{{ 'SYSTEM_ADMIN.MANAGE_BADGES.AWARDED_ON' | translate }} {{ b.awardedAt | localizedDate:'mediumDate' }}</span>
       </div>
     </div>
   </div>
@@ -58,9 +58,9 @@
         <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
       </svg>
     </div>
-    <h4>No Badges Awarded</h4>
-    <p>This academy currently has no verification or achievement badges.</p>
-    <app-button variant="accent" (click)="openAwardModal()">Award First Badge</app-button>
+    <h4>{{ 'SYSTEM_ADMIN.MANAGE_BADGES.EMPTY_TITLE' | translate }}</h4>
+    <p>{{ 'SYSTEM_ADMIN.MANAGE_BADGES.EMPTY_DESC' | translate }}</p>
+    <app-button variant="accent" (click)="openAwardModal()">{{ 'SYSTEM_ADMIN.MANAGE_BADGES.BTN_AWARD_FIRST' | translate }}</app-button>
   </div>
 </div>
 
@@ -68,7 +68,7 @@
 <div class="modal-backdrop-cyber" *ngIf="showAwardModal" (click)="closeAwardModal()">
   <div class="cyber-modal-card award-modal fade-in" (click)="$event.stopPropagation()">
     <div class="tactical-tag">
-      <span>04 // ACADEMY RECOGNITION & HONORS</span>
+      <span>{{ 'SYSTEM_ADMIN.MANAGE_BADGES.MODAL_AWARD_TAG' | translate }}</span>
     </div>
 
     <div class="modal-header-cyber">
@@ -79,8 +79,8 @@
           </svg>
         </div>
         <div>
-          <h4>AWARD RECOGNITION BADGE</h4>
-          <p class="modal-subtitle">Grant official network honors and verified status to an academy.</p>
+          <h4>{{ 'SYSTEM_ADMIN.MANAGE_BADGES.MODAL_AWARD_TITLE' | translate }}</h4>
+          <p class="modal-subtitle">{{ 'SYSTEM_ADMIN.MANAGE_BADGES.MODAL_AWARD_SUBTITLE' | translate }}</p>
         </div>
       </div>
       <button class="btn-close-cyber" (click)="closeAwardModal()" title="Close Modal">&times;</button>
@@ -90,7 +90,7 @@
       <div class="modal-form-fields">
         <div class="form-group-cyber">
           <app-select
-            label="Target Academy"
+            [label]="'SYSTEM_ADMIN.MANAGE_BADGES.LBL_SELECT_ACADEMY' | translate"
             [options]="academyOptions"
             [value]="awardForm.get('academyId')?.value"
             (valueChange)="awardForm.get('academyId')?.setValue($event)">
@@ -99,7 +99,7 @@
 
         <div class="form-group-cyber">
           <app-select
-            label="Recognition Badge Type"
+            [label]="'SYSTEM_ADMIN.MANAGE_BADGES.LBL_BADGE_TYPE' | translate"
             [options]="badgeTypes"
             [value]="awardForm.get('badgeType')?.value"
             (valueChange)="awardForm.get('badgeType')?.setValue($event)">
@@ -107,20 +107,20 @@
         </div>
 
         <app-text-input
-          label="Award Justification / Citation"
+          [label]="'SYSTEM_ADMIN.MANAGE_BADGES.LBL_JUSTIFICATION' | translate"
           type="text"
-          placeholder="e.g. Awarded for high platform engagement and verified coaching standards."
+          [placeholder]="'SYSTEM_ADMIN.MANAGE_BADGES.PLACEHOLDER_JUSTIFICATION' | translate"
           formControlName="description">
         </app-text-input>
       </div>
 
       <div class="modal-footer-cyber">
-        <button type="button" class="btn-cyber-cancel" (click)="closeAwardModal()">CANCEL</button>
+        <button type="button" class="btn-cyber-cancel" (click)="closeAwardModal()">{{ 'SYSTEM_ADMIN.MANAGE_BADGES.BTN_CANCEL' | translate }}</button>
         <button type="submit" class="btn-cyber-confirm award-btn" [disabled]="isAwarding || awardForm.invalid">
           <svg *ngIf="!isAwarding" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
           </svg>
-          <span>{{ isAwarding ? 'AWARDING BADGE...' : 'CONFIRM AWARD' }}</span>
+          <span>{{ isAwarding ? ('SYSTEM_ADMIN.MANAGE_BADGES.BTN_AWARDING' | translate) : ('SYSTEM_ADMIN.MANAGE_BADGES.BTN_AWARD' | translate) }}</span>
         </button>
       </div>
     </form>
@@ -133,9 +133,11 @@
   [title]="confirmDialogTitle"
   [message]="confirmDialogMessage"
   level="danger"
-  confirmText="Yes, Revoke"
-  cancelText="Cancel"
+  [confirmText]="'SYSTEM_ADMIN.MANAGE_BADGES.CONFIRM_REVOKE' | translate"
+  [cancelText]="'SYSTEM_ADMIN.MANAGE_BADGES.BTN_CANCEL' | translate"
   [requiresConfirmation]="false"
   (confirm)="onConfirmBadgeRevoke()"
   (cancel)="isConfirmDialogOpen = false; badgeToRevoke = null">
 </app-confirm-dialog>
+
+

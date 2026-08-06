@@ -66,10 +66,15 @@
   font-size: 14px;
   font-weight: 500;
   pointer-events: none;
-  text-transform: lowercase;
   transform-origin: left top;
   transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.2s ease;
   z-index: 2;
+}
+
+:host-context([dir="rtl"]) .floating-label {
+  left: auto;
+  right: 16px;
+  transform-origin: right top;
 }
 
 .floating-label.raised {
@@ -160,10 +165,17 @@
   line-height: 1.35;
   border-radius: 8px;
   cursor: pointer;
-  text-transform: lowercase;
   white-space: normal;
   word-break: break-word;
   transition: background 0.2s ease, color 0.2s ease;
+}
+
+:host-context([dir="rtl"]) .dropdown-item {
+  text-align: right;
+}
+
+:host-context([dir="rtl"]) .selected-value-display {
+  text-align: right;
 }
 
 .dropdown-item:hover {
@@ -200,7 +212,11 @@
   font-family: 'Inter', sans-serif;
   font-weight: 500;
   padding-left: 4px;
-  text-transform: lowercase;
+}
+
+:host-context([dir="rtl"]) .error-text-msg {
+  padding-left: 0;
+  padding-right: 4px;
 }
 
 .select-field-group.is-disabled {

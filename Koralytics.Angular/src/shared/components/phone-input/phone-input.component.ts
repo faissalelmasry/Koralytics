@@ -9,6 +9,7 @@ import {
   HostBinding
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
   ControlValueAccessor,
   NG_VALUE_ACCESSOR,
@@ -30,7 +31,7 @@ export interface CountryOption {
 @Component({
   selector: 'app-phone-input',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslatePipe],
   templateUrl: './phone-input.component.html',
   styleUrls: ['./phone-input.component.css'],
   providers: [
@@ -75,21 +76,21 @@ export class PhoneInputComponent implements ControlValueAccessor, Validator {
   @Output() valueChange = new EventEmitter<string>();
 
   countries: CountryOption[] = [
-    { code: 'EG', name: 'Egypt', flag: '🇪🇬', dialCode: '+20', length: 10, placeholder: '1012345678' },
-    { code: 'SA', name: 'Saudi Arabia', flag: '🇸🇦', dialCode: '+966', length: 9, placeholder: '501234567' },
-    { code: 'AE', name: 'United Arab Emirates', flag: '🇦🇪', dialCode: '+971', length: 9, placeholder: '501234567' },
-    { code: 'QA', name: 'Qatar', flag: '🇶🇦', dialCode: '+974', length: 8, placeholder: '33123456' },
-    { code: 'KW', name: 'Kuwait', flag: '🇰🇼', dialCode: '+965', length: 8, placeholder: '50123456' },
-    { code: 'BH', name: 'Bahrain', flag: '🇧🇭', dialCode: '+973', length: 8, placeholder: '39123456' },
-    { code: 'OM', name: 'Oman', flag: '🇴🇲', dialCode: '+968', length: 8, placeholder: '91234567' },
-    { code: 'JO', name: 'Jordan', flag: '🇯🇴', dialCode: '+962', length: 9, placeholder: '791234567' },
-    { code: 'MA', name: 'Morocco', flag: '🇲🇦', dialCode: '+212', length: 9, placeholder: '612345678' },
-    { code: 'GB', name: 'United Kingdom', flag: '🇬🇧', dialCode: '+44', length: 10, placeholder: '7911123456' },
-    { code: 'US', name: 'United States', flag: '🇺🇸', dialCode: '+1', length: 10, placeholder: '2015550123' },
-    { code: 'DE', name: 'Germany', flag: '🇩🇪', dialCode: '+49', length: [10, 11], placeholder: '15112345678' },
-    { code: 'FR', name: 'France', flag: '🇫🇷', dialCode: '+33', length: 9, placeholder: '612345678' },
-    { code: 'ES', name: 'Spain', flag: '🇪🇸', dialCode: '+34', length: 9, placeholder: '612345678' },
-    { code: 'IT', name: 'Italy', flag: '🇮🇹', dialCode: '+39', length: 10, placeholder: '3123456789' }
+    { code: 'EG', name: 'COMMON.COUNTRIES.EG', flag: '🇪🇬', dialCode: '+20', length: 10, placeholder: '1012345678' },
+    { code: 'SA', name: 'COMMON.COUNTRIES.SA', flag: '🇸🇦', dialCode: '+966', length: 9, placeholder: '501234567' },
+    { code: 'AE', name: 'COMMON.COUNTRIES.AE', flag: '🇦🇪', dialCode: '+971', length: 9, placeholder: '501234567' },
+    { code: 'QA', name: 'COMMON.COUNTRIES.QA', flag: '🇶🇦', dialCode: '+974', length: 8, placeholder: '33123456' },
+    { code: 'KW', name: 'COMMON.COUNTRIES.KW', flag: '🇰🇼', dialCode: '+965', length: 8, placeholder: '50123456' },
+    { code: 'BH', name: 'COMMON.COUNTRIES.BH', flag: '🇧🇭', dialCode: '+973', length: 8, placeholder: '39123456' },
+    { code: 'OM', name: 'COMMON.COUNTRIES.OM', flag: '🇴🇲', dialCode: '+968', length: 8, placeholder: '91234567' },
+    { code: 'JO', name: 'COMMON.COUNTRIES.JO', flag: '🇯🇴', dialCode: '+962', length: 9, placeholder: '791234567' },
+    { code: 'MA', name: 'COMMON.COUNTRIES.MA', flag: '🇲🇦', dialCode: '+212', length: 9, placeholder: '612345678' },
+    { code: 'GB', name: 'COMMON.COUNTRIES.GB', flag: '🇬🇧', dialCode: '+44', length: 10, placeholder: '7911123456' },
+    { code: 'US', name: 'COMMON.COUNTRIES.US', flag: '🇺🇸', dialCode: '+1', length: 10, placeholder: '2015550123' },
+    { code: 'DE', name: 'COMMON.COUNTRIES.DE', flag: '🇩🇪', dialCode: '+49', length: [10, 11], placeholder: '15112345678' },
+    { code: 'FR', name: 'COMMON.COUNTRIES.FR', flag: '🇫🇷', dialCode: '+33', length: 9, placeholder: '612345678' },
+    { code: 'ES', name: 'COMMON.COUNTRIES.ES', flag: '🇪🇸', dialCode: '+34', length: 9, placeholder: '612345678' },
+    { code: 'IT', name: 'COMMON.COUNTRIES.IT', flag: '🇮🇹', dialCode: '+39', length: 10, placeholder: '3123456789' }
   ];
 
   selectedCountry: CountryOption = this.countries[0]; // Default: Egypt (+20)
@@ -102,7 +103,7 @@ export class PhoneInputComponent implements ControlValueAccessor, Validator {
   onTouched = () => {};
   onValidatorChange = () => {};
 
-  constructor(private eRef: ElementRef) {}
+  constructor(private eRef: ElementRef, private translate: TranslateService) {}
 
   @HostListener('document:click', ['$event'])
   clickout(event: Event) {
@@ -134,9 +135,19 @@ export class PhoneInputComponent implements ControlValueAccessor, Validator {
     this.emitChange();
   }
 
+  private normalizeDigits(val: string): string {
+    const arabicNumbers = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
+    let res = '';
+    for (let char of val) {
+      const idx = arabicNumbers.indexOf(char);
+      res += idx !== -1 ? idx : char;
+    }
+    return res.replace(/\D/g, '');
+  }
+
   onDigitsInput(event: Event): void {
     const input = event.target as HTMLInputElement;
-    let raw = input.value.replace(/\D/g, '');
+    let raw = this.normalizeDigits(input.value);
 
     // Strip leading zero when entering local style number (e.g. 01012345678 in Egypt)
     if (this.selectedCountry.code === 'EG' && raw.startsWith('0') && raw.length > 1) {
@@ -224,7 +235,13 @@ export class PhoneInputComponent implements ControlValueAccessor, Validator {
     if (this.isTouched && this.digits && this.digits.trim() !== '') {
       const err = this.validate(null as any);
       if (err && err['invalidPhone']) {
-        return err['invalidPhone'].message;
+        const info = err['invalidPhone'];
+        const countryName = this.translate.instant(info.country);
+        return this.translate.instant('COMMON.ERRORS.INVALID_PHONE_LENGTH', {
+          country: countryName,
+          expected: Array.isArray(info.expectedLength) ? info.expectedLength.join(' or ') : info.expectedLength,
+          dialCode: this.selectedCountry.dialCode
+        });
       }
     }
     return '';
@@ -244,10 +261,10 @@ export class PhoneInputComponent implements ControlValueAccessor, Validator {
         .find(c => clean.startsWith(c.dialCode.substring(1)));
       if (matchedNoPlus) {
         this.selectedCountry = matchedNoPlus;
-        this.digits = clean.substring(matchedNoPlus.dialCode.length - 1);
+        this.digits = this.normalizeDigits(clean.substring(matchedNoPlus.dialCode.length - 1));
         return;
       }
-      this.digits = clean.replace(/\D/g, '');
+      this.digits = this.normalizeDigits(clean);
       return;
     }
 
@@ -259,9 +276,9 @@ export class PhoneInputComponent implements ControlValueAccessor, Validator {
 
     if (matched) {
       this.selectedCountry = matched;
-      this.digits = clean.substring(matched.dialCode.length).replace(/\D/g, '');
+      this.digits = this.normalizeDigits(clean.substring(matched.dialCode.length));
     } else {
-      this.digits = clean.replace(/\D/g, '');
+      this.digits = this.normalizeDigits(clean);
     }
   }
 }

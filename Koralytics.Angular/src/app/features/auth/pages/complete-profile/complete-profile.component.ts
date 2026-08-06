@@ -12,6 +12,7 @@ import { CustomDatePicker } from '../../../../../shared/components/custom-date-p
 import { StepperComponent } from '../../../../../shared/components/stepper/stepper.component';
 import { PhoneInputComponent } from '../../../../../shared/components/phone-input/phone-input.component';
 import { CompleteProfileAsPlayer, CompleteProfileAsParent, CompleteProfileBase, CompleteProfileAsCoach, CompleteProfileAsScouter } from '../../../../../core/interfaces/auth.models';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-complete-profile',
@@ -25,7 +26,8 @@ import { CompleteProfileAsPlayer, CompleteProfileAsParent, CompleteProfileBase, 
     CustomSelect,
     CustomDatePicker,
     StepperComponent,
-    PhoneInputComponent
+    PhoneInputComponent,
+    TranslatePipe
   ],
   templateUrl: './complete-profile.component.html',
   styleUrls: ['./complete-profile.component.css']
@@ -38,32 +40,32 @@ export class CompleteProfileComponent implements OnInit {
   private toast = inject(ToastService);
 
   isLoading = false;
-  steps = ['Role', 'Complete Details'];
+  steps = ['AUTH.REGISTER.ROLE_STEP', 'AUTH.COMPLETE_PROFILE.DETAILS_STEP'];
   currentStep = 0;
   selectedRole: 'Player' | 'Coach' | 'Scouter' | 'Parent' | 'AcademyAdmin' | null = null;
   userId: number = 0;
   temporaryToken: string = '';
 
   roles = [
-    { id: 'Player', name: 'Player', icon: 'M13 10V3L4 14h7v7l9-11h-7z', desc: 'Manage your profile and track stats.' },
-    { id: 'Coach', name: 'Coach', icon: 'M12 14l9-5-9-5-9 5 9 5z', desc: 'Manage teams and tactical setups.' },
-    { id: 'Scouter', name: 'Scouter', icon: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z', desc: 'Discover and analyze talent.' },
-    { id: 'Parent', name: 'Parent', icon: 'M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2', desc: 'Track your child\'s progress.' },
-    { id: 'AcademyAdmin', name: 'Academy Admin', icon: 'M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9', desc: 'Manage academy operations.' }
+    { id: 'Player', name: 'AUTH.ROLES.PLAYER', icon: 'M13 10V3L4 14h7v7l9-11h-7z', desc: 'AUTH.ROLES.PLAYER_DESC' },
+    { id: 'Coach', name: 'AUTH.ROLES.COACH', icon: 'M12 14l9-5-9-5-9 5 9 5z', desc: 'AUTH.ROLES.COACH_DESC' },
+    { id: 'Scouter', name: 'AUTH.ROLES.SCOUTER', icon: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z', desc: 'AUTH.ROLES.SCOUTER_DESC' },
+    { id: 'Parent', name: 'AUTH.ROLES.PARENT', icon: 'M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2', desc: 'AUTH.ROLES.PARENT_DESC' },
+    { id: 'AcademyAdmin', name: 'AUTH.ROLES.ACADEMY_ADMIN', icon: 'M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9', desc: 'AUTH.ROLES.ACADEMY_ADMIN_DESC' }
   ] as const;
 
   footOptions = [
-    { value: 'Right', label: 'Right' },
-    { value: 'Left', label: 'Left' },
-    { value: 'Both', label: 'Both' }
+    { value: 'Right', label: 'AUTH.OPTIONS.FOOT_RIGHT' },
+    { value: 'Left', label: 'AUTH.OPTIONS.FOOT_LEFT' },
+    { value: 'Both', label: 'AUTH.OPTIONS.FOOT_BOTH' }
   ];
 
   ratingOptions = [
-    { value: 1, label: '1 - Poor' },
-    { value: 2, label: '2 - Fair' },
-    { value: 3, label: '3 - Good' },
-    { value: 4, label: '4 - Very Good' },
-    { value: 5, label: '5 - Excellent' }
+    { value: 1, label: 'AUTH.OPTIONS.RATING_1' },
+    { value: 2, label: 'AUTH.OPTIONS.RATING_2' },
+    { value: 3, label: 'AUTH.OPTIONS.RATING_3' },
+    { value: 4, label: 'AUTH.OPTIONS.RATING_4' },
+    { value: 5, label: 'AUTH.OPTIONS.RATING_5' }
   ];
 
   // Base missing details (usually just username since Google gives email/name)
@@ -235,20 +237,20 @@ export class CompleteProfileComponent implements OnInit {
   get baseError() { return (controlName: string) => {
     const control = this.baseForm.get(controlName);
     if (control?.touched && control?.invalid) {
-      if (control.errors?.['required']) return `${controlName} is required`;
-      if (control.errors?.['pattern']) return `Invalid format for ${controlName}`;
-      return `${controlName} is invalid`;
+      if (control.errors?.['required']) return 'AUTH.ERRORS.REQUIRED';
+      if (control.errors?.['pattern']) return 'AUTH.ERRORS.INVALID_FORMAT';
+      return 'AUTH.ERRORS.INVALID';
     }
     return '';
   }}
   get playerError() { return (controlName: string) => {
     const control = this.playerForm.get(controlName);
-    if (control?.touched && control?.invalid) return `${controlName} is required`;
+    if (control?.touched && control?.invalid) return 'AUTH.ERRORS.REQUIRED';
     return '';
   }}
   get parentError() { return (controlName: string) => {
     const control = this.parentForm.get(controlName);
-    if (control?.touched && control?.invalid) return `Child Player ID is required`;
+    if (control?.touched && control?.invalid) return 'AUTH.ERRORS.CHILD_PLAYER_ID_REQUIRED';
     return '';
   }}
 }

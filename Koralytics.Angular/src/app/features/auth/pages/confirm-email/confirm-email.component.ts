@@ -5,10 +5,12 @@ import { AuthService } from '../../../../../core/services/auth/auth.service';
 import { ToastService } from '../../../../../core/services/Toast/toast';
 import { CustomButtonComponent } from '../../../../../shared/components/custom-button/custom-button';
 
+import { TranslatePipe } from '@ngx-translate/core';
+
 @Component({
   selector: 'app-confirm-email',
   standalone: true,
-  imports: [CommonModule, RouterModule, CustomButtonComponent],
+  imports: [CommonModule, RouterModule, CustomButtonComponent, TranslatePipe],
   templateUrl: './confirm-email.component.html',
   styleUrls: ['./confirm-email.component.css']
 })

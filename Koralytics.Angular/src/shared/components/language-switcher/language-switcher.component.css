@@ -1,0 +1,30 @@
+.lang-switcher-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--text-primary, #ffffff);
+  padding: 6px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+}
+
+.lang-switcher-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+html[dir="rtl"] .lang-switcher-btn {
+  font-family: 'Cairo', 'Tajawal', 'Almarai', sans-serif;
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

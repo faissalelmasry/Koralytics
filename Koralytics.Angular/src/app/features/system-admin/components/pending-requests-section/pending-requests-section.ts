@@ -6,6 +6,10 @@ import { ToastService } from '../../../../../core/services/Toast/toast';
 import { CustomInputComponent } from '../../../../../shared/components/custom-input-component/custom-input-component';
 import { CustomButtonComponent } from '../../../../../shared/components/custom-button/custom-button';
 import { LoadingSpinnerComponent } from '../../../../../shared/components/loading-spinner/loading-spinner';
+import { TranslatePipe } from '@ngx-translate/core';
+import { LocalizedDatePipe } from '../../../../../shared/pipes/localized-date.pipe';
+import { CustomDatePicker } from '../../../../../shared/components/custom-date-picker/custom-date-picker';
+import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
 
 @Component({
   selector: 'app-pending-requests-section',
@@ -15,7 +19,11 @@ import { LoadingSpinnerComponent } from '../../../../../shared/components/loadin
     ReactiveFormsModule,
     CustomInputComponent,
     CustomButtonComponent,
-    LoadingSpinnerComponent
+    LoadingSpinnerComponent,
+    TranslatePipe,
+    LocalizedDatePipe,
+    CustomDatePicker,
+    ScrollRevealDirective
   ],
   templateUrl: './pending-requests-section.html',
   styleUrls: ['./pending-requests-section.css']

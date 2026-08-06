@@ -8,6 +8,9 @@ import { CustomButtonComponent } from '../../../../../shared/components/custom-b
 import { LoadingSpinnerComponent } from '../../../../../shared/components/loading-spinner/loading-spinner';
 import { CustomSelect, SelectOption } from '../../../../../shared/components/custom-select/custom-select';
 import { ConfirmDialogComponent } from '../../../../../shared/components/confirm-dialog/confirm-dialog';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
+import { LocalizedDatePipe } from '../../../../../shared/pipes/localized-date.pipe';
 
 @Component({
   selector: 'app-manage-badges-section',
@@ -20,7 +23,10 @@ import { ConfirmDialogComponent } from '../../../../../shared/components/confirm
     CustomButtonComponent,
     LoadingSpinnerComponent,
     CustomSelect,
-    ConfirmDialogComponent
+    ConfirmDialogComponent,
+    TranslatePipe,
+    ScrollRevealDirective,
+    LocalizedDatePipe
   ],
   templateUrl: './manage-badges-section.html',
   styleUrls: ['./manage-badges-section.css']
@@ -29,6 +35,7 @@ export class ManageBadgesSectionComponent implements OnInit {
   private systemAdminService = inject(SystemAdminService);
   private toast = inject(ToastService);
   private fb = inject(FormBuilder);
+  private translate = inject(TranslateService);
 
   academies: any[] = [];
   selectedAcademyId: number | null = null;
@@ -49,11 +56,13 @@ export class ManageBadgesSectionComponent implements OnInit {
   confirmDialogTitle = '';
   confirmDialogMessage = '';
 
-  badgeTypes: SelectOption[] = [
-    { value: 'Verified', label: 'Verified Academy' },
-    { value: 'TopPerformer', label: 'Top Performer' },
-    { value: 'Premium', label: 'Premium Partner' }
-  ];
+  get badgeTypes(): SelectOption[] {
+    return [
+      { value: 'Verified', label: 'SYSTEM_ADMIN.MANAGE_BADGES.BADGE_VERIFIED' },
+      { value: 'TopPerformer', label: 'SYSTEM_ADMIN.MANAGE_BADGES.BADGE_TOP_PERFORMER' },
+      { value: 'Premium', label: 'SYSTEM_ADMIN.MANAGE_BADGES.BADGE_PREMIUM' }
+    ];
+  }
 
   ngOnInit() {
     this.initForm();
@@ -61,17 +70,32 @@ export class ManageBadgesSectionComponent implements OnInit {
   }
 
   getBadgeLabel(type: string): string {
-    if (type === 'Verified' || type === 'Verified Academy') return 'Verified Academy';
-    if (type === 'TopPerformer' || type === 'Top Performer') return 'Top Performer';
-    if (type === 'Premium' || type === 'Premium Partner') return 'Premium Partner';
+    if (type === 'Verified' || type === 'Verified Academy') return this.translate.instant('SYSTEM_ADMIN.MANAGE_BADGES.BADGE_VERIFIED');
+    if (type === 'TopPerformer' || type === 'Top Performer') return this.translate.instant('SYSTEM_ADMIN.MANAGE_BADGES.BADGE_TOP_PERFORMER');
+    if (type === 'Premium' || type === 'Premium Partner') return this.translate.instant('SYSTEM_ADMIN.MANAGE_BADGES.BADGE_PREMIUM');
     return type;
+  }
+
+  getBadgeDescriptionKey(type: string): string {
+    if (type === 'Verified' || type === 'Verified Academy') return 'SYSTEM_ADMIN.MANAGE_BADGES.DESC_VERIFIED';
+    if (type === 'TopPerformer' || type === 'Top Performer') return 'SYSTEM_ADMIN.MANAGE_BADGES.DESC_TOP_PERFORMER';
+    if (type === 'Premium' || type === 'Premium Partner') return 'SYSTEM_ADMIN.MANAGE_BADGES.DESC_PREMIUM';
+    return 'SYSTEM_ADMIN.MANAGE_BADGES.DEFAULT_DESC';
+  }
+
+  getBadgeDescription(badge: any): string {
+    const oldDefault = 'Awarded for high platform engagement and verified standards.';
+    if (badge.description && badge.description.trim() !== '' && badge.description !== oldDefault) {
+      return badge.description;
+    }
+    return this.translate.instant(this.getBadgeDescriptionKey(badge.badgeType));
   }
 
   private initForm() {
     this.awardForm = this.fb.group({
       academyId: [null, [Validators.required]],
       badgeType: ['Verified', [Validators.required]],
-      description: ['Awarded for high platform engagement and verified standards.']
+      description: ['']
     });
   }
 
@@ -161,8 +185,9 @@ export class ManageBadgesSectionComponent implements OnInit {
   deleteBadge(badge: any) {
     if (!this.selectedAcademyId) return;
     this.badgeToRevoke = badge;
-    this.confirmDialogTitle = 'Revoke Recognition Badge';
-    this.confirmDialogMessage = `Are you sure you want to revoke the "${badge.badgeType}" badge from this academy?`;
+    this.confirmDialogTitle = this.translate.instant('SYSTEM_ADMIN.MANAGE_BADGES.MODAL_REVOKE_TITLE');
+    const translatedBadgeName = this.getBadgeLabel(badge.badgeType);
+    this.confirmDialogMessage = this.translate.instant('SYSTEM_ADMIN.MANAGE_BADGES.MODAL_REVOKE_MSG', { badge: translatedBadgeName });
     this.isConfirmDialogOpen = true;
   }
 
