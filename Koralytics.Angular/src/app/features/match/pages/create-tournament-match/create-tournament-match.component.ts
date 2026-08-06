@@ -11,6 +11,7 @@ import { LoadingSpinnerComponent } from '../../../../../shared/components/loadin
 import { CustomInputComponent } from '../../../../../shared/components/custom-input-component/custom-input-component';
 import { CustomDateTimePicker } from '../../../../../shared/components/custom-date-time-picker/custom-date-time-picker';
 import { CustomButtonComponent } from '../../../../../shared/components/custom-button/custom-button';
+import { formatToLocalISO } from '../../../../../core/utils/date.util';
 
 @Component({
   selector: 'app-create-tournament-match',
@@ -173,7 +174,7 @@ export class CreateTournamentMatchComponent implements OnInit {
       tournamentFixtureId: this.fixtureId,
       homeTeamId: this.homeTeamId,
       awayTeamId: this.awayTeamId,
-      matchDate: selectedDate.toISOString(),
+      matchDate: formatToLocalISO(this.matchDate),
       location: this.location.trim()
     };
 

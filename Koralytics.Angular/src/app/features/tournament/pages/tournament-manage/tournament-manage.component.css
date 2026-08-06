@@ -538,6 +538,12 @@
   color: #ff7066 !important;
 }
 
+.success-banner {
+  background: rgba(183, 243, 75, 0.12) !important;
+  border-color: rgba(183, 243, 75, 0.4) !important;
+  color: var(--lime) !important;
+}
+
 .form-error-banner {
   position: sticky;
   top: 12px;

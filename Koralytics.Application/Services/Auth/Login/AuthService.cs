@@ -296,6 +296,12 @@ namespace Koralytics.Application.Services.Auth.Login
         private async Task<AuthResultDto> GenerateAuthResultAsync(User user, IList<string>? preFetchedRoles = null)
         {
             var roles = preFetchedRoles ?? (await _userManager.GetRolesAsync(user)).ToList();
+            
+            if (roles.Contains(AuthConstants.Roles.AcademyAdmin) && roles.Contains(AuthConstants.Roles.Coach))
+            {
+                roles = roles.OrderByDescending(r => r == AuthConstants.Roles.AcademyAdmin).ToList();
+            }
+
             var academyId = await GetAcademyIdAsync(user, roles);
             var tokens = await _tokenService.GenerateTokenPairAsync(user, roles, academyId);
             var response = BuildAuthResponse(user, roles, academyId, tokens.AccessToken, tokens.RefreshToken, tokens.AccessTokenExpiresAt, tokens.RefreshTokenExpiresAt);
@@ -323,25 +329,25 @@ namespace Koralytics.Application.Services.Auth.Login
 
         private async Task<int?> GetAcademyIdAsync(User user, IList<string> roles)
         {
-            if (roles.Contains(AuthConstants.Roles.Player))
+            if (roles.Contains(AuthConstants.Roles.AcademyAdmin))
             {
-                var playerAcademy = await _unitOfWork.Repository<PlayerAcademy>()
-                    .FindAsNoTrackingAsync(x => x.PlayerId == user.Id && x.LeftAt == null);
-                return playerAcademy?.AcademyId;
+                var admin = await _unitOfWork.Repository<AcademyAdmin>()
+                    .FindAsNoTrackingAsync(x => x.Id == user.Id);
+                if (admin?.AcademyId != null) return admin.AcademyId;
             }
 
             if (roles.Contains(AuthConstants.Roles.Coach))
             {
                 var coachAcademy = await _unitOfWork.Repository<CoachAcademy>()
                     .FindAsNoTrackingAsync(x => x.CoachUserId == user.Id && x.LeftAt == null);
-                return coachAcademy?.AcademyId;
+                if (coachAcademy?.AcademyId != null) return coachAcademy.AcademyId;
             }
             
-            if (roles.Contains(AuthConstants.Roles.AcademyAdmin))
+            if (roles.Contains(AuthConstants.Roles.Player))
             {
-                var admin = await _unitOfWork.Repository<AcademyAdmin>()
-                    .FindAsNoTrackingAsync(x => x.Id == user.Id);
-                return admin?.AcademyId;
+                var playerAcademy = await _unitOfWork.Repository<PlayerAcademy>()
+                    .FindAsNoTrackingAsync(x => x.PlayerId == user.Id && x.LeftAt == null);
+                if (playerAcademy?.AcademyId != null) return playerAcademy.AcademyId;
             }
 
             return null;

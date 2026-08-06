@@ -184,11 +184,7 @@ export class SquadRegistrationComponent implements OnInit {
         };
 
         const teamPayload = responses.teams?.data || responses.teams;
-        this.tournamentTeams = Array.isArray(teamPayload) && teamPayload.length > 0 ? teamPayload : [
-          { teamId: 1, teamName: 'Cairo Youth FC' },
-          { teamId: 2, teamName: 'Pyramids Academy' },
-          { teamId: 3, teamName: 'Zamalek Stars' }
-        ];
+        this.tournamentTeams = Array.isArray(teamPayload) ? teamPayload : [];
 
         this.teamOptions = this.tournamentTeams.map(team => ({
           value: team.teamId,
@@ -203,28 +199,14 @@ export class SquadRegistrationComponent implements OnInit {
         this.cdr.markForCheck();
         this.loadPlayersForSelectedTeam();
       },
-      error: () => {
-        this.tournament = {
-          id: this.tournamentId || 1,
-          name: 'Summer Champions Cup 2026',
-          format: MatchFormat.ElevenSide,
-          structure: TournamentStructure.GroupAndKnockout,
-          ageGroupName: 'U-17',
-          hasTwoLegs: false,
-          startDate: '2026-08-01',
-          endDate: '2026-08-15',
-          status: TournamentStatus.Registration
-        };
-        this.tournamentTeams = [
-          { teamId: 1, teamName: 'Cairo Youth FC' },
-          { teamId: 2, teamName: 'Pyramids Academy' },
-          { teamId: 3, teamName: 'Zamalek Stars' }
-        ];
-        this.teamOptions = this.tournamentTeams.map(t => ({ value: t.teamId, label: t.teamName }));
-        this.selectedTeamId = 1;
+      error: (err) => {
+        this.tournament = null;
+        this.tournamentTeams = [];
+        this.teamOptions = [];
+        this.selectedTeamId = null;
+        this.errorMessage = this.extractError(err, 'Unable to load tournament teams.');
         this.isLoading = false;
         this.cdr.markForCheck();
-        this.loadPlayersForSelectedTeam();
       }
     });
   }
@@ -255,11 +237,7 @@ export class SquadRegistrationComponent implements OnInit {
         const data = (squad as any)?.data || squad;
         const rawPlayers = data?.players || data?.Players || [];
 
-        let loadedPlayers = this.normalizePlayers(Array.isArray(rawPlayers) ? rawPlayers : []);
-        if (loadedPlayers.length === 0) {
-          loadedPlayers = this.getMockPlayers();
-        }
-        this.players = loadedPlayers;
+        this.players = this.normalizePlayers(Array.isArray(rawPlayers) ? rawPlayers : []);
 
         this.registeredPlayerIds.clear();
         const regIds = registered?.data || registered;
@@ -270,38 +248,15 @@ export class SquadRegistrationComponent implements OnInit {
         this.isLoadingPlayers = false;
         this.cdr.markForCheck();
       },
-      error: () => {
-        this.players = this.getMockPlayers();
+      error: (err) => {
+        this.players = [];
+        this.errorMessage = this.extractError(err, 'Unable to load players.');
         this.isLoadingPlayers = false;
         this.cdr.markForCheck();
       }
     });
   }
 
-  private getMockPlayers(): any[] {
-    return [
-      { playerId: 101, fullName: 'Mohamed El-Shenawy', primaryPosition: 'GK', overallRating: 88, isAvailable: true },
-      { playerId: 102, fullName: 'Mostafa Shobeir', primaryPosition: 'GK', overallRating: 81, isAvailable: true },
-      { playerId: 103, fullName: 'Mohamed Abdelmonem', primaryPosition: 'CB', overallRating: 88, isAvailable: true },
-      { playerId: 104, fullName: 'Mahmoud Wensh', primaryPosition: 'CB', overallRating: 87, isAvailable: true },
-      { playerId: 105, fullName: 'Yasser Ibrahim', primaryPosition: 'CB', overallRating: 82, isAvailable: true },
-      { playerId: 106, fullName: 'Ahmed Fetouh', primaryPosition: 'LB', overallRating: 84, isAvailable: true },
-      { playerId: 107, fullName: 'Karim Fouad', primaryPosition: 'LB', overallRating: 79, isAvailable: true },
-      { playerId: 108, fullName: 'Akram Tawfik', primaryPosition: 'RB', overallRating: 83, isAvailable: true },
-      { playerId: 109, fullName: 'Mohamed Hany', primaryPosition: 'RB', overallRating: 81, isAvailable: true },
-      { playerId: 110, fullName: 'Emam Ashour', primaryPosition: 'CM', overallRating: 86, isAvailable: true },
-      { playerId: 111, fullName: 'Hamdy Fathi', primaryPosition: 'CDM', overallRating: 85, isAvailable: true },
-      { playerId: 112, fullName: 'Marwan Attia', primaryPosition: 'CM', overallRating: 84, isAvailable: true },
-      { playerId: 113, fullName: 'Youssef Obama', primaryPosition: 'CAM', overallRating: 84, isAvailable: true },
-      { playerId: 114, fullName: 'Afsha', primaryPosition: 'CAM', overallRating: 83, isAvailable: true },
-      { playerId: 115, fullName: 'Ahmed Sayed Zizo', primaryPosition: 'RW', overallRating: 89, isAvailable: true },
-      { playerId: 116, fullName: 'Hussein El Shahat', primaryPosition: 'RW', overallRating: 85, isAvailable: true },
-      { playerId: 117, fullName: 'Omar Marmoush', primaryPosition: 'LW', overallRating: 88, isAvailable: true },
-      { playerId: 118, fullName: 'Taher Mohamed', primaryPosition: 'LW', overallRating: 80, isAvailable: true },
-      { playerId: 119, fullName: 'Mostafa Mohamed', primaryPosition: 'ST', overallRating: 87, isAvailable: true },
-      { playerId: 120, fullName: 'Mahmoud Kahraba', primaryPosition: 'ST', overallRating: 83, isAvailable: true }
-    ];
-  }
 
   togglePlayer(playerId: number) {
     if (this.registeredPlayerIds.has(playerId)) return;
@@ -361,10 +316,7 @@ export class SquadRegistrationComponent implements OnInit {
         this.cdr.markForCheck();
       },
       error: (err) => {
-        // Fallback for mock/local testing mode
-        playerIds.forEach(id => this.registeredPlayerIds.add(id));
-        this.selectedPlayerIds.clear();
-        this.successMessage = 'Squad registered successfully (Mock Mode).';
+        this.errorMessage = this.extractError(err, 'Could not register the squad.');
         this.isSubmitting = false;
         this.cdr.markForCheck();
       }

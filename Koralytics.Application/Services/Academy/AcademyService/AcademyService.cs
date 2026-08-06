@@ -117,6 +117,20 @@ namespace Koralytics.Application.Services.Academy.AcademyService
 
                 await _unitOfWork.SaveChangesAsync();
 
+                var isCoach = await _unitOfWork.Repository<Domain.Entities.Coach.Coach>().ExistsAsync(c => c.Id == academy.AdminUserId);
+                if (isCoach)
+                {
+                    var coachAcademy = new CoachAcademy
+                    {
+                        AcademyId = academy.Id,
+                        CoachUserId = academy.AdminUserId,
+                        JoinedAt = DateTime.UtcNow,
+                        CreatedById = performedByUserId
+                    };
+                    await _unitOfWork.Repository<CoachAcademy>().AddAsync(coachAcademy);
+                    await _unitOfWork.SaveChangesAsync();
+                }
+
                 await transaction.CommitAsync();
 
                 _logger.LogInformation(
@@ -777,10 +791,16 @@ namespace Koralytics.Application.Services.Academy.AcademyService
 
         public async Task<IEnumerable<CoachSearchResponseDto>> SearchCoachesAsync(string? name, int academyId)
         {
-            // Coach who is not in THIS academy, and doesn't have a pending request to THIS academy.
+            var adminIds = await _unitOfWork.Repository<Domain.Entities.Academy.AcademyAdmin>()
+                .GetQueryableAsNoTracking()
+                .Select(a => a.Id)
+                .ToListAsync();
+
+            // Coach who is not in ANY academy, doesn't have a pending request to THIS academy, and is NOT an Academy Admin (dual-role users are excluded).
             var query = _unitOfWork.Repository<Domain.Entities.Coach.Coach>()
                 .GetQueryableAsNoTracking()
-                .Where(c => !c.CoachAcademies.Any(ca => ca.AcademyId == academyId && ca.LeftAt == null));
+                .Where(c => !adminIds.Contains(c.Id))
+                .Where(c => !c.CoachAcademies.Any(ca => ca.LeftAt == null));
 
             if (!string.IsNullOrWhiteSpace(name))
             {
@@ -803,9 +823,15 @@ namespace Koralytics.Application.Services.Academy.AcademyService
 
         public async Task<IEnumerable<AdminSearchResponseDto>> SearchAvailableAdminsAsync(string? name, int academyId)
         {
-            // Admin who is not in ANY academy, and doesn't have a pending request to THIS academy.
+            var coachIds = await _unitOfWork.Repository<Domain.Entities.Coach.Coach>()
+                .GetQueryableAsNoTracking()
+                .Select(c => c.Id)
+                .ToListAsync();
+
+            // Admin who is not in ANY academy, doesn't have a pending request to THIS academy, and is NOT a Coach (dual-role users are excluded).
             var query = _unitOfWork.Repository<Domain.Entities.Academy.AcademyAdmin>()
                 .GetQueryableAsNoTracking()
+                .Where(a => !coachIds.Contains(a.Id))
                 .Where(a => a.AcademyId == null);
 
             if (!string.IsNullOrWhiteSpace(name))
@@ -878,10 +904,10 @@ namespace Koralytics.Application.Services.Academy.AcademyService
             var coach = await _unitOfWork.Repository<Domain.Entities.Coach.Coach>().FindAsync(c => c.Id == coachId);
             if (coach is null) throw new NotFoundException($"Coach {coachId} not found.");
 
-            // Check if coach is already in THIS academy
+            // Check if coach is already in ANY academy
             var alreadyInAcademy = await _unitOfWork.Repository<Domain.Entities.Coach.CoachAcademy>()
-                .ExistsAsync(ca => ca.AcademyId == academyId && ca.CoachUserId == coachId && ca.LeftAt == null);
-            if (alreadyInAcademy) throw new ConflictException("Coach is already registered to this academy.");
+                .ExistsAsync(ca => ca.CoachUserId == coachId && ca.LeftAt == null);
+            if (alreadyInAcademy) throw new ConflictException("Coach is already registered to an academy.");
 
             // Check if pending request exists
             var existingRequest = await _unitOfWork.Repository<AcademyCoachJoinRequest>()
@@ -979,6 +1005,9 @@ namespace Koralytics.Application.Services.Academy.AcademyService
         {
             _logger.LogInformation("Coach {CoachId} responding with {Status} to request {RequestId}", coachId, status, requestId);
 
+            var isAdmin = await _unitOfWork.Repository<Domain.Entities.Academy.AcademyAdmin>().ExistsAsync(a => a.Id == coachId);
+            if (isAdmin) throw new BadRequestException("Dual-role users (Coach & Academy Admin) can only manage their own academies and cannot join other academies.");
+
             var request = await _unitOfWork.Repository<AcademyCoachJoinRequest>().FindAsync(r => r.Id == requestId);
             if (request is null) throw new NotFoundException($"Join request {requestId} not found.");
 
@@ -994,8 +1023,23 @@ namespace Koralytics.Application.Services.Academy.AcademyService
 
             if (status == JoinRequestStatus.Accepted)
             {
+                var isAlreadyInAcademy = await _unitOfWork.Repository<Domain.Entities.Coach.CoachAcademy>()
+                    .ExistsAsync(ca => ca.CoachUserId == coachId && ca.LeftAt == null);
+                if (isAlreadyInAcademy) throw new BadRequestException("Coaches can only belong to one academy.");
+
                 // Register coach
                 await RegisterCoachToAcademyAsync(request.AcademyId, coachId, coachId);
+
+                // Cancel other pending requests since coach can only be in one academy
+                var otherPendingRequests = await _unitOfWork.Repository<AcademyCoachJoinRequest>()
+                    .FindAllAsync(r => r.CoachId == coachId && r.Status == JoinRequestStatus.Pending && r.Id != requestId);
+                
+                foreach (var otherReq in otherPendingRequests)
+                {
+                    otherReq.Status = JoinRequestStatus.Cancelled;
+                    otherReq.UpdatedById = coachId;
+                    otherReq.UpdatedAt = DateTime.UtcNow;
+                }
             }
             else
             {
@@ -1006,6 +1050,9 @@ namespace Koralytics.Application.Services.Academy.AcademyService
         public async Task RespondToAdminJoinRequestAsync(int requestId, JoinRequestStatus status, int adminId)
         {
             _logger.LogInformation("Admin {AdminId} responding with {Status} to request {RequestId}", adminId, status, requestId);
+
+            var isCoach = await _unitOfWork.Repository<Domain.Entities.Coach.Coach>().ExistsAsync(c => c.Id == adminId);
+            if (isCoach) throw new BadRequestException("Dual-role users (Coach & Academy Admin) can only manage their own academies and cannot join other academies.");
 
             var request = await _unitOfWork.Repository<AcademyAdminJoinRequest>().FindAsync(r => r.Id == requestId);
             if (request is null) throw new NotFoundException($"Join request {requestId} not found.");

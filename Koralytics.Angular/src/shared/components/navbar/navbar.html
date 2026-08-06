@@ -1,22 +1,40 @@
 <header [class.scrolled]="isScrolled">
-  <div class="logo-wrapper" routerLink="/" style="cursor: pointer;">
+  <div class="logo-wrapper" [routerLink]="isLoggedIn ? userDashboardRoute : '/auth/login'" style="cursor: pointer;">
     <img src="images/logo/primary/logo-primary-dark.png" alt="Koralytics Logo">
   </div>
 
-  <nav>
-    <a routerLink="/profile/me" routerLinkActive="active" *ngIf="isLoggedIn">my profile</a>
-    <a routerLink="/home" routerLinkActive="active">home</a>
-    <a routerLink="/about" routerLinkActive="active">about</a>
-    <a routerLink="/clubs" routerLinkActive="active">clubs</a>
-    <a routerLink="/contact" routerLinkActive="active">contact</a>
-    
+  <nav class="desktop-nav">
+    <a [routerLink]="isLoggedIn ? userDashboardRoute : '/auth/login'" routerLinkActive="active">Home</a>
+
+    <!-- Logged Out Navigation -->
+    <ng-container *ngIf="!isLoggedIn">
+      <a routerLink="/about" routerLinkActive="active">About</a>
+      <a routerLink="/features" routerLinkActive="active">Features</a>
+      <a routerLink="/pricing" routerLinkActive="active">Pricing</a>
+      <a routerLink="/faq" routerLinkActive="active">FAQ</a>
+      <a routerLink="/contact" routerLinkActive="active">Contact</a>
+    </ng-container>
+
+    <!-- Player Links (Desktop) -->
+    <ng-container *ngIf="isPlayer">
+      <a routerLink="/player/team-events" routerLinkActive="active">Upcoming Events</a>
+      <a routerLink="/player/scouter-views" routerLinkActive="active">Views</a>
+    </ng-container>
+
+    <!-- Highlights Link (Desktop) -->
+    <a routerLink="/player/highlights" routerLinkActive="active" *ngIf="isPlayer">Highlights</a>
+
     <!-- Coach Links (Desktop) -->
     <ng-container *ngIf="isCoach">
-      <a routerLink="/coach/squad" routerLinkActive="active">squad</a>
-      <a routerLink="/coach/training-split" routerLinkActive="active">training</a>
-      <a routerLink="/coach/notes" routerLinkActive="active">notes</a>
-      <a routerLink="/coach/highlights" routerLinkActive="active">highlights</a>
+      <a routerLink="/coach/squad" routerLinkActive="active">Squad</a>
+      <a routerLink="/coach/training-split" routerLinkActive="active">Training</a>
+      <a routerLink="/coach/notes" routerLinkActive="active">Notes</a>
     </ng-container>
+
+    <!-- Auth Actions (Desktop) -->
+    <a (click)="requestLogout()" style="cursor: pointer;" *ngIf="isLoggedIn">Sign Out</a>
+    <a routerLink="/auth/login" routerLinkActive="active" *ngIf="!isLoggedIn">Sign In</a>
+    <a routerLink="/auth/register" routerLinkActive="active" *ngIf="!isLoggedIn">Register</a>
 
     <!-- Academy Admin Links (Desktop) -->
     <ng-container *ngIf="isAcademyAdmin">
@@ -28,19 +46,19 @@
       <a routerLink="/drills" routerLinkActive="active">drills</a>
     </ng-container>
   </nav>
+
+  <button class="mobile-nav-toggle" (click)="toggleSidebar(!isSidebarOpen)" aria-label="Toggle navigation menu">
+    <span class="hamburger-line"></span>
+    <span class="hamburger-line"></span>
+    <span class="hamburger-line"></span>
+  </button>
 </header>
 
-<div 
-  class="floating-sidebar-trigger" 
-  [class.sidebar-open]="isSidebarOpen"
-  (click)="toggleSidebar(!isSidebarOpen)">
+<div class="floating-sidebar-trigger" [class.sidebar-open]="isSidebarOpen" (click)="toggleSidebar(!isSidebarOpen)">
   <img src="images/logo/app-icon/logo-icon-dark.png" alt="Trigger Icon" class="trigger-icon">
 </div>
 
-<div 
-  class="sidebar-backdrop" 
-  [class.active]="isSidebarOpen" 
-  (click)="toggleSidebar(false)">
+<div class="sidebar-backdrop" [class.active]="isSidebarOpen" (click)="toggleSidebar(false)">
 </div>
 
 <aside class="sidebar-container" [class.open]="isSidebarOpen">
@@ -51,43 +69,77 @@
 
   <div class="sidebar-content">
     <nav class="sidebar-nav">
-      <a routerLink="/dashboard" routerLinkActive="active" (click)="toggleSidebar(false)" *ngIf="isLoggedIn">dashboard</a>
-      <a routerLink="/profile/me" routerLinkActive="active" (click)="toggleSidebar(false)" *ngIf="isLoggedIn">my profile</a>
+      <a [routerLink]="isLoggedIn ? userDashboardRoute : '/auth/login'" routerLinkActive="active"
+        (click)="toggleSidebar(false)">Home</a>
+
+      <!-- Public Section (Logged Out Sidebar) -->
+      <div class="sidebar-section" *ngIf="!isLoggedIn">
+        <span class="section-label">Explore</span>
+        <a routerLink="/about" routerLinkActive="active" (click)="toggleSidebar(false)">About Us</a>
+        <a routerLink="/features" routerLinkActive="active" (click)="toggleSidebar(false)">Features & Solutions</a>
+        <a routerLink="/pricing" routerLinkActive="active" (click)="toggleSidebar(false)">Pricing & Plans</a>
+        <a routerLink="/faq" routerLinkActive="active" (click)="toggleSidebar(false)">FAQ</a>
+        <a routerLink="/contact" routerLinkActive="active" (click)="toggleSidebar(false)">Contact & Support</a>
+        <a routerLink="/privacy-terms" routerLinkActive="active" (click)="toggleSidebar(false)">Privacy & Terms</a>
+      </div>
+
+      <!-- Player Section -->
+      <div class="sidebar-section" *ngIf="isPlayer">
+        <span class="section-label">Player Hub</span>
+        <a routerLink="/player/team-events" routerLinkActive="active" (click)="toggleSidebar(false)">Upcoming Events</a>
+        <a routerLink="/player/scouter-views" routerLinkActive="active" (click)="toggleSidebar(false)">Scouter Views</a>
+        <a routerLink="/player/academy-comparison" routerLinkActive="active" (click)="toggleSidebar(false)">Academy
+          Comparison</a>
+      </div>
 
       <!-- Coach Section -->
       <div class="sidebar-section" *ngIf="isCoach">
         <span class="section-label">Coach</span>
-        <a routerLink="/coach/squad" routerLinkActive="active" (click)="toggleSidebar(false)">squad overview</a>
-        <a routerLink="/coach/training-split" routerLinkActive="active" (click)="toggleSidebar(false)">training split</a>
-        <a routerLink="/coach/notes" routerLinkActive="active" (click)="toggleSidebar(false)">player notes</a>
-        <a routerLink="/coach/access" routerLinkActive="active" (click)="toggleSidebar(false)">temp access</a>
-        <a routerLink="/coach/readiness" routerLinkActive="active" (click)="toggleSidebar(false)">player readiness</a>
-        <a routerLink="/coach/match-requests" routerLinkActive="active" (click)="toggleSidebar(false)">match requests</a>
+        <a routerLink="/coach/squad" routerLinkActive="active" (click)="toggleSidebar(false)">Squad Overview</a>
+        <a routerLink="/coach/training-split" routerLinkActive="active" (click)="toggleSidebar(false)">Training
+          Split</a>
+        <a routerLink="/coach/notes" routerLinkActive="active" (click)="toggleSidebar(false)">Player Notes</a>
+        <a routerLink="/coach/access" routerLinkActive="active" (click)="toggleSidebar(false)">Temp Access</a>
+        <a routerLink="/coach/readiness" routerLinkActive="active" (click)="toggleSidebar(false)">Player Readiness</a>
+        <a routerLink="/coach/match-requests" routerLinkActive="active" (click)="toggleSidebar(false)">Match
+          Requests</a>
       </div>
 
-      <!-- Player/Coach Highlights -->
-      <div class="sidebar-section" *ngIf="isCoach || isPlayer">
+      <!-- Player Highlights -->
+      <div class="sidebar-section" *ngIf="isPlayer">
         <span class="section-label">Media</span>
-        <a routerLink="/coach/highlights" routerLinkActive="active" (click)="toggleSidebar(false)">highlights</a>
+        <a routerLink="/player/highlights" routerLinkActive="active" (click)="toggleSidebar(false)">Highlights</a>
       </div>
 
-      <!-- General Links -->
-      <a routerLink="/home" routerLinkActive="active" (click)="toggleSidebar(false)">home</a>
-      <a routerLink="/about" routerLinkActive="active" (click)="toggleSidebar(false)">about</a>
-      <a routerLink="/clubs" routerLinkActive="active" (click)="toggleSidebar(false)">clubs</a>
-      <a routerLink="/contact" routerLinkActive="active" (click)="toggleSidebar(false)">contact</a>
-      
-      <!-- Coach Links (Sidebar) -->
+      <!-- Coach Links (Sidebar Hub) -->
       <ng-container *ngIf="isCoach">
-        <div class="sidebar-section-title" style="color: var(--accent-lime, #c8ff4d); margin-top: 16px; padding-left: 12px; font-family: 'Bebas Neue'; letter-spacing: 1px;">COACH HUB</div>
-        <a routerLink="/coach/squad" routerLinkActive="active" (click)="toggleSidebar(false)">squad overview</a>
-        <a routerLink="/coach/training-split" routerLinkActive="active" (click)="toggleSidebar(false)">training split</a>
-        <a routerLink="/coach/notes" routerLinkActive="active" (click)="toggleSidebar(false)">player notes</a>
-        <a routerLink="/coach/readiness" routerLinkActive="active" (click)="toggleSidebar(false)">player readiness</a>
-        <a routerLink="/coach/highlights" routerLinkActive="active" (click)="toggleSidebar(false)">highlights</a>
-        <a routerLink="/coach/match-requests" routerLinkActive="active" (click)="toggleSidebar(false)">match requests</a>
-        <a routerLink="/coach/access" routerLinkActive="active" (click)="toggleSidebar(false)">temp access</a>
+        <div class="sidebar-section-title"
+          style="color: var(--accent-lime, #c8ff4d); margin-top: 16px; padding-left: 12px; font-family: 'Bebas Neue'; letter-spacing: 1px;">
+          COACH HUB</div>
+        <a routerLink="/coach/squad" routerLinkActive="active" (click)="toggleSidebar(false)">Squad Overview</a>
+        <a routerLink="/coach/training-split" routerLinkActive="active" (click)="toggleSidebar(false)">Training
+          Split</a>
+        <a routerLink="/coach/notes" routerLinkActive="active" (click)="toggleSidebar(false)">Player Notes</a>
+        <a routerLink="/coach/readiness" routerLinkActive="active" (click)="toggleSidebar(false)">Player Readiness</a>
+        <a routerLink="/coach/match-requests" routerLinkActive="active" (click)="toggleSidebar(false)">Match
+          Requests</a>
+        <a routerLink="/coach/access" routerLinkActive="active" (click)="toggleSidebar(false)">Temp Access</a>
       </ng-container>
+
+      <!-- Settings & Auth Section (Sidebar) -->
+      <div class="sidebar-section" style="margin-top: 12px;">
+        <span class="section-label" *ngIf="isLoggedIn">Settings</span>
+        <a routerLink="/profile/me" routerLinkActive="active" (click)="toggleSidebar(false)" *ngIf="isLoggedIn">Edit
+          Profile</a>
+        <a routerLink="/settings/change-password" routerLinkActive="active" (click)="toggleSidebar(false)"
+          *ngIf="isLoggedIn">Change Password</a>
+        <a (click)="requestLogout()" style="cursor: pointer;" (click)="toggleSidebar(false)" *ngIf="isLoggedIn">Sign
+          Out</a>
+        <a routerLink="/auth/login" routerLinkActive="active" (click)="toggleSidebar(false)" *ngIf="!isLoggedIn">Sign
+          In</a>
+        <a routerLink="/auth/register" routerLinkActive="active" (click)="toggleSidebar(false)"
+          *ngIf="!isLoggedIn">Register</a>
+      </div>
 
       <!-- Academy Admin Links (Sidebar) -->
       <ng-container *ngIf="isAcademyAdmin">
@@ -105,3 +157,8 @@
     </nav>
   </div>
 </aside>
+
+<!-- Sign Out Confirmation Dialog -->
+<app-confirm-dialog [isOpen]="showSignOutConfirm" title="Sign Out" message="Are you sure you want to sign out?"
+  level="warning" confirmText="Sign Out" cancelText="Cancel" (confirm)="logout()" (cancel)="cancelLogout()">
+</app-confirm-dialog>

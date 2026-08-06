@@ -1,14 +1,18 @@
-import { Component, OnInit, inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { TournamentService } from '../../../../../core/services/tournament/tournament.service';
 import { AcademyService } from '../../../../../core/services/academy/academy.service';
-import { Tournament, TournamentStatus, MatchFormat, TournamentStructure } from '../../../../../core/interfaces/tournament.models';
+import { CoachSquadService } from '../../../../../core/services/coach/coach-squad.service';
+import { SignalRService } from '../../../../../core/services/SignalR/signalrservice';
+import { Tournament, TournamentStatus, MatchFormat, TournamentStructure, GoalEventDto, UpdateFixtureStatsDto } from '../../../../../core/interfaces/tournament.models';
 import { CustomButtonComponent } from '../../../../../shared/components/custom-button/custom-button';
 import { StatusChipComponent } from '../../../../../shared/components/status-chip/status-chip';
 import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
-import { forkJoin, of } from 'rxjs';
+import { forkJoin, of, Subscription } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+
+import { FormsModule } from '@angular/forms';
 import { NotificationService } from '@core/services/SignalR/notificationservice';
 
 @Component({
@@ -16,22 +20,29 @@ import { NotificationService } from '@core/services/SignalR/notificationservice'
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     RouterModule,
     CustomButtonComponent,
     StatusChipComponent,
     ScrollRevealDirective
   ],
   templateUrl: './tournament-details.component.html',
-  styleUrls: ['./tournament-details.component.css'],
+  styleUrls: [
+    './tournament-details.component.css',
+    './report-design.css'
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TournamentDetailsComponent implements OnInit {
+export class TournamentDetailsComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private location = inject(Location);
   private tournamentService = inject(TournamentService);
   private academyService = inject(AcademyService);
+  private coachSquadService = inject(CoachSquadService);
+  private signalRService = inject(SignalRService);
   private cdr = inject(ChangeDetectorRef);
+  private announcementSub?: Subscription;
   private notificationService = inject(NotificationService);
 
   tournamentId!: number;
@@ -45,8 +56,14 @@ export class TournamentDetailsComponent implements OnInit {
   teams: any[] = [];       // From GET /tournament/{id}/teams
   availableAcademies: any[] = [];
   hallOfFame: any[] = [];
+  report: any | null = null;
+  parsedReport: { meta: string[]; sections: { title: string; content: string[] }[] } | null = null;
+  isReportLoading = false;
   isUpdatingStatus = false;
   hoveredTeamName: string | null = null;
+  selectedReportTab = 'summary';
+  isSimulating = false;
+  isRegenerating = false;
 
   // Computed flat fixture list from groups (for the Fixtures tab)
   allFixtures: any[] = [];
@@ -88,6 +105,7 @@ export class TournamentDetailsComponent implements OnInit {
       if (id) {
         this.tournamentId = +id;
         this.loadTournamentData();
+        this.listenForReportReady();
       } else {
         this.error = 'Tournament ID is missing.';
         this.isLoading = false;
@@ -95,6 +113,40 @@ export class TournamentDetailsComponent implements OnInit {
     });
   }
 
+  ngOnDestroy() {
+    this.announcementSub?.unsubscribe();
+  }
+
+  /** Subscribe to SignalR announcements and auto-refresh the report when ready. */
+  private listenForReportReady() {
+    this.announcementSub = this.signalRService.announcement$.subscribe(notification => {
+      const payload = notification?.payload as any;
+      if (
+        notification?.type === 'TournamentReportReady' &&
+        payload?.TournamentId === this.tournamentId
+      ) {
+        this.refreshReport();
+      }
+    });
+  }
+
+  /** Reload only the report from the API (lightweight — avoids full bracket/teams reload). */
+  private refreshReport() {
+    this.tournamentService.getTournamentReport(this.tournamentId).pipe(
+      catchError(() => of(null))
+    ).subscribe(response => {
+      const reportData = response?.data || response;
+      if (reportData) {
+        this.report = reportData;
+        if (this.report && this.report.reportText) {
+          this.parsedReport = this.parseReportText(this.report.reportText);
+        } else {
+          this.parsedReport = null;
+        }
+        this.cdr.markForCheck();
+      }
+    });
+  }
   loadTournamentData() {
     this.isLoading = true;
     this.error = null;
@@ -113,6 +165,9 @@ export class TournamentDetailsComponent implements OnInit {
         catchError(() => of(null))
       ),
       academies: this.academyService.getAcademies().pipe(
+        catchError(() => of(null))
+      ),
+      report: this.tournamentService.getTournamentReport(this.tournamentId).pipe(
         catchError(() => of(null))
       )
     }).subscribe({
@@ -152,145 +207,36 @@ export class TournamentDetailsComponent implements OnInit {
         const hallOfFameData = responses.hallOfFame?.data || responses.hallOfFame;
         this.hallOfFame = Array.isArray(hallOfFameData) ? hallOfFameData : [];
 
+        const reportData = responses.report?.data || responses.report;
+        this.report = reportData || null;
+        if (this.report && this.report.reportText) {
+          this.parsedReport = this.parseReportText(this.report.reportText);
+        } else {
+          this.parsedReport = null;
+        }
+
         // Academies data
         const academyPayload = responses.academies?.data || responses.academies;
         const academiesArray = academyPayload?.academies || academyPayload;
         this.availableAcademies = Array.isArray(academiesArray) ? academiesArray : [];
         this.availableAcademies.forEach(a => a.inviteStatus = 'Idle');
 
+        if (!this.report && this.tournament?.status === TournamentStatus.Completed) {
+          this.report = { reportText: '', isPending: true };
+        }
+
         // Default tab based on structure
         if (this.tournament?.structure === TournamentStructure.Knockout && this.rounds.length > 0) {
           this.activeTab = 'bracket';
         }
 
-        // Fallbacks for mock/local testing mode if API returns empty/null
-        if (!this.tournament) {
-          this.tournament = {
-            id: this.tournamentId || 1,
-            name: 'Summer Champions Cup 2026',
-            format: MatchFormat.ElevenSide,
-            structure: TournamentStructure.GroupAndKnockout,
-            ageGroupName: 'U-17',
-            hasTwoLegs: false,
-            startDate: '2026-08-01',
-            endDate: '2026-08-15',
-            status: TournamentStatus.InProgress
-          };
-        }
-
-        if (this.groups.length === 0 && this.rounds.length === 0) {
-          this.groups = [
-            {
-              id: 1,
-              name: 'Group A',
-              groupName: 'Group A',
-              standings: [
-                { teamName: 'Cairo Youth FC', seedNumber: 1, played: 3, won: 3, drawn: 0, lost: 0, goalsFor: 7, goalsAgainst: 1, goalDifference: 6, points: 9 },
-                { teamName: 'Zamalek Stars', seedNumber: 3, played: 3, won: 2, drawn: 0, lost: 1, goalsFor: 4, goalsAgainst: 2, goalDifference: 2, points: 6 },
-                { teamName: 'Pyramids Academy', seedNumber: 2, played: 3, won: 1, drawn: 0, lost: 2, goalsFor: 3, goalsAgainst: 4, goalDifference: -1, points: 3 },
-                { teamName: 'Al Ahly Youth', seedNumber: 4, played: 3, won: 0, drawn: 0, lost: 3, goalsFor: 1, goalsAgainst: 8, goalDifference: -7, points: 0 }
-              ]
-            }
-          ];
-
-          this.rounds = [
-            {
-              id: 1,
-              name: 'Semi-Finals',
-              roundNumber: 1,
-              fixtures: [
-                { id: 101, homeTeamName: 'Cairo Youth FC', awayTeamName: 'Pyramids Academy', homeScore: 3, awayScore: 1, status: 'Completed', date: '2026-08-10' },
-                { id: 102, homeTeamName: 'Zamalek Stars', awayTeamName: 'Al Ahly Youth', homeScore: 2, awayScore: 0, status: 'Completed', date: '2026-08-10' }
-              ]
-            },
-            {
-              id: 2,
-              name: 'Final',
-              roundNumber: 2,
-              fixtures: [
-                { id: 103, homeTeamName: 'Cairo Youth FC', awayTeamName: 'Zamalek Stars', homeScore: null, awayScore: null, status: 'Scheduled', date: '2026-08-15' }
-              ]
-            }
-          ];
-
-          this.allFixtures = [
-            { id: 101, groupName: 'Semi-Finals', homeTeamName: 'Cairo Youth FC', awayTeamName: 'Pyramids Academy', homeScore: 3, awayScore: 1, status: 'Completed', date: '2026-08-10 18:00' },
-            { id: 102, groupName: 'Semi-Finals', homeTeamName: 'Zamalek Stars', awayTeamName: 'Al Ahly Youth', homeScore: 2, awayScore: 0, status: 'Completed', date: '2026-08-10 20:30' },
-            { id: 103, groupName: 'Final', homeTeamName: 'Cairo Youth FC', awayTeamName: 'Zamalek Stars', homeScore: null, awayScore: null, status: 'Scheduled', date: '2026-08-15 20:00' }
-          ];
-
-          this.teams = [
-            { teamId: 1, teamName: 'Cairo Youth FC', seedNumber: 1 },
-            { teamId: 2, teamName: 'Pyramids Academy', seedNumber: 2 },
-            { teamId: 3, teamName: 'Zamalek Stars', seedNumber: 3 },
-            { teamId: 4, teamName: 'Al Ahly Youth', seedNumber: 4 }
-          ];
-        }
-
         this.isLoading = false;
         this.cdr.markForCheck();
       },
-      error: () => {
-        this.tournament = {
-          id: this.tournamentId || 1,
-          name: 'Summer Champions Cup 2026',
-          format: MatchFormat.ElevenSide,
-          structure: TournamentStructure.GroupAndKnockout,
-          ageGroupName: 'U-17',
-          hasTwoLegs: false,
-          startDate: '2026-08-01',
-          endDate: '2026-08-15',
-          status: TournamentStatus.InProgress
-        };
-
-        this.groups = [
-          {
-            id: 1,
-            name: 'Group A',
-            groupName: 'Group A',
-            standings: [
-              { teamName: 'Cairo Youth FC', seedNumber: 1, played: 3, won: 3, drawn: 0, lost: 0, goalsFor: 7, goalsAgainst: 1, goalDifference: 6, points: 9 },
-              { teamName: 'Zamalek Stars', seedNumber: 3, played: 3, won: 2, drawn: 0, lost: 1, goalsFor: 4, goalsAgainst: 2, goalDifference: 2, points: 6 },
-              { teamName: 'Pyramids Academy', seedNumber: 2, played: 3, won: 1, drawn: 0, lost: 2, goalsFor: 3, goalsAgainst: 4, goalDifference: -1, points: 3 },
-              { teamName: 'Al Ahly Youth', seedNumber: 4, played: 3, won: 0, drawn: 0, lost: 3, goalsFor: 1, goalsAgainst: 8, goalDifference: -7, points: 0 }
-            ]
-          }
-        ];
-
-        this.rounds = [
-          {
-            id: 1,
-            name: 'Semi-Finals',
-            roundNumber: 1,
-            fixtures: [
-              { id: 101, homeTeamName: 'Cairo Youth FC', awayTeamName: 'Pyramids Academy', homeScore: 3, awayScore: 1, status: 'Completed', date: '2026-08-10' },
-              { id: 102, homeTeamName: 'Zamalek Stars', awayTeamName: 'Al Ahly Youth', homeScore: 2, awayScore: 0, status: 'Completed', date: '2026-08-10' }
-            ]
-          },
-          {
-            id: 2,
-            name: 'Final',
-            roundNumber: 2,
-            fixtures: [
-              { id: 103, homeTeamName: 'Cairo Youth FC', awayTeamName: 'Zamalek Stars', homeScore: null, awayScore: null, status: 'Scheduled', date: '2026-08-15' }
-            ]
-          }
-        ];
-
-        this.allFixtures = [
-          { id: 101, groupName: 'Semi-Finals', homeTeamName: 'Cairo Youth FC', awayTeamName: 'Pyramids Academy', homeScore: 3, awayScore: 1, status: 'Completed', date: '2026-08-10 18:00' },
-          { id: 102, groupName: 'Semi-Finals', homeTeamName: 'Zamalek Stars', awayTeamName: 'Al Ahly Youth', homeScore: 2, awayScore: 0, status: 'Completed', date: '2026-08-10 20:30' },
-          { id: 103, groupName: 'Final', homeTeamName: 'Cairo Youth FC', awayTeamName: 'Zamalek Stars', homeScore: null, awayScore: null, status: 'Scheduled', date: '2026-08-15 20:00' }
-        ];
-
-        this.teams = [
-          { teamId: 1, teamName: 'Cairo Youth FC', seedNumber: 1 },
-          { teamId: 2, teamName: 'Pyramids Academy', seedNumber: 2 },
-          { teamId: 3, teamName: 'Zamalek Stars', seedNumber: 3 },
-          { teamId: 4, teamName: 'Al Ahly Youth', seedNumber: 4 }
-        ];
-
+      error: (err) => {
         this.isLoading = false;
+        this.error = 'Unable to load tournament details. Please refresh or try again later.';
+        console.error('Tournament load failed', err);
         this.cdr.markForCheck();
       }
     });
@@ -298,6 +244,115 @@ export class TournamentDetailsComponent implements OnInit {
 
   setTab(tabId: any) {
     this.activeTab = tabId;
+  }
+
+  runSimulation() {
+    if (this.isSimulating) return;
+    this.isSimulating = true;
+    this.cdr.markForCheck();
+    this.tournamentService.simulateTournament(this.tournamentId).subscribe({
+      next: () => {
+        this.isSimulating = false;
+        this.loadTournamentData();
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        console.error('Simulation failed', err);
+        this.isSimulating = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  setReportTab(tabId: string) {
+    this.selectedReportTab = tabId;
+    this.cdr.markForCheck();
+  }
+
+  parseReportText(text: string): { meta: string[]; sections: { title: string; content: string[] }[] } {
+    if (!text) return { meta: [], sections: [] };
+
+    const rawLines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    const sections: { title: string; content: string[] }[] = [];
+    let currentSection: { title: string; content: string[] } | null = null;
+    const meta: string[] = [];
+
+    const isHeaderPattern = (line: string): boolean => {
+      if (line.startsWith('#')) return true;
+      if (/^[⭐️💡📌🎯📊⚽🏆🛡️❄️]\s*/.test(line)) return true;
+      if (/^[\d+[\.\-\)]\s*[\u0600-\u06FF\w]/.test(line)) return true;
+      if (line.endsWith(':') && line.length < 80) return true;
+      if (line.startsWith(':') && line.length < 80) return true;
+      return false;
+    };
+
+    for (const line of rawLines) {
+      if (isHeaderPattern(line)) {
+        if (currentSection) {
+          sections.push(currentSection);
+        }
+        let cleanTitle = line
+          .replace(/^#+\s*/, '')
+          .replace(/^:\s*/, '')
+          .replace(/:\s*$/, '')
+          .trim();
+        currentSection = { title: cleanTitle, content: [] };
+      } else {
+        if (currentSection) {
+          currentSection.content.push(line);
+        } else {
+          meta.push(line);
+        }
+      }
+    }
+
+    if (currentSection) {
+      sections.push(currentSection);
+    }
+
+    if (sections.length === 0 && rawLines.length > 0) {
+      sections.push({
+        title: 'التقرير التحليلي الفني والملخص الشامل',
+        content: rawLines
+      });
+    }
+
+    return { meta, sections };
+  }
+
+  isBulletLine(text: string): boolean {
+    if (!text) return false;
+    const trimmed = text.trim();
+    return (
+      trimmed.startsWith('-') ||
+      trimmed.startsWith('*') ||
+      trimmed.startsWith('•') ||
+      trimmed.startsWith('›') ||
+      /^\d+[\.\)]/.test(trimmed) ||
+      trimmed.includes('🔑') ||
+      trimmed.includes('📌') ||
+      trimmed.includes('⚽') ||
+      trimmed.includes(':')
+    );
+  }
+
+  regenerateReport() {
+    if (this.isRegenerating) return;
+    this.isRegenerating = true;
+    this.cdr.markForCheck();
+
+    this.tournamentService.regenerateTournamentReport(this.tournamentId).subscribe({
+      next: () => {
+        this.isRegenerating = false;
+        this.loadTournamentData();
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        console.error('Failed to regenerate report', err);
+        this.isRegenerating = false;
+        this.cdr.markForCheck();
+      }
+    });
   }
 
   inviteAcademy(academy: any) {
@@ -310,9 +365,9 @@ export class TournamentDetailsComponent implements OnInit {
       next: () => {
         academy.inviteStatus = 'Invited';
         //notification
-       const tournamentName = this.tournament?.name || `Tournament #${this.tournamentId}`;
+        const tournamentName = this.tournament?.name || `Tournament #${this.tournamentId}`;
         const message = `Your academy has been invited to participate in ${tournamentName}.`;
-        
+
         this.notificationService.notifyAcademy(academy.id, message).subscribe({
           error: (e) => console.error('Failed to notify academy', e)
         });
@@ -453,5 +508,272 @@ export class TournamentDetailsComponent implements OnInit {
 
   printSchedule() {
     window.print();
+  }
+
+  // Fixture score editing
+  editingFixtureId: number | null = null;
+  editHomeScore: number = 0;
+  editAwayScore: number = 0;
+  isSavingScore: boolean = false;
+
+  startEditingFixture(fixture: any, event?: Event) {
+    if (event) event.stopPropagation();
+    this.editingFixtureId = fixture.fixtureId;
+    this.editHomeScore = fixture.homeScore ?? 0;
+    this.editAwayScore = fixture.awayScore ?? 0;
+    this.cdr.markForCheck();
+  }
+
+  cancelEditingFixture() {
+    this.editingFixtureId = null;
+    this.cdr.markForCheck();
+  }
+
+  saveFixtureResult(fixtureId: number) {
+    if (this.editHomeScore < 0 || this.editAwayScore < 0) return;
+    this.isSavingScore = true;
+    this.cdr.markForCheck();
+
+    this.tournamentService.updateFixtureResult(fixtureId, this.editHomeScore, this.editAwayScore).subscribe({
+      next: () => {
+        this.isSavingScore = false;
+        this.editingFixtureId = null;
+        this.loadTournamentData();
+      },
+      error: (err) => {
+        this.isSavingScore = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  // Knockout generation
+  isGeneratingKnockout = false;
+  knockoutGenerateError: string | null = null;
+  knockoutGenerateSuccess: string | null = null;
+
+  generateKnockout() {
+    this.isGeneratingKnockout = true;
+    this.knockoutGenerateError = null;
+    this.knockoutGenerateSuccess = null;
+    this.cdr.markForCheck();
+
+    this.tournamentService.generateKnockoutFromGroups(this.tournamentId).subscribe({
+      next: () => {
+        this.isGeneratingKnockout = false;
+        this.knockoutGenerateSuccess = '🏆 Knockout stage generated! Check the Knockout Stage tab.';
+        this.loadTournamentData();
+      },
+      error: (err) => {
+        this.isGeneratingKnockout = false;
+        this.knockoutGenerateError = err?.error?.message || 'Failed to generate knockout stage.';
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  // Stats Editing
+  editingStatsFixture: any = null;
+  homePlayers: any[] = [];
+  awayPlayers: any[] = [];
+  allPlayers: any[] = [];
+  isLoadingPlayers = false;
+  statsError: string | null = null;
+
+  statsForm: UpdateFixtureStatsDto = {
+    goals: [],
+    motmPlayerId: undefined
+  };
+
+  isSavingStats = false;
+  statsSaved = false;
+
+  getPlayerName(p: any): string {
+    return p.fullName || p.FullName || p.playerName || p.name || `Player #${p.playerId || p.id}`;
+  }
+
+  get maxHomeGoals(): number {
+    return this.editingStatsFixture?.homeScore ?? 0;
+  }
+
+  get maxAwayGoals(): number {
+    return this.editingStatsFixture?.awayScore ?? 0;
+  }
+
+  get currentHomeGoalsCount(): number {
+    return (this.statsForm.goals || []).filter(g => g.isHomeSide).length;
+  }
+
+  get currentAwayGoalsCount(): number {
+    return (this.statsForm.goals || []).filter(g => !g.isHomeSide).length;
+  }
+
+  get canAddGoal(): boolean {
+    return (
+      this.currentHomeGoalsCount < this.maxHomeGoals ||
+      this.currentAwayGoalsCount < this.maxAwayGoals
+    );
+  }
+
+  openStatsModal(fixture: any, event?: Event) {
+    if (event) event.stopPropagation();
+    this.editingStatsFixture = fixture;
+    this.statsForm = { goals: [], motmPlayerId: undefined };
+    this.homePlayers = [];
+    this.awayPlayers = [];
+    this.allPlayers = [];
+    this.isLoadingPlayers = true;
+    this.statsError = null;
+    this.statsSaved = false;
+    this.cdr.markForCheck();
+
+    // Map TournamentTeamId to real TeamId using this.teams if needed
+    const homeTeamEntry = this.teams.find((t: any) => t.tournamentTeamId === fixture.homeTeamId || t.teamId === fixture.homeTeamId);
+    const homeRealTeamId = fixture.homeRealTeamId || homeTeamEntry?.teamId || fixture.homeTeamId;
+
+    const awayTeamEntry = this.teams.find((t: any) => t.tournamentTeamId === fixture.awayTeamId || t.teamId === fixture.awayTeamId);
+    const awayRealTeamId = fixture.awayRealTeamId || awayTeamEntry?.teamId || fixture.awayTeamId;
+
+    let homeLoaded = false;
+    let awayLoaded = false;
+
+    const checkDone = () => {
+      if (homeLoaded && awayLoaded) {
+        this.isLoadingPlayers = false;
+        this.updateAllPlayers();
+        this.cdr.markForCheck();
+      }
+    };
+
+    // Helper to attempt loading home squad with fallback
+    const loadHome = (id: number, fallbackId?: number) => {
+      this.coachSquadService.getSquad(id).subscribe({
+        next: (res: any) => {
+          const payload = res?.data ?? res;
+          const players = payload?.players || (Array.isArray(payload) ? payload : []);
+          if (players && players.length > 0) {
+            this.homePlayers = players;
+            homeLoaded = true;
+            checkDone();
+          } else if (fallbackId && fallbackId !== id) {
+            loadHome(fallbackId);
+          } else {
+            homeLoaded = true;
+            checkDone();
+          }
+        },
+        error: () => {
+          if (fallbackId && fallbackId !== id) {
+            loadHome(fallbackId);
+          } else {
+            homeLoaded = true;
+            checkDone();
+          }
+        }
+      });
+    };
+
+    // Helper to attempt loading away squad with fallback
+    const loadAway = (id: number, fallbackId?: number) => {
+      this.coachSquadService.getSquad(id).subscribe({
+        next: (res: any) => {
+          const payload = res?.data ?? res;
+          const players = payload?.players || (Array.isArray(payload) ? payload : []);
+          if (players && players.length > 0) {
+            this.awayPlayers = players;
+            awayLoaded = true;
+            checkDone();
+          } else if (fallbackId && fallbackId !== id) {
+            loadAway(fallbackId);
+          } else {
+            awayLoaded = true;
+            checkDone();
+          }
+        },
+        error: () => {
+          if (fallbackId && fallbackId !== id) {
+            loadAway(fallbackId);
+          } else {
+            awayLoaded = true;
+            checkDone();
+          }
+        }
+      });
+    };
+
+    loadHome(homeRealTeamId, fixture.homeTeamId);
+    loadAway(awayRealTeamId, fixture.awayTeamId);
+  }
+
+  private updateAllPlayers() {
+    this.allPlayers = [...this.homePlayers, ...this.awayPlayers];
+  }
+
+  closeStatsModal() {
+    this.editingStatsFixture = null;
+  }
+
+  addGoal() {
+    if (!this.canAddGoal) {
+      this.statsError = `Cannot add more goals. Score limit reached (${this.editingStatsFixture?.homeTeamName}: ${this.maxHomeGoals}, ${this.editingStatsFixture?.awayTeamName}: ${this.maxAwayGoals}).`;
+      return;
+    }
+    this.statsError = null;
+
+    const isHome = this.currentHomeGoalsCount < this.maxHomeGoals;
+    const defaultPlayer = isHome
+      ? (this.homePlayers[0] || this.allPlayers[0])
+      : (this.awayPlayers[0] || this.allPlayers[0]);
+
+    this.statsForm.goals.push({
+      playerId: defaultPlayer ? (defaultPlayer.playerId ?? defaultPlayer.id) : 0,
+      minute: 1,
+      isHomeSide: isHome
+    });
+  }
+
+  removeGoal(index: number) {
+    this.statsForm.goals.splice(index, 1);
+    this.statsError = null;
+  }
+
+  onGoalPlayerChange(goal: GoalEventDto) {
+    const id = goal.playerId;
+    goal.isHomeSide = this.homePlayers.some(p => (p.playerId ?? p.id) === id);
+    this.statsError = null;
+  }
+
+  saveStats() {
+    if (!this.editingStatsFixture) return;
+
+    // Check goal score limit before saving
+    if (this.currentHomeGoalsCount > this.maxHomeGoals) {
+      this.statsError = `Home team has ${this.currentHomeGoalsCount} goals assigned, but match score was ${this.maxHomeGoals}.`;
+      return;
+    }
+    if (this.currentAwayGoalsCount > this.maxAwayGoals) {
+      this.statsError = `Away team has ${this.currentAwayGoalsCount} goals assigned, but match score was ${this.maxAwayGoals}.`;
+      return;
+    }
+
+    this.isSavingStats = true;
+    this.statsError = null;
+    this.cdr.markForCheck();
+    this.tournamentService.updateFixtureStats(this.editingStatsFixture.fixtureId, this.statsForm).subscribe({
+      next: () => {
+        this.isSavingStats = false;
+        this.statsSaved = true;
+        this.cdr.markForCheck();
+        setTimeout(() => {
+          this.closeStatsModal();
+          this.loadTournamentData();
+        }, 1200);
+      },
+      error: (err: any) => {
+        this.isSavingStats = false;
+        this.statsError = err?.error?.message || err?.message || 'Failed to save stats. Please try again.';
+        this.cdr.markForCheck();
+      }
+    });
   }
 }

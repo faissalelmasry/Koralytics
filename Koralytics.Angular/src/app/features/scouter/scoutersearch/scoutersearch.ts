@@ -14,6 +14,7 @@ import { EmptyStateComponent } from '../../../../shared/components/empty-state/e
 import { CustomButtonComponent } from '../../../../shared/components/custom-button/custom-button';
 import { Pagination } from '../../../../shared/components/pagination/pagination';
 import { TokenStorageService } from '../../../../core/services/auth/token-storage.service';
+import { AcademyService } from '../../../../core/services/academy/academy.service';
 import { NavbarComponent } from '../../../../shared/components/navbar/navbar';
 import { Footer } from '../../../../shared/components/footer/footer';
 import { ScrollRevealDirective } from '../../../../shared/directives/scroll-reveal.directive';
@@ -48,6 +49,13 @@ const POSITION_LINE_COLOR: Record<string, string> = {
   CDM: '#b58cff', CM: '#b58cff', CAM: '#b58cff', LM: '#b58cff', RM: '#b58cff',
   LW: '#ff7a5c', RW: '#ff7a5c', ST: '#ff7a5c',
 };
+
+export interface ChatMessage {
+  id: string;
+  sender: 'user' | 'assistant';
+  text: string;
+  timestamp: Date;
+}
 
 interface FilterTag {
   label: string;
@@ -99,6 +107,7 @@ export class ScouterSearchComponent implements OnInit {
   private readonly router = inject(Router);
   private scouterService = inject(ScouterService);
   private tokenStorage = inject(TokenStorageService);
+  private academyService = inject(AcademyService);
   private toastService = inject(ToastService);
   private destroyRef = inject(DestroyRef);
 
@@ -115,7 +124,20 @@ export class ScouterSearchComponent implements OnInit {
 
   public filters: FilterState = emptyFilters();
 
+  public academySearchQuery = '';
+  public academySearchResults: { id: number; name: string }[] = [];
+  public showAcademyDropdown = false;
+  public selectedAcademyName = '';
+  private searchTimer: ReturnType<typeof setTimeout> | null = null;
+
   public nlQuery: string = '';
+  public chatMessages = signal<ChatMessage[]>([]);
+  public isAiLoading = signal<boolean>(false);
+  public suggestedPrompts: string[] = [
+    'Find left-footed wings under 20',
+    'Recommend top CM with rating > 80',
+    'Search for promising strikers'
+  ];
 
   public results = signal<PlayerCardDto[]>([]);
   public totalCount = signal<number>(0);
@@ -147,11 +169,66 @@ export class ScouterSearchComponent implements OnInit {
     }
 
     if (f.academyId !== null) {
-      const id = f.academyId;
-      tags.push({ label: `Academy #${id}`, clear: () => { this.filters.academyId = null; this.search(); } });
+      const label = this.selectedAcademyName ? `Academy: ${this.selectedAcademyName}` : `Academy #${f.academyId}`;
+      tags.push({ label, clear: () => { this.clearAcademy(); this.search(); } });
     }
 
     return tags;
+  }
+
+  public onAcademySearch(value: string): void {
+    this.academySearchQuery = value;
+    if (this.searchTimer) clearTimeout(this.searchTimer);
+
+    if (!value.trim()) {
+      this.academySearchResults = [];
+      this.showAcademyDropdown = false;
+      this.filters.academyId = null;
+      this.selectedAcademyName = '';
+      return;
+    }
+
+    this.searchTimer = setTimeout(() => {
+      this.academyService.searchAcademies(value.trim()).subscribe({
+        next: (res: any) => {
+          const results = res?.data ?? res ?? [];
+          this.academySearchResults = results.map((a: any) => ({
+            id: a.id ?? a.Id,
+            name: a.name ?? a.Name
+          }));
+          this.showAcademyDropdown = this.academySearchResults.length > 0;
+        },
+        error: () => {
+          this.academySearchResults = [];
+          this.showAcademyDropdown = false;
+        }
+      });
+    }, 300);
+  }
+
+  public selectAcademy(academy: { id: number; name: string }): void {
+    this.filters.academyId = academy.id;
+    this.selectedAcademyName = academy.name;
+    this.academySearchQuery = academy.name;
+    this.showAcademyDropdown = false;
+  }
+
+  public clearAcademy(): void {
+    this.filters.academyId = null;
+    this.selectedAcademyName = '';
+    this.academySearchQuery = '';
+    this.academySearchResults = [];
+    this.showAcademyDropdown = false;
+  }
+
+  public onBlurAcademySearch(): void {
+    setTimeout(() => { this.showAcademyDropdown = false; }, 200);
+  }
+
+  public onFocusAcademySearch(): void {
+    if (this.academySearchResults.length > 0 && !this.filters.academyId) {
+      this.showAcademyDropdown = true;
+    }
   }
 
   private readonly pageSize = 12;
@@ -190,7 +267,8 @@ export class ScouterSearchComponent implements OnInit {
   }
 
   public resetFilters(): void {
-   this.filters = emptyFilters();
+    this.filters = emptyFilters();
+    this.clearAcademy();
     this.results.set([]);
     this.totalCount.set(0);
     this.hasSearched.set(false);
@@ -259,8 +337,77 @@ export class ScouterSearchComponent implements OnInit {
     this.apiErrorMessage.set(null);
   }
 
+  public navigateToAiChat(): void {
+    if (this.currentScouterId) {
+      this.router.navigate(['/scouter-ai', this.currentScouterId]);
+    } else {
+      this.router.navigate(['/scouter-ai']);
+    }
+  }
+
   public onNlSearchSubmit(): void {
-    this.toastService.show('Natural-language query engine is coming soon.', 'info');
+    const query = this.nlQuery.trim();
+    if (!query || this.isAiLoading()) return;
+
+    const userMsg: ChatMessage = {
+      id: Date.now().toString(),
+      sender: 'user',
+      text: query,
+      timestamp: new Date()
+    };
+
+    this.chatMessages.update(msgs => [...msgs, userMsg]);
+    this.nlQuery = '';
+    this.isAiLoading.set(true);
+    this.scrollChatToBottom();
+
+    this.scouterService.aiChatBot(query)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (reply) => {
+          const botMsg: ChatMessage = {
+            id: (Date.now() + 1).toString(),
+            sender: 'assistant',
+            text: reply || 'No response returned from AI.',
+            timestamp: new Date()
+          };
+          this.chatMessages.update(msgs => [...msgs, botMsg]);
+          this.isAiLoading.set(false);
+          this.scrollChatToBottom();
+        },
+        error: (err: HttpErrorResponse) => {
+          console.error('AI ChatBot query failed', err);
+          const errorMsg = extractErrorMessage(err, 'Failed to connect to Scouting Assistant AI.');
+          const botMsg: ChatMessage = {
+            id: (Date.now() + 1).toString(),
+            sender: 'assistant',
+            text: `⚠️ ${errorMsg}`,
+            timestamp: new Date()
+          };
+          this.chatMessages.update(msgs => [...msgs, botMsg]);
+          this.toastService.show(errorMsg, 'error');
+          this.isAiLoading.set(false);
+          this.scrollChatToBottom();
+        }
+      });
+  }
+
+  public useSuggestedPrompt(prompt: string): void {
+    this.nlQuery = prompt;
+    this.onNlSearchSubmit();
+  }
+
+  public clearChat(): void {
+    this.chatMessages.set([]);
+  }
+
+  private scrollChatToBottom(): void {
+    setTimeout(() => {
+      const feed = document.getElementById('scoutingChatFeed');
+      if (feed) {
+        feed.scrollTop = feed.scrollHeight;
+      }
+    }, 60);
   }
 
   public viewProfile(playerId: number): void {

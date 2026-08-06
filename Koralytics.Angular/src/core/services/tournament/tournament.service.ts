@@ -71,11 +71,39 @@ export class TournamentService {
     return this.http.post<any>(`${this.apiUrl}/${tournamentId}/complete`, {});
   }
 
+  getTournamentReport(tournamentId: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/${tournamentId}/report`);
+  }
+
+  regenerateTournamentReport(tournamentId: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/${tournamentId}/regenerate-report`, {});
+  }
+
+  simulateTournament(tournamentId: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/${tournamentId}/simulate`, {});
+  }
+
   getTournamentTeams(tournamentId: number): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/${tournamentId}/teams`);
+  }
+
+  getTournamentInvitationsForAcademy(academyId: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/academies/${academyId}/invitations`);
   }
 
   getFixtureById(fixtureId: number): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/fixture/${fixtureId}`);
   }
-}
+
+  updateFixtureResult(fixtureId: number, homeScore: number, awayScore: number): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/fixture/${fixtureId}/result`, { homeScore, awayScore });
+  }
+
+  generateKnockoutFromGroups(tournamentId: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/${tournamentId}/generate-knockout`, {});
+  }
+
+  updateFixtureStats(fixtureId: number, data: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/fixture/${fixtureId}/stats`, data);
+  }
+}

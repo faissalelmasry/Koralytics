@@ -239,6 +239,21 @@ namespace Koralytics.API.Controllers
             });
         }
 
+        [HttpGet("{scouterId}/is-following/{playerId}")]
+        [Authorize(Roles = "Scouter,SystemAdmin")]
+        public async Task<IActionResult> IsFollowing(int scouterId, int playerId)
+        {
+            if (!TryAuthorizeScouterOwnership(scouterId, out var authError))
+                return authError!;
+
+            var isFollowing = await _followService.IsFollowingAsync(scouterId, playerId);
+            return Ok(new
+            {
+                message = "Follow status checked successfully.",
+                data = isFollowing
+            });
+        }
+
         [HttpPost("{scouterId}/view-profile/{playerId}")]
         [Authorize(Roles = "Scouter,SystemAdmin")]
         public async Task<IActionResult> LogProfileView(int scouterId, int playerId)

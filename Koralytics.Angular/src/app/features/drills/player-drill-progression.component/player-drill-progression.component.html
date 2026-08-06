@@ -1,27 +1,21 @@
-<div class="progression-page">
+<div class="breakdown-section drill-progression-card">
 
-    <!-- HEADER -->
-    <header class="page-header flex-between">
-        <div>
-            <div class="header-eyebrow">
-                <span class="eyebrow-dot"></span>
-                <span class="eyebrow-text">PERFORMANCE ANALYTICS</span>
+    <!-- PANEL HEADER (Matching Match Performance Breakdown) -->
+    <div class="panel-header" style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; gap: 15px; flex-wrap: wrap;">
+        <span>Drill Progression & Analytics</span>
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <app-button [variant]="tierButtonVariant" (click)="goToDrillTimeline()">View Full Drill Timeline</app-button>
+            <div class="filter-box">
+                <app-select
+                    label=""
+                    placeholder="Select Category"
+                    [options]="categoryOptions"
+                    [value]="selectedCategoryId"
+                    (valueChange)="onCategorySelect($event)">
+                </app-select>
             </div>
-            <h1 class="header-title">Player Progression</h1>
-            <p class="header-subtitle">Track rating trajectories and historical drill metrics over time.</p>
         </div>
-
-        <!-- CATEGORY FILTER DROPDOWN -->
-        <div class="filter-box">
-            <app-select
-                label="Category Filter"
-                placeholder="Select Category"
-                [options]="categoryOptions"
-                [value]="selectedCategoryId"
-                (valueChange)="onCategorySelect($event)">
-            </app-select>
-        </div>
-    </header>
+    </div>
 
     @if (isLoading) {
     <div class="loading-state text-center py-5">
@@ -47,11 +41,11 @@
         </div>
         <div class="kpi-card">
             <span class="kpi-title">Average Rating</span>
-            <span class="kpi-value warning">{{ getAverageScore() }} / 10</span>
+            <span class="kpi-value warning">{{ averageScore }} / 10</span>
         </div>
         <div class="kpi-card">
             <span class="kpi-title">Peak Rating</span>
-            <span class="kpi-value success">{{ getPeakScore() }} / 10</span>
+            <span class="kpi-value success">{{ peakScore }} / 10</span>
         </div>
         <div class="kpi-card">
             <span class="kpi-title">Drill Samples</span>
@@ -61,14 +55,14 @@
 
     <!-- PURE SVG LINE CHART -->
     <section class="chart-panel">
-        <div class="panel-header flex-between">
-            <h2>Progression Curve</h2>
+        <div class="panel-header flex-between mb-3">
+            <span class="chart-subtitle">Progression Curve</span>
             <span class="chart-legend"><span class="legend-dot"></span> Score Trajectory (0 - 10)</span>
         </div>
 
         @if (progressionData.length > 0) {
         <div class="svg-chart-container">
-            <svg viewBox="0 0 800 280" class="svg-graph">
+            <svg viewBox="0 0 800 290" class="svg-graph">
                 <defs>
                     <linearGradient id="neonGradient" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stop-color="#00f2fe" stop-opacity="0.35" />
@@ -84,16 +78,16 @@
                 </defs>
 
                 <!-- Horizontal Grid Lines -->
-                <line x1="40" y1="20" x2="760" y2="20" class="grid-line" />
-                <line x1="40" y1="80" x2="760" y2="80" class="grid-line" />
-                <line x1="40" y1="140" x2="760" y2="140" class="grid-line" />
-                <line x1="40" y1="200" x2="760" y2="200" class="grid-line" />
-                <line x1="40" y1="260" x2="760" y2="260" class="grid-line baseline" />
+                <line x1="40" y1="25" x2="760" y2="25" class="grid-line" />
+                <line x1="40" y1="85" x2="760" y2="85" class="grid-line" />
+                <line x1="40" y1="145" x2="760" y2="145" class="grid-line" />
+                <line x1="40" y1="205" x2="760" y2="205" class="grid-line" />
+                <line x1="40" y1="265" x2="760" y2="265" class="grid-line baseline" />
 
                 <!-- Y-Axis Rating Labels -->
-                <text x="15" y="24" class="axis-label">10</text>
-                <text x="15" y="144" class="axis-label">5</text>
-                <text x="15" y="264" class="axis-label">0</text>
+                <text x="15" y="29" class="axis-label">10</text>
+                <text x="15" y="149" class="axis-label">5</text>
+                <text x="15" y="269" class="axis-label">0</text>
 
                 <!-- Gradient Fill Under Line -->
                 <path [attr.d]="areaPath" fill="url(#neonGradient)" />
@@ -102,7 +96,7 @@
                 <polyline [attr.points]="svgPoints" fill="none" stroke="#00f2fe" stroke-width="3" filter="url(#glow)" />
 
                 <!-- Interactive Data Nodes -->
-                @for (pt of getCoordinates(); track pt.sessionDate) {
+                @for (pt of coordinates; track pt.sessionDate) {
                 <g class="chart-node" (mouseenter)="hoveredPoint = pt" (mouseleave)="hoveredPoint = null">
                     <circle [attr.cx]="pt.x" [attr.cy]="pt.y" r="6" class="node-circle" />
                     <circle [attr.cx]="pt.x" [attr.cy]="pt.y" r="10" class="node-pulse" />
@@ -125,6 +119,5 @@
         </div>
         }
     </section>
-
     }
 </div>

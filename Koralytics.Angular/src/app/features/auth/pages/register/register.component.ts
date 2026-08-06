@@ -11,7 +11,7 @@ import { CustomDatePicker } from '../../../../../shared/components/custom-date-p
 import { PasswordStrengthComponent } from '../../../../../shared/components/password-strength/password-strength.component';
 import { StepperComponent } from '../../../../../shared/components/stepper/stepper.component';
 import { PhoneInputComponent } from '../../../../../shared/components/phone-input/phone-input.component';
-import { RegisterPlayerRequest, RegisterCoachRequest, RegisterParentRequest, RegisterAcademyAdminRequest, RegisterScouterRequest } from '../../../../../core/interfaces/auth.models';
+import { RegisterPlayerRequest, RegisterCoachRequest, RegisterParentRequest, RegisterAcademyAdminRequest, RegisterScouterRequest, RegisterCoachAndAdminRequest } from '../../../../../core/interfaces/auth.models';
 
 @Component({
   selector: 'app-register',
@@ -40,14 +40,15 @@ export class RegisterComponent {
   isLoading = false;
   steps = ['Role', 'Account Details', 'Profile Details'];
   currentStep = 0;
-  selectedRole: 'Player' | 'Coach' | 'Scouter' | 'Parent' | 'AcademyAdmin' | null = null;
+  selectedRole: 'Player' | 'Coach' | 'Scouter' | 'Parent' | 'AcademyAdmin' | 'CoachAndAdmin' | null = null;
 
   roles = [
     { id: 'Player', name: 'Player', icon: 'M13 10V3L4 14h7v7l9-11h-7z', desc: 'Manage your profile and track stats.' },
     { id: 'Coach', name: 'Coach', icon: 'M12 14l9-5-9-5-9 5 9 5z', desc: 'Manage teams and tactical setups.' },
     { id: 'Scouter', name: 'Scouter', icon: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z', desc: 'Discover and analyze talent.' },
     { id: 'Parent', name: 'Parent', icon: 'M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2', desc: 'Track your child\'s progress.' },
-    { id: 'AcademyAdmin', name: 'Academy Admin', icon: 'M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9', desc: 'Manage academy operations.' }
+    { id: 'AcademyAdmin', name: 'Academy Admin', icon: 'M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9', desc: 'Manage academy operations.' },
+    { id: 'CoachAndAdmin', name: 'Coach & Academy Admin', icon: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10', desc: 'Manage both teams and academy operations.' }
   ] as const;
 
   footOptions = [
@@ -108,8 +109,8 @@ export class RegisterComponent {
         this.baseForm.markAllAsTouched();
         return;
       }
-      // Coach, Scouter, Parent, and Admin don't have step 3 (Profile details)
-      if (['Coach', 'Scouter', 'Parent', 'AcademyAdmin'].includes(this.selectedRole!)) {
+      // Coach, Scouter, Parent, Admin, and CoachAndAdmin don't have step 3 (Profile details)
+      if (['Coach', 'Scouter', 'Parent', 'AcademyAdmin', 'CoachAndAdmin'].includes(this.selectedRole!)) {
         this.onSubmit();
         return;
       }
@@ -187,6 +188,10 @@ export class RegisterComponent {
         
       case 'AcademyAdmin':
         requestObservable = this.authService.registerAcademyAdmin(baseData as RegisterAcademyAdminRequest);
+        break;
+        
+      case 'CoachAndAdmin':
+        requestObservable = this.authService.registerCoachAndAdmin(baseData as RegisterCoachAndAdminRequest);
         break;
     }
 

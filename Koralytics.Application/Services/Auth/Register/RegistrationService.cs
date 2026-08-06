@@ -190,6 +190,57 @@ namespace Koralytics.Application.Services.Auth.Register
             return await GenerateAuthResultAsync(academyAdmin, AuthConstants.Roles.AcademyAdmin, null);
         }
 
+        public async Task<AuthResultDto> RegisterCoachAndAdminAsync(RegisterCoachAndAdminRequestDto request)
+        {
+            _logger.LogInformation("Starting coach and academy admin registration for email: {email}", request.Email);
+            await ValidateRegistrationRequestAsync(request);
+
+            var coach = _mapper.Map<CoachEntity>(request);
+
+            await ExecuteRegistrationInTransactionAsync(async () =>
+            {
+                // Create user and assign primary role (Coach)
+                await CreateUserWithRoleAsync(coach, request.Password, AuthConstants.Roles.Coach);
+                
+                // Assign AcademyAdmin role
+                await _businessValidator.EnsureRoleExistsAsync(AuthConstants.Roles.AcademyAdmin);
+                var roleResult = await _userManager.AddToRoleAsync(coach, AuthConstants.Roles.AcademyAdmin);
+                if (!roleResult.Succeeded)
+                {
+                    throw new BadRequestException("Failed to assign AcademyAdmin role.");
+                }
+
+                // Insert into AcademyAdmins table manually to bypass EF TPT constraints
+                await _unitOfWork.ExecuteSqlRawAsync("INSERT INTO AcademyAdmins (Id, AcademyId) VALUES ({0}, NULL)", coach.Id);
+                
+                await _unitOfWork.SaveChangesAsync();
+                return true;
+            });
+
+            _logger.LogInformation("Coach and Academy admin successfully registered. UserId: {userId}", coach.Id);
+            await TrySendConfirmationEmailAsync(coach.Id);
+            
+            // Return AuthResultDto with both roles explicitly (or relying on GenerateAuthResultAsync might only put one role if I don't modify it).
+            // Let's look at GenerateAuthResultAsync.
+            var roles = new List<string> { AuthConstants.Roles.Coach, AuthConstants.Roles.AcademyAdmin };
+            var tokens = await _tokenService.GenerateTokenPairAsync(coach, roles, null);
+            
+            var response = new AuthResponseDto
+            {
+                AccessToken = tokens.AccessToken,
+                RefreshToken = tokens.RefreshToken,
+                AccessTokenExpiresAt = tokens.AccessTokenExpiresAt,
+                RefreshTokenExpiresAt = tokens.RefreshTokenExpiresAt,
+                UserId = coach.Id,
+                UserName = coach.UserName ?? string.Empty,
+                Email = coach.Email ?? string.Empty,
+                FullName = string.Join(' ', new[] { coach.FirstName, coach.LastName }.Where(x => !string.IsNullOrWhiteSpace(x))),
+                Roles = roles
+            };
+            
+            return new AuthResultDto(response, tokens);
+        }
+
         public async Task CompleteProfileAsPlayerAsync(User existingUser, CompleteProfileAsPlayerDto profileData)
         {
             await _businessValidator.EnsureWeakFootRating(profileData.WeakFootRating ?? 3);

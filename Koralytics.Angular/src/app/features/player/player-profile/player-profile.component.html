@@ -24,7 +24,11 @@
         <div>
           <h1>{{ fullName }}</h1>
           <div class="meta-pills">
+            @if (profile.currentAcademy?.academyId) {
+            <a [routerLink]="['/academy/profile', profile.currentAcademy?.academyId]" class="pill academy-link">{{ academyName }}</a>
+            } @else {
             <span class="pill">{{ academyName }}</span>
+            }
             @for (team of profile.teams; track team.teamId) {
             <span class="pill">{{ team.teamName }} @if (team.ageGroupName) { / {{ team.ageGroupName }} }</span>
             }
@@ -32,14 +36,46 @@
         </div>
       </div>
 
+      @if (isScouter && !isOwnProfile) {
+      <div class="scouter-follow-action">
+        <button type="button" class="btn-follow" [class.following]="isFollowing" [disabled]="isFollowLoading"
+          (click)="toggleFollow()">
+          @if (isFollowLoading) {
+          <span class="btn-spinner"></span>
+          } @else if (isFollowing) {
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          <span>Following</span>
+          } @else {
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          <span>Follow</span>
+          }
+        </button>
+      </div>
+      }
+
       <div class="bio-quick-list">
         <div class="bio-item">
           <span class="bio-lbl">Status</span>
           <span class="bio-val" [class]="statusClass">{{ statusLabel }}</span>
         </div>
         <div class="bio-item">
-          <span class="bio-lbl">Age / Foot</span>
-          <span class="bio-val">{{ profile.age }} Yrs / {{ preferredFoot }}</span>
+          <span class="bio-lbl">Age</span>
+          <span class="bio-val">{{ profile.age ? profile.age + ' Yrs' : 'N/A' }}</span>
+        </div>
+        <div class="bio-item">
+          <span class="bio-lbl">Height</span>
+          <span class="bio-val">{{ profile.heightCm ? profile.heightCm + ' cm' : 'N/A' }}</span>
+        </div>
+        <div class="bio-item">
+          <span class="bio-lbl">Weight</span>
+          <span class="bio-val">{{ profile.weightKg ? profile.weightKg + ' kg' : 'N/A' }}</span>
         </div>
         <div class="bio-item">
           <span class="bio-lbl">Nationality</span>
@@ -51,29 +87,21 @@
     <!-- =============== 2. MAIN GRID =============== -->
     <div class="main-grid">
 
-      <!-- FIFA Player Card -->
+      <!-- Row 1, Col 1: FIFA Player Card -->
       <div class="card-col" scrollReveal direction="bottom" [delay]="50">
         @if (profile.playerCard) {
         <app-player-card [player]="profile.playerCard" [autoLoad]="false" [compact]="true" [cardWidth]="240"
           [cardHeight]="380">
         </app-player-card>
-        @if (isOwnProfile) {
-        <app-button variant="slate" [shimmer]="true" [loading]="isFetchingCard" (click)="fetchPlayerCard()"
-          style="margin-top:12px; width:100%;">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="23 4 23 10 17 10" />
-            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
-          </svg>
-          &nbsp;Update Card
-        </app-button>
-        }
         }
         @else {
         <div class="no-card-placeholder">
-          <div class="no-card-icon">&#9889;</div>
+          <div class="no-card-icon">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M13 2L3 14h9l-1 8 10-12h-8l1-8z"/>
+            </svg>
+          </div>
           <p class="no-card-title">No Card Yet</p>
-          <p class="no-card-sub">Generate your FIFA-style player card to see your ratings and stats</p>
           @if (isOwnProfile) {
           <app-button [variant]="tierButtonVariant" [shimmer]="true" [loading]="isFetchingCard"
             (click)="fetchPlayerCard()">
@@ -84,114 +112,141 @@
         }
       </div>
 
-      <!-- Tactical Pitch Panel -->
-      <div class="pitch-col" scrollReveal direction="bottom" [delay]="120">
-        <div class="pitch-panel">
-          <div class="panel-header">
-            <span>Position Overview</span>
-          </div>
-
-          <div class="pitch-container">
-            <div class="pitch-lines">
-              <div class="pitch-line-half"></div>
-              <div class="pitch-center-circle"></div>
-              <div class="pitch-box left"></div>
-              <div class="pitch-box right"></div>
-            </div>
-
-            <div class="heatmap-overlay"></div>
-
-            @for (pos of profile.positions; track pos.position) {
-            <div class="pos-pin" [class.primary]="pos.isPrimary" [style.top]="getPosPinStyle(pos.position).top"
-              [style.left]="getPosPinStyle(pos.position).left">
-              {{ pos.position }}{{ pos.isPrimary ? ' ★' : '' }}
-            </div>
-            }
-          </div>
-
-          <div class="filter-bar">
-            <span>Primary: <strong>{{ primaryPosition }}</strong></span>
-            @if (secondaryPositions.length) {
-            <span>Also: {{ secondaryPositions.join(', ') }}</span>
-            }
-          </div>
+      <!-- Row 1, Col 2: Tactical Pitch Panel -->
+      <div class="pitch-panel" scrollReveal direction="bottom" [delay]="120">
+        <div class="panel-header">
+          <span>Position Overview</span>
         </div>
 
-        @if (isOwnProfile) {
-        <div class="pitch-actions">
-          <app-button variant="slate" (click)="openUpdatePrimaryModal()" style="flex: 1;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="17 1 21 5 17 9" />
-              <path d="M3 11V9a4 4 0 0 1 4-4h14" />
-              <polyline points="7 23 3 19 7 15" />
-              <path d="M21 13v2a4 4 0 0 1-4 4H3" />
-            </svg>
-            &nbsp;Change Primary
-          </app-button>
-          <app-button [variant]="tierButtonVariant" (click)="openAddPositionModal()" style="flex: 1;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round">
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-            &nbsp;Add Position
-          </app-button>
-          <app-button variant="coral" (click)="openRemovePositionModal()" style="flex: 1;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="3 6 5 6 21 6" />
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-            </svg>
-            &nbsp;Remove Position
-          </app-button>
+        <div class="pitch-container">
+          <div class="pitch-lines">
+            <div class="pitch-line-half"></div>
+            <div class="pitch-center-circle"></div>
+            <div class="pitch-box left"></div>
+            <div class="pitch-box right"></div>
+          </div>
+
+          <div class="heatmap-overlay"></div>
+
+          @for (pos of profile.positions; track pos.position) {
+          <div class="pos-pin" [class.primary]="pos.isPrimary" [style.top]="getPosPinStyle(pos.position).top"
+            [style.left]="getPosPinStyle(pos.position).left">
+            {{ pos.position }}{{ pos.isPrimary ? ' ★' : '' }}
+          </div>
+          }
         </div>
-        }
+
+        <div class="filter-bar">
+          <span>Primary: <strong>{{ primaryPosition }}</strong></span>
+          @if (secondaryPositions.length) {
+          <span>Also: {{ secondaryPositions.join(', ') }}</span>
+          }
+        </div>
       </div>
 
-      <!-- Radar Chart Panel -->
-      <div class="radar-col" scrollReveal direction="bottom" [delay]="190">
-        <div class="radar-panel">
-          <div class="panel-header">
-            <span>Attributes Radar</span>
-          </div>
-
-          <div class="radar-container">
-            @if (profile.playerCard) {
-            @if (isGK && profile.playerCard.goalkeepingRating != null && profile.playerCard.goalkeepingRating > 0) {
-            <div class="gk-rating-bar">
-              <div class="gk-rating-label">Goalkeeping Rating</div>
-              <div class="gk-rating-value" [class.tier-gold]="tierClass === 'tier-gold'"
-                [class.tier-elite]="tierClass === 'tier-elite'" [class.tier-base]="tierClass === 'tier-base'">{{
-                profile.playerCard.goalkeepingRating | number:'1.0-0' }}</div>
-              <div class="gk-bar-track">
-                <div class="gk-bar-fill" [style.width.%]="profile.playerCard.goalkeepingRating"></div>
-              </div>
-              <div class="gk-rating-scale"><span>0</span><span>50</span><span>100</span></div>
-            </div>
-            }
-            @else {
-            <canvas #radarCanvas></canvas>
-            }
-            }
-            @else {
-            <div class="radar-empty">
-              <span>No attribute data available</span>
-            </div>
-            }
-          </div>
+      <!-- Row 1, Col 3: Radar Chart Panel -->
+      <div class="radar-panel" scrollReveal direction="bottom" [delay]="190">
+        <div class="panel-header">
+          <span>Attributes Radar</span>
         </div>
 
-        @if (isOwnProfile) {
-        <app-button [variant]="tierButtonVariant" [shimmer]="true" (click)="openArchetypeOverlay()">
+        <div class="radar-container">
+          @if (profile.playerCard) {
+          @if (isGK && profile.playerCard.goalkeepingRating != null && profile.playerCard.goalkeepingRating > 0) {
+          <div class="gk-rating-bar">
+            <div class="gk-rating-label">Goalkeeping Rating</div>
+            <div class="gk-rating-value" [class.tier-gold]="tierClass === 'tier-gold'"
+              [class.tier-elite]="tierClass === 'tier-elite'" [class.tier-base]="tierClass === 'tier-base'">{{
+              profile.playerCard.goalkeepingRating | number:'1.0-0' }}</div>
+            <div class="gk-bar-track">
+              <div class="gk-bar-fill" [style.width.%]="profile.playerCard.goalkeepingRating"></div>
+            </div>
+            <div class="gk-rating-scale"><span>0</span><span>50</span><span>100</span></div>
+          </div>
+          }
+          @else {
+          <canvas #radarCanvas></canvas>
+          }
+          }
+          @else {
+          <div class="radar-empty">
+            <span>No attribute data available</span>
+          </div>
+          }
+        </div>
+        <div class="radar-card-footer" style="margin-top: 10px; width: 100%;">
+          <app-button [variant]="tierButtonVariant" (click)="goToAcademyComparison()" style="width: 100%;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="20" x2="18" y2="10" />
+              <line x1="12" y1="20" x2="12" y2="4" />
+              <line x1="6" y1="20" x2="6" y2="14" />
+            </svg>
+            Compare To Academy
+          </app-button>
+        </div>
+      </div>
+
+      <!-- Row 2, Col 1: Card Action Button -->
+      @if (isOwnProfile && profile.playerCard) {
+      <div class="card-action" scrollReveal direction="bottom" [delay]="70">
+        <app-button variant="slate" [shimmer]="true" [loading]="isFetchingCard" (click)="fetchPlayerCard()"
+          style="width: 100%;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10" />
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+          </svg>
+          Update Card
+        </app-button>
+      </div>
+      }
+
+      <!-- Row 2, Col 2: Pitch Actions -->
+      @if (isOwnProfile) {
+      <div class="pitch-actions" scrollReveal direction="bottom" [delay]="140">
+        <app-button variant="slate" (click)="openUpdatePrimaryModal()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="17 1 21 5 17 9" />
+            <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+            <polyline points="7 23 3 19 7 15" />
+            <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+          </svg>
+          Primary
+        </app-button>
+        <app-button [variant]="tierButtonVariant" (click)="openAddPositionModal()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          Position
+        </app-button>
+        <app-button variant="coral" (click)="openRemovePositionModal()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6" />
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2 2h4a2 2 0 0 1 2 2v2" />
+          </svg>
+          Position
+        </app-button>
+      </div>
+      }
+
+      <!-- Row 2, Col 3: Radar Action Button -->
+      @if (isOwnProfile) {
+      <div class="radar-action" scrollReveal direction="bottom" [delay]="210">
+        <app-button [variant]="tierButtonVariant" [shimmer]="true" (click)="openArchetypeOverlay()"
+          style="width: 100%;">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round">
             <path d="M13 2L3 14h9l-1 8 10-12h-8l1-8z" />
           </svg>
-          &nbsp;Reveal Archetype
+          Reveal Archetype
         </app-button>
-        }
       </div>
+      }
 
     </div>
 
@@ -234,12 +289,13 @@
 
     </div>
 
-      <!-- =============== 4. COMPETITION BREAKDOWN =============== -->
-      <div class="breakdown-section">
-        <div class="panel-header" style="margin-bottom:20px; display: flex; justify-content: space-between; align-items: center;">
-          <span>Match Performance Breakdown</span>
-            <app-button [variant]="tierButtonVariant" (click)="goToTimeline()">View Full Timeline</app-button>
-        </div>
+    <!-- =============== 4. COMPETITION BREAKDOWN =============== -->
+    <div class="breakdown-section">
+      <div class="panel-header"
+        style="margin-bottom:20px; display: flex; justify-content: space-between; align-items: center;">
+        <span>Match Performance Breakdown</span>
+        <app-button [variant]="tierButtonVariant" (click)="goToTimeline()">View Full Timeline</app-button>
+      </div>
 
       <div class="breakdown-grid">
         @for (comp of competitionBreakdown; track comp.label; let i = $index) {
@@ -257,6 +313,12 @@
         }
       </div>
     </div>
+
+    <!-- =============== 5. DRILL PROGRESSION =============== -->
+    @if (playerId) {
+    <app-player-drill-progression [playerId]="playerId" [tierButtonVariant]="tierButtonVariant" scrollReveal
+      direction="bottom" [delay]="480"></app-player-drill-progression>
+    }
 
     <!-- =============== POSITION SELECTION MODAL =============== -->
     @if (showPositionModal) {
@@ -337,28 +399,28 @@
     [attr.aria-label]="isCardFlipped ? 'Archetype revealed' : 'Tap to reveal archetype'">
     <div class="pack-card-inner" [class.flipped]="isCardFlipped">
 
-        <div class="card-face card-face-back">
-          <div class="mystery-logo">KORALYTICS</div>
-          @if (isRevealingArchetype) {
-            <div class="tap-hint loading-spin">
-              <span class="spinner-dot"></span> REVEALING ARCHETYPE...
-            </div>
-          } @else if (revealError) {
-            <div class="tap-hint error-hint">{{ revealError }}</div>
-          } @else {
-            <div class="tap-hint">TAP TO REVEAL</div>
-          }
+      <div class="card-face card-face-back">
+        <div class="mystery-logo">KORALYTICS</div>
+        @if (isRevealingArchetype) {
+        <div class="tap-hint loading-spin">
+          <span class="spinner-dot"></span> REVEALING ARCHETYPE...
         </div>
+        } @else if (revealError) {
+        <div class="tap-hint error-hint">{{ revealError }}</div>
+        } @else {
+        <div class="tap-hint">TAP TO REVEAL</div>
+        }
+      </div>
 
-        <div class="card-face card-face-front">
-          <div class="archetype-badge-icon">
-            <img [src]="tierLogoUrl" alt="Koralytics Logo" class="arch-badge-logo" />
-          </div>
-          <div class="arch-label">PLAYER ARCHETYPE</div>
-          <div class="arch-title">{{ archetypeTitle }}</div>
-          <div class="arch-text">{{ archetypeTextDescription }}</div>
-          <div class="arch-subline">{{ nextRevealNotice }}</div>
+      <div class="card-face card-face-front">
+        <div class="archetype-badge-icon">
+          <img [src]="tierLogoUrl" alt="Koralytics Logo" class="arch-badge-logo" />
         </div>
+        <div class="arch-label">PLAYER ARCHETYPE</div>
+        <div class="arch-title">{{ archetypeTitle }}</div>
+        <div class="arch-text">{{ archetypeTextDescription }}</div>
+        <div class="arch-subline">{{ nextRevealNotice }}</div>
+      </div>
 
     </div>
   </div>

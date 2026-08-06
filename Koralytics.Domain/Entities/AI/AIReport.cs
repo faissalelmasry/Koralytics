@@ -1,4 +1,4 @@
-﻿using Koralytics.Domain.Entities.Academy;
+using Koralytics.Domain.Entities.Academy;
 using Koralytics.Domain.Enums;
 using Koralytics.Domain.Models.BaseModels;
 using System;
@@ -9,14 +9,15 @@ using System.Threading.Tasks;
 
 namespace Koralytics.Domain.Entities.AI
 {
-    public class AIReport :BaseEntity
+    public class AIReport : BaseEntity
     {
         public AIReportType ReportType { get; set; }
         public int ReferenceId { get; set; }
         public int? AcademyId { get; set; }
         public string ReportText { get; set; } = string.Empty;
+        public AIReportStatus Status { get; set; } = AIReportStatus.Pending;
+        public DateTime? GeneratedAt { get; set; }
         public Academy.Academy? Academy { get; set; }
-
-
     }
 }
+

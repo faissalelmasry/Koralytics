@@ -152,6 +152,14 @@ namespace Koralytics.Domain.Enums
         Season = 3
     }
     [JsonConverter(typeof(JsonStringEnumConverter))]
+    public enum AIReportStatus
+    {
+        Pending = 1,
+        Generating = 2,
+        Completed = 3,
+        Failed = 4
+    }
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum AnnouncementTargetType
     {
         All = 1,

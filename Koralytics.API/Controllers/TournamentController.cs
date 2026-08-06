@@ -1,5 +1,7 @@
 using Koralytics.API.Controllers.BaseController;
 using Koralytics.Application.DTOs.Tournament;
+using Koralytics.Application.DTOs.Tournaments;
+using Koralytics.Application.Interfaces.AI;
 using Koralytics.Application.Interfaces.Tournament;
 using Koralytics.Application.Interfaces.Tournaments;
 using Koralytics.Domain.Enums;
@@ -17,17 +19,20 @@ namespace Koralytics.API.Controllers
         private readonly ITournamentDrawService _tournamentDrawService;
         private readonly ITournamentFixtureService _tournamentFixtureService;
         private readonly ITournamentReportService _tournamentReportService;
+        private readonly IAIReportService _aiReportService;
 
         public TournamentController(
             ITournamentService tournamentService,
             ITournamentDrawService tournamentDrawService,
             ITournamentFixtureService tournamentFixtureService,
-            ITournamentReportService tournamentReportService)
+            ITournamentReportService tournamentReportService,
+            IAIReportService aiReportService)
         {
             _tournamentService = tournamentService;
             _tournamentDrawService = tournamentDrawService;
             _tournamentFixtureService = tournamentFixtureService;
             _tournamentReportService = tournamentReportService;
+            _aiReportService = aiReportService;
         }
 
         [HttpGet]
@@ -143,10 +148,38 @@ namespace Koralytics.API.Controllers
             return OkResponse(result);
         }
 
+        [HttpPut("fixture/{fixtureId}/result")]
+        public async Task<IActionResult> UpdateFixtureResult(int fixtureId, [FromBody] UpdateFixtureResultDto dto)
+        {
+            await _tournamentFixtureService.UpdateFixtureResultAsync(fixtureId, dto.HomeScore, dto.AwayScore);
+            return OkResponse("Fixture result updated successfully");
+        }
+
+        [HttpPost("{tournamentId}/generate-knockout")]
+        public async Task<IActionResult> GenerateKnockoutFromGroups(int tournamentId)
+        {
+            await _tournamentFixtureService.GenerateKnockoutFromGroupsAsync(tournamentId);
+            return OkResponse("Knockout stage generated successfully");
+        }
+
+        [HttpPost("fixture/{fixtureId}/stats")]
+        public async Task<IActionResult> UpdateFixtureStats(int fixtureId, [FromBody] UpdateFixtureStatsDto dto)
+        {
+            await _tournamentFixtureService.UpdateFixtureStatsAsync(fixtureId, dto);
+            return OkResponse("Fixture stats updated successfully");
+        }
+
         [HttpGet("{tournamentId}/teams")]
         public async Task<IActionResult> GetTeams(int tournamentId)
         {
             var result = await _tournamentService.GetTeamsAsync(tournamentId);
+            return OkResponse(result);
+        }
+
+        [HttpGet("academies/{academyId}/invitations")]
+        public async Task<IActionResult> GetInvitationsForAcademy(int academyId)
+        {
+            var result = await _tournamentService.GetInvitationsForAcademyAsync(academyId);
             return OkResponse(result);
         }
 
@@ -158,7 +191,24 @@ namespace Koralytics.API.Controllers
             return OkResponse(result);
         }
 
-    
+        [HttpGet("{tournamentId}/report")]
+        public async Task<IActionResult> GetTournamentReport(int tournamentId)
+        {
+            var result = await _aiReportService.GetTournamentReportAsync(tournamentId);
+
+            if (result is null)
+                return NotFound(new { message = $"Tournament report for Id {tournamentId} not found." });
+
+            return OkResponse(result);
+        }
+
+        [HttpPost("{tournamentId}/regenerate-report")]
+        public async Task<IActionResult> RegenerateTournamentReport(int tournamentId)
+        {
+            await _aiReportService.GenerateTournamentReportAsync(tournamentId);
+            return NoContentResponse("AI report regeneration triggered successfully");
+        }
+
         [HttpPost("{tournamentId}/complete")]
         //[Authorize(Roles = "SuperAdmin")]
         public async Task<IActionResult> CompleteTournament(int tournamentId)
@@ -167,6 +217,19 @@ namespace Koralytics.API.Controllers
             return NoContentResponse("Tournament completed successfully");
         }
 
+        [HttpPost("{tournamentId}/simulate")]
+        public async Task<IActionResult> SimulateTournament(int tournamentId)
+        {
+            await _tournamentService.SimulateTournamentAsync(tournamentId);
+            return NoContentResponse("Tournament simulated and completed with mock data successfully");
+        }
+
+        [HttpPost("{tournamentId}/simulate-three-academies")]
+        public async Task<IActionResult> SimulateThreeAcademies(int tournamentId)
+        {
+            await _tournamentService.SimulateThreeAcademiesTournamentAsync(tournamentId);
+            return NoContentResponse("Tournament simulated with 3 academies and completed with mock data successfully");
+        }
 
         private int GetCurrentUserId()
         {

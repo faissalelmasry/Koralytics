@@ -11,6 +11,7 @@ namespace Koralytics.Application.Services.Auth.Register
         Task<AuthResultDto> RegisterScouterAsync(RegisterScouterRequestDto request);
         Task<AuthResultDto> RegisterParentAsync(RegisterParentRequestDto request);
         Task<AuthResultDto> RegisterAcademyAdminAsync(RegisterAcademyAdminRequestDto request);
+        Task<AuthResultDto> RegisterCoachAndAdminAsync(RegisterCoachAndAdminRequestDto request);
         
         Task CompleteProfileAsPlayerAsync(User existingUser, CompleteProfileAsPlayerDto profileData);
         Task CompleteProfileAsCoachAsync(User existingUser, CompleteProfileAsCoachDto profileData);

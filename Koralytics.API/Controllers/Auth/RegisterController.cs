@@ -59,6 +59,14 @@ namespace Koralytics.API.Controllers.Auth
             return CreatedResponse(result.User, nameof(RegisterAcademyAdmin), null, "Academy Admin registered successfully.");
         }
 
+        [HttpPost("coach-and-admin")]
+        public async Task<IActionResult> RegisterCoachAndAdmin([FromBody] RegisterCoachAndAdminRequestDto request)
+        {
+            var result = await _registrationService.RegisterCoachAndAdminAsync(request);
+            _cookieService.SetAuthCookies(Response, result.Tokens);
+            return CreatedResponse(result.User, nameof(RegisterCoachAndAdmin), null, "Coach & Academy Admin registered successfully.");
+        }
+
         [HttpPost("send-email-confirmation")]
         public async Task<IActionResult> SendEmailConfirmation([FromBody] SendEmailConfirmationDto request)
         {

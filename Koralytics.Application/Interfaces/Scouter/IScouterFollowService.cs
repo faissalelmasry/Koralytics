@@ -1,4 +1,4 @@
-﻿using Koralytics.Application.DTOs.Player;
+using Koralytics.Application.DTOs.Player;
 using Koralytics.Application.DTOs.Scouter;
 using Koralytics.Application.DTOs.ScouterDtos;
 using Koralytics.Domain.Entities.Player;
@@ -17,6 +17,7 @@ namespace Koralytics.Application.Interfaces.Scouter
         Task UnfollowPlayerAsync(int scouterId, int playerId);
         Task LogProfileViewAsync(int scouterId, int playerId);
         Task<PaginatedResult<PlayerCardDto>> GetFollowedPlayersAsync(int scouterId, int pageNumber = 1, int pageSize = 10, string? searchTerm = null);
+        Task<bool> IsFollowingAsync(int scouterId, int playerId);
         Task<PlayerProfileViewAnalyticsDto> GetProfileViewsAnalyticsAsync(int playerId);
       
     }

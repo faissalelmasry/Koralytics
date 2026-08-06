@@ -34,6 +34,9 @@ namespace Koralytics.Application.Services.Academy.AcademyTeamService
         /// <summary>Gets all age groups for a given academy.</summary>
         Task<IEnumerable<AgeGroupResponseDto>> GetAgeGroupsByAcademyAsync(int academyId);
 
+        /// <summary>Gets global age groups matching the supplied names.</summary>
+        Task<IEnumerable<AgeGroupResponseDto>> GetAgeGroupsByNamesAsync(IEnumerable<string> names);
+
         /// <summary>
         /// Assigns a player to a team by creating a PlayerTeam record.
         /// Validates that the player belongs to the same academy as the team.

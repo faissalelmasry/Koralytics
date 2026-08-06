@@ -2,11 +2,12 @@ import { Component, OnInit, inject, ChangeDetectionStrategy, ChangeDetectorRef }
 import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { forkJoin, of } from 'rxjs';
+import { forkJoin, of, take } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { TournamentService } from '../../../../../core/services/tournament/tournament.service';
 import { AcademyService } from '../../../../../core/services/academy/academy.service';
 import { AuthService } from '../../../../../core/services/auth/auth.service';
+import { User } from '../../../../../core/interfaces/user.model';
 import { MatchFormat, Tournament, TournamentStatus, TournamentStructure, CreateTournamentDto } from '../../../../../core/interfaces/tournament.models';
 
 import { CustomInputComponent } from '../../../../../shared/components/custom-input-component/custom-input-component';
@@ -51,7 +52,10 @@ export class TournamentManageComponent implements OnInit {
   teams: any[] = [];
   rounds: any[] = [];
   groups: any[] = [];
+  currentUser: User | null = null;
+  isSystemAdmin = false;
   availableAcademies: any[] = [];
+  allowedAgeGroupNames = ['U17', 'U15', 'First Team'];
   selectedStatus: TournamentStatus = TournamentStatus.Draft;
   selectedAcademyId: number | null = null;
   isLoading = false;
@@ -84,47 +88,108 @@ export class TournamentManageComponent implements OnInit {
 
   ngOnInit() {
     this.initForm();
-    this.loadAgeGroups();
     const id = this.route.snapshot.paramMap.get('id');
 
     if (id) {
       this.tournamentId = +id;
       this.loadManagementData();
+    } else {
+      this.initCurrentUserAndLoadData();
     }
   }
 
-  private loadAgeGroups() {
-    const user = this.authService.currentUser$;
-    user.subscribe(u => {
-      const academyId = u?.academyId || 1;
-      this.academyService.getAgeGroups(academyId).pipe(
-        catchError(() => of(null))
-      ).subscribe(response => {
-        const data = response?.data || response;
-        if (Array.isArray(data) && data.length > 0) {
-          this.ageGroupOptions = data.map((ag: any) => ({
-            value: ag.id,
-            label: ag.name
-          }));
-        } else {
-          this.setFallbackAgeGroups();
-        }
-        // Set default form value to first available age group
-        if (this.ageGroupOptions.length > 0) {
-          this.tournamentForm.get('ageGroupId')?.setValue(this.ageGroupOptions[0].value);
-        }
-        this.cdr.markForCheck();
-      });
+  private initCurrentUserAndLoadData() {
+    this.authService.currentUser$.pipe(take(1)).subscribe((user) => {
+      this.currentUser = user;
+      this.isSystemAdmin = user?.roles?.includes('SystemAdmin') ?? false;
+
+      if (this.isSystemAdmin) {
+        this.loadGlobalAgeGroups();
+      } else {
+        this.loadAgeGroups();
+      }
     });
   }
 
-  private setFallbackAgeGroups() {
-    // Fallback: use placeholder options when API is unavailable
-    this.ageGroupOptions = [
-      { value: 1, label: 'Under 15 (U15)' },
-      { value: 2, label: 'Under 18 (U18)' },
-      { value: 3, label: 'First Team' }
-    ];
+  private normalizeAgeGroupName(name: string | null | undefined): string {
+    if (!name) return '';
+    return name.trim().toLowerCase();
+  }
+
+  private formatAgeGroupLabel(name: string): string {
+    const normalized = this.normalizeAgeGroupName(name);
+    if (normalized === 'first team') return 'First Team';
+    return normalized.toUpperCase();
+  }
+
+  private dedupeAgeGroups(ageGroups: any[]): any[] {
+    const unique = new Map<string, any>();
+    const allowed = this.allowedAgeGroupNames.map(name => name.toLowerCase());
+
+    ageGroups.forEach((ag: any) => {
+      const normalizedName = this.normalizeAgeGroupName(ag.name);
+      if (!allowed.includes(normalizedName)) return;
+      if (!unique.has(normalizedName)) {
+        unique.set(normalizedName, ag);
+      }
+    });
+
+    return this.allowedAgeGroupNames
+      .map(name => unique.get(name.toLowerCase()))
+      .filter((ag): ag is any => !!ag);
+  }
+
+  private loadAgeGroups() {
+    const academyId = this.currentUser?.academyId;
+
+    if (!academyId) {
+      this.ageGroupOptions = [];
+      this.errorMessage = 'You must belong to an academy to select an age group.';
+      this.cdr.markForCheck();
+      return;
+    }
+
+    this.errorMessage = '';
+    this.academyService.getAgeGroups(academyId).pipe(
+      catchError(() => of(null))
+    ).subscribe(response => {
+      const data = response?.data || response;
+      const ageGroups = Array.isArray(data) ? this.dedupeAgeGroups(data) : [];
+
+      if (ageGroups.length > 0) {
+        this.ageGroupOptions = ageGroups.map((ag: any) => ({
+          value: ag.id,
+          label: this.formatAgeGroupLabel(ag.name)
+        }));
+        this.tournamentForm.get('ageGroupId')?.setValue(this.ageGroupOptions[0].value);
+      } else {
+        this.ageGroupOptions = [];
+        this.errorMessage = 'No eligible age groups are available for your academy. Please create U17, U15, or First Team age groups first.';
+      }
+      this.cdr.markForCheck();
+    });
+  }
+
+  private loadGlobalAgeGroups() {
+    this.errorMessage = '';
+    this.academyService.getAgeGroupsByNames(this.allowedAgeGroupNames).pipe(
+      catchError(() => of(null))
+    ).subscribe(response => {
+      const data = response?.data || response;
+      const ageGroups = Array.isArray(data) ? this.dedupeAgeGroups(data) : [];
+
+      if (ageGroups.length > 0) {
+        this.ageGroupOptions = ageGroups.map((ag: any) => ({
+          value: ag.id,
+          label: this.formatAgeGroupLabel(ag.name)
+        }));
+        this.tournamentForm.get('ageGroupId')?.setValue(this.ageGroupOptions[0].value);
+      } else {
+        this.ageGroupOptions = [];
+        this.errorMessage = 'No U17, U15, or First Team age groups are available. Create the required age groups in any academy first.';
+      }
+      this.cdr.markForCheck();
+    });
   }
 
   get isEditMode(): boolean {
@@ -155,7 +220,7 @@ export class TournamentManageComponent implements OnInit {
       name: ['', [Validators.required, Validators.minLength(3)]],
       format: [MatchFormat.ElevenSide, Validators.required],
       structure: [TournamentStructure.GroupAndKnockout, Validators.required],
-      ageGroupId: [1, Validators.required],
+      ageGroupId: [null as number | null, Validators.required],
       hasTwoLegs: [false],
       startDate: ['', Validators.required],
       endDate: ['', Validators.required]
@@ -171,11 +236,15 @@ export class TournamentManageComponent implements OnInit {
     return null;
   }
 
-  loadManagementData() {
+  loadManagementData(keepMessages = false, showLoading = true) {
     if (!this.tournamentId) return;
 
-    this.isLoading = true;
-    this.clearMessages();
+    if (showLoading) {
+      this.isLoading = true;
+    }
+    if (!keepMessages) {
+      this.clearMessages();
+    }
     this.cdr.markForCheck();
 
     forkJoin({
@@ -197,12 +266,7 @@ export class TournamentManageComponent implements OnInit {
 
         const academyPayload = responses.academies?.data || responses.academies;
         const academiesArray = academyPayload?.academies || academyPayload;
-        const academies = Array.isArray(academiesArray) && academiesArray.length > 0 ? academiesArray : [
-          { id: 1, name: 'Cairo Youth FC', city: 'Cairo' },
-          { id: 2, name: 'Pyramids Academy', city: 'Giza' },
-          { id: 3, name: 'Zamalek Stars', city: 'Giza' },
-          { id: 4, name: 'Al Ahly Youth', city: 'Cairo' }
-        ];
+        const academies = Array.isArray(academiesArray) ? academiesArray : [];
         this.availableAcademies = academies.map((academy: any) => ({
           value: academy.id,
           label: academy.city ? `${academy.name} - ${academy.city}` : academy.name
@@ -212,25 +276,11 @@ export class TournamentManageComponent implements OnInit {
         this.isLoading = false;
         this.cdr.markForCheck();
       },
-      error: () => {
-        this.tournament = {
-          id: this.tournamentId || 1,
-          name: 'Summer Champions Cup 2026',
-          format: MatchFormat.ElevenSide,
-          structure: TournamentStructure.GroupAndKnockout,
-          ageGroupName: 'U-17',
-          hasTwoLegs: false,
-          startDate: '2026-08-01',
-          endDate: '2026-08-15',
-          status: TournamentStatus.Registration
-        };
-        this.availableAcademies = [
-          { value: 1, label: 'Cairo Youth FC - Cairo' },
-          { value: 2, label: 'Pyramids Academy - Giza' },
-          { value: 3, label: 'Zamalek Stars - Giza' },
-          { value: 4, label: 'Al Ahly Youth - Cairo' }
-        ];
-        this.selectedAcademyId = 1;
+      error: (err) => {
+        this.tournament = null;
+        this.availableAcademies = [];
+        this.selectedAcademyId = null;
+        this.errorMessage = this.extractError(err, 'Unable to load tournament details.');
         this.isLoading = false;
         this.cdr.markForCheck();
       }
@@ -312,7 +362,7 @@ export class TournamentManageComponent implements OnInit {
 
   updateStatus() {
     if (!this.tournamentId) return;
-    this.runAction('status', () => this.tournamentService.updateStatus(this.tournamentId!, this.selectedStatus), 'Tournament status updated.');
+    this.runAction('status', () => this.tournamentService.updateStatus(this.tournamentId!, this.selectedStatus), 'Tournament status updated successfully.');
   }
 
   inviteSelectedAcademy() {
@@ -350,9 +400,11 @@ export class TournamentManageComponent implements OnInit {
 
     this.tournamentService.completeTournament(this.tournamentId).subscribe({
       next: () => {
-        this.successMessage = 'Tournament completed successfully.';
+        this.successMessage =
+          '🏆 Tournament finalized! The AI Wrap-Up Report is being generated in the background — ' +
+          'you will receive a notification and it will appear in the AI Insights tab automatically within moments.';
         this.activeAction = null;
-        this.loadManagementData();
+        this.loadManagementData(true, false);
       },
       error: (err) => {
         this.errorMessage = this.extractError(err, 'Unable to complete tournament. Make sure all fixtures are completed first.');
@@ -371,28 +423,10 @@ export class TournamentManageComponent implements OnInit {
       next: () => {
         this.successMessage = successMessage;
         this.activeAction = null;
-        this.loadManagementData();
+        this.loadManagementData(true, false);
       },
-      error: () => {
-        // Fallback state transitions for local mock testing mode
-        if (action === 'status') {
-          if (this.tournament) this.tournament.status = this.selectedStatus;
-          this.successMessage = `Tournament status updated to ${this.selectedStatus}.`;
-        } else if (action === 'invite') {
-          if (this.tournament) this.tournament.status = TournamentStatus.Registration;
-          const target = this.availableAcademies.find(a => a.value === this.selectedAcademyId);
-          const name = target ? target.label : 'Academy';
-          this.successMessage = `${name} invited and accepted invitation successfully (Mock Mode).`;
-        } else if (action === 'seeding') {
-          this.successMessage = 'Seeding generated for 4 accepted academies: #1 Cairo Youth FC, #2 Pyramids Academy, #3 Zamalek Stars, #4 Al Ahly Youth.';
-        } else if (action === 'draw') {
-          if (this.tournament) this.tournament.status = TournamentStatus.InProgress;
-          this.selectedStatus = TournamentStatus.InProgress;
-          this.successMessage = 'Draw & Fixtures generated successfully. Tournament is now In Progress!';
-        } else {
-          this.successMessage = successMessage;
-        }
-
+      error: (err: any) => {
+        this.errorMessage = this.extractError(err, 'Unable to complete tournament action.');
         this.activeAction = null;
         this.cdr.markForCheck();
       }

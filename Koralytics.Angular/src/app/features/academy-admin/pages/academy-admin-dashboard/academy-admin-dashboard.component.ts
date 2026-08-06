@@ -1,9 +1,10 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../../../core/services/auth/auth.service';
 import { AcademyService } from '../../../../../core/services/academy/academy.service';
+import { TournamentService } from '../../../../../core/services/tournament/tournament.service';
 import { ToastService } from '../../../../../core/services/Toast/toast';
 import { CustomInputComponent } from '../../../../../shared/components/custom-input-component/custom-input-component';
 import { CustomButtonComponent } from '../../../../../shared/components/custom-button/custom-button';
@@ -53,6 +54,8 @@ export class AcademyAdminDashboardComponent implements OnInit {
   private toast = inject(ToastService);
   private fb = inject(FormBuilder);
   private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
+  private tournamentService = inject(TournamentService);
 
   currentUser = this.authService.getCurrentUserValue();
 
@@ -61,12 +64,15 @@ export class AcademyAdminDashboardComponent implements OnInit {
   hasAcademy = false;
   academyDetails: AcademyResponseDto | null = null;
   totalMembersCount = 0;
+  playersCount = 0;
   adminsCount = 0;
   coachesCount = 0;
   locationsCount = 0;
   initials = '';
   activeTab = 'all';
   pendingRequest: any = null;
+  pendingTournamentInvitations: any[] = [];
+  isLoadingTournamentInvitations = false;
   rejectedRequest: any = null;
 
   requestForm = this.fb.nonNullable.group({
@@ -91,6 +97,7 @@ export class AcademyAdminDashboardComponent implements OnInit {
     if (this.currentUser?.academyId) {
       this.hasAcademy = true;
       this.loadAcademyData(this.currentUser.academyId);
+      this.loadTournamentInvitations(this.currentUser.academyId);
     } else {
       // Check if user has a pending request to create an academy
       this.academyService.getMyAcademyRequests().subscribe({
@@ -149,6 +156,7 @@ export class AcademyAdminDashboardComponent implements OnInit {
         if (res.isSuccess && res.data) {
           this.totalMembersCount = res.data.totalCount || res.data.items?.length || 0;
           this.coachesCount = res.data.items?.filter((m: any) => m.role === 'Coach').length || 0;
+          this.playersCount = res.data.items?.filter((m: any) => m.role === 'Player').length || 0;
         }
       }
     });
@@ -158,6 +166,35 @@ export class AcademyAdminDashboardComponent implements OnInit {
         if (res.isSuccess && res.data) {
           this.adminsCount = res.data.totalCount || res.data.items?.length || 0;
         }
+      }
+    });
+  }
+
+  loadTournamentInvitations(academyId: number) {
+    this.isLoadingTournamentInvitations = true;
+    this.tournamentService.getTournamentInvitationsForAcademy(academyId).subscribe({
+      next: (res) => {
+        this.isLoadingTournamentInvitations = false;
+        if (res.isSuccess && res.data) {
+          this.pendingTournamentInvitations = (res.data as any[]).filter(invite => invite.status === 'Invited');
+        }
+      },
+      error: () => {
+        this.isLoadingTournamentInvitations = false;
+      }
+    });
+  }
+
+  acceptTournamentInvitation(invite: any) {
+    if (!this.currentUser?.academyId) return;
+
+    this.tournamentService.acceptInvitation(invite.tournamentId, this.currentUser.academyId).subscribe({
+      next: () => {
+        this.toast.show('Tournament invitation accepted successfully.', 'success');
+        this.pendingTournamentInvitations = this.pendingTournamentInvitations.filter(i => i.tournamentTeamId !== invite.tournamentTeamId);
+      },
+      error: () => {
+        this.toast.show('Unable to accept tournament invitation. Please try again.', 'error');
       }
     });
   }

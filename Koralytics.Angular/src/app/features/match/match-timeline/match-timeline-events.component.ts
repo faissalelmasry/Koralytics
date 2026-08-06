@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, ChangeDetectorRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -6,11 +6,12 @@ import { MiniPlayerCardComponent } from '../mini-player-card/mini-player-card.co
 import { TimelineEvent } from '../match-timeline/match-timeline.types';
 import { MatchService } from '../../../../core/services/match/match.service';
 import { ToastService } from '../../../../core/services/Toast/toast';
+import { MarqueeIfOverflowDirective } from './marquee-if-overflow.directive';
 
 @Component({
   selector: 'app-match-timeline-events',
   standalone: true,
-  imports: [CommonModule, MiniPlayerCardComponent],
+  imports: [CommonModule, MiniPlayerCardComponent, MarqueeIfOverflowDirective],
   templateUrl: './match-timeline-events.component.html',
   styleUrls: ['./match-timeline-events.component.css']
 })
@@ -24,6 +25,31 @@ export class MatchTimelineEventsComponent {
   @Input() matchId!: number;
   @Input() canLogEvents: boolean = false;
   @Output() eventDisallowed = new EventEmitter<number>();
+
+  screenWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
+
+  @HostListener('window:resize')
+  onResize() {
+    this.screenWidth = window.innerWidth;
+  }
+
+  get cardSize(): 'xxs' | 'xs' {
+    if (this.screenWidth <= 768) return 'xxs';
+    return 'xs';
+  }
+
+  getInitials(name: string): string {
+    if (!name) return '';
+    const parts = name.trim().split(' ');
+    if (parts.length > 1) return (parts[0][0] + parts[1][0]).toUpperCase();
+    return parts[0][0].toUpperCase();
+  }
+
+  getAvatarColor(rating: number): string {
+    if (rating >= 80) return 'linear-gradient(135deg, #ff6a00, #ee0979)';
+    if (rating >= 70) return 'linear-gradient(135deg, #f7971e, #ffd200)';
+    return 'linear-gradient(135deg, #1a1f2e, #2a3347)';
+  }
 
   onPlayerClick(playerId: number): void {
     if (playerId) {

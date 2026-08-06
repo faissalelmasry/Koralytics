@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Koralytics.Application.DTOs.Player;
 using Koralytics.Application.DTOs.Scouter;
@@ -63,12 +63,21 @@ namespace Koralytics.Application.Services.Scouter.ScouterFollowService
                 throw new NotFoundException($"Player with ID {playerId} not found.");
             }
 
-            var alreadyFollowing = await _unitOfWork.Repository<ScouterFollow>()
-                .ExistsAsync(f => f.ScouterUserId == scouterId && f.PlayerId == playerId);
+            var existingFollow = await _unitOfWork.Repository<ScouterFollow>()
+                .FindAsync(f => f.ScouterUserId == scouterId && f.PlayerId == playerId);
 
-            if (alreadyFollowing)
+            if (existingFollow != null)
             {
-                _logger.LogInformation("Idempotency triggered: Scouter {ScouterId} already follows Player {PlayerId}. No action taken.", scouterId, playerId);
+                if (!existingFollow.IsDeleted)
+                {
+                    _logger.LogInformation("Idempotency triggered: Scouter {ScouterId} already follows Player {PlayerId}. No action taken.", scouterId, playerId);
+                    return;
+                }
+
+                existingFollow.IsDeleted = false;
+                existingFollow.FollowedAt = DateTime.UtcNow;
+                await _unitOfWork.SaveChangesAsync();
+                _logger.LogInformation("Successfully restored follow relationship for ScouterId: {ScouterId}, PlayerId: {PlayerId}", scouterId, playerId);
                 return;
             }
 
@@ -88,7 +97,7 @@ namespace Koralytics.Application.Services.Scouter.ScouterFollowService
         {
             _logger.LogInformation("Initiating UnfollowPlayer request. ScouterId: {ScouterId}, PlayerId: {PlayerId}", scouterId, playerId);
             var follow = await _unitOfWork.Repository<ScouterFollow>()
-                .FindAsync(f => f.ScouterUserId == scouterId && f.PlayerId == playerId);
+                .FindAsync(f => f.ScouterUserId == scouterId && f.PlayerId == playerId && !f.IsDeleted);
 
             if (follow != null)
             {
@@ -118,6 +127,13 @@ namespace Koralytics.Application.Services.Scouter.ScouterFollowService
                 throw new NotFoundException($"Player with ID {playerId} not found.");
 
             throw new NotFoundException($"Player with ID {playerId} is not followed by Scouter with ID {scouterId}.");
+        }
+
+        public async Task<bool> IsFollowingAsync(int scouterId, int playerId)
+        {
+            return await _unitOfWork.Repository<ScouterFollow>()
+                .GetQueryableAsNoTracking()
+                .AnyAsync(sf => sf.ScouterUserId == scouterId && sf.PlayerId == playerId && !sf.IsDeleted);
         }
 
         // TODO: Refactor to Redis or a fire-and-forget background worker (e.g., Hangfire/Channels) 

@@ -14,6 +14,9 @@ namespace Koralytics.Application.Interfaces.Tournament
         Task RegisterSquadAsync(int tournamentId, int teamId, List<int> playerIds);
         Task UpdateStatusAsync(int tournamentId, TournamentStatus status);
         Task<List<TournamentTeamDto>> GetTeamsAsync(int tournamentId);
+        Task<List<TournamentTeamDto>> GetInvitationsForAcademyAsync(int academyId);
         Task<List<int>> GetRegisteredPlayerIdsAsync(int tournamentId, int teamId);
+        Task SimulateTournamentAsync(int tournamentId);
+        Task SimulateThreeAcademiesTournamentAsync(int tournamentId);
     }
-}
+}

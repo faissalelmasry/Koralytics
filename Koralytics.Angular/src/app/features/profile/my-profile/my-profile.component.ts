@@ -4,11 +4,14 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ProfileService } from '../../../../core/services/profile/profile.service';
 import { ToastService } from '../../../../core/services/Toast/toast';
 import { ParentService, ParentPlayerJoinRequest, PlayerParent } from '../../../../core/services/parent/parent.service';
+import { AcademyService } from '../../../../core/services/academy/academy.service';
+import { AuthService } from '../../../../core/services/auth/auth.service';
 import {
   BaseUserProfileResponse,
   PlayerProfileResponse,
   ScouterProfileResponse,
   AcademyAdminProfileResponse,
+  CoachProfileResponse,
   PlayerPositionDto,
   UpdateProfileRequest
 } from '../../../../core/models/profile/profile.models';
@@ -42,10 +45,14 @@ export class MyProfileComponent implements OnInit {
   private profileService = inject(ProfileService);
   private toast = inject(ToastService);
   private parentService = inject(ParentService);
+  private academyService = inject(AcademyService);
+  public authService = inject(AuthService);
 
   profile: BaseUserProfileResponse | null = null;
   pendingParentRequests: ParentPlayerJoinRequest[] = [];
   linkedParents: PlayerParent[] = [];
+  pendingAcademyRequests: any[] = [];
+  isRespondingToAcademyRequest = false;
   isLoading = true;
   isEditing = false;
   isSaving = false;
@@ -123,9 +130,18 @@ export class MyProfileComponent implements OnInit {
         this.isLoading = false;
         if (res.isSuccess && res.data) {
           this.profile = res.data;
-          if (this.profile.role === 'Player') {
+          const roles = this.authService.getCurrentUserSync()?.roles || [];
+          const isPlayer = roles.includes('Player');
+          const isCoach = roles.includes('Coach');
+          const isAdmin = roles.includes('AcademyAdmin');
+          
+          if (isPlayer) {
             this.loadPendingParentRequests();
             this.loadLinkedParents();
+            this.loadPendingAcademyRequests();
+          } 
+          if (isCoach && !isAdmin) {
+            this.loadPendingAcademyRequests();
           }
         } else {
           this.toast.show(res.message || 'Failed to load profile', 'error');
@@ -155,6 +171,53 @@ export class MyProfileComponent implements OnInit {
         this.linkedParents = Array.isArray(data) ? data : [];
       },
       error: (err) => console.error('Failed to load linked parents', err)
+    });
+  }
+
+  loadPendingAcademyRequests(): void {
+    const roles = this.authService.getCurrentUserSync()?.roles || [];
+    const isAdmin = roles.includes('AcademyAdmin');
+
+    if (roles.includes('Player')) {
+      this.academyService.getMyPendingPlayerRequests().subscribe({
+        next: (res: any) => {
+          const data = res.data || res;
+          this.pendingAcademyRequests = Array.isArray(data) ? data : [];
+        },
+        error: (err) => console.error('Failed to load academy join requests', err)
+      });
+    } else if (roles.includes('Coach') && !isAdmin) {
+      this.academyService.getMyPendingCoachRequests().subscribe({
+        next: (res: any) => {
+          const data = res.data || res;
+          this.pendingAcademyRequests = Array.isArray(data) ? data : [];
+        },
+        error: (err) => console.error('Failed to load academy join requests', err)
+      });
+    }
+  }
+
+  respondToAcademyRequest(requestId: number, accept: boolean): void {
+    if (this.isRespondingToAcademyRequest) return;
+    const status = accept ? 2 : 3; // 2 = Accepted, 3 = Rejected
+    const roles = this.authService.getCurrentUserSync()?.roles || [];
+    this.isRespondingToAcademyRequest = true;
+
+    const respond$ = roles.includes('Coach') && !roles.includes('Player')
+      ? this.academyService.respondToCoachJoinRequest(requestId, { status })
+      : this.academyService.respondToPlayerJoinRequest(requestId, { status });
+
+    respond$.subscribe({
+      next: () => {
+        this.isRespondingToAcademyRequest = false;
+        this.pendingAcademyRequests = this.pendingAcademyRequests.filter(r => r.id !== requestId);
+        this.toast.show(accept ? 'Academy request accepted! Welcome aboard.' : 'Academy request declined.', 'success');
+      },
+      error: (err) => {
+        this.isRespondingToAcademyRequest = false;
+        console.error('Failed to respond to academy request', err);
+        this.toast.show('Failed to respond to academy join request.', 'error');
+      }
     });
   }
 
@@ -195,22 +258,28 @@ export class MyProfileComponent implements OnInit {
   }
 
   get initials(): string {
-    if (!this.profile) return 'U';
-    const f = (this.profile.firstName || '')[0] || '';
-    const l = (this.profile.lastName || '')[0] || '';
-    return (f + l).toUpperCase() || 'U';
+    if (!this.profile) return '';
+    return `${this.profile.firstName?.charAt(0) || ''}${this.profile.lastName?.charAt(0) || ''}`.toUpperCase();
+  }
+
+  hasRole(role: string): boolean {
+    return this.authService.getCurrentUserSync()?.roles?.includes(role) || false;
   }
 
   get asPlayer(): PlayerProfileResponse | null {
-    return this.profile?.role === 'Player' ? (this.profile as PlayerProfileResponse) : null;
+    return this.hasRole('Player') ? (this.profile as PlayerProfileResponse) : null;
+  }
+
+  get asCoach(): CoachProfileResponse | null {
+    return this.hasRole('Coach') ? (this.profile as CoachProfileResponse) : null;
   }
 
   get asScouter(): ScouterProfileResponse | null {
-    return this.profile?.role === 'Scouter' ? (this.profile as ScouterProfileResponse) : null;
+    return this.hasRole('Scouter') ? (this.profile as ScouterProfileResponse) : null;
   }
 
   get asAcademyAdmin(): AcademyAdminProfileResponse | null {
-    return this.profile?.role === 'AcademyAdmin' ? (this.profile as AcademyAdminProfileResponse) : null;
+    return this.hasRole('AcademyAdmin') ? (this.profile as AcademyAdminProfileResponse) : null;
   }
 
   get footLabel(): string {

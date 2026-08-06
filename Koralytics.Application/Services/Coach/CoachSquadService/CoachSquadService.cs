@@ -1,4 +1,4 @@
-﻿using Koralytics.Application.DTOs.Coach;
+using Koralytics.Application.DTOs.Coach;
 using Koralytics.Application.Interfaces;
 using Koralytics.Domain.Entities.Drill;
 using Koralytics.Domain.Entities.Player;
@@ -34,13 +34,19 @@ namespace Koralytics.Application.Services.Coach.CoachSquadService
             _logger.LogInformation(
                 "Coach {CoachId} requesting squad overview for team {TeamId}", coachId, teamId);
 
-            // 1. Verify the coach is assigned to this team
-            var coachTeam = await _unitOfWork.Repository<CoachTeamEntity>()
-                .FindAsync(ct => ct.CoachUserId == coachId && ct.TeamId == teamId && ct.RemovedAt == null);
+            // 1. Verify the coach is assigned to this team (only if the user is a coach)
+            var isCoach = await _unitOfWork.Repository<CoachEntity>()
+                .ExistsAsync(c => c.Id == coachId);
 
-            if (coachTeam is null)
-                throw new ForbiddenException(
-                    $"Coach {coachId} is not assigned to team {teamId} or has been removed.");
+            if (isCoach)
+            {
+                var coachTeam = await _unitOfWork.Repository<CoachTeamEntity>()
+                    .FindAsync(ct => ct.CoachUserId == coachId && ct.TeamId == teamId && ct.RemovedAt == null);
+
+                if (coachTeam is null)
+                    throw new ForbiddenException(
+                        $"Coach {coachId} is not assigned to team {teamId} or has been removed.");
+            }
 
             // 2. Load team info
             var team = await _unitOfWork.Repository<TeamEntity>()

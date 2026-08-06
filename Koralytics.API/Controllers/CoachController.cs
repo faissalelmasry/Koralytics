@@ -10,7 +10,7 @@ namespace Koralytics.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Coach,AcademyAdmin")]
+    [Authorize(Roles = "Coach,AcademyAdmin,SystemAdmin")]
     public class CoachController : ControllerBase
     {
         private readonly ICoachSquadService _coachSquadService;
@@ -45,7 +45,7 @@ namespace Koralytics.API.Controllers
         /// </summary>
         [HttpGet("teams/{teamId}/squad")]
         [HttpGet("{coachId}/teams/{teamId}/squad")]
-        [Authorize(Roles = "Coach,AcademyAdmin")]
+        [Authorize(Roles = "Coach,AcademyAdmin,SystemAdmin")]
         public async Task<IActionResult> GetSquad(int teamId, int? coachId = null)
         {
             var requesterId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);

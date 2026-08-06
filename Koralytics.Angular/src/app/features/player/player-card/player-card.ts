@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { PlayerCardModel } from '../../../../core/models/Player/player-card-model';
 import { PlayerCardService } from '../../../../core/services/player/player-card.service';
 import { TokenStorageService } from '../../../../core/services/auth/token-storage.service';
+import { MarqueeIfOverflowDirective } from '../../match/match-timeline/marquee-if-overflow.directive';
 
 @Component({
   selector: 'app-player-card',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, MarqueeIfOverflowDirective],
   templateUrl: './player-card.html',
   styleUrls: ['./player-card.css']
 })

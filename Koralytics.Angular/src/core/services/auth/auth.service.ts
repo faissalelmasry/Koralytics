@@ -20,6 +20,7 @@ import {
   RegisterScouterRequest,
   RegisterParentRequest,
   RegisterAcademyAdminRequest,
+  RegisterCoachAndAdminRequest,
   CompleteProfileAsPlayer,
   CompleteProfileAsCoach,
   CompleteProfileAsScouter,
@@ -134,6 +135,11 @@ export class AuthService {
   registerAcademyAdmin(request: RegisterAcademyAdminRequest): Observable<ApiResponse<AuthResponseDto>> {
     return this.handleRegistration(`${this.apiUrl}/Register/academy-admin`, request);
   }
+
+  registerCoachAndAdmin(request: RegisterCoachAndAdminRequest): Observable<ApiResponse<AuthResponseDto>> {
+    return this.handleRegistration(`${this.apiUrl}/Register/coach-and-admin`, request);
+  }
+
 
   private handleRegistration(url: string, request: any): Observable<ApiResponse<AuthResponseDto>> {
     return this.http.post<ApiResponse<AuthResponseDto>>(url, request).pipe(
@@ -252,4 +258,31 @@ export class AuthService {
   public getCurrentUserSync(): User | null {
     return this.currentUserSubject.value;
   }
+
+  public getRoleDashboardRoute(): string {
+    if (!this.isLoggedIn()) {
+      return '/auth/login';
+    }
+    const roles = this.getUserRoles();
+    if (roles.includes('SystemAdmin')) {
+      return '/system-admin/dashboard';
+    }
+    if (roles.includes('AcademyAdmin')) {
+      return '/academy-admin/dashboard';
+    }
+    if (roles.includes('Parent')) {
+      return '/parent/dashboard';
+    }
+    if (roles.includes('Player')) {
+      return '/player/profile';
+    }
+    if (roles.includes('Coach')) {
+      return '/coach/dashboard';
+    }
+    if (roles.includes('Scouter')) {
+      return '/scouter/dashboard';
+    }
+    return '/player/profile';
+  }
 }
+

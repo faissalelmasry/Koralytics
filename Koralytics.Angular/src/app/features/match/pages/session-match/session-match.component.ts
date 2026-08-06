@@ -14,6 +14,7 @@ import { LoadingSpinnerComponent } from '../../../../../shared/components/loadin
 import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
 import { NavbarComponent } from "../../../../../shared/components/navbar/navbar";
 import { Footer } from "../../../../../shared/components/footer/footer";
+import { formatToLocalISO } from '../../../../../core/utils/date.util';
 
 export interface PositionSlot {
   slotId: string;
@@ -736,7 +737,7 @@ export class SessionMatchComponent implements OnInit {
     const dto = {
       sessionId: this.sessionId,
       format: FORMAT_MAP_ENUM[this.selectedFormat] ?? 1,
-      matchDate: this.matchDate ? new Date(this.matchDate).toISOString() : new Date().toISOString(),
+      matchDate: formatToLocalISO(this.matchDate || new Date()),
       location: this.location || 'Training Pitch',
       formation: this.homeFormation,
       awayFormation: this.awayFormation,
