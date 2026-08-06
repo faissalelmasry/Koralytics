@@ -138,6 +138,12 @@ export const routes: Routes = [
       },
 
       { path: 'profile/me', loadComponent: () => import('./features/profile/my-profile/my-profile.component').then(m => m.MyProfileComponent) },
+      {
+        path: 'coach/profile',
+        loadComponent: () => import('./features/coach/pages/coach-profile/coach-profile.component').then(m => m.CoachProfileComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['Coach'] }
+      },
       { path: 'settings/change-password', loadComponent: () => import('./features/auth/pages/change-password/change-password.component').then(m => m.ChangePasswordComponent) },
       {
         path: 'coach/squad',
@@ -267,6 +273,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/coach/pages/coach-dashboard/coach-dashboard.component').then(m => m.CoachDashboardComponent),
     canActivate: [authGuard, roleGuard],
     data: { roles: ['Coach'] }
+  },
+  {
+    path: 'coach/profile/:coachId',
+    loadComponent: () => import('./features/coach/pages/coach-profile/coach-profile.component').then(m => m.CoachProfileComponent),
+    canActivate: [authGuard]
   },
   {
     path: 'scouter/dashboard',
