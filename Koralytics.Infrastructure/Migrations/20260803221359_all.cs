@@ -6,11 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Koralytics.Infrastructure.Migrations
 {
     /// <inheritdoc />
-<<<<<<<< HEAD:Koralytics.Infrastructure/Migrations/20260802145436_all.cs
     public partial class all : Migration
-========
-    public partial class init : Migration
->>>>>>>> 98b66f63312e5b567acf56d33a88c3165289deca:Koralytics.Infrastructure/Migrations/20260730100951_init.cs
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -421,6 +417,7 @@ namespace Koralytics.Infrastructure.Migrations
                     PlayStyleTag = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     ArchetypePlayerName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     ArchetypeText = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
+                    ArchetypeLastRevealedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     AvailabilityStatus = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>

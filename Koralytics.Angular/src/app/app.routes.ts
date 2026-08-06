@@ -316,7 +316,7 @@ export const routes: Routes = [
     loadComponent: () => import('./features/scouter/followed-player/followed-player').then(m => m.FollowedPlayersComponent),
     canActivate: [authGuard]
   },
-   {
+  {
     path: 'shortlist/:scouterId',
     loadComponent: () => import('./features/scouter/scouter-shortlist/scouter-shortlist').then(m => m.ScouterShortlistComponent),
     canActivate: [authGuard]

@@ -24,7 +24,7 @@
     </ng-container>
 
     <!-- System Admin Links (Desktop) -->
-    <ng-container *ngIf="isSystemAdmin">
+    <ng-container *ngIf="isSystemAdmin && !isAcademyAdmin">
       <a routerLink="/drills" routerLinkActive="active">drills</a>
     </ng-container>
   </nav>
