@@ -5,6 +5,8 @@
 
 .btn-wrap {
   position: relative;
+  width: 100%;
+  height: 100%;
 }
 
 /* ---------- Base Button & Heavy Transitions ---------- */
@@ -75,7 +77,11 @@
 .btn-text {
   position: relative;
   z-index: 2;
-  display: block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
   transition: transform 0.3s ease, opacity 0.3s ease;
 }
 

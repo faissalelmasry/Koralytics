@@ -11,6 +11,8 @@ import { CustomButtonComponent } from '../../../../../shared/components/custom-b
 import { CustomDateTimePicker } from '../../../../../shared/components/custom-date-time-picker/custom-date-time-picker';
 import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
 
+import { formatToLocalISO } from '../../../../../core/utils/date.util';
+
 @Component({
   selector: 'app-friendly-match-request',
   standalone: true,
@@ -202,7 +204,7 @@ export class FriendlyMatchRequestComponent implements OnInit {
       requesterTeamId: this.requesterTeamId,
       targetTeamId: this.targetTeamId,
       format: this.format,
-      proposedDate: new Date(this.proposedDate).toISOString(),
+      proposedDate: formatToLocalISO(this.proposedDate),
       location: this.location || undefined
     };
 

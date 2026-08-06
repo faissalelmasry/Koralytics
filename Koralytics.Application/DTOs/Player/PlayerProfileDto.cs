@@ -9,6 +9,8 @@ namespace Koralytics.Application.DTOs.Player
         public DateTime DateOfBirth { get; set; }
         public int Age { get; set; }
         public string? Nationality { get; set; }
+        public decimal? HeightCm { get; set; }
+        public decimal? WeightKg { get; set; }
         public string? ArchetypeText { get; set; }
         public AvailabilityStatus AvailabilityStatus { get; set; }
 

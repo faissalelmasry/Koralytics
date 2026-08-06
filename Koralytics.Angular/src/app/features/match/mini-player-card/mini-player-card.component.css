@@ -176,17 +176,29 @@
   padding: 3px 2px;
   z-index: 2;
   border: 1px solid rgba(255, 255, 255, 0.05);
+  overflow: hidden; /* clips the scrolling .player-fullname span */
 }
 
 .player-fullname {
+  display: block;
   font-size: 10px;
   font-weight: 800;
   color: #ffffff;
   text-transform: uppercase;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  /* NO overflow:hidden — parent .player-name-box clips instead.
+     This lets translateX scroll the text correctly. */
   letter-spacing: 0.3px;
+}
+
+.player-fullname.is-scrolling {
+  animation: miniNameMarquee 4s ease-in-out 0.5s infinite;
+}
+
+@keyframes miniNameMarquee {
+  0%,  15% { transform: translateX(0); }
+  60%, 85% { transform: translateX(var(--marquee-scroll, -16px)); }
+  100%     { transform: translateX(0); }
 }
 
 :host {
@@ -242,3 +254,96 @@
   font-family: 'Chakra Petch', sans-serif;
   line-height: 1;
 }
+
+/* ---- SIZE INTERNAL ADJUSTMENTS ---- */
+:host([data-size="xs"]) .mini-card-wrapper,
+:host([style*="width: 65px"]) .mini-card-wrapper,
+:host([style*="width:65px"]) .mini-card-wrapper {
+  padding: 4px;
+  border-radius: 10px;
+}
+
+:host([data-size="xs"]) .overall-rating,
+:host([style*="width: 65px"]) .overall-rating,
+:host([style*="width:65px"]) .overall-rating {
+  font-size: 15px;
+}
+
+:host([data-size="xs"]) .position-code,
+:host([style*="width: 65px"]) .position-code,
+:host([style*="width:65px"]) .position-code {
+  font-size: 7.5px;
+}
+
+:host([data-size="xs"]) .mini-logo,
+:host([style*="width: 65px"]) .mini-logo,
+:host([style*="width:65px"]) .mini-logo {
+  width: 12px;
+  height: 12px;
+}
+
+:host([data-size="xs"]) .player-avatar-box,
+:host([style*="width: 65px"]) .player-avatar-box,
+:host([style*="width:65px"]) .player-avatar-box {
+  width: 36px;
+  height: 36px;
+}
+
+:host([data-size="xs"]) .player-initials,
+:host([style*="width: 65px"]) .player-initials,
+:host([style*="width:65px"]) .player-initials {
+  font-size: 13px;
+}
+
+:host([data-size="xs"]) .player-fullname,
+:host([style*="width: 65px"]) .player-fullname,
+:host([style*="width:65px"]) .player-fullname {
+  font-size: 7.5px;
+}
+
+/* XXS SIZE (47x65px) */
+:host([data-size="xxs"]) .mini-card-wrapper,
+:host([style*="width: 47px"]) .mini-card-wrapper,
+:host([style*="width:47px"]) .mini-card-wrapper {
+  padding: 3px;
+  border-radius: 8px;
+}
+
+:host([data-size="xxs"]) .overall-rating,
+:host([style*="width: 47px"]) .overall-rating,
+:host([style*="width:47px"]) .overall-rating {
+  font-size: 12px;
+}
+
+:host([data-size="xxs"]) .position-code,
+:host([style*="width: 47px"]) .position-code,
+:host([style*="width:47px"]) .position-code {
+  font-size: 6.5px;
+}
+
+:host([data-size="xxs"]) .mini-logo,
+:host([style*="width: 47px"]) .mini-logo,
+:host([style*="width:47px"]) .mini-logo {
+  width: 10px;
+  height: 10px;
+}
+
+:host([data-size="xxs"]) .player-avatar-box,
+:host([style*="width: 47px"]) .player-avatar-box,
+:host([style*="width:47px"]) .player-avatar-box {
+  width: 26px;
+  height: 26px;
+}
+
+:host([data-size="xxs"]) .player-initials,
+:host([style*="width: 47px"]) .player-initials,
+:host([style*="width:47px"]) .player-initials {
+  font-size: 10px;
+}
+
+:host([data-size="xxs"]) .player-fullname,
+:host([style*="width: 47px"]) .player-fullname,
+:host([style*="width:47px"]) .player-fullname {
+  font-size: 6.5px;
+}
+

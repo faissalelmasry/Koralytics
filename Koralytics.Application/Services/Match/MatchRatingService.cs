@@ -218,7 +218,7 @@ namespace Koralytics.Application.Services.Match
                 .ToDictionary(g => g.Key, g => g.Count());
 
             var playerAssists = matchEvents
-                .Where(e => e.AssistPlayerId.HasValue)
+                .Where(e => IsGoalEvent(e.EventType) && e.AssistPlayerId.HasValue)
                 .GroupBy(e => e.AssistPlayerId!.Value)
                 .ToDictionary(g => g.Key, g => g.Count());
 

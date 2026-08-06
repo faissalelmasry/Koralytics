@@ -2,14 +2,39 @@ import { inject } from '@angular/core';
 import { Routes } from '@angular/router';
 import { AuthLayoutComponent } from './layouts/auth-layout/auth-layout.component';
 import { DashboardLayoutComponent } from './layouts/dashboard-layout/dashboard-layout.component';
+import { PublicLayoutComponent } from './layouts/public-layout/public-layout.component';
 import { authGuard } from '../core/guards/auth.guard';
 import { guestGuard } from '../core/guards/guest.guard';
 import { roleGuard } from '../core/guards/role.guard';
 import { AuthService } from '../core/services/auth/auth.service';
 
 export const routes: Routes = [
+  {
+    path: '',
+    pathMatch: 'full',
+    redirectTo: () => {
+      const auth = inject(AuthService);
+      return auth.isLoggedIn() ? auth.getRoleDashboardRoute() : 'auth/login';
+    }
+  },
   { path: 'confirm-email', redirectTo: 'auth/confirm-email' },
   { path: 'reset-password', redirectTo: 'auth/reset-password' },
+  { path: 'privacy', redirectTo: 'privacy-terms', pathMatch: 'full' },
+  { path: 'terms', redirectTo: 'privacy-terms', pathMatch: 'full' },
+
+  // Public Static Pages Routes
+  {
+    path: '',
+    component: PublicLayoutComponent,
+    children: [
+      { path: 'about', loadComponent: () => import('./features/static/about-us/about-us.component').then(m => m.AboutUsComponent) },
+      { path: 'features', loadComponent: () => import('./features/static/features-solutions/features-solutions.component').then(m => m.FeaturesSolutionsComponent) },
+      { path: 'pricing', loadComponent: () => import('./features/static/pricing/pricing.component').then(m => m.PricingComponent) },
+      { path: 'contact', loadComponent: () => import('./features/static/contact/contact.component').then(m => m.ContactComponent) },
+      { path: 'faq', loadComponent: () => import('./features/static/faq/faq.component').then(m => m.FaqComponent) },
+      { path: 'privacy-terms', loadComponent: () => import('./features/static/privacy-terms/privacy-terms.component').then(m => m.PrivacyTermsComponent) },
+    ]
+  },
 
   // Authentication Routes
   {
@@ -140,9 +165,14 @@ export const routes: Routes = [
       },
       {
         path: 'coach/highlights',
-        loadComponent: () => import('./features/coach/pages/player-highlights/player-highlights.component').then(m => m.PlayerHighlightsComponent),
+        redirectTo: 'player/highlights',
+        pathMatch: 'full'
+      },
+      {
+        path: 'player/highlights',
+        loadComponent: () => import('./features/player/player-highlights/player-highlights.component').then(m => m.PlayerHighlightsComponent),
         canActivate: [roleGuard],
-        data: { roles: ['Coach', 'Player'] }
+        data: { roles: ['Player'] }
       },
       {
         path: 'coach/match-requests',
@@ -324,7 +354,7 @@ export const routes: Routes = [
     loadComponent: () => import('./features/scouter/followed-player/followed-player').then(m => m.FollowedPlayersComponent),
     canActivate: [authGuard]
   },
-   {
+  {
     path: 'shortlist/:scouterId',
     loadComponent: () => import('./features/scouter/scouter-shortlist/scouter-shortlist').then(m => m.ScouterShortlistComponent),
     canActivate: [authGuard]
@@ -332,6 +362,16 @@ export const routes: Routes = [
   {
     path: 'search/:scouterId',
     loadComponent: () => import('./features/scouter/scoutersearch/scoutersearch').then(m => m.ScouterSearchComponent),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'scouter-ai',
+    loadComponent: () => import('./features/scouter/pages/scouter-ai-chat/scouter-ai-chat').then(m => m.ScouterAiChatComponent),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'scouter-ai/:scouterId',
+    loadComponent: () => import('./features/scouter/pages/scouter-ai-chat/scouter-ai-chat').then(m => m.ScouterAiChatComponent),
     canActivate: [authGuard]
   },
   { path: 'referenceshowcase', loadComponent: () => import('./reference-showcase').then(m => m.App) },

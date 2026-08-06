@@ -1,0 +1,58 @@
+:host {
+  --bg: #0a0c0f;
+  --card: #14171c;
+  --card-border: rgba(255, 255, 255, 0.07);
+  --text: #f2f3f5;
+  --text-dim: #8b909a;
+  --accent: #c8ff4d;
+  --accent-dim: rgba(200, 255, 77, 0.14);
+  --violet: #6a5cff;
+  --coral: #ff6a5c;
+  --cyan: #00f2fe;
+  --radius: 18px;
+
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: transparent;
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+  position: relative;
+}
+
+.public-main-content {
+  flex: 1;
+  width: 100%;
+  padding-top: 100px;
+  position: relative;
+  z-index: 2;
+  box-sizing: border-box;
+}
+
+.static-page-brand-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px 24px 10px;
+  text-align: center;
+}
+
+.static-brand-logo {
+  max-height: 75px;
+  width: auto;
+  object-fit: contain;
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 25px rgba(200, 255, 77, 0.25));
+  transition: transform 0.3s ease;
+}
+
+.static-brand-logo:hover {
+  transform: scale(1.03);
+}
+
+@media (max-width: 768px) {
+  .public-main-content {
+    padding-top: 80px;
+  }
+}

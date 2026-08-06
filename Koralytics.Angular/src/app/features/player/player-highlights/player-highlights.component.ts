@@ -3,11 +3,11 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { PlayerHighlightService } from '../../../../../core/services/player/player-highlight.service';
-import { AuthService } from '../../../../../core/services/auth/auth.service';
-import { ModalService } from '../../../../../core/services/Modal/modal';
-import { ToastService } from '../../../../../core/services/Toast/toast';
-import { PlayerHighlightDto } from '../../../../../core/interfaces/highlight.interfaces';
+import { PlayerHighlightService } from '../../../../core/services/player/player-highlight.service';
+import { AuthService } from '../../../../core/services/auth/auth.service';
+import { ModalService } from '../../../../core/services/Modal/modal';
+import { ToastService } from '../../../../core/services/Toast/toast';
+import { PlayerHighlightDto } from '../../../../core/interfaces/highlight.interfaces';
 import { NotificationService } from '@core/services/SignalR/notificationservice';
 
 @Component({
@@ -29,7 +29,7 @@ export class PlayerHighlightsComponent implements OnInit {
 
   // Resolved from auth context
   playerId = 0;
-  academyId = 0; // TODO: resolve from coach/player profile API or route params
+  academyId = 0;
 
   highlights = signal<PlayerHighlightDto[]>([]);
   loading = signal(false);
@@ -45,6 +45,7 @@ export class PlayerHighlightsComponent implements OnInit {
     const user = this.authService.getCurrentUserSync();
     if (user) {
       this.playerId = user.userId;
+      this.academyId = user.academyId ?? 0;
     }
     this.loadHighlights();
   }
@@ -86,7 +87,7 @@ export class PlayerHighlightsComponent implements OnInit {
     this.uploading.set(true);
     this.uploadError.set('');
     const targetPlayerId = this.playerId;
-    this.highlightService.uploadHighlight(this.playerId, this.academyId, this.selectedFile, this.highlightTitle)
+    this.highlightService.uploadHighlight(this.playerId, this.selectedFile, this.highlightTitle)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (newHighlight) => {

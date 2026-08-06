@@ -11,7 +11,7 @@ import { NavbarComponent } from '../../../../../shared/components/navbar/navbar'
   styleUrls: ['./drills-dashboard.component.css']
 })
 export class DrillsDashboardComponent {
-  constructor(private router: Router) {}
+  constructor(private router: Router) { }
 
   navigateToDrillTemplates(): void {
     this.router.navigate(['/drills']);

@@ -22,6 +22,9 @@
   --font-display: 'Oswald', 'Bebas Neue', sans-serif;
   --font-body:    'Inter', sans-serif;
 
+  --slot-w: 72px;
+  --slot-h: 98px;
+
   font-family: var(--font-body);
   color: var(--text-main);
 }
@@ -388,8 +391,8 @@
 }
 
 .pitch-slot {
-  width: 72px;
-  height: 98px;
+  width: var(--slot-w);
+  height: var(--slot-h);
   border: 2px dashed rgba(163, 230, 53, 0.35);
   border-radius: 12px;
   background: rgba(0, 0, 0, 0.35);
@@ -399,6 +402,7 @@
   position: relative;
   transition: border-color 0.25s, background-color 0.25s, transform 0.2s, box-shadow 0.25s;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .empty-slot-placeholder,
@@ -476,15 +480,6 @@
   line-height: 1;
 }
 
-.slotted-mini-card {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .btn-remove-slot {
   position: absolute;
   top: -6px;
@@ -548,7 +543,7 @@
 .bench-flex-container {
   display: flex;
   gap: 12px;
-  min-height: 105px;
+  min-height: calc(var(--slot-h) + 10px);
   overflow-x: auto;
   padding-bottom: 6px;
   align-items: center;
@@ -558,8 +553,9 @@
 .bench-flex-container::-webkit-scrollbar-thumb { background: rgba(163, 230, 53, 0.3); border-radius: 4px; }
 
 .bench-slot {
-  min-width: 72px;
-  height: 98px;
+  min-width: var(--slot-w);
+  width: var(--slot-w);
+  height: var(--slot-h);
   border: 1.5px dashed rgba(255, 255, 255, 0.15);
   border-radius: 12px;
   background: rgba(0, 0, 0, 0.25);
@@ -569,6 +565,7 @@
   position: relative;
   transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .bench-slot.can-accept {
@@ -594,28 +591,229 @@
   text-transform: uppercase;
 }
 
-/* ─── Responsive ──────────────────────────────────────────────── */
+/* ─── Mobile Tap Hint ─────────────────────────────────────────── */
+.mobile-tap-hint {
+  display: none;
+}
+
+/* ─── Responsive Media Queries ───────────────────────────────── */
 @media (max-width: 900px) {
+  :host {
+    --slot-w: 62px;
+    --slot-h: 84px;
+  }
+
+  .mobile-tap-hint {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(163, 230, 53, 0.08);
+    border: 1px dashed rgba(163, 230, 53, 0.35);
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-size: 0.78rem;
+    color: var(--color-green);
+    font-weight: 600;
+  }
+
+  .page-wrapper {
+    padding: 95px 14px 40px;
+    gap: 16px;
+  }
+
   .builder-workspace {
     grid-template-columns: 1fr;
+    gap: 16px;
   }
 
   .squad-sidebar-card {
-    max-height: 350px;
+    max-height: none;
+    padding: 14px;
   }
 
   .squad-scroll-list {
-    max-height: 280px;
+    max-height: 240px;
+    gap: 8px;
+  }
+
+  .squad-item-row {
+    padding: 6px 10px;
+  }
+
+  .tactical-pitch-container {
+    height: 520px;
+    padding: 10px;
+  }
+
+  .pitch-grass {
+    padding: 14px 8px;
   }
 
   .builder-header-card {
+    padding: 16px;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
     gap: 14px;
   }
 
   .header-actions {
     width: 100%;
-    justify-content: space-between;
+    display: flex;
+    gap: 12px;
+  }
+
+  .formation-selector-box {
+    flex: 1;
+  }
+}
+
+@media (max-width: 640px) {
+  :host {
+    --slot-w: 52px;
+    --slot-h: 72px;
+  }
+
+  .page-wrapper {
+    padding: 85px 10px 30px;
+  }
+
+  .builder-title {
+    font-size: 1.4rem;
+  }
+
+  .header-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .formation-selector-box {
+    width: 100%;
+  }
+
+  .header-actions app-button {
+    width: 100%;
+  }
+
+  .tactical-pitch-container {
+    height: 460px;
+    border-radius: 16px;
+    padding: 8px;
+  }
+
+  .pitch-grass {
+    padding: 10px 4px;
+    border-radius: 12px;
+  }
+
+  .pitch-center-circle {
+    width: 95px;
+    height: 95px;
+  }
+
+  .pitch-penalty-area-top,
+  .pitch-penalty-area-bottom {
+    width: 150px;
+    height: 50px;
+  }
+
+  .slot-role-code {
+    font-size: 0.72rem;
+  }
+
+  .slot-plus-icon {
+    font-size: 0.85rem;
+  }
+
+  .bench-section-card {
+    padding: 12px 14px;
+  }
+
+  .bench-flex-container {
+    gap: 8px;
+    min-height: 76px;
+  }
+
+  .squad-scroll-list {
+    max-height: 200px;
+  }
+
+  .pitch-slot app-mini-player-card,
+  .bench-slot app-mini-player-card {
+    transform: scale(0.82);
+    transform-origin: center center;
+  }
+}
+
+@media (max-width: 430px) {
+  :host {
+    --slot-w: 44px;
+    --slot-h: 60px;
+  }
+
+  .page-wrapper {
+    padding: 80px 8px 24px;
+  }
+
+  .tactical-pitch-container {
+    height: 410px;
+    padding: 6px;
+  }
+
+  .pitch-grass {
+    padding: 8px 2px;
+  }
+
+  .pitch-center-circle {
+    width: 75px;
+    height: 75px;
+  }
+
+  .pitch-penalty-area-top,
+  .pitch-penalty-area-bottom {
+    width: 120px;
+    height: 40px;
+  }
+
+  .slot-role-code {
+    font-size: 0.65rem;
+  }
+
+  .slot-plus-icon {
+    font-size: 0.75rem;
+  }
+
+  .btn-remove-slot {
+    width: 15px;
+    height: 15px;
+    font-size: 9px;
+    top: -4px;
+    right: -4px;
+  }
+
+  .pitch-slot app-mini-player-card,
+  .bench-slot app-mini-player-card {
+    transform: scale(0.68);
+    transform-origin: center center;
+  }
+}
+
+@media (max-width: 360px) {
+  :host {
+    --slot-w: 38px;
+    --slot-h: 52px;
+  }
+
+  .tactical-pitch-container {
+    height: 370px;
+  }
+
+  .slot-role-code {
+    font-size: 0.6rem;
+  }
+
+  .pitch-slot app-mini-player-card,
+  .bench-slot app-mini-player-card {
+    transform: scale(0.58);
+    transform-origin: center center;
   }
 }

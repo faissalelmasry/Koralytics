@@ -19,10 +19,12 @@ import { Subscription } from 'rxjs';
 import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner';
 import { NotificationService } from '@core/services/SignalR/notificationservice';
 
+import { RouterLink } from '@angular/router';
+
 @Component({
   selector: 'app-match-timeline',
   standalone: true,
-  imports: [CommonModule, MatchTimelineEventsComponent, MatchLineupsComponent, MatchRatingsComponent, MatchH2hComponent, MatchAnalysisComponent, EmptyStateComponent, CustomButtonComponent, ConfirmDialogComponent, LoadingSpinnerComponent],
+  imports: [CommonModule, RouterLink, MatchTimelineEventsComponent, MatchLineupsComponent, MatchRatingsComponent, MatchH2hComponent, MatchAnalysisComponent, EmptyStateComponent, CustomButtonComponent, ConfirmDialogComponent, LoadingSpinnerComponent],
   templateUrl: './match-timeline.component.html',
   styleUrls: ['./match-timeline.component.css']
 })
@@ -42,6 +44,8 @@ export class MatchTimelineComponent implements OnInit, OnDestroy, OnChanges {
     awayTeam: string;
     homeAcademy?: string;
     awayAcademy?: string;
+    homeAcademyId?: number | null;
+    awayAcademyId?: number | null;
     homeScore: number;
     awayScore: number;
     homePenaltyScore?: number | null;
@@ -194,7 +198,9 @@ export class MatchTimelineComponent implements OnInit, OnDestroy, OnChanges {
       id: e.id ?? e.Id ?? e.eventId ?? e.EventId ?? e.matchEventId ?? e.MatchEventId ?? 0,
       minute: e.minute ?? 0,
       eventType: this.formatEventType(e.eventType),
-      eventSubtext: e.assistPlayerName ? `Assist: ${e.assistPlayerName}` : '',
+      eventSubtext: e.assistPlayerName
+        ? (e.eventType === 'Substitution' || e.rawType === 'Substitution' ? `In: ${e.assistPlayerName}` : `Assist: ${e.assistPlayerName}`)
+        : '',
       rawType: e.eventType,
       side: e.isHomeSide === true ? 'home' :
         e.isHomeSide === false ? 'away' :
@@ -462,7 +468,9 @@ export class MatchTimelineComponent implements OnInit, OnDestroy, OnChanges {
         id: e.id ?? e.Id ?? e.eventId ?? e.EventId ?? e.matchEventId ?? e.MatchEventId ?? 0,
         minute: e.minute,
         eventType: this.formatEventType(e.eventType),
-        eventSubtext: e.assistPlayerName ? `Assist: ${e.assistPlayerName}` : '',
+        eventSubtext: e.assistPlayerName
+          ? (e.eventType === 'Substitution' || e.rawType === 'Substitution' ? `In: ${e.assistPlayerName}` : `Assist: ${e.assistPlayerName}`)
+          : '',
         rawType: e.eventType,
         side: e.isHomeSide === true ? 'home' :
           e.isHomeSide === false ? 'away' :
@@ -673,7 +681,11 @@ export class MatchTimelineComponent implements OnInit, OnDestroy, OnChanges {
       if (aId) {
         if (!playerEvents.has(aId)) playerEvents.set(aId, {});
         const evMap = playerEvents.get(aId)!;
-        evMap['Assist'] = (evMap['Assist'] || 0) + 1;
+        if (e.rawType === 'Substitution' || e.eventType === 'Substitution') {
+          evMap['Substitution'] = (evMap['Substitution'] || 0) + 1;
+        } else {
+          evMap['Assist'] = (evMap['Assist'] || 0) + 1;
+        }
       }
     }
 

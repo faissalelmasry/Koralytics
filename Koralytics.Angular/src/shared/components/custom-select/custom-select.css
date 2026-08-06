@@ -133,6 +133,13 @@
   box-sizing: border-box;
 }
 
+@media (max-width: 640px) {
+  .dropdown-panel {
+    min-width: 100%;
+    max-width: calc(100vw - 32px);
+  }
+}
+
 .dropdown-scroll-container {
   max-height: min(280px, 50vh);
   overflow-y: auto;

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" class="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Koralytics Demo</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class' }
+  </script>
+</head>
+
+<body
+  class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 min-h-screen transition-colors duration-300">
+
+  <!-- Navbar -->
+  <header class="border-b border-slate-200 dark:border-slate-800 p-4">
+    <div class="max-w-4xl mx-auto flex justify-between items-center">
+      <h1 class="text-xl font-bold text-emerald-600 dark:text-emerald-400">Koralytics</h1>
+
+      <div class="flex items-center gap-4">
+        <!-- Dark/Light Toggle -->
+        <button id="themeToggle" class="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 text-sm">
+          🌙 Mode
+        </button>
+
+        <!-- Language Switcher -->
+        <button id="langToggle" class="px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-sm">
+          العربية
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Card Content -->
+  <main class="max-w-4xl mx-auto p-6 mt-8">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm">
+
+      <div class="flex items-center gap-2 mb-4">
+        <span
+          class="px-2.5 py-1 text-xs font-semibold rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400">
+          Ecosystem
+        </span>
+      </div>
+
+      <!-- Notice the logical text-start class -->
+      <h2 id="title" class="text-2xl font-bold mb-2 text-start">
+        Connected Football Ecosystem
+      </h2>
+
+      <p id="desc" class="text-slate-600 dark:text-slate-400 mb-6 text-start">
+        Connecting managers, coaches, analysts, players, and parents in one multi-tenant network.
+      </p>
+
+      <button
+        class="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium">
+        <span id="btnText">Explore Platform</span>
+
+        <!-- rtl:rotate-180 automatically flips the arrow in Arabic -->
+        <svg class="w-4 h-4 rtl:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+        </svg>
+      </button>
+
+    </div>
+  </main>
+
+  <script>
+    // 1. Dictionary for text translations
+    const i18n = {
+      en: {
+        title: "Connected Football Ecosystem",
+        desc: "Connecting managers, coaches, analysts, players, and parents in one multi-tenant network.",
+        btnText: "Explore Platform",
+        langBtn: "العربية"
+      },
+      ar: {
+        title: "مجتمع كروي مترابط",
+        desc: "ربط المدراء والمدربين والمحللين واللاعبين وأولياء الأمور في شبكة موحدة متعددة الأكاديميات.",
+        btnText: "استكشف المنصة",
+        langBtn: "English"
+      }
+    };
+
+    let currentLang = 'en';
+
+    // 2. Dark Mode Handler
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      document.documentElement.classList.toggle('dark');
+    });
+
+    // 3. Language & RTL Handler
+    document.getElementById('langToggle').addEventListener('click', () => {
+      currentLang = currentLang === 'en' ? 'ar' : 'en';
+
+      // Update DOM direction & language
+      document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
+      document.documentElement.lang = currentLang;
+
+      // Swap UI texts
+      document.getElementById('title').textContent = i18n[currentLang].title;
+      document.getElementById('desc').textContent = i18n[currentLang].desc;
+      document.getElementById('btnText').textContent = i18n[currentLang].btnText;
+      document.getElementById('langToggle').textContent = i18n[currentLang].langBtn;
+    });
+  </script>
+
+</body>
+
+</html>
