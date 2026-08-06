@@ -3,11 +3,12 @@ import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../core/services/auth/auth.service';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog';
+import { LanguageSwitcherComponent } from '../language-switcher/language-switcher.component';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [RouterModule, CommonModule, ConfirmDialogComponent],
+  imports: [RouterModule, CommonModule, ConfirmDialogComponent, LanguageSwitcherComponent],
   templateUrl: './navbar.html',
   styleUrls: ['./navbar.css']
 })

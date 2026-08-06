@@ -39,6 +39,12 @@
   z-index: 5;
 }
 
+:host-context([dir="rtl"]) .floating-label {
+  left: auto;
+  right: 16px;
+  transform-origin: right top;
+}
+
 .floating-label.raised {
   transform: translateY(-22px) scale(0.8) !important;
 }
@@ -67,6 +73,10 @@
   height: 56px;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+}
+
+:host-context([dir="rtl"]) .phone-input-group {
+  flex-direction: row-reverse;
 }
 
 .phone-input-group.focused {
@@ -139,6 +149,11 @@
   padding: 14px 16px 0 16px;
   width: 100%;
   height: 100%;
+}
+
+:host-context([dir="rtl"]) .phone-digits-input {
+  text-align: right;
+  direction: ltr;
 }
 
 .phone-digits-input::placeholder {

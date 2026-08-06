@@ -6,11 +6,12 @@ import { AuthService } from '../../../../../core/services/auth/auth.service';
 import { ToastService } from '../../../../../core/services/Toast/toast';
 import { CustomInputComponent } from '../../../../../shared/components/custom-input-component/custom-input-component';
 import { CustomButtonComponent } from '../../../../../shared/components/custom-button/custom-button';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-forgot-password',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, CustomInputComponent, CustomButtonComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, CustomInputComponent, CustomButtonComponent, TranslatePipe],
   templateUrl: './forgot-password.component.html',
   styleUrls: ['./forgot-password.component.css']
 })
@@ -61,7 +62,7 @@ export class ForgotPasswordComponent {
 
   get emailError() {
     const control = this.form.get('email');
-    if (control?.touched && control?.invalid) return 'Valid email is required';
+    if (control?.touched && control?.invalid) return 'AUTH.ERRORS.INVALID_EMAIL';
     return '';
   }
 }

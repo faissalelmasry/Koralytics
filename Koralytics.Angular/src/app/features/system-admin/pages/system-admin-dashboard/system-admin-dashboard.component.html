@@ -4,7 +4,7 @@
   <!-- Loading State -->
   <div class="preloader-overlay" *ngIf="isLoading">
     <app-loading-spinner size="lg"></app-loading-spinner>
-    <p>Loading system admin dashboard...</p>
+    <p>{{ 'SYSTEM_ADMIN.DASHBOARD.LOADING' | translate }}</p>
   </div>
 
   <!-- Content Ready -->
@@ -13,10 +13,10 @@
 
       <!-- TACTICAL TAG & HEADER ROW -->
       <div>
-        <div class="tactical-tag" scrollReveal direction="bottom" [delay]="0">Platform Administration</div>
+        <div class="tactical-tag" scrollReveal direction="bottom" [delay]="0">{{ 'SYSTEM_ADMIN.DASHBOARD.TAG' | translate }}</div>
         <div class="header-row" scrollReveal direction="bottom" [delay]="40">
-          <h1 class="section-title">Core Platform Command</h1>
-          <span class="badge-count">v2.4 LTS · All Systems Operational</span>
+          <h1 class="section-title">{{ 'SYSTEM_ADMIN.DASHBOARD.TITLE' | translate }}</h1>
+          <span class="badge-count">{{ 'SYSTEM_ADMIN.DASHBOARD.BADGE' | translate }}</span>
         </div>
       </div>
 
@@ -25,33 +25,33 @@
         <div class="admin-identity">
           <div class="avatar-circle">{{ initials }}</div>
           <div>
-            <h1>{{ currentUser?.fullName || currentUser?.userName || 'System Administrator' }}</h1>
+            <h1>{{ currentUser?.fullName || currentUser?.userName || ('SYSTEM_ADMIN.DASHBOARD.DEFAULT_USER' | translate) }}</h1>
             <div class="meta-pills">
-              <span class="pill gold">System Admin</span>
+              <span class="pill gold">{{ 'SYSTEM_ADMIN.DASHBOARD.PILL_SYSTEM_ADMIN' | translate }}</span>
               <span class="pill" *ngIf="currentUser?.email">{{ currentUser?.email }}</span>
-              <span class="pill">Global Overseer</span>
+              <span class="pill">{{ 'SYSTEM_ADMIN.DASHBOARD.PILL_GLOBAL' | translate }}</span>
             </div>
           </div>
         </div>
 
         <div class="bio-quick-list">
           <div class="bio-item">
-            <span class="bio-lbl">Pending Review</span>
+            <span class="bio-lbl">{{ 'SYSTEM_ADMIN.DASHBOARD.BIO_PENDING' | translate }}</span>
             <span class="bio-val" [class.status-transferred]="pendingCount() > 0" [class.status-available]="pendingCount() === 0">
               {{ pendingCount() }}
             </span>
           </div>
           <div class="bio-item">
-            <span class="bio-lbl">Active Academies</span>
+            <span class="bio-lbl">{{ 'SYSTEM_ADMIN.DASHBOARD.BIO_ACADEMIES' | translate }}</span>
             <span class="bio-val">{{ totalAcademies() }}</span>
           </div>
           <div class="bio-item">
-            <span class="bio-lbl">Platform Users</span>
+            <span class="bio-lbl">{{ 'SYSTEM_ADMIN.DASHBOARD.BIO_USERS' | translate }}</span>
             <span class="bio-val">{{ totalUsers() }}</span>
           </div>
           <div class="bio-item">
-            <span class="bio-lbl">System Health</span>
-            <span class="bio-val status-available">Optimal</span>
+            <span class="bio-lbl">{{ 'SYSTEM_ADMIN.DASHBOARD.BIO_HEALTH' | translate }}</span>
+            <span class="bio-val status-available">{{ 'SYSTEM_ADMIN.DASHBOARD.BIO_HEALTH_VAL' | translate }}</span>
           </div>
         </div>
       </div>
@@ -59,27 +59,27 @@
       <!-- 2. KPI CARDS GRID -->
       <div class="kpi-grid" scrollReveal direction="bottom" [delay]="140">
         <div class="kpi-card clickable" [class.highlight]="pendingCount() > 0" (click)="setTab('pending')">
-          <div class="kpi-header">Pending Requests</div>
+          <div class="kpi-header">{{ 'SYSTEM_ADMIN.DASHBOARD.KPI_PENDING' | translate }}</div>
           <div class="kpi-value">{{ pendingCount() }}</div>
-          <div class="kpi-sub">{{ pendingCount() > 0 ? 'Requires immediate admin review' : 'All onboarding caught up' }}</div>
+          <div class="kpi-sub">{{ pendingCount() > 0 ? ('SYSTEM_ADMIN.DASHBOARD.KPI_PENDING_SUB_POS' | translate) : ('SYSTEM_ADMIN.DASHBOARD.KPI_PENDING_SUB_ZERO' | translate) }}</div>
         </div>
 
         <div class="kpi-card clickable" (click)="setTab('academies')">
-          <div class="kpi-header">Active Academies</div>
+          <div class="kpi-header">{{ 'SYSTEM_ADMIN.DASHBOARD.KPI_ACADEMIES' | translate }}</div>
           <div class="kpi-value">{{ totalAcademies() }}</div>
-          <div class="kpi-sub">Verified football academies</div>
+          <div class="kpi-sub">{{ 'SYSTEM_ADMIN.DASHBOARD.KPI_ACADEMIES_SUB' | translate }}</div>
         </div>
 
         <div class="kpi-card clickable" (click)="setTab('users')">
-          <div class="kpi-header">Platform Users</div>
+          <div class="kpi-header">{{ 'SYSTEM_ADMIN.DASHBOARD.KPI_USERS' | translate }}</div>
           <div class="kpi-value">{{ totalUsers() }}</div>
-          <div class="kpi-sub">Players, coaches & administrators</div>
+          <div class="kpi-sub">{{ 'SYSTEM_ADMIN.DASHBOARD.KPI_USERS_SUB' | translate }}</div>
         </div>
 
         <div class="kpi-card highlight">
-          <div class="kpi-header">API Security & Uptime</div>
+          <div class="kpi-header">{{ 'SYSTEM_ADMIN.DASHBOARD.KPI_SECURITY' | translate }}</div>
           <div class="kpi-value">99.9%</div>
-          <div class="kpi-sub">All microservices operational</div>
+          <div class="kpi-sub">{{ 'SYSTEM_ADMIN.DASHBOARD.KPI_SECURITY_SUB' | translate }}</div>
         </div>
       </div>
 
@@ -87,20 +87,20 @@
       <div class="filter-panel-card" scrollReveal direction="bottom" [delay]="200">
         <div class="tabs-bar">
           <button class="tab-btn" [class.active]="activeTab() === 'all'" (click)="setTab('all')">
-            <span>All Overview</span>
+            <span>{{ 'SYSTEM_ADMIN.DASHBOARD.TAB_ALL' | translate }}</span>
           </button>
           <button class="tab-btn" [class.active]="activeTab() === 'pending'" (click)="setTab('pending')">
-            <span>Pending Requests</span>
+            <span>{{ 'SYSTEM_ADMIN.DASHBOARD.TAB_PENDING' | translate }}</span>
             <span class="tab-badge" *ngIf="pendingCount() > 0">{{ pendingCount() }}</span>
           </button>
           <button class="tab-btn" [class.active]="activeTab() === 'academies'" (click)="setTab('academies')">
-            <span>Active Academies</span>
+            <span>{{ 'SYSTEM_ADMIN.DASHBOARD.TAB_ACADEMIES' | translate }}</span>
           </button>
           <button class="tab-btn" [class.active]="activeTab() === 'badges'" (click)="setTab('badges')">
-            <span>Platform Badges</span>
+            <span>{{ 'SYSTEM_ADMIN.DASHBOARD.TAB_BADGES' | translate }}</span>
           </button>
           <button class="tab-btn" [class.active]="activeTab() === 'users'" (click)="setTab('users')">
-            <span>User Management</span>
+            <span>{{ 'SYSTEM_ADMIN.DASHBOARD.TAB_USERS' | translate }}</span>
           </button>
         </div>
       </div>
@@ -110,12 +110,9 @@
         <!-- 01 / ACADEMY ONBOARDING REQUESTS -->
         <ng-container *ngIf="activeTab() === 'all' || activeTab() === 'pending'">
           <div class="group-label" scrollReveal direction="bottom" [delay]="100">
-            01 / Academy Onboarding Requests
+            {{ 'SYSTEM_ADMIN.DASHBOARD.SECTION_PENDING' | translate }}
           </div>
           <app-pending-requests-section
-            scrollReveal
-            direction="bottom"
-            [delay]="150"
             (requestsChanged)="refreshPendingCount()">
           </app-pending-requests-section>
         </ng-container>
@@ -123,36 +120,27 @@
         <!-- 02 / REGISTERED ACADEMIES DIRECTORY -->
         <ng-container *ngIf="activeTab() === 'all' || activeTab() === 'academies'">
           <div class="group-label" scrollReveal direction="bottom" [delay]="100">
-            02 / Registered Academies Directory
+            {{ 'SYSTEM_ADMIN.DASHBOARD.SECTION_ACADEMIES' | translate }}
           </div>
-          <app-active-academies-section
-            scrollReveal
-            direction="bottom"
-            [delay]="150">
+          <app-active-academies-section>
           </app-active-academies-section>
         </ng-container>
 
         <!-- 03 / GLOBAL BADGES & ACHIEVEMENTS -->
         <ng-container *ngIf="activeTab() === 'all' || activeTab() === 'badges'">
           <div class="group-label" scrollReveal direction="bottom" [delay]="100">
-            03 / Global Badges & Achievements
+            {{ 'SYSTEM_ADMIN.DASHBOARD.SECTION_BADGES' | translate }}
           </div>
-          <app-manage-badges-section
-            scrollReveal
-            direction="bottom"
-            [delay]="150">
+          <app-manage-badges-section>
           </app-manage-badges-section>
         </ng-container>
 
         <!-- 04 / PLATFORM USER MANAGEMENT -->
         <ng-container *ngIf="activeTab() === 'all' || activeTab() === 'users'">
           <div class="group-label" scrollReveal direction="bottom" [delay]="100">
-            04 / Platform User Management
+            {{ 'SYSTEM_ADMIN.DASHBOARD.SECTION_USERS' | translate }}
           </div>
-          <app-manage-users-section
-            scrollReveal
-            direction="bottom"
-            [delay]="150">
+          <app-manage-users-section>
           </app-manage-users-section>
         </ng-container>
       </div>

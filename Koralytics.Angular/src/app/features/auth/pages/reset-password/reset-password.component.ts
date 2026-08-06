@@ -7,11 +7,12 @@ import { ToastService } from '../../../../../core/services/Toast/toast';
 import { CustomInputComponent } from '../../../../../shared/components/custom-input-component/custom-input-component';
 import { CustomButtonComponent } from '../../../../../shared/components/custom-button/custom-button';
 import { PasswordStrengthComponent } from '../../../../../shared/components/password-strength/password-strength.component';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-reset-password',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, CustomInputComponent, CustomButtonComponent, PasswordStrengthComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, CustomInputComponent, CustomButtonComponent, PasswordStrengthComponent, TranslatePipe],
   templateUrl: './reset-password.component.html',
   styleUrls: ['./reset-password.component.css']
 })
@@ -90,11 +91,11 @@ export class ResetPasswordComponent implements OnInit {
   get passwordError() {
     const control = this.form.get('newPassword');
     if (control?.touched && control?.invalid) {
-      if (control.errors?.['required']) return 'New password is required';
-      if (control.errors?.['pattern']) return 'Password must have upper, lower, number, and special character';
-      if (control.errors?.['minlength']) return 'Minimum 8 characters';
-      if (control.errors?.['maxlength']) return 'Too long';
-      return 'Invalid password';
+      if (control.errors?.['required']) return 'AUTH.ERRORS.PASSWORD_REQUIRED';
+      if (control.errors?.['pattern']) return 'AUTH.ERRORS.PASSWORD_PATTERN';
+      if (control.errors?.['minlength']) return 'AUTH.ERRORS.MIN_LENGTH_8';
+      if (control.errors?.['maxlength']) return 'AUTH.ERRORS.MAX_LENGTH';
+      return 'AUTH.ERRORS.INVALID_PASSWORD';
     }
     return '';
   }

@@ -1,8 +1,8 @@
-<div class="section-container fade-in">
+<div class="section-container fade-in" scrollReveal direction="bottom" [delay]="150">
   <div class="section-header">
     <div class="header-content">
-      <h3>Active Academies Directory</h3>
-      <p class="subtitle">Browse all registered academies, inspect teams, staff, locations, badges, and subscription statuses</p>
+      <h3>{{ 'SYSTEM_ADMIN.ACTIVE_ACADEMIES.TITLE' | translate }}</h3>
+      <p class="subtitle">{{ 'SYSTEM_ADMIN.ACTIVE_ACADEMIES.SUBTITLE' | translate }}</p>
     </div>
 
     <div class="cyber-search-bar">
@@ -15,21 +15,21 @@
           type="text" 
           [(ngModel)]="searchQuery" 
           (keyup.enter)="onSearch()" 
-          placeholder="Search academies by name, ID or owner..." 
+          [placeholder]="'SYSTEM_ADMIN.ACTIVE_ACADEMIES.SEARCH_PLACEHOLDER' | translate" 
           class="cyber-input" />
-        <button *ngIf="searchQuery" class="clear-btn" (click)="searchQuery = ''; onSearch()" title="Clear">
+        <button *ngIf="searchQuery" class="clear-btn" (click)="searchQuery = ''; onSearch()" [title]="'SYSTEM_ADMIN.ACTIVE_ACADEMIES.BTN_CLEAR' | translate">
           &times;
         </button>
       </div>
       <button class="btn-search-cyber" (click)="onSearch()">
-        <span>Search</span>
+        <span>{{ 'SYSTEM_ADMIN.ACTIVE_ACADEMIES.BTN_SEARCH' | translate }}</span>
       </button>
     </div>
   </div>
 
   <div class="loading-state" *ngIf="isLoading">
     <app-loading-spinner size="lg"></app-loading-spinner>
-    <p>Loading academies...</p>
+    <p>{{ 'SYSTEM_ADMIN.ACTIVE_ACADEMIES.LOADING' | translate }}</p>
   </div>
 
   <!-- Academies List Table with Expandable Rows -->
@@ -38,11 +38,11 @@
       <thead>
         <tr>
           <th style="width: 40px;"></th>
-          <th>Academy Name</th>
-          <th>Founded</th>
-          <th>Owner / Admin</th>
-          <th>Status</th>
-          <th class="text-right">Actions</th>
+          <th>{{ 'SYSTEM_ADMIN.ACTIVE_ACADEMIES.TH_ACADEMY_NAME' | translate }}</th>
+          <th>{{ 'SYSTEM_ADMIN.ACTIVE_ACADEMIES.TH_FOUNDED' | translate }}</th>
+          <th>{{ 'SYSTEM_ADMIN.ACTIVE_ACADEMIES.TH_OWNER' | translate }}</th>
+          <th>{{ 'SYSTEM_ADMIN.ACTIVE_ACADEMIES.TH_STATUS' | translate }}</th>
+          <th class="text-right">{{ 'SYSTEM_ADMIN.ACTIVE_ACADEMIES.TH_ACTIONS' | translate }}</th>
         </tr>
       </thead>
       <tbody *ngFor="let acad of academies">
@@ -60,14 +60,14 @@
               </div>
             </div>
           </td>
-          <td><span class="cell-text">{{ acad.foundedDate | date:'mediumDate' }}</span></td>
+          <td><span class="cell-text">{{ (acad.foundedAt || acad.createdAt || acad.foundedDate) | localizedDate:'mediumDate' }}</span></td>
           <td>
             <span class="cell-text">{{ acad.adminFullName || acad.adminEmail || 'Owner' }}</span>
           </td>
           <td (click)="$event.stopPropagation()">
             <div class="status-cell">
               <span class="status-badge" [ngClass]="getStatusClass(acad.status)">
-                {{ getStatusLabel(acad.status) }}
+                {{ 'SYSTEM_ADMIN.ACTIVE_ACADEMIES.STATUS_' + getStatusLabel(acad.status).toUpperCase() | translate }}
               </span>
             </div>
           </td>
@@ -77,7 +77,7 @@
               <button 
                 class="action-icon-btn profile-btn" 
                 (click)="viewAcademyProfile(acad.id)" 
-                title="View Academy Public Profile">
+                [title]="'SYSTEM_ADMIN.ACTIVE_ACADEMIES.TOOLTIP_PROFILE' | translate">
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
                   <polyline points="15 3 21 3 21 9"></polyline>
@@ -88,7 +88,7 @@
               <button 
                 class="action-icon-btn status-btn" 
                 (click)="openStatusModal(acad)" 
-                title="Manage Operational Status">
+                [title]="'SYSTEM_ADMIN.ACTIVE_ACADEMIES.TOOLTIP_STATUS' | translate">
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
                 </svg>
@@ -98,7 +98,7 @@
                 class="action-icon-btn" 
                 [class.active]="expandedAcademyId() === acad.id"
                 (click)="toggleExpand(acad.id)" 
-                [title]="expandedAcademyId() === acad.id ? 'Collapse Details' : 'Inspect Academy Details'">
+                [title]="expandedAcademyId() === acad.id ? ('SYSTEM_ADMIN.ACTIVE_ACADEMIES.TOOLTIP_COLLAPSE' | translate) : ('SYSTEM_ADMIN.ACTIVE_ACADEMIES.TOOLTIP_INSPECT' | translate)">
                 <svg *ngIf="expandedAcademyId() !== acad.id" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                   <circle cx="12" cy="12" r="3"></circle>
@@ -135,8 +135,8 @@
         <path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"></path>
       </svg>
     </div>
-    <h4>No Academies Found</h4>
-    <p>We couldn't find any academies matching your criteria.</p>
+    <h4>{{ 'SYSTEM_ADMIN.ACTIVE_ACADEMIES.EMPTY_TITLE' | translate }}</h4>
+    <p>{{ 'SYSTEM_ADMIN.ACTIVE_ACADEMIES.EMPTY_DESC' | translate }}</p>
   </div>
 
   <!-- Pagination Controls -->
@@ -154,7 +154,7 @@
 <div class="modal-backdrop-cyber" *ngIf="showStatusModal" (click)="closeStatusModal()">
   <div class="cyber-modal-card status-modal fade-in" (click)="$event.stopPropagation()">
     <div class="tactical-tag">
-      <span>02 // SYSTEM STATUS CONTROL</span>
+      <span>{{ 'SYSTEM_ADMIN.ACTIVE_ACADEMIES.MODAL_STATUS_TAG' | translate }}</span>
     </div>
 
     <div class="modal-header-cyber">
@@ -166,8 +166,8 @@
           </svg>
         </div>
         <div>
-          <h4>MANAGE OPERATIONAL STATUS</h4>
-          <p class="modal-subtitle">Configure network visibility for <strong style="color: #00e5ff;">{{ selectedAcademyForStatus?.name }}</strong></p>
+          <h4>{{ 'SYSTEM_ADMIN.ACTIVE_ACADEMIES.MODAL_STATUS_TITLE' | translate }}</h4>
+          <p class="modal-subtitle">{{ 'SYSTEM_ADMIN.ACTIVE_ACADEMIES.MODAL_STATUS_SUBTITLE' | translate }} <strong style="color: #00e5ff;">{{ selectedAcademyForStatus?.name }}</strong></p>
         </div>
       </div>
       <button class="btn-close-cyber" (click)="closeStatusModal()" title="Close Modal">&times;</button>
@@ -187,8 +187,8 @@
             </svg>
           </div>
           <div class="status-card-content">
-            <h6>ACTIVE</h6>
-            <p>Academy is fully operational and visible across Koralytics.</p>
+            <h6>{{ 'SYSTEM_ADMIN.ACTIVE_ACADEMIES.STATUS_ACTIVE_TITLE' | translate }}</h6>
+            <p>{{ 'SYSTEM_ADMIN.ACTIVE_ACADEMIES.STATUS_ACTIVE_DESC' | translate }}</p>
           </div>
         </div>
 
@@ -204,8 +204,8 @@
             </svg>
           </div>
           <div class="status-card-content">
-            <h6>SUSPENDED</h6>
-            <p>Temporarily restrict platform access while under review or payment grace.</p>
+            <h6>{{ 'SYSTEM_ADMIN.ACTIVE_ACADEMIES.STATUS_SUSPENDED_TITLE' | translate }}</h6>
+            <p>{{ 'SYSTEM_ADMIN.ACTIVE_ACADEMIES.STATUS_SUSPENDED_DESC' | translate }}</p>
           </div>
         </div>
 
@@ -221,21 +221,22 @@
             </svg>
           </div>
           <div class="status-card-content">
-            <h6>INACTIVE</h6>
-            <p>Deactivate this academy account and hide its public directory listing.</p>
+            <h6>{{ 'SYSTEM_ADMIN.ACTIVE_ACADEMIES.STATUS_INACTIVE_TITLE' | translate }}</h6>
+            <p>{{ 'SYSTEM_ADMIN.ACTIVE_ACADEMIES.STATUS_INACTIVE_DESC' | translate }}</p>
           </div>
         </div>
       </div>
     </div>
 
     <div class="modal-footer-cyber">
-      <button type="button" class="btn-cyber-cancel" (click)="closeStatusModal()">CANCEL</button>
+      <button type="button" class="btn-cyber-cancel" (click)="closeStatusModal()">{{ 'SYSTEM_ADMIN.ACTIVE_ACADEMIES.BTN_CANCEL' | translate }}</button>
       <button type="button" class="btn-cyber-confirm save-btn" (click)="onSaveStatus()" [disabled]="isUpdatingStatus">
         <svg *ngIf="!isUpdatingStatus" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="20 6 9 17 4 12"></polyline>
         </svg>
-        <span>{{ isUpdatingStatus ? 'UPDATING STATUS...' : 'SAVE CHANGES' }}</span>
+        <span>{{ isUpdatingStatus ? ('SYSTEM_ADMIN.ACTIVE_ACADEMIES.BTN_SAVING' | translate) : ('SYSTEM_ADMIN.ACTIVE_ACADEMIES.BTN_SAVE' | translate) }}</span>
       </button>
     </div>
   </div>
 </div>
+

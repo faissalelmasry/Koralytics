@@ -9,6 +9,9 @@ import { LoadingSpinnerComponent } from '../../../../../shared/components/loadin
 import { CustomSelect, SelectOption } from '../../../../../shared/components/custom-select/custom-select';
 import { Pagination } from '../../../../../shared/components/pagination/pagination';
 import { ConfirmDialogComponent } from '../../../../../shared/components/confirm-dialog/confirm-dialog';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { LocalizedDatePipe } from '../../../../../shared/pipes/localized-date.pipe';
+import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
 
 @Component({
   selector: 'app-manage-users-section',
@@ -21,7 +24,10 @@ import { ConfirmDialogComponent } from '../../../../../shared/components/confirm
     LoadingSpinnerComponent,
     CustomSelect,
     Pagination,
-    ConfirmDialogComponent
+    ConfirmDialogComponent,
+    TranslatePipe,
+    LocalizedDatePipe,
+    ScrollRevealDirective
   ],
   templateUrl: './manage-users-section.html',
   styleUrls: ['./manage-users-section.css']
@@ -29,6 +35,7 @@ import { ConfirmDialogComponent } from '../../../../../shared/components/confirm
 export class ManageUsersSectionComponent implements OnInit {
   private systemAdminService = inject(SystemAdminService);
   private toast = inject(ToastService);
+  private translate = inject(TranslateService);
   private fb = inject(FormBuilder);
   private router = inject(Router);
 
@@ -62,16 +69,16 @@ export class ManageUsersSectionComponent implements OnInit {
 
   get roleOptions(): SelectOption[] {
     return [
-      { label: 'All Roles', value: 'All' },
-      ...this.availableRoles.map(r => ({ label: r, value: r }))
+      { label: 'SYSTEM_ADMIN.MANAGE_USERS.ROLE_ALL', value: 'All' },
+      ...this.availableRoles.map(r => ({ label: `SYSTEM_ADMIN.MANAGE_USERS.ROLE_${r.toUpperCase()}`, value: r }))
     ];
   }
 
   get statusOptions(): SelectOption[] {
     return [
-      { label: 'All Status', value: 'All' },
-      { label: 'Active Only', value: 'false' },
-      { label: 'Deactivated Only', value: 'true' }
+      { label: 'SYSTEM_ADMIN.MANAGE_USERS.STATUS_ALL', value: 'All' },
+      { label: 'SYSTEM_ADMIN.MANAGE_USERS.STATUS_ACTIVE', value: 'false' },
+      { label: 'SYSTEM_ADMIN.MANAGE_USERS.STATUS_DEACTIVATED', value: 'true' }
     ];
   }
 
@@ -168,8 +175,15 @@ export class ManageUsersSectionComponent implements OnInit {
     this.userToToggle = user;
     const newStatus = !user.isDeleted;
     this.confirmDialogActionName = newStatus ? 'deactivate' : 'activate';
-    this.confirmDialogTitle = `${newStatus ? 'Deactivate' : 'Activate'} User Account`;
-    this.confirmDialogMessage = `Are you sure you want to ${this.confirmDialogActionName} the account for ${user.fullName || user.email}?`;
+    
+    this.confirmDialogTitle = newStatus 
+      ? this.translate.instant('SYSTEM_ADMIN.MANAGE_USERS.MODAL_DEACTIVATE_TITLE')
+      : this.translate.instant('SYSTEM_ADMIN.MANAGE_USERS.MODAL_ACTIVATE_TITLE');
+      
+    this.confirmDialogMessage = newStatus
+      ? this.translate.instant('SYSTEM_ADMIN.MANAGE_USERS.MODAL_DEACTIVATE_MSG', { user: user.fullName || user.email })
+      : this.translate.instant('SYSTEM_ADMIN.MANAGE_USERS.MODAL_ACTIVATE_MSG', { user: user.fullName || user.email });
+      
     this.isConfirmDialogOpen = true;
   }
 
@@ -187,14 +201,17 @@ export class ManageUsersSectionComponent implements OnInit {
     this.systemAdminService.toggleUserStatus(user.id, newStatus).subscribe({
       next: (res) => {
         if (res.isSuccess || res.statusCode === 200) {
-          this.toast.show(`User ${newStatus ? 'deactivated' : 'activated'} successfully`, 'success');
+          const successMsg = newStatus 
+            ? this.translate.instant('SYSTEM_ADMIN.MANAGE_USERS.TOAST_DEACTIVATE_SUCCESS')
+            : this.translate.instant('SYSTEM_ADMIN.MANAGE_USERS.TOAST_ACTIVATE_SUCCESS');
+          this.toast.show(successMsg, 'success');
           this.loadUsers();
         } else {
-          this.toast.show(res.message || 'Error updating status', 'error');
+          this.toast.show(res.message || this.translate.instant('SYSTEM_ADMIN.MANAGE_USERS.TOAST_UPDATE_ERROR'), 'error');
         }
       },
       error: (err) => {
-        this.toast.show(err.error?.message || 'Error updating status', 'error');
+        this.toast.show(err.error?.message || this.translate.instant('SYSTEM_ADMIN.MANAGE_USERS.TOAST_UPDATE_ERROR'), 'error');
       }
     });
   }

@@ -2,7 +2,7 @@
   
   <!-- Info Status Text -->
   <span class="pagination-meta">
-    showing page <span class="highlight">{{ currentPage }}</span> of {{ totalPages }}
+    {{ 'COMMON.PAGINATION.SHOWING_PAGE' | translate }} <span class="highlight">{{ currentPage }}</span> {{ 'COMMON.PAGINATION.OF' | translate }} {{ totalPages }}
   </span>
 
   <!-- Navigation Control Buttons -->
@@ -13,7 +13,7 @@
       class="btn-nav" 
       [disabled]="currentPage === 1" 
       (click)="goToPage(currentPage - 1)">
-      &larr; prev
+      &larr; {{ 'COMMON.PAGINATION.PREV' | translate }}
     </button>
 
     <!-- Page Numbers Loop -->
@@ -30,7 +30,7 @@
       class="btn-nav" 
       [disabled]="currentPage === totalPages" 
       (click)="goToPage(currentPage + 1)">
-      next &rarr;
+      {{ 'COMMON.PAGINATION.NEXT' | translate }} &rarr;
     </button>
 
   </div>

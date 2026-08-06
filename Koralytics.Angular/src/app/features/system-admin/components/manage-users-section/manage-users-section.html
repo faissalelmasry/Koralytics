@@ -1,8 +1,8 @@
-<div class="section-container fade-in">
+<div class="section-container fade-in" scrollReveal direction="bottom" [delay]="150">
   <div class="section-header">
     <div class="header-content">
-      <h3>Global Users Governance</h3>
-      <p class="subtitle">Comprehensive control over all platform users, roles, statuses, and permissions</p>
+      <h3>{{ 'SYSTEM_ADMIN.MANAGE_USERS.TITLE' | translate }}</h3>
+      <p class="subtitle">{{ 'SYSTEM_ADMIN.MANAGE_USERS.SUBTITLE' | translate }}</p>
     </div>
 
     <!-- Filters Bar -->
@@ -17,20 +17,20 @@
             type="text" 
             [(ngModel)]="searchTerm" 
             (keyup.enter)="onFilterChange()" 
-            placeholder="Search name, email, or username..." 
+            [placeholder]="'SYSTEM_ADMIN.MANAGE_USERS.SEARCH_PLACEHOLDER' | translate" 
             class="cyber-input" />
           <button *ngIf="searchTerm" class="clear-btn" (click)="searchTerm = ''; onFilterChange()" title="Clear">
             &times;
           </button>
         </div>
         <button class="btn-search-cyber" (click)="onFilterChange()">
-          <span>Search</span>
+          <span>{{ 'SYSTEM_ADMIN.MANAGE_USERS.BTN_SEARCH' | translate }}</span>
         </button>
       </div>
 
       <div class="select-box">
         <app-select
-          label="Role Filter"
+          [label]="'SYSTEM_ADMIN.MANAGE_USERS.LBL_ROLE_FILTER' | translate"
           [options]="roleOptions"
           [value]="roleFilter"
           (valueChange)="roleFilter = $event; onFilterChange()">
@@ -39,7 +39,7 @@
 
       <div class="select-box">
         <app-select
-          label="Status Filter"
+          [label]="'SYSTEM_ADMIN.MANAGE_USERS.LBL_STATUS_FILTER' | translate"
           [options]="statusOptions"
           [value]="isDeletedFilter"
           (valueChange)="isDeletedFilter = $event; onFilterChange()">
@@ -50,7 +50,7 @@
 
   <div class="loading-state" *ngIf="isLoading">
     <app-loading-spinner size="lg"></app-loading-spinner>
-    <p>Loading platform users...</p>
+    <p>{{ 'SYSTEM_ADMIN.MANAGE_USERS.LOADING' | translate }}</p>
   </div>
 
   <!-- Users Table -->
@@ -58,24 +58,24 @@
     <table class="cyber-data-table">
       <thead>
         <tr>
-          <th>User Account</th>
-          <th>Username / Email</th>
-          <th>Roles & Permissions</th>
-          <th>Account Status</th>
-          <th>Registered</th>
-          <th class="text-right">Administration Hub</th>
+          <th>{{ 'SYSTEM_ADMIN.MANAGE_USERS.TH_ACCOUNT' | translate }}</th>
+          <th>{{ 'SYSTEM_ADMIN.MANAGE_USERS.TH_USERNAME_EMAIL' | translate }}</th>
+          <th>{{ 'SYSTEM_ADMIN.MANAGE_USERS.TH_ROLES' | translate }}</th>
+          <th>{{ 'SYSTEM_ADMIN.MANAGE_USERS.TH_STATUS' | translate }}</th>
+          <th>{{ 'SYSTEM_ADMIN.MANAGE_USERS.TH_REGISTERED' | translate }}</th>
+          <th class="text-right">{{ 'SYSTEM_ADMIN.MANAGE_USERS.TH_ACTIONS' | translate }}</th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let u of users">
           <td>
             <div class="user-info-cell">
-              <div class="avatar-circle clickable-user-elem" (click)="viewMemberProfile(u.id); $event.stopPropagation()" title="View Member Profile">
+              <div class="avatar-circle clickable-user-elem" (click)="viewMemberProfile(u.id); $event.stopPropagation()" [title]="'SYSTEM_ADMIN.MANAGE_USERS.TOOLTIP_PROFILE' | translate">
                 <img *ngIf="u.profileImageUrl" [src]="u.profileImageUrl" alt="avatar" class="avatar-img" />
                 <span *ngIf="!u.profileImageUrl">{{ u.firstName.charAt(0) || u.email.charAt(0) || 'U' }}</span>
               </div>
               <div>
-                <span class="user-fullname clickable-user-elem" (click)="viewMemberProfile(u.id); $event.stopPropagation()" title="View Member Profile">{{ u.fullName || u.userName }}</span>
+                <span class="user-fullname clickable-user-elem" (click)="viewMemberProfile(u.id); $event.stopPropagation()" [title]="'SYSTEM_ADMIN.MANAGE_USERS.TOOLTIP_PROFILE' | translate">{{ u.fullName || u.userName }}</span>
                 <span class="user-id">User ID: #{{ u.id }}</span>
               </div>
             </div>
@@ -86,18 +86,18 @@
           <td>
             <div class="roles-hub">
               <span class="role-chip" *ngFor="let r of u.roles" [ngClass]="r.toLowerCase()">
-                {{ r }}
+                {{ 'SYSTEM_ADMIN.MANAGE_USERS.ROLE_' + r.toUpperCase() | translate }}
               </span>
-              <span class="no-role" *ngIf="!u.roles || u.roles.length === 0">No Role</span>
+              <span class="no-role" *ngIf="!u.roles || u.roles.length === 0">{{ 'SYSTEM_ADMIN.MANAGE_USERS.ROLE_NO_ROLE' | translate }}</span>
             </div>
           </td>
           <td>
             <span class="status-badge" [class.active]="!u.isDeleted" [class.inactive]="u.isDeleted">
-              {{ u.isDeleted ? 'Deactivated' : 'Active' }}
+              {{ u.isDeleted ? ('SYSTEM_ADMIN.MANAGE_USERS.STATUS_DEACTIVATED' | translate) : ('SYSTEM_ADMIN.MANAGE_USERS.STATUS_ACTIVE' | translate) }}
             </span>
           </td>
           <td>
-            <span class="date-text">{{ u.createdAt | date:'mediumDate' }}</span>
+            <span class="date-text">{{ u.createdAt | localizedDate:'mediumDate' }}</span>
           </td>
           <td class="text-right">
             <div class="table-actions-hub">
@@ -105,7 +105,7 @@
               <button 
                 class="action-icon-btn role-btn" 
                 (click)="openEditRolesModal(u)" 
-                title="Manage User Roles & Permissions">
+                [title]="'SYSTEM_ADMIN.MANAGE_USERS.TOOLTIP_MANAGE_ROLES' | translate">
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
                 </svg>
@@ -142,8 +142,8 @@
         <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
       </svg>
     </div>
-    <h4>No Users Found</h4>
-    <p>Try adjusting your search filters or status selection.</p>
+    <h4>{{ 'SYSTEM_ADMIN.MANAGE_USERS.EMPTY_TITLE' | translate }}</h4>
+    <p>{{ 'SYSTEM_ADMIN.MANAGE_USERS.EMPTY_DESC' | translate }}</p>
   </div>
 
   <!-- Pagination Controls -->
@@ -161,7 +161,7 @@
 <div class="modal-backdrop-cyber" *ngIf="selectedUserForRoles" (click)="closeEditRolesModal()">
   <div class="cyber-modal-card roles-modal fade-in" (click)="$event.stopPropagation()">
     <div class="tactical-tag">
-      <span>03 // ACCOUNT GOVERNANCE & PERMISSIONS</span>
+      <span>{{ 'SYSTEM_ADMIN.MANAGE_USERS.MODAL_ROLES_TAG' | translate }}</span>
     </div>
 
     <div class="modal-header-cyber">
@@ -174,8 +174,8 @@
           </svg>
         </div>
         <div>
-          <h4>ASSIGN PLATFORM ROLES</h4>
-          <p class="modal-subtitle">Configure access privileges for <strong style="color: #00e5ff;">{{ selectedUserForRoles.fullName || selectedUserForRoles.email }}</strong></p>
+          <h4>{{ 'SYSTEM_ADMIN.MANAGE_USERS.MODAL_ROLES_TITLE' | translate }}</h4>
+          <p class="modal-subtitle">{{ 'SYSTEM_ADMIN.MANAGE_USERS.MODAL_ROLES_SUBTITLE' | translate }} <strong style="color: #00e5ff;">{{ selectedUserForRoles.fullName || selectedUserForRoles.email }}</strong></p>
         </div>
       </div>
       <button class="btn-close-cyber" (click)="closeEditRolesModal()" title="Close Modal">&times;</button>
@@ -197,22 +197,22 @@
             <span class="custom-cyber-check"></span>
           </div>
           <div class="role-desc-cyber">
-            <h6>{{ r }}</h6>
-            <p>{{ r === 'SystemAdmin' ? 'Full platform administration rights across Koralytics.' : 'Specialized access for ' + r }}</p>
+            <h6>{{ 'SYSTEM_ADMIN.MANAGE_USERS.ROLE_' + r.toUpperCase() | translate }}</h6>
+            <p>{{ r === 'SystemAdmin' ? ('SYSTEM_ADMIN.MANAGE_USERS.ROLE_SYSTEM_ADMIN_DESC' | translate) : ('SYSTEM_ADMIN.MANAGE_USERS.ROLE_SPECIALIZED_DESC' | translate) + ' ' + ('SYSTEM_ADMIN.MANAGE_USERS.ROLE_' + r.toUpperCase() | translate) }}</p>
           </div>
         </div>
       </div>
     </div>
 
     <div class="modal-footer-cyber">
-      <button type="button" class="btn-cyber-cancel" (click)="closeEditRolesModal()">CANCEL</button>
+      <button type="button" class="btn-cyber-cancel" (click)="closeEditRolesModal()">{{ 'SYSTEM_ADMIN.MANAGE_USERS.BTN_CANCEL' | translate }}</button>
       <button type="button" class="btn-cyber-confirm roles-btn" [disabled]="isUpdatingRoles" (click)="saveRoles()">
         <svg *ngIf="!isUpdatingRoles" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
           <polyline points="17 21 17 13 7 13 7 21"></polyline>
           <polyline points="7 3 7 8 15 8"></polyline>
         </svg>
-        <span>{{ isUpdatingRoles ? 'SAVING PERMISSIONS...' : 'SAVE PERMISSIONS' }}</span>
+        <span>{{ isUpdatingRoles ? ('SYSTEM_ADMIN.MANAGE_USERS.BTN_SAVING' | translate) : ('SYSTEM_ADMIN.MANAGE_USERS.BTN_SAVE' | translate) }}</span>
       </button>
     </div>
   </div>
@@ -224,9 +224,12 @@
   [title]="confirmDialogTitle"
   [message]="confirmDialogMessage"
   level="danger"
-  confirmText="Yes, Confirm"
-  cancelText="Cancel"
+  [confirmText]="'SYSTEM_ADMIN.MANAGE_USERS.CONFIRM_TOGGLE' | translate"
+  [cancelText]="'SYSTEM_ADMIN.MANAGE_USERS.BTN_CANCEL' | translate"
   [requiresConfirmation]="false"
   (confirm)="onConfirmStatusToggle()"
   (cancel)="isConfirmDialogOpen = false; userToToggle = null">
 </app-confirm-dialog>
+
+
+

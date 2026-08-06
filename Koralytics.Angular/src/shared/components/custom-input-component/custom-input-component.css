@@ -42,10 +42,15 @@
   font-size: 14px;
   font-weight: 500;
   pointer-events: none;
-  text-transform: lowercase;
   transform-origin: left top;
   transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.2s ease;
   z-index: 2;
+}
+
+:host-context([dir="rtl"]) .floating-label {
+  left: auto;
+  right: 16px;
+  transform-origin: right top;
 }
 
 .custom-field {
@@ -61,6 +66,10 @@
   padding-top: 14px;
   position: relative;
   z-index: 1;
+}
+
+:host-context([dir="rtl"]) .custom-field {
+  text-align: right;
 }
 
 .custom-field:-webkit-autofill,
@@ -132,6 +141,11 @@
   width: 24px;
 }
 
+:host-context([dir="rtl"]) .password-toggle-btn {
+  margin-left: 0;
+  margin-right: 12px;
+}
+
 .eye-icon {
   width: 22px;
   height: 22px;
@@ -164,7 +178,11 @@
   font-family: 'Inter', sans-serif;
   font-weight: 500;
   padding-left: 4px;
-  text-transform: lowercase;
+}
+
+:host-context([dir="rtl"]) .error-text-msg {
+  padding-left: 0;
+  padding-right: 4px;
 }
 
 .input-field-group.is-disabled {

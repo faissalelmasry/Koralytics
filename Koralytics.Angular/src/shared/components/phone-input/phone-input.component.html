@@ -8,9 +8,6 @@
     @if (label) {
       <label class="floating-label raised">
         {{ label }}
-        @if (required) {
-          <span class="required-asterisk">*</span>
-        }
       </label>
     }
 
@@ -34,7 +31,7 @@
             [class.active]="country.code === selectedCountry.code"
             (click)="selectCountry(country, $event)">
             <span class="opt-flag">{{ country.flag }}</span>
-            <span class="opt-name">{{ country.name }}</span>
+            <span class="opt-name">{{ country.name | translate }}</span>
             <span class="opt-dial">{{ country.dialCode }}</span>
           </div>
         }

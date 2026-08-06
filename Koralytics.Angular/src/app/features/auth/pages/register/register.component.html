@@ -1,7 +1,7 @@
 <div class="auth-card-content">
   <div class="header">
-    <h2>Create account</h2>
-    <p>Join Koralytics to analyze and manage performance.</p>
+    <h2>{{ 'AUTH.REGISTER.TITLE' | translate }}</h2>
+    <p>{{ 'AUTH.REGISTER.SUBTITLE' | translate }}</p>
   </div>
 
   <app-stepper [steps]="steps" [currentStep]="currentStep" (stepClick)="onStepClick($event)"></app-stepper>
@@ -21,43 +21,43 @@
           </svg>
         </div>
         <div class="role-info">
-          <h3>{{ role.name }}</h3>
-          <p>{{ role.desc }}</p>
+          <h3>{{ role.name | translate }}</h3>
+          <p>{{ role.desc | translate }}</p>
         </div>
       </div>
     </div>
 
     <!-- Step 2: Base Details -->
     <div *ngIf="currentStep === 1" [formGroup]="baseForm" class="form-grid">
-      <app-text-input label="First Name" formControlName="firstName" [errorMessage]="baseError('firstName')"></app-text-input>
-      <app-text-input label="Last Name" formControlName="lastName" [errorMessage]="baseError('lastName')"></app-text-input>
-      <app-text-input label="Username" formControlName="userName" [errorMessage]="baseError('userName')" class="full-width"></app-text-input>
-      <app-text-input label="Email Address" type="email" formControlName="email" [errorMessage]="baseError('email')" class="full-width"></app-text-input>
-      <app-phone-input label="Phone" formControlName="phoneNumber" [errorMessage]="baseError('phoneNumber')" [required]="true" class="full-width"></app-phone-input>
+      <app-text-input [label]="'AUTH.REGISTER.FIRST_NAME' | translate" formControlName="firstName" [errorMessage]="baseError('firstName') | translate"></app-text-input>
+      <app-text-input [label]="'AUTH.REGISTER.LAST_NAME' | translate" formControlName="lastName" [errorMessage]="baseError('lastName') | translate"></app-text-input>
+      <app-text-input [label]="'AUTH.REGISTER.USERNAME' | translate" formControlName="userName" [errorMessage]="baseError('userName') | translate" class="full-width"></app-text-input>
+      <app-text-input [label]="'AUTH.REGISTER.EMAIL' | translate" type="email" formControlName="email" [errorMessage]="baseError('email') | translate" class="full-width"></app-text-input>
+      <app-phone-input [label]="'AUTH.REGISTER.PHONE' | translate" formControlName="phoneNumber" [errorMessage]="baseError('phoneNumber') | translate" [required]="true" class="full-width"></app-phone-input>
       
       <div class="full-width password-container">
-        <app-text-input label="Password" type="password" formControlName="password" [errorMessage]="baseError('password')"></app-text-input>
+        <app-text-input [label]="'AUTH.REGISTER.PASSWORD' | translate" type="password" formControlName="password" [errorMessage]="baseError('password') | translate"></app-text-input>
         <app-password-strength [password]="baseForm.get('password')?.value || ''"></app-password-strength>
       </div>
       
-      <app-text-input label="Confirm Password" type="password" formControlName="confirmPassword" [errorMessage]="baseForm.errors?.['mismatch'] && baseForm.get('confirmPassword')?.touched ? 'Passwords do not match' : baseError('confirmPassword')" class="full-width"></app-text-input>
+      <app-text-input [label]="'AUTH.REGISTER.CONFIRM_PASSWORD' | translate" type="password" formControlName="confirmPassword" [errorMessage]="baseForm.errors?.['mismatch'] && baseForm.get('confirmPassword')?.touched ? ('AUTH.ERRORS.PASSWORDS_MISMATCH' | translate) : (baseError('confirmPassword') | translate)" class="full-width"></app-text-input>
     </div>
 
     <!-- Step 3: Role Specific -->
     <div *ngIf="currentStep === 2">
       
       <div *ngIf="selectedRole === 'Player'" [formGroup]="playerForm" class="form-grid">
-        <app-date-picker label="Date of Birth" formControlName="dateOfBirth" [errorMessage]="playerError('dateOfBirth')" class="full-width"></app-date-picker>
-        <app-text-input label="Nationality" formControlName="nationality" class="full-width"></app-text-input>
-        <app-select label="Preferred Foot" [options]="footOptions" formControlName="preferredFoot"></app-select>
-        <app-select label="Weak Foot Rating" [options]="ratingOptions" formControlName="weakFootRating"></app-select>
-        <app-text-input label="Height (cm)" type="number" placeholder="e.g. 178" formControlName="heightCm"></app-text-input>
-        <app-text-input label="Weight (kg)" type="number" placeholder="e.g. 72" formControlName="weightKg"></app-text-input>
+        <app-date-picker [label]="'AUTH.REGISTER.DOB' | translate" formControlName="dateOfBirth" [errorMessage]="playerError('dateOfBirth') | translate" class="full-width"></app-date-picker>
+        <app-text-input [label]="'AUTH.REGISTER.NATIONALITY' | translate" formControlName="nationality" class="full-width"></app-text-input>
+        <app-select [label]="'AUTH.REGISTER.PREFERRED_FOOT' | translate" [options]="footOptions" formControlName="preferredFoot"></app-select>
+        <app-select [label]="'AUTH.REGISTER.WEAK_FOOT' | translate" [options]="ratingOptions" formControlName="weakFootRating"></app-select>
+        <app-text-input [label]="'AUTH.REGISTER.HEIGHT' | translate" type="number" placeholder="178" formControlName="heightCm"></app-text-input>
+        <app-text-input [label]="'AUTH.REGISTER.WEIGHT' | translate" type="number" placeholder="72" formControlName="weightKg"></app-text-input>
       </div>
 
       <div *ngIf="selectedRole === 'Parent'" [formGroup]="parentForm" class="form-grid">
-        <app-text-input label="Child Player ID" type="number" formControlName="childPlayerId" [errorMessage]="parentError('childPlayerId')" class="full-width"></app-text-input>
-        <p class="help-text">You can find the Player ID in the player's dashboard settings.</p>
+        <app-text-input [label]="'AUTH.REGISTER.CHILD_PLAYER_ID' | translate" type="number" formControlName="childPlayerId" [errorMessage]="parentError('childPlayerId') | translate" class="full-width"></app-text-input>
+        <p class="help-text">{{ 'AUTH.REGISTER.CHILD_PLAYER_ID_HELP' | translate }}</p>
       </div>
 
     </div>
@@ -71,31 +71,31 @@
       variant="slate" 
       (click)="prevStep()"
       [disabled]="isLoading">
-      Back
+      {{ 'AUTH.REGISTER.BACK_BTN' | translate }}
     </app-button>
     
     <app-button 
-      *ngIf="currentStep < 2 && !(currentStep === 1 && ['Coach', 'Scouter', 'AcademyAdmin'].includes(selectedRole || ''))" 
+      *ngIf="currentStep < 2 && !(currentStep === 1 && ['Coach', 'Scouter', 'AcademyAdmin', 'CoachAndAdmin'].includes(selectedRole || ''))" 
       type="button" 
       variant="accent" 
       (click)="nextStep()"
       [disabled]="isContinueDisabled()"
       [class.full-width-btn]="currentStep === 0">
-      Continue
+      {{ 'AUTH.REGISTER.CONTINUE_BTN' | translate }}
     </app-button>
 
     <app-button 
-      *ngIf="currentStep === 2 || (currentStep === 1 && ['Coach', 'Scouter', 'AcademyAdmin'].includes(selectedRole || ''))" 
+      *ngIf="currentStep === 2 || (currentStep === 1 && ['Coach', 'Scouter', 'AcademyAdmin', 'CoachAndAdmin'].includes(selectedRole || ''))" 
       type="button" 
       variant="accent" 
       (click)="onSubmit()"
       [disabled]="isSubmitDisabled()"
       [loading]="isLoading">
-      Create Account
+      {{ 'AUTH.REGISTER.CREATE_BTN' | translate }}
     </app-button>
   </div>
 
   <div class="footer-text" *ngIf="currentStep === 0">
-    Already have an account? <a routerLink="/auth/login">Log in</a>
+    {{ 'AUTH.REGISTER.ALREADY_HAVE_ACCOUNT' | translate }} <a routerLink="/auth/login">{{ 'AUTH.REGISTER.LOG_IN' | translate }}</a>
   </div>
 </div>

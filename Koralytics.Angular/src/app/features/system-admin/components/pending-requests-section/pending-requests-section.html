@@ -1,14 +1,14 @@
-<div class="section-container fade-in">
+<div class="section-container fade-in" scrollReveal direction="bottom" [delay]="150">
   <div class="section-header">
     <div class="header-content">
-      <h3>Academy Creation Requests</h3>
-      <p class="subtitle">Review, approve, or reject new academy onboarding requests across the Koralytics platform</p>
+      <h3>{{ 'SYSTEM_ADMIN.PENDING_REQUESTS.TITLE' | translate }}</h3>
+      <p class="subtitle">{{ 'SYSTEM_ADMIN.PENDING_REQUESTS.SUBTITLE' | translate }}</p>
     </div>
   </div>
 
   <div class="loading-state" *ngIf="isLoading">
     <app-loading-spinner size="lg"></app-loading-spinner>
-    <p>Loading pending requests...</p>
+    <p>{{ 'SYSTEM_ADMIN.PENDING_REQUESTS.LOADING' | translate }}</p>
   </div>
 
   <!-- Table View -->
@@ -16,13 +16,13 @@
     <table class="cyber-data-table">
       <thead>
         <tr>
-          <th>Academy Name</th>
-          <th>Contact Person</th>
-          <th>Email</th>
-          <th>Phone</th>
-          <th>Location</th>
-          <th>Requested Date</th>
-          <th class="text-right">Review Actions</th>
+          <th>{{ 'SYSTEM_ADMIN.PENDING_REQUESTS.TH_ACADEMY_NAME' | translate }}</th>
+          <th>{{ 'SYSTEM_ADMIN.PENDING_REQUESTS.TH_CONTACT_PERSON' | translate }}</th>
+          <th>{{ 'SYSTEM_ADMIN.PENDING_REQUESTS.TH_EMAIL' | translate }}</th>
+          <th>{{ 'SYSTEM_ADMIN.PENDING_REQUESTS.TH_PHONE' | translate }}</th>
+          <th>{{ 'SYSTEM_ADMIN.PENDING_REQUESTS.TH_LOCATION' | translate }}</th>
+          <th>{{ 'SYSTEM_ADMIN.PENDING_REQUESTS.TH_DATE' | translate }}</th>
+          <th class="text-right">{{ 'SYSTEM_ADMIN.PENDING_REQUESTS.TH_ACTIONS' | translate }}</th>
         </tr>
       </thead>
       <tbody>
@@ -36,13 +36,13 @@
           <td><span class="cell-text">{{ req.contactEmail }}</span></td>
           <td><span class="cell-text">{{ req.contactPhone }}</span></td>
           <td><span class="cell-text">{{ req.location }}</span></td>
-          <td><span class="date-text">{{ req.requestedAt | date:'mediumDate' }}</span></td>
+          <td><span class="date-text">{{ req.requestedAt | localizedDate:'mediumDate' }}</span></td>
           <td class="text-right">
             <div class="table-actions-hub">
               <button 
                 class="action-icon-btn approve-btn" 
                 (click)="openApproveModal(req)" 
-                title="Approve Academy Onboarding">
+                [title]="'SYSTEM_ADMIN.PENDING_REQUESTS.TOOLTIP_APPROVE' | translate">
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="20 6 9 17 4 12"></polyline>
                 </svg>
@@ -50,7 +50,7 @@
               <button 
                 class="action-icon-btn reject-btn" 
                 (click)="openRejectModal(req)" 
-                title="Reject Onboarding Request">
+                [title]="'SYSTEM_ADMIN.PENDING_REQUESTS.TOOLTIP_REJECT' | translate">
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <line x1="18" y1="6" x2="6" y2="18"></line>
                   <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -70,8 +70,8 @@
         <polyline points="22 4 12 14.01 9 11.01"></polyline>
       </svg>
     </div>
-    <h4>All Caught Up!</h4>
-    <p>There are currently no pending academy join requests.</p>
+    <h4>{{ 'SYSTEM_ADMIN.PENDING_REQUESTS.EMPTY_TITLE' | translate }}</h4>
+    <p>{{ 'SYSTEM_ADMIN.PENDING_REQUESTS.EMPTY_DESC' | translate }}</p>
   </div>
 </div>
 
@@ -79,7 +79,7 @@
 <div class="modal-backdrop-cyber" *ngIf="selectedRequestForApprove" (click)="closeApproveModal()">
   <div class="cyber-modal-card approve-modal fade-in" (click)="$event.stopPropagation()">
     <div class="tactical-tag">
-      <span>01 // ONBOARDING APPROVAL PROTOCOL</span>
+      <span>{{ 'SYSTEM_ADMIN.PENDING_REQUESTS.MODAL_APPROVE_TAG' | translate }}</span>
     </div>
 
     <div class="modal-header-cyber">
@@ -91,8 +91,8 @@
           </svg>
         </div>
         <div>
-          <h4>APPROVE ACADEMY ONBOARDING</h4>
-          <p class="modal-subtitle">Verify and activate this academy on the Koralytics network.</p>
+          <h4>{{ 'SYSTEM_ADMIN.PENDING_REQUESTS.MODAL_APPROVE_TITLE' | translate }}</h4>
+          <p class="modal-subtitle">{{ 'SYSTEM_ADMIN.PENDING_REQUESTS.MODAL_APPROVE_SUBTITLE' | translate }}</p>
         </div>
       </div>
       <button class="btn-close-cyber" (click)="closeApproveModal()" title="Close Modal">&times;</button>
@@ -101,26 +101,25 @@
     <form [formGroup]="approveForm" (ngSubmit)="onApproveSubmit()" class="modal-form-cyber">
       <div class="modal-form-fields">
         <app-text-input
-          label="Academy Official Name"
+          [label]="'SYSTEM_ADMIN.PENDING_REQUESTS.LBL_ACADEMY_NAME' | translate"
           type="text"
           formControlName="name">
         </app-text-input>
 
-        <app-text-input
-          label="Founded Date (YYYY-MM-DD)"
-          type="date"
+        <app-date-picker
+          [label]="'SYSTEM_ADMIN.PENDING_REQUESTS.LBL_FOUNDED_DATE' | translate"
           formControlName="foundedDate">
-        </app-text-input>
+        </app-date-picker>
 
         <div class="color-row-cyber">
           <app-text-input
-            label="Primary Brand Color"
+            [label]="'SYSTEM_ADMIN.PENDING_REQUESTS.LBL_PRIMARY_COLOR' | translate"
             type="text"
             formControlName="primaryColor">
           </app-text-input>
 
           <app-text-input
-            label="Secondary Brand Color"
+            [label]="'SYSTEM_ADMIN.PENDING_REQUESTS.LBL_SECONDARY_COLOR' | translate"
             type="text"
             formControlName="secondaryColor">
           </app-text-input>
@@ -128,12 +127,12 @@
       </div>
 
       <div class="modal-footer-cyber">
-        <button type="button" class="btn-cyber-cancel" (click)="closeApproveModal()">CANCEL</button>
+        <button type="button" class="btn-cyber-cancel" (click)="closeApproveModal()">{{ 'SYSTEM_ADMIN.PENDING_REQUESTS.BTN_CANCEL' | translate }}</button>
         <button type="submit" class="btn-cyber-confirm approve-btn" [disabled]="isApproving">
           <svg *ngIf="!isApproving" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="20 6 9 17 4 12"></polyline>
           </svg>
-          <span>{{ isApproving ? 'CREATING ACADEMY...' : 'APPROVE & CREATE' }}</span>
+          <span>{{ isApproving ? ('SYSTEM_ADMIN.PENDING_REQUESTS.BTN_APPROVING' | translate) : ('SYSTEM_ADMIN.PENDING_REQUESTS.BTN_APPROVE' | translate) }}</span>
         </button>
       </div>
     </form>
@@ -144,7 +143,7 @@
 <div class="modal-backdrop-cyber" *ngIf="selectedRequestForReject" (click)="closeRejectModal()">
   <div class="cyber-modal-card reject-modal fade-in" (click)="$event.stopPropagation()">
     <div class="tactical-tag alert-tag">
-      <span>ALERT // REJECTION PROTOCOL</span>
+      <span>{{ 'SYSTEM_ADMIN.PENDING_REQUESTS.MODAL_REJECT_TAG' | translate }}</span>
     </div>
 
     <div class="modal-header-cyber">
@@ -157,8 +156,8 @@
           </svg>
         </div>
         <div>
-          <h4>REJECT ACADEMY REQUEST</h4>
-          <p class="modal-subtitle">Provide a clear explanation for declining this onboarding application.</p>
+          <h4>{{ 'SYSTEM_ADMIN.PENDING_REQUESTS.MODAL_REJECT_TITLE' | translate }}</h4>
+          <p class="modal-subtitle">{{ 'SYSTEM_ADMIN.PENDING_REQUESTS.MODAL_REJECT_SUBTITLE' | translate }}</p>
         </div>
       </div>
       <button class="btn-close-cyber" (click)="closeRejectModal()" title="Close Modal">&times;</button>
@@ -167,23 +166,24 @@
     <form [formGroup]="rejectForm" (ngSubmit)="onRejectSubmit()" class="modal-form-cyber">
       <div class="modal-form-fields">
         <app-text-input
-          label="Rejection Notice / Reason"
+          [label]="'SYSTEM_ADMIN.PENDING_REQUESTS.LBL_REASON' | translate"
           type="text"
-          placeholder="Explain why this request is being rejected..."
+          [placeholder]="'SYSTEM_ADMIN.PENDING_REQUESTS.PLACEHOLDER_REASON' | translate"
           formControlName="reason">
         </app-text-input>
       </div>
 
       <div class="modal-footer-cyber">
-        <button type="button" class="btn-cyber-cancel" (click)="closeRejectModal()">CANCEL</button>
+        <button type="button" class="btn-cyber-cancel" (click)="closeRejectModal()">{{ 'SYSTEM_ADMIN.PENDING_REQUESTS.BTN_CANCEL' | translate }}</button>
         <button type="submit" class="btn-cyber-confirm reject-btn" [disabled]="isRejecting || rejectForm.invalid">
           <svg *ngIf="!isRejecting" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
           </svg>
-          <span>{{ isRejecting ? 'REJECTING...' : 'CONFIRM REJECTION' }}</span>
+          <span>{{ isRejecting ? ('SYSTEM_ADMIN.PENDING_REQUESTS.BTN_REJECTING' | translate) : ('SYSTEM_ADMIN.PENDING_REQUESTS.BTN_REJECT' | translate) }}</span>
         </button>
       </div>
     </form>
   </div>
 </div>
+

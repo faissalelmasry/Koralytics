@@ -8,6 +8,7 @@ import { ToastService } from '../../../../../core/services/Toast/toast';
 import { CustomInputComponent } from '../../../../../shared/components/custom-input-component/custom-input-component';
 import { CustomButtonComponent } from '../../../../../shared/components/custom-button/custom-button';
 import { CustomCheckboxComponent } from '../../../../../shared/components/custom-checkbox/custom-checkbox.component';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-login',
@@ -18,7 +19,8 @@ import { CustomCheckboxComponent } from '../../../../../shared/components/custom
     RouterModule, 
     CustomInputComponent, 
     CustomButtonComponent,
-    CustomCheckboxComponent
+    CustomCheckboxComponent,
+    TranslatePipe
   ],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
@@ -146,7 +148,7 @@ export class LoginComponent implements AfterViewInit {
   get emailError() {
     const control = this.loginForm.get('emailOrUserName');
     if (control?.touched && control?.invalid) {
-      return 'Email or username is required';
+      return 'AUTH.ERRORS.EMAIL_REQUIRED';
     }
     return '';
   }
@@ -154,8 +156,8 @@ export class LoginComponent implements AfterViewInit {
   get passwordError() {
     const control = this.loginForm.get('password');
     if (control?.touched && control?.invalid) {
-      if (control.errors?.['required']) return 'Password is required';
-      if (control.errors?.['minlength']) return 'Minimum 6 characters';
+      if (control.errors?.['required']) return 'AUTH.ERRORS.PASSWORD_REQUIRED';
+      if (control.errors?.['minlength']) return 'AUTH.ERRORS.MIN_LENGTH_6';
     }
     return '';
   }

@@ -87,7 +87,7 @@
 }
 
 .mini-table th {
-  text-align: left;
+  text-align: start;
   font-size: 11px;
   text-transform: uppercase;
   color: #808897;
