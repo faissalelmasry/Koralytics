@@ -1,11 +1,13 @@
 using Koralytics.Application.DTOs.Academies;
 using Koralytics.Application.DTOs.Academy;
+using Koralytics.Application.DTOs.Scouter;
 using Koralytics.Domain.Enums;
 using Microsoft.AspNetCore.Http;
 namespace Koralytics.Application.Services.Academy.AcademyService
 {
     public interface IAcademyService
     {
+        Task<string> AcademySearchAIChatBotAsync(AIChatBotRequestDto request, int academyId);
         /// <summary>
         /// Creates an Academy record after SuperAdmin approves an AcademyRequest.
         /// Updates the AcademyRequest status to Approved.

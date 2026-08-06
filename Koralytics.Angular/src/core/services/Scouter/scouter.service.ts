@@ -94,9 +94,9 @@ export class ScouterService {
   }
 
   /** POST api/scouter/ai-chatbot */
-  aiChatBot(message: string): Observable<string> {
+  aiChatBot(message: string, sessionId?: string): Observable<string> {
     return this.http
-      .post<ApiEnvelope<string>>(`${this.baseUrl}/ai-chatbot`, { message })
+      .post<ApiEnvelope<string>>(`${this.baseUrl}/ai-chatbot`, { message, sessionId })
       .pipe(map((res) => res.data));
   }
 
