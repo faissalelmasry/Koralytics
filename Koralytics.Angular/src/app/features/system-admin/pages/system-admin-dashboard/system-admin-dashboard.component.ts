@@ -12,6 +12,7 @@ import { ManageBadgesSectionComponent } from '../../components/manage-badges-sec
 import { ManageUsersSectionComponent } from '../../components/manage-users-section/manage-users-section';
 import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
 import { LoadingSpinnerComponent } from '../../../../../shared/components/loading-spinner/loading-spinner';
+import { TranslatePipe } from '@ngx-translate/core';
 
 export type AdminDashboardTab = 'all' | 'pending' | 'academies' | 'badges' | 'users';
 
@@ -27,7 +28,8 @@ export type AdminDashboardTab = 'all' | 'pending' | 'academies' | 'badges' | 'us
     ManageBadgesSectionComponent,
     ManageUsersSectionComponent,
     ScrollRevealDirective,
-    LoadingSpinnerComponent
+    LoadingSpinnerComponent,
+    TranslatePipe
   ],
   templateUrl: './system-admin-dashboard.component.html',
   styleUrls: ['./system-admin-dashboard.component.css']

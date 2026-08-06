@@ -1,12 +1,15 @@
 import { Component, Input, OnInit, inject } from '@angular/core';
+import { LocalizedDatePipe } from '../../../../../shared/pipes/localized-date.pipe';
+
 import { CommonModule } from '@angular/common';
 import { SystemAdminService } from '../../../../../core/services/system-admin/system-admin.service';
 import { LoadingSpinnerComponent } from '../../../../../shared/components/loading-spinner/loading-spinner';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-academy-detail-panel',
   standalone: true,
-  imports: [CommonModule, LoadingSpinnerComponent],
+  imports: [LocalizedDatePipe, CommonModule, LoadingSpinnerComponent, TranslatePipe],
   templateUrl: './academy-detail-panel.html',
   styleUrls: ['./academy-detail-panel.css']
 })
@@ -106,3 +109,4 @@ export class AcademyDetailPanelComponent implements OnInit {
     return type;
   }
 }
+

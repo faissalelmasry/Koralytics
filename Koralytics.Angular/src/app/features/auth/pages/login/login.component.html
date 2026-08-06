@@ -1,33 +1,33 @@
 <div class="auth-card-content">
   <div class="header">
-    <h2>Welcome back</h2>
-    <p>Log in to access your tactical dashboard.</p>
+    <h2>{{ 'AUTH.LOGIN.TITLE' | translate }}</h2>
+    <p>{{ 'AUTH.LOGIN.SUBTITLE' | translate }}</p>
   </div>
 
   <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="auth-form">
 
-    <app-text-input label="Email or Username" type="text" formControlName="emailOrUserName" [errorMessage]="emailError">
+    <app-text-input [label]="'AUTH.LOGIN.EMAIL_USERNAME_LABEL' | translate" type="text" formControlName="emailOrUserName" [errorMessage]="emailError ? (emailError | translate) : ''">
     </app-text-input>
 
     <div class="password-group">
-      <app-text-input label="Password" type="password" formControlName="password" [errorMessage]="passwordError">
+      <app-text-input [label]="'AUTH.LOGIN.PASSWORD_LABEL' | translate" type="password" formControlName="password" [errorMessage]="passwordError ? (passwordError | translate) : ''">
       </app-text-input>
-      <a routerLink="/auth/forgot-password" class="forgot-link">Forgot password?</a>
+      <a routerLink="/auth/forgot-password" class="forgot-link">{{ 'AUTH.LOGIN.FORGOT_PASSWORD' | translate }}</a>
     </div>
 
     <div class="remember-group">
-      <app-checkbox formControlName="rememberMe" label="Remember me for 30 days"></app-checkbox>
+      <app-checkbox formControlName="rememberMe" [label]="'AUTH.LOGIN.REMEMBER_ME' | translate"></app-checkbox>
     </div>
 
     <app-button type="submit" variant="accent" [loading]="isLoading" [disabled]="isGoogleLoading"
       class="full-width-btn">
-      Log in
+      {{ 'AUTH.LOGIN.LOGIN_BTN' | translate }}
     </app-button>
 
   </form>
 
   <div class="divider">
-    <span>or continue with</span>
+    <span>{{ 'AUTH.LOGIN.OR_CONTINUE_WITH' | translate }}</span>
   </div>
 
   <div class="custom-google-wrapper">
@@ -58,6 +58,6 @@
   </div>
 
   <div class="footer-text">
-    New here? <a routerLink="/auth/register">Create an account</a>
+    {{ 'AUTH.LOGIN.NEW_HERE' | translate }} <a routerLink="/auth/register">{{ 'AUTH.LOGIN.CREATE_ACCOUNT' | translate }}</a>
   </div>
 </div>

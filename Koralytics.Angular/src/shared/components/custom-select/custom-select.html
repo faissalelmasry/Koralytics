@@ -3,7 +3,7 @@
   <div class="select-control-wrapper" [class.opened]="isOpen" (click)="toggleDropdown($event)">
     
     <div class="selected-value-display">
-      {{ selectedLabel }}
+      <ng-container *ngIf="selectedLabel">{{ selectedLabel | translate }}</ng-container>
     </div>
     
     <label class="floating-label" [class.raised]="isOpen || (selectedLabel ? true : false)">
@@ -26,7 +26,7 @@
         [class.is-selected]="option.value === value"
         (click)="selectOption(option); $event.stopPropagation()"
       >
-        {{ option.label }}
+        {{ option.label | translate }}
       </div>
       <div *ngIf="options.length === 0" class="no-options">
         No options available

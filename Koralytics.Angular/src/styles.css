@@ -24,6 +24,7 @@ html, body {
 [scrollReveal].revealed {
   opacity: 1;
   transform: none;
+  will-change: auto;
 }
 
 [scrollReveal][data-reveal-direction="bottom"] {
@@ -38,10 +39,7 @@ html, body {
   transform: translateX(16px);
 }
 
-[scrollReveal].revealed {
-  opacity: 1;
-  transform: translate(0);
-}
+
 
 @media (prefers-reduced-motion: reduce) {
   [scrollReveal] {

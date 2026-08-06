@@ -12,6 +12,7 @@ import { PasswordStrengthComponent } from '../../../../../shared/components/pass
 import { StepperComponent } from '../../../../../shared/components/stepper/stepper.component';
 import { PhoneInputComponent } from '../../../../../shared/components/phone-input/phone-input.component';
 import { RegisterPlayerRequest, RegisterCoachRequest, RegisterParentRequest, RegisterAcademyAdminRequest, RegisterScouterRequest, RegisterCoachAndAdminRequest } from '../../../../../core/interfaces/auth.models';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-register',
@@ -26,7 +27,8 @@ import { RegisterPlayerRequest, RegisterCoachRequest, RegisterParentRequest, Reg
     CustomDatePicker,
     PasswordStrengthComponent,
     StepperComponent,
-    PhoneInputComponent
+    PhoneInputComponent,
+    TranslatePipe
   ],
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.css']
@@ -38,31 +40,31 @@ export class RegisterComponent {
   private toast = inject(ToastService);
 
   isLoading = false;
-  steps = ['Role', 'Account Details', 'Profile Details'];
+  steps = ['AUTH.REGISTER.ROLE_STEP', 'AUTH.REGISTER.BASE_DETAILS_STEP', 'AUTH.REGISTER.ROLE_SPECIFIC_STEP'];
   currentStep = 0;
   selectedRole: 'Player' | 'Coach' | 'Scouter' | 'Parent' | 'AcademyAdmin' | 'CoachAndAdmin' | null = null;
 
   roles = [
-    { id: 'Player', name: 'Player', icon: 'M13 10V3L4 14h7v7l9-11h-7z', desc: 'Manage your profile and track stats.' },
-    { id: 'Coach', name: 'Coach', icon: 'M12 14l9-5-9-5-9 5 9 5z', desc: 'Manage teams and tactical setups.' },
-    { id: 'Scouter', name: 'Scouter', icon: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z', desc: 'Discover and analyze talent.' },
-    { id: 'Parent', name: 'Parent', icon: 'M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2', desc: 'Track your child\'s progress.' },
-    { id: 'AcademyAdmin', name: 'Academy Admin', icon: 'M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9', desc: 'Manage academy operations.' },
-    { id: 'CoachAndAdmin', name: 'Coach & Academy Admin', icon: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10', desc: 'Manage both teams and academy operations.' }
+    { id: 'Player', name: 'AUTH.ROLES.PLAYER', icon: 'M13 10V3L4 14h7v7l9-11h-7z', desc: 'AUTH.ROLES.PLAYER_DESC' },
+    { id: 'Coach', name: 'AUTH.ROLES.COACH', icon: 'M12 14l9-5-9-5-9 5 9 5z', desc: 'AUTH.ROLES.COACH_DESC' },
+    { id: 'Scouter', name: 'AUTH.ROLES.SCOUTER', icon: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z', desc: 'AUTH.ROLES.SCOUTER_DESC' },
+    { id: 'Parent', name: 'AUTH.ROLES.PARENT', icon: 'M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2', desc: 'AUTH.ROLES.PARENT_DESC' },
+    { id: 'AcademyAdmin', name: 'AUTH.ROLES.ACADEMY_ADMIN', icon: 'M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9', desc: 'AUTH.ROLES.ACADEMY_ADMIN_DESC' },
+    { id: 'CoachAndAdmin', name: 'AUTH.ROLES.COACH_ADMIN', icon: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10', desc: 'AUTH.ROLES.COACH_ADMIN_DESC' }
   ] as const;
 
   footOptions = [
-    { value: 'Right', label: 'Right' },
-    { value: 'Left', label: 'Left' },
-    { value: 'Both', label: 'Both' }
+    { value: 'Right', label: 'AUTH.OPTIONS.FOOT_RIGHT' },
+    { value: 'Left', label: 'AUTH.OPTIONS.FOOT_LEFT' },
+    { value: 'Both', label: 'AUTH.OPTIONS.FOOT_BOTH' }
   ];
 
   ratingOptions = [
-    { value: 1, label: '1 - Poor' },
-    { value: 2, label: '2 - Fair' },
-    { value: 3, label: '3 - Good' },
-    { value: 4, label: '4 - Very Good' },
-    { value: 5, label: '5 - Excellent' }
+    { value: 1, label: 'AUTH.OPTIONS.RATING_1' },
+    { value: 2, label: 'AUTH.OPTIONS.RATING_2' },
+    { value: 3, label: 'AUTH.OPTIONS.RATING_3' },
+    { value: 4, label: 'AUTH.OPTIONS.RATING_4' },
+    { value: 5, label: 'AUTH.OPTIONS.RATING_5' }
   ];
 
   // Base Form
@@ -109,8 +111,8 @@ export class RegisterComponent {
         this.baseForm.markAllAsTouched();
         return;
       }
-      // Coach, Scouter, Parent, Admin, and CoachAndAdmin don't have step 3 (Profile details)
-      if (['Coach', 'Scouter', 'Parent', 'AcademyAdmin', 'CoachAndAdmin'].includes(this.selectedRole!)) {
+      // Coach, Scouter, Admin, and CoachAndAdmin don't have step 3 (Profile details)
+      if (['Coach', 'Scouter', 'AcademyAdmin', 'CoachAndAdmin'].includes(this.selectedRole!)) {
         this.onSubmit();
         return;
       }
@@ -227,22 +229,22 @@ export class RegisterComponent {
   get baseError() { return (controlName: string) => {
     const control = this.baseForm.get(controlName);
     if (control?.touched && control?.invalid) {
-      if (control.errors?.['required']) return `${controlName} is required`;
-      if (control.errors?.['pattern']) return `Invalid format for ${controlName}`;
-      if (control.errors?.['minlength']) return `Too short`;
-      if (control.errors?.['maxlength']) return `Too long`;
-      return `${controlName} is invalid`;
+      if (control.errors?.['required']) return 'AUTH.ERRORS.REQUIRED';
+      if (control.errors?.['pattern']) return 'AUTH.ERRORS.INVALID_FORMAT';
+      if (control.errors?.['minlength']) return 'AUTH.ERRORS.TOO_SHORT';
+      if (control.errors?.['maxlength']) return 'AUTH.ERRORS.MAX_LENGTH';
+      return 'AUTH.ERRORS.INVALID';
     }
     return '';
   }}
   get playerError() { return (controlName: string) => {
     const control = this.playerForm.get(controlName);
-    if (control?.touched && control?.invalid) return `${controlName} is required`;
+    if (control?.touched && control?.invalid) return 'AUTH.ERRORS.REQUIRED';
     return '';
   }}
   get parentError() { return (controlName: string) => {
     const control = this.parentForm.get(controlName);
-    if (control?.touched && control?.invalid) return `Child Player ID is required`;
+    if (control?.touched && control?.invalid) return 'AUTH.ERRORS.CHILD_PLAYER_ID_REQUIRED';
     return '';
   }}
 }

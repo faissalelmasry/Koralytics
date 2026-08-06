@@ -1,38 +1,38 @@
 <div class="detail-panel fade-in">
   <div class="panel-header">
-    <div class="tactical-tag">Academy Inspection Directory</div>
+    <div class="tactical-tag">{{ 'SYSTEM_ADMIN.ACADEMY_DETAILS.TAG' | translate }}</div>
     <div class="sub-tabs">
       <button 
         [class.active]="activeSubTab === 'members'" 
         (click)="setSubTab('members')">
-        <span>Members ({{ members.length }})</span>
+        <span>{{ 'SYSTEM_ADMIN.ACADEMY_DETAILS.TAB_MEMBERS' | translate }} ({{ members.length }})</span>
       </button>
       <button 
         [class.active]="activeSubTab === 'admins'" 
         (click)="setSubTab('admins')">
-        <span>Admins ({{ admins.length }})</span>
+        <span>{{ 'SYSTEM_ADMIN.ACADEMY_DETAILS.TAB_ADMINS' | translate }} ({{ admins.length }})</span>
       </button>
       <button 
         [class.active]="activeSubTab === 'locations'" 
         (click)="setSubTab('locations')">
-        <span>Locations ({{ locations.length }})</span>
+        <span>{{ 'SYSTEM_ADMIN.ACADEMY_DETAILS.TAB_LOCATIONS' | translate }} ({{ locations.length }})</span>
       </button>
       <button 
         [class.active]="activeSubTab === 'badges'" 
         (click)="setSubTab('badges')">
-        <span>Badges ({{ badges.length }})</span>
+        <span>{{ 'SYSTEM_ADMIN.ACADEMY_DETAILS.TAB_BADGES' | translate }} ({{ badges.length }})</span>
       </button>
       <button 
         [class.active]="activeSubTab === 'subscriptions'" 
         (click)="setSubTab('subscriptions')">
-        <span>Subscriptions</span>
+        <span>{{ 'SYSTEM_ADMIN.ACADEMY_DETAILS.TAB_SUBSCRIPTIONS' | translate }}</span>
       </button>
     </div>
   </div>
 
   <div class="loading-state" *ngIf="isLoading">
     <app-loading-spinner size="sm"></app-loading-spinner>
-    <span>Loading academy details...</span>
+    <span>{{ 'SYSTEM_ADMIN.ACADEMY_DETAILS.LOADING' | translate }}</span>
   </div>
 
   <div class="tab-content" *ngIf="!isLoading">
@@ -41,20 +41,20 @@
       <table class="mini-table" *ngIf="members.length > 0">
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Role / Position</th>
-            <th>Status</th>
+            <th>{{ 'SYSTEM_ADMIN.ACADEMY_DETAILS.TH_NAME' | translate }}</th>
+            <th>{{ 'SYSTEM_ADMIN.ACADEMY_DETAILS.TH_ROLE_POSITION' | translate }}</th>
+            <th>{{ 'SYSTEM_ADMIN.ACADEMY_DETAILS.TH_STATUS' | translate }}</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let m of members">
             <td>{{ m.fullName || m.firstName + ' ' + m.lastName }}</td>
-            <td><span class="badge-chip">{{ m.position || m.role || 'Player' }}</span></td>
-            <td><span class="status-chip active">Active</span></td>
+            <td><span class="badge-chip">{{ m.position || m.role || ('SYSTEM_ADMIN.ACADEMY_DETAILS.ROLE_PLAYER' | translate) }}</span></td>
+            <td><span class="status-chip active">{{ 'SYSTEM_ADMIN.ACADEMY_DETAILS.STATUS_ACTIVE' | translate }}</span></td>
           </tr>
         </tbody>
       </table>
-      <div class="empty-sub" *ngIf="members.length === 0">No members registered in this academy yet.</div>
+      <div class="empty-sub" *ngIf="members.length === 0">{{ 'SYSTEM_ADMIN.ACADEMY_DETAILS.EMPTY_MEMBERS' | translate }}</div>
     </div>
 
     <!-- Admins Tab -->
@@ -62,8 +62,8 @@
       <table class="mini-table" *ngIf="admins.length > 0">
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Role</th>
+            <th>{{ 'SYSTEM_ADMIN.ACADEMY_DETAILS.TH_NAME' | translate }}</th>
+            <th>{{ 'SYSTEM_ADMIN.ACADEMY_DETAILS.TH_ROLE' | translate }}</th>
           </tr>
         </thead>
         <tbody>
@@ -71,13 +71,13 @@
             <td>{{ a.fullName || a.firstName + ' ' + a.lastName }}</td>
             <td>
               <span class="badge-chip" [class.admin]="!a.isOwner" [class.owner]="a.isOwner">
-                {{ a.isOwner ? 'Owner' : 'Admin' }}
+                {{ a.isOwner ? ('SYSTEM_ADMIN.ACADEMY_DETAILS.ROLE_OWNER' | translate) : ('SYSTEM_ADMIN.ACADEMY_DETAILS.ROLE_ADMIN' | translate) }}
               </span>
             </td>
           </tr>
         </tbody>
       </table>
-      <div class="empty-sub" *ngIf="admins.length === 0">No admins found.</div>
+      <div class="empty-sub" *ngIf="admins.length === 0">{{ 'SYSTEM_ADMIN.ACADEMY_DETAILS.EMPTY_ADMINS' | translate }}</div>
     </div>
 
     <!-- Locations Tab -->
@@ -88,10 +88,10 @@
             <div class="loc-name">{{ loc.name }}</div>
             <div class="loc-address">{{ loc.address }}, {{ loc.city }}</div>
           </div>
-          <span class="badge-chip main" *ngIf="loc.isMain">Main</span>
+          <span class="badge-chip main" *ngIf="loc.isMain">{{ 'SYSTEM_ADMIN.ACADEMY_DETAILS.BADGE_MAIN' | translate }}</span>
         </div>
       </div>
-      <div class="empty-sub" *ngIf="locations.length === 0">No locations listed.</div>
+      <div class="empty-sub" *ngIf="locations.length === 0">{{ 'SYSTEM_ADMIN.ACADEMY_DETAILS.EMPTY_LOCATIONS' | translate }}</div>
     </div>
 
     <!-- Badges Tab -->
@@ -106,11 +106,11 @@
           </span>
           <div class="badge-info">
             <strong>{{ getBadgeLabel(b.badgeType) }}</strong>
-            <small>Awarded {{ b.awardedAt | date:'mediumDate' }}</small>
+            <small>{{ 'SYSTEM_ADMIN.ACADEMY_DETAILS.AWARDED_ON' | translate }} {{ b.awardedAt | localizedDate:'mediumDate' }}</small>
           </div>
         </div>
       </div>
-      <div class="empty-sub" *ngIf="badges.length === 0">No badges awarded to this academy.</div>
+      <div class="empty-sub" *ngIf="badges.length === 0">{{ 'SYSTEM_ADMIN.ACADEMY_DETAILS.EMPTY_BADGES' | translate }}</div>
     </div>
 
     <!-- Subscriptions Tab -->
@@ -118,14 +118,15 @@
       <div class="subs-summary" *ngIf="subscriptions">
         <div class="stat-box">
           <span class="stat-num">{{ subscriptions.activeCount || 0 }}</span>
-          <span class="stat-label">Active Subscriptions</span>
+          <span class="stat-label">{{ 'SYSTEM_ADMIN.ACADEMY_DETAILS.ACTIVE_SUBS' | translate }}</span>
         </div>
         <div class="stat-box">
           <span class="stat-num expired">{{ subscriptions.expiredCount || 0 }}</span>
-          <span class="stat-label">Expired Subscriptions</span>
+          <span class="stat-label">{{ 'SYSTEM_ADMIN.ACADEMY_DETAILS.EXPIRED_SUBS' | translate }}</span>
         </div>
       </div>
-      <div class="empty-sub" *ngIf="!subscriptions">No subscription data available.</div>
+      <div class="empty-sub" *ngIf="!subscriptions">{{ 'SYSTEM_ADMIN.ACADEMY_DETAILS.EMPTY_SUBS' | translate }}</div>
     </div>
   </div>
 </div>
+

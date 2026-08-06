@@ -7,7 +7,7 @@
       class="selected-date-input" 
       [value]="value" 
       (input)="onManualInput($event)" 
-      placeholder="YYYY-MM-DD"
+      [placeholder]="'COMMON.DATE_FORMAT' | translate"
       [disabled]="disabled">
     
     <label class="floating-label" [class.raised]="isOpen || value !== ''">
@@ -33,7 +33,7 @@
       
       <div class="current-month-year-dropdowns" (click)="$event.stopPropagation()">
         <select class="cyber-select" (change)="onMonthChange($event)">
-          <option *ngFor="let m of monthNames; let i = index" [value]="i.toString()" [selected]="i === viewDate.getMonth()">{{ m }}</option>
+          <option *ngFor="let m of monthNames; let i = index" [value]="i.toString()" [selected]="i === viewDate.getMonth()">{{ 'COMMON.MONTHS.' + m | translate }}</option>
         </select>
         <select class="cyber-select" (change)="onYearChange($event)">
           <option *ngFor="let y of years" [value]="y" [selected]="y === viewDate.getFullYear().toString()">{{ y }}</option>
@@ -48,7 +48,7 @@
     <div class="calendar-grid">
       <!-- Weekday Labels -->
       <div *ngFor="let dayName of dayNames" class="weekday-label">
-        {{ dayName }}
+        {{ 'COMMON.DAYS.' + dayName | translate }}
       </div>
       
       <!-- Blank days for alignment -->

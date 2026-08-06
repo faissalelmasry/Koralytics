@@ -1,7 +1,6 @@
 :host {
   display: block;
   position: relative;
-  z-index: 10;
   min-height: 100vh;
   color: #fff;
   font-family: 'Inter', sans-serif;
@@ -16,7 +15,6 @@
   margin: 0 auto;
   padding: 110px 30px 40px;
   position: relative;
-  z-index: 10;
 }
 
 .profile-container {
