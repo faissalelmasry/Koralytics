@@ -383,6 +383,11 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
+    path: 'scouter/dashboard/:scouterId',
+    loadComponent: () => import('./features/scouter/scouterdashboard/scouterdashboard').then(m => m.ScouterDashboardComponent),
+    canActivate: [authGuard]
+  },
+  {
     path: 'admin/scouterverification',
     loadComponent: () => import('./features/scouter/scouter-verification/scouter-verification').then(m => m.ScouterVerificationComponent),
     canActivate: [authGuard, roleGuard],

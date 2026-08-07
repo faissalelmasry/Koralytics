@@ -40,8 +40,10 @@
       <a routerLink="/scouter-ai" routerLinkActive="active">AI Assistant</a>
       <a routerLink="/shortlist/" routerLinkActive="active">Shortlist</a>
       <a routerLink="/followed-players" routerLinkActive="active">Followed Players</a>
-      <a routerLink="/notifications-list" routerLinkActive="active">Notifications</a>
     </ng-container>
+
+    <!-- Notifications Link (Desktop) -->
+    <a routerLink="/notifications-list" routerLinkActive="active" *ngIf="isLoggedIn && !isSystemAdmin">Notifications</a>
 
     <!-- Auth Actions (Desktop) -->
     <a (click)="requestLogout()" style="cursor: pointer;" *ngIf="isLoggedIn">Sign Out</a>
@@ -132,12 +134,13 @@
         <a routerLink="/scouter-ai" routerLinkActive="active" (click)="toggleSidebar(false)">AI Assistant</a>
         <a routerLink="/shortlist/" routerLinkActive="active" (click)="toggleSidebar(false)">Shortlist</a>
         <a routerLink="/followed-players" routerLinkActive="active" (click)="toggleSidebar(false)">Followed Players</a>
-         <a routerLink="/notifications-list" routerLinkActive="active" (click)="toggleSidebar(false)">Notifications</a>
       </ng-container>
 
       <!-- Settings & Auth Section (Sidebar) -->
       <div class="sidebar-section" style="margin-top: 12px;">
         <span class="section-label" *ngIf="isLoggedIn">Settings</span>
+        <a routerLink="/notifications-list" routerLinkActive="active" (click)="toggleSidebar(false)"
+          *ngIf="isLoggedIn && !isSystemAdmin">Notifications</a>
         <a routerLink="/profile/me" routerLinkActive="active" (click)="toggleSidebar(false)" *ngIf="isLoggedIn">Edit
           Profile</a>
         <a routerLink="/settings/change-password" routerLinkActive="active" (click)="toggleSidebar(false)"

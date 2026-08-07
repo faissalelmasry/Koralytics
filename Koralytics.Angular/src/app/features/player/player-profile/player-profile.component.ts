@@ -376,18 +376,40 @@ private logAndNotifyIfScouter(roles: string[]) {
 
   get statusLabel(): string {
     const status = this.profile?.availabilityStatus;
-    if (status === 0) return 'Active';
-    if (status === 1) return 'Transferred';
-    if (status === 2) return 'Injured';
-    return 'Unknown';
+    if (status === undefined || status === null) return 'Available';
+
+    if (typeof status === 'number') {
+      switch (status) {
+        case 1: return 'Available';
+        case 2: return 'Injured';
+        case 3: return 'Resting';
+        case 4: return 'Suspended';
+        case 0: return 'Available';
+        default: return 'Available';
+      }
+    }
+
+    const strStatus = String(status).trim();
+    if (!strStatus) return 'Available';
+
+    const lower = strStatus.toLowerCase();
+    if (lower === 'available' || lower === 'active' || lower === '1' || lower === '0') return 'Available';
+    if (lower === 'injured' || lower === '2') return 'Injured';
+    if (lower === 'resting' || lower === '3') return 'Resting';
+    if (lower === 'suspended' || lower === '4') return 'Suspended';
+    if (lower === 'transferred') return 'Transferred';
+
+    return strStatus.charAt(0).toUpperCase() + strStatus.slice(1);
   }
 
   get statusClass(): string {
-    const status = this.profile?.availabilityStatus;
-    if (status === 0) return 'status-available';
-    if (status === 1) return 'status-transferred';
-    if (status === 2) return 'status-injured';
-    return '';
+    const label = this.statusLabel.toLowerCase();
+    if (label === 'available' || label === 'active') return 'status-available';
+    if (label === 'injured') return 'status-injured';
+    if (label === 'resting') return 'status-resting';
+    if (label === 'suspended') return 'status-suspended';
+    if (label === 'transferred') return 'status-transferred';
+    return 'status-available';
   }
 
   get goalsPerMatch(): string {
