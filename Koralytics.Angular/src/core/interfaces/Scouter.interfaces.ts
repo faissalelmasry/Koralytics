@@ -56,10 +56,13 @@ export interface PlayerSearchFiltersDto {
 
 export interface ScouterProfileDto {
   id: number;
-  fullName: string;
+  firstName: string;
+  lastName: string;
   isVerified: boolean;
   verifiedAt?: string;
+  numberOfPlayersFollowed: number;
   [key: string]: unknown;
+
 }
 
 export interface ScouterShortlistDto {

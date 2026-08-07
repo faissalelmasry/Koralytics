@@ -280,12 +280,6 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
-    path: 'scouter/dashboard',
-    loadComponent: () => import('./features/scouter/pages/scouter-dashboard/scouter-dashboard.component').then(m => m.ScouterDashboardComponent),
-    canActivate: [authGuard, roleGuard],
-    data: { roles: ['Scouter'] }
-  },
-  {
     path: 'player/profile',
     loadComponent: () => import('./features/player/player-profile/player-profile.component').then(m => m.PlayerProfileComponent),
     canActivate: [authGuard, roleGuard],
@@ -353,7 +347,14 @@ export const routes: Routes = [
   {
     path: 'academy-announcement/:academyId',
     loadComponent: () => import('./features/notification/pages/academy-announcement/academy-announcement').then(m => m.AcademyAnnouncement),
-    canActivate: [authGuard]
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['AcademyAdmin', 'Coach'] }
+  },
+  {
+    path: 'academy-announcement',
+    loadComponent: () => import('./features/notification/pages/academy-announcement/academy-announcement').then(m => m.AcademyAnnouncement),
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['AcademyAdmin', 'Coach'] }
   },
   {
     path: 'notifications-list',
@@ -361,19 +362,22 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
-    path: 'followed-players/:scouterId',
+    path: 'followed-players',
     loadComponent: () => import('./features/scouter/followed-player/followed-player').then(m => m.FollowedPlayersComponent),
-    canActivate: [authGuard]
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Scouter'] }
   },
   {
-    path: 'shortlist/:scouterId',
+    path: 'shortlist',
     loadComponent: () => import('./features/scouter/scouter-shortlist/scouter-shortlist').then(m => m.ScouterShortlistComponent),
-    canActivate: [authGuard]
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Scouter'] }
   },
   {
-    path: 'search/:scouterId',
+    path: 'search',
     loadComponent: () => import('./features/scouter/scoutersearch/scoutersearch').then(m => m.ScouterSearchComponent),
-    canActivate: [authGuard]
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Scouter'] }
   },
   {
     path: 'scouter-ai',
@@ -397,6 +401,26 @@ export const routes: Routes = [
     canActivate: [authGuard, roleGuard],
     data: { roles: ['AcademyAdmin', 'Coach'] }
   },
+  
+  
+  {
+    path: 'scouter/dashboard',
+    loadComponent: () => import('./features/scouter/scouterdashboard/scouterdashboard').then(m => m.ScouterDashboardComponent),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'admin/scouterverification',
+    loadComponent: () => import('./features/scouter/scouter-verification/scouter-verification').then(m => m.ScouterVerificationComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['SystemAdmin'] }
+  },
+  {
+    path: 'parent/chat',
+    loadComponent: () => import('./features/Parent/parent-chat.component/parent-chat.component').then(m => m.ParentChatComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Parent'] }
+  },
+  
   { path: 'referenceshowcase', loadComponent: () => import('./reference-showcase').then(m => m.App) },
 
   // Wildcard Catch-all

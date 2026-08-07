@@ -17,7 +17,7 @@ namespace Koralytics.API.Services
     /// </summary>
     public class NotificationCleanupBackgroundService : BackgroundService
     {
-        private static readonly TimeSpan SweepInterval = TimeSpan.FromHours(6);
+        private static readonly TimeSpan SweepInterval = TimeSpan.FromDays(6);
 
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly ILogger<NotificationCleanupBackgroundService> _logger;

@@ -11,7 +11,7 @@ import { ToastContainerComponent } from '../../../shared/components/toast/toast'
 @Component({
   selector: 'app-dashboard-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule, NavbarComponent, Footer, ScrollRevealDirective,ToastContainerComponent],
+  imports: [CommonModule, RouterModule, NavbarComponent, Footer, ScrollRevealDirective],
   templateUrl: './dashboard-layout.component.html',
   styleUrls: ['./dashboard-layout.component.css']
 })
@@ -21,10 +21,9 @@ export class DashboardLayoutComponent {
 
   ngOnInit(): void {
    
-     this.signalRService.startConnection(() => this.tokenStorage.getAccessToken() || '');
   }
  
   ngOnDestroy(): void {
-    this.signalRService.stopConnection();
+   
   }
 }

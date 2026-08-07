@@ -5,6 +5,8 @@ import { ToastContainerComponent } from '../shared/components/toast/toast';
 import { ModalContainerComponent } from '../shared/components/modal-container/modal-container';
 import { LoadingSpinnerComponent } from '../shared/components/loading-spinner/loading-spinner';
 import { FootballPitch } from "../shared/components/football-pitch/football-pitch";
+import { TokenStorageService } from '@core/services/auth/token-storage.service';
+import { SignalRService } from '@core/services/SignalR/signalrservice';
 
 @Component({
   selector: 'app-root',
@@ -22,6 +24,8 @@ import { FootballPitch } from "../shared/components/football-pitch/football-pitc
 })
 export class App implements OnInit {
   private router = inject(Router);
+  private signalRService = inject(SignalRService);
+  private tokenStorage = inject(TokenStorageService);
 
   loading = true;
 
@@ -37,5 +41,13 @@ export class App implements OnInit {
         this.loading = false;
       }
     });
+    const token = this.tokenStorage.getAccessToken();
+    if (token) {
+      this.signalRService.startConnection(() => token);
+    }
+  }
+  ngOnDestroy(): void {
+   
+    this.signalRService.stopConnection();
   }
 }

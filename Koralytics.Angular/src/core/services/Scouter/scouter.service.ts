@@ -176,4 +176,25 @@ export class ScouterService {
   verifyScouter(scouterId: number): Observable<MessageOnlyResponse> {
     return this.http.post<MessageOnlyResponse>(`${this.baseUrl}/${scouterId}/verify`, {});
   }
+  
+  
+  /**
+   * GET api/scouter/all
+   * SystemAdmin only. Retrieves all scouters in the system.
+   */
+  getAllScouters(): Observable<ScouterProfileDto[]> {
+    return this.http
+      .get<ApiEnvelope<ScouterProfileDto[]>>(`${this.baseUrl}/all`)
+      .pipe(map((res) => res.data));
+  }
+
+  /**
+   * GET api/scouter/pending-verification
+   * SystemAdmin only. Retrieves all scouters that are currently pending verification.
+   */
+  getPendingVerificationScouters(): Observable<ScouterProfileDto[]> {
+    return this.http
+      .get<ApiEnvelope<ScouterProfileDto[]>>(`${this.baseUrl}/pending-verification`)
+      .pipe(map((res) => res.data));
+  }
 }

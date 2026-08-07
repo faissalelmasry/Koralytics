@@ -30,6 +30,14 @@
       <a routerLink="/coach/training-split" routerLinkActive="active">Training</a>
       <a routerLink="/coach/notes" routerLinkActive="active">Notes</a>
     </ng-container>
+    <!-- Scouter Links (Desktop) -->
+    <ng-container *ngIf="isScouter">
+      <a routerLink="/search" routerLinkActive="active">Search</a>
+      <a routerLink="/scouter-ai" routerLinkActive="active">AI Assistant</a>
+      <a routerLink="/shortlist/" routerLinkActive="active">Shortlist</a>
+      <a routerLink="/followed-players" routerLinkActive="active">Followed Players</a>
+      <a routerLink="/notifications-list" routerLinkActive="active">Notifications</a>
+    </ng-container>
 
     <!-- Auth Actions (Desktop) -->
     <a (click)="requestLogout()" style="cursor: pointer;" *ngIf="isLoggedIn">Sign Out</a>
@@ -123,6 +131,15 @@
         <a routerLink="/coach/match-requests" routerLinkActive="active" (click)="toggleSidebar(false)">Match
           Requests</a>
         <a routerLink="/coach/access" routerLinkActive="active" (click)="toggleSidebar(false)">Temp Access</a>
+      </ng-container>
+       <!-- Scouter Section (Sidebar) -->
+      <ng-container *ngIf="isScouter">
+        <div class="sidebar-section-title" style="color:#c8ff4d; margin-top: 16px; padding-left: 12px; font-family: 'Bebas Neue'; letter-spacing: 1px;">SCOUTER HUB</div>
+        <a routerLink="/search" routerLinkActive="active" (click)="toggleSidebar(false)">Search</a>
+        <a routerLink="/scouter-ai" routerLinkActive="active" (click)="toggleSidebar(false)">AI Assistant</a>
+        <a routerLink="/shortlist/" routerLinkActive="active" (click)="toggleSidebar(false)">Shortlist</a>
+        <a routerLink="/followed-players" routerLinkActive="active" (click)="toggleSidebar(false)">Followed Players</a>
+         <a routerLink="/notifications-list" routerLinkActive="active" (click)="toggleSidebar(false)">Notifications</a>
       </ng-container>
 
       <!-- Settings & Auth Section (Sidebar) -->

@@ -324,6 +324,8 @@ namespace Koralytics.API
             builder.Services.AddScoped<IAnnouncementNotificationService, AnnouncementNotificationService>();
             builder.Services.AddScoped<IParentService, ParentService>();
             builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
+            builder.Services.AddHttpClient<IParentAiService, ParentAiService>();
+            builder.Services.AddScoped<IParentPlayerAccessService, ParentPlayerAccessService>();
             builder.Services.Configure<AIOptions>(builder.Configuration.GetSection(AIOptions.SectionName));
             var aiSection = builder.Configuration.GetSection(AIOptions.SectionName);
             var aiProviderName = aiSection["Provider"] ?? "Local";
@@ -382,6 +384,7 @@ namespace Koralytics.API
             builder.Services.AddScoped<IUserBusinessValidator, UserBusinessValidator>();
             builder.Services.AddHostedService<NotificationCleanupBackgroundService>();
             builder.Services.AddHostedService<SubscriptionRenewalService>();
+            builder.Services.AddHostedService<SubscriptionGraceBackgroundService>();
 
             builder.Services
                 .AddFluentValidationAutoValidation()

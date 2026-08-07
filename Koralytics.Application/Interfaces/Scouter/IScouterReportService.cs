@@ -13,5 +13,7 @@ namespace Koralytics.Application.Interfaces.Scouter
         Task<String> GenerateScoutingReportAsync(int scouterId, int playerId);
         Task<ScouterReport> GetScoutingReportAsync(int scouterId, int playerId);
         Task<bool> VerifyScouterAsync(int scouterId);
+        Task<IEnumerable<Domain.Entities.Scouter.Scouter>> GetPendingVerificationScoutersAsync();
+        Task<IEnumerable<Domain.Entities.Scouter.Scouter>> GetAllScoutersAsync();
     }
 }

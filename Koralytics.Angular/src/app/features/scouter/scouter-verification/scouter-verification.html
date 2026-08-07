@@ -1,0 +1,172 @@
+<app-navbar></app-navbar>
+<div class="admin-scouters-page">
+
+  <!-- PAGE HEADER -->
+  <header class="page-header">
+    <div class="header-left">
+      <div class="header-eyebrow">
+        <span class="eyebrow-dot"></span>
+        <span class="eyebrow-text">SYSTEM ADMINISTRATION</span>
+      </div>
+      <h1 class="header-title">Scouter Verification</h1>
+      <p class="header-subtitle">Review pending scouter accounts and manage verified access across the platform.</p>
+    </div>
+  </header>
+
+  <!-- METRICS / STATS STRIP -->
+  <section class="stats-strip">
+    <div class="stat-item">
+      <span class="stat-value warning">{{ pendingCount() }}</span>
+      <span class="stat-label">Pending Verification</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item">
+      <span class="stat-value success">{{ verifiedCount() }}</span>
+      <span class="stat-label">Verified Scouters</span>
+    </div>
+  </section>
+
+  <!-- FEEDBACK BANNERS -->
+  @if (successMessage()) {
+  <div class="alert-banner success-banner">
+    <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+      <polyline points="22 4 12 14.01 9 11.01"></polyline>
+    </svg>
+    <span>{{ successMessage() }}</span>
+    <button class="close-alert" (click)="successMessage.set('')">&times;</button>
+  </div>
+  }
+
+  @if (errorMessage()) {
+  <div class="alert-banner error-banner">
+    <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"></circle>
+      <line x1="12" y1="8" x2="12" y2="12"></line>
+      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+    </svg>
+    <span>{{ errorMessage() }}</span>
+    <button class="close-alert" (click)="errorMessage.set('')">&times;</button>
+  </div>
+  }
+
+  <!-- CONTROL BAR: SEARCH + VIEW TOGGLE -->
+  <section class="filter-bar">
+    <div class="filter-search">
+      <app-search-bar placeholderText="search scouter name..." (searchChange)="onSearch($event)">
+      </app-search-bar>
+    </div>
+
+    <div class="view-toggle-group">
+      <button
+        type="button"
+        class="view-toggle-btn"
+        [class.active]="viewMode() === 'pending'"
+        (click)="switchView('pending')">
+        Pending Verification
+        @if (pendingCount() > 0) {
+        <span class="toggle-count">{{ pendingCount() }}</span>
+        }
+      </button>
+      <button
+        type="button"
+        class="view-toggle-btn"
+        [class.active]="viewMode() === 'verified'"
+        (click)="switchView('verified')">
+        Verified Scouters
+      </button>
+    </div>
+  </section>
+
+  <!-- LOADING / EMPTY / TABLE -->
+  @if (isLoading()) {
+  <div class="loading-wrapper">
+    <app-loading-spinner size="lg"></app-loading-spinner>
+    <p class="loading-text">Loading scouters...</p>
+  </div>
+  } @else if (filteredList().length === 0) {
+  <div class="empty-wrapper">
+    <app-empty-state
+      [title]="viewMode() === 'pending' ? 'No Scouters Pending Verification' : 'No Verified Scouters Yet'"
+      [description]="viewMode() === 'pending'
+        ? 'All caught up -- there are no scouter accounts currently waiting for review.'
+        : 'No scouters have been verified yet. Approved accounts will appear here.'">
+    </app-empty-state>
+  </div>
+  } @else {
+
+  <!-- SCOUTERS TABLE -->
+  <div class="table-card">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Scouter</th>
+          <th>ID</th>
+          <th>Status</th>
+          <th>Verified At</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (scouter of paginatedList(); track scouter.id) {
+        <tr>
+          <td>
+            <div class="scouter-name-cell">
+              <div class="scouter-avatar">{{ getInitials(`${scouter.firstName} ${scouter.lastName}`) }}</div>
+              <strong class="player-name-cell">{{ scouter.firstName }} {{ scouter.lastName }}</strong>
+            </div>
+          </td>
+          <td><span class="id-tag">#{{ scouter.id }}</span></td>
+          <td>
+            <app-status-chip
+              [label]="scouter.isVerified ? 'VERIFIED' : 'PENDING'"
+              [type]="scouter.isVerified ? 'success' : 'warning'">
+            </app-status-chip>
+          </td>
+          <td class="text-slate">
+            {{ scouter.verifiedAt ? (scouter.verifiedAt | date:'mediumDate') : '—' }}
+          </td>
+          <td class="action-cell">
+            @if (!scouter.isVerified) {
+            <app-button
+              variant="accent"
+              [loading]="isVerifyingId() === scouter.id"
+              (click)="openVerifyConfirm(scouter)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px;">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              Verify
+            </app-button>
+            } @else {
+            <span class="text-slate">—</span>
+            }
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <app-pagination
+    [totalItems]="filteredList().length"
+    [pageSize]="pageSize"
+    [currentPage]="currentPage()"
+    (pageChange)="onPageChange($event)">
+  </app-pagination>
+  }
+
+  <!-- VERIFY CONFIRM DIALOG -->
+  <app-confirm-dialog
+    [isOpen]="isConfirmDialogOpen"
+    title="Verify Scouter"
+    [message]="confirmDialogMessage"
+    level="info"
+    confirmText="Yes, Verify"
+    cancelText="Cancel"
+    [requiresConfirmation]="false"
+    (confirm)="confirmVerify()"
+    (cancel)="closeVerifyConfirm()">
+  </app-confirm-dialog>
+
+</div>
+<app-footer scrollReveal direction="bottom" [delay]="200"></app-footer>
