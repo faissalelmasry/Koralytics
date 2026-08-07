@@ -67,6 +67,7 @@ using Koralytics.Application.Services.Scouter.ScouterSearchService;
 using Koralytics.Application.Services.Scouter.ScouterShortlistService;
 using Koralytics.Application.Services.Storage;
 using Koralytics.Application.Services.Subscription;
+using Koralytics.Application.Interfaces.Subscription;
 using Koralytics.Application.Services.SystemAdmin.UserManagement;
 using Koralytics.Application.Services.Tournaments;
 using Koralytics.Application.Validators.Academies;
@@ -226,6 +227,8 @@ namespace Koralytics.API
 
             builder.Services.AddAuthorization();
             builder.Services.AddProblemDetails();
+            // Phase 4: Tier gating filter for boolean features
+            builder.Services.AddScoped<Koralytics.API.Filters.PlanFeatureFilter>();
             builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
             builder.Services.Configure<CloudflareR2Options>(
                 builder.Configuration.GetSection(CloudflareR2Options.SectionName));
@@ -324,6 +327,7 @@ namespace Koralytics.API
             builder.Services.AddScoped<IAnnouncementNotificationService, AnnouncementNotificationService>();
             builder.Services.AddScoped<IParentService, ParentService>();
             builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
+            builder.Services.AddScoped<ITenantSubscriptionService, TenantSubscriptionService>();
             builder.Services.AddHttpClient<IParentAiService, ParentAiService>();
             builder.Services.AddScoped<IParentPlayerAccessService, ParentPlayerAccessService>();
             builder.Services.Configure<AIOptions>(builder.Configuration.GetSection(AIOptions.SectionName));

@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { jwtDecode } from 'jwt-decode';
 
 @Injectable({
   providedIn: 'root'
@@ -39,6 +40,17 @@ export class TokenStorageService {
 
   public getAccessToken(): string | null {
     return this.getStorage().getItem(this.ACCESS_TOKEN_KEY);
+  }
+
+  public getTier(): string {
+    const token = this.getAccessToken();
+    if (!token) return 'Starter';
+    try {
+      const decoded = jwtDecode<any>(token);
+      return decoded.tier || 'Starter';
+    } catch (e) {
+      return 'Starter';
+    }
   }
 
   public getRefreshToken(): string | null {

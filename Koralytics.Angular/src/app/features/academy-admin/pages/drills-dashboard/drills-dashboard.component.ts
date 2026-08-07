@@ -2,11 +2,12 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { NavbarComponent } from '../../../../../shared/components/navbar/navbar';
+import { FeatureLockComponent } from '../../../../shared/components/feature-lock/feature-lock';
 
 @Component({
   selector: 'app-drills-dashboard',
   standalone: true,
-  imports: [CommonModule, NavbarComponent],
+  imports: [CommonModule, NavbarComponent, FeatureLockComponent],
   templateUrl: './drills-dashboard.component.html',
   styleUrls: ['./drills-dashboard.component.css']
 })

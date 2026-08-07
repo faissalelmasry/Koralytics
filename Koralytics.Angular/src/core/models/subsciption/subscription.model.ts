@@ -6,6 +6,7 @@ export interface PlayerSubscriptionDto {
   playerName: string;
   academyId: number;
   academyName: string;
+  academyTier?: string | number;
   amount: number;
   status: SubscriptionStatus;
   duration: SubscriptionDuration;

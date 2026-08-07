@@ -93,6 +93,10 @@ namespace Koralytics.Application.DTOs.Academies
         public string AdminFullName { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
         public int LocationCount { get; set; }
+        public SubscriptionTier Tier { get; set; }
+        public DateTime? SubscriptionStartsAt { get; set; }
+        public DateTime? SubscriptionExpiresAt { get; set; }
+        public SubscriptionStatus? SubscriptionStatus { get; set; }
     }
 
     public class AcademyListResponseDto

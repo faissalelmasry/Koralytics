@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Koralytics.Domain.Enums;
 
 namespace Koralytics.Application.DTOs.Subscription
@@ -11,6 +11,7 @@ namespace Koralytics.Application.DTOs.Subscription
 
         public int AcademyId { get; set; }
         public string AcademyName { get; set; } = string.Empty;
+        public SubscriptionTier AcademyTier { get; set; }
 
         public decimal Amount { get; set; }
 

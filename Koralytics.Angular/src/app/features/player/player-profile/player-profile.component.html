@@ -175,15 +175,17 @@
           }
         </div>
         <div class="radar-card-footer" style="margin-top: 10px; width: 100%;">
-          <app-button [variant]="tierButtonVariant" (click)="goToAcademyComparison()" style="width: 100%;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round">
-              <line x1="18" y1="20" x2="18" y2="10" />
-              <line x1="12" y1="20" x2="12" y2="4" />
-              <line x1="6" y1="20" x2="6" y2="14" />
-            </svg>
-            Compare To Academy
-          </app-button>
+          <app-feature-lock feature="AcademyComparison" featureName="Academy Comparison" mode="button">
+            <app-button [variant]="tierButtonVariant" (click)="goToAcademyComparison()" style="width: 100%;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="20" x2="18" y2="10" />
+                <line x1="12" y1="20" x2="12" y2="4" />
+                <line x1="6" y1="20" x2="6" y2="14" />
+              </svg>
+              Compare To Academy
+            </app-button>
+          </app-feature-lock>
         </div>
       </div>
 
@@ -237,14 +239,16 @@
       <!-- Row 2, Col 3: Radar Action Button -->
       @if (isOwnProfile) {
       <div class="radar-action" scrollReveal direction="bottom" [delay]="210">
-        <app-button [variant]="tierButtonVariant" [shimmer]="true" (click)="openArchetypeOverlay()"
-          style="width: 100%;">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round">
-            <path d="M13 2L3 14h9l-1 8 10-12h-8l1-8z" />
-          </svg>
-          Reveal Archetype
-        </app-button>
+        <app-feature-lock feature="Archetype" featureName="Player Archetype" mode="button">
+          <app-button [variant]="tierButtonVariant" [shimmer]="true" (click)="openArchetypeOverlay()"
+            style="width: 100%;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M13 2L3 14h9l-1 8 10-12h-8l1-8z" />
+            </svg>
+            Reveal Archetype
+          </app-button>
+        </app-feature-lock>
       </div>
       }
 
@@ -252,12 +256,14 @@
 
     <!-- =============== 2.5. TRANSFER CANVAS =============== -->
     @if (profile.playerCard) {
-    <div class="canvas-section" scrollReveal direction="bottom" [delay]="260">
-      <app-transfer-canvas [overallTrainingAvg]="profile.playerCard.overallTrainingAvg"
-        [overallTournamentAvg]="profile.playerCard.overallTournamentAvg"
-        [transferClassification]="profile.playerCard.transferClassification">
-      </app-transfer-canvas>
-    </div>
+    <app-feature-lock feature="TransferRate" featureName="Transfer Rate Canvas">
+      <div class="canvas-section" scrollReveal direction="bottom" [delay]="260">
+        <app-transfer-canvas [overallTrainingAvg]="profile.playerCard.overallTrainingAvg"
+          [overallTournamentAvg]="profile.playerCard.overallTournamentAvg"
+          [transferClassification]="profile.playerCard.transferClassification">
+        </app-transfer-canvas>
+      </div>
+    </app-feature-lock>
     }
 
     <!-- =============== 3. KPI GRID =============== -->
@@ -316,8 +322,11 @@
 
     <!-- =============== 5. DRILL PROGRESSION =============== -->
     @if (playerId) {
-    <app-player-drill-progression [playerId]="playerId" [tierButtonVariant]="tierButtonVariant" scrollReveal
-      direction="bottom" [delay]="480"></app-player-drill-progression>
+    <app-feature-lock feature="ProgressionAnalytics" featureName="Drill Progression Analytics">
+      <app-player-drill-progression [playerId]="playerId" [tierButtonVariant]="tierButtonVariant" scrollReveal
+        direction="bottom" [delay]="440">
+      </app-player-drill-progression>
+    </app-feature-lock>
     }
 
     <!-- =============== POSITION SELECTION MODAL =============== -->

@@ -1,4 +1,4 @@
-﻿using Koralytics.Domain.Entities.Identity;
+using Koralytics.Domain.Entities.Identity;
 using Koralytics.Domain.Enums;
 using Koralytics.Domain.Models.BaseModels;
 
@@ -24,6 +24,9 @@ namespace Koralytics.Domain.Entities.Academy
         public ICollection<RoleAuditLog> RoleAuditLogs { get; set; } = [];
         // Inside Academy.cs
         public ICollection<AcademyPlan> Plans { get; set; } = new List<AcademyPlan>();
+
+        // SaaS tier subscription (one active row, enforced by unique index)
+        public TenantSubscription? Subscription { get; set; }
 
     }
 }

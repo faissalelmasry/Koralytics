@@ -35,6 +35,12 @@ namespace Koralytics.Application.Services.Academy.AcademyService
         Task<AcademyResponseDto> UpdateAcademyStatusAsync(int academyId, UpdateAcademyStatusDto dto, int performedByUserId);
 
         /// <summary>
+        /// Updates the subscription tier of an academy (e.g. Starter, Pro, Elite).
+        /// </summary>
+        Task UpdateAcademyTierAsync(int academyId, Koralytics.Application.DTOs.SystemAdmin.UpdateAcademyTierDto dto, int performedByUserId);
+
+
+        /// <summary>
         /// Adds a new physical location to the academy.
         /// Automatically sets IsMain = true when it is the first location added.
         /// </summary>

@@ -111,33 +111,34 @@
     </div>
 
     <!-- CARD 3: COACH BIAS DETECTION -->
-    <div class="module-card card-amber" (click)="navigateToCoachBias()">
-      <div class="card-glass-glow"></div>
-      <div class="card-header-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
-          stroke-linejoin="round">
-          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-          <line x1="12" y1="9" x2="12" y2="13"></line>
-          <line x1="12" y1="17" x2="12.01" y2="17"></line>
-        </svg>
-      </div>
-      <div class="card-body">
-        <div class="card-badge badge-amber">Analytics</div>
-        <h3 class="card-title">Detect Coach Bias</h3>
-        <p class="card-desc">AI-powered analysis that identifies potential coaching biases in player ratings. Ensure
-          fair and objective evaluation across all coaches and squads.</p>
-        <div class="card-stats-row">
-          <div class="stat-item">
-            <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-              stroke-linecap="round" stroke-linejoin="round">
-              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-              <line x1="8" y1="21" x2="16" y2="21"></line>
-              <line x1="12" y1="17" x2="12" y2="21"></line>
-            </svg>
-            <span>AI Analysis</span>
-          </div>
-          <div class="stat-item">
-            <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+    <app-feature-lock feature="AIInsights" featureName="Coach Bias Analytics">
+      <div class="module-card card-amber" (click)="navigateToCoachBias()">
+        <div class="card-glass-glow"></div>
+        <div class="card-header-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+            stroke-linejoin="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+        </div>
+        <div class="card-body">
+          <div class="card-badge badge-amber">Analytics</div>
+          <h3 class="card-title">Detect Coach Bias</h3>
+          <p class="card-desc">AI-powered analysis that identifies potential coaching biases in player ratings. Ensure
+            fair and objective evaluation across all coaches and squads.</p>
+          <div class="card-stats-row">
+            <div class="stat-item">
+              <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                <line x1="8" y1="21" x2="16" y2="21"></line>
+                <line x1="12" y1="17" x2="12" y2="21"></line>
+              </svg>
+              <span>AI Analysis</span>
+            </div>
+            <div class="stat-item">
+              <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
               stroke-linecap="round" stroke-linejoin="round">
               <line x1="12" y1="2" x2="12" y2="6"></line>
               <line x1="12" y1="18" x2="12" y2="22"></line>
@@ -160,6 +161,7 @@
         </svg>
       </div>
     </div>
+    </app-feature-lock>
 
   </section>
 

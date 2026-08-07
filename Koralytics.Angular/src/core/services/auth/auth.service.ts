@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject, tap, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { Observable, BehaviorSubject, throwError } from 'rxjs';
+import { catchError, tap, map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { TokenStorageService } from './token-storage.service';
 import { User } from '../../interfaces/user.model';
@@ -39,6 +39,8 @@ export class AuthService {
   private currentUserSubject = new BehaviorSubject<User | null>(this.tokenStorage.getUser());
   public currentUser$ = this.currentUserSubject.asObservable();
   
+  public isSubscriptionActive$ = this.currentUser$.pipe(map(u => u?.isSubscriptionActive ?? true));
+
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(!!this.tokenStorage.getAccessToken());
   public isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
 
@@ -228,7 +230,8 @@ export class AuthService {
       userName: data.userName,
       fullName: data.fullName,
       roles: data.roles,
-      academyId: data.academyId
+      academyId: data.academyId,
+      isSubscriptionActive: data.isSubscriptionActive ?? true
     };
     this.tokenStorage.saveUser(user, rememberMe);
     this.currentUserSubject.next(user);

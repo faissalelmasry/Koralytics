@@ -7,6 +7,8 @@ import { LoadingSpinnerComponent } from '../shared/components/loading-spinner/lo
 import { FootballPitch } from "../shared/components/football-pitch/football-pitch";
 import { TokenStorageService } from '@core/services/auth/token-storage.service';
 import { SignalRService } from '@core/services/SignalR/signalrservice';
+import { SubscriptionLockedComponent } from '../shared/components/subscription-locked/subscription-locked';
+import { AuthService } from '../core/services/auth/auth.service';
 
 @Component({
   selector: 'app-root',
@@ -17,17 +19,20 @@ import { SignalRService } from '@core/services/SignalR/signalrservice';
     ToastContainerComponent,
     ModalContainerComponent,
     LoadingSpinnerComponent,
-    FootballPitch
+    FootballPitch,
+    SubscriptionLockedComponent
 ],
   templateUrl: './app.html',
   styleUrls: ['./app.css']
 })
 export class App implements OnInit {
   private router = inject(Router);
+  public authService = inject(AuthService);
   private signalRService = inject(SignalRService);
   private tokenStorage = inject(TokenStorageService);
 
   loading = true;
+  isSubscriptionActive$ = this.authService.isSubscriptionActive$;
 
   ngOnInit() {
     this.router.events.subscribe(e => {

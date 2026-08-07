@@ -39,6 +39,7 @@
         <tr>
           <th style="width: 40px;"></th>
           <th>{{ 'SYSTEM_ADMIN.ACTIVE_ACADEMIES.TH_ACADEMY_NAME' | translate }}</th>
+          <th>Subscription Plan</th>
           <th>{{ 'SYSTEM_ADMIN.ACTIVE_ACADEMIES.TH_FOUNDED' | translate }}</th>
           <th>{{ 'SYSTEM_ADMIN.ACTIVE_ACADEMIES.TH_OWNER' | translate }}</th>
           <th>{{ 'SYSTEM_ADMIN.ACTIVE_ACADEMIES.TH_STATUS' | translate }}</th>
@@ -60,7 +61,22 @@
               </div>
             </div>
           </td>
-          <td><span class="cell-text">{{ (acad.foundedAt || acad.createdAt || acad.foundedDate) | localizedDate:'mediumDate' }}</span></td>
+          <td (click)="$event.stopPropagation()">
+            <div class="tier-cell">
+              <span class="status-badge" [ngClass]="getTierClass(acad.tier, acad.subscriptionStatus)">
+                {{ getTierLabel(acad.tier, acad.subscriptionStatus) }}
+              </span>
+              <div class="tier-dates" style="font-size: 0.72rem; color: #94a3b8; margin-top: 4px; display: flex; align-items: center; gap: 4px; white-space: nowrap;" *ngIf="acad.subscriptionStartsAt || acad.subscriptionExpiresAt">
+                <span *ngIf="acad.subscriptionStartsAt">Start: {{ acad.subscriptionStartsAt | localizedDate:'shortDate' }}</span>
+                <span *ngIf="acad.subscriptionExpiresAt" style="margin-left: 4px;">End: {{ acad.subscriptionExpiresAt | localizedDate:'shortDate' }}</span>
+              </div>
+            </div>
+          </td>
+          <td>
+            <span class="cell-text">
+              {{ isInvalidDate(acad.foundedAt || acad.foundedDate) ? '—' : ((acad.foundedAt || acad.foundedDate) | localizedDate:'mediumDate') }}
+            </span>
+          </td>
           <td>
             <span class="cell-text">{{ acad.adminFullName || acad.adminEmail || 'Owner' }}</span>
           </td>
@@ -93,6 +109,16 @@
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
                 </svg>
               </button>
+              <!-- Manage Tier Icon Button -->
+              <button 
+                class="action-icon-btn status-btn" 
+                (click)="openTierModal(acad)" 
+                title="Change Subscription Tier">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2v20"></path>
+                  <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                </svg>
+              </button>
               <!-- Inspect / View Details Icon Button -->
               <button 
                 class="action-icon-btn" 
@@ -114,7 +140,7 @@
 
         <!-- Expanded Detail Panel Row -->
         <tr *ngIf="expandedAcademyId() === acad.id" class="detail-row">
-          <td colspan="6" class="detail-cell">
+          <td colspan="7" class="detail-cell">
             <app-academy-detail-panel [academyId]="acad.id"></app-academy-detail-panel>
           </td>
         </tr>
@@ -235,6 +261,123 @@
           <polyline points="20 6 9 17 4 12"></polyline>
         </svg>
         <span>{{ isUpdatingStatus ? ('SYSTEM_ADMIN.ACTIVE_ACADEMIES.BTN_SAVING' | translate) : ('SYSTEM_ADMIN.ACTIVE_ACADEMIES.BTN_SAVE' | translate) }}</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Academy Tier Management Modal -->
+<div class="modal-backdrop-cyber" *ngIf="showTierModal" (click)="closeTierModal()">
+  <div class="cyber-modal-card status-modal fade-in" (click)="$event.stopPropagation()">
+    <div class="tactical-tag">
+      <span>TIER MANAGEMENT</span>
+    </div>
+
+    <div class="modal-header-cyber">
+      <div class="modal-header-left">
+        <div class="modal-icon-badge status">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00e5ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2v20"></path>
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+          </svg>
+        </div>
+        <div>
+          <h4>Change Subscription Tier</h4>
+          <p class="modal-subtitle">
+            Update subscription tier for <strong style="color: #00e5ff;">{{ selectedAcademyForTier?.name }}</strong>
+          </p>
+          <div style="font-size: 0.78rem; color: #94a3b8; margin-top: 4px; display: flex; gap: 12px; flex-wrap: wrap;">
+            <span>Current Tier: <strong style="color: #f8fafc;">{{ getTierLabel(selectedAcademyForTier?.tier) }}</strong></span>
+            <span *ngIf="selectedAcademyForTier?.subscriptionStartsAt">Started: <strong style="color: #f8fafc;">{{ selectedAcademyForTier?.subscriptionStartsAt | localizedDate:'mediumDate' }}</strong></span>
+            <span *ngIf="selectedAcademyForTier?.subscriptionExpiresAt">Expires: <strong style="color: #f8fafc;">{{ selectedAcademyForTier?.subscriptionExpiresAt | localizedDate:'mediumDate' }}</strong></span>
+          </div>
+        </div>
+      </div>
+      <button class="btn-close-cyber" (click)="closeTierModal()" title="Close Modal">&times;</button>
+    </div>
+
+    <div class="modal-body-cyber">
+      <div class="status-options-cyber">
+        <!-- Starter -->
+        <div 
+          class="status-card-cyber" 
+          [class.selected]="selectedTier === 'Starter'" 
+          [class.active-status]="selectedTier === 'Starter'"
+          (click)="selectTierOption('Starter')">
+          <div class="status-card-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="#a3e635" stroke="#a3e635" stroke-width="2">
+              <circle cx="12" cy="12" r="8"></circle>
+            </svg>
+          </div>
+          <div class="status-card-content">
+            <h6>Starter</h6>
+            <p>1 Location, 50 Players, Max 7 Templates</p>
+          </div>
+        </div>
+
+        <!-- Pro -->
+        <div 
+          class="status-card-cyber" 
+          [class.selected]="selectedTier === 'Pro'" 
+          [class.suspended-status]="selectedTier === 'Pro'"
+          (click)="selectTierOption('Pro')">
+          <div class="status-card-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" stroke-width="2">
+              <circle cx="12" cy="12" r="8"></circle>
+            </svg>
+          </div>
+          <div class="status-card-content">
+            <h6>Pro</h6>
+            <p>3 Locations, 200 Players, Advanced Analytics</p>
+          </div>
+        </div>
+
+        <!-- Elite -->
+        <div 
+          class="status-card-cyber" 
+          [class.selected]="selectedTier === 'Elite'" 
+          [class.inactive-status]="selectedTier === 'Elite'"
+          (click)="selectTierOption('Elite')">
+          <div class="status-card-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="#00e5ff" stroke="#00e5ff" stroke-width="2">
+              <circle cx="12" cy="12" r="8"></circle>
+            </svg>
+          </div>
+          <div class="status-card-content">
+            <h6>Elite</h6>
+            <p>Unlimited, Full Analytics, AI Insights</p>
+          </div>
+        </div>
+
+        <!-- Cancelled -->
+        <div 
+          class="status-card-cyber" 
+          [class.selected]="selectedTier === 'Cancelled'" 
+          [class.inactive-status]="selectedTier === 'Cancelled'"
+          (click)="selectTierOption('Cancelled')"
+          style="border-color: rgba(239, 68, 68, 0.4);">
+          <div class="status-card-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="#ef4444" stroke="#ef4444" stroke-width="2">
+              <circle cx="12" cy="12" r="8"></circle>
+              <line x1="15" y1="9" x2="9" y2="15" stroke="#ffffff" stroke-width="2"></line>
+              <line x1="9" y1="9" x2="15" y2="15" stroke="#ffffff" stroke-width="2"></line>
+            </svg>
+          </div>
+          <div class="status-card-content">
+            <h6 style="color: #ef4444;">Cancel Subscription</h6>
+            <p>Lock academy access immediately & mark as Unpaid</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer-cyber">
+      <button type="button" class="btn-cyber-cancel" (click)="closeTierModal()">{{ 'SYSTEM_ADMIN.ACTIVE_ACADEMIES.BTN_CANCEL' | translate }}</button>
+      <button type="button" class="btn-cyber-confirm save-btn" (click)="onSaveTier()" [disabled]="isUpdatingTier">
+        <svg *ngIf="!isUpdatingTier" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        <span>{{ isUpdatingTier ? ('SYSTEM_ADMIN.ACTIVE_ACADEMIES.BTN_SAVING' | translate) : ('SYSTEM_ADMIN.ACTIVE_ACADEMIES.BTN_SAVE' | translate) }}</span>
       </button>
     </div>
   </div>

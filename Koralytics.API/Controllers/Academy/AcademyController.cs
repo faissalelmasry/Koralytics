@@ -3,7 +3,9 @@ using Koralytics.Application.DTOs.Academies;
 using Koralytics.Application.DTOs.Academy;
 using Koralytics.Application.DTOs.Scouter;
 using Koralytics.Application.DTOs.SystemAdmin;
+using Koralytics.Application.Interfaces.Subscription;
 using Koralytics.Application.Services.Academy.AcademyService;
+using Koralytics.API.Filters;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,10 +21,12 @@ namespace Koralytics.API.Controllers.Academies
     public class AcademyController : ApiBaseController
     {
         private readonly IAcademyService _academyService;
+        private readonly ITenantSubscriptionService _tenantSubscriptionService;
 
-        public AcademyController(IAcademyService academyService)
+        public AcademyController(IAcademyService academyService, ITenantSubscriptionService tenantSubscriptionService)
         {
             _academyService = academyService;
+            _tenantSubscriptionService = tenantSubscriptionService;
         }
 
         [HttpPost("approve")]
@@ -84,10 +88,23 @@ namespace Koralytics.API.Controllers.Academies
             return OkResponse(result, "Academy status updated successfully.");
         }
 
+        [HttpPut("{academyId}/tier")]
+        [Authorize(Roles = "SystemAdmin")]
+        public async Task<IActionResult> UpdateAcademyTier(int academyId, [FromBody] UpdateAcademyTierDto dto)
+        {
+            var userId = GetCurrentUserId();
+            await _academyService.UpdateAcademyTierAsync(academyId, dto, userId);
+            return OkResponse<object>(null, "Academy tier updated successfully.");
+        }
+
         [HttpPost("{academyId}/locations")]
         [Authorize(Roles = "AcademyAdmin,SystemAdmin")]
         public async Task<IActionResult> AddLocation(int academyId, [FromBody] AddLocationDto dto)
         {
+            var currentCount = await _tenantSubscriptionService.CountLocationsAsync(academyId);
+            var guard = await CapacityGuard.CheckLocationLimitAsync(_tenantSubscriptionService, academyId, currentCount);
+            if (guard != null) return guard;
+
             var userId = GetCurrentUserId();
             var result = await _academyService.AddLocationAsync(academyId, dto, userId);
             return OkResponse(result, "Location added successfully.");
@@ -172,6 +189,10 @@ namespace Koralytics.API.Controllers.Academies
         [Authorize(Roles = "AcademyAdmin,SystemAdmin")]
         public async Task<IActionResult> SendPlayerJoinRequest(int academyId, [FromQuery] int playerId)
         {
+            var currentCount = await _tenantSubscriptionService.CountPlayersAsync(academyId);
+            var guard = await CapacityGuard.CheckPlayerLimitAsync(_tenantSubscriptionService, academyId, currentCount);
+            if (guard != null) return guard;
+
             var adminId = GetCurrentUserId();
             await _academyService.SendPlayerJoinRequestAsync(academyId, playerId, adminId);
             return OkResponse<object>(null, "Join request sent to player successfully.");
@@ -226,6 +247,10 @@ namespace Koralytics.API.Controllers.Academies
         [Authorize(Roles = "AcademyAdmin,SystemAdmin")]
         public async Task<IActionResult> SendCoachJoinRequest(int academyId, [FromQuery] int coachId)
         {
+            var currentCount = await _tenantSubscriptionService.CountSeatsAsync(academyId);
+            var guard = await CapacityGuard.CheckSeatLimitAsync(_tenantSubscriptionService, academyId, currentCount);
+            if (guard != null) return guard;
+
             var adminId = GetCurrentUserId();
             await _academyService.SendCoachJoinRequestAsync(academyId, coachId, adminId);
             return OkResponse<object>(null, "Join request sent to coach successfully.");
@@ -282,6 +307,10 @@ namespace Koralytics.API.Controllers.Academies
         [Authorize(Roles = "AcademyAdmin,SystemAdmin")]
         public async Task<IActionResult> SendAdminJoinRequest(int academyId, [FromQuery] int adminId)
         {
+            var currentCount = await _tenantSubscriptionService.CountSeatsAsync(academyId);
+            var guard = await CapacityGuard.CheckSeatLimitAsync(_tenantSubscriptionService, academyId, currentCount);
+            if (guard != null) return guard;
+
             var currentUserId = GetCurrentUserId();
             await _academyService.SendAdminJoinRequestAsync(academyId, adminId, currentUserId);
             return OkResponse<object>(null, "Join request sent to admin successfully.");

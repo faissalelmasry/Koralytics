@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -6,22 +6,22 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Koralytics.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class AddAcademyAdminJoinRequest : Migration
+    public partial class AddTenantSubscription : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "AcademyAdminJoinRequests",
+                name: "TenantSubscriptions",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     AcademyId = table.Column<int>(type: "int", nullable: false),
-                    AdminId = table.Column<int>(type: "int", nullable: false),
-                    Status = table.Column<int>(type: "int", nullable: false),
-                    RequestedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    RespondedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Tier = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    StartsAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ExpiresAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedById = table.Column<int>(type: "int", nullable: true),
                     CreatedByUserId = table.Column<int>(type: "int", nullable: true),
@@ -32,49 +32,49 @@ namespace Koralytics.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_AcademyAdminJoinRequests", x => x.Id);
+                    table.PrimaryKey("PK_TenantSubscriptions", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_AcademyAdminJoinRequests_Academies_AcademyId",
+                        name: "FK_TenantSubscriptions_Academies_AcademyId",
                         column: x => x.AcademyId,
                         principalTable: "Academies",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_AcademyAdminJoinRequests_AcademyAdmins_AdminId",
-                        column: x => x.AdminId,
-                        principalTable: "AcademyAdmins",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_AcademyAdminJoinRequests_AspNetUsers_CreatedByUserId",
+                        name: "FK_TenantSubscriptions_AspNetUsers_CreatedByUserId",
                         column: x => x.CreatedByUserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_AcademyAdminJoinRequests_AspNetUsers_UpdatedByUserId",
+                        name: "FK_TenantSubscriptions_AspNetUsers_UpdatedByUserId",
                         column: x => x.UpdatedByUserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id");
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_AcademyAdminJoinRequests_AcademyId",
-                table: "AcademyAdminJoinRequests",
-                column: "AcademyId");
+                name: "IX_TenantSubscriptions_AcademyId_Unique",
+                table: "TenantSubscriptions",
+                column: "AcademyId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_AcademyAdminJoinRequests_AdminId",
-                table: "AcademyAdminJoinRequests",
-                column: "AdminId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_AcademyAdminJoinRequests_CreatedByUserId",
-                table: "AcademyAdminJoinRequests",
+                name: "IX_TenantSubscriptions_CreatedByUserId",
+                table: "TenantSubscriptions",
                 column: "CreatedByUserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_AcademyAdminJoinRequests_UpdatedByUserId",
-                table: "AcademyAdminJoinRequests",
+                name: "IX_TenantSubscriptions_ExpiresAt",
+                table: "TenantSubscriptions",
+                column: "ExpiresAt");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TenantSubscriptions_Tier",
+                table: "TenantSubscriptions",
+                column: "Tier");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TenantSubscriptions_UpdatedByUserId",
+                table: "TenantSubscriptions",
                 column: "UpdatedByUserId");
         }
 
@@ -82,11 +82,7 @@ namespace Koralytics.Infrastructure.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "AcademyAdminJoinRequests");
-
-            migrationBuilder.DropColumn(
-                name: "AwayFormation",
-                table: "Matches");
+                name: "TenantSubscriptions");
         }
     }
 }
