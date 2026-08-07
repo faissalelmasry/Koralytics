@@ -41,6 +41,12 @@ export class PlayerCardComponent implements OnInit, AfterViewInit, OnChanges {
     return 'tier-base';
   }
 
+  get displayClassification(): string {
+    if (!this.player?.transferClassification) return '';
+    if (this.player.transferClassification === 'Natural') return 'Expert';
+    return this.player.transferClassification;
+  }
+
   get isGK(): boolean {
     return this.player?.position?.toUpperCase() === 'GK';
   }

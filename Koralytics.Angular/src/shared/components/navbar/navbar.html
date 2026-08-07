@@ -27,8 +27,12 @@
     <!-- Coach Links (Desktop) -->
     <ng-container *ngIf="isCoach">
       <a routerLink="/coach/squad" routerLinkActive="active">Squad</a>
-      <a routerLink="/coach/training-split" routerLinkActive="active">Training</a>
-      <a routerLink="/coach/notes" routerLinkActive="active">Notes</a>
+      <a routerLink="/coach/matches" routerLinkActive="active">Matches</a>
+      <a routerLink="/drills" routerLinkActive="active">Templates</a>
+      <a routerLink="/drills/analytics/coach-bias" routerLinkActive="active">Bias</a>
+      <a routerLink="/match/requests/incoming" routerLinkActive="active">Incoming</a>
+      <a routerLink="/match/requests/outgoing" routerLinkActive="active">Outgoing</a>
+      <a routerLink="/academy-ai" routerLinkActive="active">AI Bot</a>
     </ng-container>
     <!-- Scouter Links (Desktop) -->
     <ng-container *ngIf="isScouter">
@@ -64,6 +68,9 @@
   </button>
 </header>
 
+<div class="floating-sidebar-trigger" [class.sidebar-open]="isSidebarOpen" (click)="toggleSidebar(!isSidebarOpen)">
+  <img src="images/logo/app-icon/logo-icon-dark.png" alt="Trigger Icon" class="trigger-icon">
+</div>
 
 <div class="sidebar-backdrop" [class.active]="isSidebarOpen" (click)="toggleSidebar(false)">
 </div>
@@ -99,19 +106,6 @@
           Comparison</a>
       </div>
 
-      <!-- Coach Section -->
-      <div class="sidebar-section" *ngIf="isCoach">
-        <span class="section-label">Coach</span>
-        <a routerLink="/coach/squad" routerLinkActive="active" (click)="toggleSidebar(false)">Squad Overview</a>
-        <a routerLink="/coach/training-split" routerLinkActive="active" (click)="toggleSidebar(false)">Training
-          Split</a>
-        <a routerLink="/coach/notes" routerLinkActive="active" (click)="toggleSidebar(false)">Player Notes</a>
-        <a routerLink="/coach/access" routerLinkActive="active" (click)="toggleSidebar(false)">Temp Access</a>
-        <a routerLink="/coach/readiness" routerLinkActive="active" (click)="toggleSidebar(false)">Player Readiness</a>
-        <a routerLink="/coach/match-requests" routerLinkActive="active" (click)="toggleSidebar(false)">Match
-          Requests</a>
-      </div>
-
       <!-- Player Highlights -->
       <div class="sidebar-section" *ngIf="isPlayer">
         <span class="section-label">Media</span>
@@ -124,13 +118,12 @@
           style="color: var(--accent-lime, #c8ff4d); margin-top: 16px; padding-left: 12px; font-family: 'Bebas Neue'; letter-spacing: 1px;">
           COACH HUB</div>
         <a routerLink="/coach/squad" routerLinkActive="active" (click)="toggleSidebar(false)">Squad Overview</a>
-        <a routerLink="/coach/training-split" routerLinkActive="active" (click)="toggleSidebar(false)">Training
-          Split</a>
-        <a routerLink="/coach/notes" routerLinkActive="active" (click)="toggleSidebar(false)">Player Notes</a>
-        <a routerLink="/coach/readiness" routerLinkActive="active" (click)="toggleSidebar(false)">Player Readiness</a>
-        <a routerLink="/coach/match-requests" routerLinkActive="active" (click)="toggleSidebar(false)">Match
-          Requests</a>
-        <a routerLink="/coach/access" routerLinkActive="active" (click)="toggleSidebar(false)">Temp Access</a>
+        <a routerLink="/coach/matches" routerLinkActive="active" (click)="toggleSidebar(false)">Matches</a>
+        <a routerLink="/drills" routerLinkActive="active" (click)="toggleSidebar(false)">Drill Templates</a>
+        <a routerLink="/drills/analytics/coach-bias" routerLinkActive="active" (click)="toggleSidebar(false)">Coach Bias</a>
+        <a routerLink="/match/requests/incoming" routerLinkActive="active" (click)="toggleSidebar(false)">Incoming Requests</a>
+        <a routerLink="/match/requests/outgoing" routerLinkActive="active" (click)="toggleSidebar(false)">Outgoing Requests</a>
+        <a routerLink="/academy-ai" routerLinkActive="active" (click)="toggleSidebar(false)">AI Bot</a>
       </ng-container>
        <!-- Scouter Section (Sidebar) -->
       <ng-container *ngIf="isScouter">

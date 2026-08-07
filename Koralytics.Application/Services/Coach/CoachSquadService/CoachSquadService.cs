@@ -250,7 +250,9 @@ namespace Koralytics.Application.Services.Coach.CoachSquadService
                 if (card is null) return 0m;
                 var rating = card.CategoryRatings
                     .FirstOrDefault(cr =>
-                        cr.DrillCategory.Name.Equals(categoryName, StringComparison.OrdinalIgnoreCase));
+                        cr.DrillCategory.Name.Equals(categoryName, StringComparison.OrdinalIgnoreCase) ||
+                        (categoryName.Equals("Pace", StringComparison.OrdinalIgnoreCase) && cr.DrillCategory.Name.Equals("Speed", StringComparison.OrdinalIgnoreCase)) ||
+                        (categoryName.Equals("Speed", StringComparison.OrdinalIgnoreCase) && cr.DrillCategory.Name.Equals("Pace", StringComparison.OrdinalIgnoreCase)));
                 return rating?.Score ?? 0m;
             }
 

@@ -1,7 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 import { DrillSessionService } from '../../../../core/services/drill/drill-session.service';
 import { AcademyService } from '../../../../core/services/academy/academy.service';
 import { AuthService } from '../../../../core/services/auth/auth.service';
@@ -34,6 +34,7 @@ export interface BiasReport {
   imports: [
     CommonModule, 
     FormsModule, 
+    RouterModule,
     CustomSelect, 
     CustomButtonComponent, 
     LoadingSpinnerComponent, 

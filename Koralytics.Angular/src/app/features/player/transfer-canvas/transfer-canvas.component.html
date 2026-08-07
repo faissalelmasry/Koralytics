@@ -7,10 +7,10 @@
       </div>
     </div>
 
-    @if (transferClassification) {
+    @if (displayClassification) {
       <div class="archetype-pill" [style.color]="nodeColor" [style.border-color]="nodeColor" [style.background]="'color-mix(in srgb, ' + nodeColor + ' 8%, transparent)'">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-8l1-8z"/><circle cx="12" cy="12" r="9" stroke-dasharray="2 2"/></svg>
-        {{ transferClassification }}
+        {{ displayClassification }}
       </div>
     }
   </div>
@@ -62,7 +62,7 @@
       [style.top]="nodeTop">
       <div class="radar-pulse-node" [style.background]="nodeColor" [style.box-shadow]="'0 0 20px ' + classificationGlow"></div>
       <div class="player-card-popup" [style.border-color]="nodeColor">
-        <div class="p-name" [style.color]="nodeColor">{{ transferClassification || 'Player' }}</div>
+        <div class="p-name" [style.color]="nodeColor">{{ displayClassification || 'Player' }}</div>
         <div class="p-metrics">Drill: <span [style.color]="nodeColor">{{ drillIndex }}</span> &bull; Match: <span [style.color]="nodeColor">{{ matchIndex }}</span></div>
       </div>
     </div>

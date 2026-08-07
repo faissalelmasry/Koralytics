@@ -27,7 +27,10 @@ export class CoachSquadService {
     return this.http.get<any>(`${this.baseUrl}/teams/${first}/squad`);
   }
 
-  getCoachTeams(): Observable<CoachTeamDto[]> {
+  getCoachTeams(coachId?: number): Observable<CoachTeamDto[]> {
+    if (coachId && coachId > 0) {
+      return this.http.get<CoachTeamDto[]>(`${this.baseUrl}/${coachId}/teams`);
+    }
     return this.http.get<CoachTeamDto[]>(`${this.baseUrl}/teams`);
   }
 
