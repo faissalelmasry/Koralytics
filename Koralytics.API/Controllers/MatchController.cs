@@ -2,6 +2,7 @@ using Koralytics.API.Controllers.BaseController;
 using Koralytics.Application.DTOs.Match;
 using Koralytics.Application.Interfaces.Match;
 using Koralytics.Domain.Enums;
+using Koralytics.API.Filters;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -275,6 +276,7 @@ namespace Koralytics.API.Controllers
         [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [RequiresPlanFeature(TierFeature.FullAnalyticsSuite)]
         public async Task<IActionResult> GetPlayerReadiness(int playerId)
         {
             var result = await _matchAnalyticsService.GetPlayerReadinessAsync(playerId);
@@ -368,6 +370,7 @@ namespace Koralytics.API.Controllers
 
         [HttpGet("{matchId:int}/report")]
         [Authorize]
+        [RequiresPlanFeature(TierFeature.AIInsights)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetMatchReport(int matchId, [FromQuery] AIReportType reportType = AIReportType.Match)
@@ -378,6 +381,7 @@ namespace Koralytics.API.Controllers
 
         [HttpPost("{matchId:int}/generate-report")]
         [Authorize(Roles = "SystemAdmin,Coach,AcademyAdmin")]
+        [RequiresPlanFeature(TierFeature.AIInsights)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

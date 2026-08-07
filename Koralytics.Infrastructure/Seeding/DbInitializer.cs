@@ -1,4 +1,4 @@
-﻿using Koralytics.Domain.Entities;
+using Koralytics.Domain.Entities;
 using Koralytics.Domain.Entities.Academy;
 using Koralytics.Domain.Entities.Coach;
 using Koralytics.Domain.Entities.Drill;
@@ -1873,6 +1873,108 @@ namespace Koralytics.Infrastructure.Seeding
                 if (shikaU != null) context.TournamentHallOfFames.Add(new TournamentHallOfFame { TournamentId = tournament.Id, PlayerId = shikaU.Id, AwardType = "MostMOTM",       CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow });
                 await context.SaveChangesAsync();
             }
+
+            // =========================================================
+            // PHASE 1: Seed demo TenantSubscriptions (SaaS tier gating)
+            // =========================================================
+            // Academy 1 (Al Ahly)  → Starter
+            // Academy 2 (Zamalek)  → Pro
+            // Academy 3 (Elite FC) → Elite
+            // Each sub runs for 1 year from today and is status=Paid.
+            // Idempotent: skipped if a TenantSubscription already exists for that academy.
+
+            await SeedTenantSubscriptionsAsync(context, userManager);
+        }
+
+        // ─────────────────────────────────────────────────────────────────────────
+        // PHASE 1: TenantSubscription seeder
+        // ─────────────────────────────────────────────────────────────────────────
+
+        private static async Task SeedTenantSubscriptionsAsync(
+            ApplicationDbContext context,
+            UserManager<User> userManager)
+        {
+            var now = DateTime.UtcNow;
+            var oneYearLater = now.AddYears(1);
+
+            // ── Seed "Elite FC" academy (3rd demo academy) ───────────────────────
+            if (!await context.Academies.AnyAsync(a => a.Name == "Elite FC"))
+            {
+                var systemAdmin = await userManager.FindByEmailAsync("admin@koralytics.com");
+
+                var eliteAdmin = new User
+                {
+                    UserName       = "eliteadmin@test.com",
+                    Email          = "eliteadmin@test.com",
+                    EmailConfirmed = true,
+                    FirstName      = "Elite",
+                    LastName       = "Admin",
+                    CreatedAt      = now,
+                    UpdatedAt      = now,
+                    CreatedById    = systemAdmin!.Id
+                };
+                var result = await userManager.CreateAsync(eliteAdmin, "Admin@123456");
+                if (result.Succeeded)
+                    await userManager.AddToRoleAsync(eliteAdmin, "AcademyAdmin");
+
+                var eliteAcademy = new Academy
+                {
+                    Name        = "Elite FC",
+                    Status      = AcademyStatus.Active,
+                    AdminUserId = eliteAdmin.Id,
+                    FoundedAt   = new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                    CreatedAt   = now,
+                    UpdatedAt   = now
+                };
+                context.Academies.Add(eliteAcademy);
+                await context.SaveChangesAsync();
+
+                await context.Database.ExecuteSqlRawAsync(
+                    "INSERT INTO AcademyAdmins (Id, AcademyId) VALUES ({0}, {1})",
+                    eliteAdmin.Id, eliteAcademy.Id);
+
+                context.AgeGroups.Add(new AgeGroup
+                {
+                    AcademyId = eliteAcademy.Id,
+                    Name      = "First Team",
+                    MinAge    = 18,
+                    MaxAge    = 40
+                });
+                await context.SaveChangesAsync();
+            }
+
+            // ── Tier mapping: academyName → tier ─────────────────────────────────
+            var tierMap = new Dictionary<string, SubscriptionTier>
+            {
+                { "Al Ahly Academy", SubscriptionTier.Elite },
+                { "Zamalek Academy", SubscriptionTier.Pro     },
+                { "Elite FC",        SubscriptionTier.Starter   }
+            };
+
+            foreach (var (academyName, tier) in tierMap)
+            {
+                var academy = await context.Academies
+                    .FirstOrDefaultAsync(a => a.Name == academyName);
+
+                if (academy is null) continue;
+
+                // Idempotency: skip if subscription already exists
+                if (await context.TenantSubscriptions.AnyAsync(s => s.AcademyId == academy.Id))
+                    continue;
+
+                context.TenantSubscriptions.Add(new TenantSubscription
+                {
+                    AcademyId   = academy.Id,
+                    Tier        = tier,
+                    Status      = SubscriptionStatus.Paid,
+                    StartsAt    = now,
+                    ExpiresAt   = oneYearLater,
+                    CreatedAt   = now,
+                    UpdatedAt   = now
+                });
+            }
+
+            await context.SaveChangesAsync();
         }
     }
 }

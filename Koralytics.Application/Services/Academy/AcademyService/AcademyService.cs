@@ -367,6 +367,7 @@ namespace Koralytics.Application.Services.Academy.AcademyService
             var academy = await _unitOfWork.Repository<Domain.Entities.Academy.Academy>()
                 .GetQueryableAsNoTracking()
                 .Include(a => a.Admin)
+                .Include(a => a.Subscription)
                 .Include(a => a.AcademyLocations)
                 .FirstOrDefaultAsync(a => a.Id == academyId);
 
@@ -406,6 +407,7 @@ namespace Koralytics.Application.Services.Academy.AcademyService
 
             var academies = await query
                 .Include(a => a.Admin)
+                .Include(a => a.Subscription)
                 .Skip((request.Page - 1) * request.PageSize)
                 .Take(request.PageSize)
                 .ToListAsync();
@@ -1497,6 +1499,44 @@ namespace Koralytics.Application.Services.Academy.AcademyService
             _logger.LogInformation("Academy Langflow AI ChatBot response generated successfully.");
 
             return botReply;
+        }
+
+        public async Task UpdateAcademyTierAsync(int academyId, Koralytics.Application.DTOs.SystemAdmin.UpdateAcademyTierDto dto, int performedByUserId)
+        {
+            var subscription = await _unitOfWork.Repository<TenantSubscription>()
+                .GetQueryable()
+                .FirstOrDefaultAsync(s => s.AcademyId == academyId);
+
+            var targetStatus = dto.Status ?? SubscriptionStatus.Paid;
+
+            if (subscription == null)
+            {
+                subscription = new TenantSubscription
+                {
+                    AcademyId = academyId,
+                    Tier = dto.Tier,
+                    Status = targetStatus,
+                    StartsAt = DateTime.UtcNow,
+                    ExpiresAt = targetStatus == SubscriptionStatus.Unpaid ? DateTime.UtcNow.AddDays(-1) : DateTime.UtcNow.AddYears(1)
+                };
+                await _unitOfWork.Repository<TenantSubscription>().AddAsync(subscription);
+            }
+            else
+            {
+                subscription.Tier = dto.Tier;
+                subscription.Status = targetStatus;
+                if (targetStatus == SubscriptionStatus.Unpaid)
+                {
+                    subscription.ExpiresAt = DateTime.UtcNow.AddDays(-1);
+                }
+                else if (subscription.ExpiresAt < DateTime.UtcNow)
+                {
+                    subscription.ExpiresAt = DateTime.UtcNow.AddYears(1);
+                }
+            }
+
+            await _unitOfWork.SaveChangesAsync();
+            _logger.LogInformation("Academy {AcademyId} tier updated to {Tier} (Status: {Status}) by SystemAdmin {UserId}", academyId, dto.Tier, targetStatus, performedByUserId);
         }
     }
 }

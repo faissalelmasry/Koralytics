@@ -122,7 +122,8 @@ namespace Koralytics.Application.Services.Auth.Login
             var roles = (await _userManager.GetRolesAsync(user)).ToList();
 
             var academyId = await GetAcademyIdAsync(user, roles);
-            var response = BuildAuthResponse(user, roles, academyId, tokens.AccessToken, tokens.RefreshToken, tokens.AccessTokenExpiresAt, tokens.RefreshTokenExpiresAt);
+            bool isSubscriptionActive = await GetSubscriptionActiveStatusAsync(academyId);
+            var response = BuildAuthResponse(user, roles, academyId, isSubscriptionActive, tokens.AccessToken, tokens.RefreshToken, tokens.AccessTokenExpiresAt, tokens.RefreshTokenExpiresAt);
 
             _logger.LogInformation("Tokens refreshed for user: {userId} ({email})", user.Id, user.Email);
             return new AuthResultDto(response, tokens);
@@ -303,14 +304,15 @@ namespace Koralytics.Application.Services.Auth.Login
             }
 
             var academyId = await GetAcademyIdAsync(user, roles);
+            bool isSubscriptionActive = await GetSubscriptionActiveStatusAsync(academyId);
             var tokens = await _tokenService.GenerateTokenPairAsync(user, roles, academyId);
-            var response = BuildAuthResponse(user, roles, academyId, tokens.AccessToken, tokens.RefreshToken, tokens.AccessTokenExpiresAt, tokens.RefreshTokenExpiresAt);
+            var response = BuildAuthResponse(user, roles, academyId, isSubscriptionActive, tokens.AccessToken, tokens.RefreshToken, tokens.AccessTokenExpiresAt, tokens.RefreshTokenExpiresAt);
             
             _logger.LogInformation("Successful authentication for user: {userId} ({email}), roles: {roles}", user.Id, user.Email, string.Join(", ", roles));
             return new AuthResultDto(response, tokens);
         }
 
-        private static AuthResponseDto BuildAuthResponse(User user, IList<string> roles, int? academyId, string accessToken, string refreshToken, DateTime accessExpiresAt, DateTime refreshExpiresAt)
+        private static AuthResponseDto BuildAuthResponse(User user, IList<string> roles, int? academyId, bool isSubscriptionActive, string accessToken, string refreshToken, DateTime accessExpiresAt, DateTime refreshExpiresAt)
         {
             return new AuthResponseDto
             {
@@ -323,8 +325,18 @@ namespace Koralytics.Application.Services.Auth.Login
                 Email = user.Email ?? string.Empty,
                 FullName = string.Join(' ', new[] { user.FirstName, user.LastName }.Where(x => !string.IsNullOrWhiteSpace(x))),
                 AcademyId = academyId,
-                Roles = roles
+                Roles = roles,
+                IsSubscriptionActive = isSubscriptionActive
             };
+        }
+
+        private async Task<bool> GetSubscriptionActiveStatusAsync(int? academyId)
+        {
+            if (!academyId.HasValue) return true;
+            var sub = await _unitOfWork.Repository<TenantSubscription>()
+                .GetQueryableAsNoTracking()
+                .FirstOrDefaultAsync(s => s.AcademyId == academyId.Value);
+            return sub?.IsActive ?? true;
         }
 
         private async Task<int?> GetAcademyIdAsync(User user, IList<string> roles)

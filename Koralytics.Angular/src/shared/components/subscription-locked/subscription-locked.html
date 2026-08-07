@@ -1,0 +1,25 @@
+<div class="lock-overlay">
+  <div class="lock-card">
+    <div class="lock-icon">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+      </svg>
+    </div>
+    <h2 class="lock-title">ACCESS LOCKED</h2>
+    <p class="lock-message">
+      Your Academy's subscription has expired or the grace period has ended.<br>
+      Access to the system is restricted until the payment is settled.
+    </p>
+    
+    <div class="lock-actions">
+      <p class="admin-notice" *ngIf="isAcademyAdmin">
+        Please contact Koralytics support or your System Administrator to renew your subscription.
+      </p>
+      <p class="admin-notice" *ngIf="!isAcademyAdmin">
+        Please contact your Academy Administrator.
+      </p>
+      <button class="btn-signout" (click)="logout()">Sign Out</button>
+    </div>
+  </div>
+</div>

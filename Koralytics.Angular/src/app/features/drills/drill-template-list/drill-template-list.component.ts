@@ -467,8 +467,8 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
         }
         return err.error.substring(0, 100); // Return raw text if small enough
       }
-      return err.error.message || err.error.detail || err.error.title || fallback;
+      return err.error.upgradeMessage || err.error.message || err.error.detail || err.error.title || fallback;
     }
-    return err?.message || fallback;
+    return err?.upgradeMessage || err?.message || fallback;
   }
 }

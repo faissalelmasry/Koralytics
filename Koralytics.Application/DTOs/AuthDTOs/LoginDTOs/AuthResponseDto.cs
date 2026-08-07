@@ -12,5 +12,6 @@ namespace Koralytics.Application.DTOs.AuthDTOs.LoginDTOs
         public string FullName { get; set; } = string.Empty;
         public int? AcademyId { get; set; }
         public IList<string> Roles { get; set; } = new List<string>();
+        public bool IsSubscriptionActive { get; set; } = true;
     }
 }

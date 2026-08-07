@@ -142,15 +142,22 @@
 
       <!-- Academy Admin Links (Sidebar) -->
       <ng-container *ngIf="isAcademyAdmin">
-        <div class="sidebar-section-title" style="color: #00f2fe; margin-top: 16px; padding-left: 12px; font-family: 'Bebas Neue'; letter-spacing: 1px;">ACADEMY HUB</div>
-        <a routerLink="/academy-admin/dashboard" routerLinkActive="active" (click)="toggleSidebar(false)">academy dashboard</a>
-        <a routerLink="/academy-admin/drills-dashboard" routerLinkActive="active" (click)="toggleSidebar(false)">drills</a>
+        <div class="sidebar-section-title"
+          style="color: #00f2fe; margin-top: 16px; padding-left: 12px; font-family: 'Bebas Neue'; letter-spacing: 1px;">
+          ACADEMY HUB</div>
+        <a routerLink="/academy-admin/dashboard" routerLinkActive="active" (click)="toggleSidebar(false)">academy
+          dashboard</a>
+        <a routerLink="/academy-admin/drills-dashboard" routerLinkActive="active"
+          (click)="toggleSidebar(false)">drills</a>
       </ng-container>
 
       <!-- System Admin Links (Sidebar) -->
       <ng-container *ngIf="isSystemAdmin">
-        <div class="sidebar-section-title" style="color: #a855f7; margin-top: 16px; padding-left: 12px; font-family: 'Bebas Neue'; letter-spacing: 1px;">SYSTEM ADMIN HUB</div>
-        <a routerLink="/system-admin/dashboard" routerLinkActive="active" (click)="toggleSidebar(false)">admin dashboard</a>
+        <div class="sidebar-section-title"
+          style="color: #a855f7; margin-top: 16px; padding-left: 12px; font-family: 'Bebas Neue'; letter-spacing: 1px;">
+          SYSTEM ADMIN HUB</div>
+        <a routerLink="/system-admin/dashboard" routerLinkActive="active" (click)="toggleSidebar(false)">admin
+          dashboard</a>
         <a routerLink="/drills" routerLinkActive="active" (click)="toggleSidebar(false)">drills</a>
       </ng-container>
     </nav>

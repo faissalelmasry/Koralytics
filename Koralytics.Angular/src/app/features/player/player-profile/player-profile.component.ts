@@ -8,6 +8,7 @@ import { PlayerCardComponent } from '../player-card/player-card';
 import { TransferCanvasComponent } from '../transfer-canvas/transfer-canvas.component';
 import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner';
 import { ScrollRevealDirective } from '../../../../shared/directives/scroll-reveal.directive';
+import { FeatureLockComponent } from '../../../shared/components/feature-lock/feature-lock';
 import { CustomButtonComponent } from '../../../../shared/components/custom-button/custom-button';
 import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 import { CustomToggle } from '../../../../shared/components/custom-toggle/custom-toggle';
@@ -26,7 +27,7 @@ Chart.register(...registerables);
 @Component({
   selector: 'app-player-profile',
   standalone: true,
-  imports: [CommonModule, RouterLink, NavbarComponent, Footer, PlayerCardComponent, TransferCanvasComponent, LoadingSpinnerComponent, ScrollRevealDirective, CustomButtonComponent, ConfirmDialogComponent, CustomToggle, PlayerDrillProgressionComponent],
+  imports: [CommonModule, RouterLink, NavbarComponent, Footer, PlayerCardComponent, TransferCanvasComponent, LoadingSpinnerComponent, ScrollRevealDirective, FeatureLockComponent, CustomButtonComponent, ConfirmDialogComponent, CustomToggle, PlayerDrillProgressionComponent],
   templateUrl: './player-profile.component.html',
   styleUrls: ['./player-profile.component.css']
 })

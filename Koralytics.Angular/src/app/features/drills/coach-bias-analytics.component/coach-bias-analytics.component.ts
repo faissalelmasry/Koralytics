@@ -9,6 +9,7 @@ import { CustomSelect, SelectOption } from '../../../../shared/components/custom
 import { CustomButtonComponent } from '../../../../shared/components/custom-button/custom-button';
 import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner';
 import { StatusChipComponent } from '../../../../shared/components/status-chip/status-chip';
+import { FeatureLockComponent } from '../../../shared/components/feature-lock/feature-lock';
 
 export interface PlayerComparison {
   playerId: number;
@@ -37,7 +38,8 @@ export interface BiasReport {
     CustomSelect, 
     CustomButtonComponent, 
     LoadingSpinnerComponent, 
-    StatusChipComponent
+    StatusChipComponent,
+    FeatureLockComponent
   ],
   templateUrl: './coach-bias-analytics.component.html',
   styleUrls: ['./coach-bias-analytics.component.css']

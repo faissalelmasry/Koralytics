@@ -157,4 +157,80 @@ export class ActiveAcademiesSectionComponent implements OnInit {
       }
     });
   }
+
+  showTierModal = false;
+  selectedAcademyForTier: any = null;
+  selectedTier = 'Starter';
+  isUpdatingTier = false;
+
+  getTierLabel(tier: any, subStatus?: any): string {
+    const statusStr = String(subStatus || '').toLowerCase();
+    if (statusStr === 'unpaid' || statusStr === '2') {
+      return 'Cancelled';
+    }
+    const s = String(tier || 'Starter');
+    if (s === '1' || s.toLowerCase() === 'pro') return 'Pro';
+    if (s === '2' || s.toLowerCase() === 'elite') return 'Elite';
+    if (s.toLowerCase() === 'cancelled') return 'Cancelled';
+    return 'Starter';
+  }
+
+  getTierClass(tier: any, subStatus?: any): string {
+    const t = this.getTierLabel(tier, subStatus).toLowerCase();
+    if (t === 'cancelled') return 'inactive';
+    if (t === 'elite') return 'active';
+    if (t === 'pro') return 'suspended';
+    return 'inactive';
+  }
+
+  isInvalidDate(val: any): boolean {
+    if (!val) return true;
+    const str = String(val);
+    return str.startsWith('0001') || str.startsWith('1-01');
+  }
+
+  openTierModal(academy: any) {
+    this.selectedAcademyForTier = academy;
+    this.selectedTier = this.getTierLabel(academy.tier, academy.subscriptionStatus);
+    this.showTierModal = true;
+  }
+
+  closeTierModal() {
+    this.showTierModal = false;
+    this.selectedAcademyForTier = null;
+  }
+
+  selectTierOption(tier: string) {
+    this.selectedTier = tier;
+  }
+
+  onSaveTier() {
+    if (!this.selectedAcademyForTier || this.isUpdatingTier) return;
+    this.isUpdatingTier = true;
+    const acadId = this.selectedAcademyForTier.id;
+
+    const isCancel = this.selectedTier === 'Cancelled';
+    const targetTier = isCancel ? (this.selectedAcademyForTier.tier || 'Starter') : this.selectedTier;
+    const targetStatus = isCancel ? 'Unpaid' : 'Paid';
+
+    this.systemAdminService.updateAcademyTier(acadId, targetTier, targetStatus).subscribe({
+      next: (res) => {
+        this.isUpdatingTier = false;
+        if (res.isSuccess || res.statusCode === 200 || res.statusCode === 204) {
+          const msg = isCancel 
+            ? `Academy #${acadId} subscription has been cancelled!`
+            : `Academy #${acadId} tier updated to ${this.selectedTier}!`;
+          this.toast.show(msg, 'success');
+          this.closeTierModal();
+          this.loadAcademies();
+        } else {
+          this.toast.show(res.message || 'Failed to update tier', 'error');
+        }
+      },
+      error: (err) => {
+        this.isUpdatingTier = false;
+        this.toast.show(err.error?.message || 'Error updating tier', 'error');
+      }
+    });
+  }
 }

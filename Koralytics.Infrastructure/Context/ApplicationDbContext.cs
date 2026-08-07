@@ -65,6 +65,9 @@ namespace Koralytics.Infrastructure.Context
         public DbSet<AcademyBadge> AcademyBadges { get; set; }
         public DbSet<RoleAuditLog> RoleAuditLogs { get; set; }
 
+        // SaaS tier gating — Phase 1
+        public DbSet<TenantSubscription> TenantSubscriptions { get; set; }
+
         public DbSet<SystemAdminUser> SuperAdmins { get; set; }
         public DbSet<AcademyRequest> AcademyRequests { get; set; }
         public DbSet<AcademyPlayerJoinRequest> AcademyPlayerJoinRequests { get; set; }

@@ -112,6 +112,12 @@ export class SystemAdminService {
     return this.http.put<ApiResponse<any>>(`${this.academyUrl}/${academyId}/status`, { status });
   }
 
+  updateAcademyTier(academyId: number, tier: string, status?: string): Observable<ApiResponse<any>> {
+    const body: any = { tier };
+    if (status) body.status = status;
+    return this.http.put<ApiResponse<any>>(`${this.academyUrl}/${academyId}/tier`, body);
+  }
+
   getAcademyMembers(academyId: number, params: { page?: number; pageNumber?: number; pageSize?: number } = {}): Observable<ApiResponse<any>> {
     let httpParams = new HttpParams();
     const p = params.pageNumber || params.page;

@@ -5,6 +5,8 @@ import { ToastContainerComponent } from '../shared/components/toast/toast';
 import { ModalContainerComponent } from '../shared/components/modal-container/modal-container';
 import { LoadingSpinnerComponent } from '../shared/components/loading-spinner/loading-spinner';
 import { FootballPitch } from "../shared/components/football-pitch/football-pitch";
+import { SubscriptionLockedComponent } from '../shared/components/subscription-locked/subscription-locked';
+import { AuthService } from '../core/services/auth/auth.service';
 
 @Component({
   selector: 'app-root',
@@ -15,15 +17,18 @@ import { FootballPitch } from "../shared/components/football-pitch/football-pitc
     ToastContainerComponent,
     ModalContainerComponent,
     LoadingSpinnerComponent,
-    FootballPitch
+    FootballPitch,
+    SubscriptionLockedComponent
 ],
   templateUrl: './app.html',
   styleUrls: ['./app.css']
 })
 export class App implements OnInit {
   private router = inject(Router);
+  public authService = inject(AuthService);
 
   loading = true;
+  isSubscriptionActive$ = this.authService.isSubscriptionActive$;
 
   ngOnInit() {
     this.router.events.subscribe(e => {

@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 using Koralytics.Application.DTOs.AuthDTOs.LoginDTOs;
 using Koralytics.Application.Interfaces;
+using Koralytics.Application.Interfaces.Subscription;
 using Koralytics.Application.Options;
 using Koralytics.Domain.Entities.Identity;
 using Koralytics.Domain.Exceptions;
@@ -25,18 +26,31 @@ namespace Koralytics.Application.Services.Auth.Token
         private readonly JwtSettings _jwtSettings;
         private readonly IUnitOfWork _unitOfWork;
         private readonly UserManager<User> _userManager;
+        private readonly ITenantSubscriptionService _tenantSubscriptionService;
 
-        public TokenService(IOptions<JwtSettings> jwtSettings, IUnitOfWork unitOfWork, UserManager<User> userManager)
+        public TokenService(
+            IOptions<JwtSettings> jwtSettings, 
+            IUnitOfWork unitOfWork, 
+            UserManager<User> userManager,
+            ITenantSubscriptionService tenantSubscriptionService)
         {
             _jwtSettings = jwtSettings.Value;
             _unitOfWork = unitOfWork;
             _userManager = userManager;
+            _tenantSubscriptionService = tenantSubscriptionService;
         }
 
         public async Task<TokenPair> GenerateTokenPairAsync(User user, IList<string> roles, int? academyId, string? deviceInfo = null, string? ipAddress = null)
         {
+            string tier = "Starter";
+            if (academyId.HasValue)
+            {
+                var tierEnum = await _tenantSubscriptionService.GetTierAsync(academyId.Value);
+                tier = tierEnum.ToString();
+            }
+
             // 1. Generate Access Token
-            var (accessToken, accessTokenExpiresAt) = GenerateAccessToken(user, roles, academyId);
+            var (accessToken, accessTokenExpiresAt) = GenerateAccessToken(user, roles, academyId, tier);
 
             // 2. Generate Refresh Token
             var refreshTokenRaw = GenerateSecureToken();
@@ -92,8 +106,15 @@ namespace Koralytics.Application.Services.Auth.Token
 
             var academyId = await getAcademyIdFunc(user, roles);
 
+            string tier = "Starter";
+            if (academyId.HasValue)
+            {
+                var tierEnum = await _tenantSubscriptionService.GetTierAsync(academyId.Value);
+                tier = tierEnum.ToString();
+            }
+
             // Generate new token pair
-            var (newAccessToken, accessTokenExpiresAt) = GenerateAccessToken(user, roles, academyId);
+            var (newAccessToken, accessTokenExpiresAt) = GenerateAccessToken(user, roles, academyId, tier);
 
             var newRefreshTokenRaw = GenerateSecureToken();
             var newRefreshTokenHash = HashToken(newRefreshTokenRaw);
@@ -122,13 +143,14 @@ namespace Koralytics.Application.Services.Auth.Token
             return new TokenPair(newAccessToken, accessTokenExpiresAt, newRefreshTokenRaw, refreshTokenExpiresAt);
         }
 
-        private (string Token, DateTime ExpiresAt) GenerateAccessToken(User user, IList<string> roles, int? academyId)
+        private (string Token, DateTime ExpiresAt) GenerateAccessToken(User user, IList<string> roles, int? academyId, string tier)
         {
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Name, user.UserName ?? string.Empty),
-                new Claim(ClaimTypes.Email, user.Email ?? string.Empty)
+                new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
+                new Claim("tier", tier)
             };
 
             foreach (var role in roles)

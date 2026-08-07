@@ -1,0 +1,34 @@
+<div class="feature-lock-container" [class.is-locked]="isLocked" [class.is-button-mode]="mode === 'button'" [style.--lock-color]="requiredTier === 'Elite' ? '#06b6d4' : '#fbbf24'">
+  @if (!isLocked || mode !== 'button') {
+    <div class="feature-content" [class.blurred]="isLocked">
+      <ng-content></ng-content>
+    </div>
+  }
+  
+  @if (isLocked) {
+    @if (mode === 'button') {
+      <app-button [variant]="requiredTier === 'Elite' ? 'cyan' : 'gold'" (click)="upgrade()" [shimmer]="true" style="width: 100%;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+        Upgrade to {{ requiredTier }} to unlock
+      </app-button>
+    } @else {
+      <div class="lock-overlay">
+        <div class="lock-card">
+          <div class="lock-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+          </div>
+          <h3 class="lock-title">Feature Locked</h3>
+          <p class="lock-message">Upgrade to <strong class="tier-highlight">{{ requiredTier }}</strong> to unlock {{ featureName }}.</p>
+          <app-button [variant]="requiredTier === 'Elite' ? 'cyan' : 'gold'" (click)="upgrade()" [shimmer]="true">Upgrade to {{ requiredTier }}</app-button>
+        </div>
+      </div>
+    }
+  }
+</div>
