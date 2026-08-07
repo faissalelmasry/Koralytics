@@ -1,11 +1,13 @@
 using Koralytics.Application.DTOs.Academies;
 using Koralytics.Application.DTOs.Academy;
+using Koralytics.Application.DTOs.Scouter;
 using Koralytics.Domain.Enums;
 using Microsoft.AspNetCore.Http;
 namespace Koralytics.Application.Services.Academy.AcademyService
 {
     public interface IAcademyService
     {
+        Task<string> AcademySearchAIChatBotAsync(AIChatBotRequestDto request, int academyId);
         /// <summary>
         /// Creates an Academy record after SuperAdmin approves an AcademyRequest.
         /// Updates the AcademyRequest status to Approved.
@@ -31,6 +33,12 @@ namespace Koralytics.Application.Services.Academy.AcademyService
         /// Updates the status of an academy (e.g. Active, Suspended, Inactive).
         /// </summary>
         Task<AcademyResponseDto> UpdateAcademyStatusAsync(int academyId, UpdateAcademyStatusDto dto, int performedByUserId);
+
+        /// <summary>
+        /// Updates the subscription tier of an academy (e.g. Starter, Pro, Elite).
+        /// </summary>
+        Task UpdateAcademyTierAsync(int academyId, Koralytics.Application.DTOs.SystemAdmin.UpdateAcademyTierDto dto, int performedByUserId);
+
 
         /// <summary>
         /// Adds a new physical location to the academy.

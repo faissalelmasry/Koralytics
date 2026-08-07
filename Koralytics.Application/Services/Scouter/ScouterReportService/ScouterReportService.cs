@@ -74,5 +74,25 @@ namespace Koralytics.Application.Services.Scouter.ScouterReportService
             _logger.LogInformation("Successfully completed credential verification for ScouterId: {ScouterId}", scouterId);
             return true;
         }
+        public async Task<IEnumerable<Domain.Entities.Scouter.Scouter>> GetAllScoutersAsync()
+        {
+            _logger.LogInformation("Retrieving all scouters from the database.");
+
+            var scouters = await _unitOfWork.Repository<Domain.Entities.Scouter.Scouter>()
+                .FindAllAsync(s => true);
+
+            return scouters ?? new List<Domain.Entities.Scouter.Scouter>();
+        }
+
+        public async Task<IEnumerable<Domain.Entities.Scouter.Scouter>> GetPendingVerificationScoutersAsync()
+        {
+            _logger.LogInformation("Retrieving all scouters pending verification.");
+
+            var pendingScouters = await _unitOfWork.Repository<Domain.Entities.Scouter.Scouter>()
+                .FindAllAsync(s => !s.IsVerified);
+
+            return pendingScouters ?? new List<Domain.Entities.Scouter.Scouter>();
+        }
     }
 }
+

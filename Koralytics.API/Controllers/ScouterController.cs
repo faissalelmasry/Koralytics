@@ -368,6 +368,31 @@ namespace Koralytics.API.Controllers
                 data = profile
             });
         }
+        [HttpGet("all")]
+        [Authorize(Roles = "SystemAdmin")]
+        public async Task<IActionResult> GetAllScouters()
+        {
+            var scouters = await _reportService.GetAllScoutersAsync();
+
+            return Ok(new
+            {
+                message = "Successfully retrieved all scouters.",
+                data = scouters
+            });
+        }
+
+        [HttpGet("pending-verification")]
+        [Authorize(Roles = "SystemAdmin")]
+        public async Task<IActionResult> GetPendingVerificationScouters()
+        {
+            var pendingScouters = await _reportService.GetPendingVerificationScoutersAsync();
+
+            return Ok(new
+            {
+                message = "Successfully retrieved scouters pending verification.",
+                data = pendingScouters
+            });
+        }
 
         #endregion
     }

@@ -1,67 +1,96 @@
-<div class="page-container">
-  <div class="page-header">
-    <h1 class="page-title">Squad <span class="accent">Overview</span></h1>
-    <p class="page-subtitle" *ngIf="squad()">{{ squad()!.teamName }}</p>
-    <div class="team-selector" *ngIf="teams().length > 1">
-      <label for="teamSelect">Team:</label>
-      <select id="teamSelect" [value]="selectedTeamId" (change)="onTeamChange($event)">
-        <option *ngFor="let t of teams()" [value]="t.teamId">
-          {{ t.teamName }} ({{ t.ageGroupName }})
-        </option>
-      </select>
+<div class="page-container squad-page">
+  <!-- =============== 1. HERO BANNER =============== -->
+  <div class="hero-banner">
+    <div class="squad-identity">
+      <div class="squad-icon-badge">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        </svg>
+      </div>
+      <div>
+        <h1>Squad <span class="accent">Overview</span></h1>
+        <div class="meta-pills">
+          <div class="team-selector-wrap" *ngIf="teams().length > 0">
+            <span class="team-lbl">Select Team:</span>
+            <select id="teamSelect" class="team-dropdown" [value]="selectedTeamId" (change)="onTeamChange($event)">
+              <option *ngFor="let t of teams()" [value]="t.teamId">
+                {{ t.teamName }} ({{ t.ageGroupName }})
+              </option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bio-quick-list" *ngIf="squad() && !loading()">
+      <div class="bio-item">
+        <span class="bio-lbl">Total Roster</span>
+        <span class="bio-val">{{ totalPlayersCount }}</span>
+      </div>
+      <div class="bio-item">
+        <span class="bio-lbl">Available</span>
+        <span class="bio-val accent-val">{{ availablePlayersCount }}</span>
+      </div>
+      <div class="bio-item">
+        <span class="bio-lbl">Squad Avg OVR</span>
+        <span class="bio-val">{{ averageOverallRating }}</span>
+      </div>
     </div>
   </div>
 
   <!-- Compare Action Bar -->
   <div class="action-bar" *ngIf="squad()?.players?.length">
-    <span class="selection-hint" *ngIf="!canCompare()">
-      Select 2 players to compare
-    </span>
+    <div class="action-info">
+      <span class="selection-hint" *ngIf="!canCompare()">
+        Select 2 players to compare stats
+      </span>
+      <span class="selection-hint active" *ngIf="canCompare()">
+        2 players selected! Ready to compare
+      </span>
+    </div>
     <button
       class="btn-compare"
       [disabled]="!canCompare()"
       (click)="openComparison()">
-      ⚔️ Compare Players
+      Compare Players
     </button>
   </div>
 
-  <!-- Loading -->
+  <!-- Loading State -->
   <div class="loading-state" *ngIf="loading()">
     <div class="spinner"></div>
-    <p>Loading squad...</p>
+    <p>Loading squad stats...</p>
   </div>
 
-  <!-- Error -->
+  <!-- Error State -->
   <div class="error-state" *ngIf="error()">
     <p>{{ error() }}</p>
     <button class="btn-retry" (click)="loadSquad()">Retry</button>
   </div>
 
-  <!-- Squad Grid -->
-  <div class="squad-grid" *ngIf="squad() && !loading()">
+  <!-- Squad Mini Cards Grid -->
+  <div class="squad-mini-grid" *ngIf="squad() && !loading()">
     <div
-      class="player-card"
+      class="squad-mini-card-item"
       *ngFor="let player of squad()!.players"
       [class.selected]="isSelected(player.playerId)"
       (click)="togglePlayerSelection(player.playerId)">
-      <!-- Card Header -->
-      <div class="card-header">
-        <div class="player-avatar">
-          <img
-            *ngIf="player.profileImageUrl"
-            [src]="player.profileImageUrl"
-            [alt]="player.fullName" />
-          <span *ngIf="!player.profileImageUrl" class="avatar-initial">
-            {{ player.fullName[0] }}
-          </span>
-        </div>
-        <div class="player-info">
-          <h3 class="player-name">{{ player.fullName }}</h3>
-          <span class="player-position">{{ player.primaryPosition }}</span>
-        </div>
-        <div class="overall-rating">
-          <span class="rating-number">{{ player.overallRating | number:'1.0-0' }}</span>
-        </div>
+      
+      <!-- Selection Indicator Badge -->
+      <div class="selection-badge" *ngIf="isSelected(player.playerId)">
+        <span *ngIf="selectedPlayerA === player.playerId">P1</span>
+        <span *ngIf="selectedPlayerB === player.playerId">P2</span>
+      </div>
+
+      <!-- Mini Player Card Component -->
+      <div class="mini-card-container">
+        <app-mini-player-card
+          [player]="mapSquadPlayerToMiniCard(player)"
+          size="md">
+        </app-mini-player-card>
       </div>
 
       <!-- Status Chips -->
@@ -69,50 +98,10 @@
         <span class="status-chip" [ngClass]="getAvailabilityClass(player.availabilityStatus)">
           {{ player.availabilityStatus }}
         </span>
-        <span
-          class="readiness-chip"
-          *ngIf="readinessMap()[player.playerId] as readiness"
-          [style.borderColor]="getReadinessColor(readiness.readinessScore)">
-          <span
-            class="readiness-dot"
-            [style.background]="getReadinessColor(readiness.readinessScore)">
-          </span>
-          {{ readiness.readinessScore }}%
-        </span>
       </div>
 
-      <!-- Category Ratings -->
-      <div class="ratings-grid">
-        <div class="rating-item">
-          <span class="rating-label">PAC</span>
-          <span class="rating-value">{{ player.paceRating | number:'1.0-0' }}</span>
-        </div>
-        <div class="rating-item">
-          <span class="rating-label">SHO</span>
-          <span class="rating-value">{{ player.shootingRating | number:'1.0-0' }}</span>
-        </div>
-        <div class="rating-item">
-          <span class="rating-label">PAS</span>
-          <span class="rating-value">{{ player.passingRating | number:'1.0-0' }}</span>
-        </div>
-        <div class="rating-item">
-          <span class="rating-label">DRI</span>
-          <span class="rating-value">{{ player.dribblingRating | number:'1.0-0' }}</span>
-        </div>
-        <div class="rating-item">
-          <span class="rating-label">DEF</span>
-          <span class="rating-value">{{ player.defendingRating | number:'1.0-0' }}</span>
-        </div>
-        <div class="rating-item">
-          <span class="rating-label">PHY</span>
-          <span class="rating-value">{{ player.physicalRating | number:'1.0-0' }}</span>
-        </div>
-      </div>
-
-      <!-- Foot & Style -->
-      <div class="meta-row">
-        <span class="meta-tag">{{ player.preferredFoot }} foot</span>
-        <span class="meta-tag" *ngIf="player.playStyleTag">{{ player.playStyleTag }}</span>
+      <div class="foot-tag" *ngIf="player.preferredFoot">
+        {{ player.preferredFoot }} Foot
       </div>
     </div>
   </div>
@@ -124,41 +113,82 @@
 
   <!-- Comparison Modal -->
   <div class="modal-backdrop" *ngIf="showCompareModal" (click)="closeComparison()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-content comparison-modal" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <h2>Player Comparison</h2>
-        <button class="modal-close" (click)="closeComparison()">×</button>
+        <div class="modal-title-group">
+          <h2>Player Comparison</h2>
+          <span class="modal-subtitle">Full Attribute Breakdown</span>
+        </div>
+        <button class="modal-close" (click)="closeComparison()" aria-label="Close modal">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
       </div>
 
       <div class="comparison-body" *ngIf="comparison() as cmp">
-        <div class="compare-column">
-          <div class="compare-avatar">
-            <span class="avatar-initial large">{{ cmp.playerA.fullName[0] }}</span>
+        <!-- Player A Side Column (Clickable to Profile) -->
+        <div class="compare-player-col clickable-profile" (click)="navigateToPlayer(cmp.playerA.playerId)" title="View Player Profile">
+          <div class="compare-avatar-box">
+            <img *ngIf="cmp.playerA.profileImageUrl" [src]="cmp.playerA.profileImageUrl" [alt]="cmp.playerA.fullName" />
+            <span *ngIf="!cmp.playerA.profileImageUrl" class="avatar-initial">{{ cmp.playerA.fullName[0] }}</span>
           </div>
           <h3>{{ cmp.playerA.fullName }}</h3>
           <span class="compare-position">{{ cmp.playerA.primaryPosition }}</span>
-          <div class="compare-overall">{{ cmp.playerA.overallRating | number:'1.0-0' }}</div>
+          <div class="compare-ovr-badge">{{ cmp.playerA.overallRating | number:'1.0-0' }}</div>
+          <div class="compare-meta-chips">
+            <span class="status-chip" [ngClass]="getAvailabilityClass(cmp.playerA.availabilityStatus)">
+              {{ cmp.playerA.availabilityStatus }}
+            </span>
+            <span class="view-profile-hint">View Profile &rarr;</span>
+          </div>
         </div>
 
-        <div class="compare-bars">
-          <div class="bar-row" *ngFor="let cat of ['paceRating','shootingRating','passingRating','dribblingRating','defendingRating','physicalRating']">
-            <div class="bar-left" [style.width.%]="(getRating(cmp.playerA, cat) / 100) * 100">
-              <span>{{ getRating(cmp.playerA, cat) | number:'1.0-0' }}</span>
+        <!-- Center Attribute Comparison Bars -->
+        <div class="compare-bars-panel">
+          <div class="bars-header">Attribute Breakdown</div>
+          <div class="compare-bars">
+            <div class="bar-row" *ngFor="let cat of getComparisonCategories(cmp.playerA, cmp.playerB)">
+              <div class="bar-left" [class.winner]="getRating(cmp.playerA, cat) >= getRating(cmp.playerB, cat)" [style.width.%]="(getRating(cmp.playerA, cat) / 100) * 100">
+                <span>{{ getRating(cmp.playerA, cat) | number:'1.0-0' }}</span>
+              </div>
+              <span class="bar-label">{{ getCategoryLabel(cat) }}</span>
+              <div class="bar-right" [class.winner]="getRating(cmp.playerB, cat) >= getRating(cmp.playerA, cat)" [style.width.%]="(getRating(cmp.playerB, cat) / 100) * 100">
+                <span>{{ getRating(cmp.playerB, cat) | number:'1.0-0' }}</span>
+              </div>
             </div>
-            <span class="bar-label">{{ getCategoryLabel(cat) }}</span>
-            <div class="bar-right" [style.width.%]="(getRating(cmp.playerB, cat) / 100) * 100">
-              <span>{{ getRating(cmp.playerB, cat) | number:'1.0-0' }}</span>
+          </div>
+
+          <div class="extra-compare-grid">
+            <div class="extra-row">
+              <span class="val-left">{{ cmp.playerA.preferredFoot }} ({{ cmp.playerA.weakFootRating }}★)</span>
+              <span class="row-label">FOOT / WEAK</span>
+              <span class="val-right">{{ cmp.playerB.preferredFoot }} ({{ cmp.playerB.weakFootRating }}★)</span>
+            </div>
+            <div class="extra-row" *ngIf="cmp.playerA.playStyleTag || cmp.playerB.playStyleTag">
+              <span class="val-left">{{ cmp.playerA.playStyleTag || 'N/A' }}</span>
+              <span class="row-label">STYLE</span>
+              <span class="val-right">{{ cmp.playerB.playStyleTag || 'N/A' }}</span>
             </div>
           </div>
         </div>
 
-        <div class="compare-column">
-          <div class="compare-avatar">
-            <span class="avatar-initial large">{{ cmp.playerB.fullName[0] }}</span>
+        <!-- Player B Side Column (Clickable to Profile) -->
+        <div class="compare-player-col clickable-profile" (click)="navigateToPlayer(cmp.playerB.playerId)" title="View Player Profile">
+          <div class="compare-avatar-box">
+            <img *ngIf="cmp.playerB.profileImageUrl" [src]="cmp.playerB.profileImageUrl" [alt]="cmp.playerB.fullName" />
+            <span *ngIf="!cmp.playerB.profileImageUrl" class="avatar-initial">{{ cmp.playerB.fullName[0] }}</span>
           </div>
           <h3>{{ cmp.playerB.fullName }}</h3>
           <span class="compare-position">{{ cmp.playerB.primaryPosition }}</span>
-          <div class="compare-overall">{{ cmp.playerB.overallRating | number:'1.0-0' }}</div>
+          <div class="compare-ovr-badge">{{ cmp.playerB.overallRating | number:'1.0-0' }}</div>
+          <div class="compare-meta-chips">
+            <span class="status-chip" [ngClass]="getAvailabilityClass(cmp.playerB.availabilityStatus)">
+              {{ cmp.playerB.availabilityStatus }}
+            </span>
+            <span class="view-profile-hint">View Profile &rarr;</span>
+          </div>
         </div>
       </div>
     </div>

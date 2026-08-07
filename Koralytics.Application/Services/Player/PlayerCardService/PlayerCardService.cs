@@ -112,11 +112,20 @@ namespace Koralytics.Application.Services.Player.PlayerCardService
                 PlayerId = playerId
             };
 
+            var categoryNamesById = categoryDrillAvgs
+                .Concat(trainingMatchCategoryAvgs)
+                .Concat(tournamentMatchCategoryAvgs)
+                .GroupBy(x => x.CategoryId)
+                .ToDictionary(g => g.Key, g => g.First().Name);
+
             PlayerCardCalculator.UpdateCategoryRatings(
                 playerCard,
                 ratingLookups);
 
-            PlayerCardCalculator.UpdateOverallRating(playerCard);
+            PlayerCardCalculator.UpdateOverallRating(
+                playerCard,
+                primaryPosition,
+                categoryNamesById);
 
             PlayerCardCalculator.UpdateOverallAverages(
                 playerCard,

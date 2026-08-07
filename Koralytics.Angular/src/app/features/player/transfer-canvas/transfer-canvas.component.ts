@@ -15,29 +15,37 @@ export class TransferCanvasComponent {
   @Input() transferClassification: string = '';
 
   private readonly positionMap: Record<string, { left: number; top: number }> = {
-    Elite:       { left: 75, top: 25 },
-    Natural:     { left: 25, top: 25 },
-    Trainable:   { left: 75, top: 75 },
-    NeedsWork:   { left: 25, top: 75 },
-    Developing:  { left: 25, top: 75 },
+    Elite:        { left: 25, top: 25 },
+    Natural:      { left: 75, top: 25 },
+    Expert:       { left: 75, top: 25 },
+    Trainable:    { left: 75, top: 75 },
+    NeedsWork:    { left: 25, top: 75 },
+    Developing:   { left: 25, top: 75 },
   };
 
+  get displayClassification(): string {
+    if (!this.transferClassification) return '';
+    if (this.transferClassification === 'Natural') return 'Expert';
+    return this.transferClassification;
+  }
+
   get nodeLeft(): string {
-    const pos = this.positionMap[this.transferClassification];
+    const pos = this.positionMap[this.transferClassification] || this.positionMap[this.displayClassification];
     return pos ? `${pos.left}%` : '50%';
   }
 
   get nodeTop(): string {
-    const pos = this.positionMap[this.transferClassification];
+    const pos = this.positionMap[this.transferClassification] || this.positionMap[this.displayClassification];
     return pos ? `${pos.top}%` : '50%';
   }
 
   get nodeColor(): string {
     switch (this.transferClassification) {
-      case 'Elite': return '#a3e635';
-      case 'Trainable': return '#38bdf8';
-      case 'Natural': return '#facc15';
-      case 'NeedsWork': return '#f87171';
+      case 'Elite': return '#38bdf8';
+      case 'Natural':
+      case 'Expert': return '#a3e635';
+      case 'Trainable': return '#facc15';
+      case 'NeedsWork':
       case 'Developing': return '#f87171';
       default: return '#6b7280';
     }
@@ -45,10 +53,11 @@ export class TransferCanvasComponent {
 
   get classificationGlow(): string {
     switch (this.transferClassification) {
-      case 'Elite': return 'rgba(163,230,53,0.5)';
-      case 'Trainable': return 'rgba(56,189,248,0.5)';
-      case 'Natural': return 'rgba(250,204,21,0.35)';
-      case 'NeedsWork': return 'rgba(248,113,113,0.4)';
+      case 'Elite': return 'rgba(56,189,248,0.5)';
+      case 'Natural':
+      case 'Expert': return 'rgba(163,230,53,0.5)';
+      case 'Trainable': return 'rgba(250,204,21,0.5)';
+      case 'NeedsWork':
       case 'Developing': return 'rgba(248,113,113,0.4)';
       default: return 'rgba(107,114,128,0.3)';
     }

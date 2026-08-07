@@ -7,6 +7,7 @@ import { ScrollRevealDirective } from '../../../../shared/directives/scroll-reve
 import { PlayerProfileService } from '../../../../core/services/player/player-profile.service';
 import { TokenStorageService } from '../../../../core/services/auth/token-storage.service';
 import { ProfileViewerDetailDto } from '../../../../core/models/Player/profile-views-model';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-player-scouter-views',
@@ -25,6 +26,7 @@ export class PlayerScouterViewsComponent implements OnInit, OnDestroy {
   private profileService = inject(PlayerProfileService);
   private tokenStorage = inject(TokenStorageService);
   private cdr = inject(ChangeDetectorRef);
+  private router = inject(Router);
 
   playerId: number | null = null;
   playerName = '';
@@ -141,4 +143,8 @@ export class PlayerScouterViewsComponent implements OnInit, OnDestroy {
       viewedAt: v.viewedAt ?? v.ViewedAt ?? ''
     }));
   }
+  goToScouterProfile(scouterId: number): void {
+  if (!scouterId) return;
+  this.router.navigate(['/scouter/dashboard', scouterId]);
+}
 }

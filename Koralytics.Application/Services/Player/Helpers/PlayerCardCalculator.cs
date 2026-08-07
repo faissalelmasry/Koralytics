@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -90,12 +90,124 @@ namespace Koralytics.Application.Services.Player.Helpers
             };
         }
 
+        // ─── Position Category Weights ─────────────────────────────────────
+        private static readonly Dictionary<string, decimal> EqualWeights = new(StringComparer.OrdinalIgnoreCase)
+        {
+            { "Passing", 1m / 6m },
+            { "Shooting", 1m / 6m },
+            { "Dribbling", 1m / 6m },
+            { "Defending", 1m / 6m },
+            { "Speed", 1m / 6m },
+            { "Physical", 1m / 6m }
+        };
+
+        private static readonly Dictionary<string, decimal> AttackerWeights = new(StringComparer.OrdinalIgnoreCase)
+        {
+            { "Shooting", 0.30m },
+            { "Speed", 0.25m },
+            { "Dribbling", 0.20m },
+            { "Passing", 0.10m },
+            { "Physical", 0.10m },
+            { "Defending", 0.05m }
+        };
+
+        private static readonly Dictionary<string, decimal> MidfielderWeights = new(StringComparer.OrdinalIgnoreCase)
+        {
+            { "Passing", 0.30m },
+            { "Dribbling", 0.20m },
+            { "Speed", 0.15m },
+            { "Shooting", 0.15m },
+            { "Physical", 0.10m },
+            { "Defending", 0.10m }
+        };
+
+        private static readonly Dictionary<string, decimal> DefensiveWeights = new(StringComparer.OrdinalIgnoreCase)
+        {
+            { "Defending", 0.35m },
+            { "Physical", 0.25m },
+            { "Passing", 0.15m },
+            { "Speed", 0.10m },
+            { "Dribbling", 0.10m },
+            { "Shooting", 0.05m }
+        };
+
+        private static readonly Dictionary<string, decimal> FullbackWeights = new(StringComparer.OrdinalIgnoreCase)
+        {
+            { "Defending", 0.25m },
+            { "Speed", 0.25m },
+            { "Passing", 0.20m },
+            { "Physical", 0.15m },
+            { "Dribbling", 0.10m },
+            { "Shooting", 0.05m }
+        };
+
+        public static Dictionary<string, decimal> GetPositionWeights(string? position)
+        {
+            if (string.IsNullOrWhiteSpace(position))
+                return EqualWeights;
+
+            var pos = position.Trim().ToUpperInvariant();
+
+            return pos switch
+            {
+                "ST" or "CF" or "LW" or "RW" or "SS" => AttackerWeights,
+                "CAM" or "CM" or "LM" or "RM" => MidfielderWeights,
+                "CDM" or "CB" => DefensiveWeights,
+                "LB" or "RB" or "LWB" or "RWB" => FullbackWeights,
+                _ => EqualWeights
+            };
+        }
+
         // ─── Overall Rating ──────────────────────────────────────────────
+        public static decimal CalculateOverallRating(
+            IEnumerable<(string CategoryName, decimal Score)> categoryScores,
+            string? primaryPosition = null)
+        {
+            var list = categoryScores.ToList();
+            if (!list.Any()) return 0m;
+
+            // Goalkeeper special case (single GoalKeeping category)
+            if (list.Count == 1 && string.Equals(list[0].CategoryName, "GoalKeeping", StringComparison.OrdinalIgnoreCase))
+            {
+                return list[0].Score;
+            }
+
+            var weights = GetPositionWeights(primaryPosition);
+
+            decimal totalActiveWeight = 0m;
+            foreach (var item in list)
+            {
+                if (weights.TryGetValue(item.CategoryName, out var w))
+                {
+                    totalActiveWeight += w;
+                }
+                else
+                {
+                    totalActiveWeight += 1m / 6m;
+                }
+            }
+
+            if (totalActiveWeight <= 0)
+            {
+                return Math.Round(list.Average(x => x.Score), 2);
+            }
+
+            decimal weightedSum = 0m;
+            foreach (var item in list)
+            {
+                decimal rawWeight = weights.TryGetValue(item.CategoryName, out var w) ? w : (1m / 6m);
+                decimal normalizedWeight = rawWeight / totalActiveWeight;
+                weightedSum += item.Score * normalizedWeight;
+            }
+
+            return Math.Round(weightedSum, 2);
+        }
+
         public static decimal CalculateOverallRating(
             IEnumerable<decimal> categoryScores)
         {
             var list = categoryScores.ToList();
-            return list.Any() ? list.Average() : 0;
+            return list.Any() ? Math.Round(list.Average(), 2) : 0;
         }
 
         // ─── Overall Training Avg ────────────────────────────────────────
@@ -185,11 +297,32 @@ namespace Koralytics.Application.Services.Player.Helpers
                 }
             }
         }
-        public static void UpdateOverallRating(PlayerCard playerCard)
+        public static void UpdateOverallRating(
+            PlayerCard playerCard,
+            string? primaryPosition = null,
+            Dictionary<int, string>? categoryNamesById = null)
         {
-            playerCard.OverallRating =
-                CalculateOverallRating(
-                    playerCard.CategoryRatings.Select(x => x.Score));
+            var categoryScoresWithName = playerCard.CategoryRatings
+                .Select(x =>
+                {
+                    string? name = x.DrillCategory?.Name;
+                    if (string.IsNullOrEmpty(name) && categoryNamesById != null && categoryNamesById.TryGetValue(x.DrillCategoryId, out var dictName))
+                    {
+                        name = dictName;
+                    }
+                    return (CategoryName: name ?? string.Empty, Score: x.Score);
+                })
+                .Where(x => !string.IsNullOrEmpty(x.CategoryName))
+                .ToList();
+
+            if (categoryScoresWithName.Any())
+            {
+                playerCard.OverallRating = CalculateOverallRating(categoryScoresWithName, primaryPosition);
+            }
+            else
+            {
+                playerCard.OverallRating = CalculateOverallRating(playerCard.CategoryRatings.Select(x => x.Score));
+            }
         }
         public static void UpdateOverallAverages(
     PlayerCard playerCard,

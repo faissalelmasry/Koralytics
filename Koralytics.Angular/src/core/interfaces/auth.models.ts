@@ -18,6 +18,7 @@ export interface AuthResponseDto {
   fullName: string;
   roles: string[];
   academyId?: number;
+  isSubscriptionActive: boolean;
 }
 
 export interface AuthResultDto {

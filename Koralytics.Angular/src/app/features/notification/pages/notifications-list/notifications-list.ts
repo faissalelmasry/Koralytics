@@ -20,6 +20,7 @@ import { Pagination } from '../../../../../shared/components/pagination/paginati
 import { CustomButtonComponent } from '../../../../../shared/components/custom-button/custom-button';
 import { LoadingSpinnerComponent } from '../../../../../shared/components/loading-spinner/loading-spinner';
 import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
+import { EmptyStateComponent } from '../../../../../shared/components/empty-state/empty-state';
 
 interface NotificationVisual {
   icon: 'megaphone' | 'trophy' | 'bell' | 'clock' | 'eye';
@@ -49,7 +50,8 @@ const DEFAULT_VISUAL: NotificationVisual = { icon: 'bell', color: '#8b909a' };
     Pagination,
     CustomButtonComponent,
     LoadingSpinnerComponent,
-    ScrollRevealDirective
+    ScrollRevealDirective,
+    EmptyStateComponent
   ],
   templateUrl: './notifications-list.html',
   styleUrl: './notifications-list.css',
@@ -105,10 +107,43 @@ export class NotificationsList implements OnInit {
     return this.filteredNotifications().slice(start, start + this.pageSizeValue);
   });
 
+  // UI-only addition for the redesigned layout: buckets the current page's
+  // notifications() into day-based sections (Today / Yesterday / This Week
+  // / Earlier) for display. Purely derived from the existing, unmodified
+  // notifications() -- doesn't change what's fetched, paginated, or how
+  // read-state is tracked.
+  public groupedNotifications = computed<{ label: string; items: CachedNotification[] }[]>(() => {
+    const items = this.notifications();
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfYesterday = new Date(startOfToday);
+    startOfYesterday.setDate(startOfYesterday.getDate() - 1);
+    const startOfWeek = new Date(startOfToday);
+    startOfWeek.setDate(startOfWeek.getDate() - 7);
+
+    const order: string[] = [];
+    const buckets = new Map<string, CachedNotification[]>();
+
+    for (const notif of items) {
+      const date = new Date(notif.sentAt);
+      let label: string;
+      if (date >= startOfToday) label = 'Today';
+      else if (date >= startOfYesterday) label = 'Yesterday';
+      else if (date >= startOfWeek) label = 'This Week';
+      else label = 'Earlier';
+
+      if (!buckets.has(label)) {
+        buckets.set(label, []);
+        order.push(label);
+      }
+      buckets.get(label)!.push(notif);
+    }
+
+    return order.map((label) => ({ label, items: buckets.get(label)! }));
+  });
+
   ngOnInit(): void {
     this.loadMyNotifications();
-
-    this.signalRService.startConnection(() => this.tokenStorage.getAccessToken() || '');
 
     this.signalRService.notification$
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -116,10 +151,6 @@ export class NotificationsList implements OnInit {
         this.allNotifications.update((list) => [newNotif, ...list]);
         this.pageNumber.set(1);
       });
-
-    this.destroyRef.onDestroy(() => {
-      this.signalRService.stopConnection();
-    });
   }
 
   public loadMyNotifications(): void {

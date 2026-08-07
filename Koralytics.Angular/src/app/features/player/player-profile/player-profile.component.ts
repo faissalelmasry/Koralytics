@@ -8,6 +8,7 @@ import { PlayerCardComponent } from '../player-card/player-card';
 import { TransferCanvasComponent } from '../transfer-canvas/transfer-canvas.component';
 import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner';
 import { ScrollRevealDirective } from '../../../../shared/directives/scroll-reveal.directive';
+import { FeatureLockComponent } from '../../../shared/components/feature-lock/feature-lock';
 import { CustomButtonComponent } from '../../../../shared/components/custom-button/custom-button';
 import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 import { CustomToggle } from '../../../../shared/components/custom-toggle/custom-toggle';
@@ -15,6 +16,7 @@ import { PlayerProfileService } from '../../../../core/services/player/player-pr
 import { PlayerCardService } from '../../../../core/services/player/player-card.service';
 import { TokenStorageService } from '../../../../core/services/auth/token-storage.service';
 import { PlayerProfileModel } from '../../../../core/models/Player/player-profile-model';
+import { switchMap } from 'rxjs';
 import { ScouterService } from '@core/services/Scouter/scouter.service';
 import { NotificationService } from '@core/services/SignalR/notificationservice';
 import { ToastService } from '../../../../core/services/Toast/toast';
@@ -25,7 +27,7 @@ Chart.register(...registerables);
 @Component({
   selector: 'app-player-profile',
   standalone: true,
-  imports: [CommonModule, RouterLink, NavbarComponent, Footer, PlayerCardComponent, TransferCanvasComponent, LoadingSpinnerComponent, ScrollRevealDirective, CustomButtonComponent, ConfirmDialogComponent, CustomToggle, PlayerDrillProgressionComponent],
+  imports: [CommonModule, RouterLink, NavbarComponent, Footer, PlayerCardComponent, TransferCanvasComponent, LoadingSpinnerComponent, ScrollRevealDirective, FeatureLockComponent, CustomButtonComponent, ConfirmDialogComponent, CustomToggle, PlayerDrillProgressionComponent],
   templateUrl: './player-profile.component.html',
   styleUrls: ['./player-profile.component.css']
 })
@@ -277,16 +279,30 @@ private logAndNotifyIfScouter(roles: string[]) {
     this.playerCardService.getPlayerCard(this.playerId).subscribe({
       next: (card) => {
         if (this.profile) {
-          this.profile.playerCard = card;
+          this.profile.playerCard = { ...card };
         }
         this.isFetchingCard = false;
+
+        if (this.radarChart) {
+          this.radarChart.destroy();
+          this.radarChart = undefined;
+        }
+        this.chartInitialized = false;
+
+        this.toastService.show('Player card refreshed successfully.', 'success');
         this.cdr.detectChanges();
+
+        setTimeout(() => {
+          this.initRadarChart();
+        }, 0);
       },
       error: (err) => {
         this.isFetchingCard = false;
-        this.error = err?.status === 404
-          ? 'Unable to generate player card'
-          : 'Failed to fetch player card';
+        this.toastService.show(
+          err?.status === 404 ? 'Unable to generate player card' : 'Failed to fetch player card',
+          'error'
+        );
+        this.cdr.detectChanges();
       }
     });
   }
@@ -361,18 +377,40 @@ private logAndNotifyIfScouter(roles: string[]) {
 
   get statusLabel(): string {
     const status = this.profile?.availabilityStatus;
-    if (status === 0) return 'Active';
-    if (status === 1) return 'Transferred';
-    if (status === 2) return 'Injured';
-    return 'Unknown';
+    if (status === undefined || status === null) return 'Available';
+
+    if (typeof status === 'number') {
+      switch (status) {
+        case 1: return 'Available';
+        case 2: return 'Injured';
+        case 3: return 'Resting';
+        case 4: return 'Suspended';
+        case 0: return 'Available';
+        default: return 'Available';
+      }
+    }
+
+    const strStatus = String(status).trim();
+    if (!strStatus) return 'Available';
+
+    const lower = strStatus.toLowerCase();
+    if (lower === 'available' || lower === 'active' || lower === '1' || lower === '0') return 'Available';
+    if (lower === 'injured' || lower === '2') return 'Injured';
+    if (lower === 'resting' || lower === '3') return 'Resting';
+    if (lower === 'suspended' || lower === '4') return 'Suspended';
+    if (lower === 'transferred') return 'Transferred';
+
+    return strStatus.charAt(0).toUpperCase() + strStatus.slice(1);
   }
 
   get statusClass(): string {
-    const status = this.profile?.availabilityStatus;
-    if (status === 0) return 'status-available';
-    if (status === 1) return 'status-transferred';
-    if (status === 2) return 'status-injured';
-    return '';
+    const label = this.statusLabel.toLowerCase();
+    if (label === 'available' || label === 'active') return 'status-available';
+    if (label === 'injured') return 'status-injured';
+    if (label === 'resting') return 'status-resting';
+    if (label === 'suspended') return 'status-suspended';
+    if (label === 'transferred') return 'status-transferred';
+    return 'status-available';
   }
 
   get goalsPerMatch(): string {

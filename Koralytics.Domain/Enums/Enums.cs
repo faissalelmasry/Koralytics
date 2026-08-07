@@ -224,4 +224,16 @@ namespace Koralytics.Domain.Enums
         Rejected = 3,
         Cancelled = 4
     }
+
+    /// <summary>
+    /// SaaS tier that controls which features an academy can access.
+    /// Starter → basic; Pro → advanced analytics; Elite → full AI + unlimited capacity.
+    /// </summary>
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public enum SubscriptionTier
+    {
+        Starter = 1,
+        Pro     = 2,
+        Elite   = 3
+    }
 }

@@ -2,24 +2,13 @@
 
 <div class="shortlist-page">
 
-  <!-- =============== HERO BANNER =============== -->
-  <div class="hero-banner" scrollReveal direction="bottom" [delay]="0">
-    <div class="header-identity">
-      <div class="avatar-circle">
-        <svg width="20" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M19 21 12 16l-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-        </svg>
-      </div>
-      <div class="header-text">
-        <span class="page-eyebrow">Scouting Tool</span>
-        <h1>My Shortlist</h1>
-        <div class="meta-pills">
-          <span class="pill gold">{{ totalCount() }} Shortlisted</span>
-        </div>
-      </div>
+  <!-- Toolbar -->
+  <div class="page-toolbar" scrollReveal direction="bottom" [delay]="0">
+    <div class="toolbar-title-group">
+      <h1 class="page-title">My Shortlist</h1>
+      <p class="page-subtitle">{{ totalCount() }} player{{ totalCount() === 1 ? '' : 's' }} shortlisted</p>
     </div>
-
-    <div class="search-container">
+    <div class="toolbar-search">
       <app-search-bar
         [placeholderText]="'Search shortlist...'"
         (searchChange)="onSearch($event)">
@@ -27,25 +16,17 @@
     </div>
   </div>
 
-  <p class="hero-subtext">Players you've shortlisted for closer evaluation. Click a card to flip it for quick details.</p>
-
   <!-- Loading -->
   @if (isLoading()) {
     <div class="status-state">
       <app-loading-spinner size="lg"></app-loading-spinner>
-      <h3>Loading Shortlist</h3>
-      <p>Fetching your shortlisted players...</p>
+      <p>Loading your shortlist…</p>
     </div>
   }
 
   <!-- Empty -->
   @if (!isLoading() && players().length === 0) {
-    <div class="status-state">
-      <div class="status-icon">
-        <svg width="32" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M19 21 12 16l-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-        </svg>
-      </div>
+    <div class="empty-wrapper">
       <app-empty-state
         title="No shortlisted players"
         description="You haven't shortlisted any players yet, or no matches found for your search.">
@@ -53,9 +34,9 @@
     </div>
   }
 
-  <!-- Grid Layout -->
+  <!-- Grid -->
   @if (!isLoading() && players().length > 0) {
-    <div class="shortlist-grid" scrollReveal direction="bottom" [delay]="100">
+    <div class="shortlist-grid" scrollReveal direction="bottom" [delay]="60">
       @for (player of players(); track player.playerId) {
         <div class="shortlist-item">
 
@@ -67,12 +48,11 @@
               [autoLoad]="false"
               [compact]="true"
               [cardWidth]="220"
-              [cardHeight]="340">
+              [cardHeight]="350">
             </app-player-card>
-            <span class="flip-hint">Tap card for quick view</span>
+            <span class="flip-hint">Tap card for details</span>
           </div>
 
-          <!-- Side-by-Side Actions -->
           <div class="card-actions">
             <app-button
               variant="accent"
@@ -94,14 +74,16 @@
       }
     </div>
 
-    <!-- Pagination -->
-    <app-pagination
-      [totalItems]="totalCount()"
-      [pageSize]="PAGE_SIZE"
-      [currentPage]="pageNumber()"
-      (pageChange)="goToPage($event)">
-    </app-pagination>
+    <div class="pagination-row">
+      <app-pagination
+        [totalItems]="totalCount()"
+        [pageSize]="PAGE_SIZE"
+        [currentPage]="pageNumber()"
+        (pageChange)="goToPage($event)">
+      </app-pagination>
+    </div>
   }
+
 </div>
 
 <app-footer scrollReveal direction="bottom" [delay]="200"></app-footer>

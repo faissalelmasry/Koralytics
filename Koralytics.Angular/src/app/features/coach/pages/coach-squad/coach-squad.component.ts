@@ -1,12 +1,10 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { forkJoin, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
 import { CoachSquadService } from '../../../../../core/services/coach/coach-squad.service';
-import { MatchAnalyticsService } from '../../../../../core/services/match/match-analytics.service';
 import { AuthService } from '../../../../../core/services/auth/auth.service';
 import {
   SquadOverviewDto,
@@ -14,28 +12,28 @@ import {
   SquadComparisonDto,
   CoachTeamDto,
 } from '../../../../../core/interfaces/coach.interfaces';
-import { PlayerReadinessDto } from '../../../../../core/interfaces/match-request.interfaces';
+import { MiniPlayerCardComponent } from '../../../match/mini-player-card/mini-player-card.component';
+import { MiniPlayerCardModel } from '../../../../../core/models/Player/mini-player-card-model';
 
 @Component({
   selector: 'app-coach-squad',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MiniPlayerCardComponent],
   templateUrl: './coach-squad.component.html',
   styleUrls: ['./coach-squad.component.css'],
 })
 export class CoachSquadComponent implements OnInit {
   private squadService = inject(CoachSquadService);
-  private analyticsService = inject(MatchAnalyticsService);
   private authService = inject(AuthService);
+  private router = inject(Router);
   private destroyRef = inject(DestroyRef);
 
   squad = signal<SquadOverviewDto | null>(null);
-  readinessMap = signal<Record<number, PlayerReadinessDto>>({});
   comparison = signal<SquadComparisonDto | null>(null);
   loading = signal(false);
   error = signal('');
 
-  // Team selection — fetched from API
+  // Team selection — fetched from API for all assigned teams
   teams = signal<CoachTeamDto[]>([]);
   selectedTeamId = 0;
   coachId = 0;
@@ -82,35 +80,11 @@ export class CoachSquadComponent implements OnInit {
         next: (data) => {
           this.squad.set(data);
           this.loading.set(false);
-          this.loadReadinessForSquad(data.players);
         },
         error: (err) => {
           this.error.set(err?.error?.message || 'Failed to load squad');
           this.loading.set(false);
         },
-      });
-  }
-
-  /** Batch-load readiness for all players using forkJoin instead of N+1 calls */
-  private loadReadinessForSquad(players: SquadPlayerDto[]): void {
-    if (!players.length) return;
-
-    const requests = players.map(p =>
-      this.analyticsService.getPlayerReadiness(p.playerId).pipe(
-        catchError(() => of(null))
-      )
-    );
-
-    forkJoin(requests)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(results => {
-        const map: Record<number, PlayerReadinessDto> = {};
-        results.forEach((data, i) => {
-          if (data) {
-            map[players[i].playerId] = data;
-          }
-        });
-        this.readinessMap.set(map);
       });
   }
 
@@ -127,12 +101,6 @@ export class CoachSquadComponent implements OnInit {
       default:
         return 'status-default';
     }
-  }
-
-  getReadinessColor(score: number): string {
-    if (score >= 80) return 'var(--accent-lime, #c8ff4d)';
-    if (score >= 50) return '#ffa726';
-    return '#ef5350';
   }
 
   togglePlayerSelection(playerId: number): void {
@@ -178,13 +146,68 @@ export class CoachSquadComponent implements OnInit {
     this.selectedPlayerB = null;
   }
 
+  navigateToPlayer(playerId: number): void {
+    this.router.navigate(['/player/profile', playerId]);
+  }
+
+  isGK(player: SquadPlayerDto): boolean {
+    return player?.primaryPosition?.toUpperCase() === 'GK';
+  }
+
+  getComparisonCategories(playerA: SquadPlayerDto, playerB: SquadPlayerDto): string[] {
+    const aIsGk = this.isGK(playerA);
+    const bIsGk = this.isGK(playerB);
+    if (aIsGk && bIsGk) {
+      return ['goalkeepingRating'];
+    }
+    if (aIsGk || bIsGk) {
+      return ['goalkeepingRating', 'paceRating', 'shootingRating', 'passingRating', 'dribblingRating', 'defendingRating', 'physicalRating'];
+    }
+    return ['paceRating', 'shootingRating', 'passingRating', 'dribblingRating', 'defendingRating', 'physicalRating'];
+  }
+
   /** Safely get a numeric rating from a SquadPlayerDto by property name */
   getRating(player: SquadPlayerDto, key: string): number {
     return (player as Record<string, any>)[key] ?? 0;
   }
 
-  /** Extract the label from a rating key, e.g. 'paceRating' → 'PACE' */
+  /** Extract 3-letter uppercase label, e.g. 'paceRating' → 'PAC', 'goalkeepingRating' → 'GKP' */
   getCategoryLabel(key: string): string {
-    return key.replace('Rating', '').toUpperCase();
+    switch (key) {
+      case 'paceRating': return 'PAC';
+      case 'shootingRating': return 'SHO';
+      case 'passingRating': return 'PAS';
+      case 'dribblingRating': return 'DRI';
+      case 'defendingRating': return 'DEF';
+      case 'physicalRating': return 'PHY';
+      case 'goalkeepingRating': return 'GKP';
+      default: return key.substring(0, 3).toUpperCase();
+    }
+  }
+
+  mapSquadPlayerToMiniCard(player: SquadPlayerDto): MiniPlayerCardModel {
+    return {
+      playerId: player.playerId,
+      fullName: player.fullName,
+      position: player.primaryPosition || 'N/A',
+      naturalPosition: player.primaryPosition || 'N/A',
+      profileImageUrl: player.profileImageUrl ?? null,
+      overallRating: player.overallRating || 0,
+    };
+  }
+
+  get totalPlayersCount(): number {
+    return this.squad()?.players?.length ?? 0;
+  }
+
+  get availablePlayersCount(): number {
+    return this.squad()?.players?.filter(p => p.availabilityStatus?.toLowerCase() === 'available')?.length ?? 0;
+  }
+
+  get averageOverallRating(): number {
+    const players = this.squad()?.players;
+    if (!players || !players.length) return 0;
+    const sum = players.reduce((acc, p) => acc + (p.overallRating || 0), 0);
+    return Math.round(sum / players.length);
   }
 }

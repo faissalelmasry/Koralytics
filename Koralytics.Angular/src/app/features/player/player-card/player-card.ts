@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, AfterViewInit, ElementRef, ViewChild, inject, ChangeDetectorRef, HostBinding } from '@angular/core';
+import { Component, Input, OnInit, AfterViewInit, ElementRef, ViewChild, inject, ChangeDetectorRef, HostBinding, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PlayerCardModel } from '../../../../core/models/Player/player-card-model';
 import { PlayerCardService } from '../../../../core/services/player/player-card.service';
@@ -12,7 +12,7 @@ import { MarqueeIfOverflowDirective } from '../../match/match-timeline/marquee-i
   templateUrl: './player-card.html',
   styleUrls: ['./player-card.css']
 })
-export class PlayerCardComponent implements OnInit, AfterViewInit {
+export class PlayerCardComponent implements OnInit, AfterViewInit, OnChanges {
   private playerCardService = inject(PlayerCardService);
   private tokenStorage = inject(TokenStorageService);
   private cdr = inject(ChangeDetectorRef);
@@ -39,6 +39,12 @@ export class PlayerCardComponent implements OnInit, AfterViewInit {
     if (rating >= 80) return 'tier-elite';
     if (rating >= 70) return 'tier-gold';
     return 'tier-base';
+  }
+
+  get displayClassification(): string {
+    if (!this.player?.transferClassification) return '';
+    if (this.player.transferClassification === 'Natural') return 'Expert';
+    return this.player.transferClassification;
   }
 
   get isGK(): boolean {
@@ -88,6 +94,12 @@ export class PlayerCardComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit() {
     if (this.player) {
+      this.runStatsIntro();
+    }
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['player'] && !changes['player'].firstChange && this.player) {
       this.runStatsIntro();
     }
   }
@@ -146,6 +158,7 @@ export class PlayerCardComponent implements OnInit, AfterViewInit {
     this.animateValue(0, targetRating, 1100, (v) => this.animatedRating = v);
 
     setTimeout(() => {
+      if (!this.cardElement?.nativeElement) return;
       const card = this.cardElement.nativeElement;
 
       if (this.isGK) {

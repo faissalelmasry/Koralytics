@@ -67,6 +67,7 @@ using Koralytics.Application.Services.Scouter.ScouterSearchService;
 using Koralytics.Application.Services.Scouter.ScouterShortlistService;
 using Koralytics.Application.Services.Storage;
 using Koralytics.Application.Services.Subscription;
+using Koralytics.Application.Interfaces.Subscription;
 using Koralytics.Application.Services.SystemAdmin.UserManagement;
 using Koralytics.Application.Services.Tournaments;
 using Koralytics.Application.Validators.Academies;
@@ -226,6 +227,8 @@ namespace Koralytics.API
 
             builder.Services.AddAuthorization();
             builder.Services.AddProblemDetails();
+            // Phase 4: Tier gating filter for boolean features
+            builder.Services.AddScoped<Koralytics.API.Filters.PlanFeatureFilter>();
             builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
             builder.Services.Configure<CloudflareR2Options>(
                 builder.Configuration.GetSection(CloudflareR2Options.SectionName));
@@ -288,7 +291,10 @@ namespace Koralytics.API
             builder.Services.AddHttpClient<IPlayerCardService, PlayerCardService>();
             builder.Services.AddScoped<IPlayerProfileService, PlayerProfileService>();
             builder.Services.AddScoped<IPlayerGoalService, PlayerGoalService>();
-            builder.Services.AddScoped<IAcademyService, AcademyService>();
+            builder.Services.AddHttpClient<IAcademyService, AcademyService>(client =>
+            {
+                client.Timeout = TimeSpan.FromMinutes(5);
+            });
             builder.Services.AddScoped<IAcademyTeamService, AcademyTeamService>();
             builder.Services.AddScoped<IAcademyAnalyticsService, AcademyAnalyticsService>();
             builder.Services.AddScoped<IAcademyAnnouncementService, AcademyAnnouncementService>();
@@ -305,7 +311,10 @@ namespace Koralytics.API
             builder.Services.AddSingleton<CardInvalidationList>();
             builder.Services.AddSingleton<ICardInvalidationList>(sp => sp.GetRequiredService<CardInvalidationList>());
             builder.Services.AddHostedService(sp => sp.GetRequiredService<CardInvalidationList>());
-            builder.Services.AddHttpClient<IScouterSearchService, ScouterSearchService>();
+            builder.Services.AddHttpClient<IScouterSearchService, ScouterSearchService>(client =>
+            {
+                client.Timeout = TimeSpan.FromMinutes(5);
+            });
             builder.Services.AddScoped<IScouterShortlistService, ScouterShortlistService>();
             builder.Services.AddScoped<IScouterFollowService, ScouterFollowService>();
             builder.Services.AddScoped<IScouterReportService, ScouterReportService>();
@@ -318,6 +327,9 @@ namespace Koralytics.API
             builder.Services.AddScoped<IAnnouncementNotificationService, AnnouncementNotificationService>();
             builder.Services.AddScoped<IParentService, ParentService>();
             builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
+            builder.Services.AddScoped<ITenantSubscriptionService, TenantSubscriptionService>();
+            builder.Services.AddHttpClient<IParentAiService, ParentAiService>();
+            builder.Services.AddScoped<IParentPlayerAccessService, ParentPlayerAccessService>();
             builder.Services.Configure<AIOptions>(builder.Configuration.GetSection(AIOptions.SectionName));
             var aiSection = builder.Configuration.GetSection(AIOptions.SectionName);
             var aiProviderName = aiSection["Provider"] ?? "Local";
@@ -376,6 +388,7 @@ namespace Koralytics.API
             builder.Services.AddScoped<IUserBusinessValidator, UserBusinessValidator>();
             builder.Services.AddHostedService<NotificationCleanupBackgroundService>();
             builder.Services.AddHostedService<SubscriptionRenewalService>();
+            builder.Services.AddHostedService<SubscriptionGraceBackgroundService>();
 
             builder.Services
                 .AddFluentValidationAutoValidation()

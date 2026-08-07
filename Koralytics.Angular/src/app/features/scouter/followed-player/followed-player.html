@@ -1,85 +1,89 @@
 <app-navbar></app-navbar>
+
 <div class="followed-players-page">
 
-  <!-- =============== HERO BANNER =============== -->
-  <div class="hero-banner" scrollReveal direction="bottom" [delay]="0">
-    <div class="header-identity">
-      <div class="avatar-circle">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 21s-7.5-4.6-10-9.1C.5 8.4 2 4.5 5.6 4c2-.3 3.9.7 6.4 2.9C14.5 4.7 16.4 3.7 18.4 4c3.6.5 5.1 4.4 3.6 7.9C19.5 16.4 12 21 12 21z"/>
-        </svg>
-      </div>
-      <div class="header-text">
-        <span class="page-eyebrow">Scouting Tool</span>
-        <h1>Followed Players</h1>
-        <div class="meta-pills">
-          <span class="pill gold">{{ totalCount() }} Following</span>
-        </div>
-      </div>
+  <!-- Toolbar -->
+  <div class="page-toolbar" scrollReveal direction="bottom" [delay]="0">
+    <div class="toolbar-title-group">
+      <h1 class="page-title">Followed Players</h1>
+      <p class="page-subtitle">{{ totalCount() }} player{{ totalCount() === 1 ? '' : 's' }} followed</p>
     </div>
-
-    <div class="search-container">
-      <app-search-bar [placeholderText]="'Search players...'" (searchChange)="onSearch($event)">
+    <div class="toolbar-search">
+      <app-search-bar
+        [placeholderText]="'Search players...'"
+        (searchChange)="onSearch($event)">
       </app-search-bar>
     </div>
   </div>
 
   <!-- Loading -->
   @if (isLoading()) {
-  <div class="status-state">
-    <app-loading-spinner size="lg"></app-loading-spinner>
-    <h3>Loading Watchlist</h3>
-    <p>Fetching the players you're following...</p>
-  </div>
+    <div class="status-state">
+      <app-loading-spinner size="lg"></app-loading-spinner>
+      <p>Loading your watchlist…</p>
+    </div>
   }
 
   <!-- Empty -->
   @if (!isLoading() && players().length === 0) {
-  <div class="status-state">
-    <div class="status-icon">
-      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 21s-7.5-4.6-10-9.1C.5 8.4 2 4.5 5.6 4c2-.3 3.9.7 6.4 2.9C14.5 4.7 16.4 3.7 18.4 4c3.6.5 5.1 4.4 3.6 7.9C19.5 16.4 12 21 12 21z"/>
-      </svg>
+    <div class="empty-wrapper">
+      <app-empty-state
+        title="No players found"
+        description="You aren't following any players yet, or no matches found for your search.">
+      </app-empty-state>
     </div>
-    <app-empty-state title="No players found"
-      description="You aren't following any players yet, or no matches found for your search.">
-    </app-empty-state>
-  </div>
   }
 
-  <!-- Grid Layout -->
+  <!-- Grid -->
   @if (!isLoading() && players().length > 0) {
-  <div class="players-grid" scrollReveal direction="bottom" [delay]="100">
-    @for (player of players(); track player.playerId) {
-    <div class="player-card-wrapper">
-      <!-- NOTE on $any(player): PlayerCardDto/PlayerCardModel line up
-           field-for-field today, but $any() silences type checking. -->
-      <app-player-card [player]="$any(player)" [autoLoad]="false" [compact]="true" [cardWidth]="240" [cardHeight]="360">
-      </app-player-card>
+    <div class="followed-grid" scrollReveal direction="bottom" [delay]="60">
+      @for (player of players(); track player.playerId) {
+        <div class="followed-item">
 
-      <!-- Actions Section -->
-      <div class="card-actions">
-        <app-button variant="accent" (click)="viewProfile(player.playerId)" class="flex-1">
-        Profile
-        </app-button>
+          <!-- NOTE on $any(player): PlayerCardDto/PlayerCardModel line up
+               field-for-field today, but $any() silences type checking. -->
+          <div class="card-wrap">
+            <app-player-card
+              [player]="$any(player)"
+              [autoLoad]="false"
+              [compact]="true"
+              [cardWidth]="220"
+              [cardHeight]="350">
+            </app-player-card>
+            <span class="flip-hint">Tap card for details</span>
+          </div>
 
-        <app-button variant="coral" [disabled]="isUnfollowing() === player.playerId" (click)="unfollow(player.playerId)"
-          class="flex-1">
-          {{ isUnfollowing() === player.playerId ? 'Unfollowing...' : 'Unfollow' }}
-        </app-button>
-      </div>
+          <div class="card-actions">
+            <app-button
+              variant="accent"
+              (click)="viewProfile(player.playerId)"
+              class="action-btn">
+              Profile
+            </app-button>
+
+            <app-button
+              variant="coral"
+              [disabled]="isUnfollowing() === player.playerId"
+              (click)="unfollow(player.playerId)"
+              class="action-btn">
+              {{ isUnfollowing() === player.playerId ? 'Unfollowing...' : 'Unfollow' }}
+            </app-button>
+          </div>
+
+        </div>
+      }
     </div>
-    }
-  </div>
 
-  <!-- Pagination -->
-  <app-pagination
-    [totalItems]="totalCount()"
-    [pageSize]="PAGE_SIZE"
-    [currentPage]="pageNumber()"
-    (pageChange)="goToPage($event)">
-  </app-pagination>
+    <div class="pagination-row">
+      <app-pagination
+        [totalItems]="totalCount()"
+        [pageSize]="PAGE_SIZE"
+        [currentPage]="pageNumber()"
+        (pageChange)="goToPage($event)">
+      </app-pagination>
+    </div>
   }
+
 </div>
 
 <app-footer scrollReveal direction="bottom" [delay]="200"></app-footer>

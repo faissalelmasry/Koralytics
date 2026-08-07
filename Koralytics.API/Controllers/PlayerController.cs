@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Koralytics.Application.Services.Storage;
+using Koralytics.API.Filters;
+using Koralytics.Application.Interfaces.Subscription;
 
 namespace Koralytics.API.Controllers
 {
@@ -21,19 +23,22 @@ namespace Koralytics.API.Controllers
         private readonly IPlayerProfileService _playerProfileService;
         private readonly IStorageService _storageService;
         private readonly IPlayerGoalService _playerGoalService;
+        private readonly ITenantSubscriptionService _tenantSubscriptionService;
 
         public PlayerController(
             IPlayerTransferService playerTransferService,
             IPlayerCardService playerCardService,
             IPlayerProfileService playerProfileService,
             IStorageService storageService,
-            IPlayerGoalService playerGoalService)
+            IPlayerGoalService playerGoalService,
+            ITenantSubscriptionService tenantSubscriptionService)
         {
             _playerTransferService = playerTransferService;
             _playerCardService = playerCardService;
             _playerProfileService = playerProfileService;
             _storageService = storageService;
             _playerGoalService = playerGoalService;
+            _tenantSubscriptionService = tenantSubscriptionService;
         }
         [HttpPatch("{playerId}/availability")]
         [Authorize(Roles = "Player,Coach,AcademyAdmin")]
@@ -74,6 +79,18 @@ namespace Koralytics.API.Controllers
         {
             var card = await _playerCardService.GetPlayerCardAsync(playerId);
 
+            var academyIdStr = User.FindFirstValue("AcademyId") ?? User.FindFirstValue("academyId");
+            if (int.TryParse(academyIdStr, out var academyId))
+            {
+                var limits = await _tenantSubscriptionService.GetLimitsAsync(academyId);
+                if (!limits.AllowTransferRate)
+                {
+                    card.OverallTrainingAvg = 0;
+                    card.OverallTournamentAvg = 0;
+                    card.TransferClassification = string.Empty;
+                }
+            }
+
             return Ok(card);
         }
 
@@ -82,6 +99,22 @@ namespace Koralytics.API.Controllers
         public async Task<IActionResult> GetPlayerProfile(int playerId)
         {
             var profile = await _playerProfileService.GetPlayerProfileAsync(playerId);
+
+            var academyIdStr = User.FindFirstValue("AcademyId") ?? User.FindFirstValue("academyId");
+            if (int.TryParse(academyIdStr, out var academyId))
+            {
+                var limits = await _tenantSubscriptionService.GetLimitsAsync(academyId);
+                if (!limits.AllowTransferRate && profile.PlayerCard != null)
+                {
+                    profile.PlayerCard.OverallTrainingAvg = 0;
+                    profile.PlayerCard.OverallTournamentAvg = 0;
+                    profile.PlayerCard.TransferClassification = string.Empty;
+                }
+                
+                // AllowProgressionAnalytics is handled purely by the frontend feature lock.
+                // We shouldn't zero out Match stats (TotalMatches, Goals, etc.) here because Match Tools are a Full Suite feature.
+            }
+
             return Ok(profile);
         }
 
@@ -160,6 +193,7 @@ namespace Koralytics.API.Controllers
 
         [HttpPost("{playerId}/reveal-archetype")]
         [Authorize]
+        [RequiresPlanFeature(TierFeature.ArchetypeReveal)]
         public async Task<IActionResult> RevealArchetypeName(int playerId)
         {
             var result = await _playerCardService.RevealArchetypeNameAsync(playerId);
@@ -176,6 +210,7 @@ namespace Koralytics.API.Controllers
 
         [HttpGet("{playerId}/academy/{academyId}/comparison")]
         [Authorize]
+        [RequiresPlanFeature(TierFeature.AcademyComparison)]
         public async Task<IActionResult> GetPlayerVsAcademyAverage(int playerId, int academyId)
         {
             var requesterId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -190,6 +225,7 @@ namespace Koralytics.API.Controllers
 
         [HttpGet("{playerId}/academy-comparison")]
         [Authorize]
+        [RequiresPlanFeature(TierFeature.AcademyComparison)]
         public async Task<IActionResult> GetPlayerAcademyComparisonById(int playerId)
         {
             // Resolve the player's current academy from DB so any authenticated viewer can access this
@@ -199,6 +235,7 @@ namespace Koralytics.API.Controllers
 
         [HttpGet("academy-comparison")]
         [Authorize(Roles = "Player")]
+        [RequiresPlanFeature(TierFeature.AcademyComparison)]
         public async Task<IActionResult> GetCurrentPlayerAcademyComparison()
         {
             var playerId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -216,6 +253,7 @@ namespace Koralytics.API.Controllers
 
         [HttpGet("{playerId}/scouter-views")]
         [Authorize(Roles = "Player")]
+        [RequiresPlanFeature(TierFeature.FullAnalyticsSuite)]
         public async Task<IActionResult> GetScouterViewsCount(
             int playerId,
             [FromQuery] int year,
@@ -233,6 +271,7 @@ namespace Koralytics.API.Controllers
 
         [HttpGet("{playerId}/transfer-rate")]
         [Authorize]
+        [RequiresPlanFeature(TierFeature.TransferRate)]
         public async Task<IActionResult> GetTransferRate(int playerId)
         {
             var rate = await _playerCardService.GetDrillToMatchTransferRateAsync(playerId);

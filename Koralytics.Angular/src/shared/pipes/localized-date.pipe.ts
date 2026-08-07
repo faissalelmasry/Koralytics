@@ -13,7 +13,8 @@ export class LocalizedDatePipe implements PipeTransform {
   transform(value: any, format = 'mediumDate'): any {
     if (!value) return '';
     try {
-      const langRaw: any = this.translate.currentLang;
+      const translateService = this.translate as any;
+      const langRaw: any = translateService?.currentLang;
       const lang = (typeof langRaw === 'function' ? langRaw() : langRaw) || 'en';
       // In Angular, Arabic locale is 'ar'
       const pipe = new DatePipe(lang === 'ar' ? 'ar-EG' : 'en-US'); 

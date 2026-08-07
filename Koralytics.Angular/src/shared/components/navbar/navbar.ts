@@ -54,6 +54,9 @@ export class NavbarComponent {
   get isAcademyAdmin(): boolean {
     return this.authService.getUserRoles().includes('AcademyAdmin');
   }
+  get isScouter(): boolean {
+    return this.authService.getUserRoles().includes('Scouter');
+  }
 
   requestLogout() {
     this.showSignOutConfirm = true;
@@ -77,4 +80,4 @@ export class NavbarComponent {
     });
   }
 }
-
+

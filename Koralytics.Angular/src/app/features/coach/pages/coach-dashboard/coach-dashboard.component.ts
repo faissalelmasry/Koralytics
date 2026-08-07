@@ -7,6 +7,8 @@ import { of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { NavbarComponent } from '../../../../../shared/components/navbar/navbar';
 import { Footer } from '../../../../../shared/components/footer/footer';
+import { LoadingSpinnerComponent } from '../../../../../shared/components/loading-spinner/loading-spinner';
+import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
 
 import { AuthService } from '../../../../../core/services/auth/auth.service';
 import { CoachSquadService } from '../../../../../core/services/coach/coach-squad.service';
@@ -20,7 +22,14 @@ import { DrillSessionDto, SessionFilterDto } from '../../../../../core/interface
 @Component({
   selector: 'app-coach-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, NavbarComponent, Footer],
+  imports: [
+    CommonModule,
+    RouterModule,
+    NavbarComponent,
+    Footer,
+    LoadingSpinnerComponent,
+    ScrollRevealDirective
+  ],
   templateUrl: './coach-dashboard.component.html',
   styleUrls: ['./coach-dashboard.component.css']
 })
@@ -39,6 +48,11 @@ export class CoachDashboardComponent implements OnInit {
   // ── Teams ──
   teams = signal<CoachTeamDto[]>([]);
   selectedTeamId = 0;
+  selectedTeamName = computed(() => {
+    const currentId = this.selectedTeamId;
+    const match = this.teams().find(t => t.teamId === currentId);
+    return match ? `${match.teamName} (${match.ageGroupName})` : 'Squad Command';
+  });
 
   // ── Loading states ──
   pageLoading = signal(true);
@@ -143,6 +157,7 @@ export class CoachDashboardComponent implements OnInit {
   private loadAllData(): void {
     this.loadSquad();
     this.loadMatches();
+    this.loadSessions();
     this.loadPerformance();
   }
 
@@ -175,9 +190,9 @@ export class CoachDashboardComponent implements OnInit {
       )
       .subscribe(res => {
         if (res?.isSuccess && res.data?.matches) {
-          this.upcomingMatches.set(res.data.matches.slice(0, 3));
+          this.upcomingMatches.set(res.data.matches.slice(0, 5));
         } else if (res?.data?.matches) {
-          this.upcomingMatches.set(res.data.matches.slice(0, 3));
+          this.upcomingMatches.set(res.data.matches.slice(0, 5));
         } else {
           this.upcomingMatches.set([]);
         }
@@ -187,16 +202,31 @@ export class CoachDashboardComponent implements OnInit {
 
   private loadSessions(): void {
     this.sessionsLoading.set(true);
-    const filter: SessionFilterDto = { pageNumber: 1, pageSize: 5 };
+    const filter: SessionFilterDto = {
+      pageNumber: 1,
+      pageSize: 5,
+      teamId: this.selectedTeamId || null
+    };
 
     this.sessionService.getCoachSessions(filter)
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         catchError(() => of([]))
       )
-      .subscribe(sessions => {
-        const list = Array.isArray(sessions) ? sessions : [];
-        this.recentSessions.set(list.slice(0, 3));
+      .subscribe(res => {
+        const raw = res as any;
+        const items = Array.isArray(raw) ? raw : (raw?.items || raw?.data || []);
+        const formatted = items.map((s: any) => {
+          let dateVal = s.sessionDate;
+          if (!dateVal || dateVal.startsWith('0001') || dateVal.startsWith('0000')) {
+            dateVal = s.createdAt || new Date().toISOString();
+          }
+          return {
+            ...s,
+            sessionDate: dateVal && !dateVal.endsWith('Z') && !dateVal.includes('+') ? dateVal + 'Z' : dateVal
+          };
+        });
+        this.recentSessions.set(formatted.slice(0, 5));
         this.sessionsLoading.set(false);
       });
   }

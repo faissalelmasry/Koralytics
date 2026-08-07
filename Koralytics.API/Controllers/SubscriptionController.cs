@@ -1,4 +1,6 @@
 using System.Security.Claims;
+using Koralytics.API.Filters;
+using Koralytics.Domain.Enums;
 using System.Threading.Tasks;
 using Koralytics.Application.DTOs.Subscription;
 using Koralytics.Application.Interfaces;
@@ -69,6 +71,7 @@ namespace Koralytics.API.Controllers
         /// </summary>
         [HttpPost("{id}/pay")]
         [Authorize(Roles = "Parent,AcademyAdmin")]
+        [RequiresPlanFeature(TierFeature.StripePayments)]
         public async Task<IActionResult> PaySubscription(int id)
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

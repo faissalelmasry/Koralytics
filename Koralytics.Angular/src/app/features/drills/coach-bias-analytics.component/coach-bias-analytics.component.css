@@ -103,6 +103,17 @@
     align-items: flex-end;
     backdrop-filter: blur(12px);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    transition: all 0.25s ease;
+}
+
+.coach-badge-box.clickable {
+    cursor: pointer;
+}
+
+.coach-badge-box.clickable:hover {
+    border-color: rgba(200, 255, 77, 0.4);
+    box-shadow: 0 4px 20px rgba(200, 255, 77, 0.25);
+    transform: translateY(-2px);
 }
 
 .badge-sub {
@@ -117,6 +128,19 @@
     font-weight: 800;
     color: #ffffff;
     margin-top: 2px;
+}
+
+.coach-link {
+    color: #c8ff4d;
+    text-decoration: none;
+    font-weight: 700;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.coach-link:hover {
+    color: #ffffff;
+    text-decoration: underline;
 }
 
 .selector-group {
@@ -259,9 +283,25 @@
     font-size: 14px;
 }
 
+.player-name-cell.clickable {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.player-name-cell.clickable:hover .player-name {
+    color: #c8ff4d;
+    text-decoration: underline;
+}
+
+.player-name-cell.clickable:hover .player-avatar-box {
+    border-color: rgba(200, 255, 77, 0.5);
+    color: #c8ff4d;
+}
+
 .player-name {
     font-weight: 700;
     color: #f8fafc;
+    transition: color 0.2s ease;
 }
 
 .score-cell strong {

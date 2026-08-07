@@ -5,6 +5,7 @@ using Koralytics.Application.Interfaces.AI;
 using Koralytics.Application.Interfaces.Tournament;
 using Koralytics.Application.Interfaces.Tournaments;
 using Koralytics.Domain.Enums;
+using Koralytics.API.Filters;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -192,6 +193,8 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpGet("{tournamentId}/report")]
+        [Authorize]
+        [RequiresPlanFeature(TierFeature.AIInsights)]
         public async Task<IActionResult> GetTournamentReport(int tournamentId)
         {
             var result = await _aiReportService.GetTournamentReportAsync(tournamentId);
@@ -203,11 +206,15 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpPost("{tournamentId}/regenerate-report")]
+        [Authorize(Roles = "AcademyAdmin")]
+        [RequiresPlanFeature(TierFeature.AIInsights)]
         public async Task<IActionResult> RegenerateTournamentReport(int tournamentId)
         {
             await _aiReportService.GenerateTournamentReportAsync(tournamentId);
             return NoContentResponse("AI report regeneration triggered successfully");
         }
+
+
 
         [HttpPost("{tournamentId}/complete")]
         //[Authorize(Roles = "SuperAdmin")]

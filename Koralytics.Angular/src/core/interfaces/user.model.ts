@@ -4,5 +4,6 @@ export interface User {
   email: string;
   fullName: string;
   roles: string[];
-  academyId?: number;
+  academyId?: number | null;
+  isSubscriptionActive?: boolean;
 }

@@ -1,0 +1,268 @@
+<app-navbar></app-navbar>
+
+<div class="scout-portal-page">
+
+  <!-- PAGE HEADER -->
+  <header class="page-header flex-between">
+    <div>
+      <div class="header-eyebrow">
+        <span class="eyebrow-dot"></span>
+        <span class="eyebrow-text">Scout Workspace</span>
+      </div>
+      <h1 class="header-title">{{ pageTitle() }}</h1>
+      <p class="header-subtitle">{{ pageSubtitle() }}</p>
+    </div>
+    @if (isOwnProfile()) {
+    <div class="header-actions">
+     
+    </div>
+    }
+  </header>
+
+  @if (isLoading()) {
+    <div class="loading-wrapper mt-4">
+      <app-loading-spinner size="lg"></app-loading-spinner>
+    </div>
+  }
+  @else if (errorMessage()) {
+    <div class="error-banner mt-4">
+      <svg class="error-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+      <span>{{ errorMessage() }}</span>
+    </div>
+  }
+  @else {
+
+    <!-- PROFILE / VERIFICATION HERO -->
+    @if (profile(); as p) {
+      <section class="scout-hero-card mt-4">
+        <div class="hero-glow-bg"></div>
+        <div class="hero-avatar">
+          <div class="avatar-fallback">
+            <span class="avatar-initials">{{ getInitials(scouterFullName()) }}</span>
+          </div>
+          <div class="avatar-border-ring"></div>
+        </div>
+        <div class="hero-details">
+          <div class="hero-top-row flex-between">
+            <app-status-chip
+              [label]="p.isVerified ? 'Verified Scouter' : 'Verification Pending'"
+              [type]="p.isVerified ? 'success' : 'warning'"
+              [pulse]="!p.isVerified">
+            </app-status-chip>
+          </div>
+          <h2 class="scout-name">{{ scouterFullName() }}</h2>
+          @if (!p.isVerified) {
+            @if (isOwnProfile()) {
+              <p class="hero-note">Your account isn't verified yet -- verification is handled by a system admin and unlocks full scouting network visibility.</p>
+            } @else {
+              <p class="hero-note">This scouter's account is still pending verification by a system admin.</p>
+            }
+          }
+        </div>
+      </section>
+    }
+    
+
+    <!-- SCOUTER INSIGHTS (for any role visiting another scouter's dashboard) -->
+    @if (!isOwnProfile() && viewerInsights().length > 0) {
+      <section class="insights-panel mt-4">
+        <div class="panel-header-row">
+          <svg class="panel-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <path d="M12 2a7 7 0 0 0-4 12.7V17a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-2.3A7 7 0 0 0 12 2Z"></path>
+            <line x1="9" y1="21" x2="15" y2="21"></line>
+          </svg>
+          <h3>Personalized Highlights</h3>
+        </div>
+        <div class="insights-list">
+          @for (insight of viewerInsights(); track insight.text) {
+            <div class="insight-row" [class]="'insight-' + insight.tone">
+              <div class="insight-icon">
+                @switch (insight.icon) {
+                  @case ('star') { <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg> }
+                  @case ('trophy') { <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0V4Z"/><path d="M17 5a3 3 0 0 1 3 3c0 2-2 3-3 3"/><path d="M7 5a3 3 0 0 0-3 3c0 2 2 3 3 3"/></svg> }
+                  @case ('target') { <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg> }
+                  @case ('alert') { <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> }
+                  @default { <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg> }
+                }
+              </div>
+              <p>{{ insight.text }}</p>
+            </div>
+          }
+        </div>
+      </section>
+    }
+
+    <!-- Everything below is the scouter's own private data (KPI counts,
+         shortlist/followed lists, insights, charts) -- only shown when the
+         signed-in user IS this scouter, not when another role is viewing
+         this scouter's profile via the scouterId route param. -->
+    @if (isOwnProfile()) {
+
+    <!-- KPI STRIP -->
+    <section class="kpi-grid mt-4">
+      <div class="kpi-card">
+        <span class="kpi-label">Following</span>
+        <span class="kpi-value">{{ followedTotal() }}</span>
+        <span class="kpi-sub">players tracked</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">Shortlisted</span>
+        <span class="kpi-value">{{ shortlistTotal() }}</span>
+        <span class="kpi-sub">prospects saved</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">Avg. Shortlist Rating</span>
+        <span class="kpi-value">{{ avgShortlistRating() || '--' }}</span>
+        <span class="kpi-sub">overall rating</span>
+      </div>
+      <div class="kpi-card kpi-highlight">
+        <span class="kpi-label">Elite Prospects</span>
+        <span class="kpi-value">{{ eliteProspectCount() }}</span>
+        <span class="kpi-sub">85+ OVR in shortlist</span>
+      </div>
+    </section>
+
+    <!-- EMPTY STATE: no scouting activity at all yet -->
+    @if (followedTotal() === 0 && shortlistTotal() === 0) {
+      <div class="empty-wrapper mt-4">
+        <app-empty-state
+          title="Your scouting network is empty"
+          description="Search for players to follow or shortlist -- your dashboard insights will build up as you do."
+          actionText="Search Players"
+          (actionClick)="goToSearch()"
+          >
+        </app-empty-state>
+      </div>
+    }
+    @else {
+
+      <!-- SMART INSIGHTS -->
+      @if (insights().length > 0) {
+        <section class="insights-panel mt-4">
+          <div class="panel-header-row">
+            <svg class="panel-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+              <path d="M12 2a7 7 0 0 0-4 12.7V17a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-2.3A7 7 0 0 0 12 2Z"></path>
+              <line x1="9" y1="21" x2="15" y2="21"></line>
+            </svg>
+            <h3>Personalized Highlights</h3>
+          </div>
+          <div class="insights-list">
+            @for (insight of insights(); track insight.text) {
+              <div class="insight-row" [class]="'insight-' + insight.tone">
+                <div class="insight-icon">
+                  @switch (insight.icon) {
+                    @case ('star') { <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg> }
+                    @case ('trophy') { <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0V4Z"/><path d="M17 5a3 3 0 0 1 3 3c0 2-2 3-3 3"/><path d="M7 5a3 3 0 0 0-3 3c0 2 2 3 3 3"/></svg> }
+                    @case ('target') { <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg> }
+                    @case ('alert') { <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> }
+                    @default { <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg> }
+                  }
+                </div>
+                <p>{{ insight.text }}</p>
+              </div>
+            }
+          </div>
+        </section>
+      }
+
+      <!-- ANALYTICS ROW: position chart + rating tiers -->
+      @if (shortlistSample().length > 0) {
+        <section class="analytics-grid mt-4">
+          <div class="analytics-panel">
+            <div class="panel-header-row">
+              <h3>Shortlist by Position</h3>
+            </div>
+            <div class="chart-wrap">
+              <canvas #positionChartCanvas></canvas>
+            </div>
+          </div>
+
+          <div class="analytics-panel">
+            <div class="panel-header-row">
+              <h3>Talent Quality Distribution</h3>
+            </div>
+            <div class="tier-bars">
+              @for (tier of ratingTiers(); track tier.label) {
+                <div class="tier-row">
+                  <div class="tier-label-row">
+                    <span class="tier-label">{{ tier.label }}</span>
+                    <span class="tier-count">{{ tier.count }}</span>
+                  </div>
+                  <div class="tier-bar-track">
+                    <div class="tier-bar-fill" [style.width.%]="tier.pct" [style.background]="'var(' + tier.colorVar + ')'"></div>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </section>
+      }
+
+      <!-- PREVIEW: SHORTLIST -->
+      @if (shortlistSample().length > 0) {
+        <section class="preview-section mt-4">
+          <div class="preview-header flex-between">
+            <h3>Recently Shortlisted</h3>
+            <button class="btn-view-all" (click)="goToShortlist()">View All ({{ shortlistTotal() }})</button>
+          </div>
+          <div class="player-mini-grid">
+            @for (player of previewShortlist(); track player.playerId) {
+              <div class="player-mini-card" (click)="viewPlayerProfile(player.playerId)">
+                <div class="mini-avatar">
+                  @if (player.profileImageUrl) {
+                    <img [src]="player.profileImageUrl" [alt]="player.playerName" />
+                  } @else {
+                    <span>{{ getInitials(player.playerName) }}</span>
+                  }
+                </div>
+                <div class="mini-info">
+                  <span class="mini-name">{{ player.playerName }}</span>
+                  <span class="mini-meta">{{ player.position }}</span>
+                </div>
+                <span class="mini-rating">{{ player.overallRating }}</span>
+              </div>
+            }
+          </div>
+        </section>
+      }
+
+      <!-- PREVIEW: FOLLOWED -->
+      @if (followedSample().length > 0) {
+        <section class="preview-section mt-4">
+          <div class="preview-header flex-between">
+            <h3>Players You Follow</h3>
+            <button class="btn-view-all" (click)="goToFollowedPlayers()">View All ({{ followedTotal() }})</button>
+          </div>
+          <div class="player-mini-grid">
+            @for (player of previewFollowed(); track player.playerId) {
+              <div class="player-mini-card" (click)="viewPlayerProfile(player.playerId)">
+                <div class="mini-avatar">
+                  @if (player.profileImageUrl) {
+                    <img [src]="player.profileImageUrl" [alt]="player.playerName" />
+                  } @else {
+                    <span>{{ getInitials(player.playerName) }}</span>
+                  }
+                </div>
+                <div class="mini-info">
+                  <span class="mini-name">{{ player.playerName }}</span>
+                  <span class="mini-meta">{{ player.position }}</span>
+                </div>
+                <span class="mini-rating">{{ player.overallRating }}</span>
+              </div>
+            }
+          </div>
+        </section>
+      }
+
+    }
+
+    }
+  }
+
+</div>
+
+<app-footer scrollReveal direction="bottom" [delay]="200"></app-footer>

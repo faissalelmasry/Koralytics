@@ -132,11 +132,11 @@ namespace Koralytics.Application.Services.Drill.DrillResult
         public async Task<PlayerProgressionDto> GetPlayerDrillProgressionAsync(int playerId, int categoryId, int currentAcademyId)
         {
             var playerExists = await _unitOfWork.Repository<Domain.Entities.Player.Player>()
-                .ExistsAsync(p => p.Id == playerId && (currentAcademyId == 0 || p.PlayerAcademies.Any(pa => pa.AcademyId == currentAcademyId)));
+                .ExistsAsync(p => p.Id == playerId);
 
             if (!playerExists)
             {
-                throw new UnauthorizedAccessException($"Player with ID {playerId} does not exist or does not belong to your academy.");
+                throw new UnauthorizedAccessException($"Player with ID {playerId} does not exist.");
             }
             var rawData = await _unitOfWork.Repository<Domain.Entities.Drill.DrillResult>()
                 .GetQueryableAsNoTracking()

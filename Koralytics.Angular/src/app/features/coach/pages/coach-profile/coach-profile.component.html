@@ -1,0 +1,431 @@
+<div class="profile-page">
+
+  <!-- Loading State -->
+  @if (isLoading) {
+  <div class="preloader-overlay">
+    <app-loading-spinner size="lg"></app-loading-spinner>
+    <p>Loading coach profile...</p>
+  </div>
+  }
+
+  <!-- Error State -->
+  @else if (error) {
+  <div class="error-state">
+    <span class="error-icon">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+    </span>
+    <h3>Unable to Load Profile</h3>
+    <p>{{ error }}</p>
+  </div>
+  }
+
+  @else {
+  <div class="profile-container">
+
+    <!-- TACTICAL TAG & HEADER ROW -->
+    <div>
+      <div class="tactical-tag" scrollReveal direction="bottom">Tactical Coach Profile</div>
+      <div class="header-row" scrollReveal direction="bottom">
+        <h1 class="section-title">{{ profile?.firstName }} {{ profile?.lastName }}</h1>
+        <div class="header-actions">
+          <a [routerLink]="coachId ? ['/drills/analytics/coach-bias', coachId] : ['/drills/analytics/coach-bias']" class="bias-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="20" x2="18" y2="10"></line>
+              <line x1="12" y1="20" x2="12" y2="4"></line>
+              <line x1="6" y1="20" x2="6" y2="14"></line>
+            </svg>
+            Coach Bias Analytics
+          </a>
+          <span class="badge-count">{{ profile?.academyName || 'Tactical Coach' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ HERO BANNER ═══════════════ -->
+    <div class="hero-banner" scrollReveal direction="bottom">
+      <div class="admin-identity">
+        <div class="avatar-circle">
+          @if (profile?.profileImageUrl) {
+          <img [src]="profile!.profileImageUrl" alt="Coach avatar" class="coach-avatar-img" />
+          } @else {
+          <span>{{ initials }}</span>
+          }
+        </div>
+        <div class="coach-details-block">
+          <h1 class="accent">{{ profile?.firstName }} {{ profile?.lastName }}</h1>
+          <div class="meta-pills">
+            <span class="pill gold">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path
+                  d="M12 2L15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2Z">
+                </path>
+              </svg>
+              Coach
+            </span>
+            @if (profile?.userName) {
+            <span class="pill">&#64;{{ profile?.userName }}</span>
+            }
+            @if (profile?.email) {
+            <span class="pill">{{ profile?.email }}</span>
+            }
+            @if (profile?.phoneNumber) {
+            <span class="pill">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path
+                  d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z">
+                </path>
+              </svg>
+              {{ profile!.phoneNumber }}
+            </span>
+            }
+            @if (profile?.academyName) {
+            <span class="pill academy-pill">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3"></path>
+              </svg>
+              {{ profile!.academyName }}
+            </span>
+            }
+            @if (teams().length > 0) {
+            <div class="team-select-pill">
+              <select id="profileTeamSelect" [value]="selectedTeamId" (change)="onTeamChange($event)">
+                @for (t of teams(); track t.teamId) {
+                <option [value]="t.teamId">
+                  {{ t.teamName }} ({{ t.ageGroupName }})
+                </option>
+                }
+              </select>
+            </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ KPI GRID ═══════════════ -->
+    <div class="kpi-grid" scrollReveal direction="bottom">
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+          Teams Managed
+        </div>
+        <div class="kpi-value">{{ teams().length }}</div>
+        <div class="kpi-sub">Active Assigned Teams</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="8.5" cy="7" r="4"></circle>
+            <line x1="20" y1="8" x2="20" y2="14"></line>
+            <line x1="23" y1="11" x2="17" y2="11"></line>
+          </svg>
+          Total Squad Players
+        </div>
+        <div class="kpi-value">{{ totalPlayers() }}</div>
+        <div class="kpi-sub">Selected Squad Players</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polygon points="10 8 16 12 10 16 10 8"></polygon>
+          </svg>
+          Matches Played
+        </div>
+        <div class="kpi-value">{{ totalMatchesPlayed() }}</div>
+        <div class="kpi-sub">Competitions & Matches</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+          </svg>
+          Win Rate
+        </div>
+        <div class="kpi-value">{{ winRate() | number:'1.0-0' }}<span class="kpi-unit">%</span></div>
+        <div class="kpi-sub">Win Percentage</div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ DASHBOARD GRID ═══════════════ -->
+    <div class="dashboard-grid">
+
+      <!-- ─── LEFT COLUMN: Teams Overview & Squad Roster ─── -->
+      <div class="left-column">
+
+        <!-- Teams Overview Card -->
+        <div class="glass-card section-card" scrollReveal direction="bottom">
+          <div class="section-header">
+            <h2 class="section-title">
+              <span class="section-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                  <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                </svg>
+              </span>
+              Teams Overview
+            </h2>
+            @if (teams().length > 1) {
+            <div class="team-select-pill">
+              <select [value]="selectedTeamId" (change)="onTeamChange($event)">
+                @for (t of teams(); track t.teamId) {
+                <option [value]="t.teamId">{{ t.teamName }} ({{ t.ageGroupName }})</option>
+                }
+              </select>
+            </div>
+            }
+          </div>
+
+          @if (teams().length === 0) {
+          <div class="section-empty">
+            <span class="empty-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+              </svg>
+            </span>
+            <p>No teams assigned to this coach yet.</p>
+          </div>
+          } @else {
+          <div class="teams-grid">
+            @for (team of teams(); track team.teamId) {
+            <div class="team-card" [class.active]="team.teamId === selectedTeamId"
+              (click)="loadSquadForTeam(team.teamId)">
+              <div class="team-card-header">
+                <div class="team-emblem">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                  </svg>
+                </div>
+                <div class="team-meta">
+                  <h4>{{ team.teamName }}</h4>
+                  <span class="team-age">{{ team.ageGroupName }}</span>
+                </div>
+              </div>
+              <div class="team-card-footer">
+                <span class="player-count-badge">{{ getTeamPlayerCount(team.teamId) }} players</span>
+                <button class="btn-expand" (click)="toggleTeamExpand(team.teamId); $event.stopPropagation()"
+                  [class.expanded]="isTeamExpanded(team.teamId)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </button>
+              </div>
+
+              <!-- Expanded Squad List -->
+              @if (isTeamExpanded(team.teamId)) {
+              <div class="team-squad-expand">
+                @if (getTeamPlayers(team.teamId).length === 0) {
+                <div class="mini-empty">Loading squad players...</div>
+                } @else {
+                @for (player of getTeamPlayers(team.teamId); track player.playerId) {
+                <div class="squad-player-row" (click)="navigateToPlayer(player.playerId); $event.stopPropagation()">
+                  <div class="sp-left">
+                    <div class="sp-avatar">
+                      @if (player.profileImageUrl) {
+                      <img [src]="player.profileImageUrl" [alt]="player.fullName" />
+                      } @else {
+                      <span>{{ player.fullName[0] }}</span>
+                      }
+                    </div>
+                    <div class="sp-info">
+                      <span class="sp-name">{{ player.fullName }}</span>
+                      <span class="sp-pos">{{ player.primaryPosition || 'N/A' }}</span>
+                    </div>
+                  </div>
+                  <div class="sp-right">
+                    <span class="sp-rating" [class]="getPlayerRatingClass(player.overallRating)">
+                      {{ player.overallRating }}
+                    </span>
+                    <span class="sp-status" [class]="getAvailabilityClass(player.availabilityStatus)">
+                      {{ player.availabilityStatus || 'N/A' }}
+                    </span>
+                  </div>
+                </div>
+                }
+                }
+              </div>
+              }
+            </div>
+            }
+          </div>
+          }
+        </div>
+
+        <!-- Squad Roster Card with Lightweight Mini Player Cards -->
+        <div class="glass-card section-card" scrollReveal direction="bottom">
+          <div class="section-header">
+            <h2 class="section-title">
+              <span class="section-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+              </span>
+              Squad Roster
+            </h2>
+            <span class="cyber-badge">{{ totalPlayers() }} Players</span>
+          </div>
+
+          @if (squadLoading()) {
+          <div class="section-loading">
+            <app-loading-spinner size="sm"></app-loading-spinner>
+            <span>Loading squad roster...</span>
+          </div>
+          } @else if (squadPlayers().length === 0) {
+          <div class="section-empty">
+            <span class="empty-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+              </svg>
+            </span>
+            <p>No players in this squad yet.</p>
+          </div>
+          } @else {
+          <div class="squad-mini-cards-grid">
+            @for (player of squadPlayers(); track player.playerId) {
+            <div class="mini-card-wrapper" (click)="navigateToPlayer(player.playerId)">
+              <app-mini-player-card [player]="mapSquadPlayerToMiniCard(player)" size="md"
+                (cardClick)="navigateToPlayer($event)">
+              </app-mini-player-card>
+            </div>
+            }
+          </div>
+          }
+        </div>
+
+      </div>
+
+      <!-- ─── RIGHT COLUMN: Performance Analytics ─── -->
+      <div class="right-column">
+
+        <!-- Match Performance Card -->
+        <div class="glass-card section-card" scrollReveal direction="bottom">
+          <div class="section-header">
+            <h2 class="section-title">
+              <span class="section-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="20" x2="18" y2="10"></line>
+                  <line x1="12" y1="20" x2="12" y2="4"></line>
+                  <line x1="6" y1="20" x2="6" y2="14"></line>
+                </svg>
+              </span>
+              Match Performance
+            </h2>
+          </div>
+
+          @if (performanceLoading()) {
+          <div class="section-loading">
+            <app-loading-spinner size="sm"></app-loading-spinner>
+            <span>Loading match stats...</span>
+          </div>
+          } @else if (!performance()) {
+          <div class="section-empty">
+            <span class="empty-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <line x1="18" y1="20" x2="18" y2="10"></line>
+                <line x1="12" y1="20" x2="12" y2="4"></line>
+                <line x1="6" y1="20" x2="6" y2="14"></line>
+              </svg>
+            </span>
+            <p>No match performance records found.</p>
+          </div>
+          } @else {
+          <div class="perf-content">
+            <!-- W/D/L Grid -->
+            <div class="wdl-grid">
+              <div class="wdl-card win-card">
+                <div class="wdl-value">{{ performance()!.wins }}</div>
+                <div class="wdl-label">Wins</div>
+              </div>
+              <div class="wdl-card draw-card">
+                <div class="wdl-value">{{ performance()!.draws }}</div>
+                <div class="wdl-label">Draws</div>
+              </div>
+              <div class="wdl-card loss-card">
+                <div class="wdl-value">{{ performance()!.losses }}</div>
+                <div class="wdl-label">Losses</div>
+              </div>
+            </div>
+
+            <!-- Win Rate Progress Bar -->
+            @if (totalMatchesPlayed() > 0) {
+            <div class="winrate-section">
+              <div class="winrate-header">
+                <span>Win Rate</span>
+                <strong>{{ winRate() | number:'1.0-0' }}%</strong>
+              </div>
+              <div class="winrate-bar">
+                <div class="winrate-fill" [style.width.%]="winRate()"></div>
+              </div>
+            </div>
+            }
+
+            <!-- Goals Summary -->
+            <div class="goals-strip">
+              <div class="goal-item">
+                <span class="goal-label">Goals For</span>
+                <span class="goal-value gf">{{ performance()!.goalsFor }}</span>
+              </div>
+              <div class="goal-divider"></div>
+              <div class="goal-item">
+                <span class="goal-label">Goals Against</span>
+                <span class="goal-value ga">{{ performance()!.goalsAgainst }}</span>
+              </div>
+              <div class="goal-divider"></div>
+              <div class="goal-item">
+                <span class="goal-label">Goal Diff</span>
+                <span class="goal-value" [class.gf]="goalDifference() >= 0" [class.ga]="goalDifference() < 0">
+                  {{ goalDifference() >= 0 ? '+' : '' }}{{ goalDifference() }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Recent Matches -->
+            @if (performance()!.recentMatches && performance()!.recentMatches.length > 0) {
+            <div class="recent-results">
+              <span class="recent-title">Recent Results</span>
+              <div class="results-list">
+                @for (match of performance()!.recentMatches; track match.matchId) {
+                <a class="result-row" [routerLink]="['/match', match.matchId]">
+                  <span class="result-badge" [class]="getResultClass(match.result)">
+                    {{ match.result?.charAt(0)?.toUpperCase() || '?' }}
+                  </span>
+                  <div class="result-info">
+                    <span class="result-opponent">{{ match.opponentName }}</span>
+                    <span class="result-score">{{ match.goalsFor }} - {{ match.goalsAgainst }}</span>
+                  </div>
+                  <span class="result-date">{{ match.matchDate | date:'shortDate' }}</span>
+                </a>
+                }
+              </div>
+            </div>
+            }
+          </div>
+          }
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+  }
+</div>

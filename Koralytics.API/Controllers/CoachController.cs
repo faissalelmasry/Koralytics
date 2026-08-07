@@ -28,13 +28,16 @@ namespace Koralytics.API.Controllers
         }
 
         /// <summary>
-        /// Returns all teams that the authenticated coach is actively assigned to.
+        /// Returns all teams that the coach is actively assigned to.
+        /// Extracts coachId from JWT token if not explicitly provided.
         /// </summary>
         [HttpGet("teams")]
-        public async Task<IActionResult> GetCoachTeams()
+        [HttpGet("{coachId:int}/teams")]
+        public async Task<IActionResult> GetCoachTeams(int? coachId = null)
         {
-            var coachId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-            var teams = await _coachSquadService.GetCoachTeamsAsync(coachId);
+            var requesterId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var targetCoachId = (coachId.HasValue && coachId.Value > 0) ? coachId.Value : requesterId;
+            var teams = await _coachSquadService.GetCoachTeamsAsync(targetCoachId);
             return Ok(teams);
         }
 

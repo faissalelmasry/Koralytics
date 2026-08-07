@@ -262,6 +262,12 @@ export class ParentSubscriptionsComponent implements OnInit {
     return s === 'paid' || s === '0' || s === '1';
   }
 
+  isStripeEnabled(tier: string | number | undefined): boolean {
+    if (tier === undefined || tier === null) return true; // Default to true if not provided yet
+    const t = String(tier).toLowerCase();
+    return t !== 'starter' && t !== '0';
+  }
+
   isValidDate(dateVal?: string | Date): boolean {
     if (!dateVal) return false;
     const strVal = String(dateVal);

@@ -24,7 +24,15 @@ namespace Koralytics.Application.Mappings.Academies
                 .ForMember(dest => dest.CreatedAt,
                     opt => opt.MapFrom(src => src.CreatedAt))
                 .ForMember(dest => dest.LocationCount,
-                    opt => opt.MapFrom(src => src.AcademyLocations.Count));
+                    opt => opt.MapFrom(src => src.AcademyLocations.Count))
+                .ForMember(dest => dest.Tier,
+                    opt => opt.MapFrom(src => src.Subscription != null ? src.Subscription.Tier : Domain.Enums.SubscriptionTier.Starter))
+                .ForMember(dest => dest.SubscriptionStartsAt,
+                    opt => opt.MapFrom(src => src.Subscription != null ? src.Subscription.StartsAt : (DateTime?)null))
+                .ForMember(dest => dest.SubscriptionExpiresAt,
+                    opt => opt.MapFrom(src => src.Subscription != null ? src.Subscription.ExpiresAt : (DateTime?)null))
+                .ForMember(dest => dest.SubscriptionStatus,
+                    opt => opt.MapFrom(src => src.Subscription != null ? src.Subscription.Status : (Domain.Enums.SubscriptionStatus?)null));
 
             // ── AcademyLocation ──────────────────────────────────────────────
             CreateMap<AddLocationDto, AcademyLocation>();

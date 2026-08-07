@@ -55,7 +55,7 @@
 
         <app-select
           label="send to"
-          [options]="targetTypeOptions"
+          [options]="targetTypeOptions()"
           [value]="selectedTargetType()"
           (valueChange)="onTargetTypeChange($event)">
         </app-select>

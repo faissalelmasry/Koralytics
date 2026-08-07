@@ -3,7 +3,10 @@ using Koralytics.Application.Services.Drill.DrillAnalytic;
 using Koralytics.Application.Services.Drill.DrillResult;
 using Koralytics.Application.Services.Drill.DrillSession;
 using Koralytics.Application.Services.Drill.DrillTemplate;
+using Koralytics.Application.Interfaces.Subscription;
+using Koralytics.API.Filters;
 using Koralytics.Domain.Entities.Drill;
+using Koralytics.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -21,17 +24,20 @@ namespace Koralytics.API.Controllers.Drill
         private readonly IDrillSessionService _sessionService;
         private readonly IDrillResultService _resultService;
         private readonly IDrillAnalyticsService _analyticsService;
+        private readonly ITenantSubscriptionService _tenantSubscriptionService;
 
         public DrillsController(
             IDrillTemplateService templateService,
             IDrillSessionService sessionService,
             IDrillResultService resultService,
-            IDrillAnalyticsService analyticsService)
+            IDrillAnalyticsService analyticsService,
+            ITenantSubscriptionService tenantSubscriptionService)
         {
             _templateService = templateService;
             _sessionService = sessionService;
             _resultService = resultService;
             _analyticsService = analyticsService;
+            _tenantSubscriptionService = tenantSubscriptionService;
         }
 
         // ==========================================
@@ -68,6 +74,18 @@ namespace Koralytics.API.Controllers.Drill
         public async Task<IActionResult> CreateTemplate([FromBody] CreateDrillTemplateDto dto)
         {
             var claims = GetCurrentUserClaims();
+
+            // Phase 3: Gate custom drill templates created by an academy
+            if (claims.AcademyId.HasValue)
+            {
+                var academyId = claims.AcademyId.Value;
+                var currentCount = await _tenantSubscriptionService.CountCustomDrillTemplatesAsync(academyId);
+                var guard = await CapacityGuard.CheckCustomDrillTemplateLimitAsync(_tenantSubscriptionService, academyId, currentCount);
+                
+                if (guard != null) 
+                    return guard;
+            }
+
             var result = await _templateService.CreateTemplateAsync(dto, claims.UserId, claims.Role, claims.AcademyId);
 
             return CreatedAtAction(nameof(GetTemplates), new { }, result);
@@ -270,6 +288,7 @@ namespace Koralytics.API.Controllers.Drill
         }
 
         [HttpGet("players/{playerId}/progression/category/{categoryId}")]
+        [RequiresPlanFeature(TierFeature.ProgressionAnalytics)]
         public async Task<IActionResult> GetPlayerProgression(int playerId, int categoryId)
         {
             var claims = GetCurrentUserClaims();
@@ -285,6 +304,7 @@ namespace Koralytics.API.Controllers.Drill
         // ====================================================================
 
         [HttpGet("analytics/teams/{teamId}/weak-categories")]
+        [RequiresPlanFeature(TierFeature.SquadWeakness)]
         public async Task<IActionResult> GetSquadWeakCategories(int teamId)
         {
             var report = await _analyticsService.GetSquadWeakCategoriesAsync(teamId);
@@ -292,6 +312,7 @@ namespace Koralytics.API.Controllers.Drill
         }
 
         [HttpPost("coaches/{coachId}/bias/calculate")]
+        [RequiresPlanFeature(TierFeature.AIInsights)]
         public async Task<IActionResult> GetCoachBiasReport(int coachId)
         {
             // 1. Extract Identity

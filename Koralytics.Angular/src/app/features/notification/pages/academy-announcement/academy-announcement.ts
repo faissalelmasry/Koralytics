@@ -1,9 +1,9 @@
-import { Component, OnInit, inject, signal, DestroyRef } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
-import { forkJoin } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 // NOTE: path guessed from the sibling services' folder depth -- adjust if
@@ -11,6 +11,10 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 // (this app mixes casing across core/services/* subfolders, e.g. Scouter
 // vs auth vs SignalR).
 import { AcademyService } from '../../../../../core/services/academy/academy.service';
+// NOTE: path guessed similarly -- adjust to the real location of AuthService.
+import { AuthService } from '../../../../../core/services/auth/auth.service';
+// NOTE: path guessed similarly -- adjust to the real location of CoachSquadService.
+import { CoachSquadService } from '../../../../../core/services/coach/coach-squad.service';
 import { AgeGroupResponseDto, TeamResponseDto } from '../../../../../core/interfaces/academy.models';
 import { AnnouncementResponseDto } from '../../../../../core/interfaces/AnnouncementResponse';
 import { CreateAnnouncementPayload } from '../../../../../core/interfaces/CreateAnnouncementPayload';
@@ -22,6 +26,7 @@ import { AnnouncementHistory } from '../announcement-history/announcement-histor
 import { NavbarComponent } from '../../../../../shared/components/navbar/navbar';
 import { Footer } from '../../../../../shared/components/footer/footer';
 import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
+import { TokenStorageService } from '@core/services/auth/token-storage.service';
 
 export enum AnnouncementTargetType {
   All = 1,
@@ -57,7 +62,13 @@ export class AcademyAnnouncement implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly route = inject(ActivatedRoute);
   private readonly academyService = inject(AcademyService);
+  private readonly authService = inject(AuthService);
+  private readonly coachSquadService = inject(CoachSquadService);
   private readonly destroyRef = inject(DestroyRef);
+  private tokenStorage = inject(TokenStorageService);
+  // Coaches can only broadcast to their own team(s) or a role -- not to the
+  // whole academy or to an age group they may not fully manage.
+  isCoach = signal<boolean>(false);
 
   public readonly AnnouncementTargetType = AnnouncementTargetType;
 
@@ -70,17 +81,31 @@ export class AcademyAnnouncement implements OnInit {
 
   selectedTargetType = signal<AnnouncementTargetType>(AnnouncementTargetType.All);
 
+  // Team / Age Group dropdown data, fetched once the academyId is known.
+  // Previously this was a plain numeric text input ("team id") with no way
+  // to know which ids were even valid -- these give a real, named picker.
   teamOptions = signal<SelectOption[]>([]);
   ageGroupOptions = signal<SelectOption[]>([]);
   isLoadingTargetOptions = signal<boolean>(false);
   targetOptionsError = signal<string | null>(null);
 
-  readonly targetTypeOptions: SelectOption[] = [
+  private readonly allTargetTypeOptions: SelectOption[] = [
     { value: AnnouncementTargetType.All, label: 'everyone' },
     { value: AnnouncementTargetType.Team, label: 'specific team' },
     { value: AnnouncementTargetType.AgeGroup, label: 'specific age group' },
     { value: AnnouncementTargetType.Role, label: 'specific role' },
   ];
+
+  // Coaches don't get "everyone" (academy-wide) or "specific age group"
+  // (may span teams outside what they manage) -- only their own team(s)
+  // or a role.
+  readonly targetTypeOptions = computed<SelectOption[]>(() =>
+    this.isCoach()
+      ? this.allTargetTypeOptions.filter(
+          (o) => o.value !== AnnouncementTargetType.All && o.value !== AnnouncementTargetType.AgeGroup
+        )
+      : this.allTargetTypeOptions
+  );
 
   readonly roleOptions: SelectOption[] = ANNOUNCEMENT_SUPPORTED_ROLES.map((role) => ({
     value: role.id,
@@ -127,6 +152,7 @@ export class AcademyAnnouncement implements OnInit {
 
   onTargetTypeChange(value: AnnouncementTargetType): void {
     this.announcementForm.get('targetType')?.setValue(value);
+    
     this.announcementForm.get('targetId')?.setValue(0);
     this.announcementForm.get('role')?.setValue('');
   }
@@ -140,12 +166,33 @@ export class AcademyAnnouncement implements OnInit {
     this.announcementForm.get('targetId')?.markAsTouched();
   }
 
-  ngOnInit(): void {
+ ngOnInit(): void {
+    const roles = this.authService.getUserRoles();
+    this.isCoach.set(roles.some((r) => r.toLowerCase() === 'coach'));
+
+    if (this.isCoach()) {
+      this.announcementForm.get('targetType')?.setValue(AnnouncementTargetType.Team);
+      this.selectedTargetType.set(AnnouncementTargetType.Team);
+      this.updateConditionalValidators(AnnouncementTargetType.Team);
+    }
+
     const idFromRoute = this.route.snapshot.paramMap.get('academyId');
+    
     if (idFromRoute) {
       this.academyId.set(+idFromRoute);
-      this.loadAnnouncements();
+    } else {
+     
+      const currentUser = this.tokenStorage.getUser();
+      if (currentUser && currentUser.AcademyId) { 
+        this.academyId.set(currentUser.AcademyId);
+      }
+    }
+
+    if (this.academyId() || this.isCoach()) {
       this.loadTargetOptions();
+    }
+    if (this.academyId()) {
+      this.loadAnnouncements();
     }
 
     this.announcementForm
@@ -155,7 +202,7 @@ export class AcademyAnnouncement implements OnInit {
         this.selectedTargetType.set(Number(targetType));
         this.updateConditionalValidators(Number(targetType));
       });
-  }
+}
 
   private updateConditionalValidators(targetType: AnnouncementTargetType): void {
     const targetIdControl = this.announcementForm.get('targetId');
@@ -185,6 +232,12 @@ export class AcademyAnnouncement implements OnInit {
       .pipe(
         
         map((res) => (res.data?.items ?? []) as AnnouncementResponseDto[]),
+      
+        map((items) => {
+          if (!this.isCoach()) return items;
+          const currentUserId = this.authService.getCurrentUserSync()?.userId;
+          return currentUserId != null ? items.filter((a) => a.sentByUserId === currentUserId) : items;
+        }),
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe({
@@ -199,19 +252,26 @@ export class AcademyAnnouncement implements OnInit {
       });
   }
 
-  loadTargetOptions(): void {
-    if (!this.academyId()) return;
+ loadTargetOptions(): void {
+   
+    if (!this.isCoach() && !this.academyId()) return;
 
     this.isLoadingTargetOptions.set(true);
     this.targetOptionsError.set(null);
 
+    const teams$ = this.isCoach()
+      ? this.coachSquadService.getCoachTeams().pipe(
+          map((teams) => (teams ?? []).map((t) => ({ id: t.teamId ?? t.teamId, name: t.teamName ?? t.teamName })))
+        )
+      : this.academyService.getTeams(this.academyId()).pipe(map((res) => (res.data ?? []) as TeamResponseDto[]));
+
+    const ageGroups$ = this.isCoach()
+      ? of([] as AgeGroupResponseDto[])
+      : this.academyService.getAgeGroups(this.academyId()).pipe(map((res) => (res.data ?? []) as AgeGroupResponseDto[]));
+
     forkJoin({
-      teams: this.academyService
-        .getTeams(this.academyId())
-        .pipe(map((res) => (res.data ?? []) as TeamResponseDto[])),
-      ageGroups: this.academyService
-        .getAgeGroups(this.academyId())
-        .pipe(map((res) => (res.data ?? []) as AgeGroupResponseDto[])),
+      teams: teams$,
+      ageGroups: ageGroups$,
     })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
@@ -221,7 +281,9 @@ export class AcademyAnnouncement implements OnInit {
           this.isLoadingTargetOptions.set(false);
         },
         error: (err: HttpErrorResponse) => {
-          this.targetOptionsError.set(extractErrorMessage(err, 'Failed to load teams and age groups.'));
+          this.targetOptionsError.set(
+            extractErrorMessage(err, this.isCoach() ? 'Failed to load your teams.' : 'Failed to load teams and age groups.')
+          );
           this.isLoadingTargetOptions.set(false);
         },
       });
@@ -263,6 +325,7 @@ export class AcademyAnnouncement implements OnInit {
           this.successMessage.set('Announcement sent and saved successfully!');
           this.announcementForm.reset({ targetType: AnnouncementTargetType.All, targetId: 0, role: '' });
           this.selectedTargetType.set(AnnouncementTargetType.All);
+        
           this.loadAnnouncements();
           this.isSubmitting.set(false);
         },

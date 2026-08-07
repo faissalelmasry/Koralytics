@@ -61,17 +61,20 @@ export class FollowedPlayersComponent implements OnInit {
   ngOnInit(): void {
     const paramId = this.route.snapshot.paramMap.get('scouterId');
 
-    if (paramId) {
+    if (paramId) { 
       this.currentScouterId = Number(paramId);
     } else {
-      const token = this.tokenStorage.getAccessToken();
-      const decoded = token ? this.decodeTokenPayload(token) : null;
-      if (!decoded) {
+     
+      const currentUser = this.tokenStorage.getUser();
+      
+      if (!currentUser || !currentUser.userId) {
         this.toastService.show('Unable to determine current scouter. Please log in again.', 'error');
         this.isLoading.set(false);
         return;
       }
-      this.currentScouterId = decoded.userId;
+      
+    
+      this.currentScouterId = currentUser.userId;
     }
 
     this.loadPlayers();
@@ -84,7 +87,7 @@ export class FollowedPlayersComponent implements OnInit {
       this.searchTerm.set(term);
       this.resetAndLoad();
     });
-  }
+}
 
   public onSearch(event: string | Event): void {
     const value = typeof event === 'string' ? event : ((event.target as HTMLInputElement)?.value ?? '');

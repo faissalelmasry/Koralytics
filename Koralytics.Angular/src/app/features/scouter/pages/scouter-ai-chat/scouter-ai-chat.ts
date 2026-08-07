@@ -47,6 +47,7 @@ export class ScouterAiChatComponent implements OnInit {
   private readonly sanitizer = inject(DomSanitizer);
 
   public currentScouterId = signal<number>(0);
+  public currentSessionId = signal<string>('');
   public nlQuery = signal<string>('');
   public chatMessages = signal<ChatMessage[]>([]);
   public isAiLoading = signal<boolean>(false);
@@ -60,6 +61,7 @@ export class ScouterAiChatComponent implements OnInit {
   ];
 
   ngOnInit(): void {
+    this.currentSessionId.set(crypto.randomUUID());
     const paramId = this.route.snapshot.paramMap.get('scouterId');
     if (paramId) {
       this.currentScouterId.set(Number(paramId));
@@ -88,7 +90,7 @@ export class ScouterAiChatComponent implements OnInit {
     this.isAiLoading.set(true);
     this.scrollChatToBottom();
 
-    this.scouterService.aiChatBot(query)
+    this.scouterService.aiChatBot(query, this.currentSessionId())
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (reply: string) => {
@@ -123,8 +125,13 @@ export class ScouterAiChatComponent implements OnInit {
     this.onSendQuery(prompt);
   }
 
-  public clearChat(): void {
+  public onNewChat(): void {
+    this.currentSessionId.set(crypto.randomUUID());
     this.chatMessages.set([]);
+  }
+
+  public clearChat(): void {
+    this.onNewChat();
   }
 
   public navigateToSearch(): void {

@@ -12,13 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Koralytics.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-<<<<<<<< HEAD:Koralytics.Infrastructure/Migrations/20260803221359_all.Designer.cs
-    [Migration("20260803221359_all")]
-    partial class all
-========
-    [Migration("20260805015856_AddPlayerPhysicalAndArchetypeFields")]
-    partial class AddPlayerPhysicalAndArchetypeFields
->>>>>>>> 4b6c6467993f477d457d7671af7b90825b2e47c6:Koralytics.Infrastructure/Migrations/20260805015856_AddPlayerPhysicalAndArchetypeFields.Designer.cs
+    [Migration("20260807115533_AddTenantSubscription")]
+    partial class AddTenantSubscription
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -652,6 +647,73 @@ namespace Koralytics.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Teams");
+                });
+
+            modelBuilder.Entity("Koralytics.Domain.Entities.Academy.TenantSubscription", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AcademyId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("CreatedById")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CreatedByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("StartsAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Tier")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("UpdatedById")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("UpdatedByUserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AcademyId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_TenantSubscriptions_AcademyId_Unique");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("ExpiresAt")
+                        .HasDatabaseName("IX_TenantSubscriptions_ExpiresAt");
+
+                    b.HasIndex("Tier")
+                        .HasDatabaseName("IX_TenantSubscriptions_Tier");
+
+                    b.HasIndex("UpdatedByUserId");
+
+                    b.ToTable("TenantSubscriptions", (string)null);
                 });
 
             modelBuilder.Entity("Koralytics.Domain.Entities.AcademyPlan", b =>
@@ -3853,6 +3915,29 @@ namespace Koralytics.Infrastructure.Migrations
                     b.Navigation("UpdatedByUser");
                 });
 
+            modelBuilder.Entity("Koralytics.Domain.Entities.Academy.TenantSubscription", b =>
+                {
+                    b.HasOne("Koralytics.Domain.Entities.Academy.Academy", "Academy")
+                        .WithOne("Subscription")
+                        .HasForeignKey("Koralytics.Domain.Entities.Academy.TenantSubscription", "AcademyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Koralytics.Domain.Entities.Identity.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId");
+
+                    b.HasOne("Koralytics.Domain.Entities.Identity.User", "UpdatedByUser")
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId");
+
+                    b.Navigation("Academy");
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("UpdatedByUser");
+                });
+
             modelBuilder.Entity("Koralytics.Domain.Entities.AcademyPlan", b =>
                 {
                     b.HasOne("Koralytics.Domain.Entities.Academy.Academy", "Academy")
@@ -5284,6 +5369,8 @@ namespace Koralytics.Infrastructure.Migrations
                     b.Navigation("Plans");
 
                     b.Navigation("RoleAuditLogs");
+
+                    b.Navigation("Subscription");
                 });
 
             modelBuilder.Entity("Koralytics.Domain.Entities.Academy.AgeGroup", b =>
