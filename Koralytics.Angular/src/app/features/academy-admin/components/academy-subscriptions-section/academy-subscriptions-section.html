@@ -1,0 +1,50 @@
+<div class="section-container fade-in">
+  <div class="section-header">
+    <div class="header-content">
+      <h3>{{ 'ACADEMY_ADMIN.COMMS_SECTION.PLAYER_SUBSCRIPTIONS' | translate }}</h3>
+      <p class="subtitle">{{ 'ACADEMY_ADMIN.COMMS_SECTION.SUBTITLE' | translate }}</p>
+    </div>
+    <div class="header-actions">
+      <app-button variant="cyan" (click)="goToSubscriptions()">
+        {{ 'ACADEMY_ADMIN.COMMS_SECTION.GO_TO_SUBSCRIPTIONS' | translate }}
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: 6px;">
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+          <polyline points="12 5 19 12 12 19"></polyline>
+        </svg>
+      </app-button>
+    </div>
+  </div>
+
+  <div class="panel glass-card">
+    <div class="table-container">
+      <div class="loading-state" *ngIf="isLoadingSubscriptions">
+        <app-loading-spinner size="sm"></app-loading-spinner>
+        <p>{{ 'ACADEMY_ADMIN.COMMS_SECTION.LOADING_SUBSCRIPTIONS' | translate }}</p>
+      </div>
+
+      <div *ngIf="!isLoadingSubscriptions && subscriptionStats" class="stats-grid">
+        <div class="stat-card total">
+          <div class="stat-value" style="color: var(--text-primary, #fff);">{{ subscriptionStats.totalPlayers }}</div>
+          <div class="stat-label">{{ 'ACADEMY_ADMIN.COMMS_SECTION.LBL_TOTAL' | translate }}</div>
+        </div>
+        <div class="stat-card paid">
+          <div class="stat-value" style="color: var(--success-color, #10b981);">{{ subscriptionStats.totalPaid }}
+          </div>
+          <div class="stat-label">{{ 'ACADEMY_ADMIN.COMMS_SECTION.LBL_PAID' | translate }}</div>
+        </div>
+        <div class="stat-card unpaid">
+          <div class="stat-value" style="color: var(--danger-color, #ef4444);">{{ subscriptionStats.totalUnpaid }}
+          </div>
+          <div class="stat-label">{{ 'ACADEMY_ADMIN.COMMS_SECTION.LBL_UNPAID' | translate }}</div>
+        </div>
+        <div class="stat-card grace">
+          <div class="stat-value" style="color: var(--warning-color, #f59e0b);">{{ subscriptionStats.totalGrace }}
+          </div>
+          <div class="stat-label">{{ 'ACADEMY_ADMIN.COMMS_SECTION.LBL_GRACE' | translate }}</div>
+        </div>
+      </div>
+
+      <app-academy-subscriptions></app-academy-subscriptions>
+    </div>
+  </div>
+</div>

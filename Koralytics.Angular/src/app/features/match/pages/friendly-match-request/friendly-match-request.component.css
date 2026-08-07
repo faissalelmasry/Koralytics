@@ -279,3 +279,99 @@
   display: flex;
   justify-content: center;
 }
+
+/* ─── Responsive Media Queries ───────────────────────────────── */
+@media (max-width: 768px) {
+  .page-wrapper {
+    padding: 75px 14px 40px 14px;
+  }
+
+  .header-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    margin-bottom: 18px;
+  }
+
+  .section-title {
+    font-size: 1.75rem;
+  }
+
+  .matchup-bar {
+    padding: 14px 16px;
+    grid-template-columns: 1fr 44px 1fr;
+    gap: 8px;
+    margin-bottom: 20px;
+    border-radius: 14px;
+  }
+
+  .team-name {
+    font-size: 0.85rem;
+    max-width: 130px;
+  }
+
+  .vs-circle {
+    width: 40px;
+    height: 40px;
+    font-size: 0.8rem;
+  }
+
+  .form-card {
+    padding: 20px 16px;
+    border-radius: 16px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .form-group.full-width {
+    grid-column: span 1;
+  }
+
+  .form-group > * {
+    width: 100%;
+  }
+
+  .form-actions {
+    width: 100%;
+  }
+
+  .form-actions app-button {
+    width: 100%;
+    display: block;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-wrapper {
+    padding: 65px 10px 30px 10px;
+  }
+
+  .section-title {
+    font-size: 1.45rem;
+  }
+
+  .matchup-bar {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 12px;
+    border-radius: 12px;
+  }
+
+  .team-name {
+    max-width: 100%;
+  }
+
+  .vs-circle {
+    width: 34px;
+    height: 34px;
+    font-size: 0.72rem;
+  }
+
+  .form-card {
+    padding: 16px 12px;
+    border-radius: 14px;
+  }
+}

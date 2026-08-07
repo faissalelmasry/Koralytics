@@ -19,8 +19,8 @@
 
 .footer-container {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
-  gap: 48px;
+  grid-template-columns: 2.2fr 1fr 1fr 1.2fr;
+  gap: 40px;
   max-width: 1400px;
   margin: 0 auto;
 }

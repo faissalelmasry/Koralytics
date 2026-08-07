@@ -22,7 +22,11 @@
   </div>
 
   <div class="player-name-box">
-    <div class="player-fullname">{{ player.fullName }}</div>
+    <span
+      class="player-fullname"
+      appMarqueeIfOverflow
+      [marqueeText]="player.fullName"
+    >{{ player.fullName }}</span>
   </div>
 </div>
 

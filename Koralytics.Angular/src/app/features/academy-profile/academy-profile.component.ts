@@ -2,10 +2,10 @@ import { Component, OnInit, OnDestroy, inject, ElementRef, ViewChild, ChangeDete
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { TranslatePipe } from '@ngx-translate/core';
 import { NavbarComponent } from '../../../shared/components/navbar/navbar';
 import { Footer } from '../../../shared/components/footer/footer';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner';
-import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state';
 import { ScrollRevealDirective } from '../../../shared/directives/scroll-reveal.directive';
 import { CustomButtonComponent } from '../../../shared/components/custom-button/custom-button';
 import { AcademyService } from '../../../core/services/academy/academy.service';
@@ -13,11 +13,15 @@ import { ToastService } from '../../../core/services/Toast/toast';
 import {
   AcademyResponseDto,
   AcademyBadgeResponseDto,
-  AcademyBadgeType,
   AcademyLocationResponseDto,
   TeamResponseDto,
   AcademyMemberResponseDto
 } from '../../../core/interfaces/academy.models';
+import { AcademyProfileOverviewComponent } from './components/academy-profile-overview/academy-profile-overview';
+import { AcademyProfileBadgesComponent } from './components/academy-profile-badges/academy-profile-badges';
+import { AcademyProfileLocationsComponent } from './components/academy-profile-locations/academy-profile-locations';
+import { AcademyProfileTeamsComponent } from './components/academy-profile-teams/academy-profile-teams';
+import { AcademyProfileMembersComponent } from './components/academy-profile-members/academy-profile-members';
 
 @Component({
   selector: 'app-academy-profile',
@@ -25,12 +29,17 @@ import {
   imports: [
     CommonModule,
     FormsModule,
+    TranslatePipe,
     NavbarComponent,
     Footer,
     LoadingSpinnerComponent,
-    EmptyStateComponent,
     ScrollRevealDirective,
-    CustomButtonComponent
+    CustomButtonComponent,
+    AcademyProfileOverviewComponent,
+    AcademyProfileBadgesComponent,
+    AcademyProfileLocationsComponent,
+    AcademyProfileTeamsComponent,
+    AcademyProfileMembersComponent
   ],
   templateUrl: './academy-profile.component.html',
   styleUrls: ['./academy-profile.component.css']
@@ -88,14 +97,6 @@ export class AcademyProfileComponent implements OnInit, OnDestroy {
       const tab = queryParams.get('tab');
       if (tab && ['overview', 'badges', 'locations', 'teams', 'members'].includes(tab)) {
         this.activeTab = tab as any;
-      }
-
-      const expanded = queryParams.get('expanded');
-      if (expanded) {
-        const ids = expanded.split(',').map(id => Number(id)).filter(id => !isNaN(id));
-        this.expandedTeams = new Set<number>(ids);
-      } else {
-        this.expandedTeams.clear();
       }
 
       const role = queryParams.get('role');
@@ -193,14 +194,14 @@ export class AcademyProfileComponent implements OnInit, OnDestroy {
     this.syncQueryParams();
   }
 
-  onSearchChange(): void {
+  onSearchChange(query: string): void {
+    this.memberSearchQuery = query;
     this.syncQueryParams();
   }
 
   private syncQueryParams(): void {
     const queryParams: any = {
       tab: this.activeTab === 'overview' ? null : this.activeTab,
-      expanded: this.expandedTeams.size > 0 ? Array.from(this.expandedTeams).join(',') : null,
       role: this.selectedMemberRole === 'All' ? null : this.selectedMemberRole,
       q: this.memberSearchQuery ? this.memberSearchQuery : null
     };
@@ -227,39 +228,6 @@ export class AcademyProfileComponent implements OnInit, OnDestroy {
     return this.locations.find(l => l.isMain || l.isMainLocation) || this.locations[0];
   }
 
-  // Filtered Members
-  get filteredMembers(): AcademyMemberResponseDto[] {
-    return this.members.filter(m => {
-      const matchesRole = this.selectedMemberRole === 'All' ||
-        m.role?.toLowerCase() === this.selectedMemberRole.toLowerCase();
-      const matchesSearch = !this.memberSearchQuery ||
-        m.fullName?.toLowerCase().includes(this.memberSearchQuery.toLowerCase()) ||
-        m.position?.toLowerCase().includes(this.memberSearchQuery.toLowerCase());
-      return matchesRole && matchesSearch;
-    });
-  }
-
-  // Badge Display helpers
-  getBadgeTypeKey(type: any): string {
-    const t = Number(type) || type;
-    switch (t) {
-      case AcademyBadgeType.Verified: case 'Verified': case 1: return 'Verified';
-      case AcademyBadgeType.TopPerformer: case 'TopPerformer': case 2: return 'TopPerformer';
-      case AcademyBadgeType.Premium: case 'Premium': case 3: return 'Premium';
-      default: return 'Default';
-    }
-  }
-
-  getBadgeName(type: any): string {
-    const t = Number(type) || type;
-    switch (t) {
-      case AcademyBadgeType.Verified: case 'Verified': return 'Verified Academy';
-      case AcademyBadgeType.TopPerformer: case 'TopPerformer': return 'Top Performer';
-      case AcademyBadgeType.Premium: case 'Premium': return 'Premium Partner';
-      default: return 'Honor Badge';
-    }
-  }
-
   // Sharing
   shareProfile(): void {
     const url = window.location.href;
@@ -269,32 +237,6 @@ export class AcademyProfileComponent implements OnInit, OnDestroy {
       });
     } else {
       this.toast.show('Share URL: ' + url, 'info');
-    }
-  }
-
-  // Team roster expansion
-  expandedTeams: Set<number> = new Set<number>();
-
-  isTeamExpanded(teamId: number): boolean {
-    return this.expandedTeams.has(teamId);
-  }
-
-  toggleTeamExpand(teamId: number): void {
-    if (this.expandedTeams.has(teamId)) {
-      this.expandedTeams.delete(teamId);
-    } else {
-      this.expandedTeams.add(teamId);
-    }
-    this.syncQueryParams();
-  }
-
-  // Profile navigation
-  viewMemberProfile(id: number | undefined, role: string = 'Player'): void {
-    if (!id) return;
-    if (role?.toLowerCase() === 'coach') {
-      this.router.navigate(['/coach/profile', id]);
-    } else {
-      this.router.navigate(['/player/profile', id]);
     }
   }
 

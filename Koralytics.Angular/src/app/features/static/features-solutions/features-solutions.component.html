@@ -1,0 +1,178 @@
+<div class="static-page-container">
+  
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <span class="eyebrow">
+      <span class="pulse-dot"></span>
+      Solutions & Capabilities
+    </span>
+    <h1 class="hero-headline">
+      Built for Modern Academies. <span class="grad-text">Engineered for Performance</span>.
+    </h1>
+    <p class="hero-subheadline">
+      Explore custom feature modules designed to elevate academy management, tactical analytics, and athlete development.
+    </p>
+
+    <!-- Role Filter Tabs -->
+    <div class="tab-nav">
+      <button class="tab-btn" [class.active]="activeTab === 'management'" (click)="setTab('management')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+        Academy Management
+      </button>
+      <button class="tab-btn" [class.active]="activeTab === 'coaches'" (click)="setTab('coaches')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+        Coaches & Analysts
+      </button>
+      <button class="tab-btn" [class.active]="activeTab === 'players'" (click)="setTab('players')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Players & Parents
+      </button>
+      <button class="tab-btn" [class.active]="activeTab === 'benchmarks'" (click)="setTab('benchmarks')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        League Benchmarks
+      </button>
+    </div>
+  </section>
+
+  <!-- Content Section -->
+  <section class="features-content">
+    
+    <!-- Tab 1: Academy Management -->
+    <div class="tab-panel" *ngIf="activeTab === 'management'">
+      <div class="feature-detail-grid">
+        <div class="glass-card feature-card">
+          <div class="icon-wrap cyan">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          </div>
+          <h3>Subscription & Attendance Management</h3>
+          <p>Automate athlete membership cycles, track session attendance across age brackets, and reduce payment defaults with smart reminders.</p>
+        </div>
+
+        <div class="glass-card feature-card">
+          <div class="icon-wrap cyan">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          </div>
+          <h3>Multi-Branch Ecosystem</h3>
+          <p>Manage multiple academy branches, pitch availability, and branch-specific staff allocations within a single centralized command center.</p>
+        </div>
+
+        <div class="glass-card feature-card">
+          <div class="icon-wrap cyan">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+          </div>
+          <h3>Staff Allocation & Administrative Dashboards</h3>
+          <p>Assign head coaches, fitness trainers, and analysts to specific squads while tracking operational KPIs and revenue analytics.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 2: Coaches & Analysts -->
+    <div class="tab-panel" *ngIf="activeTab === 'coaches'">
+      <div class="feature-detail-grid">
+        <div class="glass-card feature-card">
+          <div class="icon-wrap lime">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <h3>Tactical Evaluation & Physical Tracking</h3>
+          <p>Record tactical drill performances, track physical readiness metrics, fatigue indexes, and player sprint metrics session by session.</p>
+        </div>
+
+        <div class="glass-card feature-card">
+          <div class="icon-wrap lime">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </div>
+          <h3>Entity Resolution Telemetry Search</h3>
+          <p>Instant search for player telemetry profiles, past match clips, drill histories, and cross-academy comparative metrics in milliseconds.</p>
+        </div>
+
+        <div class="glass-card feature-card">
+          <div class="icon-wrap lime">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          </div>
+          <h3>Custom Technical Reporting</h3>
+          <p>Generate PDF and digital technical reports for official matches, friendly fixtures, and internal drill evaluations with automated coach notes.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 3: Players & Parents -->
+    <div class="tab-panel" *ngIf="activeTab === 'players'">
+      <div class="feature-detail-grid">
+        <div class="glass-card feature-card">
+          <div class="icon-wrap violet">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+          </div>
+          <h3>Player Progress Cards</h3>
+          <p>Visual breakdowns of technical skills, speed/stamina radar charts, physical attributes, match timeline ratings, and development progression.</p>
+        </div>
+
+        <div class="glass-card feature-card">
+          <div class="icon-wrap violet">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <h3>Transparent Communication</h3>
+          <p>Direct visibility for parents into upcoming training schedules, venue changes, attendance logs, and private coach feedback notes.</p>
+        </div>
+
+        <div class="glass-card feature-card">
+          <div class="icon-wrap violet">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <h3>Scouter Visibility Controls</h3>
+          <p>Track scouter views and profile queries transparently while keeping minor player contact details strictly encrypted and protected.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 4: League & Ecosystem Benchmarks -->
+    <div class="tab-panel" *ngIf="activeTab === 'benchmarks'">
+      <div class="glass-card benchmark-full-card">
+        <div class="benchmark-header">
+          <span class="eyebrow violet">Ecosystem Intelligence</span>
+          <h2>Comparative Analytics against <span class="grad-text">Regional Market Standards</span></h2>
+          <p>Compare anonymized team and player metrics against broader regional averages to gauge competitive standard performance accurately.</p>
+        </div>
+
+        <div class="benchmark-pillars">
+          <div class="pillar-box">
+            <div class="pillar-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            </div>
+            <h4>Anonymized Aggregation</h4>
+            <p>Calculates age group benchmarks without exposing individual athlete or academy identities.</p>
+          </div>
+
+          <div class="pillar-box">
+            <div class="pillar-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            </div>
+            <h4>Real-Time Telemetry</h4>
+            <p>Live updates of pass accuracy, distance covered, and drill execution benchmarks across regional leagues.</p>
+          </div>
+
+          <div class="pillar-box">
+            <div class="pillar-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+            </div>
+            <h4>Targeted Player Goals</h4>
+            <p>Empowers coaches to set realistic, data-backed development targets aligned with regional elite standards.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- CTA Box -->
+  <section class="cta-banner">
+    <div class="glass-card cta-card">
+      <h2>Ready to Elevate Your Academy's Development?</h2>
+      <p>Discover how Koralytics can transform your daily administrative workflow and player telemetry.</p>
+      <div class="cta-actions">
+        <a routerLink="/pricing" class="btn btn-primary">View Pricing & Plans</a>
+        <a routerLink="/contact" class="btn btn-secondary">Request Demo</a>
+      </div>
+    </div>
+  </section>
+
+</div>

@@ -1,4 +1,5 @@
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatchService } from '../../../../../core/services/match/match.service';
 import { CoachSquadService } from '../../../../../core/services/coach/coach-squad.service';
@@ -13,14 +14,16 @@ import { CustomSelect, SelectOption } from '../../../../../shared/components/cus
 import { CustomDatePicker } from '../../../../../shared/components/custom-date-picker/custom-date-picker';
 import { CustomButtonComponent } from '../../../../../shared/components/custom-button/custom-button';
 import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
+import { MarqueeIfOverflowDirective } from '../../match-timeline/marquee-if-overflow.directive';
 
 @Component({
   selector: 'app-match-request-incoming',
   standalone: true,
   imports: [
-    CommonModule, Pagination, LoadingSpinnerComponent,
+    CommonModule, RouterLink, Pagination, LoadingSpinnerComponent,
     EmptyStateComponent, NavbarComponent, Footer, CustomSelect,
-    CustomDatePicker, CustomButtonComponent, ScrollRevealDirective
+    CustomDatePicker, CustomButtonComponent, ScrollRevealDirective,
+    MarqueeIfOverflowDirective
   ],
   templateUrl: './match-request-incoming.component.html',
   styleUrls: ['./match-request-incoming.component.css']

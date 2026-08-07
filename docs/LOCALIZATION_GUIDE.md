@@ -224,3 +224,42 @@ As the platform scales, the localization architecture can be enhanced with:
 - **Automated Missing-Key Detection**: Add a CI/CD pipeline step (using tools like `ngx-translate-extract`) to fail builds if keys are missing in `ar` but exist in `en`.
 - **Translation Linting**: Ensure JSON files are alphabetized and adhere to strict schemas.
 - **Dynamic Locale Loading for Dates**: Dynamically import Angular locale data chunks at runtime instead of statically bundling `locales/ar-EG` in `app.config.ts`, reducing initial bundle size.
+
+
+## Frequently Encountered Issues & Pitfalls
+
+1. **`translate.instant()` in TypeScript (The "Reload Required" Bug)**:
+   - **Issue**: Using `this.translate.instant('KEY')` when mapping data in a component (e.g., inside a `.subscribe` or `.map`) sets the translation statically on load. It will NOT update dynamically when the user toggles the language switch, forcing the user to reload the page to see changes.
+   - **Solution**: Instead of translating in TypeScript, pass the raw translation *key* directly into your view model (e.g., `role: 'ACADEMY_ADMIN.ADMINS_SECTION.OWNER'`). Then, use the `| translate` pipe in the HTML template to dynamically resolve it. For dynamic table cells, rely on the `translate: true` property in the `TableColumn` config.
+
+2. **Breaking CSS Badges and Dynamic Classes**:
+   - **Issue**: Often, a raw value from the backend (like 'owner', 'active', 'pending') is used both as the text to display AND as the CSS class (e.g., `<span class="badge {{ role }}">`). If you translate this value before applying it to the HTML, the CSS breaks because the browser tries to apply Arabic words as classes (e.g., `<span class="badge المالك">`).
+   - **Solution**: Always separate the raw value from the display value in your view models. Provide two properties: one for the raw CSS logic (`adminRoleRaw: 'owner'`) and one for the translation key (`adminRole: 'ACADEMY_ADMIN.OWNER'`).
+
+3. **Reusable Dialogs and Shared Components Missing Translations**:
+   - **Issue**: Hardcoding plain English text as inputs to shared components (e.g., `<app-confirm-dialog title="Remove Member">`).
+   - **Solution**: Upgrade the shared component templates to natively pipe their inputs through `| translate` (e.g., `<h2>{{ title | translate }}</h2>`). The parent component should then exclusively pass the translation *key* (e.g., `[title]="'ACADEMY_ADMIN.REMOVE_TITLE'"`).
+
+4. **Table Header (th) RTL Alignment Fluidity**:
+   - **Issue**: In HTML/CSS, table headers often default to `text-align: center` or `left`. Writing `[dir="rtl"] th { text-align: right; }` forces right alignment in Arabic, but can cause English headers to misalign or center improperly depending on the browser.
+   - **Solution**: Use `th { text-align: start !important; }`. The `start` logical property is completely fluid—it aligns left natively in LTR (English) and naturally mirrors to the right in RTL (Arabic) without needing explicit `[dir="rtl"]` overrides.
+
+5. **Translating Dynamic Statuses / Enums**:
+   - **Issue**: When a column renders a status (e.g., "Active", "Pending"), these are often derived dynamically. 
+   - **Solution**: Construct the translation key dynamically `squadStatus: 'ACADEMY_ADMIN.MEMBERS.STATUS_' + status.toUpperCase()`, rather than hardcoding English strings or using `.instant()`.
+
+6. **Nested Interpolation Errors**:
+   - **Issue**: Using `{{ 'KEY' | translate }}` inside another `{{ ... }}` block or ternary operator will cause an Angular Parser Error. 
+   - **Solution**: Within a data-binding expression, use the pipe directly: `{{ condition ? ( 'KEY1' | translate ) : ( 'KEY2' | translate ) }}` without nested curly braces.
+
+7. **Returning Hardcoded English Strings from Getters/Properties**:
+   - **Issue**: Sometimes developers create getters (e.g., `get footLabel() { return 'Right'; }`) or define arrays (e.g., `options = [{ label: 'Right' }]`) that output raw English strings, expecting them to magically translate later.
+   - **Solution**: Return the translation key from the getter or property (`return 'PROFILE.FOOT_RIGHT';`), and ensure the HTML template or child component runs that property through the `| translate` pipe or native `TranslateService` logic.
+
+8. **Translating Instructional Text with Dynamic UI References**:
+   - **Issue**: When an instructional string references a UI element (e.g., "Click 'Save Changes' below"), splitting the string into multiple pieces around the dynamic UI text is messy and hard to maintain.
+   - **Solution**: Create a single translation key that takes a parameter: `"INSTRUCTION": "Click {{btn}} below"`, and use interpolation in the template to pass the translated button name: `{{ 'INSTRUCTION' | translate:{ btn: ('COMMON.SAVE' | translate) } }}`.
+
+9. **Handling Custom Validator Error Messages**:
+   - **Issue**: Angular Custom Validators often return error objects with hardcoded English messages (e.g., `{ invalidPhone: { message: 'Phone number is invalid' } }`). Parent components mistakenly display this raw `message` string instead of translating it.
+   - **Solution**: Avoid rendering validator `.message` strings directly. Instead, have the custom component internally manage its translated `errorMessage` (using `TranslateService.instant()` or `TranslatePipe`), or have the parent component detect the error key (`invalidPhone`) and construct the translation string using localized parameters dynamically.

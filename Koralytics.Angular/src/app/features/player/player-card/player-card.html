@@ -39,7 +39,11 @@
         }
       </div>
 
-      <div class="name-band">{{ player.playerName | uppercase }}</div>
+      <span
+        class="name-band"
+        appMarqueeIfOverflow
+        [marqueeText]="player.playerName"
+      >{{ player.playerName | uppercase }}</span>
 
       @if (isGK) {
         <div class="gk-stat-block">

@@ -5,7 +5,11 @@
       <div class="team-text">
         <span class="team-name">{{ matchInfo.homeTeam }}</span>
         @if (matchInfo.homeAcademy) {
-        <span class="academy-sub">{{ matchInfo.homeAcademy }}</span>
+          @if (matchInfo.homeAcademyId) {
+            <a [routerLink]="['/academy/profile', matchInfo.homeAcademyId]" class="academy-sub academy-link">{{ matchInfo.homeAcademy }}</a>
+          } @else {
+            <span class="academy-sub">{{ matchInfo.homeAcademy }}</span>
+          }
         }
       </div>
     </div>
@@ -21,7 +25,11 @@
       <div class="team-text">
         <span class="team-name">{{ matchInfo.awayTeam }}</span>
         @if (matchInfo.awayAcademy) {
-        <span class="academy-sub">{{ matchInfo.awayAcademy }}</span>
+          @if (matchInfo.awayAcademyId) {
+            <a [routerLink]="['/academy/profile', matchInfo.awayAcademyId]" class="academy-sub academy-link">{{ matchInfo.awayAcademy }}</a>
+          } @else {
+            <span class="academy-sub">{{ matchInfo.awayAcademy }}</span>
+          }
         }
       </div>
     </div>

@@ -1,0 +1,67 @@
+      <div class="cyber-panel" scrollReveal direction="bottom" [delay]="200">
+        <div class="panel-header">
+          <h3>{{ 'ACADEMY_PROFILE.TITLE_MEMBERS' | translate }}</h3>
+          <div class="role-pills">
+            <button class="role-pill-btn" [class.active]="selectedMemberRole === 'All'"
+              (click)="setMemberRole('All')">{{ 'ACADEMY_PROFILE.ROLE_ALL' | translate }}</button>
+            <button class="role-pill-btn" [class.active]="selectedMemberRole === 'Player'"
+              (click)="setMemberRole('Player')">{{ 'ACADEMY_PROFILE.ROLE_PLAYER' | translate }}</button>
+            <button class="role-pill-btn" [class.active]="selectedMemberRole === 'Coach'"
+              (click)="setMemberRole('Coach')">{{ 'ACADEMY_PROFILE.ROLE_COACH' | translate }}</button>
+          </div>
+        </div>
+
+        <!-- SEARCH HUD -->
+        <div class="search-bar">
+          <span class="search-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </span>
+          <input type="text" [(ngModel)]="memberSearchQuery" (ngModelChange)="onSearchChange()" [placeholder]="'ACADEMY_PROFILE.PH_SEARCH_MEMBER' | translate" />
+          @if (memberSearchQuery) {
+          <button type="button" class="clear-btn" (click)="memberSearchQuery = ''; onSearchChange()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+          }
+        </div>
+
+        <div class="panel-body">
+          @if (filteredMembers.length > 0) {
+          <div class="members-grid">
+            @for (mem of filteredMembers; track mem.userId) {
+            <div class="member-card clickable-member" (click)="viewMemberProfile(mem.userId, mem.role)" tabindex="0">
+              <div class="member-avatar">
+                @if (mem.profileImageUrl || mem.imageUrl) {
+                <img [src]="mem.profileImageUrl || mem.imageUrl" [alt]="mem.fullName" class="avatar-img" />
+                } @else {
+                {{ (mem.fullName || 'M')[0].toUpperCase() }}
+                }
+              </div>
+              <div class="member-info">
+                <div class="member-name">{{ mem.fullName }} <span class="ext-arrow">↗</span></div>
+                <div class="member-meta">
+                  <span class="cyber-badge" [class.cyber-cyan]="mem.role === 'Coach'"
+                    [class.cyber-lime]="mem.role !== 'Coach'">
+                    {{ mem.role === 'Coach' ? ('ACADEMY_PROFILE.ROLE_COACH_LBL' | translate) : ('ACADEMY_PROFILE.ROLE_PLAYER_LBL' | translate) }}
+                  </span>
+                  @if (mem.position) {
+                  <span class="pos-tag">{{ mem.position }}</span>
+                  }
+                </div>
+              </div>
+            </div>
+            }
+          </div>
+          } @else {
+          <app-empty-state title="{{ 'ACADEMY_PROFILE.NO_MEMBERS_FOUND' | translate }}"
+            description="{{ 'ACADEMY_PROFILE.NO_MEMBERS_DESC' | translate }}"></app-empty-state>
+          }
+        </div>
+      </div>

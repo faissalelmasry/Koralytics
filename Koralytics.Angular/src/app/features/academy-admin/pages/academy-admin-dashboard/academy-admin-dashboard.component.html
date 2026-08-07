@@ -4,7 +4,7 @@
   <!-- Loading State -->
   <div class="preloader-overlay" *ngIf="isLoading">
     <app-loading-spinner size="lg"></app-loading-spinner>
-    <p>Loading academy dashboard...</p>
+    <p>{{ 'ACADEMY_ADMIN.DASHBOARD.LOADING' | translate }}</p>
   </div>
 
   <!-- Content Ready -->
@@ -15,17 +15,17 @@
 
       <!-- TACTICAL TAG & HEADER ROW -->
       <div>
-        <div class="tactical-tag" scrollReveal direction="bottom" [delay]="0">Academy Command Protocol</div>
+        <div class="tactical-tag" scrollReveal direction="bottom" [delay]="0">{{ 'ACADEMY_ADMIN.DASHBOARD.TAG_COMMAND_PROTOCOL' | translate }}</div>
         <div class="header-row" scrollReveal direction="bottom" [delay]="40">
-          <h1 class="section-title">Academy Operations Command</h1>
-          <span class="badge-count">{{ academyDetails?.name || 'Academy Hub' }}</span>
+          <h1 class="section-title">{{ 'ACADEMY_ADMIN.DASHBOARD.TITLE_OPERATIONS_COMMAND' | translate }}</h1>
+          <span class="badge-count">{{ academyDetails?.name || 'ACADEMY_ADMIN.DASHBOARD.ACADEMY_HUB_DEFAULT' | translate }}</span>
         </div>
       </div>
 
       <!-- =============== 1. HERO BANNER =============== -->
       <div class="hero-banner" scrollReveal direction="bottom" [delay]="90">
         <div class="admin-identity">
-          <div class="avatar-circle" (click)="openLogoUpload()" title="Click to update academy logo">
+          <div class="avatar-circle" (click)="openLogoUpload()" title="{{ 'ACADEMY_ADMIN.DASHBOARD.TOOLTIP_UPDATE_LOGO' | translate }}">
             <img *ngIf="academyDetails?.logoUrl" [src]="academyDetails?.logoUrl" alt="Academy Logo"
               class="avatar-img" />
             <span *ngIf="!academyDetails?.logoUrl">{{ initials || 'AC' }}</span>
@@ -34,9 +34,9 @@
             </div>
           </div>
           <div>
-            <h1>{{ academyDetails?.name || 'Academy Administration' }}</h1>
+            <h1>{{ academyDetails?.name || 'ACADEMY_ADMIN.DASHBOARD.ACADEMY_ADMINISTRATION_DEFAULT' | translate }}</h1>
             <div class="meta-pills">
-              <span class="pill gold">Academy Admin</span>
+              <span class="pill gold">{{ 'ACADEMY_ADMIN.DASHBOARD.ROLE_ACADEMY_ADMIN' | translate }}</span>
               <span class="pill" *ngIf="currentUser?.email">{{ currentUser?.email }}</span>
               <span class="pill" *ngIf="academyDetails?.contactPhone">{{ academyDetails?.contactPhone }}</span>
             </div>
@@ -47,16 +47,16 @@
         <div class="pending-invitations-section"
           *ngIf="currentUser?.academyId && pendingTournamentInvitations.length > 0" scrollReveal direction="bottom"
           [delay]="120" style="margin-top: 24px;">
-          <h3 style="color: #fff; margin-bottom: 16px; font-weight: 600;">Tournament Invitations</h3>
+          <h3 style="color: #fff; margin-bottom: 16px; font-weight: 600;">{{ 'ACADEMY_ADMIN.DASHBOARD.TOURNAMENT_INVITATIONS' | translate }}</h3>
           <div class="glass-card fade-in" *ngFor="let invite of pendingTournamentInvitations"
             style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; border-color: rgba(34, 197, 94, 0.3);">
             <div class="req-info" style="display: flex; flex-direction: column; gap: 4px;">
               <div style="font-size: 16px; font-weight: 600; color: #fff;">{{ invite.tournamentName }}</div>
-              <div style="font-size: 12px; color: #7b8293;">Team: {{ invite.teamName }}</div>
+              <div style="font-size: 12px; color: #7b8293;">{{ 'ACADEMY_ADMIN.DASHBOARD.TEAM_LABEL' | translate }}: {{ invite.teamName }}</div>
             </div>
             <div class="req-actions" style="display: flex; gap: 12px;">
               <app-button variant="accent" (click)="acceptTournamentInvitation(invite)">
-                Accept Invitation
+                {{ 'ACADEMY_ADMIN.DASHBOARD.BTN_ACCEPT_INVITATION' | translate }}
               </app-button>
             </div>
           </div>
@@ -65,25 +65,25 @@
 
         <div class="bio-quick-list">
           <div class="bio-item">
-            <span class="bio-lbl">Total Members</span>
+            <span class="bio-lbl">{{ 'ACADEMY_ADMIN.DASHBOARD.TOTAL_MEMBERS' | translate }}</span>
             <span class="bio-val status-transferred">{{ totalMembersCount }}</span>
           </div>
           <div class="bio-item">
-            <span class="bio-lbl">Admins</span>
+            <span class="bio-lbl">{{ 'ACADEMY_ADMIN.DASHBOARD.ADMINS' | translate }}</span>
             <span class="bio-val">{{ adminsCount }}</span>
           </div>
           <div class="bio-item">
-            <span class="bio-lbl">Coaches</span>
+            <span class="bio-lbl">{{ 'ACADEMY_ADMIN.DASHBOARD.COACHES' | translate }}</span>
             <span class="bio-val">{{ coachesCount }}</span>
           </div>
           <div class="bio-item">
-            <span class="bio-lbl">Status</span>
-            <span class="bio-val status-available">Active</span>
+            <span class="bio-lbl">{{ 'ACADEMY_ADMIN.DASHBOARD.STATUS' | translate }}</span>
+            <span class="bio-val status-available">{{ 'ACADEMY_ADMIN.DASHBOARD.STATUS_ACTIVE' | translate }}</span>
           </div>
           <div class="bio-item">
-            <span class="bio-lbl">Public Profile</span>
+            <span class="bio-lbl">{{ 'ACADEMY_ADMIN.DASHBOARD.PUBLIC_PROFILE' | translate }}</span>
             <button type="button" class="cyber-btn-sm" (click)="viewPublicProfile()">
-              View Profile ↗
+              {{ 'ACADEMY_ADMIN.DASHBOARD.BTN_VIEW_PROFILE' | translate }}
             </button>
           </div>
         </div>
@@ -92,27 +92,27 @@
       <!-- =============== 2. KPI GRID =============== -->
       <div class="kpi-grid" scrollReveal direction="bottom" [delay]="140">
         <div class="kpi-card clickable" [class.highlight]="activeTab === 'players'" (click)="setTab('players')">
-          <div class="kpi-header">Active Players</div>
+          <div class="kpi-header">{{ 'ACADEMY_ADMIN.DASHBOARD.ACTIVE_PLAYERS' | translate }}</div>
           <div class="kpi-value">{{ playersCount }}</div>
-          <div class="kpi-sub">Enrolled academy athletes</div>
+          <div class="kpi-sub">{{ 'ACADEMY_ADMIN.DASHBOARD.ENROLLED_ATHLETES' | translate }}</div>
         </div>
 
         <div class="kpi-card clickable" [class.highlight]="activeTab === 'coaches'" (click)="setTab('coaches')">
-          <div class="kpi-header">Coaching Staff</div>
+          <div class="kpi-header">{{ 'ACADEMY_ADMIN.DASHBOARD.COACHING_STAFF' | translate }}</div>
           <div class="kpi-value">{{ coachesCount }}</div>
-          <div class="kpi-sub">Certified tactical instructors</div>
+          <div class="kpi-sub">{{ 'ACADEMY_ADMIN.DASHBOARD.CERTIFIED_INSTRUCTORS' | translate }}</div>
         </div>
 
         <div class="kpi-card clickable" [class.highlight]="activeTab === 'admins'" (click)="setTab('admins')">
-          <div class="kpi-header">Academy Admins</div>
+          <div class="kpi-header">{{ 'ACADEMY_ADMIN.DASHBOARD.ROLE_ACADEMY_ADMIN' | translate }}s</div>
           <div class="kpi-value">{{ adminsCount }}</div>
-          <div class="kpi-sub">Authorized management team</div>
+          <div class="kpi-sub">{{ 'ACADEMY_ADMIN.DASHBOARD.AUTHORIZED_MANAGEMENT' | translate }}</div>
         </div>
 
         <div class="kpi-card clickable" [class.highlight]="activeTab === 'locations'" (click)="setTab('locations')">
-          <div class="kpi-header">Facilities & Locations</div>
+          <div class="kpi-header">{{ 'ACADEMY_ADMIN.DASHBOARD.FACILITIES_LOCATIONS' | translate }}</div>
           <div class="kpi-value">{{ locationsCount }}</div>
-          <div class="kpi-sub">Training pitches & centers</div>
+          <div class="kpi-sub">{{ 'ACADEMY_ADMIN.DASHBOARD.TRAINING_PITCHES' | translate }}</div>
         </div>
       </div>
 
@@ -120,28 +120,31 @@
       <div class="filter-panel-card" scrollReveal direction="bottom" [delay]="200">
         <div class="tabs-bar">
           <button class="tab-btn" [class.active]="activeTab === 'all'" (click)="setTab('all')">
-            <span>All Overview</span>
+            <span>{{ 'ACADEMY_ADMIN.DASHBOARD.TAB_ALL_OVERVIEW' | translate }}</span>
           </button>
           <button class="tab-btn" [class.active]="activeTab === 'badges'" (click)="setTab('badges')">
-            <span>Badges</span>
+            <span>{{ 'ACADEMY_ADMIN.DASHBOARD.TAB_BADGES' | translate }}</span>
           </button>
           <button class="tab-btn" [class.active]="activeTab === 'admins'" (click)="setTab('admins')">
-            <span>Admins</span>
+            <span>{{ 'ACADEMY_ADMIN.DASHBOARD.ADMINS' | translate }}</span>
           </button>
           <button class="tab-btn" [class.active]="activeTab === 'coaches'" (click)="setTab('coaches')">
-            <span>Coaches</span>
+            <span>{{ 'ACADEMY_ADMIN.DASHBOARD.COACHES' | translate }}</span>
           </button>
           <button class="tab-btn" [class.active]="activeTab === 'players'" (click)="setTab('players')">
-            <span>Players</span>
+            <span>{{ 'ACADEMY_ADMIN.DASHBOARD.TAB_PLAYERS' | translate }}</span>
           </button>
           <button class="tab-btn" [class.active]="activeTab === 'teams'" (click)="setTab('teams')">
-            <span>Teams & Age Groups</span>
+            <span>{{ 'ACADEMY_ADMIN.DASHBOARD.TAB_TEAMS_AGE_GROUPS' | translate }}</span>
           </button>
           <button class="tab-btn" [class.active]="activeTab === 'locations'" (click)="setTab('locations')">
-            <span>Locations</span>
+            <span>{{ 'ACADEMY_ADMIN.DASHBOARD.TAB_LOCATIONS' | translate }}</span>
           </button>
           <button class="tab-btn" [class.active]="activeTab === 'comms'" (click)="setTab('comms')">
-            <span>Communications & Subscriptions</span>
+            <span>{{ 'ACADEMY_ADMIN.COMMS_SECTION.ANNOUNCEMENTS' | translate }}</span>
+          </button>
+          <button class="tab-btn" [class.active]="activeTab === 'subscriptions'" (click)="setTab('subscriptions')">
+            <span>{{ 'ACADEMY_ADMIN.COMMS_SECTION.PLAYER_SUBSCRIPTIONS' | translate }}</span>
           </button>
         </div>
       </div>
@@ -151,7 +154,7 @@
         <!-- 01 / ACADEMY RECOGNITION & BADGES -->
         <ng-container *ngIf="activeTab === 'all' || activeTab === 'badges'">
           <div class="group-label" scrollReveal direction="bottom" [delay]="100">
-            01 / Academy Recognition & Badges
+            {{ 'ACADEMY_ADMIN.DASHBOARD.GROUP_BADGES' | translate }}
           </div>
           <app-academy-badges-section scrollReveal direction="bottom" [delay]="100" *ngIf="currentUser?.academyId"
             [academyId]="currentUser!.academyId!">
@@ -161,7 +164,7 @@
         <!-- 02 / MANAGEMENT ADMINS -->
         <ng-container *ngIf="activeTab === 'all' || activeTab === 'admins'">
           <div class="group-label" scrollReveal direction="bottom" [delay]="100">
-            02 / Management Admins
+            02 / Management {{ 'ACADEMY_ADMIN.DASHBOARD.ADMINS' | translate }}
           </div>
           <app-academy-admins-section scrollReveal direction="bottom" [delay]="200" *ngIf="currentUser?.academyId"
             [academyId]="currentUser!.academyId!" [isOwner]="academyDetails?.adminUserId === currentUser?.userId">
@@ -171,7 +174,7 @@
         <!-- 03 / COACHING STAFF -->
         <ng-container *ngIf="activeTab === 'all' || activeTab === 'coaches'">
           <div class="group-label" scrollReveal direction="bottom" [delay]="100">
-            03 / Coaching Staff
+            03 / {{ 'ACADEMY_ADMIN.DASHBOARD.COACHING_STAFF' | translate }}
           </div>
           <app-academy-coaches-section scrollReveal direction="bottom" [delay]="300" *ngIf="currentUser?.academyId"
             [academyId]="currentUser!.academyId!">
@@ -181,7 +184,7 @@
         <!-- 04 / PLAYERS & MEMBERS -->
         <ng-container *ngIf="activeTab === 'all' || activeTab === 'players'">
           <div class="group-label" scrollReveal direction="bottom" [delay]="100">
-            04 / Academy Players & Members
+            {{ 'ACADEMY_ADMIN.DASHBOARD.GROUP_PLAYERS' | translate }}
           </div>
           <app-academy-members scrollReveal direction="bottom" [delay]="400" *ngIf="currentUser?.academyId"
             [academyId]="currentUser!.academyId!">
@@ -191,7 +194,7 @@
         <!-- 05 / TEAMS & AGE GROUPS -->
         <ng-container *ngIf="activeTab === 'all' || activeTab === 'teams'">
           <div class="group-label" scrollReveal direction="bottom" [delay]="100">
-            05 / Teams & Age Groups
+            {{ 'ACADEMY_ADMIN.DASHBOARD.GROUP_TEAMS' | translate }}
           </div>
           <app-academy-teams-section scrollReveal direction="bottom" [delay]="500" *ngIf="currentUser?.academyId"
             [academyId]="currentUser!.academyId!">
@@ -201,21 +204,31 @@
         <!-- 06 / FACILITIES & LOCATIONS -->
         <ng-container *ngIf="activeTab === 'all' || activeTab === 'locations'">
           <div class="group-label" scrollReveal direction="bottom" [delay]="100">
-            06 / Facilities & Locations
+            06 / {{ 'ACADEMY_ADMIN.DASHBOARD.FACILITIES_LOCATIONS' | translate }}
           </div>
           <app-academy-locations-section scrollReveal direction="bottom" [delay]="550" *ngIf="currentUser?.academyId"
             [academyId]="currentUser!.academyId!">
           </app-academy-locations-section>
         </ng-container>
 
-        <!-- 07 / COMMUNICATIONS & SUBSCRIPTIONS -->
+        <!-- 07 / COMMUNICATIONS -->
         <ng-container *ngIf="activeTab === 'all' || activeTab === 'comms'">
           <div class="group-label" scrollReveal direction="bottom" [delay]="100">
-            07 / Communications & Subscriptions
+            07 / {{ 'ACADEMY_ADMIN.DASHBOARD.GROUP_COMMS' | translate }}
           </div>
-          <app-academy-comm-subs-section scrollReveal direction="bottom" [delay]="600" *ngIf="currentUser?.academyId"
+          <app-academy-communications-section scrollReveal direction="bottom" [delay]="600" *ngIf="currentUser?.academyId"
             [academyId]="currentUser!.academyId!">
-          </app-academy-comm-subs-section>
+          </app-academy-communications-section>
+        </ng-container>
+
+        <!-- 08 / SUBSCRIPTIONS -->
+        <ng-container *ngIf="activeTab === 'all' || activeTab === 'subscriptions'">
+          <div class="group-label" scrollReveal direction="bottom" [delay]="100">
+            08 / {{ 'ACADEMY_ADMIN.COMMS_SECTION.PLAYER_SUBSCRIPTIONS' | translate }}
+          </div>
+          <app-academy-subscriptions-section scrollReveal direction="bottom" [delay]="650" *ngIf="currentUser?.academyId"
+            [academyId]="currentUser!.academyId!">
+          </app-academy-subscriptions-section>
         </ng-container>
       </div>
 
@@ -227,7 +240,7 @@
       <!-- Pending Invitations -->
       <div class="pending-invitations-section" *ngIf="myPendingAdminRequests.length > 0">
         <div class="tactical-tag">
-          <span>00 // PENDING INVITATIONS</span>
+          <span>{{ 'ACADEMY_ADMIN.DASHBOARD.TAG_PENDING_INVITATIONS' | translate }}</span>
         </div>
         <div class="glass-card cyber-invitation-card fade-in" *ngFor="let req of myPendingAdminRequests">
           <div class="invitation-icon-wrap">
@@ -241,7 +254,7 @@
           </div>
           <div class="req-info">
             <h4>{{ req.academyName }}</h4>
-            <span class="inviter-meta">Invited by: <strong>{{ req.requestedByFullName }}</strong></span>
+            <span class="inviter-meta">{{ 'ACADEMY_ADMIN.DASHBOARD.INVITED_BY' | translate }}: <strong>{{ req.requestedByFullName }}</strong></span>
           </div>
           <div class="req-actions">
             <app-button variant="accent" (click)="respondToAdminRequest(req.id, true)">
@@ -254,18 +267,18 @@
         </div>
       </div>
 
-      <!-- Tournament Invitations -->
+      <!-- {{ 'ACADEMY_ADMIN.DASHBOARD.TOURNAMENT_INVITATIONS' | translate }} -->
       <div class="pending-invitations-section" *ngIf="pendingTournamentInvitations.length > 0">
-        <h3 style="color: #fff; margin-bottom: 16px; font-weight: 600;">Tournament Invitations</h3>
+        <h3 style="color: #fff; margin-bottom: 16px; font-weight: 600;">{{ 'ACADEMY_ADMIN.DASHBOARD.TOURNAMENT_INVITATIONS' | translate }}</h3>
         <div class="glass-card fade-in" *ngFor="let invite of pendingTournamentInvitations"
           style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; border-color: rgba(34, 197, 94, 0.3);">
           <div class="req-info" style="display: flex; flex-direction: column; gap: 4px;">
             <div style="font-size: 16px; font-weight: 600; color: #fff;">{{ invite.tournamentName }}</div>
-            <div style="font-size: 12px; color: #7b8293;">Team: {{ invite.teamName }}</div>
+            <div style="font-size: 12px; color: #7b8293;">{{ 'ACADEMY_ADMIN.DASHBOARD.TEAM_LABEL' | translate }}: {{ invite.teamName }}</div>
           </div>
           <div class="req-actions" style="display: flex; gap: 12px;">
             <app-button variant="accent" (click)="acceptTournamentInvitation(invite)">
-              Accept Invitation
+              {{ 'ACADEMY_ADMIN.DASHBOARD.BTN_ACCEPT_INVITATION' | translate }}
             </app-button>
           </div>
         </div>
@@ -274,7 +287,7 @@
       <!-- Rejected Request Notice -->
       <div class="glass-card rejected-card-cyber fade-in" *ngIf="rejectedRequest && !pendingRequest">
         <div class="tactical-tag alert-tag">
-          <span>ALERT // PROTOCOL REJECTED</span>
+          <span>{{ 'ACADEMY_ADMIN.DASHBOARD.TAG_REJECTED' | translate }}</span>
         </div>
         <div class="rejected-header-row">
           <div class="status-icon-badge rejected">
@@ -286,24 +299,24 @@
             </svg>
           </div>
           <div>
-            <h2>ACADEMY REQUEST REJECTED</h2>
-            <p>Your previous application for <strong class="highlight-text">{{ rejectedRequest.academyName }}</strong>
-              was not approved by system administration.</p>
+            <h2>{{ 'ACADEMY_ADMIN.DASHBOARD.REJECTED_TITLE' | translate }}</h2>
+            <p>{{ 'ACADEMY_ADMIN.DASHBOARD.REJECTED_MSG_1' | translate }} <strong class="highlight-text">{{ rejectedRequest.academyName }}</strong>
+              {{ 'ACADEMY_ADMIN.DASHBOARD.REJECTED_MSG_2' | translate }}</p>
           </div>
         </div>
 
         <div class="telemetry-box rejected-details">
           <div class="info-row" *ngIf="rejectedRequest.rejectedReason">
-            <span class="row-label">Rejection Notice:</span>
+            <span class="row-label">{{ 'ACADEMY_ADMIN.DASHBOARD.REJECTION_NOTICE' | translate }}</span>
             <span class="rejected-reason">{{ rejectedRequest.rejectedReason }}</span>
           </div>
           <div class="info-row">
-            <span class="row-label">Application Status:</span>
-            <span class="cyber-badge rejected-badge">Rejected</span>
+            <span class="row-label">{{ 'ACADEMY_ADMIN.DASHBOARD.APPLICATION_STATUS' | translate }}</span>
+            <span class="cyber-badge rejected-badge">{{ 'ACADEMY_ADMIN.DASHBOARD.STATUS_REJECTED' | translate }}</span>
           </div>
           <div class="info-row">
-            <span class="row-label">Submitted On:</span>
-            <span class="row-val">{{ rejectedRequest.requestedAt | date:'medium' }}</span>
+            <span class="row-label">{{ 'ACADEMY_ADMIN.DASHBOARD.SUBMITTED_ON' | translate }}</span>
+            <span class="row-val">{{ rejectedRequest.requestedAt | localizedDate:'medium' }}</span>
           </div>
         </div>
       </div>
@@ -311,7 +324,7 @@
       <!-- Pending Request Card -->
       <div class="glass-card pending-card-cyber fade-in" *ngIf="pendingRequest">
         <div class="tactical-tag pending-tag">
-          <span>STATUS // UNDER SYSTEM REVIEW</span>
+          <span>{{ 'ACADEMY_ADMIN.DASHBOARD.TAG_PENDING' | translate }}</span>
         </div>
         <div class="pending-header-row">
           <div class="status-icon-badge pending">
@@ -322,20 +335,20 @@
             </svg>
           </div>
           <div>
-            <h2>ACADEMY REQUEST PENDING</h2>
-            <p>Your application for <strong class="highlight-text">{{ pendingRequest.academyName }}</strong> is
+            <h2>{{ 'ACADEMY_ADMIN.DASHBOARD.PENDING_TITLE' | translate }}</h2>
+            <p>{{ 'ACADEMY_ADMIN.DASHBOARD.PENDING_MSG_1' | translate }} <strong class="highlight-text">{{ pendingRequest.academyName }}</strong> is
               currently being evaluated by Koralytics governance.</p>
           </div>
         </div>
 
         <div class="telemetry-box pending-details">
           <div class="info-row">
-            <span class="row-label">Current Status:</span>
-            <span class="cyber-badge pending-badge">Pending Verification</span>
+            <span class="row-label">{{ 'ACADEMY_ADMIN.DASHBOARD.CURRENT_STATUS' | translate }}</span>
+            <span class="cyber-badge pending-badge">{{ 'ACADEMY_ADMIN.DASHBOARD.STATUS_PENDING_VERIFICATION' | translate }}</span>
           </div>
           <div class="info-row">
-            <span class="row-label">Submitted On:</span>
-            <span class="row-val">{{ pendingRequest.requestedAt | date:'medium' }}</span>
+            <span class="row-label">{{ 'ACADEMY_ADMIN.DASHBOARD.SUBMITTED_ON' | translate }}</span>
+            <span class="row-val">{{ pendingRequest.requestedAt | localizedDate:'medium' }}</span>
           </div>
         </div>
       </div>
@@ -344,7 +357,7 @@
       <div class="glass-card request-card-cyber fade-in" *ngIf="!pendingRequest">
         <!-- Tactical Top Accent -->
         <div class="tactical-tag">
-          <span>01 // ACADEMY ONBOARDING PROTOCOL</span>
+          <span>{{ 'ACADEMY_ADMIN.DASHBOARD.TAG_ONBOARDING' | translate }}</span>
         </div>
 
         <div class="card-header-cyber">
@@ -357,7 +370,7 @@
             </svg>
           </div>
           <div class="header-text">
-            <h2>REQUEST AN ACADEMY</h2>
+            <h2>{{ 'ACADEMY_ADMIN.DASHBOARD.REQUEST_ACADEMY_TITLE' | translate }}</h2>
             <p class="subtitle-cyber">Create a verified Koralytics academy to manage teams, players, tournaments, and
               coaching staff.</p>
           </div>
@@ -368,14 +381,14 @@
           <div class="form-section-cyber">
             <div class="section-title-cyber">
               <span class="sec-num">01</span>
-              <span>Academy Identity & Location</span>
+              <span>{{ 'ACADEMY_ADMIN.DASHBOARD.SECTION_IDENTITY' | translate }}</span>
             </div>
             <div class="form-fields-grid">
-              <app-text-input label="Academy Name" type="text" placeholder="E.g. Elite Football Academy"
+              <app-text-input label="{{ 'ACADEMY_ADMIN.DASHBOARD.LBL_ACADEMY_NAME' | translate }}" type="text" placeholder="{{ 'ACADEMY_ADMIN.DASHBOARD.PH_ACADEMY_NAME' | translate }}"
                 formControlName="academyName">
               </app-text-input>
 
-              <app-text-input label="Location / Headquarters" type="text" placeholder="City, Country"
+              <app-text-input label="{{ 'ACADEMY_ADMIN.DASHBOARD.LBL_LOCATION' | translate }}" type="text" placeholder="{{ 'ACADEMY_ADMIN.DASHBOARD.PH_LOCATION' | translate }}"
                 formControlName="location">
               </app-text-input>
             </div>
@@ -385,20 +398,20 @@
           <div class="form-section-cyber">
             <div class="section-title-cyber">
               <span class="sec-num">02</span>
-              <span>Primary Administrator Contact</span>
+              <span>{{ 'ACADEMY_ADMIN.DASHBOARD.SECTION_CONTACT' | translate }}</span>
             </div>
             <div class="form-fields-grid">
-              <app-text-input label="Contact Person Name" type="text" placeholder="Your Full Name"
+              <app-text-input label="{{ 'ACADEMY_ADMIN.DASHBOARD.LBL_CONTACT_NAME' | translate }}" type="text" placeholder="{{ 'ACADEMY_ADMIN.DASHBOARD.PH_CONTACT_NAME' | translate }}"
                 formControlName="contactPersonName">
               </app-text-input>
 
-              <app-text-input label="Contact Email" type="email" placeholder="contact@academy.com"
+              <app-text-input label="{{ 'ACADEMY_ADMIN.DASHBOARD.LBL_CONTACT_EMAIL' | translate }}" type="email" placeholder="contact@academy.com"
                 formControlName="contactEmail">
               </app-text-input>
             </div>
 
             <div class="phone-input-row">
-              <app-phone-input label="Contact Phone" formControlName="contactPhone">
+              <app-phone-input label="{{ 'ACADEMY_ADMIN.DASHBOARD.LBL_CONTACT_PHONE' | translate }}" formControlName="contactPhone">
               </app-phone-input>
             </div>
           </div>
@@ -411,7 +424,7 @@
                 <path d="M5 12h14"></path>
                 <path d="M12 5l7 7-7 7"></path>
               </svg>
-              <span>{{ isLoading ? 'SUBMITTING PROTOCOL...' : 'SUBMIT ACADEMY REQUEST' }}</span>
+              <span>{{ isLoading ? ('ACADEMY_ADMIN.DASHBOARD.BTN_SUBMITTING' | translate) : ('ACADEMY_ADMIN.DASHBOARD.BTN_SUBMIT' | translate) }}</span>
             </button>
           </div>
         </form>
@@ -425,10 +438,10 @@
   <div class="modal-backdrop active" (click)="closeLogoUpload()">
     <div class="upload-modal-content" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <h3>Update Academy Logo</h3>
+        <h3>{{ 'ACADEMY_ADMIN.DASHBOARD.UPDATE_LOGO_TITLE' | translate }}</h3>
         <button class="close-btn" (click)="closeLogoUpload()">✕</button>
       </div>
-      <p class="modal-sub">Upload a new academy logo image (.jpg, .jpeg, .png, .webp, max 5MB).</p>
+      <p class="modal-sub">{{ 'ACADEMY_ADMIN.DASHBOARD.UPDATE_LOGO_SUB' | translate }}</p>
       <div class="upload-wrapper">
         <app-image-upload [maxFileSizeMb]="5" [isUploading]="isUploadingLogo" [aspectRatio]="'circle'"
           (imageSelected)="onLogoSelected($event)">

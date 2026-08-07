@@ -358,7 +358,6 @@ export class MatchLineupsComponent implements OnInit, OnChanges {
             }
             this.toastService.show(`Penalty Scored by ${player.fullName}! (${this.homeName} ${this.homePenaltyScore} - ${this.awayPenaltyScore} ${this.awayName})`, 'success');
           } else {
-            if (isHome) this.matchInfo.homeScore++; else this.matchInfo.awayScore++;
             this.toastService.show(`Penalty Goal by ${player.fullName}!`, 'success');
           }
         } else if (eventType === 'PenaltyMissed') {
@@ -377,14 +376,12 @@ export class MatchLineupsComponent implements OnInit, OnChanges {
             : `${player.fullName} scored a solo goal!`;
           eventCategory = "GoalScored";
 
-          if (isHome) this.matchInfo.homeScore++; else this.matchInfo.awayScore++;
           this.toastService.show(`GOAL by ${player.fullName}!`, 'success');
         } else if (eventType === 'OwnGoal') {
           eventTitle = "Own Goal 🥅";
           eventMessage = `${player.fullName} scored an own goal.`;
           eventCategory = "OwnGoal";
 
-          if (isHome) this.matchInfo.awayScore++; else this.matchInfo.homeScore++;
           this.toastService.show(`Own Goal by ${player.fullName}!`, 'info');
         } else if (eventType === 'YellowCard') {
           eventTitle = "Yellow Card 🟨";

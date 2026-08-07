@@ -93,6 +93,13 @@ export class ScouterService {
       .pipe(map((res) => res.data));
   }
 
+  /** POST api/scouter/ai-chatbot */
+  aiChatBot(message: string): Observable<string> {
+    return this.http
+      .post<ApiEnvelope<string>>(`${this.baseUrl}/ai-chatbot`, { message })
+      .pipe(map((res) => res.data));
+  }
+
   /** GET api/scouter/me -- current scouter's own profile, id taken from auth claims */
   getMyProfile(): Observable<ScouterProfileDto> {
     return this.http.get<ApiEnvelope<ScouterProfileDto>>(`${this.baseUrl}/me`).pipe(map((res) => res.data));

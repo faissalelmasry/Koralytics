@@ -17,6 +17,8 @@ import { CustomNumberInputComponent } from '@shared/components/custom-number-inp
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog';
 import { Pagination } from '@shared/components/pagination/pagination';
 import { NotificationService } from '@core/services/SignalR/notificationservice';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { LocalizedDatePipe } from '@shared/pipes/localized-date.pipe';
 
 export interface PlayerOption {
   id: number;
@@ -38,7 +40,9 @@ export interface PlayerOption {
     CustomDatePicker,
     CustomNumberInputComponent,
     ConfirmDialogComponent,
-    Pagination
+    Pagination,
+    TranslatePipe,
+    LocalizedDatePipe
   ],
   templateUrl: './academy-admin-subscriptions.component.html',
   styleUrls: ['./academy-admin-subscriptions.component.css']
@@ -61,19 +65,23 @@ export class AcademyAdminSubscriptionsComponent implements OnInit {
   searchQuery = '';
   selectedStatusFilter = 'ALL';
 
-  statusFilterOptions: SelectOption[] = [
-    { value: 'ALL', label: 'All Statuses' },
-    { value: 'PAID', label: 'Paid' },
-    { value: 'UNPAID', label: 'Unpaid' },
-    { value: 'GRACE', label: 'Grace' }
-  ];
+  get statusFilterOptions(): SelectOption[] {
+    return [
+      { value: 'ALL', label: 'ACADEMY_ADMIN.SUBSCRIPTIONS.ALL_STATUSES' },
+      { value: 'PAID', label: 'ACADEMY_ADMIN.SUBSCRIPTIONS.PAID' },
+      { value: 'UNPAID', label: 'ACADEMY_ADMIN.SUBSCRIPTIONS.UNPAID' },
+      { value: 'GRACE', label: 'ACADEMY_ADMIN.SUBSCRIPTIONS.GRACE' }
+    ];
+  }
 
-  durationOptions: SelectOption[] = [
-    { value: SubscriptionDuration.OneMonth, label: '1 Month (Monthly)' },
-    { value: SubscriptionDuration.ThreeMonths, label: '3 Months (Quarterly)' },
-    { value: SubscriptionDuration.SixMonths, label: '6 Months (Semi-Annual)' },
-    { value: SubscriptionDuration.OneYear, label: '1 Year (Annual)' }
-  ];
+  get durationOptions(): SelectOption[] {
+    return [
+      { value: SubscriptionDuration.OneMonth, label: 'ACADEMY_ADMIN.SUBSCRIPTIONS.DURATION_1M' },
+      { value: SubscriptionDuration.ThreeMonths, label: 'ACADEMY_ADMIN.SUBSCRIPTIONS.DURATION_3M' },
+      { value: SubscriptionDuration.SixMonths, label: 'ACADEMY_ADMIN.SUBSCRIPTIONS.DURATION_6M' },
+      { value: SubscriptionDuration.OneYear, label: 'ACADEMY_ADMIN.SUBSCRIPTIONS.DURATION_1Y' }
+    ];
+  }
 
   // Modal State & New Subscription DTO
   isCreateModalOpen = false;
@@ -113,7 +121,8 @@ export class AcademyAdminSubscriptionsComponent implements OnInit {
     private subscriptionService: SubscriptionService,
     private academyService: AcademyService,
     private authService: AuthService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private translate: TranslateService
   ) { }
 
   ngOnInit(): void {
@@ -397,8 +406,11 @@ export class AcademyAdminSubscriptionsComponent implements OnInit {
   // MARK AS PAID BY CASH HANDLER
   onMarkAsPaidByCash(sub: PlayerSubscriptionDto): void {
     this.targetSubForCash = sub;
-    this.confirmDialogTitle = 'Confirm Cash Payment';
-    this.confirmDialogMessage = `Confirm cash payment of ${sub.amount} EGP for ${sub.playerName}?`;
+    this.confirmDialogTitle = this.translate.instant('ACADEMY_ADMIN.SUBSCRIPTIONS.CONFIRM_CASH_TITLE');
+    this.confirmDialogMessage = this.translate.instant('ACADEMY_ADMIN.SUBSCRIPTIONS.CONFIRM_CASH_MSG', {
+      amount: sub.amount,
+      playerName: sub.playerName
+    });
     this.isConfirmDialogOpen = true;
   }
 
@@ -442,6 +454,13 @@ export class AcademyAdminSubscriptionsComponent implements OnInit {
   }
 
   // PLAYER HISTORY MODAL HANDLERS
+  mapStatusToBadge(status: any): string {
+    if (status === 1 || status === 'Paid') return 'ACADEMY_ADMIN.SUBSCRIPTIONS.PAID';
+    if (status === 2 || status === 'Unpaid') return 'ACADEMY_ADMIN.SUBSCRIPTIONS.UNPAID';
+    if (status === 3 || status === 'Grace') return 'ACADEMY_ADMIN.SUBSCRIPTIONS.GRACE';
+    return 'ACADEMY_ADMIN.SUBSCRIPTIONS.STATUS_UNKNOWN';
+  }
+
   openHistoryModal(playerId: number, playerName: string): void {
     this.selectedHistoryPlayer = { id: playerId, name: playerName };
     this.isLoadingHistory = true;
@@ -475,11 +494,11 @@ export class AcademyAdminSubscriptionsComponent implements OnInit {
 
   formatDuration(duration: SubscriptionDuration | string | number): string {
     const d = String(duration || '').toLowerCase();
-    if (d === 'onemonth' || d === '1') return 'Monthly';
-    if (d === 'threemonths' || d === '3') return 'Quarterly (3M)';
-    if (d === 'sixmonths' || d === '6') return 'Semi-Annual (6M)';
-    if (d === 'oneyear' || d === '12') return 'Annual (1Y)';
-    return String(duration) || 'Monthly';
+    if (d === 'onemonth' || d === '1') return this.translate.instant('ACADEMY_ADMIN.SUBSCRIPTIONS.DURATION_1M_SHORT') || 'Monthly';
+    if (d === 'threemonths' || d === '3') return this.translate.instant('ACADEMY_ADMIN.SUBSCRIPTIONS.DURATION_3M_SHORT') || 'Quarterly (3M)';
+    if (d === 'sixmonths' || d === '6') return this.translate.instant('ACADEMY_ADMIN.SUBSCRIPTIONS.DURATION_6M_SHORT') || 'Semi-Annual (6M)';
+    if (d === 'oneyear' || d === '12') return this.translate.instant('ACADEMY_ADMIN.SUBSCRIPTIONS.DURATION_1Y_SHORT') || 'Annual (1Y)';
+    return String(duration) || (this.translate.instant('ACADEMY_ADMIN.SUBSCRIPTIONS.DURATION_1M_SHORT') || 'Monthly');
   }
 
   isPaid(status: SubscriptionStatus | string | number): boolean {

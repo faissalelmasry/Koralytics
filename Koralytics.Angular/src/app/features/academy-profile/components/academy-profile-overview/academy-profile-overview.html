@@ -1,0 +1,95 @@
+      <div class="overview-grid" scrollReveal direction="bottom" [delay]="200">
+        <!-- Left Panel: Featured Badges -->
+        <div class="cyber-panel">
+          <div class="panel-header">
+            <h3>{{ 'ACADEMY_PROFILE.FEATURED_BADGES' | translate }}</h3>
+            @if (badges.length > 0) {
+            <app-button variant="slate" (click)="viewAllBadges.emit()">{{ 'ACADEMY_PROFILE.VIEW_ALL_BADGES' | translate:{count: badges.length} }}</app-button>
+            }
+          </div>
+          <div class="panel-body">
+            @if (badges.length > 0) {
+            <div class="featured-badges-list">
+              @for (badge of badges.slice(0, 3); track badge.id) {
+              <div class="badge-row-card">
+                <div class="badge-icon-box" [ngSwitch]="getBadgeTypeKey(badge.badgeType)">
+                  <svg *ngSwitchCase="'Verified'" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                    stroke="#60a5fa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                    <polyline points="9 12 11 14 15 10"></polyline>
+                  </svg>
+                  <svg *ngSwitchCase="'TopPerformer'" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                    stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon
+                      points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                    </polygon>
+                  </svg>
+                  <svg *ngSwitchCase="'Premium'" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a855f7"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path>
+                  </svg>
+                  <svg *ngSwitchDefault width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#38bdf8"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="8" r="7"></circle>
+                    <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
+                  </svg>
+                </div>
+                <div class="badge-row-text">
+                  <div class="badge-row-title">{{ getBadgeNameTranslationKey(badge.badgeType) | translate }}</div>
+                  <div class="badge-row-sub">{{ 'ACADEMY_PROFILE.AWARDED_PREFIX' | translate }} {{ badge.awardedAt | localizedDate:'mediumDate' }}</div>
+                </div>
+              </div>
+              }
+            </div>
+            } @else {
+            <app-empty-state title="{{ 'ACADEMY_PROFILE.NO_BADGES_YET' | translate }}"
+              description=""></app-empty-state>
+            }
+          </div>
+        </div>
+
+        <!-- Right Panel: Facility & Squad Preview -->
+        <div class="cyber-panel">
+          <div class="panel-header">
+            <h3>{{ 'ACADEMY_PROFILE.MAIN_FACILITY_SUMMARY' | translate }}</h3>
+            @if (locations.length > 0) {
+            <app-button variant="slate" (click)="viewAllLocations.emit()">{{ 'ACADEMY_PROFILE.ALL_FACILITIES' | translate }}</app-button>
+            }
+          </div>
+          <div class="panel-body">
+            @if (mainLocation) {
+            <div class="main-facility-card">
+              <div class="facility-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                  <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+              </div>
+              <div class="facility-details">
+                <div class="facility-name">{{ mainLocation.name }} <span class="main-tag">{{ 'ACADEMY_PROFILE.MAIN_BRANCH_TAG' | translate }}</span></div>
+                <div class="facility-address">{{ mainLocation.address }}, {{ mainLocation.city }}</div>
+              </div>
+            </div>
+            } @else {
+            <app-empty-state title="{{ 'ACADEMY_PROFILE.NO_LOCATIONS_LISTED' | translate }}"
+              description="{{ 'ACADEMY_PROFILE.NO_LOCATIONS_LISTED_DESC' | translate }}"></app-empty-state>
+            }
+
+            <div class="summary-stats-box">
+              <div class="summary-stat">
+                <span class="stat-num">{{ teams.length }}</span>
+                <span class="stat-label">{{ 'ACADEMY_PROFILE.ACTIVE_TEAMS_STAT' | translate }}</span>
+              </div>
+              <div class="summary-stat">
+                <span class="stat-num">{{ members.length }}</span>
+                <span class="stat-label">{{ 'ACADEMY_PROFILE.REGISTERED_MEMBERS_STAT' | translate }}</span>
+              </div>
+              <div class="summary-stat">
+                <span class="stat-num">{{ locations.length }}</span>
+                <span class="stat-label">{{ 'ACADEMY_PROFILE.TOTAL_FACILITIES_STAT' | translate }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>

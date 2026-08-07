@@ -292,3 +292,64 @@
   margin-top: 2px;
   color: #f3f4f6;
 }
+
+/* ===================================================
+   Responsive Media Queries
+   =================================================== */
+@media (max-width: 600px) {
+  .matrix-card {
+    padding: 16px 14px;
+    border-radius: 16px;
+  }
+
+  .hud-header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .hud-title {
+    font-size: 1.05rem;
+  }
+
+  .archetype-pill {
+    font-size: 0.75rem;
+    padding: 4px 8px;
+  }
+
+  .canvas-container {
+    height: 230px;
+  }
+
+  .category-badge {
+    padding: 3px 6px;
+    gap: 4px;
+  }
+
+  .badge-text {
+    font-size: 0.68rem;
+    letter-spacing: 0.4px;
+  }
+
+  .badge-icon {
+    width: 14px;
+    height: 14px;
+  }
+
+  .hud-footer {
+    gap: 6px;
+    margin-top: 12px;
+  }
+
+  .footer-stat-box {
+    padding: 8px 6px;
+  }
+
+  .stat-lbl {
+    font-size: 0.55rem;
+    letter-spacing: 0.5px;
+  }
+
+  .stat-val {
+    font-size: 0.95rem;
+  }
+}

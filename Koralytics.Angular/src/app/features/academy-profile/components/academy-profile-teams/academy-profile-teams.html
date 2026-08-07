@@ -1,0 +1,98 @@
+      <div class="cyber-panel" scrollReveal direction="bottom" [delay]="200">
+        <div class="panel-header">
+          <h3>{{ 'ACADEMY_PROFILE.TITLE_TEAMS' | translate }}</h3>
+        </div>
+        <div class="panel-body">
+          @if (teams.length > 0) {
+          <div class="teams-grid">
+            @for (team of teams; track team.id) {
+            <div class="team-card">
+              <div class="team-card-header">
+                <h4>{{ team.name }}</h4>
+                @if (team.ageGroupName) {
+                <span class="cyber-badge cyber-lime">{{ team.ageGroupName }}</span>
+                }
+              </div>
+              <div class="team-card-body">
+                @if (team.locationName) {
+                <div class="team-meta-row">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                    <circle cx="12" cy="10" r="3"></circle>
+                  </svg>
+                  <span>{{ team.locationName }}</span>
+                </div>
+                }
+                <div class="team-stats-bar">
+                  <div class="team-stat-item">
+                    <strong>{{ (team.coaches && team.coaches.length) || 0 }}</strong>
+                    <span>{{ 'ACADEMY_PROFILE.ROLE_COACH' | translate }}</span>
+                  </div>
+                  <div class="team-stat-item">
+                    <strong>{{ (team.players && team.players.length) || 0 }}</strong>
+                    <span>{{ 'ACADEMY_PROFILE.ROLE_PLAYER' | translate }}</span>
+                  </div>
+                </div>
+
+                <div class="team-card-actions">
+                  <button type="button" class="expand-roster-btn" (click)="toggleTeamExpand(team.id)">
+                    <span>{{ isTeamExpanded(team.id) ? '▲' : '▼' }} {{ 'ACADEMY_PROFILE.COL_MEMBERS' | translate }}</span>
+                  </button>
+                </div>
+
+                @if (isTeamExpanded(team.id)) {
+                <div class="team-roster-expanded">
+                  @if (team.coaches && team.coaches.length > 0) {
+                  <div class="roster-group">
+                    <div class="roster-group-title">{{ 'ACADEMY_PROFILE.ROLE_COACH' | translate }}</div>
+                    <div class="roster-pills">
+                      @for (c of team.coaches; track c.coachId) {
+                      <button type="button" class="member-chip coach-chip"
+                        (click)="viewMemberProfile(c.coachId, 'Coach')">
+                        @if (c.profileImageUrl || c.imageUrl) {
+                        <img [src]="c.profileImageUrl || c.imageUrl" [alt]="c.coachFullName" class="chip-avatar" />
+                        } @else {
+                        <span class="chip-avatar-initial coach-initial">{{ (c.coachFullName || 'C')[0].toUpperCase() }}</span>
+                        }
+                        <span>{{ c.coachFullName }}</span>
+                        <span class="ext-icon">↗</span>
+                      </button>
+                      }
+                    </div>
+                  </div>
+                  }
+
+                  @if (team.players && team.players.length > 0) {
+                  <div class="roster-group">
+                    <div class="roster-group-title">{{ 'ACADEMY_PROFILE.ROLE_PLAYER' | translate }}</div>
+                    <div class="roster-pills">
+                      @for (p of team.players; track p.playerId) {
+                      <button type="button" class="member-chip player-chip"
+                        (click)="viewMemberProfile(p.playerId, 'Player')">
+                        @if (p.profileImageUrl || p.imageUrl) {
+                        <img [src]="p.profileImageUrl || p.imageUrl" [alt]="p.playerFullName" class="chip-avatar" />
+                        } @else {
+                        <span class="chip-avatar-initial player-initial">{{ (p.playerFullName || 'P')[0].toUpperCase() }}</span>
+                        }
+                        <span>{{ p.playerFullName }}</span>
+                        @if (p.position) {
+                        <span class="pos-tag">{{ p.position }}</span>
+                        }
+                        <span class="ext-icon">↗</span>
+                      </button>
+                      }
+                    </div>
+                  </div>
+                  }
+                </div>
+                }
+              </div>
+            </div>
+            }
+          </div>
+          } @else {
+          <app-empty-state title="{{ 'ACADEMY_PROFILE.NO_TEAMS_FOUND' | translate }}"
+            description="{{ 'ACADEMY_PROFILE.NO_TEAMS_DESC' | translate }}"></app-empty-state>
+          }
+        </div>
+      </div>

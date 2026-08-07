@@ -106,9 +106,12 @@
 
 .formation-selector-box {
   position: relative;
-  z-index: 120;
   min-width: 140px;
 }
+
+/* Each selector gets its own stacking so they never clip each other */
+.formation-selector-box:nth-child(2) { z-index: 130; }
+.formation-selector-box:nth-child(3) { z-index: 120; }
 
 .btn-icon-svg {
   width: 14px;
@@ -350,7 +353,8 @@
   border: 2px solid rgba(163, 230, 53, 0.3);
   border-radius: 16px;
   position: relative;
-  overflow: hidden;
+  /* overflow visible so btn-remove-slot (-6px) is never clipped */
+  overflow: visible;
   display: flex;
   flex-direction: column;
   justify-content: space-around;
@@ -619,27 +623,237 @@
 }
 
 /* ─── Responsive ──────────────────────────────────────────────── */
+
+/* Tablet */
 @media (max-width: 900px) {
   .builder-workspace {
     grid-template-columns: 1fr;
   }
 
   .squad-sidebar-card {
-    max-height: 350px;
+    max-height: 320px;
   }
 
   .squad-scroll-list {
-    max-height: 280px;
+    max-height: 250px;
   }
 
   .builder-header-card {
     flex-direction: column;
     align-items: flex-start;
-    gap: 14px;
+    gap: 16px;
   }
 
   .header-actions {
     width: 100%;
-    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .formation-selector-box {
+    flex: 1;
+    min-width: 120px;
+  }
+
+  .side-toggle-slider {
+    width: 100%;
+  }
+
+  .toggle-btn {
+    flex: 1;
+    text-align: center;
+    padding: 8px 10px;
+    font-size: 0.78rem;
+  }
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .page-wrapper {
+    padding: 90px 14px 40px;
+    gap: 14px;
+  }
+
+  /* ── Header ── */
+  .builder-header-card {
+    padding: 16px;
+    border-radius: 14px;
+    gap: 14px;
+  }
+
+  .builder-title {
+    font-size: 1.3rem;
+  }
+
+  .builder-subtitle {
+    font-size: 0.78rem;
+  }
+
+  .header-actions {
+    flex-direction: column;
+    gap: 10px;
+    align-items: stretch;
+  }
+
+  .side-toggle-slider {
+    width: 100%;
+  }
+
+  .toggle-btn {
+    flex: 1;
+    font-size: 0.75rem;
+    padding: 7px 6px;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.2;
+  }
+
+  .formation-selector-box {
+    min-width: unset;
+    width: 100%;
+  }
+
+  /* ── Squad Sidebar ── */
+  .squad-sidebar-card {
+    max-height: 260px;
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .squad-scroll-list {
+    max-height: 190px;
+    gap: 8px;
+  }
+
+  .squad-item-row {
+    padding: 6px 10px;
+    gap: 8px;
+  }
+
+  .squad-player-meta .player-name {
+    font-size: 0.82rem;
+  }
+
+  .squad-player-meta .player-position-tag {
+    font-size: 0.68rem;
+  }
+
+  /* ── Pitch ── */
+  .tactical-pitch-container {
+    height: 420px;
+    padding: 8px;
+    border-radius: 16px;
+  }
+
+  .pitch-grass {
+    padding: 10px 6px;
+    border-radius: 12px;
+  }
+
+  .pitch-center-circle {
+    width: 80px;
+    height: 80px;
+  }
+
+  .pitch-penalty-area-top,
+  .pitch-penalty-area-bottom {
+    width: 130px;
+    height: 48px;
+  }
+
+  .pitch-slot {
+    width: 52px;
+    height: 70px;
+    border-radius: 8px;
+    border-width: 1.5px;
+  }
+
+  .slot-role-code {
+    font-size: 0.65rem;
+  }
+
+  .slot-plus-icon {
+    font-size: 0.85rem;
+  }
+
+  .btn-remove-slot {
+    width: 15px;
+    height: 15px;
+    font-size: 9px;
+    top: -5px;
+    right: -5px;
+  }
+
+  /* ── Bench ── */
+  .bench-section-card {
+    padding: 12px 14px;
+    border-radius: 14px;
+  }
+
+  .bench-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .bench-title {
+    font-size: 0.8rem;
+  }
+
+  .bench-slot {
+    min-width: 58px;
+    height: 78px;
+    border-radius: 10px;
+  }
+
+  .bench-flex-container {
+    min-height: 85px;
+    gap: 8px;
+  }
+
+  .empty-bench-placeholder {
+    font-size: 0.6rem;
+  }
+}
+
+/* Extra-small phones (≤390px) */
+@media (max-width: 390px) {
+  .page-wrapper {
+    padding: 80px 10px 32px;
+  }
+
+  .builder-title {
+    font-size: 1.1rem;
+  }
+
+  .toggle-btn {
+    font-size: 0.68rem;
+    padding: 6px 4px;
+  }
+
+  /* Pitch: even smaller slots for very narrow screens */
+  .tactical-pitch-container {
+    height: 360px;
+  }
+
+  .pitch-slot {
+    width: 42px;
+    height: 58px;
+  }
+
+  .bench-slot {
+    min-width: 48px;
+    height: 66px;
+  }
+
+  .pitch-center-circle {
+    width: 60px;
+    height: 60px;
+  }
+
+  .pitch-penalty-area-top,
+  .pitch-penalty-area-bottom {
+    width: 100px;
+    height: 38px;
   }
 }

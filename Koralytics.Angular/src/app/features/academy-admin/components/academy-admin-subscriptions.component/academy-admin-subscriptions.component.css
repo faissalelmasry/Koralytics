@@ -202,7 +202,7 @@
 .data-table {
   width: 100%;
   border-collapse: collapse;
-  text-align: left;
+  text-align: start;
   font-size: 14px;
 
   thead {
@@ -458,7 +458,7 @@
 .history-table {
   width: 100%;
   border-collapse: collapse;
-  text-align: left;
+  text-align: start;
   font-size: 13px;
 
   th {

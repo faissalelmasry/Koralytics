@@ -2,16 +2,17 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { NavbarComponent } from '../../../../../shared/components/navbar/navbar';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-drills-dashboard',
   standalone: true,
-  imports: [CommonModule, NavbarComponent],
+  imports: [CommonModule, NavbarComponent, TranslatePipe],
   templateUrl: './drills-dashboard.component.html',
   styleUrls: ['./drills-dashboard.component.css']
 })
 export class DrillsDashboardComponent {
-  constructor(private router: Router) {}
+  constructor(private router: Router) { }
 
   navigateToDrillTemplates(): void {
     this.router.navigate(['/drills']);

@@ -1,16 +1,19 @@
 import { Component, Input, Output, EventEmitter, ContentChild, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslatePipe } from '@ngx-translate/core';
+import { LocalizedDatePipe } from '../../pipes/localized-date.pipe';
 
 export interface TableColumn {
   key: string;       
   label: string;     
-  type?: 'text' | 'badge' | 'action' | 'user'; 
+  type?: 'text' | 'badge' | 'action' | 'user' | 'date'; 
+  translate?: boolean;
 }
 
 @Component({
   selector: 'app-data-table',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslatePipe, LocalizedDatePipe],
   templateUrl: './data-table.html',
   styleUrls: ['./data-table.css']
 })

@@ -1,12 +1,12 @@
 <div class="section-container fade-in">
   <div class="section-header">
     <div class="header-content">
-      <h3>Manage Coaches</h3>
-      <p class="subtitle">Invite and manage academy coaches</p>
+      <h3>{{ 'ACADEMY_ADMIN.COACHES_SECTION.TITLE' | translate }}</h3>
+      <p class="subtitle">{{ 'ACADEMY_ADMIN.COACHES_SECTION.SUBTITLE' | translate }}</p>
     </div>
     <div class="header-actions">
       <app-button variant="accent" (click)="openCoachesAnalyticsModal()">
-        ⚡ View Coaches Analytics
+        ⚡ {{ 'ACADEMY_ADMIN.COACHES_SECTION.BTN_VIEW_ANALYTICS' | translate }}
       </app-button>
     </div>
   </div>
@@ -14,7 +14,7 @@
   <div class="search-panel">
     <h4
       style="margin: 0 0 14px 0; color: #00e5ff; font-family: 'Oswald', 'Bebas Neue', sans-serif; text-transform: uppercase; letter-spacing: 0.5px;">
-      Search & Invite Coaches</h4>
+      {{ 'ACADEMY_ADMIN.COACHES_SECTION.SEARCH_INVITE' | translate }}</h4>
     <form [formGroup]="searchForm" (ngSubmit)="onSearch()" class="cyber-search-bar">
       <div class="search-input-wrapper">
         <svg class="search-icon-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -22,7 +22,7 @@
           <circle cx="11" cy="11" r="8"></circle>
           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
         </svg>
-        <input type="text" formControlName="searchTerm" placeholder="Search by coach name or email..."
+        <input type="text" formControlName="searchTerm" placeholder="{{ 'ACADEMY_ADMIN.COACHES_SECTION.PH_SEARCH' | translate }}"
           class="cyber-input" />
         <button *ngIf="searchForm.get('searchTerm')?.value" type="button" class="clear-btn"
           (click)="searchForm.get('searchTerm')?.setValue('')" title="Clear">
@@ -30,12 +30,12 @@
         </button>
       </div>
       <button class="btn-search-cyber" type="submit" [disabled]="isSearching">
-        <span>{{ isSearching ? 'Searching...' : 'Search' }}</span>
+        <span>{{ isSearching ? ('ACADEMY_ADMIN.COACHES_SECTION.BTN_SEARCHING' | translate) : ('ACADEMY_ADMIN.COACHES_SECTION.BTN_SEARCH' | translate) }}</span>
       </button>
     </form>
 
     <div class="search-results" *ngIf="searchResults.length > 0">
-      <h4>Search Results</h4>
+      <h4>{{ 'ACADEMY_ADMIN.COACHES_SECTION.SEARCH_RESULTS' | translate }}</h4>
       <div class="user-card" *ngFor="let user of searchResults">
         <div class="user-info">
           <div class="avatar-small clickable-user-elem" (click)="viewMemberProfile(user.coachId || user.userId || user.id); $event.stopPropagation()" title="View Member Profile">
@@ -50,8 +50,8 @@
         <app-button variant="accent" size="small"
           [disabled]="isSending || isUserPending(user.coachId || user.userId || user.id) || isUserMember(user.coachId || user.userId || user.id)"
           (click)="onSendRequest(user.coachId || user.userId || user.id)">
-          {{ isUserMember(user.coachId || user.userId || user.id) ? 'Already Coach' : (isUserPending(user.coachId ||
-          user.userId || user.id) ? 'Pending' : 'Send Request') }}
+          {{ isUserMember(user.coachId || user.userId || user.id) ? ('ACADEMY_ADMIN.COACHES_SECTION.ALREADY_COACH' | translate) : (isUserPending(user.coachId ||
+          user.userId || user.id) ? ('ACADEMY_ADMIN.COACHES_SECTION.PENDING' | translate) : ('ACADEMY_ADMIN.COACHES_SECTION.SEND_REQUEST' | translate)) }}
         </app-button>
       </div>
     </div>
@@ -59,7 +59,7 @@
 
   <!-- Pending Requests -->
   <div class="pending-section" *ngIf="pendingRequests.length > 0">
-    <h4>Pending Join Requests</h4>
+    <h4>{{ 'ACADEMY_ADMIN.COACHES_SECTION.PENDING_REQUESTS' | translate }}</h4>
     <div class="user-card pending-card" *ngFor="let req of pendingRequests">
       <div class="user-info">
         <div class="avatar-small clickable-user-elem" (click)="viewMemberProfile(req.coachId || req.userId || req.id); $event.stopPropagation()" title="View Member Profile">
@@ -67,19 +67,17 @@
           <span *ngIf="!(req.imageUrl || req.profileImageUrl)">{{ req.coachName?.charAt(0) || req.fullName?.charAt(0) || 'C' }}</span>
         </div>
         <div class="user-details">
-          <span class="user-name clickable-user-elem" (click)="viewMemberProfile(req.coachId || req.userId || req.id); $event.stopPropagation()" title="View Member Profile">{{ req.coachName || req.fullName || 'Coach Request' }}</span>
-          <span class="user-email">Coach{{ req.username ? ' • @' + req.username : '' }} • Sent on {{ req.requestedAt | date:'short' }}</span>
+          <span class="user-name clickable-user-elem" (click)="viewMemberProfile(req.coachId || req.userId || req.id); $event.stopPropagation()" title="View Member Profile">{{ req.coachName || req.fullName || ('ACADEMY_ADMIN.COACHES_SECTION.COACH_REQUEST' | translate) }}</span>
+          <span class="user-email">Coach{{ req.username ? ' • @' + req.username : '' }} • {{ 'ACADEMY_ADMIN.COACHES_SECTION.SENT_ON' | translate }} {{ req.requestedAt | localizedDate:'short' }}</span>
         </div>
       </div>
-      <app-button variant="slate" size="small" (click)="onCancelRequest(req.id)">
-        Cancel
-      </app-button>
+      <app-button variant="slate" size="small" (click)="onCancelRequest(req.id)"> {{ 'ACADEMY_ADMIN.MEMBERS.BTN_CANCEL' | translate }} </app-button>
     </div>
   </div>
 
   <div class="loading-state" *ngIf="isLoading">
     <app-loading-spinner size="lg"></app-loading-spinner>
-    <p>Loading coaches...</p>
+    <p>{{ 'ACADEMY_ADMIN.COACHES_SECTION.LOADING_COACHES' | translate }}</p>
   </div>
 
   <!-- Active Coaches -->
@@ -94,7 +92,7 @@
   </div>
 
   <div class="empty-state" *ngIf="!isLoading && coaches.length === 0">
-    <p>No active coaches found.</p>
+    <p>{{ 'ACADEMY_ADMIN.COACHES_SECTION.NO_COACHES_FOUND' | translate }}</p>
   </div>
 </div>
 
@@ -104,9 +102,9 @@
     <!-- Modal Header -->
     <div class="cyber-modal-header">
       <div class="modal-title-wrap">
-        <div class="modal-badge-tag">AI ANALYTICS HUB</div>
-        <h3 class="modal-title">Academy Coaches Performance & Impact</h3>
-        <p class="modal-subtitle">Real-time AI evaluation of coaching effectiveness and player development metrics</p>
+        <div class="modal-badge-tag">{{ 'ACADEMY_ADMIN.COACHES_SECTION.ANALYTICS_BADGE' | translate }}</div>
+        <h3 class="modal-title">{{ 'ACADEMY_ADMIN.COACHES_SECTION.ANALYTICS_TITLE' | translate }}</h3>
+        <p class="modal-subtitle">{{ 'ACADEMY_ADMIN.COACHES_SECTION.ANALYTICS_SUBTITLE' | translate }}</p>
       </div>
       <button class="modal-close-btn" (click)="closeCoachesAnalyticsModal()" title="Close">&times;</button>
     </div>
@@ -116,7 +114,7 @@
       <!-- Loading State -->
       <div class="modal-loading" *ngIf="isLoadingAnalytics">
         <app-loading-spinner size="lg"></app-loading-spinner>
-        <p>Analyzing coach performance telemetry...</p>
+        <p>{{ 'ACADEMY_ADMIN.COACHES_SECTION.ANALYZING_PERFORMANCE' | translate }}</p>
       </div>
 
       <!-- Content State -->
@@ -124,15 +122,15 @@
         <!-- Summary KPI Cards -->
         <div class="analytics-kpi-row" *ngIf="coachesAnalytics.length > 0">
           <div class="analytics-kpi-card">
-            <span class="kpi-lbl">Coaches Evaluated</span>
+            <span class="kpi-lbl">{{ 'ACADEMY_ADMIN.COACHES_SECTION.COACHES_EVALUATED' | translate }}</span>
             <span class="kpi-val text-neon">{{ coachesAnalytics.length }}</span>
           </div>
           <div class="analytics-kpi-card">
-            <span class="kpi-lbl">Top Ranked Coach</span>
+            <span class="kpi-lbl">{{ 'ACADEMY_ADMIN.COACHES_SECTION.TOP_RANKED_COACH' | translate }}</span>
             <span class="kpi-val text-gold">{{ topCoach?.coachFullName || 'N/A' }}</span>
           </div>
           <div class="analytics-kpi-card">
-            <span class="kpi-lbl">Avg Player Improvement</span>
+            <span class="kpi-lbl">{{ 'ACADEMY_ADMIN.COACHES_SECTION.AVG_PLAYER_IMPROVEMENT' | translate }}</span>
             <span class="kpi-val text-lime">+{{ avgAcademyImprovement }}%</span>
           </div>
         </div>
@@ -140,8 +138,8 @@
         <!-- Empty state -->
         <div class="modal-empty-state" *ngIf="coachesAnalytics.length === 0">
           <div class="empty-icon">📊</div>
-          <h4>No Coaching Analytics Available</h4>
-          <p>No performance data has been generated for coaches in this academy yet.</p>
+          <h4>{{ 'ACADEMY_ADMIN.COACHES_SECTION.NO_ANALYTICS_AVAILABLE' | translate }}</h4>
+          <p>{{ 'ACADEMY_ADMIN.COACHES_SECTION.NO_ANALYTICS_DESC' | translate }}</p>
         </div>
 
         <!-- Coaches Table / List -->
@@ -159,12 +157,12 @@
               </div>
               <div class="coach-names">
                 <span class="coach-name">{{ coach.coachFullName }}</span>
-                <span class="coach-id">Coach ID: #{{ coach.coachUserId }}</span>
+                <span class="coach-id">{{ 'ACADEMY_ADMIN.COACHES_SECTION.COACH_ID' | translate }}{{ coach.coachUserId }}</span>
               </div>
             </div>
 
             <div class="metric-col">
-              <span class="metric-lbl">Player Improvement Rate</span>
+              <span class="metric-lbl">{{ 'ACADEMY_ADMIN.COACHES_SECTION.PLAYER_IMPROVEMENT_RATE' | translate }}</span>
               <div class="improvement-pill"
                 [ngClass]="{'positive': (coach.averagePlayerImprovementRate || 0) >= 0, 'negative': (coach.averagePlayerImprovementRate || 0) < 0}">
                 <span class="arrow">{{ (coach.averagePlayerImprovementRate || 0) >= 0 ? '▲' : '▼' }}</span>
@@ -173,20 +171,20 @@
             </div>
 
             <div class="metric-col">
-              <span class="metric-lbl">Bias Score (AI Eval)</span>
+              <span class="metric-lbl">{{ 'ACADEMY_ADMIN.COACHES_SECTION.BIAS_SCORE' | translate }}</span>
               <div class="bias-pill"
                 [ngClass]="{'low-bias': (coach.biasScore || 0) < 0.1, 'med-bias': (coach.biasScore || 0) >= 0.1}">
-                {{ coach.biasScore != null ? (coach.biasScore | number:'1.2-2') : '0.00 (Neutral)' }}
+                {{ coach.biasScore != null ? (coach.biasScore | number:'1.2-2') : ('0.00 (' + ('ACADEMY_ADMIN.COACHES_SECTION.NEUTRAL' | translate) + ')') }}
               </div>
             </div>
 
             <div class="teams-col">
-              <span class="metric-lbl">Teams Managed ({{ coach.teams?.length || 0 }})</span>
+              <span class="metric-lbl">{{ 'ACADEMY_ADMIN.COACHES_SECTION.TEAMS_MANAGED' | translate }} ({{ coach.teams?.length || 0 }})</span>
               <div class="teams-tags">
                 <span class="team-tag" *ngFor="let team of coach.teams">
-                  {{ team.teamName }} <small>({{ team.playerCount }} players)</small>
+                  {{ team.teamName }} <small>({{ team.playerCount }} {{ 'ACADEMY_ADMIN.COACHES_SECTION.PLAYERS' | translate }})</small>
                 </span>
-                <span class="team-tag empty" *ngIf="!coach.teams || coach.teams.length === 0">No Teams Assigned</span>
+                <span class="team-tag empty" *ngIf="!coach.teams || coach.teams.length === 0">{{ 'ACADEMY_ADMIN.COACHES_SECTION.NO_TEAMS_ASSIGNED' | translate }}</span>
               </div>
             </div>
           </div>
@@ -196,14 +194,14 @@
 
     <!-- Modal Footer -->
     <div class="cyber-modal-footer">
-      <app-button variant="slate" (click)="closeCoachesAnalyticsModal()">Close Window</app-button>
+      <app-button variant="slate" (click)="closeCoachesAnalyticsModal()">{{ 'ACADEMY_ADMIN.COACHES_SECTION.CLOSE_WINDOW' | translate }}</app-button>
     </div>
   </div>
 </div>
 
 <!-- Shared Cyber Confirm Dialog -->
 <app-confirm-dialog [isOpen]="isConfirmDialogOpen" [title]="confirmDialogTitle" [message]="confirmDialogMessage"
-  level="danger" confirmText="Yes, Confirm" cancelText="Cancel" [requiresConfirmation]="false"
+  level="danger" confirmText="{{ 'ACADEMY_ADMIN.MEMBERS.CONFIRM_YES' | translate }}" cancelText="{{ 'ACADEMY_ADMIN.MEMBERS.BTN_CANCEL' | translate }}" [requiresConfirmation]="false"
   (confirm)="onConfirmDialogExecute()"
   (cancel)="isConfirmDialogOpen = false; confirmActionType = null; targetIdForConfirm = null">
 </app-confirm-dialog>

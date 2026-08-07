@@ -5,7 +5,7 @@
     <thead>
       <tr>
         <th *ngFor="let col of columns">
-          <span class="header-glitch-text">{{ col.label }}</span>
+          <span class="header-glitch-text">{{ col.label | translate }}</span>
         </th>
       </tr>
     </thead>
@@ -18,13 +18,18 @@
             
             <!-- Case 1: Standard Text -->
             <ng-container *ngIf="!col.type || col.type === 'text'">
-              <span class="cell-text">{{ row[col.key] }}</span>
+              <span class="cell-text">{{ col.translate ? (row[col.key] | translate) : row[col.key] }}</span>
+            </ng-container>
+
+            <!-- Case 1.5: Date -->
+            <ng-container *ngIf="col.type === 'date'">
+              <span class="cell-text">{{ row[col.key] | localizedDate:'mediumDate' }}</span>
             </ng-container>
 
             <!-- Case 2: Status/Type Badges -->
             <ng-container *ngIf="col.type === 'badge'">
-              <span class="cyber-badge" [ngClass]="(row[col.key] || '').toString().toLowerCase()">
-                {{ row[col.key] }}
+              <span class="cyber-badge" [ngClass]="(row[col.key + 'Raw'] || row[col.key] || '').toString().toLowerCase()">
+                {{ col.translate ? (row[col.key] | translate) : row[col.key] }}
               </span>
             </ng-container>
 

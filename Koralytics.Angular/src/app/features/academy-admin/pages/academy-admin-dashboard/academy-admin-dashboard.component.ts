@@ -16,13 +16,16 @@ import { AcademyBadgesSectionComponent } from '../../components/academy-badges-s
 import { AcademyAdminsSectionComponent } from '../../components/academy-admins-section/academy-admins-section';
 import { AcademyCoachesSectionComponent } from '../../components/academy-coaches-section/academy-coaches-section';
 import { AcademyTeamsSectionComponent } from '../../components/academy-teams-section/academy-teams-section';
-import { AcademyCommSubsSectionComponent } from '../../components/academy-comm-subs-section/academy-comm-subs-section';
+import { AcademyCommunicationsSectionComponent } from '../../components/academy-communications-section/academy-communications-section';
+import { AcademySubscriptionsSectionComponent } from '../../components/academy-subscriptions-section/academy-subscriptions-section';
 import { AcademyResponseDto } from '../../../../../core/interfaces/academy.models';
 import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
 
 import { AcademyLocationsSectionComponent } from '../../components/academy-locations-section/academy-locations-section';
 import { PhoneInputComponent } from '../../../../../shared/components/phone-input/phone-input.component';
 import { ImageUpload } from '../../../../../shared/components/image-upload/image-upload';
+import { TranslatePipe } from '@ngx-translate/core';
+import { LocalizedDatePipe } from '../../../../../shared/pipes/localized-date.pipe';
 
 @Component({
   selector: 'app-academy-admin-dashboard',
@@ -39,11 +42,14 @@ import { ImageUpload } from '../../../../../shared/components/image-upload/image
     AcademyAdminsSectionComponent,
     AcademyCoachesSectionComponent,
     AcademyTeamsSectionComponent,
-    AcademyCommSubsSectionComponent,
+    AcademyCommunicationsSectionComponent,
+    AcademySubscriptionsSectionComponent,
     AcademyLocationsSectionComponent,
     LoadingSpinnerComponent,
     ScrollRevealDirective,
-    ImageUpload
+    ImageUpload,
+    TranslatePipe,
+    LocalizedDatePipe
   ],
   templateUrl: './academy-admin-dashboard.component.html',
   styleUrls: ['./academy-admin-dashboard.component.css']

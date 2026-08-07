@@ -52,12 +52,18 @@
   padding: 110px 30px 20px;
   position: relative;
   z-index: 10;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .profile-container {
   display: flex;
   flex-direction: column;
   gap: 28px;
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
 }
 
 /* ===================================================
@@ -246,6 +252,19 @@
   font-family: 'Inter', sans-serif;
 }
 
+a.pill.academy-link {
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+a.pill.academy-link:hover {
+  background: #232936;
+  border-color: #00e5ff;
+  color: #00e5ff;
+  transform: translateY(-1px);
+}
+
 .pill.gold {
   background: var(--tier-bg-glow);
   border-color: var(--tier-border-glow);
@@ -298,19 +317,117 @@
 .main-grid {
   display: grid;
   grid-template-columns: 244px 1fr 300px;
-  gap: 20px;
+  grid-template-rows: 380px auto;
+  gap: 14px 20px;
   margin-top: 20px;
   --panel-height: 380px;
 }
 
+/* Row 1 Top Panels */
 .card-col {
+  grid-column: 1;
+  grid-row: 1;
   display: flex;
-  flex-direction: column;
+  justify-content: center;
   align-items: center;
-  justify-content: flex-start;
-  min-height: var(--panel-height);
-  height: auto;
-  gap: 4px;
+  height: var(--panel-height);
+  width: 100%;
+}
+
+.pitch-panel {
+  grid-column: 2;
+  grid-row: 1;
+  height: var(--panel-height);
+}
+
+.radar-panel {
+  grid-column: 3;
+  grid-row: 1;
+  height: var(--panel-height);
+}
+
+/* Row 2 Action Buttons (100% Horizontal Alignment) */
+.card-action {
+  grid-column: 1;
+  grid-row: 2;
+  width: 100%;
+}
+
+.pitch-actions {
+  grid-column: 2;
+  grid-row: 2;
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.pitch-actions app-button {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+}
+
+.radar-action {
+  grid-column: 3;
+  grid-row: 2;
+  width: 100%;
+}
+
+@media (max-width: 992px) {
+  .main-grid {
+    grid-template-columns: 100%;
+    grid-template-rows: auto;
+    gap: 16px;
+    width: 100%;
+    box-sizing: border-box;
+    min-width: 0;
+  }
+
+  .card-col,
+  .pitch-panel,
+  .radar-panel,
+  .card-action,
+  .pitch-actions,
+  .radar-action {
+    grid-column: 1 !important;
+    grid-row: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    min-width: 0 !important;
+  }
+
+  .card-col {
+    order: 1;
+    max-width: 244px !important;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .card-action {
+    order: 2;
+    max-width: 244px !important;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .pitch-panel {
+    order: 3;
+    height: auto;
+  }
+
+  .pitch-actions {
+    order: 4;
+  }
+
+  .radar-panel {
+    order: 5;
+    height: auto;
+  }
+
+  .radar-action {
+    order: 6;
+  }
 }
 
 /* ===================================================
@@ -462,9 +579,9 @@
 .pos-pin {
   position: absolute;
   transform: translate(-50%, -50%);
-  padding: 5px 10px;
-  border-radius: 12px;
-  font-size: 11px;
+  padding: 3px 7px;
+  border-radius: 8px;
+  font-size: 10px;
   font-weight: 800;
   font-family: 'Inter', sans-serif;
   cursor: default;
@@ -473,6 +590,7 @@
   background: #0d0f14;
   color: #fff;
   border: 1px solid rgba(255, 255, 255, 0.2);
+  white-space: nowrap;
 }
 
 .pos-pin.primary {
@@ -531,13 +649,20 @@
 .radar-container {
   width: 100%;
   flex: 1;
-  min-height: 180px;
+  min-height: 200px;
   position: relative;
+  box-sizing: border-box;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .radar-container canvas {
   width: 100% !important;
   height: 100% !important;
+  max-width: 100%;
+  max-height: 100%;
 }
 
 .gk-rating-bar {
@@ -1100,9 +1225,22 @@
     align-items: flex-start;
   }
 
+  .scouter-follow-action {
+    margin: 0;
+    width: 100%;
+  }
+
+  .btn-follow {
+    width: 100%;
+    justify-content: center;
+  }
+
   .bio-quick-list {
     width: 100%;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    box-sizing: border-box;
   }
 
   .kpi-grid {
@@ -1114,13 +1252,41 @@
   }
 }
 
+@media (max-width: 768px) {
+  .bio-quick-list {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 @media (max-width: 600px) {
   .profile-page {
-    padding: 90px 16px 16px;
+    padding: 90px 14px 16px;
+  }
+
+  .profile-page ::ng-deep .custom-btn {
+    padding: 10px 14px !important;
+    font-size: 12px !important;
+    border-radius: 10px !important;
+  }
+
+  .hero-banner {
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .player-identity {
+    gap: 12px;
+  }
+
+  .avatar-circle {
+    width: 50px;
+    height: 50px;
+    font-size: 17px;
   }
 
   .player-identity h1 {
-    font-size: 22px;
+    font-size: 20px;
+    word-break: break-word;
   }
 
   .meta-pills {
@@ -1133,16 +1299,159 @@
   }
 
   .bio-quick-list {
-    flex-direction: column;
-    gap: 8px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px 8px;
+    padding: 10px 12px;
+  }
+
+  .bio-item {
+    align-items: flex-start;
+  }
+
+  .bio-lbl {
+    font-size: 9px;
+  }
+
+  .bio-val {
+    font-size: 12px;
+  }
+
+  .kpi-card {
+    padding: 12px 10px;
   }
 
   .kpi-value {
-    font-size: 34px;
+    font-size: 30px;
   }
 
   .pitch-container {
-    height: 180px;
+    min-height: 200px;
+    aspect-ratio: 16 / 10;
+  }
+
+  .pos-pin {
+    padding: 2px 5px;
+    font-size: 8.5px;
+    border-radius: 6px;
+  }
+
+  .radar-panel {
+    padding: 12px 10px;
+  }
+
+  .radar-container {
+    padding: 0;
+    min-height: 230px;
+    overflow: hidden;
+  }
+
+  .breakdown-section {
+    padding: 16px 14px;
+    border-radius: 16px;
+  }
+
+  .breakdown-section .panel-header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .comp-box {
+    padding: 14px 12px;
+  }
+
+  .position-modal {
+    padding: 16px 14px;
+    max-width: 95vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    border-radius: 16px;
+  }
+
+  .modal-header h3 {
+    font-size: 16px;
+  }
+
+  .pitch-node-btn {
+    padding: 3px 7px;
+    font-size: 9px;
+    border-radius: 10px;
+  }
+
+  .modal-footer {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  .modal-footer-btns {
+    width: 100%;
+    display: flex;
+    gap: 8px;
+  }
+
+  .modal-footer-btns app-button {
+    flex: 1;
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .bio-quick-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .pitch-actions {
+    display: flex;
+    gap: 4px;
+    width: 100%;
+  }
+
+  .pitch-actions ::ng-deep app-button,
+  .pitch-actions app-button {
+    flex: 1 1 0%;
+    min-width: 0;
+  }
+
+  .pitch-actions ::ng-deep .custom-btn {
+    padding: 8px 4px !important;
+    font-size: 10px !important;
+    border-radius: 8px !important;
+  }
+
+  .pitch-actions ::ng-deep .btn-text {
+    gap: 3px !important;
+    font-size: 10px !important;
+    letter-spacing: 0px !important;
+  }
+
+  .pitch-actions ::ng-deep svg {
+    width: 11px !important;
+    height: 11px !important;
+    flex-shrink: 0;
+  }
+
+  .pack-card-container {
+    width: 290px;
+    height: 420px;
+    max-width: 88vw;
+    max-height: 75vh;
+  }
+
+  .arch-title {
+    font-size: 22px;
+  }
+
+  .mystery-logo {
+    font-size: 32px;
+  }
+
+  .close-pack-btn {
+    top: 16px;
+    right: 16px;
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
   }
 }
 

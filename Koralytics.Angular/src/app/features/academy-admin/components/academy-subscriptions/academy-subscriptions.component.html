@@ -1,1 +1,250 @@
-<p>academy-subscriptions works!</p>
+<div class="admin-subscriptions-page">
+
+  <!-- FEEDBACK BANNERS -->
+  @if (successMessage) {
+  <div class="alert-banner success-banner">
+    <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+      <polyline points="22 4 12 14.01 9 11.01"></polyline>
+    </svg>
+    <span>{{ successMessage }}</span>
+    <button class="close-alert" (click)="successMessage = ''">&times;</button>
+  </div>
+  }
+
+  @if (errorMessage) {
+  <div class="alert-banner error-banner">
+    <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"></circle>
+      <line x1="12" y1="8" x2="12" y2="12"></line>
+      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+    </svg>
+    <span>{{ errorMessage }}</span>
+    <button class="close-alert" (click)="errorMessage = ''">&times;</button>
+  </div>
+  }
+
+  <!-- CONTROL BAR (SEARCH) -->
+  <section class="filter-bar">
+    <div class="filter-search">
+      <app-search-bar placeholderText="{{ 'ACADEMY_ADMIN.SUBSCRIPTIONS.PH_SEARCH_UNPAID' | translate }}" (searchChange)="onSearchChange($event)">
+      </app-search-bar>
+    </div>
+  </section>
+
+  <!-- LOADING / EMPTY / TABLE -->
+  @if (isLoading) {
+  <div class="loading-wrapper">
+    <app-loading-spinner size="lg"></app-loading-spinner>
+    <p class="loading-text">{{ 'ACADEMY_ADMIN.SUBSCRIPTIONS.FETCHING_UNPAID' | translate }}</p>
+  </div>
+  } @else if (filteredSubscriptions.length === 0) {
+  <div class="empty-wrapper">
+    <app-empty-state title="{{ 'ACADEMY_ADMIN.SUBSCRIPTIONS.NO_UNPAID' | translate }}"
+      description="{{ 'ACADEMY_ADMIN.SUBSCRIPTIONS.NO_UNPAID_DESC' | translate }}">
+    </app-empty-state>
+  </div>
+  } @else {
+
+  <!-- SUBSCRIPTIONS TABLE -->
+  <div class="table-card">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>{{ 'ACADEMY_ADMIN.SUBSCRIPTIONS.COL_PLAYER_NAME' | translate }}</th>
+          <th>{{ 'ACADEMY_ADMIN.SUBSCRIPTIONS.COL_ACADEMY' | translate }}</th>
+          <th>{{ 'ACADEMY_ADMIN.SUBSCRIPTIONS.COL_STATUS' | translate }}</th>
+          <th>{{ 'ACADEMY_ADMIN.SUBSCRIPTIONS.COL_ACTIONS' | translate }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (sub of paginatedSubscriptions; track sub.id) {
+        <tr>
+          <td><strong class="player-name-cell">{{ sub.playerName }}</strong></td>
+          <td class="text-slate">{{ sub.academyName }}</td>
+          <td>
+            <app-status-chip [label]="mapStatusToBadge(sub.status) | translate | uppercase" [type]="getStatusChipType(sub.status)"></app-status-chip>
+          </td>
+          <td class="action-cell">
+            <div class="action-buttons-group">
+              <!-- {{ 'ACADEMY_ADMIN.SUBSCRIPTIONS.BTN_CASH_PAID' | translate }} Button -->
+              <app-button variant="amber" [loading]="isProcessingCashId === sub.id" (click)="onMarkAsPaidByCash(sub)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px;">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                {{ 'ACADEMY_ADMIN.SUBSCRIPTIONS.BTN_CASH_PAID' | translate }}
+              </app-button>
+
+              <!-- {{ 'ACADEMY_ADMIN.SUBSCRIPTIONS.BTN_EDIT' | translate }} Unpaid Plan Button -->
+              <app-button variant="slate" (click)="openEditModal(sub)" title="{{ 'ACADEMY_ADMIN.SUBSCRIPTIONS.TITLE_EDIT_PLAN' | translate }}">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+              </app-button>
+
+              <!-- Player Billing {{ 'ACADEMY_ADMIN.SUBSCRIPTIONS.BTN_HISTORY' | translate }} Button -->
+              <app-button variant="slate" (click)="openHistoryModal(sub.playerId, sub.playerName)" title="{{ 'ACADEMY_ADMIN.SUBSCRIPTIONS.TITLE_VIEW_HISTORY' | translate }}">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+              </app-button>
+            </div>
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  @if (filteredSubscriptions.length > pageSize) {
+  <div class="pagination-wrapper mt-4">
+    <app-pagination [totalItems]="filteredSubscriptions.length" [pageSize]="pageSize" [currentPage]="currentPage"
+      (pageChange)="onPageChange($event)">
+    </app-pagination>
+  </div>
+  }
+  }
+
+  <!-- EDIT UNPAID SUBSCRIPTION MODAL -->
+  @if (isEditModalOpen && selectedSubForEdit) {
+  <div class="modal-backdrop" (click)="closeEditModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+
+      <div class="modal-header">
+        <div class="modal-header-info">
+          <div class="modal-icon-badge">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+          </div>
+          <div>
+            <h3 class="modal-title">{{ 'ACADEMY_ADMIN.SUBSCRIPTIONS.MODAL_EDIT_TITLE' | translate }}</h3>
+            <p class="modal-subtitle">{{ 'ACADEMY_ADMIN.SUBSCRIPTIONS.MODAL_EDIT_DESC' | translate }} <strong class="highlight">{{ selectedSubForEdit.playerName }}</strong></p>
+          </div>
+        </div>
+        <button class="modal-close-btn" (click)="closeEditModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group col">
+            <app-number-input
+              label="{{ 'ACADEMY_ADMIN.SUBSCRIPTIONS.LBL_SUB_AMOUNT' | translate }}"
+              placeholder="1500"
+              [min]="0"
+              [max]="100000"
+              [step]="100"
+              [value]="editSub.amount"
+              (valueChange)="onEditAmountChange($event)">
+            </app-number-input>
+          </div>
+
+          <div class="form-group col">
+            <app-select label="{{ 'ACADEMY_ADMIN.SUBSCRIPTIONS.LBL_BILLING_DURATION' | translate }}" [options]="durationOptions" [value]="editSub.duration" (valueChange)="onEditDurationSelect($event)">
+            </app-select>
+          </div>
+        </div>
+
+        <div class="form-group mt-4">
+          <app-date-picker label="{{ 'ACADEMY_ADMIN.SUBSCRIPTIONS.LBL_START_DATE' | translate }}" [value]="editSub.startDate || ''" (valueChange)="onEditStartDateChange($event)">
+          </app-date-picker>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <app-button variant="slate" (click)="closeEditModal()">{{ 'ACADEMY_ADMIN.MEMBERS.BTN_CANCEL' | translate }}</app-button>
+        <app-button variant="accent" [loading]="isEditingSub" (click)="onSaveEditedSubscription()">
+          {{ 'ACADEMY_ADMIN.SUBSCRIPTIONS.BTN_SAVE_CHANGES' | translate }}
+        </app-button>
+      </div>
+
+    </div>
+  </div>
+  }
+
+  <!-- PLAYER BILLING HISTORY MODAL -->
+  @if (selectedHistoryPlayer) {
+  <div class="modal-backdrop" (click)="closeHistoryModal()">
+    <div class="modal-card history-modal-card" (click)="$event.stopPropagation()">
+
+      <div class="modal-header">
+        <div class="modal-header-info">
+          <div class="modal-icon-badge">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <div>
+            <h3 class="modal-title">{{ 'ACADEMY_ADMIN.SUBSCRIPTIONS.MODAL_HISTORY_TITLE' | translate }}</h3>
+            <p class="modal-subtitle">{{ 'ACADEMY_ADMIN.SUBSCRIPTIONS.MODAL_HISTORY_DESC' | translate }} <strong class="highlight">{{ selectedHistoryPlayer.name }}</strong></p>
+          </div>
+        </div>
+        <button class="modal-close-btn" (click)="closeHistoryModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        @if (isLoadingHistory) {
+        <div class="loading-wrapper py-4">
+          <app-loading-spinner size="md"></app-loading-spinner>
+        </div>
+        } @else if (historySubscriptions.length === 0) {
+        <div class="empty-state-small">
+          <p>{{ 'ACADEMY_ADMIN.SUBSCRIPTIONS.NO_BILLING_RECORDS' | translate }}</p>
+        </div>
+        } @else {
+        <div class="history-table-wrapper">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>{{ 'ACADEMY_ADMIN.SUBSCRIPTIONS.COL_PERIOD' | translate }}</th>
+                <th>{{ 'ACADEMY_ADMIN.SUBSCRIPTIONS.COL_AMOUNT' | translate }}</th>
+                <th>{{ 'ACADEMY_ADMIN.SUBSCRIPTIONS.COL_STATUS' | translate }}</th>
+                <th>{{ 'ACADEMY_ADMIN.SUBSCRIPTIONS.COL_PAID_AT' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of historySubscriptions; track item.id) {
+              <tr>
+                <td class="font-mono">
+                  {{ isValidDate(item.startDate) ? (item.startDate | localizedDate:'mediumDate') : '—' }}
+                  -
+                  {{ isValidDate(item.dueDate) ? (item.dueDate | localizedDate:'mediumDate') : '—' }}
+                </td>
+                <td class="font-bold text-white">{{ item.amount }} EGP</td>
+                <td>
+                  <app-status-chip [label]="mapStatusToBadge(item.status) | translate | uppercase" [type]="getStatusChipType(item.status)"></app-status-chip>
+                </td>
+                <td class="text-slate">
+                  {{ isValidDate(item.paidAt) ? (item.paidAt | localizedDate:'mediumDate') : '—' }}
+                </td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        }
+      </div>
+
+      <div class="modal-footer">
+        <app-button variant="slate" (click)="closeHistoryModal()">{{ 'ACADEMY_ADMIN.SUBSCRIPTIONS.BTN_CLOSE' | translate }}</app-button>
+      </div>
+
+    </div>
+  </div>
+  }
+
+  <!-- Shared Cyber Confirm Dialog -->
+  <app-confirm-dialog
+    [isOpen]="isConfirmDialogOpen"
+    [title]="confirmDialogTitle"
+    [message]="confirmDialogMessage"
+    level="warning"
+    confirmText="{{ 'ACADEMY_ADMIN.SUBSCRIPTIONS.BTN_YES_MARK_PAID' | translate }}"
+    cancelText="{{ 'ACADEMY_ADMIN.MEMBERS.BTN_CANCEL' | translate }}"
+    [requiresConfirmation]="false"
+    (confirm)="onConfirmDialogExecute()"
+    (cancel)="isConfirmDialogOpen = false; targetSubForCash = null">
+  </app-confirm-dialog>
+</div>

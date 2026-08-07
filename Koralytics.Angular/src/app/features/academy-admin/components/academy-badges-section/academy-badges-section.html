@@ -1,6 +1,6 @@
 <div class="section-container fade-in">
   <div class="section-header">
-    <h3>Academy Badges</h3>
+    <h3>{{ 'ACADEMY_ADMIN.BADGES_SECTION.TITLE' | translate }}</h3>
   </div>
 
   <div class="badges-grid" *ngIf="!isLoading && badges.length > 0">
@@ -28,8 +28,8 @@
         </svg>
       </div>
       <div class="badge-info">
-        <h4>{{ getBadgeName(badge.badgeType) }}</h4>
-        <span class="badge-date">Awarded {{ badge.awardedAt | date:'mediumDate' }}</span>
+        <h4>{{ getBadgeName(badge.badgeType) | translate }}</h4>
+        <span class="badge-date">{{ 'ACADEMY_ADMIN.BADGES_SECTION.AWARDED' | translate }} {{ badge.awardedAt | localizedDate:'mediumDate' }}</span>
       </div>
     </div>
   </div>
@@ -42,11 +42,11 @@
         <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
       </svg>
     </div>
-    <p>No badges earned yet.</p>
+    <p>{{ 'ACADEMY_ADMIN.BADGES_SECTION.NO_BADGES' | translate }}</p>
   </div>
 
   <div class="loading-state" *ngIf="isLoading">
     <app-loading-spinner size="lg"></app-loading-spinner>
-    <p>Loading badges...</p>
+    <p>{{ 'ACADEMY_ADMIN.BADGES_SECTION.LOADING_BADGES' | translate }}</p>
   </div>
 </div>

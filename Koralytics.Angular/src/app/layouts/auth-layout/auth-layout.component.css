@@ -98,43 +98,68 @@ main.loaded .card-wrap {
 
 .stat-row {
   display: flex;
-  gap: 28px;
-  margin-top: 34px;
+  gap: 12px;
+  margin-top: 28px;
+  flex-wrap: wrap;
 }
 
-.stat-row div {
+.feature-chips-row .chip {
   opacity: 0;
   transform: translateY(10px);
   animation: rise .5s ease forwards;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 8px 14px;
+  border-radius: 999px;
+  backdrop-filter: blur(8px);
 }
 
-main.loaded .stat-row div {
+.feature-chips-row .chip svg {
+  width: 16px;
+  height: 16px;
+  color: var(--accent);
+}
+
+.feature-chips-row .chip span {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text);
+  letter-spacing: 0.3px;
+}
+
+main.loaded .feature-chips-row .chip {
   animation-play-state: running;
 }
 
-.stat-row div:nth-child(1) {
-  animation-delay: .5s;
-}
+.feature-chips-row .chip:nth-child(1) { animation-delay: .5s; }
+.feature-chips-row .chip:nth-child(2) { animation-delay: .62s; }
+.feature-chips-row .chip:nth-child(3) { animation-delay: .74s; }
 
-.stat-row div:nth-child(2) {
-  animation-delay: .62s;
-}
-
-.stat-row div:nth-child(3) {
-  animation-delay: .74s;
-}
-
-.stat-row div p:first-child {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 30px;
-  color: var(--text);
-  margin: 0;
-}
-
-.stat-row div p:last-child {
+.trust-badge-footer {
+  margin-top: 28px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   font-size: 12px;
   color: var(--text-dim);
-  margin: 2px 0 0;
+  line-height: 1.4;
+  opacity: 0;
+  transform: translateY(10px);
+  animation: rise .5s ease .85s forwards;
+}
+
+main.loaded .trust-badge-footer {
+  animation-play-state: running;
+}
+
+.trust-badge-footer svg {
+  width: 16px;
+  height: 16px;
+  color: var(--accent);
+  flex-shrink: 0;
 }
 
 @media (max-width: 880px) {

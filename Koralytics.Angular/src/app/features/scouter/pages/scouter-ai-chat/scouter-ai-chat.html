@@ -1,0 +1,181 @@
+<app-navbar></app-navbar>
+
+<div class="ai-chat-page">
+
+  <!-- ================= PAGE HEADER ================= -->
+  <header class="chat-header" scrollReveal direction="bottom" [delay]="0">
+    <div class="header-main">
+      <div class="brand-title-wrap">
+        <div class="brand-icon-halo">
+          <img src="images/logo/app-icon/logo-icon-dark.png" alt="Koralytics AI Icon" class="brand-header-icon" />
+          <span class="live-pulse-dot"></span>
+        </div>
+        <div>
+          <h1 class="header-title">Scouting AI Assistant</h1>
+          <p class="header-subtitle">Natural Language Scouting & Intelligent Player Analytics</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button type="button" class="nav-search-btn" (click)="navigateToSearch()" title="Switch to Player Finder Grid">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+          </svg>
+          <span>Player Finder</span>
+        </button>
+
+        @if (chatMessages().length > 0) {
+          <button type="button" class="clear-chat-btn" (click)="clearChat()" title="Clear conversation history">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+            </svg>
+            <span>Clear History</span>
+          </button>
+        }
+
+        <div class="status-badge">
+          <span class="badge-dot"></span>
+          <span>AI Engine Ready</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= CHAT CONTAINER ================= -->
+  <main class="chat-main-container" scrollReveal direction="bottom" [delay]="60">
+
+    <!-- EMPTY STATE / WELCOME SCREEN -->
+    @if (chatMessages().length === 0 && !isAiLoading()) {
+      <div class="chat-welcome-state" scrollReveal direction="bottom" [delay]="100">
+        <div class="welcome-hero-card">
+          <div class="logo-spinner-ring">
+            <div class="ring ring-outer"></div>
+            <div class="ring ring-inner"></div>
+            <img src="images/logo/app-icon/logo-icon-dark.png" alt="Koralytics AI" class="hero-logo-img" />
+          </div>
+
+          <h2 class="welcome-headline">How can I assist your scouting today?</h2>
+          <p class="welcome-subtext">
+            Ask complex queries, filter by technical profiles, footedness, overall ratings, age brackets, or ask for tactical recommendations.
+          </p>
+
+          <div class="prompts-grid">
+            <span class="prompts-title">Suggested Scouting Queries:</span>
+            <div class="prompts-chips">
+              @for (prompt of suggestedPrompts; track prompt) {
+                <button type="button" class="prompt-chip-btn" (click)="useSuggestedPrompt(prompt)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/>
+                  </svg>
+                  <span>{{ prompt }}</span>
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- CHAT MESSAGES FEED -->
+    @if (chatMessages().length > 0 || isAiLoading()) {
+      <div class="chat-feed-scroll" id="scouterAiChatFeed">
+        
+        @for (msg of chatMessages(); track msg.id) {
+          <div class="chat-message-row" [class.is-user]="msg.sender === 'user'" [class.is-assistant]="msg.sender === 'assistant'">
+            
+            <!-- AVATAR -->
+            <div class="msg-avatar">
+              @if (msg.sender === 'assistant') {
+                <div class="brand-avatar-box">
+                  <img src="images/logo/app-icon/logo-icon-dark.png" alt="Koralytics AI Logo" />
+                </div>
+              } @else {
+                <div class="user-avatar-box">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                  </svg>
+                </div>
+              }
+            </div>
+
+            <!-- MESSAGE BUBBLE -->
+            <div class="msg-bubble-wrap">
+              <div class="msg-meta-bar">
+                <span class="msg-author">{{ msg.sender === 'assistant' ? 'Koralytics Scouting AI' : 'Scouter' }}</span>
+                <span class="msg-time">{{ msg.timestamp | date:'shortTime' }}</span>
+              </div>
+              <div class="msg-content" [innerHTML]="formatMessageText(msg.text)"></div>
+            </div>
+
+          </div>
+        }
+
+        <!-- BRAND ENHANCED LOADING STATE -->
+        @if (isAiLoading()) {
+          <div class="chat-message-row is-assistant is-loading-row">
+            <div class="msg-avatar">
+              <div class="brand-avatar-box pulsing">
+                <img src="images/logo/app-icon/logo-icon-dark.png" alt="Koralytics AI Logo" />
+              </div>
+            </div>
+
+            <div class="msg-bubble-wrap">
+              <div class="msg-meta-bar">
+                <span class="msg-author">Koralytics Scouting AI</span>
+                <span class="msg-status-tag">Analyzing Data</span>
+              </div>
+              
+              <div class="msg-content ai-loading-content">
+                <div class="brand-loader-inline">
+                  <app-loading-spinner size="sm"></app-loading-spinner>
+                  <span class="loading-text">Analyzing player metrics & database…</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+
+      </div>
+    }
+
+    <!-- ================= INPUT CONTROL BAR ================= -->
+    <div class="chat-input-wrapper">
+      <div class="chat-input-bar">
+        <div class="input-icon-left" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/>
+          </svg>
+        </div>
+
+        <input
+          type="text"
+          class="chat-text-input"
+          placeholder="Ask Scouting AI (e.g. Find left-footed wingers with rating > 80)…"
+          [ngModel]="nlQuery()"
+          (ngModelChange)="nlQuery.set($event)"
+          [disabled]="isAiLoading()"
+          (keydown.enter)="onSendQuery()"
+        />
+
+        <button
+          type="button"
+          class="send-btn"
+          [disabled]="isAiLoading() || !nlQuery().trim()"
+          (click)="onSendQuery()"
+          aria-label="Send message to Scouting AI">
+          @if (isAiLoading()) {
+            <span class="send-spinner"></span>
+          } @else {
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m5 12h14M13 6l6 6-6 6"/>
+            </svg>
+          }
+        </button>
+      </div>
+    </div>
+
+  </main>
+
+</div>
+
+<app-footer scrollReveal direction="bottom" [delay]="120"></app-footer>
