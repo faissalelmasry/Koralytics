@@ -92,3 +92,9 @@ html {
   max-width: none !important;
 }
 
+
+/* RTL/LTR Table Header Alignment Fix */
+th {
+  text-align: start !important;
+}
+

@@ -3,11 +3,13 @@ import { CommonModule } from '@angular/common';
 import { AcademyService } from '../../../../../core/services/academy/academy.service';
 import { AcademyBadgeResponseDto, AcademyBadgeType } from '../../../../../core/interfaces/academy.models';
 import { LoadingSpinnerComponent } from '../../../../../shared/components/loading-spinner/loading-spinner';
+import { TranslatePipe } from '@ngx-translate/core';
+import { LocalizedDatePipe } from '../../../../../shared/pipes/localized-date.pipe';
 
 @Component({
   selector: 'app-academy-badges-section',
   standalone: true,
-  imports: [CommonModule, LoadingSpinnerComponent],
+  imports: [CommonModule, LoadingSpinnerComponent, TranslatePipe, LocalizedDatePipe],
   templateUrl: './academy-badges-section.html',
   styleUrls: ['./academy-badges-section.css']
 })
@@ -62,10 +64,10 @@ export class AcademyBadgesSectionComponent implements OnInit, OnChanges {
   getBadgeName(type: any): string {
     const t = Number(type) || type;
     switch (t) {
-      case AcademyBadgeType.Verified: case 'Verified': return 'Verified Academy';
-      case AcademyBadgeType.TopPerformer: case 'TopPerformer': return 'Top Performer';
-      case AcademyBadgeType.Premium: case 'Premium': return 'Premium Partner';
-      default: return 'Badge';
+      case AcademyBadgeType.Verified: case 'Verified': return 'ACADEMY_ADMIN.BADGES_SECTION.BADGE_VERIFIED';
+      case AcademyBadgeType.TopPerformer: case 'TopPerformer': return 'ACADEMY_ADMIN.BADGES_SECTION.BADGE_TOP_PERFORMER';
+      case AcademyBadgeType.Premium: case 'Premium': return 'ACADEMY_ADMIN.BADGES_SECTION.BADGE_PREMIUM';
+      default: return 'ACADEMY_ADMIN.BADGES_SECTION.BADGE_DEFAULT';
     }
   }
 }

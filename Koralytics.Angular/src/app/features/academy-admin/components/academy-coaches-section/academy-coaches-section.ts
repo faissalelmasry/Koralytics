@@ -11,11 +11,13 @@ import { LoadingSpinnerComponent } from '../../../../../shared/components/loadin
 import { Pagination } from '../../../../../shared/components/pagination/pagination';
 import { ConfirmDialogComponent } from '../../../../../shared/components/confirm-dialog/confirm-dialog';
 import { Router } from '@angular/router';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { LocalizedDatePipe } from '../../../../../shared/pipes/localized-date.pipe';
 
 @Component({
   selector: 'app-academy-coaches-section',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, CustomButtonComponent, DataTable, LoadingSpinnerComponent, Pagination, ConfirmDialogComponent],
+  imports: [CommonModule, ReactiveFormsModule, CustomButtonComponent, DataTable, LoadingSpinnerComponent, Pagination, ConfirmDialogComponent, TranslatePipe, LocalizedDatePipe],
   templateUrl: './academy-coaches-section.html',
   styleUrls: ['./academy-coaches-section.css']
 })
@@ -27,6 +29,7 @@ export class AcademyCoachesSectionComponent implements OnInit, OnChanges {
   private fb = inject(FormBuilder);
   private router = inject(Router);
   private authService = inject(AuthService);
+  private translate = inject(TranslateService);
 
   coaches: AcademyMemberResponseDto[] = [];
   pendingRequests: any[] = [];
@@ -40,11 +43,13 @@ export class AcademyCoachesSectionComponent implements OnInit, OnChanges {
     searchTerm: ['']
   });
 
-  tableColumns: TableColumn[] = [
-    { key: 'fullName', label: 'coach name', type: 'user' },
-    { key: 'joinedAtFormatted', label: 'joined at', type: 'text' },
-    { key: 'actions', label: 'tracking hub', type: 'action' }
-  ];
+  get tableColumns(): TableColumn[] {
+    return [
+      { key: 'fullName', label: 'ACADEMY_ADMIN.COACHES_SECTION.COL_COACH_NAME', type: 'user' },
+      { key: 'joinedAt', label: 'ACADEMY_ADMIN.COACHES_SECTION.COL_JOINED_AT', type: 'date' },
+      { key: 'actions', label: 'ACADEMY_ADMIN.COACHES_SECTION.COL_TRACKING_HUB', type: 'action' }
+    ];
+  }
 
   pageSize = 10;
   pageNumber = 1;
@@ -72,10 +77,10 @@ export class AcademyCoachesSectionComponent implements OnInit, OnChanges {
           this.totalCount = filtered.length; // Fake pagination for now
 
           this.coaches = filtered.slice((this.pageNumber - 1) * this.pageSize, this.pageNumber * this.pageSize).map(m => {
-            const dateStr = new Date(m.joinedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            
             return { 
               ...m, 
-              joinedAtFormatted: dateStr,
+              joinedAt: m.joinedAt,
               hideDelete: m.userId === this.authService.getCurrentUserSync()?.userId
             };
           });
@@ -119,7 +124,7 @@ export class AcademyCoachesSectionComponent implements OnInit, OnChanges {
       next: (res) => {
         this.isSending = false;
         if (res.isSuccess) {
-          this.toast.show('Coach join request sent!', 'success');
+          this.toast.show(this.translate.instant('ACADEMY_ADMIN.COACHES_SECTION.REQUEST_SENT_SUCCESS') || 'Coach join request sent!', 'success');
           this.loadData(); // Reload pending requests
           this.searchResults = [];
           this.searchForm.reset();
@@ -143,8 +148,8 @@ export class AcademyCoachesSectionComponent implements OnInit, OnChanges {
   onCancelRequest(requestId: number) {
     this.confirmActionType = 'cancelRequest';
     this.targetIdForConfirm = requestId;
-    this.confirmDialogTitle = 'Cancel Join Request';
-    this.confirmDialogMessage = 'Are you sure you want to cancel this pending coach join request?';
+    this.confirmDialogTitle = this.translate.instant('ACADEMY_ADMIN.COACHES_SECTION.CANCEL_REQUEST_TITLE') || 'Cancel Join Request';
+    this.confirmDialogMessage = this.translate.instant('ACADEMY_ADMIN.COACHES_SECTION.CANCEL_REQUEST_MSG') || 'Are you sure you want to cancel this pending coach join request?';
     this.isConfirmDialogOpen = true;
   }
 
@@ -163,8 +168,8 @@ export class AcademyCoachesSectionComponent implements OnInit, OnChanges {
     }
     this.confirmActionType = 'removeCoach';
     this.targetIdForConfirm = coachId;
-    this.confirmDialogTitle = 'Remove Coach';
-    this.confirmDialogMessage = 'Are you sure you want to remove this coach from the academy?';
+    this.confirmDialogTitle = this.translate.instant('ACADEMY_ADMIN.COACHES_SECTION.REMOVE_COACH_TITLE') || 'Remove Coach';
+    this.confirmDialogMessage = this.translate.instant('ACADEMY_ADMIN.COACHES_SECTION.REMOVE_COACH_MSG') || 'Are you sure you want to remove this coach from the academy?';
     this.isConfirmDialogOpen = true;
   }
 
@@ -184,7 +189,7 @@ export class AcademyCoachesSectionComponent implements OnInit, OnChanges {
       this.academyService.cancelCoachJoinRequest(targetId).subscribe({
         next: (res: any) => {
           if (res.isSuccess) {
-            this.toast.show('Request cancelled', 'success');
+            this.toast.show(this.translate.instant('ACADEMY_ADMIN.COACHES_SECTION.CANCEL_SUCCESS') || 'Request cancelled', 'success');
             this.loadData();
           } else {
             this.toast.show(res.message || 'Error cancelling request', 'error');
@@ -195,7 +200,7 @@ export class AcademyCoachesSectionComponent implements OnInit, OnChanges {
       this.academyService.removeCoach(this.academyId, targetId).subscribe({
         next: (res: any) => {
           if (res.isSuccess) {
-            this.toast.show('Coach removed successfully', 'success');
+            this.toast.show(this.translate.instant('ACADEMY_ADMIN.COACHES_SECTION.REMOVE_SUCCESS') || 'Coach removed successfully', 'success');
             this.loadData();
           } else {
             this.toast.show(res.message || 'Error removing coach', 'error');

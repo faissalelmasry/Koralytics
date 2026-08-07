@@ -10,11 +10,14 @@ import { DataTable, TableColumn } from '../../../../../shared/components/data-ta
 import { Pagination } from '../../../../../shared/components/pagination/pagination';
 import { LoadingSpinnerComponent } from '../../../../../shared/components/loading-spinner/loading-spinner';
 import { ConfirmDialogComponent } from '../../../../../shared/components/confirm-dialog/confirm-dialog';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { LocalizedDatePipe } from '../../../../../shared/pipes/localized-date.pipe';
 
 @Component({
   selector: 'app-academy-members',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, CustomButtonComponent, DataTable, Pagination, LoadingSpinnerComponent, ConfirmDialogComponent],
+  imports: [CommonModule, ReactiveFormsModule, CustomButtonComponent, DataTable, Pagination, LoadingSpinnerComponent, ConfirmDialogComponent, TranslatePipe, LocalizedDatePipe],
+  providers: [LocalizedDatePipe],
   templateUrl: './academy-members.component.html',
   styleUrls: ['./academy-members.component.css']
 })
@@ -26,6 +29,8 @@ export class AcademyMembersComponent implements OnInit, OnChanges {
   private toast = inject(ToastService);
   private fb = inject(FormBuilder);
   private router = inject(Router);
+  private translate = inject(TranslateService);
+  private localizedDate = inject(LocalizedDatePipe);
 
   membersData: PagedResponseDto<AcademyMemberResponseDto> | null = null;
   pendingRequests: any[] = [];
@@ -41,13 +46,15 @@ export class AcademyMembersComponent implements OnInit, OnChanges {
     searchTerm: ['']
   });
 
-  tableColumns: TableColumn[] = [
-    { key: 'fullName', label: 'player name', type: 'user' },
-    { key: 'position', label: 'position', type: 'text' },
-    { key: 'squadStatus', label: 'squad status', type: 'badge' },
-    { key: 'joinedAtFormatted', label: 'joined at', type: 'text' },
-    { key: 'actions', label: 'tracking hub', type: 'action' }
-  ];
+  get tableColumns(): TableColumn[] {
+    return [
+      { key: 'fullName', label: 'ACADEMY_ADMIN.MEMBERS.COL_PLAYER_NAME', type: 'user' },
+      { key: 'position', label: 'ACADEMY_ADMIN.MEMBERS.COL_POSITION', type: 'text' },
+      { key: 'squadStatus', label: 'ACADEMY_ADMIN.MEMBERS.COL_SQUAD_STATUS', type: 'badge', translate: true },
+      { key: 'joinedAt', label: 'ACADEMY_ADMIN.MEMBERS.COL_JOINED_AT', type: 'date' },
+      { key: 'actions', label: 'ACADEMY_ADMIN.MEMBERS.COL_TRACKING_HUB', type: 'action' }
+    ];
+  }
 
   ngOnInit(): void {
     this.loadData();
@@ -75,9 +82,15 @@ export class AcademyMembersComponent implements OnInit, OnChanges {
             let pos = m.position || 'Unknown';
             pos = pos.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
 
-            const dateStr = new Date(m.joinedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            
 
-            return { ...m, squadStatus: status, position: pos, joinedAtFormatted: dateStr };
+            return { 
+              ...m, 
+              squadStatus: 'ACADEMY_ADMIN.MEMBERS.STATUS_' + status.toUpperCase(), 
+              squadStatusRaw: status, 
+              position: pos, 
+              joinedAt: m.joinedAt 
+            };
           });
 
           this.membersData = {
@@ -147,8 +160,8 @@ export class AcademyMembersComponent implements OnInit, OnChanges {
   onCancelRequest(requestId: number) {
     this.confirmActionType = 'cancelRequest';
     this.targetIdForConfirm = requestId;
-    this.confirmDialogTitle = 'Cancel Join Request';
-    this.confirmDialogMessage = 'Are you sure you want to cancel this pending player join request?';
+    this.confirmDialogTitle = 'ACADEMY_ADMIN.MEMBERS.CANCEL_REQUEST_TITLE';
+    this.confirmDialogMessage = 'ACADEMY_ADMIN.MEMBERS.CANCEL_REQUEST_MSG';
     this.isConfirmDialogOpen = true;
   }
 
@@ -163,8 +176,8 @@ export class AcademyMembersComponent implements OnInit, OnChanges {
   onRemoveMember(playerId: number) {
     this.confirmActionType = 'removeMember';
     this.targetIdForConfirm = playerId;
-    this.confirmDialogTitle = 'Remove Academy Member';
-    this.confirmDialogMessage = 'Are you sure you want to remove this player from the academy?';
+    this.confirmDialogTitle = 'ACADEMY_ADMIN.MEMBERS.REMOVE_MEMBER_TITLE';
+    this.confirmDialogMessage = 'ACADEMY_ADMIN.MEMBERS.REMOVE_MEMBER_MSG';
     this.isConfirmDialogOpen = true;
   }
 
@@ -184,7 +197,7 @@ export class AcademyMembersComponent implements OnInit, OnChanges {
       this.academyService.cancelPlayerJoinRequest(targetId).subscribe({
         next: (res) => {
           if (res.isSuccess) {
-            this.toast.show('Request cancelled', 'success');
+            this.toast.show(this.translate.instant('ACADEMY_ADMIN.MEMBERS.TOAST_CANCEL_SUCCESS') || 'Request cancelled', 'success');
             this.loadData();
           } else {
             this.toast.show(res.message || 'Error cancelling request', 'error');
@@ -195,7 +208,7 @@ export class AcademyMembersComponent implements OnInit, OnChanges {
       this.academyService.removePlayer(this.academyId, targetId).subscribe({
         next: (res) => {
           if (res.isSuccess) {
-            this.toast.show('Member removed successfully', 'success');
+            this.toast.show(this.translate.instant('ACADEMY_ADMIN.MEMBERS.TOAST_REMOVE_SUCCESS') || 'Player removed successfully', 'success');
             this.loadData();
           } else {
             this.toast.show(res.message || 'Error removing member', 'error');

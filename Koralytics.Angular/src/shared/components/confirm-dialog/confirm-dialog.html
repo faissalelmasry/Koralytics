@@ -4,13 +4,13 @@
       
       <!-- HEADER -->
       <div class="dialog-header">
-        <h2>{{ title }}</h2>
+        <h2>{{ title | translate }}</h2>
         <button class="close-btn" (click)="onCancel()">✕</button>
       </div>
 
       <!-- BODY -->
       <div class="dialog-body">
-        <p class="dialog-message">{{ message }}</p>
+        <p class="dialog-message">{{ message | translate }}</p>
 
         <!-- DETAILS LIST -->
         @if (details && details.length > 0) {

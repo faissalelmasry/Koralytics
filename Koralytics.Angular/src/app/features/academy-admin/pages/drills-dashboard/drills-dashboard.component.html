@@ -6,11 +6,10 @@
   <section class="page-header-block">
     <div class="header-eyebrow">
       <span class="eyebrow-dot"></span>
-      <span class="eyebrow-text">Academy Admin</span>
+      <span class="eyebrow-text">{{ 'ACADEMY_ADMIN.DRILLS_DASHBOARD.ACADEMY_ADMIN_EYEBROW' | translate }}</span>
     </div>
-    <h1 class="header-title">Drills Command Center</h1>
-    <p class="header-subtitle">Manage drill templates, monitor training sessions, and detect coaching patterns across
-      your academy.</p>
+    <h1 class="header-title">{{ 'ACADEMY_ADMIN.DRILLS_DASHBOARD.DRILLS_COMMAND_CENTER' | translate }}</h1>
+    <p class="header-subtitle">{{ 'ACADEMY_ADMIN.DRILLS_DASHBOARD.DRILLS_SUBTITLE' | translate }}</p>
   </section>
 
   <!-- MODULE GRID -->
@@ -30,10 +29,9 @@
         </svg>
       </div>
       <div class="card-body">
-        <div class="card-badge">Templates</div>
-        <h3 class="card-title">Drill Templates</h3>
-        <p class="card-desc">Browse, create, and manage all drill exercise templates. Define skill categories,
-          difficulty levels, and training structures for your academy.</p>
+        <div class="card-badge">{{ 'ACADEMY_ADMIN.DRILLS_DASHBOARD.BADGE_TEMPLATES' | translate }}</div>
+        <h3 class="card-title">{{ 'ACADEMY_ADMIN.DRILLS_DASHBOARD.CARD_DRILL_TEMPLATES' | translate }}</h3>
+        <p class="card-desc">{{ 'ACADEMY_ADMIN.DRILLS_DASHBOARD.DESC_DRILL_TEMPLATES' | translate }}</p>
         <div class="card-stats-row">
           <div class="stat-item">
             <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
@@ -45,7 +43,7 @@
               <line x1="3" y1="12" x2="3.01" y2="12"></line>
               <line x1="3" y1="18" x2="3.01" y2="18"></line>
             </svg>
-            <span>All Categories</span>
+            <span>{{ 'ACADEMY_ADMIN.DRILLS_DASHBOARD.STAT_ALL_CATEGORIES' | translate }}</span>
           </div>
           <div class="stat-item">
             <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
@@ -53,12 +51,12 @@
               <circle cx="12" cy="12" r="10"></circle>
               <circle cx="12" cy="12" r="3"></circle>
             </svg>
-            <span>Skill Targets</span>
+            <span>{{ 'ACADEMY_ADMIN.DRILLS_DASHBOARD.STAT_SKILL_TARGETS' | translate }}</span>
           </div>
         </div>
       </div>
       <div class="card-action-arrow">
-        <span>Manage Templates</span>
+        <span>{{ 'ACADEMY_ADMIN.DRILLS_DASHBOARD.BTN_MANAGE_TEMPLATES' | translate }}</span>
         <svg class="arrow-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <line x1="5" y1="12" x2="19" y2="12"></line>
           <polyline points="12 5 19 12 12 19"></polyline>
@@ -77,10 +75,9 @@
         </svg>
       </div>
       <div class="card-body">
-        <div class="card-badge badge-lime">Sessions</div>
-        <h3 class="card-title">Drill Sessions</h3>
-        <p class="card-desc">View all scheduled and completed training sessions. Track attendance, coach assignments,
-          player participation, and session outcomes.</p>
+        <div class="card-badge badge-lime">{{ 'ACADEMY_ADMIN.DRILLS_DASHBOARD.BADGE_SESSIONS' | translate }}</div>
+        <h3 class="card-title">{{ 'ACADEMY_ADMIN.DRILLS_DASHBOARD.CARD_DRILL_SESSIONS' | translate }}</h3>
+        <p class="card-desc">{{ 'ACADEMY_ADMIN.DRILLS_DASHBOARD.DESC_DRILL_SESSIONS' | translate }}</p>
         <div class="card-stats-row">
           <div class="stat-item">
             <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
@@ -90,19 +87,19 @@
               <line x1="8" y1="2" x2="8" y2="6"></line>
               <line x1="3" y1="10" x2="21" y2="10"></line>
             </svg>
-            <span>Upcoming &amp; Past</span>
+            <span>{{ 'ACADEMY_ADMIN.DRILLS_DASHBOARD.STAT_UPCOMING_PAST' | translate }}</span>
           </div>
           <div class="stat-item">
             <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
               stroke-linecap="round" stroke-linejoin="round">
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
-            <span>Attendance Logs</span>
+            <span>{{ 'ACADEMY_ADMIN.DRILLS_DASHBOARD.STAT_ATTENDANCE_LOGS' | translate }}</span>
           </div>
         </div>
       </div>
       <div class="card-action-arrow">
-        <span>View Sessions</span>
+        <span>{{ 'ACADEMY_ADMIN.DRILLS_DASHBOARD.BTN_VIEW_SESSIONS' | translate }}</span>
         <svg class="arrow-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <line x1="5" y1="12" x2="19" y2="12"></line>
           <polyline points="12 5 19 12 12 19"></polyline>
@@ -112,33 +109,32 @@
 
     <!-- CARD 3: COACH BIAS DETECTION -->
     <app-feature-lock feature="AIInsights" featureName="Coach Bias Analytics">
-      <div class="module-card card-amber" (click)="navigateToCoachBias()">
-        <div class="card-glass-glow"></div>
-        <div class="card-header-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
-            stroke-linejoin="round">
-            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-            <line x1="12" y1="9" x2="12" y2="13"></line>
-            <line x1="12" y1="17" x2="12.01" y2="17"></line>
-          </svg>
-        </div>
-        <div class="card-body">
-          <div class="card-badge badge-amber">Analytics</div>
-          <h3 class="card-title">Detect Coach Bias</h3>
-          <p class="card-desc">AI-powered analysis that identifies potential coaching biases in player ratings. Ensure
-            fair and objective evaluation across all coaches and squads.</p>
-          <div class="card-stats-row">
-            <div class="stat-item">
-              <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-                stroke-linecap="round" stroke-linejoin="round">
-                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-                <line x1="8" y1="21" x2="16" y2="21"></line>
-                <line x1="12" y1="17" x2="12" y2="21"></line>
-              </svg>
-              <span>AI Analysis</span>
-            </div>
-            <div class="stat-item">
-              <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+    <div class="module-card card-amber" (click)="navigateToCoachBias()">
+      <div class="card-glass-glow"></div>
+      <div class="card-header-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+          stroke-linejoin="round">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+          <line x1="12" y1="9" x2="12" y2="13"></line>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+      </div>
+      <div class="card-body">
+        <div class="card-badge badge-amber">{{ 'ACADEMY_ADMIN.DRILLS_DASHBOARD.BADGE_ANALYTICS' | translate }}</div>
+        <h3 class="card-title">{{ 'ACADEMY_ADMIN.DRILLS_DASHBOARD.CARD_COACH_BIAS' | translate }}</h3>
+        <p class="card-desc">{{ 'ACADEMY_ADMIN.DRILLS_DASHBOARD.DESC_COACH_BIAS' | translate }}</p>
+        <div class="card-stats-row">
+          <div class="stat-item">
+            <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+              <line x1="8" y1="21" x2="16" y2="21"></line>
+              <line x1="12" y1="17" x2="12" y2="21"></line>
+            </svg>
+            <span>{{ 'ACADEMY_ADMIN.DRILLS_DASHBOARD.STAT_AI_ANALYSIS' | translate }}</span>
+          </div>
+          <div class="stat-item">
+            <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
               stroke-linecap="round" stroke-linejoin="round">
               <line x1="12" y1="2" x2="12" y2="6"></line>
               <line x1="12" y1="18" x2="12" y2="22"></line>
@@ -149,12 +145,12 @@
               <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
               <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
             </svg>
-            <span>Fairness Report</span>
+            <span>{{ 'ACADEMY_ADMIN.DRILLS_DASHBOARD.STAT_FAIRNESS_REPORT' | translate }}</span>
           </div>
         </div>
       </div>
       <div class="card-action-arrow">
-        <span>Detect Bias</span>
+        <span>{{ 'ACADEMY_ADMIN.DRILLS_DASHBOARD.BTN_DETECT_BIAS' | translate }}</span>
         <svg class="arrow-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <line x1="5" y1="12" x2="19" y2="12"></line>
           <polyline points="12 5 19 12 12 19"></polyline>

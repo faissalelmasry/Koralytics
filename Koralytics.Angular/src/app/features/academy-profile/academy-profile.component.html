@@ -4,23 +4,15 @@
   @if (isLoading) {
   <div class="loading-state">
     <app-loading-spinner size="lg"></app-loading-spinner>
-    <p>Loading academy profile...</p>
+    <p>{{ 'ACADEMY_PROFILE.LOADING' | translate }}</p>
   </div>
   } @else if (error) {
   <div class="error-state">
     <div class="error-icon">!</div>
-    <p>{{ error }}</p>
+    <p>{{ error === 'No Academy ID specified.' ? ('ACADEMY_PROFILE.ERROR_NO_ID' | translate) : error }}</p>
   </div>
   } @else if (academy) {
   <div class="profile-container">
-
-    <!-- TACTICAL TAG ROW
-      <div class="tactical-header-row" scrollReveal direction="bottom" [delay]="0">
-        <div class="tactical-tag">
-          <span class="pulse-dot"></span>
-          ACADEMY PUBLIC PROFILE // KORALYTICS NETWORK
-        </div>
-      </div> -->
 
     <!-- =============== 1. HERO BANNER =============== -->
     <div class="hero-banner" scrollReveal direction="bottom" [delay]="50">
@@ -35,28 +27,28 @@
         <div>
           <h1>{{ academy.name }}</h1>
           <div class="meta-pills">
-            <span class="pill status-pill">{{ academy.status || 'Active' }}</span>
-            <span class="pill">Founded {{ (academy.foundedAt || academy.createdAt) | date:'yyyy' }}</span>
+            <span class="pill status-pill">{{ (academy.status || 'Active') === 'Active' ? ('ACADEMY_PROFILE.STATUS_ACTIVE' | translate) : academy.status }}</span>
+            <span class="pill">{{ 'ACADEMY_PROFILE.FOUNDED_PREFIX' | translate }} {{ (academy.foundedAt || academy.createdAt) | date:'yyyy' }}</span>
             @if (mainLocation) {
             <span class="pill location-pill">{{ mainLocation.city }}</span>
             }
-            <span class="pill">{{ badges.length }} Honors</span>
+            <span class="pill">{{ badges.length }} {{ 'ACADEMY_PROFILE.HONORS_SUFFIX' | translate }}</span>
           </div>
         </div>
       </div>
 
       <div class="bio-quick-list">
         <div class="bio-item">
-          <span class="bio-lbl">Branches</span>
-          <span class="bio-val">{{ locations.length || 1 }} Active</span>
+          <span class="bio-lbl">{{ 'ACADEMY_PROFILE.BIO_BRANCHES' | translate }}</span>
+          <span class="bio-val">{{ 'ACADEMY_PROFILE.BIO_BRANCHES_VAL' | translate:{count: locations.length || 1} }}</span>
         </div>
         <div class="bio-item">
-          <span class="bio-lbl">Teams</span>
-          <span class="bio-val">{{ teams.length }} Squads</span>
+          <span class="bio-lbl">{{ 'ACADEMY_PROFILE.BIO_TEAMS' | translate }}</span>
+          <span class="bio-val">{{ 'ACADEMY_PROFILE.BIO_TEAMS_VAL' | translate:{count: teams.length} }}</span>
         </div>
         <div class="bio-item">
-          <span class="bio-lbl">Roster</span>
-          <span class="bio-val">{{ members.length }} Members</span>
+          <span class="bio-lbl">{{ 'ACADEMY_PROFILE.BIO_ROSTER' | translate }}</span>
+          <span class="bio-val">{{ 'ACADEMY_PROFILE.BIO_ROSTER_VAL' | translate:{count: members.length} }}</span>
         </div>
         <div class="hero-action-btn">
           <app-button variant="cyan" [shimmer]="true" (click)="shareProfile()">
@@ -68,7 +60,7 @@
               <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
               <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
             </svg>
-            &nbsp;Share Profile
+            &nbsp;{{ 'ACADEMY_PROFILE.BTN_SHARE_PROFILE' | translate }}
           </app-button>
         </div>
       </div>
@@ -77,27 +69,27 @@
     <!-- =============== 2. KPI GRID =============== -->
     <div #countersSection class="kpi-grid" scrollReveal direction="bottom" [delay]="100">
       <div class="kpi-card">
-        <div class="kpi-header">Total Members</div>
+        <div class="kpi-header">{{ 'ACADEMY_PROFILE.KPI_MEMBERS' | translate }}</div>
         <div class="kpi-value">{{ animatedCounters.members }}</div>
-        <div class="kpi-sub">Coaches & Players in Roster</div>
+        <div class="kpi-sub">{{ 'ACADEMY_PROFILE.KPI_MEMBERS_SUB' | translate }}</div>
       </div>
 
       <div class="kpi-card highlight">
-        <div class="kpi-header">Active Teams</div>
+        <div class="kpi-header">{{ 'ACADEMY_PROFILE.KPI_TEAMS' | translate }}</div>
         <div class="kpi-value">{{ animatedCounters.teams }}</div>
-        <div class="kpi-sub">Across All Age Brackets</div>
+        <div class="kpi-sub">{{ 'ACADEMY_PROFILE.KPI_TEAMS_SUB' | translate }}</div>
       </div>
 
       <div class="kpi-card">
-        <div class="kpi-header">Academy Branches</div>
+        <div class="kpi-header">{{ 'ACADEMY_PROFILE.KPI_LOCATIONS' | translate }}</div>
         <div class="kpi-value">{{ animatedCounters.locations }}</div>
-        <div class="kpi-sub">Active Training Facilities</div>
+        <div class="kpi-sub">{{ 'ACADEMY_PROFILE.KPI_LOCATIONS_SUB' | translate }}</div>
       </div>
 
       <div class="kpi-card highlight">
-        <div class="kpi-header">Earned Honors</div>
+        <div class="kpi-header">{{ 'ACADEMY_PROFILE.KPI_BADGES' | translate }}</div>
         <div class="kpi-value">{{ animatedCounters.badges }}</div>
-        <div class="kpi-sub">Verified Awards & Badges</div>
+        <div class="kpi-sub">{{ 'ACADEMY_PROFILE.KPI_BADGES_SUB' | translate }}</div>
       </div>
     </div>
 
@@ -112,7 +104,7 @@
             <rect x="14" y="14" width="7" height="7"></rect>
             <rect x="3" y="14" width="7" height="7"></rect>
           </svg>
-          Overview
+          {{ 'ACADEMY_PROFILE.TAB_OVERVIEW' | translate }}
         </button>
         <button class="nav-tab" [class.active]="activeTab === 'badges'" (click)="setActiveTab('badges')">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -120,7 +112,7 @@
             <circle cx="12" cy="8" r="7"></circle>
             <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
           </svg>
-          Badges <span class="tab-count">{{ badges.length }}</span>
+          {{ 'ACADEMY_PROFILE.TAB_BADGES' | translate }} <span class="tab-count">{{ badges.length }}</span>
         </button>
         <button class="nav-tab" [class.active]="activeTab === 'locations'" (click)="setActiveTab('locations')">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -128,7 +120,7 @@
             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
             <circle cx="12" cy="10" r="3"></circle>
           </svg>
-          Locations <span class="tab-count">{{ locations.length }}</span>
+          {{ 'ACADEMY_PROFILE.TAB_LOCATIONS' | translate }} <span class="tab-count">{{ locations.length }}</span>
         </button>
         <button class="nav-tab" [class.active]="activeTab === 'teams'" (click)="setActiveTab('teams')">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -138,7 +130,7 @@
             <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
             <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
           </svg>
-          Teams <span class="tab-count">{{ teams.length }}</span>
+          {{ 'ACADEMY_PROFILE.TAB_TEAMS' | translate }} <span class="tab-count">{{ teams.length }}</span>
         </button>
         <button class="nav-tab" [class.active]="activeTab === 'members'" (click)="setActiveTab('members')">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -146,7 +138,7 @@
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
             <circle cx="12" cy="7" r="4"></circle>
           </svg>
-          Roster <span class="tab-count">{{ members.length }}</span>
+          {{ 'ACADEMY_PROFILE.TAB_ROSTER' | translate }} <span class="tab-count">{{ members.length }}</span>
         </button>
       </div>
     </div>
@@ -154,375 +146,37 @@
     <!-- =============== 4. TAB CONTENTS =============== -->
     <div class="tab-content-area">
 
-      <!-- OVERVIEW TAB -->
       @if (activeTab === 'overview') {
-      <div class="overview-grid" scrollReveal direction="bottom" [delay]="200">
-        <!-- Left Panel: Featured Badges -->
-        <div class="cyber-panel">
-          <div class="panel-header">
-            <h3>Featured Academy Badges</h3>
-            @if (badges.length > 0) {
-            <app-button variant="slate" (click)="setActiveTab('badges')">View All ({{ badges.length }})</app-button>
-            }
-          </div>
-          <div class="panel-body">
-            @if (badges.length > 0) {
-            <div class="featured-badges-list">
-              @for (badge of badges.slice(0, 3); track badge.id) {
-              <div class="badge-row-card">
-                <div class="badge-icon-box" [ngSwitch]="getBadgeTypeKey(badge.badgeType)">
-                  <svg *ngSwitchCase="'Verified'" width="28" height="28" viewBox="0 0 24 24" fill="none"
-                    stroke="#60a5fa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                    <polyline points="9 12 11 14 15 10"></polyline>
-                  </svg>
-                  <svg *ngSwitchCase="'TopPerformer'" width="28" height="28" viewBox="0 0 24 24" fill="none"
-                    stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polygon
-                      points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
-                    </polygon>
-                  </svg>
-                  <svg *ngSwitchCase="'Premium'" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a855f7"
-                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path>
-                  </svg>
-                  <svg *ngSwitchDefault width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#38bdf8"
-                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="8" r="7"></circle>
-                    <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
-                  </svg>
-                </div>
-                <div class="badge-row-text">
-                  <div class="badge-row-title">{{ getBadgeName(badge.badgeType) }}</div>
-                  <div class="badge-row-sub">Awarded {{ badge.awardedAt | date:'mediumDate' }}</div>
-                </div>
-              </div>
-              }
-            </div>
-            } @else {
-            <app-empty-state title="No Honors Yet"
-              message="This academy has not earned any badges yet."></app-empty-state>
-            }
-          </div>
-        </div>
-
-        <!-- Right Panel: Facility & Squad Preview -->
-        <div class="cyber-panel">
-          <div class="panel-header">
-            <h3>Main Facility & Squad Summary</h3>
-            @if (locations.length > 0) {
-            <app-button variant="slate" (click)="setActiveTab('locations')">All Facilities</app-button>
-            }
-          </div>
-          <div class="panel-body">
-            @if (mainLocation) {
-            <div class="main-facility-card">
-              <div class="facility-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                  <circle cx="12" cy="10" r="3"></circle>
-                </svg>
-              </div>
-              <div class="facility-details">
-                <div class="facility-name">{{ mainLocation.name }} <span class="main-tag">MAIN BRANCH</span></div>
-                <div class="facility-address">{{ mainLocation.address }}, {{ mainLocation.city }}</div>
-              </div>
-            </div>
-            } @else {
-            <app-empty-state title="No Locations Listed"
-              message="This academy has not added any facility addresses yet."></app-empty-state>
-            }
-
-            <div class="summary-stats-box">
-              <div class="summary-stat">
-                <span class="stat-num">{{ teams.length }}</span>
-                <span class="stat-label">Active Teams</span>
-              </div>
-              <div class="summary-stat">
-                <span class="stat-num">{{ members.length }}</span>
-                <span class="stat-label">Registered Members</span>
-              </div>
-              <div class="summary-stat">
-                <span class="stat-num">{{ locations.length }}</span>
-                <span class="stat-label">Total Facilities</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <app-academy-profile-overview 
+        [badges]="badges" 
+        [locations]="locations" 
+        [teams]="teams" 
+        [members]="members"
+        (viewAllBadges)="setActiveTab('badges')"
+        (viewAllLocations)="setActiveTab('locations')">
+      </app-academy-profile-overview>
       }
 
-      <!-- BADGES TAB -->
       @if (activeTab === 'badges') {
-      <div class="cyber-panel" scrollReveal direction="bottom" [delay]="200">
-        <div class="panel-header">
-          <h3>All Academy Badges</h3>
-        </div>
-        <div class="panel-body">
-          @if (badges.length > 0) {
-          <div class="badges-grid">
-            @for (badge of badges; track badge.id) {
-            <div class="badge-card">
-              <div class="badge-icon-container" [ngSwitch]="getBadgeTypeKey(badge.badgeType)">
-                <svg *ngSwitchCase="'Verified'" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#60a5fa"
-                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                  <polyline points="9 12 11 14 15 10"></polyline>
-                </svg>
-                <svg *ngSwitchCase="'TopPerformer'" width="32" height="32" viewBox="0 0 24 24" fill="none"
-                  stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <polygon
-                    points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
-                  </polygon>
-                </svg>
-                <svg *ngSwitchCase="'Premium'" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#a855f7"
-                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path>
-                </svg>
-                <svg *ngSwitchDefault width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#38bdf8"
-                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="8" r="7"></circle>
-                  <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
-                </svg>
-              </div>
-              <div class="badge-info">
-                <h4>{{ getBadgeName(badge.badgeType) }}</h4>
-                <span class="badge-date">Awarded {{ badge.awardedAt | date:'mediumDate' }}</span>
-              </div>
-            </div>
-            }
-          </div>
-          } @else {
-          <app-empty-state title="No Badges Awarded"
-            message="No verified badges or honors found for this academy."></app-empty-state>
-          }
-        </div>
-      </div>
+      <app-academy-profile-badges [badges]="badges"></app-academy-profile-badges>
       }
 
-      <!-- LOCATIONS TAB -->
       @if (activeTab === 'locations') {
-      <div class="cyber-panel" scrollReveal direction="bottom" [delay]="200">
-        <div class="panel-header">
-          <h3>Academy Facilities & Branches</h3>
-        </div>
-        <div class="panel-body">
-          @if (locations.length > 0) {
-          <div class="locations-grid">
-            @for (loc of locations; track loc.id) {
-            <div class="location-card" [class.main-branch]="loc.isMain || loc.isMainLocation">
-              <div class="location-header">
-                <div class="loc-title-wrap">
-                  <span class="location-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                      stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                      <circle cx="12" cy="10" r="3"></circle>
-                    </svg>
-                  </span>
-                  <h4>{{ loc.name }}</h4>
-                </div>
-                @if (loc.isMain || loc.isMainLocation) {
-                <span class="cyber-badge cyber-cyan">MAIN BRANCH</span>
-                }
-              </div>
-              <div class="location-body">
-                <div class="loc-row">
-                  <span class="loc-label">Address:</span>
-                  <span class="loc-val">{{ loc.address }}</span>
-                </div>
-                <div class="loc-row">
-                  <span class="loc-label">City:</span>
-                  <span class="loc-val">{{ loc.city }}</span>
-                </div>
-              </div>
-            </div>
-            }
-          </div>
-          } @else {
-          <app-empty-state title="No Locations Found"
-            message="This academy has no active locations registered."></app-empty-state>
-          }
-        </div>
-      </div>
+      <app-academy-profile-locations [locations]="locations"></app-academy-profile-locations>
       }
 
-      <!-- TEAMS TAB -->
       @if (activeTab === 'teams') {
-      <div class="cyber-panel" scrollReveal direction="bottom" [delay]="200">
-        <div class="panel-header">
-          <h3>Academy Squads & Age Brackets</h3>
-        </div>
-        <div class="panel-body">
-          @if (teams.length > 0) {
-          <div class="teams-grid">
-            @for (team of teams; track team.id) {
-            <div class="team-card">
-              <div class="team-card-header">
-                <h4>{{ team.name }}</h4>
-                @if (team.ageGroupName) {
-                <span class="cyber-badge cyber-lime">{{ team.ageGroupName }}</span>
-                }
-              </div>
-              <div class="team-card-body">
-                @if (team.locationName) {
-                <div class="team-meta-row">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                    <circle cx="12" cy="10" r="3"></circle>
-                  </svg>
-                  <span>{{ team.locationName }}</span>
-                </div>
-                }
-                <div class="team-stats-bar">
-                  <div class="team-stat-item">
-                    <strong>{{ (team.coaches && team.coaches.length) || 0 }}</strong>
-                    <span>Coaches</span>
-                  </div>
-                  <div class="team-stat-item">
-                    <strong>{{ (team.players && team.players.length) || 0 }}</strong>
-                    <span>Players</span>
-                  </div>
-                </div>
-
-                <div class="team-card-actions">
-                  <button type="button" class="expand-roster-btn" (click)="toggleTeamExpand(team.id)">
-                    <span>{{ isTeamExpanded(team.id) ? 'Hide Squad Members ▲' : 'View Squad Members ▼' }}</span>
-                  </button>
-                </div>
-
-                @if (isTeamExpanded(team.id)) {
-                <div class="team-roster-expanded">
-                  @if (team.coaches && team.coaches.length > 0) {
-                  <div class="roster-group">
-                    <div class="roster-group-title">Coaching Staff</div>
-                    <div class="roster-pills">
-                      @for (c of team.coaches; track c.coachId) {
-                      <button type="button" class="member-chip coach-chip"
-                        (click)="viewMemberProfile(c.coachId, 'Coach')">
-                        @if (c.profileImageUrl || c.imageUrl) {
-                        <img [src]="c.profileImageUrl || c.imageUrl" [alt]="c.coachFullName" class="chip-avatar" />
-                        } @else {
-                        <span class="chip-avatar-initial coach-initial">{{ (c.coachFullName || 'C')[0].toUpperCase() }}</span>
-                        }
-                        <span>{{ c.coachFullName }}</span>
-                        <span class="ext-icon">↗</span>
-                      </button>
-                      }
-                    </div>
-                  </div>
-                  }
-
-                  @if (team.players && team.players.length > 0) {
-                  <div class="roster-group">
-                    <div class="roster-group-title">Players</div>
-                    <div class="roster-pills">
-                      @for (p of team.players; track p.playerId) {
-                      <button type="button" class="member-chip player-chip"
-                        (click)="viewMemberProfile(p.playerId, 'Player')">
-                        @if (p.profileImageUrl || p.imageUrl) {
-                        <img [src]="p.profileImageUrl || p.imageUrl" [alt]="p.playerFullName" class="chip-avatar" />
-                        } @else {
-                        <span class="chip-avatar-initial player-initial">{{ (p.playerFullName || 'P')[0].toUpperCase() }}</span>
-                        }
-                        <span>{{ p.playerFullName }}</span>
-                        @if (p.position) {
-                        <span class="chip-pos">({{ p.position }})</span>
-                        }
-                        <span class="ext-icon">↗</span>
-                      </button>
-                      }
-                    </div>
-                  </div>
-                  }
-
-                  @if ((!team.coaches || team.coaches.length === 0) && (!team.players || team.players.length === 0)) {
-                  <div class="empty-roster-note">No members assigned to this squad yet.</div>
-                  }
-                </div>
-                }
-              </div>
-            </div>
-            }
-          </div>
-          } @else {
-          <app-empty-state title="No Squads Formed"
-            message="This academy has not published any squad rosters yet."></app-empty-state>
-          }
-        </div>
-      </div>
+      <app-academy-profile-teams [teams]="teams"></app-academy-profile-teams>
       }
 
-      <!-- MEMBERS TAB -->
       @if (activeTab === 'members') {
-      <div class="cyber-panel" scrollReveal direction="bottom" [delay]="200">
-        <div class="panel-header">
-          <h3>Academy Roster</h3>
-          <div class="role-pills">
-            <button class="role-pill-btn" [class.active]="selectedMemberRole === 'All'"
-              (click)="setMemberRole('All')">All</button>
-            <button class="role-pill-btn" [class.active]="selectedMemberRole === 'Player'"
-              (click)="setMemberRole('Player')">Players</button>
-            <button class="role-pill-btn" [class.active]="selectedMemberRole === 'Coach'"
-              (click)="setMemberRole('Coach')">Coaches</button>
-          </div>
-        </div>
-
-        <!-- SEARCH HUD -->
-        <div class="search-bar">
-          <span class="search-icon">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="11" cy="11" r="8"></circle>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
-          </span>
-          <input type="text" [(ngModel)]="memberSearchQuery" (ngModelChange)="onSearchChange()" placeholder="Filter members by name or position..." />
-          @if (memberSearchQuery) {
-          <button type="button" class="clear-btn" (click)="memberSearchQuery = ''; onSearchChange()">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-          </button>
-          }
-        </div>
-
-        <div class="panel-body">
-          @if (filteredMembers.length > 0) {
-          <div class="members-grid">
-            @for (mem of filteredMembers; track mem.userId) {
-            <div class="member-card clickable-member" (click)="viewMemberProfile(mem.userId, mem.role)" tabindex="0">
-              <div class="member-avatar">
-                @if (mem.profileImageUrl || mem.imageUrl) {
-                <img [src]="mem.profileImageUrl || mem.imageUrl" [alt]="mem.fullName" class="avatar-img" />
-                } @else {
-                {{ (mem.fullName || 'M')[0].toUpperCase() }}
-                }
-              </div>
-              <div class="member-info">
-                <div class="member-name">{{ mem.fullName }} <span class="ext-arrow">↗</span></div>
-                <div class="member-meta">
-                  <span class="cyber-badge" [class.cyber-cyan]="mem.role === 'Coach'"
-                    [class.cyber-lime]="mem.role !== 'Coach'">
-                    {{ mem.role || 'Member' }}
-                  </span>
-                  @if (mem.position) {
-                  <span class="pos-tag">{{ mem.position }}</span>
-                  }
-                </div>
-              </div>
-            </div>
-            }
-          </div>
-          } @else {
-          <app-empty-state title="No Matching Members"
-            message="No members match your filter criteria."></app-empty-state>
-          }
-        </div>
-      </div>
+      <app-academy-profile-members 
+        [members]="members"
+        [selectedMemberRole]="selectedMemberRole"
+        [memberSearchQuery]="memberSearchQuery"
+        (roleChange)="setMemberRole($event)"
+        (searchChange)="onSearchChange($event)">
+      </app-academy-profile-members>
       }
 
     </div>

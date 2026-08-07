@@ -1,18 +1,18 @@
 <div class="section-container fade-in">
   <div class="section-header" style="flex-direction: column; align-items: flex-start; gap: 16px;">
     <div class="header-content">
-      <h3>Teams & Age Groups</h3>
-      <p class="subtitle">Manage academy teams and organize age brackets</p>
+      <h3>{{ 'ACADEMY_ADMIN.TEAMS_SECTION.TITLE' | translate }}</h3>
+      <p class="subtitle">{{ 'ACADEMY_ADMIN.TEAMS_SECTION.SUBTITLE' | translate }}</p>
     </div>
 
     <!-- Tab Switchers styled as buttons -->
     <div style="display: flex; gap: 12px; margin-top: 8px;">
       <app-button [variant]="activeTab === 'teams' ? 'accent' : 'slate'" size="small" (click)="switchTab('teams')">
-        Manage Teams
+        {{ 'ACADEMY_ADMIN.TEAMS_SECTION.TAB_TEAMS' | translate }}
       </app-button>
       <app-button [variant]="activeTab === 'ageGroups' ? 'accent' : 'slate'" size="small"
         (click)="switchTab('ageGroups')">
-        Manage Age Groups
+        {{ 'ACADEMY_ADMIN.TEAMS_SECTION.TAB_AGE_GROUPS' | translate }}
       </app-button>
     </div>
   </div>
@@ -21,22 +21,22 @@
   <div class="tab-content" *ngIf="activeTab === 'teams'">
 
     <div class="search-panel">
-      <h4>Create New Team</h4>
+      <h4>{{ 'ACADEMY_ADMIN.TEAMS_SECTION.CREATE_TEAM' | translate }}</h4>
       <form [formGroup]="teamForm" (ngSubmit)="onCreateTeam()" class="search-form"
         style="display: flex; gap: 16px; align-items: flex-end; margin-top: 16px; flex-wrap: wrap;">
         <div style="flex: 2; min-width: 200px;">
-          <app-text-input label="Team Name" type="text" placeholder="e.g. U16 A Team" formControlName="name">
+          <app-text-input label="{{ 'ACADEMY_ADMIN.TEAMS_SECTION.LBL_TEAM_NAME' | translate }}" type="text" placeholder="{{ 'ACADEMY_ADMIN.TEAMS_SECTION.PH_TEAM_NAME' | translate }}" formControlName="name">
           </app-text-input>
         </div>
 
         <div style="flex: 1; min-width: 200px;">
-          <app-select label="Age Group" placeholder="Select Age Group" [options]="ageGroupOptions"
+          <app-select label="{{ 'ACADEMY_ADMIN.TEAMS_SECTION.LBL_AGE_GROUP' | translate }}" placeholder="{{ 'ACADEMY_ADMIN.TEAMS_SECTION.PH_AGE_GROUP' | translate }}" [options]="ageGroupOptions"
             [value]="teamForm.value.ageGroupId" (valueChange)="teamForm.patchValue({ ageGroupId: $event })">
           </app-select>
         </div>
 
         <div style="flex: 1; min-width: 200px;">
-          <app-select label="Location" placeholder="Select Location" [options]="locationOptions"
+          <app-select label="{{ 'ACADEMY_ADMIN.TEAMS_SECTION.LBL_LOCATION' | translate }}" placeholder="{{ 'ACADEMY_ADMIN.TEAMS_SECTION.PH_LOCATION' | translate }}" [options]="locationOptions"
             [value]="teamForm.value.locationId" (valueChange)="teamForm.patchValue({ locationId: $event })">
           </app-select>
         </div>
@@ -44,13 +44,13 @@
         <div class="form-actions">
           <app-button type="submit" variant="accent"
             [disabled]="teamForm.invalid || isAddingTeam || locations.length === 0 || ageGroups.length === 0">
-            {{ isAddingTeam ? 'Creating...' : 'Create Team' }}
+            {{ isAddingTeam ? ('ACADEMY_ADMIN.TEAMS_SECTION.BTN_CREATING' | translate) : ('ACADEMY_ADMIN.TEAMS_SECTION.BTN_CREATE_TEAM' | translate) }}
           </app-button>
         </div>
       </form>
       <div *ngIf="locations.length === 0 || ageGroups.length === 0" class="warning-text"
         style="color: #ffb84d; font-size: 12px; margin-top: 12px;">
-        Please ensure you have at least one Age Group and Location created first.
+        {{ 'ACADEMY_ADMIN.TEAMS_SECTION.WARNING_NO_LOC_AGE' | translate }}
       </div>
     </div>
 
@@ -66,7 +66,7 @@
               style="flex: 1; background: rgba(255,255,255,0.02); padding: 16px; border-radius: 8px; display: flex; flex-direction: column;">
               <h5
                 style="margin-top: 0; margin-bottom: 16px; color: #c8ff4d; font-size: 14px; text-transform: uppercase;">
-                Assigned Coaches</h5>
+                {{ 'ACADEMY_ADMIN.TEAMS_SECTION.ASSIGNED_COACHES' | translate }}</h5>
               <div *ngIf="team.coaches?.length > 0; else noCoaches" class="cyber-scrollbar"
                 style="margin-bottom: 16px; max-height: 200px; overflow-y: auto; padding-right: 8px;">
                 <div *ngFor="let c of team.coaches"
@@ -78,17 +78,17 @@
                 </div>
               </div>
               <ng-template #noCoaches>
-                <p style="font-size: 13px; color: #7b8293; margin-bottom: 16px;">No coaches assigned yet.</p>
+                <p style="font-size: 13px; color: #7b8293; margin-bottom: 16px;">{{ 'ACADEMY_ADMIN.TEAMS_SECTION.NO_COACHES' | translate }}</p>
               </ng-template>
 
               <div style="display: flex; gap: 8px; align-items: flex-end; margin-top: auto;">
                 <div style="flex: 1;">
-                  <app-select label="Coach" placeholder="Select Coach" [options]="getAvailableCoachesForTeam(team)"
+                  <app-select label="{{ 'ACADEMY_ADMIN.TEAMS_SECTION.LBL_COACH' | translate }}" placeholder="{{ 'ACADEMY_ADMIN.TEAMS_SECTION.PH_COACH' | translate }}" [options]="getAvailableCoachesForTeam(team)"
                     [value]="selectedCoachToAssign[team.id]" (valueChange)="selectedCoachToAssign[team.id] = $event">
                   </app-select>
                 </div>
                 <app-button variant="accent" size="small" [disabled]="!selectedCoachToAssign[team.id]"
-                  (click)="onAssignCoach(team.id, selectedCoachToAssign[team.id]); selectedCoachToAssign[team.id] = null">Assign</app-button>
+                  (click)="onAssignCoach(team.id, selectedCoachToAssign[team.id]); selectedCoachToAssign[team.id] = null">{{ 'ACADEMY_ADMIN.TEAMS_SECTION.BTN_ASSIGN' | translate }}</app-button>
               </div>
             </div>
 
@@ -97,7 +97,7 @@
               style="flex: 1; background: rgba(255,255,255,0.02); padding: 16px; border-radius: 8px; display: flex; flex-direction: column;">
               <h5
                 style="margin-top: 0; margin-bottom: 16px; color: #c8ff4d; font-size: 14px; text-transform: uppercase;">
-                Assigned Players</h5>
+                {{ 'ACADEMY_ADMIN.TEAMS_SECTION.ASSIGNED_PLAYERS' | translate }}</h5>
               <div *ngIf="team.players?.length > 0; else noPlayers" class="cyber-scrollbar"
                 style="margin-bottom: 16px; max-height: 200px; overflow-y: auto; padding-right: 8px;">
                 <div *ngFor="let p of team.players"
@@ -109,17 +109,17 @@
                 </div>
               </div>
               <ng-template #noPlayers>
-                <p style="font-size: 13px; color: #7b8293; margin-bottom: 16px;">No players assigned yet.</p>
+                <p style="font-size: 13px; color: #7b8293; margin-bottom: 16px;">{{ 'ACADEMY_ADMIN.TEAMS_SECTION.NO_PLAYERS' | translate }}</p>
               </ng-template>
 
               <div style="display: flex; gap: 8px; align-items: flex-end; margin-top: auto;">
                 <div style="flex: 1;">
-                  <app-select label="Player" placeholder="Select Player" [options]="getAvailablePlayersForTeam(team)"
+                  <app-select label="{{ 'ACADEMY_ADMIN.TEAMS_SECTION.LBL_PLAYER' | translate }}" placeholder="{{ 'ACADEMY_ADMIN.TEAMS_SECTION.PH_PLAYER' | translate }}" [options]="getAvailablePlayersForTeam(team)"
                     [value]="selectedPlayerToAssign[team.id]" (valueChange)="selectedPlayerToAssign[team.id] = $event">
                   </app-select>
                 </div>
                 <app-button variant="accent" size="small" [disabled]="!selectedPlayerToAssign[team.id]"
-                  (click)="onAssignPlayer(team.id, selectedPlayerToAssign[team.id]); selectedPlayerToAssign[team.id] = null">Assign</app-button>
+                  (click)="onAssignPlayer(team.id, selectedPlayerToAssign[team.id]); selectedPlayerToAssign[team.id] = null">{{ 'ACADEMY_ADMIN.TEAMS_SECTION.BTN_ASSIGN' | translate }}</app-button>
               </div>
             </div>
           </div>
@@ -133,7 +133,7 @@
 
     <div class="empty-state" *ngIf="!isLoading && teams.length === 0"
       style="margin-top: 24px; text-align: center; color: #7b8293;">
-      <p>No teams found in this academy.</p>
+      <p>{{ 'ACADEMY_ADMIN.TEAMS_SECTION.NO_TEAMS_FOUND' | translate }}</p>
     </div>
   </div>
 
@@ -141,27 +141,27 @@
   <div class="tab-content" *ngIf="activeTab === 'ageGroups'">
 
     <div class="search-panel">
-      <h4>Create New Age Group</h4>
+      <h4>{{ 'ACADEMY_ADMIN.TEAMS_SECTION.CREATE_AGE_GROUP' | translate }}</h4>
       <form [formGroup]="ageGroupForm" (ngSubmit)="onCreateAgeGroup()" class="search-form"
         style="display: flex; gap: 16px; align-items: flex-end; margin-top: 16px; flex-wrap: wrap;">
         <div style="flex: 2; min-width: 200px;">
-          <app-text-input formControlName="name" placeholder="e.g. Under 16" type="text" label="Group Name">
+          <app-text-input formControlName="name" placeholder="{{ 'ACADEMY_ADMIN.TEAMS_SECTION.PH_GROUP_NAME' | translate }}" type="text" label="{{ 'ACADEMY_ADMIN.TEAMS_SECTION.LBL_GROUP_NAME' | translate }}">
           </app-text-input>
         </div>
 
         <div style="flex: 1; min-width: 120px;">
-          <app-text-input formControlName="minAge" type="number" label="Min Age">
+          <app-text-input formControlName="minAge" type="number" label="{{ 'ACADEMY_ADMIN.TEAMS_SECTION.LBL_MIN_AGE' | translate }}">
           </app-text-input>
         </div>
 
         <div style="flex: 1; min-width: 120px;">
-          <app-text-input formControlName="maxAge" type="number" label="Max Age">
+          <app-text-input formControlName="maxAge" type="number" label="{{ 'ACADEMY_ADMIN.TEAMS_SECTION.LBL_MAX_AGE' | translate }}">
           </app-text-input>
         </div>
 
         <div class="form-actions">
           <app-button type="submit" variant="accent" [disabled]="ageGroupForm.invalid || isAddingAgeGroup">
-            {{ isAddingAgeGroup ? 'Adding...' : 'Add Age Group' }}
+            {{ isAddingAgeGroup ? ('ACADEMY_ADMIN.TEAMS_SECTION.BTN_ADDING' | translate) : ('ACADEMY_ADMIN.TEAMS_SECTION.BTN_ADD_AGE_GROUP' | translate) }}
           </app-button>
         </div>
       </form>
@@ -178,7 +178,7 @@
 
     <div class="empty-state" *ngIf="!isLoading && ageGroups.length === 0"
       style="margin-top: 24px; text-align: center; color: #7b8293;">
-      <p>No age groups found in this academy.</p>
+      <p>{{ 'ACADEMY_ADMIN.TEAMS_SECTION.NO_AGE_GROUPS_FOUND' | translate }}</p>
     </div>
   </div>
 </div>

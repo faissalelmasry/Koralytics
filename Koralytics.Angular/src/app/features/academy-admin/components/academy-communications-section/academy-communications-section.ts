@@ -3,15 +3,16 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ToastService } from '../../../../../core/services/Toast/toast';
 import { AcademyService } from '../../../../../core/services/academy/academy.service';
-import { ModalService } from '../../../../../core/services/Modal/modal';
 import { CustomInputComponent } from '../../../../../shared/components/custom-input-component/custom-input-component';
 import { CustomSelect, SelectOption } from '../../../../../shared/components/custom-select/custom-select';
 import { CustomButtonComponent } from '../../../../../shared/components/custom-button/custom-button';
-import { DataTable, TableColumn } from '../../../../../shared/components/data-table/data-table';
 import { LoadingSpinnerComponent } from '../../../../../shared/components/loading-spinner/loading-spinner';
+import { Router } from '@angular/router';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { LocalizedDatePipe } from '../../../../../shared/pipes/localized-date.pipe';
 
 @Component({
-  selector: 'app-academy-comm-subs-section',
+  selector: 'app-academy-communications-section',
   standalone: true,
   imports: [
     CommonModule,
@@ -19,36 +20,29 @@ import { LoadingSpinnerComponent } from '../../../../../shared/components/loadin
     CustomInputComponent,
     CustomSelect,
     CustomButtonComponent,
-    DataTable,
-    LoadingSpinnerComponent
+    LoadingSpinnerComponent,
+    TranslatePipe,
+    LocalizedDatePipe
   ],
-  templateUrl: './academy-comm-subs-section.html',
-  styleUrls: ['./academy-comm-subs-section.css']
+  templateUrl: './academy-communications-section.html',
+  styleUrls: ['./academy-communications-section.css']
 })
-export class AcademyCommSubsSectionComponent implements OnInit, OnChanges {
+export class AcademyCommunicationsSectionComponent implements OnInit, OnChanges {
   @Input() academyId!: number;
 
   announcements: any[] = [];
-  subscriptions: any[] = [];
-  subscriptionStats: any = null;
   isLoadingAnnouncements = false;
-  isLoadingSubscriptions = false;
   isSending = false;
 
   announcementForm: FormGroup;
-  targetAudienceOptions: SelectOption[] = [
-    { value: 1, label: 'Everyone' },
-    { value: 2, label: 'Specific Team' },
-    { value: 3, label: 'Specific Age Group' },
-    { value: 4, label: 'Specific Roles' }
-  ];
-
-  subColumns: TableColumn[] = [
-    { key: 'playerFullName', label: 'player name', type: 'text' },
-    { key: 'statusBadge', label: 'status', type: 'badge' },
-    { key: 'graceUntilFormatted', label: 'grace until', type: 'text' },
-    { key: 'actions', label: 'update', type: 'action' }
-  ];
+  get targetAudienceOptions(): SelectOption[] {
+    return [
+      { value: 1, label: 'ACADEMY_ADMIN.COMMS_SECTION.AUDIENCE_EVERYONE' },
+      { value: 2, label: 'ACADEMY_ADMIN.COMMS_SECTION.AUDIENCE_TEAM' },
+      { value: 3, label: 'ACADEMY_ADMIN.COMMS_SECTION.AUDIENCE_AGE_GROUP' },
+      { value: 4, label: 'ACADEMY_ADMIN.COMMS_SECTION.AUDIENCE_ROLES' }
+    ];
+  }
 
   teams: any[] = [];
   ageGroups: any[] = [];
@@ -58,7 +52,8 @@ export class AcademyCommSubsSectionComponent implements OnInit, OnChanges {
     private fb: FormBuilder,
     private academyService: AcademyService,
     private toast: ToastService,
-    private modalService: ModalService
+    private router: Router,
+    private translate: TranslateService
   ) {
     this.announcementForm = this.fb.group({
       targetType: [1, Validators.required],
@@ -76,6 +71,10 @@ export class AcademyCommSubsSectionComponent implements OnInit, OnChanges {
     this.loadAllData();
   }
 
+  goToAnnouncements() {
+    this.router.navigate(['/academy-announcement', this.academyId]);
+  }
+
   ngOnChanges(changes: SimpleChanges) {
     if (changes['academyId'] && !changes['academyId'].isFirstChange()) {
       this.loadAllData();
@@ -84,7 +83,6 @@ export class AcademyCommSubsSectionComponent implements OnInit, OnChanges {
 
   loadAllData() {
     this.loadAnnouncements();
-    this.loadSubscriptions();
     this.loadTeams();
     this.loadAgeGroups();
   }
@@ -121,9 +119,9 @@ export class AcademyCommSubsSectionComponent implements OnInit, OnChanges {
       this.targetIdOptions = this.ageGroups.map(ag => ({ value: ag.id, label: ag.name }));
     } else if (targetType === 4) {
       this.targetIdOptions = [
-        { value: 4, label: 'Players' },
-        { value: 5, label: 'Parents' },
-        { value: 6, label: 'Coaches' }
+        { value: 4, label: 'ACADEMY_ADMIN.COMMS_SECTION.ROLE_PLAYERS' },
+        { value: 5, label: 'ACADEMY_ADMIN.COMMS_SECTION.ROLE_PARENTS' },
+        { value: 6, label: 'ACADEMY_ADMIN.COMMS_SECTION.ROLE_COACHES' }
       ];
     } else {
       this.targetIdOptions = [];
@@ -141,10 +139,10 @@ export class AcademyCommSubsSectionComponent implements OnInit, OnChanges {
 
   getTargetIdLabel(): string {
     const type = this.announcementForm.get('targetType')?.value;
-    if (type === 2) return 'Select Team';
-    if (type === 3) return 'Select Age Group';
-    if (type === 4) return 'Select Role';
-    return 'Target';
+    if (type === 2) return this.translate.instant('ACADEMY_ADMIN.COMMS_SECTION.SELECT_TEAM') || 'Select Team';
+    if (type === 3) return this.translate.instant('ACADEMY_ADMIN.COMMS_SECTION.SELECT_AGE_GROUP') || 'Select Age Group';
+    if (type === 4) return this.translate.instant('ACADEMY_ADMIN.COMMS_SECTION.SELECT_ROLE') || 'Select Role';
+    return this.translate.instant('ACADEMY_ADMIN.COMMS_SECTION.TARGET') || 'Target';
   }
 
   loadAnnouncements() {
@@ -161,43 +159,6 @@ export class AcademyCommSubsSectionComponent implements OnInit, OnChanges {
     });
   }
 
-  loadSubscriptions() {
-    if (!this.academyId) return;
-    this.isLoadingSubscriptions = true;
-    this.academyService.getSubscriptionStatus(this.academyId).subscribe({
-      next: (res: any) => {
-        if (res.isSuccess && res.data) {
-          this.subscriptionStats = res.data;
-          if (res.data.unpaidPlayers) {
-            this.subscriptions = res.data.unpaidPlayers.map((sub: any) => ({
-              ...sub,
-              statusBadge: this.mapStatusToBadge(sub.status),
-              graceUntilFormatted: sub.graceUntil ? new Date(sub.graceUntil).toLocaleDateString() : 'N/A'
-            }));
-          } else {
-            this.subscriptions = [];
-          }
-        } else {
-           // Fallback to empty if not implemented
-           this.subscriptions = [];
-        }
-        this.isLoadingSubscriptions = false;
-      },
-      error: () => {
-         // Fallback if backend returns 404
-         this.subscriptions = [];
-         this.isLoadingSubscriptions = false;
-      }
-    });
-  }
-
-  mapStatusToBadge(status: any): any {
-    if (status === 1 || status === 'Paid') return { text: 'Paid', type: 'success' };
-    if (status === 2 || status === 'Unpaid') return { text: 'Unpaid', type: 'danger' };
-    if (status === 3 || status === 'Grace') return { text: 'Grace Period', type: 'warning' };
-    return { text: 'Unknown', type: 'neutral' };
-  }
-
   onSendAnnouncement() {
     if (this.announcementForm.invalid || !this.academyId) return;
 
@@ -212,7 +173,7 @@ export class AcademyCommSubsSectionComponent implements OnInit, OnChanges {
     this.academyService.sendAnnouncement(this.academyId, dto).subscribe({
       next: (res: any) => {
         if (res.isSuccess) {
-          this.toast.show('Announcement sent successfully!', 'success');
+          this.toast.show(this.translate.instant('ACADEMY_ADMIN.COMMS_SECTION.ANNOUNCEMENT_SENT') || 'Announcement sent successfully!', 'success');
           this.announcementForm.reset({ targetType: 1, targetId: 0 });
           this.loadAnnouncements();
         } else {
@@ -227,23 +188,27 @@ export class AcademyCommSubsSectionComponent implements OnInit, OnChanges {
     });
   }
 
-  onAction(event: any) {
-    if (event.action === 'actions' || event.action === 'edit' || event.action === 'update') {
-      const player = event.row;
-      this.modalService.open({
-        title: 'Update Subscription',
-        message: `Subscription feature is not yet fully linked in the backend. Updating for ${player.playerFullName || 'Player'} will be available soon.`,
-        variant: 'info',
-        confirmText: 'Acknowledge'
-      }).then();
-    }
-  }
+  getTargetBadgeInfo(ann: any): { name: string, cssClass: string } {
+    const targetType = ann.targetType;
+    const targetId = ann.targetId;
 
-  getTargetTypeName(type: any): string {
-    if (type === 1 || type === 'All') return 'Everyone';
-    if (type === 2 || type === 'Team') return 'Team';
-    if (type === 3 || type === 'AgeGroup') return 'Age Group';
-    if (type === 4 || type === 'Role') return 'Role';
-    return 'Unknown';
+    if (targetType === 1 || targetType === 'All') {
+      return { name: this.translate.instant('ACADEMY_ADMIN.COMMS_SECTION.AUDIENCE_EVERYONE') || 'Everyone', cssClass: 'everyone' };
+    }
+    if (targetType === 2 || targetType === 'Team') {
+      const team = this.teams.find(t => t.id === targetId);
+      return { name: team ? team.name : (this.translate.instant('ACADEMY_ADMIN.COMMS_SECTION.AUDIENCE_TEAM') || 'Team'), cssClass: 'team' };
+    }
+    if (targetType === 3 || targetType === 'AgeGroup') {
+      const ag = this.ageGroups.find(ag => ag.id === targetId);
+      return { name: ag ? ag.name : (this.translate.instant('ACADEMY_ADMIN.COMMS_SECTION.AUDIENCE_AGE_GROUP') || 'Age Group'), cssClass: 'age-group' };
+    }
+    if (targetType === 4 || targetType === 'Role') {
+      if (targetId === 4) return { name: this.translate.instant('ACADEMY_ADMIN.COMMS_SECTION.ROLE_PLAYERS') || 'Players', cssClass: 'players' };
+      if (targetId === 5) return { name: this.translate.instant('ACADEMY_ADMIN.COMMS_SECTION.ROLE_PARENTS') || 'Parents', cssClass: 'parents' };
+      if (targetId === 6) return { name: this.translate.instant('ACADEMY_ADMIN.COMMS_SECTION.ROLE_COACHES') || 'Coaches', cssClass: 'coaches' };
+      return { name: this.translate.instant('ACADEMY_ADMIN.COMMS_SECTION.AUDIENCE_ROLES') || 'Role', cssClass: 'role' };
+    }
+    return { name: this.translate.instant('ACADEMY_ADMIN.COMMS_SECTION.STATUS_UNKNOWN') || 'Unknown', cssClass: 'unknown' };
   }
 }

@@ -10,11 +10,13 @@ import { Pagination } from '../../../../../shared/components/pagination/paginati
 import { LoadingSpinnerComponent } from '../../../../../shared/components/loading-spinner/loading-spinner';
 import { ConfirmDialogComponent } from '../../../../../shared/components/confirm-dialog/confirm-dialog';
 import { Router } from '@angular/router';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { LocalizedDatePipe } from '../../../../../shared/pipes/localized-date.pipe';
 
 @Component({
   selector: 'app-academy-admins-section',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, CustomButtonComponent, DataTable, Pagination, LoadingSpinnerComponent, ConfirmDialogComponent],
+  imports: [CommonModule, ReactiveFormsModule, CustomButtonComponent, DataTable, Pagination, LoadingSpinnerComponent, ConfirmDialogComponent, TranslatePipe, LocalizedDatePipe],
   templateUrl: './academy-admins-section.html',
   styleUrls: ['./academy-admins-section.css']
 })
@@ -26,6 +28,7 @@ export class AcademyAdminsSectionComponent implements OnInit, OnChanges {
   private toast = inject(ToastService);
   private fb = inject(FormBuilder);
   private router = inject(Router);
+  private translate = inject(TranslateService);
 
   admins: AcademyAdminResponseDto[] = [];
   pendingRequests: any[] = [];
@@ -39,11 +42,13 @@ export class AcademyAdminsSectionComponent implements OnInit, OnChanges {
     searchTerm: ['']
   });
 
-  tableColumns: TableColumn[] = [
-    { key: 'fullName', label: 'admin name', type: 'user' },
-    { key: 'adminRole', label: 'role', type: 'badge' },
-    { key: 'actions', label: 'tracking hub', type: 'action' }
-  ];
+  get tableColumns(): TableColumn[] {
+    return [
+      { key: 'fullName', label: 'ACADEMY_ADMIN.ADMINS_SECTION.COL_ADMIN_NAME', type: 'user' },
+      { key: 'adminRole', label: 'ACADEMY_ADMIN.ADMINS_SECTION.COL_ROLE', type: 'badge', translate: true },
+      { key: 'actions', label: 'ACADEMY_ADMIN.ADMINS_SECTION.COL_TRACKING_HUB', type: 'action' }
+    ];
+  }
 
   pageSize = 10;
   pageNumber = 1;
@@ -71,7 +76,8 @@ export class AcademyAdminsSectionComponent implements OnInit, OnChanges {
           this.admins = res.data.items.map((m: any) => {
             return {
               ...m,
-              adminRole: m.isOwner ? 'owner' : 'admin',
+              adminRole: m.isOwner ? 'ACADEMY_ADMIN.ADMINS_SECTION.OWNER' : 'ACADEMY_ADMIN.ADMINS_SECTION.ADMIN',
+              adminRoleRaw: m.isOwner ? 'owner' : 'admin',
               hideDelete: m.isOwner || !this.isOwner, // Only owner can remove others
               hideAnalyze: m.isOwner
             };
@@ -123,7 +129,7 @@ export class AcademyAdminsSectionComponent implements OnInit, OnChanges {
       next: (res) => {
         this.isSending = false;
         if (res.isSuccess) {
-          this.toast.show('Admin join request sent!', 'success');
+          this.toast.show(this.translate.instant('ACADEMY_ADMIN.ADMINS_SECTION.REQUEST_SENT_SUCCESS') || 'Admin join request sent!', 'success');
           this.loadData(); // Reload pending requests
           this.searchResults = [];
           this.searchForm.reset();
@@ -148,8 +154,8 @@ export class AcademyAdminsSectionComponent implements OnInit, OnChanges {
     if (!this.isOwner) return;
     this.confirmActionType = 'cancelRequest';
     this.targetIdForConfirm = requestId;
-    this.confirmDialogTitle = 'Cancel Join Request';
-    this.confirmDialogMessage = 'Are you sure you want to cancel this pending join request?';
+    this.confirmDialogTitle = this.translate.instant('ACADEMY_ADMIN.ADMINS_SECTION.CANCEL_REQUEST_TITLE') || 'Cancel Join Request';
+    this.confirmDialogMessage = this.translate.instant('ACADEMY_ADMIN.ADMINS_SECTION.CANCEL_REQUEST_MSG') || 'Are you sure you want to cancel this pending join request?';
     this.isConfirmDialogOpen = true;
   }
 
@@ -165,8 +171,8 @@ export class AcademyAdminsSectionComponent implements OnInit, OnChanges {
     if (!this.isOwner) return;
     this.confirmActionType = 'removeAdmin';
     this.targetIdForConfirm = adminId;
-    this.confirmDialogTitle = 'Remove Academy Admin';
-    this.confirmDialogMessage = 'Are you sure you want to revoke admin privileges from this account?';
+    this.confirmDialogTitle = this.translate.instant('ACADEMY_ADMIN.ADMINS_SECTION.REMOVE_ADMIN_TITLE') || 'Remove Academy Admin';
+    this.confirmDialogMessage = this.translate.instant('ACADEMY_ADMIN.ADMINS_SECTION.REMOVE_ADMIN_MSG') || 'Are you sure you want to revoke admin privileges from this account?';
     this.isConfirmDialogOpen = true;
   }
 
@@ -186,7 +192,7 @@ export class AcademyAdminsSectionComponent implements OnInit, OnChanges {
       this.academyService.cancelAdminJoinRequest(targetId).subscribe({
         next: (res: any) => {
           if (res.isSuccess) {
-            this.toast.show('Request cancelled', 'success');
+            this.toast.show(this.translate.instant('ACADEMY_ADMIN.ADMINS_SECTION.CANCEL_SUCCESS') || 'Request cancelled', 'success');
             this.loadData();
           } else {
             this.toast.show(res.message || 'Error cancelling request', 'error');
@@ -197,7 +203,7 @@ export class AcademyAdminsSectionComponent implements OnInit, OnChanges {
       this.academyService.removeAdmin(this.academyId, targetId).subscribe({
         next: (res) => {
           if (res.isSuccess) {
-            this.toast.show('Admin removed successfully', 'success');
+            this.toast.show(this.translate.instant('ACADEMY_ADMIN.ADMINS_SECTION.REMOVE_SUCCESS') || 'Admin removed successfully', 'success');
             this.loadData();
           } else {
             this.toast.show(res.message || 'Error removing admin', 'error');

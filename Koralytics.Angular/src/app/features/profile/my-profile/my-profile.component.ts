@@ -22,6 +22,9 @@ import { LoadingSpinnerComponent } from '../../../../shared/components/loading-s
 import { ScrollRevealDirective } from '../../../../shared/directives/scroll-reveal.directive';
 import { ImageUpload } from '../../../../shared/components/image-upload/image-upload';
 import { PhoneInputComponent } from '../../../../shared/components/phone-input/phone-input.component';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+
+import { LocalizedDatePipe } from '../../../../shared/pipes/localized-date.pipe';
 
 @Component({
   selector: 'app-my-profile',
@@ -35,7 +38,9 @@ import { PhoneInputComponent } from '../../../../shared/components/phone-input/p
     CustomButtonComponent,
     LoadingSpinnerComponent,
     ScrollRevealDirective,
-    ImageUpload
+    ImageUpload,
+    TranslatePipe,
+    LocalizedDatePipe
   ],
   templateUrl: './my-profile.component.html',
   styleUrls: ['./my-profile.component.css']
@@ -47,6 +52,7 @@ export class MyProfileComponent implements OnInit {
   private parentService = inject(ParentService);
   private academyService = inject(AcademyService);
   public authService = inject(AuthService);
+  private translateService = inject(TranslateService);
 
   profile: BaseUserProfileResponse | null = null;
   pendingParentRequests: ParentPlayerJoinRequest[] = [];
@@ -76,9 +82,9 @@ export class MyProfileComponent implements OnInit {
   ];
 
   readonly preferredFootOptions: SelectOption[] = [
-    { value: 'Right', label: 'Right' },
-    { value: 'Left', label: 'Left' },
-    { value: 'Both', label: 'Both' }
+    { value: 'Right', label: 'PROFILE.FOOT_RIGHT' },
+    { value: 'Left', label: 'PROFILE.FOOT_LEFT' },
+    { value: 'Both', label: 'PROFILE.FOOT_BOTH' }
   ];
 
   readonly weakFootOptions: SelectOption[] = [
@@ -106,8 +112,16 @@ export class MyProfileComponent implements OnInit {
   phoneError(): string {
     const ctrl = this.form.controls.phoneNumber;
     if (!ctrl.touched && !ctrl.dirty) return '';
-    if (ctrl.errors?.['required']) return 'Phone number is required.';
-    if (ctrl.errors?.['invalidPhone']) return ctrl.errors['invalidPhone'].message;
+    if (ctrl.errors?.['required']) return this.translateService.instant('PROFILE.PHONE_REQUIRED');
+    if (ctrl.errors?.['invalidPhone']) {
+       const info = ctrl.errors['invalidPhone'];
+       const country = this.translateService.instant(info.country);
+       return this.translateService.instant('COMMON.ERRORS.INVALID_PHONE_LENGTH', {
+           country: country,
+           expected: Array.isArray(info.expectedLength) ? info.expectedLength.join(' or ') : info.expectedLength,
+           dialCode: info.dialCode
+       });
+    }
     return '';
   }
 
@@ -284,10 +298,10 @@ export class MyProfileComponent implements OnInit {
 
   get footLabel(): string {
     const foot = this.asPlayer?.preferredFoot;
-    if (foot === 1 || foot === 'Right' || foot === '1' || (typeof foot === 'string' && foot.toLowerCase() === 'right')) return 'Right';
-    if (foot === 2 || foot === 'Left' || foot === '2' || (typeof foot === 'string' && foot.toLowerCase() === 'left')) return 'Left';
-    if (foot === 3 || foot === 'Both' || foot === '3' || (typeof foot === 'string' && foot.toLowerCase() === 'both')) return 'Both';
-    return 'N/A';
+    if (foot === 1 || foot === 'Right' || foot === '1' || (typeof foot === 'string' && foot.toLowerCase() === 'right')) return 'PROFILE.FOOT_RIGHT';
+    if (foot === 2 || foot === 'Left' || foot === '2' || (typeof foot === 'string' && foot.toLowerCase() === 'left')) return 'PROFILE.FOOT_LEFT';
+    if (foot === 3 || foot === 'Both' || foot === '3' || (typeof foot === 'string' && foot.toLowerCase() === 'both')) return 'PROFILE.FOOT_BOTH';
+    return 'PROFILE.NA';
   }
 
   get primaryPositionCode(): string {

@@ -1,0 +1,90 @@
+<div class="section-container fade-in">
+  <div class="section-header">
+    <div class="header-content">
+      <h3>{{ 'ACADEMY_ADMIN.COMMS_SECTION.TITLE' | translate }}</h3>
+      <p class="subtitle">{{ 'ACADEMY_ADMIN.COMMS_SECTION.SUBTITLE' | translate }}</p>
+    </div>
+    <div class="header-actions">
+      <app-button variant="accent" (click)="goToAnnouncements()">
+        {{ 'ACADEMY_ADMIN.COMMS_SECTION.GO_TO_ANNOUNCEMENTS' | translate }}
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: 6px;">
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+          <polyline points="12 5 19 12 12 19"></polyline>
+        </svg>
+      </app-button>
+    </div>
+  </div>
+
+  <!-- ANNOUNCEMENTS PANEL (now takes full width or structured differently if we drop grid-layout) -->
+  <div class="panel glass-card">
+    <div class="panel-header">
+      <h4>{{ 'ACADEMY_ADMIN.COMMS_SECTION.ANNOUNCEMENTS' | translate }}</h4>
+      <span class="badge" *ngIf="announcements.length > 0">{{ announcements.length }} {{ 'ACADEMY_ADMIN.COMMS_SECTION.SENT' | translate }}</span>
+    </div>
+
+    <!-- Layout within Communications: Left form, Right List -->
+    <div class="comms-layout">
+      <!-- Send Announcement Form -->
+      <div class="form-container">
+        <form [formGroup]="announcementForm" (ngSubmit)="onSendAnnouncement()">
+          <div class="form-row">
+            <app-select label="{{ 'ACADEMY_ADMIN.COMMS_SECTION.LBL_TARGET_AUDIENCE' | translate }}" [options]="targetAudienceOptions"
+              [value]="announcementForm.get('targetType')?.value"
+              (valueChange)="announcementForm.get('targetType')?.setValue($event)">
+            </app-select>
+
+            <!-- Target ID Select (Optional, shown if not Everyone) -->
+            <app-select *ngIf="announcementForm.get('targetType')?.value !== 1" [label]="getTargetIdLabel()"
+              [options]="targetIdOptions" [value]="announcementForm.get('targetId')?.value"
+              (valueChange)="announcementForm.get('targetId')?.setValue($event)">
+            </app-select>
+          </div>
+
+          <div style="margin-bottom: 16px;">
+            <app-text-input label="{{ 'ACADEMY_ADMIN.COMMS_SECTION.LBL_TITLE' | translate }}" type="text" placeholder="{{ 'ACADEMY_ADMIN.COMMS_SECTION.PH_TITLE' | translate }}" formControlName="title">
+            </app-text-input>
+          </div>
+
+          <app-text-input label="{{ 'ACADEMY_ADMIN.COMMS_SECTION.LBL_MESSAGE' | translate }}" type="text" placeholder="{{ 'ACADEMY_ADMIN.COMMS_SECTION.PH_MESSAGE' | translate }}"
+            formControlName="message">
+          </app-text-input>
+
+          <div style="margin-top: 16px; display: flex; justify-content: flex-end;">
+            <app-button type="submit" variant="accent" [disabled]="announcementForm.invalid || isSending">
+              {{ isSending ? ('ACADEMY_ADMIN.COMMS_SECTION.BTN_SENDING' | translate) : ('ACADEMY_ADMIN.COMMS_SECTION.BTN_BROADCAST' | translate) }}
+            </app-button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Announcements List -->
+      <div class="announcements-list cyber-scrollbar">
+        <div class="loading-state" *ngIf="isLoadingAnnouncements">
+          <app-loading-spinner size="sm"></app-loading-spinner>
+          <p>{{ 'ACADEMY_ADMIN.COMMS_SECTION.LOADING_ANNOUNCEMENTS' | translate }}</p>
+        </div>
+
+        <div class="empty-state" *ngIf="!isLoadingAnnouncements && announcements.length === 0">
+          <p>{{ 'ACADEMY_ADMIN.COMMS_SECTION.NO_ANNOUNCEMENTS' | translate }}</p>
+        </div>
+
+        <div class="announcement-item" *ngFor="let ann of announcements">
+          <div class="ann-header">
+            <h5>{{ ann.title }}</h5>
+            <ng-container *ngIf="getTargetBadgeInfo(ann) as badgeInfo">
+              <span class="audience-badge" [ngClass]="badgeInfo.cssClass">
+                <span class="dot"></span>
+                {{ badgeInfo.name }}
+              </span>
+            </ng-container>
+          </div>
+          <p class="ann-message">{{ ann.body || ann.message }}</p>
+          <div class="ann-footer">
+            <span class="sender">{{ 'ACADEMY_ADMIN.COMMS_SECTION.BY' | translate }} {{ ann.sentByFullName }}</span>
+            <span class="date">{{ ann.createdAt || ann.sentAt | localizedDate:'medium' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

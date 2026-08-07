@@ -221,6 +221,7 @@ export class PhoneInputComponent implements ControlValueAccessor, Validator {
           country: this.selectedCountry.name,
           expectedLength: expected,
           actualLength: this.digits.length,
+          dialCode: this.selectedCountry.dialCode,
           message: `${this.selectedCountry.name} numbers must be ${Array.isArray(expected) ? expected.join(' or ') : expected} digits after ${this.selectedCountry.dialCode}`
         }
       };

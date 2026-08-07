@@ -1,60 +1,68 @@
 {
-  "COMMON": {
-    "SAVE": "Save",
-    "CANCEL": "Cancel",
-    "SUBMIT": "Submit",
-    "LOADING": "Loading...",
-    "SUCCESS": "Success",
-    "ERROR": "Error",
-    "PAGINATION": {
-      "SHOWING_PAGE": "showing page",
-      "OF": "of",
-      "PREV": "prev",
-      "NEXT": "next"
+    "COMMON": {
+        "SAVE": "Save",
+        "CANCEL": "Cancel",
+        "SUBMIT": "Submit",
+        "LOADING": "Loading...",
+        "SUCCESS": "Success",
+        "ERROR": "Error",
+        "PAGINATION": {
+            "SHOWING_PAGE": "showing page",
+            "OF": "of",
+            "PREV": "prev",
+            "NEXT": "next"
+        },
+        "COUNTRIES": {
+            "EG": "Egypt",
+            "SA": "Saudi Arabia",
+            "AE": "United Arab Emirates",
+            "QA": "Qatar",
+            "KW": "Kuwait",
+            "BH": "Bahrain",
+            "OM": "Oman",
+            "JO": "Jordan",
+            "MA": "Morocco",
+            "GB": "United Kingdom",
+            "US": "United States",
+            "DE": "Germany",
+            "FR": "France",
+            "ES": "Spain",
+            "IT": "Italy"
+        },
+        "ERRORS": {
+            "INVALID_PHONE_LENGTH": "{{country}} numbers must be {{expected}} digits after {{dialCode}}"
+        },
+        "DATE_FORMAT": "YYYY-MM-DD",
+        "MONTHS": {
+            "JAN": "January",
+            "FEB": "February",
+            "MAR": "March",
+            "APR": "April",
+            "MAY": "May",
+            "JUN": "June",
+            "JUL": "July",
+            "AUG": "August",
+            "SEP": "September",
+            "OCT": "October",
+            "NOV": "November",
+            "DEC": "December"
+        },
+        "DAYS": {
+            "SUN": "Su",
+            "MON": "Mo",
+            "TUE": "Tu",
+            "WED": "We",
+            "THU": "Th",
+            "FRI": "Fr",
+            "SAT": "Sa"
+        }
     },
-    "COUNTRIES": {
-      "EG": "Egypt",
-      "SA": "Saudi Arabia",
-      "AE": "United Arab Emirates",
-      "QA": "Qatar",
-      "KW": "Kuwait",
-      "BH": "Bahrain",
-      "OM": "Oman",
-      "JO": "Jordan",
-      "MA": "Morocco",
-      "GB": "United Kingdom",
-      "US": "United States",
-      "DE": "Germany",
-      "FR": "France",
-      "ES": "Spain",
-      "IT": "Italy"
-    },
-    "ERRORS": {
-      "INVALID_PHONE_LENGTH": "{{country}} numbers must be {{expected}} digits after {{dialCode}}"
-    },
-    "DATE_FORMAT": "YYYY-MM-DD",
-    "MONTHS": {
-      "JAN": "January",
-      "FEB": "February",
-      "MAR": "March",
-      "APR": "April",
-      "MAY": "May",
-      "JUN": "June",
-      "JUL": "July",
-      "AUG": "August",
-      "SEP": "September",
-      "OCT": "October",
-      "NOV": "November",
-      "DEC": "December"
-    },
-    "DAYS": {
-      "SUN": "Su",
-      "MON": "Mo",
-      "TUE": "Tu",
-      "WED": "We",
-      "THU": "Th",
-      "FRI": "Fr",
-      "SAT": "Sa"
+    "ROLES": {
+        "PLAYER": "Player",
+        "COACH": "Coach",
+        "ACADEMYADMIN": "Academy Admin",
+        "SYSTEMADMIN": "System Admin",
+        "SCOUTER": "Scouter",
+        "PARENT": "Parent"
     }
-  }
 }

@@ -15,11 +15,13 @@ import { DataTable, TableColumn } from '../../../../../shared/components/data-ta
 import { Pagination } from '../../../../../shared/components/pagination/pagination';
 
 import { CustomSelect, SelectOption } from '../../../../../shared/components/custom-select/custom-select';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { LocalizedDatePipe } from '../../../../../shared/pipes/localized-date.pipe';
 
 @Component({
   selector: 'app-academy-teams-section',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, CustomInputComponent, CustomButtonComponent, DataTable, Pagination, CustomSelect],
+  imports: [CommonModule, ReactiveFormsModule, CustomInputComponent, CustomButtonComponent, DataTable, Pagination, CustomSelect, TranslatePipe, LocalizedDatePipe],
   templateUrl: './academy-teams-section.html',
   styleUrls: ['./academy-teams-section.css']
 })
@@ -29,6 +31,7 @@ export class AcademyTeamsSectionComponent implements OnInit, OnChanges {
   private academyService = inject(AcademyService);
   private toast = inject(ToastService);
   private fb = inject(FormBuilder);
+  private translate = inject(TranslateService);
   
   // Data State
   ageGroups: AgeGroupResponseDto[] = [];
@@ -73,20 +76,24 @@ export class AcademyTeamsSectionComponent implements OnInit, OnChanges {
   });
 
   // Table Columns
-  ageGroupColumns: TableColumn[] = [
-    { key: 'name', label: 'group name', type: 'text' },
-    { key: 'minAge', label: 'min age', type: 'text' },
-    { key: 'maxAge', label: 'max age', type: 'text' },
-    { key: 'actions', label: 'actions', type: 'action' }
-  ];
+  get ageGroupColumns(): TableColumn[] {
+    return [
+      { key: 'name', label: 'ACADEMY_ADMIN.TEAMS_SECTION.COL_GROUP_NAME', type: 'text' },
+      { key: 'minAge', label: 'ACADEMY_ADMIN.TEAMS_SECTION.COL_MIN_AGE', type: 'text' },
+      { key: 'maxAge', label: 'ACADEMY_ADMIN.TEAMS_SECTION.COL_MAX_AGE', type: 'text' },
+      { key: 'actions', label: 'ACADEMY_ADMIN.TEAMS_SECTION.COL_ACTIONS', type: 'action' }
+    ];
+  }
 
-  teamColumns: TableColumn[] = [
-    { key: 'name', label: 'team name', type: 'text' },
-    { key: 'ageGroupName', label: 'age group', type: 'badge' },
-    { key: 'locationName', label: 'location', type: 'text' },
-    { key: 'playersCount', label: 'players', type: 'text' },
-    { key: 'actions', label: 'manage team', type: 'action' }
-  ];
+  get teamColumns(): TableColumn[] {
+    return [
+      { key: 'name', label: 'ACADEMY_ADMIN.TEAMS_SECTION.COL_TEAM_NAME', type: 'text' },
+      { key: 'ageGroupName', label: 'ACADEMY_ADMIN.TEAMS_SECTION.COL_AGE_GROUP', type: 'badge' },
+      { key: 'locationName', label: 'ACADEMY_ADMIN.TEAMS_SECTION.COL_LOCATION', type: 'text' },
+      { key: 'playersCount', label: 'ACADEMY_ADMIN.TEAMS_SECTION.COL_PLAYERS', type: 'text' },
+      { key: 'actions', label: 'ACADEMY_ADMIN.TEAMS_SECTION.COL_MANAGE_TEAM', type: 'action' }
+    ];
+  }
 
   ngOnInit() {
     this.loadData();

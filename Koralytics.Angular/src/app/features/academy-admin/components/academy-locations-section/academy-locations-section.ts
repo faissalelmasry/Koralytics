@@ -9,6 +9,8 @@ import { DataTable, TableColumn } from '../../../../../shared/components/data-ta
 import { Pagination } from '../../../../../shared/components/pagination/pagination';
 import { AcademyLocationResponseDto } from '../../../../../core/interfaces/academy.models';
 import { ConfirmDialogComponent } from '../../../../../shared/components/confirm-dialog/confirm-dialog';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { LocalizedDatePipe } from '../../../../../shared/pipes/localized-date.pipe';
 
 @Component({
   selector: 'app-academy-locations-section',
@@ -20,7 +22,9 @@ import { ConfirmDialogComponent } from '../../../../../shared/components/confirm
     CustomButtonComponent,
     DataTable,
     Pagination,
-    ConfirmDialogComponent
+    ConfirmDialogComponent,
+    TranslatePipe,
+    LocalizedDatePipe
   ],
   templateUrl: './academy-locations-section.html',
   styleUrls: ['./academy-locations-section.css']
@@ -31,6 +35,7 @@ export class AcademyLocationsSectionComponent implements OnInit {
   private academyService = inject(AcademyService);
   private toast = inject(ToastService);
   private fb = inject(FormBuilder);
+  private translate = inject(TranslateService);
 
   locations: AcademyLocationResponseDto[] = [];
   locationForm!: FormGroup;
@@ -41,13 +46,15 @@ export class AcademyLocationsSectionComponent implements OnInit {
   pageNumberLocations = 1;
   pageSizeLocations = 5;
 
-  locationColumns: TableColumn[] = [
-    { key: 'name', label: 'Location Name' },
-    { key: 'address', label: 'Address' },
-    { key: 'city', label: 'City' },
-    { key: 'isMainFormatted', label: 'Type' },
-    { key: 'actions', label: 'Manage Location', type: 'action' }
-  ];
+  get locationColumns(): TableColumn[] {
+    return [
+      { key: 'name', label: 'ACADEMY_ADMIN.LOCATIONS_SECTION.COL_LOCATION_NAME' },
+      { key: 'address', label: 'ACADEMY_ADMIN.LOCATIONS_SECTION.COL_ADDRESS' },
+      { key: 'city', label: 'ACADEMY_ADMIN.LOCATIONS_SECTION.COL_CITY' },
+      { key: 'isMainFormatted', label: 'ACADEMY_ADMIN.LOCATIONS_SECTION.COL_TYPE' },
+      { key: 'actions', label: 'ACADEMY_ADMIN.LOCATIONS_SECTION.COL_MANAGE_LOCATION', type: 'action' }
+    ];
+  }
 
   ngOnInit() {
     this.initForm();
@@ -84,7 +91,7 @@ export class AcademyLocationsSectionComponent implements OnInit {
     const start = (this.pageNumberLocations - 1) * this.pageSizeLocations;
     return this.locations.slice(start, start + this.pageSizeLocations).map(loc => ({
       ...loc,
-      isMainFormatted: loc.isMain ? 'Main Location' : 'Branch',
+      isMainFormatted: loc.isMain ? (this.translate.instant('ACADEMY_ADMIN.LOCATIONS_SECTION.MAIN_LOCATION') || 'Main Location') : (this.translate.instant('ACADEMY_ADMIN.LOCATIONS_SECTION.BRANCH') || 'Branch'),
       hideDelete: loc.isMain && this.locations.length > 1, // Don't show delete on main if others exist
       showSetMain: true
     }));
@@ -108,7 +115,7 @@ export class AcademyLocationsSectionComponent implements OnInit {
       next: (res) => {
         this.isAddingLocation = false;
         if (res.isSuccess) {
-          this.toast.show('Location added successfully', 'success');
+          this.toast.show(this.translate.instant('ACADEMY_ADMIN.LOCATIONS_SECTION.ADDED_SUCCESS') || 'Location added successfully', 'success');
           this.locationForm.reset();
           this.loadLocations();
         } else {
@@ -137,8 +144,8 @@ export class AcademyLocationsSectionComponent implements OnInit {
 
   deleteLocation(locationId: number) {
     this.targetIdForConfirm = locationId;
-    this.confirmDialogTitle = 'Delete Academy Location';
-    this.confirmDialogMessage = 'Are you sure you want to permanently remove this location?';
+    this.confirmDialogTitle = this.translate.instant('ACADEMY_ADMIN.LOCATIONS_SECTION.DELETE_TITLE') || 'Delete Academy Location';
+    this.confirmDialogMessage = this.translate.instant('ACADEMY_ADMIN.LOCATIONS_SECTION.DELETE_MSG') || 'Are you sure you want to permanently remove this location?';
     this.isConfirmDialogOpen = true;
   }
 
@@ -155,7 +162,7 @@ export class AcademyLocationsSectionComponent implements OnInit {
     this.academyService.deleteLocation(this.academyId, locationId).subscribe({
       next: (res) => {
         if (res.isSuccess || res.statusCode === 204) {
-          this.toast.show('Location deleted successfully', 'success');
+          this.toast.show(this.translate.instant('ACADEMY_ADMIN.LOCATIONS_SECTION.DELETE_SUCCESS') || 'Location deleted successfully', 'success');
           this.loadLocations();
         } else {
           this.toast.show(res.message || 'Error deleting location', 'error');
@@ -171,7 +178,7 @@ export class AcademyLocationsSectionComponent implements OnInit {
     this.academyService.setMainLocation(this.academyId, locationId).subscribe({
       next: (res) => {
         if (res.isSuccess || res.statusCode === 204) {
-          this.toast.show('Main location updated', 'success');
+          this.toast.show(this.translate.instant('ACADEMY_ADMIN.LOCATIONS_SECTION.UPDATE_MAIN_SUCCESS') || 'Main location updated', 'success');
           this.loadLocations();
         } else {
           this.toast.show(res.message || 'Error setting main location', 'error');

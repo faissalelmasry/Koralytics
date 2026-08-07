@@ -1,15 +1,15 @@
 <div class="section-container fade-in">
   <div class="section-header">
     <div class="header-content">
-      <h3>Manage Players</h3>
-      <p class="subtitle">Invite players and manage academy members</p>
+      <h3>{{ 'ACADEMY_ADMIN.MEMBERS.TITLE' | translate }}</h3>
+      <p class="subtitle">{{ 'ACADEMY_ADMIN.MEMBERS.SUBTITLE' | translate }}</p>
     </div>
   </div>
 
   <div class="search-panel">
     <h4
       style="margin: 0 0 14px 0; color: #00e5ff; font-family: 'Oswald', 'Bebas Neue', sans-serif; text-transform: uppercase; letter-spacing: 0.5px;">
-      Search & Invite Players</h4>
+      {{ 'ACADEMY_ADMIN.MEMBERS.SEARCH_INVITE' | translate }}</h4>
     <form [formGroup]="searchForm" (ngSubmit)="onSearch()" class="cyber-search-bar">
       <div class="search-input-wrapper">
         <svg class="search-icon-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -17,7 +17,7 @@
           <circle cx="11" cy="11" r="8"></circle>
           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
         </svg>
-        <input type="text" formControlName="searchTerm" placeholder="Search by player name or email..."
+        <input type="text" formControlName="searchTerm" placeholder="{{ 'ACADEMY_ADMIN.MEMBERS.PH_SEARCH' | translate }}"
           class="cyber-input" />
         <button *ngIf="searchForm.get('searchTerm')?.value" type="button" class="clear-btn"
           (click)="searchForm.get('searchTerm')?.setValue('')" title="Clear">
@@ -25,12 +25,12 @@
         </button>
       </div>
       <button class="btn-search-cyber" type="submit" [disabled]="isSearching">
-        <span>{{ isSearching ? 'Searching...' : 'Search' }}</span>
+        <span>{{ isSearching ? ('ACADEMY_ADMIN.MEMBERS.BTN_SEARCHING' | translate) : ('ACADEMY_ADMIN.MEMBERS.BTN_SEARCH' | translate) }}</span>
       </button>
     </form>
 
     <div class="search-results" *ngIf="searchResults.length > 0">
-      <h4>Search Results</h4>
+      <h4>{{ 'ACADEMY_ADMIN.MEMBERS.SEARCH_RESULTS' | translate }}</h4>
       <div class="user-card" *ngFor="let user of searchResults">
         <div class="user-info">
           <div class="avatar-small clickable-user-elem" (click)="viewMemberProfile(user.playerId || user.userId || user.id); $event.stopPropagation()" title="View Member Profile">
@@ -45,8 +45,8 @@
         <app-button variant="accent" size="small"
           [disabled]="isSending || isUserPending(user.playerId || user.userId || user.id) || isUserMember(user.playerId || user.userId || user.id)"
           (click)="onSendRequest(user.playerId || user.userId || user.id)">
-          {{ isUserMember(user.playerId || user.userId || user.id) ? 'Already Member' : (isUserPending(user.playerId ||
-          user.userId || user.id) ? 'Pending' : 'Send Request') }}
+          {{ isUserMember(user.playerId || user.userId || user.id) ? ('ACADEMY_ADMIN.MEMBERS.ALREADY_MEMBER' | translate) : (isUserPending(user.playerId ||
+          user.userId || user.id) ? ('ACADEMY_ADMIN.MEMBERS.PENDING' | translate) : ('ACADEMY_ADMIN.MEMBERS.SEND_REQUEST' | translate)) }}
         </app-button>
       </div>
     </div>
@@ -54,7 +54,7 @@
 
   <!-- Pending Requests -->
   <div class="pending-section" *ngIf="pendingRequests.length > 0">
-    <h4>Pending Join Requests</h4>
+    <h4>{{ 'ACADEMY_ADMIN.MEMBERS.PENDING_REQUESTS' | translate }}</h4>
     <div class="user-card pending-card" *ngFor="let req of pendingRequests">
       <div class="user-info">
         <div class="avatar-small clickable-user-elem" (click)="viewMemberProfile(req.playerId || req.userId || req.id); $event.stopPropagation()" title="View Member Profile">
@@ -62,19 +62,17 @@
           <span *ngIf="!(req.imageUrl || req.profileImageUrl)">{{ req.playerName?.charAt(0) || req.fullName?.charAt(0) || 'P' }}</span>
         </div>
         <div class="user-details">
-          <span class="user-name clickable-user-elem" (click)="viewMemberProfile(req.playerId || req.userId || req.id); $event.stopPropagation()" title="View Member Profile">{{ req.playerName || req.fullName || 'Player Request' }}</span>
-          <span class="user-email">Player{{ req.username ? ' • @' + req.username : '' }} • Sent on {{ req.requestedAt | date:'short' }}</span>
+          <span class="user-name clickable-user-elem" (click)="viewMemberProfile(req.playerId || req.userId || req.id); $event.stopPropagation()" title="View Member Profile">{{ req.playerName || req.fullName || ('ACADEMY_ADMIN.MEMBERS.PLAYER_REQUEST' | translate) }}</span>
+          <span class="user-email">Player{{ req.username ? ' • @' + req.username : '' }} • {{ 'ACADEMY_ADMIN.MEMBERS.SENT_ON' | translate }} {{ req.requestedAt | localizedDate:'short' }}</span>
         </div>
       </div>
-      <app-button variant="slate" size="small" (click)="onCancelRequest(req.id)">
-        Cancel
-      </app-button>
+      <app-button variant="slate" size="small" (click)="onCancelRequest(req.id)"> {{ 'ACADEMY_ADMIN.MEMBERS.BTN_CANCEL' | translate }} </app-button>
     </div>
   </div>
 
   <div class="loading-state" *ngIf="isLoading">
     <app-loading-spinner size="lg"></app-loading-spinner>
-    <p>Loading members...</p>
+    <p>{{ 'ACADEMY_ADMIN.MEMBERS.LOADING_MEMBERS' | translate }}</p>
   </div>
 
   <!-- Active Members -->
@@ -89,13 +87,13 @@
   </div>
 
   <div class="empty-state" *ngIf="!isLoading && (!membersData || membersData.items.length === 0)">
-    <p>No active players found.</p>
+    <p>{{ 'ACADEMY_ADMIN.MEMBERS.NO_PLAYERS_FOUND' | translate }}</p>
   </div>
 </div>
 
 <!-- Shared Cyber Confirm Dialog -->
 <app-confirm-dialog [isOpen]="isConfirmDialogOpen" [title]="confirmDialogTitle" [message]="confirmDialogMessage"
-  level="danger" confirmText="Yes, Confirm" cancelText="Cancel" [requiresConfirmation]="false"
+  level="danger" confirmText="{{ 'ACADEMY_ADMIN.MEMBERS.CONFIRM_YES' | translate }}" cancelText="{{ 'ACADEMY_ADMIN.MEMBERS.BTN_CANCEL' | translate }}" [requiresConfirmation]="false"
   (confirm)="onConfirmDialogExecute()"
   (cancel)="isConfirmDialogOpen = false; confirmActionType = null; targetIdForConfirm = null">
 </app-confirm-dialog>

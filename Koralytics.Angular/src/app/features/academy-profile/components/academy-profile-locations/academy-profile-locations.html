@@ -1,0 +1,42 @@
+      <div class="cyber-panel" scrollReveal direction="bottom" [delay]="200">
+        <div class="panel-header">
+          <h3>{{ 'ACADEMY_PROFILE.TITLE_LOCATIONS' | translate }}</h3>
+        </div>
+        <div class="panel-body">
+          @if (locations.length > 0) {
+          <div class="locations-grid">
+            @for (loc of locations; track loc.id) {
+            <div class="location-card" [class.main-branch]="loc.isMain || loc.isMainLocation">
+              <div class="location-header">
+                <div class="loc-title-wrap">
+                  <span class="location-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                      <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                  </span>
+                  <h4>{{ loc.name }}</h4>
+                </div>
+                @if (loc.isMain || loc.isMainLocation) {
+                <span class="main-badge">{{ 'ACADEMY_PROFILE.MAIN_LOCATION_BADGE' | translate }}</span>
+                }
+              </div>
+              <div class="location-body">
+                <div class="loc-detail">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                    <circle cx="12" cy="10" r="3"></circle>
+                  </svg>
+                  {{ loc.address }}, {{ loc.city }}
+                </div>
+              </div>
+            </div>
+            }
+          </div>
+          } @else {
+          <app-empty-state title="{{ 'ACADEMY_PROFILE.TITLE_LOCATIONS' | translate }}"
+            description="{{ 'ACADEMY_PROFILE.NO_LOCATIONS_YET' | translate }}"></app-empty-state>
+          }
+        </div>
+      </div>
