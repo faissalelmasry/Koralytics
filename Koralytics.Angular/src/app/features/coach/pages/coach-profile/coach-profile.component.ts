@@ -18,6 +18,8 @@ import {
   BaseUserProfileResponse,
   CoachProfileResponse
 } from '../../../../../core/models/profile/profile.models';
+import { MiniPlayerCardComponent } from '../../../match/mini-player-card/mini-player-card.component';
+import { MiniPlayerCardModel } from '../../../../../core/models/Player/mini-player-card-model';
 
 @Component({
   selector: 'app-coach-profile',
@@ -25,10 +27,9 @@ import {
   imports: [
     CommonModule,
     RouterModule,
-    NavbarComponent,
-    Footer,
     LoadingSpinnerComponent,
-    ScrollRevealDirective
+    ScrollRevealDirective,
+    MiniPlayerCardComponent
   ],
   templateUrl: './coach-profile.component.html',
   styleUrls: ['./coach-profile.component.css']
@@ -140,12 +141,14 @@ export class CoachProfileComponent implements OnInit, OnDestroy {
   private loadCoachData(): void {
     this.isLoading = true;
 
-    // Load profile (own profile) and teams in parallel
-    if (this.isOwnProfile) {
-      forkJoin({
-        profile: this.profileService.getMyProfile().pipe(catchError(() => of(null))),
-        teams: this.squadService.getCoachTeams().pipe(catchError(() => of([] as CoachTeamDto[])))
-      })
+    const profile$ = this.isOwnProfile
+      ? this.profileService.getMyProfile().pipe(catchError(() => of(null)))
+      : this.profileService.getProfileById(this.coachId!).pipe(catchError(() => of(null)));
+
+    const teams$ = this.squadService.getCoachTeams(this.coachId ?? undefined)
+      .pipe(catchError(() => of([] as CoachTeamDto[])));
+
+    forkJoin({ profile: profile$, teams: teams$ })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: ({ profile, teams }) => {
@@ -159,7 +162,6 @@ export class CoachProfileComponent implements OnInit, OnDestroy {
             this.selectedTeamId = teams[0].teamId;
             this.loadSquadForTeam(teams[0].teamId);
             this.loadPerformance(teams[0].teamId);
-            // Load all team squads for summary
             this.loadAllTeamSquads(teams);
           }
           this.isLoading = false;
@@ -170,25 +172,6 @@ export class CoachProfileComponent implements OnInit, OnDestroy {
           this.isLoading = false;
         }
       });
-    } else {
-      // Viewing another coach's profile — use coachId to get their teams
-      this.squadService.getCoachTeams()
-        .pipe(
-          takeUntilDestroyed(this.destroyRef),
-          catchError(() => of([] as CoachTeamDto[]))
-        )
-        .subscribe(teams => {
-          this.teams.set(teams);
-          if (teams.length > 0) {
-            this.selectedTeamId = teams[0].teamId;
-            this.loadSquadForTeam(teams[0].teamId);
-            this.loadPerformance(teams[0].teamId);
-            this.loadAllTeamSquads(teams);
-          }
-          this.isLoading = false;
-          this.setupCounterAnimation();
-        });
-    }
   }
 
   loadSquadForTeam(teamId: number): void {
@@ -378,5 +361,16 @@ export class CoachProfileComponent implements OnInit, OnDestroy {
         this.animatedCounters = targets;
       }
     }, interval);
+  }
+
+  mapSquadPlayerToMiniCard(player: SquadPlayerDto): MiniPlayerCardModel {
+    return {
+      playerId: player.playerId,
+      fullName: player.fullName,
+      position: player.primaryPosition || 'N/A',
+      naturalPosition: player.primaryPosition || 'N/A',
+      profileImageUrl: player.profileImageUrl ?? null,
+      overallRating: player.overallRating || 0
+    };
   }
 }

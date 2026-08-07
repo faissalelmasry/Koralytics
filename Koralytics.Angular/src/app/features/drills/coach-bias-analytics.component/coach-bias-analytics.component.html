@@ -13,7 +13,7 @@
 
         <div class="header-right">
             @if (isCoachView) {
-            <div class="coach-badge-box">
+            <div class="coach-badge-box clickable" [routerLink]="selectedCoachId || biasReport?.coachId ? ['/coach/profile', selectedCoachId || biasReport?.coachId] : ['/coach/profile']" title="View Coach Profile">
                 <span class="badge-sub">REPORTING COACH</span>
                 <span class="badge-title">{{ getSelectedCoachName() }}</span>
             </div>
@@ -86,7 +86,7 @@
         <div class="section-title-row flex-between">
             <div>
                 <h2>Player Evaluation Sample</h2>
-                <p class="section-desc">Comparison of Coach {{ biasReport.coachName }}'s practice drill scores vs. actual match ratings.</p>
+                <p class="section-desc">Comparison of Coach <a [routerLink]="selectedCoachId || biasReport.coachId ? ['/coach/profile', selectedCoachId || biasReport.coachId] : ['/coach/profile']" class="coach-link">{{ biasReport.coachName }}</a>'s practice drill scores vs. actual match ratings.</p>
             </div>
             <app-status-chip [label]="'Top ' + topPlayerComparisons.length + ' of ' + biasReport.playersAnalyzedCount + ' Players'" type="info"></app-status-chip>
         </div>
@@ -105,7 +105,7 @@
                 <tbody>
                     @for (item of topPlayerComparisons; track item.playerId) {
                     <tr>
-                        <td class="player-name-cell">
+                        <td class="player-name-cell clickable" [routerLink]="['/player/profile', item.playerId]" title="View Player Profile">
                             <div class="player-avatar-box">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>

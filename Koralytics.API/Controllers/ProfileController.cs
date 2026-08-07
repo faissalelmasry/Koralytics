@@ -33,6 +33,16 @@ namespace Koralytics.API.Controllers
         }
 
         /// <summary>
+        /// Retrieves the user profile for a given user ID.
+        /// </summary>
+        [HttpGet("{userId:int}")]
+        public async Task<IActionResult> GetUserProfile(int userId)
+        {
+            var profile = await _profileService.GetMyProfileAsync(userId);
+            return OkResponse<object>(profile, "Profile retrieved successfully.");
+        }
+
+        /// <summary>
         /// Updates the profile fields for the currently authenticated user (full record update).
         /// The frontend should pass all form fields; omitted/null optional fields will overwrite the existing record.
         /// </summary>

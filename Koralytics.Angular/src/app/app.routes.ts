@@ -140,9 +140,11 @@ export const routes: Routes = [
       { path: 'profile/me', loadComponent: () => import('./features/profile/my-profile/my-profile.component').then(m => m.MyProfileComponent) },
       {
         path: 'coach/profile',
-        loadComponent: () => import('./features/coach/pages/coach-profile/coach-profile.component').then(m => m.CoachProfileComponent),
-        canActivate: [roleGuard],
-        data: { roles: ['Coach'] }
+        loadComponent: () => import('./features/coach/pages/coach-profile/coach-profile.component').then(m => m.CoachProfileComponent)
+      },
+      {
+        path: 'coach/profile/:coachId',
+        loadComponent: () => import('./features/coach/pages/coach-profile/coach-profile.component').then(m => m.CoachProfileComponent)
       },
       { path: 'settings/change-password', loadComponent: () => import('./features/auth/pages/change-password/change-password.component').then(m => m.ChangePasswordComponent) },
       {
@@ -158,18 +160,6 @@ export const routes: Routes = [
         data: { roles: ['Coach'] }
       },
       {
-        path: 'coach/notes',
-        loadComponent: () => import('./features/coach/pages/coach-notes/coach-notes.component').then(m => m.CoachNotesComponent),
-        canActivate: [roleGuard],
-        data: { roles: ['Coach'] }
-      },
-      {
-        path: 'coach/access',
-        loadComponent: () => import('./features/coach/pages/temp-access/temp-access.component').then(m => m.TempAccessComponent),
-        canActivate: [roleGuard],
-        data: { roles: ['Coach'] }
-      },
-      {
         path: 'coach/highlights',
         redirectTo: 'player/highlights',
         pathMatch: 'full'
@@ -179,18 +169,6 @@ export const routes: Routes = [
         loadComponent: () => import('./features/player/player-highlights/player-highlights.component').then(m => m.PlayerHighlightsComponent),
         canActivate: [roleGuard],
         data: { roles: ['Player'] }
-      },
-      {
-        path: 'coach/match-requests',
-        loadComponent: () => import('./features/coach/pages/match-request/match-request.component').then(m => m.MatchRequestComponent),
-        canActivate: [roleGuard],
-        data: { roles: ['Coach', 'AcademyAdmin'] }
-      },
-      {
-        path: 'coach/readiness',
-        loadComponent: () => import('./features/coach/pages/player-readiness/player-readiness.component').then(m => m.PlayerReadinessComponent),
-        canActivate: [roleGuard],
-        data: { roles: ['Coach'] }
       },
       { path: 'tournament/list', loadComponent: () => import('./features/tournament/pages/tournament-list/tournament-list.component').then(m => m.TournamentListComponent) },
       { path: 'tournament/create', loadComponent: () => import('./features/tournament/pages/tournament-manage/tournament-manage.component').then(m => m.TournamentManageComponent) },
@@ -274,11 +252,7 @@ export const routes: Routes = [
     canActivate: [authGuard, roleGuard],
     data: { roles: ['Coach'] }
   },
-  {
-    path: 'coach/profile/:coachId',
-    loadComponent: () => import('./features/coach/pages/coach-profile/coach-profile.component').then(m => m.CoachProfileComponent),
-    canActivate: [authGuard]
-  },
+
   {
     path: 'scouter/dashboard',
     loadComponent: () => import('./features/scouter/pages/scouter-dashboard/scouter-dashboard.component').then(m => m.ScouterDashboardComponent),
