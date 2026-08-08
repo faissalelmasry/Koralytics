@@ -1,5 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ProfileService } from '../../../../core/services/profile/profile.service';
 import { ToastService } from '../../../../core/services/Toast/toast';
@@ -40,7 +41,8 @@ import { LocalizedDatePipe } from '../../../../shared/pipes/localized-date.pipe'
     ScrollRevealDirective,
     ImageUpload,
     TranslatePipe,
-    LocalizedDatePipe
+    LocalizedDatePipe,
+    ConfirmDialogComponent
   ],
   templateUrl: './my-profile.component.html',
   styleUrls: ['./my-profile.component.css']
@@ -65,6 +67,9 @@ export class MyProfileComponent implements OnInit {
   isUnlinkingParent = false;
   isUploadingImage = false;
   showImageUploadModal = false;
+
+  showUnlinkConfirmDialog = false;
+  parentToUnlinkId: number | null = null;
 
   readonly allPitchPositions = [
     { id: 'LW', name: 'LW', top: '22%', left: '78%' },
@@ -253,9 +258,16 @@ export class MyProfileComponent implements OnInit {
   }
 
   unlinkParent(parentId: number): void {
-    if (!confirm('Are you sure you want to unlink this parent/guardian from your account?')) {
-      return;
-    }
+    this.parentToUnlinkId = parentId;
+    this.showUnlinkConfirmDialog = true;
+  }
+
+  confirmUnlinkParent(): void {
+    if (!this.parentToUnlinkId) return;
+    const parentId = this.parentToUnlinkId;
+    this.showUnlinkConfirmDialog = false;
+    this.parentToUnlinkId = null;
+    
     this.isUnlinkingParent = true;
     this.parentService.unlinkParent(parentId).subscribe({
       next: () => {
@@ -269,6 +281,11 @@ export class MyProfileComponent implements OnInit {
         this.toast.show('Failed to unlink parent/guardian.', 'error');
       }
     });
+  }
+
+  cancelUnlinkParent(): void {
+    this.showUnlinkConfirmDialog = false;
+    this.parentToUnlinkId = null;
   }
 
   get initials(): string {

@@ -41,14 +41,14 @@
         <button 
           class="btn btn-secondary"
           (click)="onCancel()">
-          {{ cancelText }}
+          {{ cancelText | translate }}
         </button>
         <button 
           class="btn"
           [disabled]="isConfirmDisabled"
           [ngClass]="'level-' + level"
           (click)="onConfirm()">
-          {{ confirmText }}
+          {{ confirmText | translate }}
         </button>
       </div>
 

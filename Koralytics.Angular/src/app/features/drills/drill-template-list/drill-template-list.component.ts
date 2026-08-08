@@ -1,4 +1,6 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { LocalizedDatePipe } from '../../../../shared/pipes/localized-date.pipe';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, finalize, tap } from 'rxjs/operators';
@@ -38,10 +40,34 @@ import { NavbarComponent } from '../../../../shared/components/navbar/navbar';
     CustomSelect,
     CustomToggle,
     LoadingSpinnerComponent,
+    EmptyStateComponent,
+    Footer, TranslatePipe, LocalizedDatePipe,
     EmptyStateComponent
   ],
 })
 export class DrillTemplateListComponent implements OnInit, OnDestroy {
+  private translate = inject(TranslateService);
+
+  translateCategory(name: string | null | undefined): string {
+    if (!name) return '';
+    const key = 'DRILLS.DYNAMIC.CAT_' + name.toUpperCase();
+    const translated = this.translate.instant(key);
+    return translated !== key ? translated : name;
+  }
+
+  translateDifficulty(name: string | null | undefined): string {
+    if (!name) return '';
+    const key = 'DRILLS.DIFF_' + name.toUpperCase();
+    const translated = this.translate.instant(key);
+    return translated !== key ? translated : name;
+  }
+
+  translateDrillMode(name: string | null | undefined): string {
+    if (!name) return '';
+    const key = 'DRILLS.MODE_' + name.toUpperCase();
+    const translated = this.translate.instant(key);
+    return translated !== key ? translated : name.replace(/([A-Z])/g, ' $1').trim();
+  }
   // --- Data Arrays ---
   visibleTemplates: DrillTemplateDto[] = [];
   categories: DrillCategoryDto[] = [];
@@ -57,10 +83,11 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
   toastType: 'success' | 'error' = 'success';
 
   // --- Confirm Modal State ---
-  confirmModal = {
+  confirmModal: any = {
     isOpen: false,
     title: '',
     message: '',
+    messageParams: {},
     confirmText: '',
     action: () => { }
   };
@@ -87,8 +114,12 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
   // --- Select Options for shared components ---
   categoryOptions: SelectOption[] = [];        // for filter bar (includes "All Categories")
   formCategoryOptions: SelectOption[] = [];    // for create/edit form (categories only)
-  difficultyOptions: SelectOption[] = Object.values(DifficultyLevel).map(v => ({ value: v as string, label: v as string }));
-  drillModeOptions: SelectOption[] = Object.values(DrillMode).map(v => ({ value: v as string, label: v as string }));
+  get difficultyOptions(): SelectOption[] {
+    return Object.values(DifficultyLevel).map(v => ({ value: v as string, label: this.translateDifficulty(v as string) }));
+  }
+  get drillModeOptions(): SelectOption[] {
+    return Object.values(DrillMode).map(v => ({ value: v as string, label: this.translateDrillMode(v as string) }));
+  }
 
   selectedCategoryId: number | null = null;
   showSharedOnly = false;
@@ -170,12 +201,12 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
 
         // For filter bar: prepend "All Categories"
         this.categoryOptions = [
-          { value: 0, label: 'All Categories' },
-          ...this.categories.map(c => ({ value: c.id as any, label: c.name }))
+          { value: 0, label: this.translate.instant('DRILLS.TEMPLATE_LIST.ALL_CATEGORIES') || 'All Categories' },
+          ...this.categories.map(c => ({ value: c.id as any, label: this.translateCategory(c.name) }))
         ];
 
         // For create/edit form: only real categories
-        this.formCategoryOptions = this.categories.map(c => ({ value: c.id as any, label: c.name }));
+        this.formCategoryOptions = this.categories.map(c => ({ value: c.id as any, label: this.translateCategory(c.name) }));
 
         console.log('[Categories] options:', this.categoryOptions);
       },
@@ -356,7 +387,7 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
     ).subscribe({
       next: () => {
         this.closeForm();
-        this.showToast(this.isEditing ? 'Template updated successfully.' : 'Template created successfully.', 'success');
+        this.showToast(this.isEditing ? this.translate.instant('DRILLS.TEMPLATE_LIST.UPDATE_SUCCESS') || 'Template updated successfully.' : this.translate.instant('DRILLS.TEMPLATE_LIST.CREATE_SUCCESS') || 'Template created successfully.', 'success');
         this.fetchTemplates();
       },
       error: (err) => {
@@ -383,7 +414,7 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
       isOpen: true,
       title: title,
       message: message,
-      confirmText: 'OK',
+      confirmText: this.translate.instant('COMMON.OK') || 'OK',
       action: () => { this.closeConfirm(); }
     };
     this.cdr.detectChanges();
@@ -399,12 +430,12 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
         const index = this.visibleTemplates.findIndex(t => t.id === drill.id);
         if (index !== -1) {
           this.visibleTemplates[index].isShared = !this.visibleTemplates[index].isShared;
-          this.showToast(this.visibleTemplates[index].isShared ? 'Template shared successfully.' : 'Template unshared successfully.', 'success');
+          this.showToast(this.visibleTemplates[index].isShared ? this.translate.instant('DRILLS.TEMPLATE_LIST.SHARE_SUCCESS') || 'Template shared successfully.' : this.translate.instant('DRILLS.TEMPLATE_LIST.UNSHARE_SUCCESS') || 'Template unshared successfully.', 'success');
           this.calculateStats();
         }
       },
       error: (err) => {
-        this.showErrorDialog('Share Failed', this.extractErrorMessage(err, 'Failed to toggle share status.'));
+        this.showErrorDialog(this.translate.instant('DRILLS.TEMPLATE_LIST.SHARE_FAIL') || 'Share Failed', this.extractErrorMessage(err, 'Failed to toggle share status.'));
       }
     });
   }
@@ -412,21 +443,22 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
   onDeleteTemplate(drill: DrillTemplateDto): void {
     this.confirmModal = {
       isOpen: true,
-      title: 'Delete Template',
-      message: `Are you sure you want to delete "${drill.name}"? This action cannot be undone.`,
-      confirmText: 'Yes, Delete',
+      title: 'DRILLS.TEMPLATE_LIST.DELETE_TITLE',
+      message: 'DRILLS.TEMPLATE_LIST.DELETE_MESSAGE',
+      messageParams: { name: drill.name },
+      confirmText: 'DRILLS.TEMPLATE_LIST.DELETE_YES',
       action: () => {
         this.drillTemplateService.deleteTemplate(drill.id).subscribe({
           next: () => {
             this.visibleTemplates = this.visibleTemplates.filter(t => t.id !== drill.id);
             if (this.totalItems > 0) this.totalItems--;
-            this.showToast('Template deleted successfully.', 'success');
+            this.showToast(this.translate.instant('DRILLS.TEMPLATE_LIST.DELETE_SUCCESS') || 'Template deleted successfully.', 'success');
             this.calculateStats();
             this.calculatePagination();
             this.closeConfirm();
           },
           error: (err) => {
-            this.showErrorDialog('Cannot Delete Template', this.extractErrorMessage(err, 'Cannot delete this template.'));
+            this.showErrorDialog(this.translate.instant('DRILLS.TEMPLATE_LIST.DELETE_FAIL_TITLE') || 'Cannot Delete Template', this.extractErrorMessage(err, 'Cannot delete this template.'));
           }
         });
       }
@@ -448,29 +480,8 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
   // ==========================================
 
   getCategoryLabel(drill: DrillTemplateDto): string {
-    // 1. If the drill DTO has a categoryName string directly from backend, use it
-    if ((drill as any).categoryName) {
-      return (drill as any).categoryName.toLowerCase();
-    }
-
-    // 2. Otherwise, look it up from our loaded categories array
-    const cat = this.categories.find(c => c.id === drill.categoryId);
-    if (cat) {
-      return cat.name.toLowerCase();
-    }
-
-    // 3. Fallback hardcoded dictionary matching your SQL IDs just in case the API array is slow
-    const fallbackMap: { [key: number]: string } = {
-      1: 'passing',
-      2: 'shooting',
-      3: 'dribbling',
-      4: 'defending',
-      5: 'goalkeeping',
-      6: 'speed',
-      7: 'physical'
-    };
-
-    return fallbackMap[drill.categoryId] || `category #${drill.categoryId}`;
+    const name = (drill as any).categoryName || this.categories.find(c => c.id === drill.categoryId)?.name || '';
+    return this.translateCategory(name);
   }
 
   getDifficultyClass(level: DifficultyLevel | string): string {
@@ -492,22 +503,17 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
   }
 
   getDifficultyLabel(level: DifficultyLevel | string): string {
-    switch (level) {
-      case DifficultyLevel.Beginner: return 'low';
-      case DifficultyLevel.Intermediate: return 'med';
-      case DifficultyLevel.Advanced: return 'high';
-      default: return 'low';
-    }
+    return this.translateDifficulty(level as string);
   }
 
   getDrillModeLabel(mode: DrillMode): string {
-    return mode.toString().replace(/([A-Z])/g, ' $1').trim().toLowerCase();
+    return this.translateDrillMode(mode as string);
   }
 
   getVisibilityLabel(drill: DrillTemplateDto): string {
-    if (drill.academyId === null) return 'global';
-    if (drill.isShared) return 'shared';
-    return 'private';
+    if (drill.academyId === null) return this.translate.instant('DRILLS.TEMPLATE_LIST.VISIBILITY_GLOBAL') || 'global';
+    if (drill.isShared) return this.translate.instant('DRILLS.TEMPLATE_LIST.VISIBILITY_SHARED') || 'shared';
+    return this.translate.instant('DRILLS.TEMPLATE_LIST.VISIBILITY_PRIVATE') || 'private';
   }
 
   getVisibilityClass(drill: DrillTemplateDto): string {

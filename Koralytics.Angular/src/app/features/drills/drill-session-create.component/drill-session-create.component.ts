@@ -1,4 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { LocalizedDatePipe } from '../../../../shared/pipes/localized-date.pipe';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -18,11 +20,12 @@ import { NotificationService } from '@core/services/SignalR/notificationservice'
 @Component({
   selector: 'app-drill-session-create',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, CustomSelect, CustomButtonComponent, CustomDatePicker],
+  imports: [CommonModule, ReactiveFormsModule, CustomSelect, CustomButtonComponent, CustomDatePicker, TranslatePipe, LocalizedDatePipe],
   templateUrl: './drill-session-create.component.html',
   styleUrls: ['./drill-session-create.component.css']
 })
 export class DrillSessionCreateComponent implements OnInit {
+  private translate = inject(TranslateService);
   sessionForm!: FormGroup;
   isSubmitting = false;
   errorMessage = '';
@@ -35,10 +38,10 @@ export class DrillSessionCreateComponent implements OnInit {
 
   get typeOptions(): SelectOption[] {
     return [
-      { value: SessionType.PreSeason, label: 'Pre-Season' },
-      { value: SessionType.Regular, label: 'Regular' },
-      { value: SessionType.OffSeason, label: 'Off-Season' },
-      { value: SessionType.SessionMatch, label: 'Match' }
+      { value: SessionType.PreSeason, label: this.translate.instant('DRILLS.SESSION_CREATE.PRE_SEASON') || 'Pre-Season' },
+      { value: SessionType.Regular, label: this.translate.instant('DRILLS.SESSION_CREATE.REGULAR') || 'Regular' },
+      { value: SessionType.OffSeason, label: this.translate.instant('DRILLS.SESSION_CREATE.OFF_SEASON') || 'Off-Season' },
+      { value: SessionType.SessionMatch, label: this.translate.instant('DRILLS.SESSION_CREATE.MATCH') || 'Match' }
     ];
   }
 

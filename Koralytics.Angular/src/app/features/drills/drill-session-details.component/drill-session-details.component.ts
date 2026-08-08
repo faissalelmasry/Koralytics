@@ -1,4 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { LocalizedDatePipe } from '../../../../shared/pipes/localized-date.pipe';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -25,11 +27,19 @@ import { NotificationService } from '@core/services/SignalR/notificationservice'
     LoadingSpinnerComponent,
     CustomInputComponent,
     CustomNumberInputComponent
-  ],
+  , TranslatePipe, LocalizedDatePipe],
   templateUrl: './drill-session-details.component.html',
   styleUrls: ['./drill-session-details.component.css']
 })
 export class DrillSessionDetailsComponent implements OnInit {
+  private translate = inject(TranslateService);
+  translateCategory(name: string | null | undefined): string {
+    if (!name) return '';
+    const key = 'DRILLS.CAT_' + name.toUpperCase();
+    const translated = this.translate.instant(key);
+    return translated !== key ? translated : name;
+  }
+
   get templateOptions(): SelectOption[] {
     return this.availableTemplates.map(t => ({
       value: t.id,
@@ -51,6 +61,7 @@ export class DrillSessionDetailsComponent implements OnInit {
     isOpen: false,
     title: '',
     message: '',
+    messageParams: {},
     confirmText: '',
     action: () => { }
   };
@@ -236,9 +247,10 @@ export class DrillSessionDetailsComponent implements OnInit {
 
     this.confirmModal = {
       isOpen: true,
-      title: 'Remove Drill',
-      message: `Are you sure you want to remove ${drillName} from this session?`,
-      confirmText: 'Yes, Remove',
+      title: 'DRILLS.SESSION_DETAILS.REMOVE_DRILL',
+      message: 'DRILLS.SESSION_DETAILS.REMOVE_CONFIRM_MSG',
+      messageParams: { name: drillName },
+      confirmText: 'DRILLS.SESSION_DETAILS.REMOVE_BTN',
       action: () => {
         this.sessionService.removeDrillFromSession(this.sessionId, drillId).subscribe({
           next: () => {
@@ -275,13 +287,15 @@ export class DrillSessionDetailsComponent implements OnInit {
   }
 
   // Rating preset dropdown options for quick score entry (4 performance choices)
-  ratingPresetOptions: SelectOption[] = [
-    { value: '', label: 'Select Rating...' },
-    { value: 2.5, label: 'Poor' },
-    { value: 5, label: 'Average' },
-    { value: 7.5, label: 'Good' },
-    { value: 10, label: 'Excellent' }
-  ];
+  get ratingPresetOptions(): SelectOption[] {
+    return [
+      { value: '', label: this.translate.instant('DRILLS.SESSION_DETAILS.SELECT_RATING') || 'Select Rating...' },
+      { value: 2.5, label: this.translate.instant('DRILLS.SESSION_DETAILS.RATING_POOR') || 'Poor' },
+      { value: 5, label: this.translate.instant('DRILLS.SESSION_DETAILS.RATING_AVERAGE') || 'Average' },
+      { value: 7.5, label: this.translate.instant('DRILLS.SESSION_DETAILS.RATING_GOOD') || 'Good' },
+      { value: 10, label: this.translate.instant('DRILLS.SESSION_DETAILS.RATING_EXCELLENT') || 'Excellent' }
+    ];
+  }
 
   getMatchingRatingPreset(score: any): string | number {
     if (score === null || score === undefined || score === '') return '';
@@ -385,9 +399,10 @@ export class DrillSessionDetailsComponent implements OnInit {
   completeSession(): void {
     this.confirmModal = {
       isOpen: true,
-      title: 'Complete Session',
-      message: 'Are you sure you want to complete this session?',
-      confirmText: 'Complete Session',
+      title: 'DRILLS.SESSION_DETAILS.COMPLETE_SESSION',
+      message: 'DRILLS.SESSION_DETAILS.COMPLETE_CONFIRM_MSG',
+      messageParams: {},
+      confirmText: 'DRILLS.SESSION_DETAILS.COMPLETE_BTN',
       action: () => {
         this.sessionService.completeSession(this.sessionId).subscribe({
           next: (res: any) => {

@@ -13,6 +13,8 @@ import { ScrollRevealDirective } from '../../../../shared/directives/scroll-reve
 import { PlayerProfileService } from '../../../../core/services/player/player-profile.service';
 import { TokenStorageService } from '../../../../core/services/auth/token-storage.service';
 import { TeamScheduledEventDto } from '../../../../core/models/Player/scheduled-event-model';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { LocalizedDatePipe } from '../../../../shared/pipes/localized-date.pipe';
 
 @Component({
   selector: 'app-player-team-events',
@@ -28,16 +30,39 @@ import { TeamScheduledEventDto } from '../../../../core/models/Player/scheduled-
     CustomSelect,
     CustomDatePicker,
     CustomButtonComponent,
-    ScrollRevealDirective
+    ScrollRevealDirective,
+    TranslatePipe,
+    LocalizedDatePipe
   ],
   templateUrl: './player-team-events.component.html',
   styleUrls: ['./player-team-events.component.css']
 })
 export class PlayerTeamEventsComponent implements OnInit {
+  translateSessionType(name: string | null | undefined): string {
+    if (!name) return '';
+    let key = 'PLAYER.CAT_' + name.toUpperCase();
+    let translated = this.translate.instant(key);
+    if (translated !== key) return translated;
+    
+    key = 'PLAYER.MATCH_' + name.toUpperCase();
+    translated = this.translate.instant(key);
+    if (translated !== key) return translated;
+    
+    return name;
+  }
+
+  translateMatchType(name: string | null | undefined): string {
+    if (!name) return '';
+    const key = 'PLAYER.MATCH_' + name.toUpperCase();
+    const translated = this.translate.instant(key);
+    return translated !== key ? translated : name;
+  }
+
   private route = inject(ActivatedRoute);
   private profileService = inject(PlayerProfileService);
   private tokenStorage = inject(TokenStorageService);
   private cdr = inject(ChangeDetectorRef);
+  private translate = inject(TranslateService);
 
   playerId: number | null = null;
   playerName = '';
@@ -55,10 +80,12 @@ export class PlayerTeamEventsComponent implements OnInit {
   selectedDateFrom = '';
   selectedDateTo = '';
 
-  eventTypeOptions = [
-    { value: 'Match', label: 'Match' },
-    { value: 'Drill', label: 'Drill' }
-  ];
+  get eventTypeOptions() {
+    return [
+      { value: 'Match', label: this.translate.instant('PLAYER.MATCH_UPPER') },
+      { value: 'Drill', label: this.translate.instant('PLAYER.DRILL_UPPER') }
+    ];
+  }
 
   ngOnInit() {
     this.route.paramMap.subscribe(params => {
@@ -74,6 +101,14 @@ export class PlayerTeamEventsComponent implements OnInit {
         this.playerId = user.userId;
       }
       this.fetchPlayerDetailsAndTimeline();
+    });
+    
+    // Force re-evaluation of template functions when translations load/change
+    this.translate.onLangChange.subscribe(() => {
+      this.cdr.markForCheck();
+    });
+    this.translate.onTranslationChange.subscribe(() => {
+      this.cdr.markForCheck();
     });
   }
 

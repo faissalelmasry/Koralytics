@@ -5,10 +5,10 @@
         <div class="header-left">
             <div class="header-eyebrow">
                 <span class="eyebrow-dot"></span>
-                <span class="eyebrow-text">Field Management</span>
+                <span class="eyebrow-text">{{ 'DRILLS.SESSION_LIST.FIELD_MANAGEMENT' | translate }}</span>
             </div>
-            <h1 class="header-title">Drill Sessions</h1>
-            <p class="header-subtitle">Schedule, manage, and execute training routines for your academy</p>
+            <h1 class="header-title">{{ 'DRILLS.SESSION_LIST.DRILL_SESSIONS' | translate }}</h1>
+            <p class="header-subtitle">{{ 'DRILLS.SESSION_LIST.SCHEDULE_MANAGE_DESC' | translate }}</p>
         </div>
 
         <!-- Squad Diagnostics + Schedule Session Buttons -->
@@ -19,11 +19,11 @@
                     <line x1="12" y1="20" x2="12" y2="4"></line>
                     <line x1="6" y1="20" x2="6" y2="14"></line>
                 </svg>
-                <span>Weak Categories</span>
-                <span class="analytics-chip">ANALYTICS</span>
+                <span>{{ 'DRILLS.SESSION_LIST.WEAK_CATEGORIES' | translate }}</span>
+                <span class="analytics-chip">{{ 'DRILLS.SESSION_LIST.ANALYTICS' | translate }}</span>
             </button>
             @if (canManageDrills) {
-            <button class="btn-accent" (click)="openCreateSession()">+ Schedule Session</button>
+            <button class="btn-accent" (click)="openCreateSession()">+ {{ 'DRILLS.SESSION_CREATE.SCHEDULE_SESSION' | translate }}</button>
             }
         </div>
     </header>
@@ -32,22 +32,22 @@
     <section class="stats-strip">
         <div class="stat-item">
             <span class="stat-value">{{ totalItems }}</span>
-            <span class="stat-label">Total Sessions</span>
+            <span class="stat-label">{{ 'DRILLS.SESSION_LIST.TOTAL_SESSIONS' | translate }}</span>
         </div>
         <div class="stat-divider"></div>
         <div class="stat-item">
             <span class="stat-value cyan">{{ scheduledCount }}</span>
-            <span class="stat-label">Scheduled</span>
+            <span class="stat-label">{{ 'DRILLS.SESSION_LIST.SCHEDULED' | translate }}</span>
         </div>
         <div class="stat-divider"></div>
         <div class="stat-item">
             <span class="stat-value warning">{{ inProgressCount }}</span>
-            <span class="stat-label">In Progress</span>
+            <span class="stat-label">{{ 'DRILLS.SESSION_LIST.IN_PROGRESS' | translate }}</span>
         </div>
         <div class="stat-divider"></div>
         <div class="stat-item">
             <span class="stat-value success">{{ completedCount }}</span>
-            <span class="stat-label">Completed</span>
+            <span class="stat-label">{{ 'DRILLS.SESSION_LIST.COMPLETED' | translate }}</span>
         </div>
     </section>
 
@@ -55,7 +55,7 @@
     <section class="filter-bar">
         <div style="min-width: 200px;">
             <app-date-picker
-                label="Filter Date"
+                label="{{ 'DRILLS.SESSION_LIST.FILTER_DATE' | translate }}"
                 [value]="filterDateStr"
                 (valueChange)="onDatePickerChange($event)">
             </app-date-picker>
@@ -63,14 +63,16 @@
 
         <div class="filter-controls">
             <app-select
-                placeholder="All Teams"
+                [label]="'DRILLS.SESSION_DETAILS.TEAM' | translate"
+                [placeholder]="'DRILLS.SESSION_LIST.ALL_TEAMS' | translate"
                 [options]="teamOptions"
                 [value]="filter.teamId || 0"
                 (valueChange)="onTeamSelect($event)">
             </app-select>
 
             <app-select
-                placeholder="All Statuses"
+                [label]="'DRILLS.SESSION_LIST.SESSION_STATUS' | translate"
+                [placeholder]="'DRILLS.SESSION_LIST.ALL_STATUSES' | translate"
                 [options]="statusOptions"
                 [value]="selectedStatus"
                 (valueChange)="onStatusSelect($event)">
@@ -86,7 +88,7 @@
     @if (isLoading) {
     <div class="loading-wrapper py-5 text-center">
         <app-loading-spinner size="lg"></app-loading-spinner>
-        <p class="loading-text mt-3">Loading training sessions...</p>
+        <p class="loading-text mt-3">{{ 'DRILLS.SESSION_LIST.LOADING_TRAINING_SESSIONS' | translate }}</p>
     </div>
     }
 
@@ -110,7 +112,7 @@
             </div>
 
             <div class="card-body">
-                <h3 class="team-name">{{ session.teamName || 'Team ID: #' + session.teamId }}</h3>
+                <h3 class="team-name">{{ session.teamName || ('DRILLS.SESSION_DETAILS.TEAM' | translate) + ' #' + session.teamId }}</h3>
                 <span class="session-type">{{ getSessionTypeLabel(session.type) }}</span>
 
                 <div class="session-meta">
@@ -119,45 +121,45 @@
                             stroke-width="2">
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                             <circle cx="12" cy="7" r="4" />
-                        </svg> Coach: {{ session.coachName || 'ID: ' + session.coachId }}
+                        </svg> {{ 'DRILLS.SESSION_DETAILS.COACH' | translate }}: {{ session.coachName || 'ID: ' + session.coachId }}
                     </div>
                     <div class="meta-row">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2">
                             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                             <circle cx="12" cy="10" r="3" />
-                        </svg> {{ session.location || 'Main Pitch' }}
+                        </svg> {{ session.location || ('DRILLS.SESSION_DETAILS.MAIN_PITCH' | translate) }}
                     </div>
                     <div class="meta-row">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2">
                             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                             <polyline points="14 2 14 8 20 8" />
-                        </svg> {{ session.notes || 'No notes specified.' }}
+                        </svg> {{ session.notes || ('DRILLS.SESSION_DETAILS.NO_NOTES' | translate) }}
                     </div>
                 </div>
             </div>
 
             <div class="card-actions">
                 @if (session.status === SessionStatus.Completed) {
-                <button class="btn-full btn-secondary" (click)="viewSessionDetails(session.id)">View Report</button>
+                <button class="btn-full btn-secondary" (click)="viewSessionDetails(session.id)">{{ 'DRILLS.SESSION_LIST.VIEW_REPORT' | translate }}</button>
                 } @else if (session.status === SessionStatus.Cancelled) {
                 <div style="display: flex; flex-direction: column; gap: 8px;">
                     <button class="btn-full btn-secondary" style="border-color: #ff4757; color: #ff4757;"
-                        (click)="viewSessionDetails(session.id)">View Cancellation Reason</button>
+                        (click)="viewSessionDetails(session.id)">{{ 'DRILLS.SESSION_DETAILS.VIEW_CANCELLATION_REASON' | translate }}</button>
                     @if (canManageDrills) {
                     <button class="btn-full btn-secondary" style="border-color: #6b7280; color: #6b7280; font-size: 0.78rem;"
-                        (click)="deleteSession(session)">Delete Session</button>
+                        (click)="deleteSession(session)">{{ 'DRILLS.SESSION_LIST.DELETE_SESSION' | translate }}</button>
                     }
                 </div>
                 } @else {
                 @if (canManageDrills) {
-                <button class="btn-full btn-secondary" (click)="openEditModal(session)">Edit Details</button>
+                <button class="btn-full btn-secondary" (click)="openEditModal(session)">{{ 'DRILLS.SESSION_LIST.EDIT_DETAILS' | translate }}</button>
                 }
-                <button class="btn-full btn-primary" (click)="viewSessionDetails(session.id)">View Session</button>
+                <button class="btn-full btn-primary" (click)="viewSessionDetails(session.id)">{{ 'DRILLS.SESSION_LIST.VIEW_SESSION' | translate }}</button>
                 @if (canManageDrills) {
                 <button class="btn-full btn-secondary" style="margin-top: 8px; color: #ff4757; border-color: #ff4757;"
-                    (click)="openCancelModal(session)">Cancel Session</button>
+                    (click)="openCancelModal(session)">{{ 'DRILLS.SESSION_LIST.CANCEL_SESSION' | translate }}</button>
                 }
                 }
             </div>
@@ -175,9 +177,9 @@
                 <line x1="3" y1="10" x2="21" y2="10" />
             </svg>
         </div>
-        <h3 class="empty-title">No training sessions found</h3>
+        <h3 class="empty-title">{{ 'DRILLS.SESSION_LIST.NO_TRAINING_SESSIONS_FOUND' | translate }}</h3>
         @if (canManageDrills) {
-        <button class="btn-accent" (click)="openCreateSession()">+ Schedule Session</button>
+        <button class="btn-accent" (click)="openCreateSession()">+ {{ 'DRILLS.SESSION_CREATE.SCHEDULE_SESSION' | translate }}</button>
         }
     </div>
     }
@@ -195,8 +197,8 @@
 <div class="form-panel" [class.open]="isEditModalOpen">
     <div class="panel-header">
         <div>
-            <h4 class="panel-eyebrow">Edit Details</h4>
-            <h2 class="panel-title">Drill Session</h2>
+            <h4 class="panel-eyebrow">{{ 'DRILLS.SESSION_LIST.EDIT_DETAILS' | translate }}</h4>
+            <h2 class="panel-title">{{ 'DRILLS.SESSION_LIST.DRILL_SESSION' | translate }}</h2>
         </div>
         <button class="panel-close flex-center" (click)="closeEditModal()" title="Close">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -208,21 +210,21 @@
 
     <form (ngSubmit)="saveSessionChanges()" class="panel-form">
         <div class="form-group">
-            <label class="form-label">Session Date & Time</label>
+            <label class="form-label">{{ 'DRILLS.SESSION_LIST.SESSION_DATE_TIME' | translate }}</label>
             <input type="datetime-local" class="form-input" [(ngModel)]="editSessionData.sessionDate" name="sessionDate"
                 required />
         </div>
 
         <div class="form-group">
-            <label class="form-label">Location / Pitch</label>
+            <label class="form-label">{{ 'DRILLS.SESSION_CREATE.LOCATION_PITCH' | translate }}</label>
             <input type="text" class="form-input" placeholder="e.g. Main Pitch - North"
                 [(ngModel)]="editSessionData.location" name="location" />
         </div>
 
         <div class="form-group mt-3">
             <app-select
-                label="Session Status"
-                placeholder="Select status..."
+                [label]="'DRILLS.SESSION_LIST.SESSION_STATUS' | translate"
+                [placeholder]="'DRILLS.SESSION_LIST.SELECT_STATUS' | translate"
                 [options]="editStatusOptions"
                 [value]="editSessionData.status"
                 (valueChange)="onEditStatusChange($event)">
@@ -230,14 +232,14 @@
         </div>
 
         <div class="form-group">
-            <label class="form-label">Coach Notes / Reason</label>
+            <label class="form-label">{{ 'DRILLS.SESSION_LIST.COACH_NOTES_REASON' | translate }}</label>
             <textarea class="form-input" rows="3" placeholder="Add updates or cancellation reason..."
                 [(ngModel)]="editSessionData.notes" name="notes"></textarea>
         </div>
 
         <div class="panel-actions">
-            <app-button variant="slate" type="button" (click)="closeEditModal()">Cancel</app-button>
-            <app-button variant="accent" type="submit" [loading]="isSaving">Save Changes</app-button>
+            <app-button variant="slate" type="button" (click)="closeEditModal()">{{ 'COMMON.CANCEL' | translate }}</app-button>
+            <app-button variant="accent" type="submit" [loading]="isSaving">{{ 'DRILLS.SESSION_LIST.SAVE_CHANGES' | translate }}</app-button>
         </div>
     </form>
 </div>
@@ -249,8 +251,8 @@
 <div class="form-panel open">
     <div class="panel-header">
         <div>
-            <h4 class="panel-eyebrow" style="color: #ff4757;">Session Cancellation</h4>
-            <h2 class="panel-title">Cancel {{ cancelSessionData.teamName }}</h2>
+            <h4 class="panel-eyebrow" style="color: #ff4757;">{{ 'DRILLS.SESSION_LIST.SESSION_CANCELLATION' | translate }}</h4>
+            <h2 class="panel-title">{{ 'COMMON.CANCEL' | translate }} {{ cancelSessionData.teamName }}</h2>
         </div>
         <button class="panel-close flex-center" (click)="closeCancelModal()" title="Close">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -262,7 +264,7 @@
 
     <form (ngSubmit)="submitCancelSession()" class="panel-form">
         <div class="form-group">
-            <label class="form-label">Reason for Cancellation (Required)</label>
+            <label class="form-label">{{ 'DRILLS.SESSION_LIST.REASON_FOR_CANCELLATION_REQUIRED' | translate }}</label>
             <textarea 
                 class="form-input" 
                 rows="4" 
@@ -279,8 +281,8 @@
         </div>
 
         <div class="panel-actions mt-4">
-            <app-button variant="slate" type="button" (click)="closeCancelModal()">Dismiss</app-button>
-            <app-button variant="coral" type="submit" [loading]="isCancelling">Confirm Cancellation</app-button>
+            <app-button variant="slate" type="button" (click)="closeCancelModal()">{{ 'DRILLS.SESSION_LIST.DISMISS' | translate }}</app-button>
+            <app-button variant="coral" type="submit" [loading]="isCancelling">{{ 'DRILLS.SESSION_LIST.CONFIRM_CANCELLATION' | translate }}</app-button>
         </div>
     </form>
 </div>
@@ -291,12 +293,12 @@
 <div class="confirm-overlay" (click)="closeConfirm()"></div>
 <div class="confirm-modal">
     <div class="confirm-content">
-        <h3 class="confirm-title">{{ confirmModal.title }}</h3>
-        <p class="confirm-message">{{ confirmModal.message }}</p>
+        <h3 class="confirm-title">{{ confirmModal.title | translate }}</h3>
+        <p class="confirm-message">{{ confirmModal.message | translate:confirmModal.messageParams }}</p>
     </div>
     <div class="confirm-actions">
-        <app-button variant="slate" (click)="closeConfirm()">Cancel</app-button>
-        <app-button variant="coral" (click)="executeConfirm()">{{ confirmModal.confirmText }}</app-button>
+        <app-button variant="slate" (click)="closeConfirm()">{{ 'COMMON.CANCEL' | translate }}</app-button>
+        <app-button variant="coral" (click)="executeConfirm()">{{ confirmModal.confirmText | translate }}</app-button>
     </div>
 </div>
 }

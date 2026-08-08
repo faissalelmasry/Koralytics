@@ -1,4 +1,6 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { LocalizedDatePipe } from '../../../../shared/pipes/localized-date.pipe';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Subject, Subscription } from 'rxjs';
@@ -34,11 +36,12 @@ import { formatToLocalISO } from '../../../../core/utils/date.util';
     LoadingSpinnerComponent,
     StatusChipComponent,
     CustomDatePicker
-  ],
+  , TranslatePipe, LocalizedDatePipe],
   templateUrl: './drill-session-list.component.html',
   styleUrls: ['./drill-session-list.component.css']
 })
 export class DrillSessionListComponent implements OnInit, OnDestroy {
+  private translate = inject(TranslateService);
   // --- Data Arrays ---
   sessions: DrillSessionDto[] = [];
   availableTeams: { id: number, name: string }[] = [];
@@ -50,10 +53,11 @@ export class DrillSessionListComponent implements OnInit, OnDestroy {
   toastType: 'success' | 'error' = 'success';
 
   // --- Confirm Modal State ---
-  confirmModal = {
+  confirmModal: any = {
     isOpen: false,
     title: '',
     message: '',
+    messageParams: {},
     confirmText: '',
     action: () => { }
   };
@@ -91,26 +95,26 @@ export class DrillSessionListComponent implements OnInit, OnDestroy {
 
   get teamOptions(): SelectOption[] {
     return [
-      { value: 0, label: 'All Teams' },
+      { value: 0, label: this.translate.instant('DRILLS.SESSION_LIST.ALL_TEAMS') || 'All Teams' },
       ...this.availableTeams.map(t => ({ value: t.id, label: t.name }))
     ];
   }
 
   get statusOptions(): SelectOption[] {
     return [
-      { value: '', label: 'All Statuses' },
-      { value: '0', label: 'Scheduled' },
-      { value: '1', label: 'In Progress' },
-      { value: '2', label: 'Completed' },
-      { value: '3', label: 'Cancelled' }
+      { value: '', label: this.translate.instant('DRILLS.SESSION_LIST.ALL_STATUSES') || 'All Statuses' },
+      { value: '0', label: this.translate.instant('DRILLS.SESSION_LIST.SCHEDULED') || 'Scheduled' },
+      { value: '1', label: this.translate.instant('DRILLS.SESSION_LIST.IN_PROGRESS') || 'In Progress' },
+      { value: '2', label: this.translate.instant('DRILLS.SESSION_LIST.COMPLETED') || 'Completed' },
+      { value: '3', label: this.translate.instant('DRILLS.SESSION_LIST.CANCELLED') || 'Cancelled' }
     ];
   }
 
   get editStatusOptions(): SelectOption[] {
     return [
-      { value: SessionStatus.Scheduled, label: 'Scheduled' },
-      { value: SessionStatus.InProgress, label: 'In Progress' },
-      { value: SessionStatus.Cancelled, label: 'Cancelled' }
+      { value: SessionStatus.Scheduled, label: this.translate.instant('DRILLS.SESSION_LIST.SCHEDULED') || 'Scheduled' },
+      { value: SessionStatus.InProgress, label: this.translate.instant('DRILLS.SESSION_LIST.IN_PROGRESS') || 'In Progress' },
+      { value: SessionStatus.Cancelled, label: this.translate.instant('DRILLS.SESSION_LIST.CANCELLED') || 'Cancelled' }
     ];
   }
 
@@ -336,7 +340,7 @@ export class DrillSessionListComponent implements OnInit, OnDestroy {
       next: () => {
         this.isCancelling = false;
         this.isCancelModalOpen = false;
-        this.showToast('Session cancelled successfully.', 'success');
+        this.showToast(this.translate.instant('DRILLS.SESSION_LIST.CANCEL_SUCCESS') || 'Session cancelled successfully.', 'success');
         this.fetchSessions();
       },
       error: (err) => {
@@ -459,10 +463,10 @@ export class DrillSessionListComponent implements OnInit, OnDestroy {
 
   getStatusLabel(status: SessionStatus): string {
     switch (status) {
-      case SessionStatus.Scheduled: return 'Scheduled';
-      case SessionStatus.InProgress: return 'In Progress';
-      case SessionStatus.Completed: return 'Completed';
-      case SessionStatus.Cancelled: return 'Cancelled';
+      case SessionStatus.Scheduled: return this.translate.instant('DRILLS.SESSION_LIST.SCHEDULED') || 'Scheduled';
+      case SessionStatus.InProgress: return this.translate.instant('DRILLS.SESSION_LIST.IN_PROGRESS') || 'In Progress';
+      case SessionStatus.Completed: return this.translate.instant('DRILLS.SESSION_LIST.COMPLETED') || 'Completed';
+      case SessionStatus.Cancelled: return this.translate.instant('DRILLS.SESSION_LIST.CANCELLED') || 'Cancelled';
       default: return 'Unknown';
     }
   }
@@ -479,18 +483,19 @@ export class DrillSessionListComponent implements OnInit, OnDestroy {
   deleteSession(session: any): void {
     this.confirmModal = {
       isOpen: true,
-      title: 'Delete Session',
-      message: `Are you sure you want to permanently delete this cancelled session for ${session.teamName || 'this team'}? This action cannot be undone.`,
-      confirmText: 'Delete Session',
+      title: 'DRILLS.SESSION_LIST.DELETE_SESSION_TITLE',
+      message: 'DRILLS.SESSION_LIST.DELETE_SESSION_MESSAGE',
+      messageParams: { team: session.teamName || 'this team' },
+      confirmText: 'DRILLS.SESSION_LIST.DELETE_SESSION',
       action: () => {
         this.sessionService.deleteSession(session.id).subscribe({
           next: () => {
-            this.showToast('Session deleted.', 'success');
+            this.showToast(this.translate.instant('DRILLS.SESSION_LIST.DELETE_SESSION_SUCCESS') || 'Session deleted.', 'success');
             this.closeConfirm();
             this.fetchSessions();
           },
           error: (err) => {
-            this.showToast(err.error?.message || 'Could not delete session.', 'error');
+            this.showToast(err.error?.message || this.translate.instant('DRILLS.SESSION_LIST.DELETE_SESSION_FAIL') || 'Could not delete session.', 'error');
             this.closeConfirm();
           }
         });

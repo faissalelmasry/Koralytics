@@ -21,6 +21,7 @@ import { ScouterService } from '@core/services/Scouter/scouter.service';
 import { NotificationService } from '@core/services/SignalR/notificationservice';
 import { ToastService } from '../../../../core/services/Toast/toast';
 import { PlayerDrillProgressionComponent } from '../../drills/player-drill-progression.component/player-drill-progression.component';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ParentService } from '../../../../core/services/parent/parent.service';
 
 Chart.register(...registerables);
@@ -28,7 +29,7 @@ Chart.register(...registerables);
 @Component({
   selector: 'app-player-profile',
   standalone: true,
-  imports: [CommonModule, RouterLink, NavbarComponent, Footer, PlayerCardComponent, TransferCanvasComponent, LoadingSpinnerComponent, ScrollRevealDirective, FeatureLockComponent, CustomButtonComponent, ConfirmDialogComponent, CustomToggle, PlayerDrillProgressionComponent],
+  imports: [CommonModule, RouterLink, NavbarComponent, Footer, PlayerCardComponent, TransferCanvasComponent, LoadingSpinnerComponent, ScrollRevealDirective, FeatureLockComponent, CustomButtonComponent, ConfirmDialogComponent, CustomToggle, PlayerDrillProgressionComponent, TranslatePipe],
   templateUrl: './player-profile.component.html',
   styleUrls: ['./player-profile.component.css']
 })
@@ -44,6 +45,7 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
   private scouterService = inject(ScouterService);
   private notificationService = inject(NotificationService);
   private toastService = inject(ToastService);
+  private translate = inject(TranslateService);
   private parentService = inject(ParentService);
 
   // ── Scouter Follow State ─────────────────────────────────────
@@ -203,9 +205,9 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
     }
   }
 
-private logAndNotifyIfScouter(roles: string[]) {
+  private logAndNotifyIfScouter(roles: string[]) {
     if (!this.playerId || !this.loggedInUserId || this.playerId === this.loggedInUserId) {
-      return; 
+      return;
     }
 
     const isScouter = roles.some(r => r.toLowerCase() === 'scouter');
@@ -450,9 +452,9 @@ private logAndNotifyIfScouter(roles: string[]) {
   get competitionBreakdown() {
     if (!this.profile) return [];
     return [
-      { label: 'Training Sessions', iconColor: '#c8ff4d', stats: this.profile.sessionStats },
-      { label: 'Friendly Matches', iconColor: '#ffd700', stats: this.profile.friendlyStats },
-      { label: 'Tournaments', iconColor: '#ff6a00', stats: this.profile.tournamentStats },
+      { label: this.translate.instant('PLAYER.TRAINING_SESSIONS'), iconColor: '#c8ff4d', stats: this.profile.sessionStats },
+      { label: this.translate.instant('PLAYER.FRIENDLY_MATCHES'), iconColor: '#ffd700', stats: this.profile.friendlyStats },
+      { label: this.translate.instant('PLAYER.TOURNAMENTS'), iconColor: '#ff6a00', stats: this.profile.tournamentStats },
     ];
   }
 

@@ -30,7 +30,7 @@
         "WEIGHT": "الوزن",
         "PLAY_STYLE_TAG": "أسلوب اللعب",
         "ACADEMY_MEMBERSHIP": "عضوية الأكاديمية",
-        "ACTIVE_MEMBER": "✔ عضو نشط — {{academy}} (معرف: #{{id}})",
+        "ACTIVE_MEMBER": "عضو نشط — {{academy}} (معرف: #{{id}})",
         "NOT_IN_ACADEMY": "غير منضم حالياً لأي أكاديمية",
         "ARCHETYPE_NAME": "اسم النموذج",
         "NO_ARCHETYPE": "لم يتم تحديد نموذج",
@@ -49,7 +49,7 @@
         "VERIFICATION_PENDING": "⏳ التحقق قيد الانتظار",
         "VERIFIED_DATE": "تاريخ التوثيق",
         "COACH_STATUS_TITLE": "حالة المدرب",
-        "ACTIVE_COACH_MEMBER": "✔ مدرب نشط — {{academy}} (معرف: #{{id}})",
+        "ACTIVE_COACH_MEMBER": "مدرب نشط — {{academy}} (معرف: #{{id}})",
         "PENDING_ACADEMY_REQUESTS": "⚽ {{count}} طلب(طلبات) انضمام لأكاديمية قيد الانتظار",
         "NO_AFFILIATION": "غير تابع لأي أكاديمية. لا توجد طلبات انضمام نشطة.",
         "LINKED_PARENTS_TITLE": "أولياء الأمور / الأوصياء المرتبطون",
@@ -87,6 +87,11 @@
         "FOOT_BOTH": "كلتاهما",
         "PHONE_REQUIRED": "رقم الهاتف مطلوب.",
         "NA": "غير متوفر",
-        "SELECT_POSITIONS_INSTRUCTION": "اختر ما يصل إلى 5 مراكز. اضغط على \"{{setPrimary}}\" على أي من العلامات المحددة أدناه لتعيينه كمركزك الأساسي."
+        "SELECT_POSITIONS_INSTRUCTION": "اختر ما يصل إلى 5 مراكز. اضغط على \"{{setPrimary}}\" على أي من العلامات المحددة أدناه لتعيينه كمركزك الأساسي.",
+        "UNLINK_PARENT_BTN": "إلغاء الربط",
+        "UNLINK_PARENT_TITLE": "إلغاء ربط ولي الأمر/الوصي",
+        "UNLINK_PARENT_MSG": "هل أنت متأكد من رغبتك في إلغاء ربط ولي الأمر/الوصي هذا من حسابك؟",
+        "NO_PARENTS_LINKED": "لا يوجد أولياء أمور أو أوصياء مرتبطين.",
+        "PARENT_LINK_REQUEST_INFO": "أولياء الأمور/الأوصياء الذين لديهم صلاحية يمكنهم إدارة وعرض ملفك الشخصي."
     }
 }

@@ -8,6 +8,7 @@ import { PlayerProfileService } from '../../../../core/services/player/player-pr
 import { TokenStorageService } from '../../../../core/services/auth/token-storage.service';
 import { ProfileViewerDetailDto } from '../../../../core/models/Player/profile-views-model';
 import { Router } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-player-scouter-views',
@@ -17,7 +18,8 @@ import { Router } from '@angular/router';
     NavbarComponent,
     Footer,
     LoadingSpinnerComponent,
-    ScrollRevealDirective
+    ScrollRevealDirective,
+    TranslatePipe
   ],
   templateUrl: './player-scouter-views.component.html',
   styleUrls: ['./player-scouter-views.component.css']

@@ -2,30 +2,30 @@
 
 <div class="page-wrapper">
 
-  <div class="tactical-tag" scrollReveal direction="bottom" [delay]="0">Next Events</div>
+  <div class="tactical-tag" scrollReveal direction="bottom" [delay]="0">{{ 'PLAYER.NEXT_EVENTS' | translate }}</div>
 
   <div class="header-row" scrollReveal direction="bottom" [delay]="50">
-    <h2 class="section-title">{{ playerName || 'Player' }}</h2>
-    <span class="badge-count">{{ totalItems }} Events</span>
+    <h2 class="section-title">{{ playerName || ('PLAYER.PLAYER' | translate) }}</h2>
+    <span class="badge-count">{{ totalItems }} {{ 'PLAYER.EVENTS' | translate }}</span>
   </div>
 
   <div class="filter-panel-card" scrollReveal direction="bottom" [delay]="100">
     <div class="filter-grid">
       <div class="filter-item">
-        <app-select label="Event Type" [options]="eventTypeOptions" [(value)]="selectedEventType">
+        <app-select [label]="'PLAYER.EVENT_TYPE' | translate" [options]="eventTypeOptions" [(value)]="selectedEventType">
         </app-select>
       </div>
       <div class="filter-item">
-        <app-date-picker label="From" [(value)]="selectedDateFrom" (valueChange)="onDateFromChange()">
+        <app-date-picker [label]="'PLAYER.FROM' | translate" [(value)]="selectedDateFrom" (valueChange)="onDateFromChange()">
         </app-date-picker>
       </div>
       <div class="filter-item">
-        <app-date-picker label="To" [(value)]="selectedDateTo" (valueChange)="onDateToChange()">
+        <app-date-picker [label]="'PLAYER.TO' | translate" [(value)]="selectedDateTo" (valueChange)="onDateToChange()">
         </app-date-picker>
       </div>
       <div class="filter-actions">
-        <app-button variant="accent" (click)="applyFilters()">Apply</app-button>
-        <app-button variant="slate" (click)="clearFilters()">Clear</app-button>
+        <app-button variant="accent" (click)="applyFilters()">{{ 'PLAYER.APPLY' | translate }}</app-button>
+        <app-button variant="slate" (click)="clearFilters()">{{ 'PLAYER.CLEAR' | translate }}</app-button>
       </div>
     </div>
   </div>
@@ -37,25 +37,25 @@
   @if (isLoading) {
   <div class="loading-state">
     <app-loading-spinner size="lg"></app-loading-spinner>
-    <p>Loading scheduled events...</p>
+    <p>{{ 'PLAYER.LOADING_SCHEDULED_EVENTS' | translate }}</p>
   </div>
   }
   @else if (error) {
   <div class="error-state">
     <div class="error-icon">!</div>
     <p>{{ error }}</p>
-    <app-button variant="accent" (click)="loadEvents()">Retry</app-button>
+    <app-button variant="accent" (click)="loadEvents()">{{ 'PLAYER.RETRY' | translate }}</app-button>
   </div>
   }
   @else if (!events || events.length === 0) {
   <div class="empty-state-wrapper">
-    <app-empty-state title="No Events Found"
-      description="No scheduled events match the selected filters or no upcoming events are planned for this player's teams yet.">
+    <app-empty-state [title]="'PLAYER.NO_EVENTS_FOUND' | translate"
+      [description]="'PLAYER.NO_EVENTS_DESC' | translate">
     </app-empty-state>
   </div>
   }
   @else {
-  <div class="group-label" scrollReveal direction="bottom" [delay]="200">Scheduled Events</div>
+  <div class="group-label" scrollReveal direction="bottom" [delay]="200">{{ 'PLAYER.SCHEDULED_EVENTS' | translate }}</div>
 
   <div class="events-grid">
     @for (event of events; track $index; let i = $index) {
@@ -73,7 +73,7 @@
               <circle cx="12" cy="12" r="10" />
               <path d="M12 2a14.5 14.5 0 0 0 0 20M2 12h20" />
             </svg>
-            MATCH &bull; {{ event.matchType || 'FRIENDLY' }}
+            {{ 'PLAYER.MATCH_BULLET' | translate }} {{ translateMatchType(event.matchType) || ('PLAYER.FRIENDLY' | translate) }}
           </span>
           } @else {
           <span class="badge badge-drill">
@@ -82,17 +82,17 @@
               <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
               <line x1="4" y1="22" x2="4" y2="15" />
             </svg>
-            DRILL &bull; {{ event.sessionType || 'SESSION' }}
+            {{ 'PLAYER.DRILL_BULLET' | translate }} {{ translateSessionType(event.sessionType) || ('PLAYER.SESSION' | translate) }}
           </span>
           }
           <span class="meta-date">{{ formatDate(event.date) }} &bull; {{ formatTime(event.date) }}</span>
         </div>
 
         @if (isMatchEvent(event)) {
-        <div class="card-title">{{ event.homeTeamName || 'Home' }} <span class="vs-text">VS</span> {{ event.awayTeamName
-          || 'Away' }}</div>
+        <div class="card-title">{{ event.homeTeamName || ('PLAYER.HOME' | translate) }} <span class="vs-text">{{ 'PLAYER.VS_UPPER' | translate }}</span> {{ event.awayTeamName
+          || ('PLAYER.AWAY' | translate) }}</div>
         } @else {
-        <div class="card-title">{{ event.sessionType || 'Training Session' }}</div>
+        <div class="card-title">{{ translateSessionType(event.sessionType) || ('PLAYER.TRAINING_SESSION' | translate) }}</div>
         }
 
         <div class="card-subtitle">{{ event.teamName }}</div>
@@ -100,36 +100,36 @@
         @if (!isMatchEvent(event) && event.location) {
         <div class="session-notes-box" [class.box-cancelled]="event.isCancelled">
           <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          <span class="notes-label">Location:</span> {{ event.location }}
+          <span class="notes-label">{{ 'PLAYER.LOCATION_LABEL' | translate }}</span> {{ event.location }}
         </div>
         }
         @if (!isMatchEvent(event) && event.coachName) {
         <div class="session-notes-box" [class.box-cancelled]="event.isCancelled">
           <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          <span class="notes-label">Coach:</span> {{ event.coachName }}
+          <span class="notes-label">{{ 'PLAYER.COACH_LABEL' | translate }}</span> {{ event.coachName }}
         </div>
         }
         @if (event.notes) {
         <div class="session-notes-box" [class.box-cancelled]="event.isCancelled">
           <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-          <span class="notes-label">Session Notes:</span> {{ event.notes }}
+          <span class="notes-label">{{ 'PLAYER.SESSION_NOTES_LABEL' | translate }}</span> {{ event.notes }}
         </div>
         }
       </div>
 
       <div class="stats-block">
         <div class="stat-pill">
-          <span class="lbl">TYPE</span>
+          <span class="lbl">{{ 'PLAYER.TYPE' | translate }}</span>
           @if (isMatchEvent(event)) {
-          <span class="val color-yellow">MATCH</span>
+          <span class="val color-yellow">{{ 'PLAYER.MATCH_UPPER' | translate }}</span>
           } @else {
-          <span class="val color-green">DRILL</span>
+          <span class="val color-green">{{ 'PLAYER.DRILL_UPPER' | translate }}</span>
           }
         </div>
         @if (event.isCancelled) {
         <div class="stat-pill">
-          <span class="lbl">STATUS</span>
-          <span class="val" style="color:#ef4444;text-shadow:0 0 10px rgba(239,68,68,0.4);">CANCELLED</span>
+          <span class="lbl">{{ 'PLAYER.STATUS_UPPER' | translate }}</span>
+          <span class="val" style="color:#ef4444;text-shadow:0 0 10px rgba(239,68,68,0.4);">{{ 'PLAYER.CANCELLED_UPPER' | translate }}</span>
         </div>
         }
       </div>

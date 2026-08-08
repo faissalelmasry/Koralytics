@@ -5,6 +5,7 @@ import { Chart, registerables } from 'chart.js';
 import { NavbarComponent } from '../../../../shared/components/navbar/navbar';
 import { Footer } from '../../../../shared/components/footer/footer';
 import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { PlayerProfileService } from '../../../../core/services/player/player-profile.service';
 import { TokenStorageService } from '../../../../core/services/auth/token-storage.service';
 import { PlayerVsAcademyModel, CategoryComparisonModel } from '../../../../core/models/Player/player-vs-academy-model';
@@ -14,7 +15,7 @@ Chart.register(...registerables);
 @Component({
   selector: 'app-player-academy-comparison',
   standalone: true,
-  imports: [CommonModule, RouterLink, NavbarComponent, Footer, LoadingSpinnerComponent],
+  imports: [CommonModule, RouterLink, NavbarComponent, Footer, LoadingSpinnerComponent, TranslatePipe],
   templateUrl: './player-academy-comparison.component.html',
   styleUrls: ['./player-academy-comparison.component.css']
 })
@@ -25,6 +26,7 @@ export class PlayerAcademyComparisonComponent implements OnInit, AfterViewInit {
   private cdr = inject(ChangeDetectorRef);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private translate = inject(TranslateService);
 
   @ViewChild('radarCanvas') radarCanvas!: ElementRef<HTMLCanvasElement>;
 
@@ -124,7 +126,7 @@ export class PlayerAcademyComparisonComponent implements OnInit, AfterViewInit {
       this.radarChart.destroy();
     }
 
-    const labels = this.data.categories.map(c => c.categoryName);
+    const labels = this.data.categories.map(c => this.translate.instant('PLAYER.CAT_' + c.categoryName.toUpperCase()));
     const playerData = this.data.categories.map(c => c.playerAverage);
     const academyData = this.data.categories.map(c => c.academyAverage);
 
@@ -143,7 +145,7 @@ export class PlayerAcademyComparisonComponent implements OnInit, AfterViewInit {
             pointRadius: 4
           },
           {
-            label: 'Academy Avg',
+            label: this.translate.instant('PLAYER.ACADEMY_AVG'),
             data: academyData,
             backgroundColor: 'rgba(0, 229, 255, 0.1)',
             borderColor: '#00e5ff',

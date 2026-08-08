@@ -1,4 +1,4 @@
-<app-feature-lock feature="AIInsights" featureName="Coach Bias Analytics">
+<app-feature-lock feature="AIInsights" [featureName]="'DRILLS.BIAS_ANALYTICS.TITLE' | translate">
 <div class="drills-page">
 
     <!-- PAGE HEADER -->
@@ -6,23 +6,23 @@
         <div class="header-left">
             <div class="header-eyebrow">
                 <span class="eyebrow-dot"></span>
-                <span class="eyebrow-text">ACADEMY ANALYTICS</span>
+                <span class="eyebrow-text">{{ 'DRILLS.BIAS_ANALYTICS.ACADEMY_ANALYTICS' | translate }}</span>
             </div>
-            <h1 class="header-title">Coach Assessment Accuracy</h1>
-            <p class="header-subtitle">Evaluate how accurately a coach evaluates players during practice compared to real match performance.</p>
+            <h1 class="header-title">{{ 'DRILLS.BIAS_ANALYTICS.TITLE' | translate }}</h1>
+            <p class="header-subtitle">{{ 'DRILLS.BIAS_ANALYTICS.DESC' | translate }}</p>
         </div>
 
         <div class="header-right">
             @if (isCoachView) {
-            <div class="coach-badge-box clickable" [routerLink]="selectedCoachId || biasReport?.coachId ? ['/coach/profile', selectedCoachId || biasReport?.coachId] : ['/coach/profile']" title="View Coach Profile">
-                <span class="badge-sub">REPORTING COACH</span>
+            <div class="coach-badge-box clickable" [routerLink]="selectedCoachId || biasReport?.coachId ? ['/coach/profile', selectedCoachId || biasReport?.coachId] : ['/coach/profile']" [title]="'DRILLS.BIAS_ANALYTICS.VIEW_COACH_PROFILE' | translate">
+                <span class="badge-sub">{{ 'DRILLS.BIAS_ANALYTICS.REPORTING_COACH' | translate }}</span>
                 <span class="badge-title">{{ getSelectedCoachName() }}</span>
             </div>
             } @else {
             <div class="selector-group">
                 <app-select
-                    label="Select Target Coach"
-                    placeholder="-- Select Coach --"
+                    [label]="'DRILLS.BIAS_ANALYTICS.SELECT_TARGET_COACH' | translate"
+                    [placeholder]="'DRILLS.BIAS_ANALYTICS.SELECT_COACH_PLACEHOLDER' | translate"
                     [options]="coachOptions"
                     [(value)]="selectedCoachId"
                     [disabled]="isCoachesLoading || coachOptions.length === 0">
@@ -33,7 +33,7 @@
                     [loading]="isLoading"
                     [disabled]="isLoading || isCoachesLoading || !selectedCoachId"
                     (click)="calculateBias()">
-                    Evaluate Coach
+                    {{ 'DRILLS.BIAS_ANALYTICS.EVALUATE_COACH' | translate }}
                 </app-button>
             </div>
             }
@@ -43,7 +43,7 @@
     @if (isCoachesLoading || isLoading) {
     <div class="state-card">
         <app-loading-spinner size="lg"></app-loading-spinner>
-        <p class="state-text mt-3">Evaluating 30-day practice ratings vs. match performance...</p>
+        <p class="state-text mt-3">{{ 'DRILLS.BIAS_ANALYTICS.EVALUATING' | translate }}</p>
     </div>
     } @else if (errorMessage) {
     <div class="error-card">
@@ -62,22 +62,22 @@
     <section class="stats-strip">
         <div class="stat-item">
             <span class="stat-value" [class]="getMeterClass()">{{ biasReport.trustPercentage }}%</span>
-            <span class="stat-label">Accuracy Score</span>
+            <span class="stat-label">{{ 'DRILLS.BIAS_ANALYTICS.ACCURACY_SCORE' | translate }}</span>
         </div>
         <div class="stat-divider"></div>
         <div class="stat-item">
             <span class="stat-value text-white">{{ biasReport.playersAnalyzedCount }}</span>
-            <span class="stat-label">Players Analyzed</span>
+            <span class="stat-label">{{ 'DRILLS.BIAS_ANALYTICS.PLAYERS_ANALYZED' | translate }}</span>
         </div>
         <div class="stat-divider"></div>
         <div class="stat-item">
-            <span class="stat-value text-cyan">±{{ getAverageDelta() }} pts</span>
-            <span class="stat-label">Rating Variance</span>
+            <span class="stat-value text-cyan">±{{ getAverageDelta() }} {{ 'DRILLS.BIAS_ANALYTICS.PTS' | translate }}</span>
+            <span class="stat-label">{{ 'DRILLS.BIAS_ANALYTICS.RATING_VARIANCE' | translate }}</span>
         </div>
         <div class="stat-divider"></div>
         <div class="stat-item">
-            <span class="stat-value text-amber">30 Days</span>
-            <span class="stat-label">Evaluation Window</span>
+            <span class="stat-value text-amber">{{ 'DRILLS.BIAS_ANALYTICS.30_DAYS' | translate }}</span>
+            <span class="stat-label">{{ 'DRILLS.BIAS_ANALYTICS.EVALUATION_WINDOW' | translate }}</span>
         </div>
     </section>
 
@@ -86,27 +86,27 @@
     <div class="breakdown-section">
         <div class="section-title-row flex-between">
             <div>
-                <h2>Player Evaluation Sample</h2>
-                <p class="section-desc">Comparison of Coach <a [routerLink]="selectedCoachId || biasReport.coachId ? ['/coach/profile', selectedCoachId || biasReport.coachId] : ['/coach/profile']" class="coach-link">{{ biasReport.coachName }}</a>'s practice drill scores vs. actual match ratings.</p>
+                <h2>{{ 'DRILLS.BIAS_ANALYTICS.PLAYER_EVAL_SAMPLE' | translate }}</h2>
+                <p class="section-desc">{{ 'DRILLS.BIAS_ANALYTICS.COMP_COACH_PREFIX' | translate }} <a [routerLink]="selectedCoachId || biasReport.coachId ? ['/coach/profile', selectedCoachId || biasReport.coachId] : ['/coach/profile']" class="coach-link">{{ biasReport.coachName }}</a>{{ 'DRILLS.BIAS_ANALYTICS.COMP_COACH_SUFFIX' | translate }}</p>
             </div>
-            <app-status-chip [label]="'Top ' + topPlayerComparisons.length + ' of ' + biasReport.playersAnalyzedCount + ' Players'" type="info"></app-status-chip>
+            <app-status-chip [label]="'DRILLS.BIAS_ANALYTICS.TOP_PLAYERS' | translate:{ top: topPlayerComparisons.length, total: biasReport.playersAnalyzedCount }" type="info"></app-status-chip>
         </div>
 
         <div class="table-card mt-3">
             <table class="breakdown-table">
                 <thead>
                     <tr>
-                        <th>Player Name</th>
-                        <th>Avg Practice Score</th>
-                        <th>Avg Match Rating</th>
-                        <th>Rating Variance</th>
-                        <th>Assessor Verdict</th>
+                        <th>{{ 'DRILLS.BIAS_ANALYTICS.PLAYER_NAME' | translate }}</th>
+                        <th>{{ 'DRILLS.BIAS_ANALYTICS.AVG_PRACTICE_SCORE' | translate }}</th>
+                        <th>{{ 'DRILLS.BIAS_ANALYTICS.AVG_MATCH_RATING' | translate }}</th>
+                        <th>{{ 'DRILLS.BIAS_ANALYTICS.RATING_VARIANCE' | translate }}</th>
+                        <th>{{ 'DRILLS.BIAS_ANALYTICS.ASSESSOR_VERDICT' | translate }}</th>
                     </tr>
                 </thead>
                 <tbody>
                     @for (item of topPlayerComparisons; track item.playerId) {
                     <tr>
-                        <td class="player-name-cell clickable" [routerLink]="['/player/profile', item.playerId]" title="View Player Profile">
+                        <td class="player-name-cell clickable" [routerLink]="['/player/profile', item.playerId]" [title]="'DRILLS.BIAS_ANALYTICS.VIEW_PLAYER_PROFILE' | translate">
                             <div class="player-avatar-box">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -116,17 +116,17 @@
                             <span class="player-name">{{ item.playerName }}</span>
                         </td>
                         <td class="score-cell practice-score">
-                            <strong>{{ item.avgPracticeScore }}</strong> <span class="max-scale">/ 10</span>
+                            <strong>{{ item.avgPracticeScore }}</strong> <span class="max-scale">{{ 'DRILLS.BIAS_ANALYTICS.OUT_OF_10' | translate }}</span>
                         </td>
                         <td class="score-cell match-score">
-                            <strong>{{ item.avgMatchScore }}</strong> <span class="max-scale">/ 10</span>
+                            <strong>{{ item.avgMatchScore }}</strong> <span class="max-scale">{{ 'DRILLS.BIAS_ANALYTICS.OUT_OF_10' | translate }}</span>
                         </td>
                         <td class="delta-cell">
-                            ±{{ item.delta }} pts
+                            ±{{ item.delta }} {{ 'DRILLS.BIAS_ANALYTICS.PTS' | translate }}
                         </td>
                         <td>
                             <app-status-chip
-                                [label]="item.status"
+                                [label]="'DRILLS.BIAS_ANALYTICS.STATUS_' + (item.status.toUpperCase().replace('-', '_')) | translate"
                                 [type]="item.status === 'Accurate' ? 'success' : (item.status === 'Over-rated' ? 'warning' : 'danger')">
                             </app-status-chip>
                         </td>
@@ -141,17 +141,17 @@
     <!-- HOW THE ENGINE WORKS (VISUAL STEP-BY-STEP ILLUSTRATION) -->
     <div class="engine-section">
         <div class="section-title-row">
-            <h2>Evaluation Engine Architecture</h2>
-            <p class="section-desc">Comparing subjective practice scores against objective match day ratings.</p>
+            <h2>{{ 'DRILLS.BIAS_ANALYTICS.EVALUATION_ENGINE_ARCH' | translate }}</h2>
+            <p class="section-desc">{{ 'DRILLS.BIAS_ANALYTICS.EVALUATION_ENGINE_DESC' | translate }}</p>
         </div>
 
         <div class="engine-flow-grid mt-3">
             <!-- STEP 1 -->
             <div class="engine-step-card">
-                <div class="step-num-badge">01</div>
-                <h3>Practice Ratings</h3>
-                <p>Coach evaluates player drill performances manually during training sessions.</p>
-                <span class="step-tag subjective">Subjective Input</span>
+                <div class="step-num-badge">{{ 'DRILLS.BIAS_ANALYTICS.STEP_01' | translate }}</div>
+                <h3>{{ 'DRILLS.BIAS_ANALYTICS.PRACTICE_RATINGS' | translate }}</h3>
+                <p>{{ 'DRILLS.BIAS_ANALYTICS.COACH_EVALUATES_DESC' | translate }}</p>
+                <span class="step-tag subjective">{{ 'DRILLS.BIAS_ANALYTICS.SUBJECTIVE_INPUT' | translate }}</span>
             </div>
 
             <div class="flow-arrow">
@@ -163,10 +163,10 @@
 
             <!-- STEP 2 -->
             <div class="engine-step-card">
-                <div class="step-num-badge">02</div>
-                <h3>Match Performance</h3>
-                <p>Real game day performance ratings logged from actual match statistics.</p>
-                <span class="step-tag objective">Objective Benchmark</span>
+                <div class="step-num-badge">{{ 'DRILLS.BIAS_ANALYTICS.STEP_02' | translate }}</div>
+                <h3>{{ 'DRILLS.BIAS_ANALYTICS.MATCH_PERFORMANCE' | translate }}</h3>
+                <p>{{ 'DRILLS.BIAS_ANALYTICS.REAL_GAME_DAY_DESC' | translate }}</p>
+                <span class="step-tag objective">{{ 'DRILLS.BIAS_ANALYTICS.OBJECTIVE_BENCHMARK' | translate }}</span>
             </div>
 
             <div class="flow-arrow">
@@ -178,10 +178,10 @@
 
             <!-- STEP 3 -->
             <div class="engine-step-card">
-                <div class="step-num-badge">03</div>
-                <h3>Variance Analysis</h3>
-                <p>Calculates average rating gap between practice expectations and game performance.</p>
-                <span class="step-tag delta">Delta Engine</span>
+                <div class="step-num-badge">{{ 'DRILLS.BIAS_ANALYTICS.STEP_03' | translate }}</div>
+                <h3>{{ 'DRILLS.BIAS_ANALYTICS.VARIANCE_ANALYSIS' | translate }}</h3>
+                <p>{{ 'DRILLS.BIAS_ANALYTICS.CALCULATES_AVG_GAP_DESC' | translate }}</p>
+                <span class="step-tag delta">{{ 'DRILLS.BIAS_ANALYTICS.DELTA_ENGINE' | translate }}</span>
             </div>
 
             <div class="flow-arrow">
@@ -193,10 +193,10 @@
 
             <!-- STEP 4 -->
             <div class="engine-step-card highlight">
-                <div class="step-num-badge active">04</div>
-                <h3>Accuracy Rating</h3>
-                <p>High score means coach evaluates practice performance accurately relative to match results.</p>
-                <span class="step-tag final">Final Accuracy</span>
+                <div class="step-num-badge active">{{ 'DRILLS.BIAS_ANALYTICS.STEP_04' | translate }}</div>
+                <h3>{{ 'DRILLS.BIAS_ANALYTICS.ACCURACY_RATING' | translate }}</h3>
+                <p>{{ 'DRILLS.BIAS_ANALYTICS.HIGH_SCORE_MEANS_DESC' | translate }}</p>
+                <span class="step-tag final">{{ 'DRILLS.BIAS_ANALYTICS.FINAL_ACCURACY' | translate }}</span>
             </div>
         </div>
     </div>
@@ -204,18 +204,18 @@
     <!-- SYSTEM SUMMARY REMARKS -->
     <div class="summary-card">
         <div class="summary-header">
-            <h3>Assessor Insights & System Remarks</h3>
+            <h3>{{ 'DRILLS.BIAS_ANALYTICS.ASSESSOR_INSIGHTS' | translate }}</h3>
         </div>
         <p class="summary-remarks">"{{ biasReport.remarks }}"</p>
         <p class="summary-subtext mt-1">
-            Assessor Rating Profile: <strong>{{ getBiasDescription() }}</strong>
+            {{ 'DRILLS.BIAS_ANALYTICS.ASSESSOR_RATING_PROFILE' | translate }} <strong>{{ getBiasDescription() }}</strong>
         </p>
     </div>
 
     } @else {
     <div class="state-card text-center">
-        <h3>Select a Coach to Evaluate</h3>
-        <p class="state-text">Choose a coach above and click "Evaluate Coach" to calculate their assessment accuracy score.</p>
+        <h3>{{ 'DRILLS.BIAS_ANALYTICS.SELECT_COACH' | translate }}</h3>
+        <p class="state-text">{{ 'DRILLS.BIAS_ANALYTICS.SELECT_COACH_DESC' | translate }}</p>
     </div>
     }
 
