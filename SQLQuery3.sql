@@ -28,6 +28,7 @@ GO
 CREATE OR ALTER VIEW vw_ScouterSearchDirectory AS
 SELECT
     p.Id                                                        AS PlayerId,
+    curAcademy.Id 						                        AS AcademyId,
     u.FirstName + ' ' + u.LastName                              AS FullName,
     curAcademy.Name                                             AS CurrentAcademy,
     curLocation.City                                            AS AcademyCity,
@@ -121,6 +122,7 @@ CREATE OR ALTER VIEW vw_ScouterTrainingPerformance AS
 SELECT
     dr.Id                                                       AS ResultId,
     dr.PlayerId                                                 AS PlayerId,
+    ds.AcademyId 						AS AcademyId,
     u.FirstName + ' ' + u.LastName                              AS FullName,
     aca.Name                                                    AS AcademyName,
     tm.Name                                                     AS TeamName,
@@ -166,6 +168,7 @@ SELECT
     m.Type                                                       AS MatchType,
     tr.Name                                                     AS TournamentName,
     m.Location                                                  AS MatchVenue,
+    playerTeam.AcademyId 					AS AcademyId,
     playerTeamAca.Name                                          AS AcademyName,
     playerTeam.Name                                             AS TeamName,
     CASE
@@ -225,6 +228,7 @@ CREATE OR ALTER VIEW vw_ScouterPlayerComparison AS
 SELECT
     p.Id                                                        AS PlayerId,
     u.FirstName + ' ' + u.LastName                              AS FullName,
+    currentPA.AcademyId 					AS AcademyId,
     curAcademy.Name                                             AS AcademyName,
     (SELECT TOP 1 pp.Position
      FROM PlayerPositions pp
@@ -318,12 +322,15 @@ GROUP BY
 GO
 
 
+
+
 -- ============================================================================
 -- VIEW 6: vw_ScouterCategoryRatings
 -- ============================================================================
 CREATE OR ALTER VIEW vw_ScouterCategoryRatings AS
 SELECT
     p.Id                                                        AS PlayerId,
+    currentPA.AcademyId 					AS AcademyId,
     u.FirstName + ' ' + u.LastName                              AS FullName,
     latestCard.PlayerCardId                                     AS PlayerCardId,
     dc.Id                                                       AS DrillCategoryId,
@@ -332,6 +339,14 @@ SELECT
 FROM Players p
 INNER JOIN AspNetUsers u
     ON u.Id = p.Id
+OUTER APPLY (
+    SELECT TOP 1 pa.AcademyId
+    FROM PlayerAcademies pa
+    WHERE pa.PlayerId = p.Id
+      AND pa.LeftAt IS NULL
+      AND pa.IsDeleted = 0
+    ORDER BY pa.JoinedAt DESC
+) currentPA
 CROSS APPLY (
     SELECT TOP 1 pc.Id AS PlayerCardId
     FROM PlayerCards pc
@@ -344,11 +359,3 @@ INNER JOIN DrillCategories dc
     ON dc.Id = pcr.DrillCategoryId AND dc.IsDeleted = 0
 WHERE u.IsDeleted = 0;
 GO
-
-CREATE TABLE SearchableEntities (
-    Id INT IDENTITY(1,1) PRIMARY KEY,
-    EntityType VARCHAR(50) NOT NULL,
-    ReferenceId INT NOT NULL,
-    TextValue NVARCHAR(255) NOT NULL,
-    Embedding VECTOR(1024) NOT NULL
-);

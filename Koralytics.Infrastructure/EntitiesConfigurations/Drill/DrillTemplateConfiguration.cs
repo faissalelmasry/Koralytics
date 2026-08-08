@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -30,6 +30,10 @@ namespace Koralytics.Infrastructure.EntitiesConfigurations.Drill
             builder.Property(dt => dt.IsShared)
                 .IsRequired()
                 .HasDefaultValue(false);
+
+            builder.Property(dt => dt.VideoUrl)
+                .IsRequired(false)
+                .HasMaxLength(2000);
 
             builder.HasOne(dt => dt.DrillCategory)
                 .WithMany(dc => dc.DrillTemplates)

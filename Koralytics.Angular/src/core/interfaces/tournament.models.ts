@@ -34,6 +34,7 @@ export interface Tournament {
   startDate: string;
   endDate: string;
   status: TournamentStatus;
+  entryFee: number;
 }
 
 export interface CreateTournamentDto {
@@ -44,6 +45,7 @@ export interface CreateTournamentDto {
   hasTwoLegs: boolean;
   startDate: string;
   endDate: string;
+  entryFee: number;
 }
 
 export interface BracketDto {

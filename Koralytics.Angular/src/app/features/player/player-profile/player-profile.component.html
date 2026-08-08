@@ -25,7 +25,8 @@
           <h1>{{ fullName }}</h1>
           <div class="meta-pills">
             @if (profile.currentAcademy?.academyId) {
-            <a [routerLink]="['/academy/profile', profile.currentAcademy?.academyId]" class="pill academy-link">{{ academyName }}</a>
+            <a [routerLink]="['/academy/profile', profile.currentAcademy?.academyId]" class="pill academy-link">{{
+              academyName }}</a>
             } @else {
             <span class="pill">{{ academyName }}</span>
             }
@@ -98,7 +99,7 @@
         <div class="no-card-placeholder">
           <div class="no-card-icon">
             <svg width="36" height="36" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M13 2L3 14h9l-1 8 10-12h-8l1-8z"/>
+              <path d="M13 2L3 14h9l-1 8 10-12h-8l1-8z" />
             </svg>
           </div>
           <p class="no-card-title">{{ 'PLAYER.NO_CARD_YET' | translate }}</p>
@@ -299,8 +300,16 @@
     <div class="breakdown-section">
       <div class="panel-header"
         style="margin-bottom:20px; display: flex; justify-content: space-between; align-items: center;">
+
         <span>{{ 'PLAYER.MATCH_PERFORMANCE_BREAKDOWN' | translate }}</span>
         <app-button [variant]="tierButtonVariant" (click)="goToTimeline()">{{ 'PLAYER.VIEW_FULL_TIMELINE' | translate }}</app-button>
+
+        <div class="hud-title">
+          Match Performance Breakdown
+          <span class="hud-status status-matches">{{ 'PLAYER.MATCH_PERFORMANCE_BREAKDOWN' | translate }}</span>
+        </div>
+        <app-button [variant]="tierButtonVariant" (click)="goToTimeline()">{{ 'PLAYER.VIEW_FULL_TIMELINE' | translate }}</app-button>
+
       </div>
 
       <div class="breakdown-grid">

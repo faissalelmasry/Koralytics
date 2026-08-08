@@ -223,7 +223,8 @@ export class TournamentManageComponent implements OnInit {
       ageGroupId: [null as number | null, Validators.required],
       hasTwoLegs: [false],
       startDate: ['', Validators.required],
-      endDate: ['', Validators.required]
+      endDate: ['', Validators.required],
+      entryFee: [0, [Validators.required, Validators.min(0)]]
     }, { validators: this.dateRangeValidator });
   }
 
@@ -264,12 +265,22 @@ export class TournamentManageComponent implements OnInit {
         const teamsData = responses.teams?.data || responses.teams;
         this.teams = Array.isArray(teamsData) ? teamsData : [];
 
-        const academyPayload = responses.academies?.data || responses.academies;
-        const academiesArray = academyPayload?.academies || academyPayload;
-        const academies = Array.isArray(academiesArray) ? academiesArray : [];
+        let academies: any[] = [];
+        if (Array.isArray(responses.academies)) {
+          academies = responses.academies;
+        } else if (Array.isArray(responses.academies?.data?.academies)) {
+          academies = responses.academies.data.academies;
+        } else if (Array.isArray(responses.academies?.data)) {
+          academies = responses.academies.data;
+        } else if (Array.isArray(responses.academies?.academies)) {
+          academies = responses.academies.academies;
+        } else if (Array.isArray(responses.academies?.data?.items)) {
+          academies = responses.academies.data.items;
+        }
+
         this.availableAcademies = academies.map((academy: any) => ({
           value: academy.id,
-          label: academy.city ? `${academy.name} - ${academy.city}` : academy.name
+          label: academy.name ? (academy.city ? `${academy.name} - ${academy.city}` : academy.name) : `Academy #${academy.id}`
         }));
         this.selectedAcademyId = this.availableAcademies[0]?.value || null;
 
@@ -309,7 +320,8 @@ export class TournamentManageComponent implements OnInit {
         format: 'Match format',
         structure: 'Tournament structure',
         startDate: 'Start date',
-        endDate: 'End date'
+        endDate: 'End date',
+        entryFee: 'Entry fee'
       };
       const fieldName = fieldNames[controlName] || controlName;
 

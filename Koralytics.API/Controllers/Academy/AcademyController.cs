@@ -6,6 +6,7 @@ using Koralytics.Application.DTOs.SystemAdmin;
 using Koralytics.Application.Interfaces.Subscription;
 using Koralytics.Application.Services.Academy.AcademyService;
 using Koralytics.API.Filters;
+using Koralytics.Domain.Enums;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -422,6 +423,7 @@ namespace Koralytics.API.Controllers.Academies
 
         [HttpPost("search-ai-chat")]
         [Authorize(Roles = "AcademyAdmin,Coach")]
+        [RequiresPlanFeature(TierFeature.AIInsights)]
         public async Task<IActionResult> AcademySearchAIChatBot([FromBody] AIChatBotRequestDto request)
         {
             var academyIdStr = User.FindFirstValue("AcademyId") ?? User.FindFirstValue("academyId");
@@ -435,8 +437,15 @@ namespace Koralytics.API.Controllers.Academies
                 });
             }
 
-            var result = await _academyService.AcademySearchAIChatBotAsync(request, academyId);
-            return OkResponse(result, "Academy AI Chat response generated successfully.");
+            try
+            {
+                var result = await _academyService.AcademySearchAIChatBotAsync(request, academyId);
+                return OkResponse(result, "Academy AI Chat response generated successfully.");
+            }
+            catch
+            {
+                return OkResponse("عذراً، حدث خطأ أثناء التواصل مع المساعد الذكي. يرجى المحاولة مرة أخرى لاحقاً.", "Academy AI Chat completed.");
+            }
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using Koralytics.Domain.Enums;
+using Koralytics.Domain.Enums;
 using Koralytics.Domain.Models.BaseModels;
 
 using System;
@@ -30,6 +30,8 @@ namespace Koralytics.Domain.Entities.Drill
         public DrillMode DrillMode { get; set; }
 
         public bool IsShared { get; set; } = false; // Indicates if the drill template is shared with other academies
+
+        public string? VideoUrl { get; set; }
 
         public ICollection<Drill> TemplateDrills { get; set; } = new HashSet<Drill>();
     }

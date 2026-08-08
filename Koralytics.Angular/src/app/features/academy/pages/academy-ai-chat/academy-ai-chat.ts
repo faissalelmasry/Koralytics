@@ -8,12 +8,13 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 import { AcademyService } from '../../../../../core/services/academy/academy.service';
 import { ToastService } from '../../../../../core/services/Toast/toast';
-import { extractErrorMessage } from '../../../../../core/utils/http-error.util';
 import { TokenStorageService } from '../../../../../core/services/auth/token-storage.service';
+import { cleanAiBotResponse } from '../../../../../core/utils/ai-chat.util';
 import { NavbarComponent } from '../../../../../shared/components/navbar/navbar';
 import { Footer } from '../../../../../shared/components/footer/footer';
 import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
 import { LoadingSpinnerComponent } from '../../../../../shared/components/loading-spinner/loading-spinner';
+import { FeatureLockComponent } from '../../../../shared/components/feature-lock/feature-lock';
 
 export interface ChatMessage {
   id: string;
@@ -32,7 +33,8 @@ export interface ChatMessage {
     NavbarComponent,
     Footer,
     ScrollRevealDirective,
-    LoadingSpinnerComponent
+    LoadingSpinnerComponent,
+    FeatureLockComponent
   ],
   templateUrl: './academy-ai-chat.html',
   styleUrls: ['./academy-ai-chat.css']
@@ -94,10 +96,11 @@ export class AcademyAiChatComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (reply: string) => {
+          const cleanedText = cleanAiBotResponse(reply);
           const botMsg: ChatMessage = {
             id: (Date.now() + 1).toString(),
             sender: 'assistant',
-            text: reply || 'No response returned from Academy AI Assistant.',
+            text: cleanedText || 'No response returned from Academy AI Assistant.',
             timestamp: new Date()
           };
           this.chatMessages.update(msgs => [...msgs, botMsg]);
@@ -106,15 +109,15 @@ export class AcademyAiChatComponent implements OnInit {
         },
         error: (err: HttpErrorResponse) => {
           console.error('Academy AI ChatBot query failed', err);
-          const errorMsg = extractErrorMessage(err, 'Failed to connect to Academy AI Assistant.');
+          const fallbackMsg = 'عذراً، حدث خطأ أثناء التواصل مع المساعد الذكي. يرجى المحاولة مرة أخرى لاحقاً.';
           const botMsg: ChatMessage = {
             id: (Date.now() + 1).toString(),
             sender: 'assistant',
-            text: `⚠️ ${errorMsg}`,
+            text: `⚠️ ${fallbackMsg}`,
             timestamp: new Date()
           };
           this.chatMessages.update(msgs => [...msgs, botMsg]);
-          this.toastService.show(errorMsg, 'error');
+          this.toastService.show(fallbackMsg, 'error');
           this.isAiLoading.set(false);
           this.scrollChatToBottom();
         }

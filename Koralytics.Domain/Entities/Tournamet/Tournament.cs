@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -26,6 +26,11 @@ namespace Koralytics.Domain.Entities.Tournamet
         public DateTime EndDate { get; set; }
 
         public TournamentStatus Status { get; set; }
+
+        /// <summary>
+        /// Entry fee required to participate. Zero means the tournament is free to enter.
+        /// </summary>
+        public decimal EntryFee { get; set; } = 0;
 
 
         public AgeGroup AgeGroup { get; set; } = default!;

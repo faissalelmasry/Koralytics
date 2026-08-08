@@ -825,8 +825,70 @@
   .form-panel {
     right: -100%;
   }
+}
 
-  /* ensure mobile hides perfectly */
+@media (max-width: 480px) {
+  .drills-page {
+    padding: 85px 12px 30px;
+    gap: 20px;
+  }
+
+  .header-title {
+    font-size: 26px;
+  }
+
+  .stats-strip {
+    padding: 14px 12px;
+    gap: 12px;
+    border-radius: 12px;
+  }
+
+  .stat-value {
+    font-size: 24px;
+  }
+
+  .filter-controls {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .filter-select {
+    width: 100%;
+  }
+
+  .drills-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .drill-card {
+    padding: 16px 14px;
+  }
+
+  .form-panel {
+    max-width: 100%;
+    padding: 24px 16px;
+  }
+
+  .video-modal {
+    width: 98vw;
+    border-radius: 12px;
+  }
+
+  .video-modal-header {
+    padding: 14px 16px;
+  }
+
+  .video-modal-title {
+    font-size: 16px;
+  }
+
+  .video-modal-footer {
+    padding: 12px 14px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
 }
 
 /* ─────────────────────────────────────────────────
@@ -958,4 +1020,223 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* ─────────────────────────────────────────────────
+   WATCH DRILL VIDEO BUTTON & MODAL
+───────────────────────────────────────────────── */
+.watch-video-container {
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+
+.watch-video-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  justify-content: center;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, rgba(200, 255, 77, 0.15) 0%, rgba(0, 240, 255, 0.12) 100%);
+  border: 1px solid rgba(200, 255, 77, 0.4);
+  border-radius: 10px;
+  color: var(--accent-lime);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+  box-shadow: 0 0 15px rgba(200, 255, 77, 0.1);
+}
+
+.watch-video-btn:hover {
+  background: linear-gradient(135deg, rgba(200, 255, 77, 0.28) 0%, rgba(0, 240, 255, 0.22) 100%);
+  border-color: var(--accent-lime);
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(200, 255, 77, 0.3);
+}
+
+.watch-video-btn svg {
+  fill: currentColor;
+}
+
+/* ─────────────────────────────────────────────────
+   BIG VIDEO MODAL
+───────────────────────────────────────────────── */
+.video-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 7, 12, 0.85);
+  backdrop-filter: blur(16px);
+  z-index: 9998;
+  animation: fadeIn 0.25s ease-out;
+}
+
+.video-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 94vw;
+  max-width: 1100px;
+  max-height: 92vh;
+  background: rgba(14, 18, 26, 0.97);
+  border: 1px solid rgba(200, 255, 77, 0.25);
+  border-radius: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.85), 0 0 45px rgba(200, 255, 77, 0.15);
+  overflow: hidden;
+  animation: popModal 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+@keyframes popModal {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -46%) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.video-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 28px;
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.video-modal-title {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--text-light);
+  margin: 0;
+}
+
+.video-modal-close {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  font-size: 24px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 6px 10px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.video-modal-close:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.video-modal-body {
+  position: relative;
+  width: 100%;
+  padding-top: 56.25%; /* 16:9 Aspect Ratio */
+  background: #000000;
+}
+
+.video-frame,
+.video-player {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  object-fit: contain;
+}
+
+.video-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 28px;
+  background: rgba(255, 255, 255, 0.02);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.modal-tech-bar {
+  height: 3px;
+  width: 100%;
+  background: linear-gradient(90deg, var(--accent-lime) 0%, #00f0ff 100%);
+  box-shadow: 0 0 12px var(--accent-lime);
+}
+
+.modal-tech-bar.warning {
+  background: linear-gradient(90deg, #ff4d30 0%, #ff8c00 100%);
+  box-shadow: 0 0 12px #ff4d30;
+}
+
+.video-modal-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.video-modal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--accent-lime);
+  background: rgba(200, 255, 77, 0.1);
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(200, 255, 77, 0.25);
+}
+
+.video-meta-pills {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.meta-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-dim);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.confirm-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.confirm-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(255, 77, 48, 0.12);
+  border: 1px solid rgba(255, 77, 48, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }

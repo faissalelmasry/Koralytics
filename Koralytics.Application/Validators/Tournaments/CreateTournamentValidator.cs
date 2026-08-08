@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using Koralytics.Application.DTOs.Tournament;
 
 namespace Koralytics.Application.Validators.Tournament
@@ -28,6 +28,12 @@ namespace Koralytics.Application.Validators.Tournament
             RuleFor(x => x.EndDate)
                 .NotEmpty().WithMessage("End date is required.")
                 .GreaterThan(x => x.StartDate).WithMessage("End date must be after start date.");
+
+            RuleFor(x => x.EntryFee)
+                .GreaterThanOrEqualTo(0)
+                .WithMessage("Entry fee cannot be negative.")
+                .PrecisionScale(18, 2, false)
+                .WithMessage("Entry fee must have at most 2 decimal places.");
         }
     }
 }

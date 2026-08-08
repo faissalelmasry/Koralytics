@@ -182,63 +182,73 @@ namespace Koralytics.Application.Services.Scouter.ScouterSearchService
                 throw new ArgumentException("Chat message cannot be empty.", nameof(request));
             }
 
-            var baseUrl = _configuration["Langflow:BaseUrl"] ?? "http://localhost:7860/";
-            var flowId = _configuration["Langflow:ScouterFlowId"] ?? "8174dfb9-ed41-44af-8e6f-f93040a33f15";
-            var apiKey = _configuration["Langflow:ScouterApiKey"] ?? "sk-xolbieoNFGE495pN0a0GCBqLM318zmTS0sq3enjaPbw";
-
-            _logger.LogInformation("Sending request to Scouter Langflow AI ChatBot (FlowId: {FlowId})...", flowId);
-
-            var sessionId = !string.IsNullOrWhiteSpace(request.SessionId)
-                ? request.SessionId
-                : Guid.NewGuid().ToString();
-
-            var requestPayload = new
+            try
             {
-                input_value = request.Message,
-                input_type = "chat",
-                output_type = "chat",
-                session_id = sessionId
-            };
+                var baseUrl = _configuration["Langflow:BaseUrl"] ?? "http://localhost:7860/";
+                var flowId = _configuration["Langflow:ScouterFlowId"] ?? "8174dfb9-ed41-44af-8e6f-f93040a33f15";
+                var apiKey = _configuration["Langflow:ScouterApiKey"] ?? "sk-xolbieoNFGE495pN0a0GCBqLM318zmTS0sq3enjaPbw";
 
-            var httpRequestMessage = new HttpRequestMessage(
-                HttpMethod.Post,
-                $"{baseUrl.TrimEnd('/')}/api/v1/run/{flowId}?stream=false")
-            {
-                Content = new StringContent(
-                    JsonSerializer.Serialize(requestPayload),
-                    Encoding.UTF8,
-                    "application/json"
-                )
-            };
+                _logger.LogInformation("Sending request to Scouter Langflow AI ChatBot (FlowId: {FlowId})...", flowId);
 
-            if (!string.IsNullOrEmpty(apiKey))
-            {
-                httpRequestMessage.Headers.Add("x-api-key", apiKey);
+                var sessionId = !string.IsNullOrWhiteSpace(request.SessionId)
+                    ? request.SessionId
+                    : Guid.NewGuid().ToString();
+
+                var requestPayload = new
+                {
+                    input_value = request.Message,
+                    input_type = "chat",
+                    output_type = "chat",
+                    session_id = sessionId
+                };
+
+                var httpRequestMessage = new HttpRequestMessage(
+                    HttpMethod.Post,
+                    $"{baseUrl.TrimEnd('/')}/api/v1/run/{flowId}?stream=false")
+                {
+                    Content = new StringContent(
+                        JsonSerializer.Serialize(requestPayload),
+                        Encoding.UTF8,
+                        "application/json"
+                    )
+                };
+
+                if (!string.IsNullOrEmpty(apiKey))
+                {
+                    httpRequestMessage.Headers.Add("x-api-key", apiKey);
+                }
+
+                var response = await _httpClient.SendAsync(httpRequestMessage);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    _logger.LogError("Scouter Langflow API failed with status {StatusCode}: {Error}", response.StatusCode, errorContent);
+                    return "عذراً، حدث خطأ أثناء التواصل مع المساعد الذكي. يرجى المحاولة مرة أخرى لاحقاً.";
+                }
+
+                var responseBody = await response.Content.ReadAsStringAsync();
+                using var jsonDoc = JsonDocument.Parse(responseBody);
+
+                string botReply = jsonDoc.RootElement
+                    .GetProperty("outputs")[0]
+                    .GetProperty("outputs")[0]
+                    .GetProperty("results")
+                    .GetProperty("message")
+                    .GetProperty("text")
+                    .GetString() ?? string.Empty;
+
+                _logger.LogInformation("Scouter Langflow AI ChatBot response generated successfully.");
+
+                return string.IsNullOrWhiteSpace(botReply)
+                    ? "عذراً، لم يتم استلام رد من المساعد الذكي. يرجى المحاولة مرة أخرى."
+                    : botReply;
             }
-
-            var response = await _httpClient.SendAsync(httpRequestMessage);
-
-            if (!response.IsSuccessStatusCode)
+            catch (Exception ex)
             {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                _logger.LogError("Scouter Langflow API failed with status {StatusCode}: {Error}", response.StatusCode, errorContent);
-                response.EnsureSuccessStatusCode();
+                _logger.LogError(ex, "An error occurred while calling Scouter AI ChatBot.");
+                return "عذراً، حدث خطأ أثناء التواصل مع المساعد الذكي. يرجى المحاولة مرة أخرى لاحقاً.";
             }
-
-            var responseBody = await response.Content.ReadAsStringAsync();
-            using var jsonDoc = JsonDocument.Parse(responseBody);
-
-            string botReply = jsonDoc.RootElement
-                .GetProperty("outputs")[0]
-                .GetProperty("outputs")[0]
-                .GetProperty("results")
-                .GetProperty("message")
-                .GetProperty("text")
-                .GetString() ?? string.Empty;
-
-            _logger.LogInformation("Scouter Langflow AI ChatBot response generated successfully.");
-
-            return botReply;
         }
     }
 }

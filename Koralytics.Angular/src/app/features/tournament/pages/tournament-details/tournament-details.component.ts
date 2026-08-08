@@ -67,6 +67,19 @@ export class TournamentDetailsComponent implements OnInit, OnDestroy {
 
   // Computed flat fixture list from groups (for the Fixtures tab)
   allFixtures: any[] = [];
+  fixtureStatusFilter: 'ALL' | 'Scheduled' | 'Completed' = 'ALL';
+
+  get filteredFixtures(): any[] {
+    if (this.fixtureStatusFilter === 'ALL') {
+      return this.allFixtures;
+    }
+    return this.allFixtures.filter(f => (f.status || 'Scheduled') === this.fixtureStatusFilter);
+  }
+
+  setFixtureStatusFilter(filter: 'ALL' | 'Scheduled' | 'Completed') {
+    this.fixtureStatusFilter = filter;
+    this.cdr.markForCheck();
+  }
 
   // Tabs state
   activeTab: 'overview' | 'bracket' | 'fixtures' | 'teams' | 'hallOfFame' | 'aiInsights' = 'overview';
@@ -506,6 +519,26 @@ export class TournamentDetailsComponent implements OnInit, OnDestroy {
     document.body.removeChild(link);
   }
 
+  exportFixturesCSV() {
+    if (!this.allFixtures.length) return;
+
+    let csvContent = 'data:text/csv;charset=utf-8,Stage/Round,Home Team,Home Score,Away Score,Away Team,Status\n';
+
+    this.allFixtures.forEach(f => {
+      const homeScore = f.homeScore ?? '-';
+      const awayScore = f.awayScore ?? '-';
+      csvContent += `"${f.groupName || 'Fixture'}","${f.homeTeamName || 'TBD'}",${homeScore},${awayScore},"${f.awayTeamName || 'TBD'}","${f.status || 'Scheduled'}"\n`;
+    });
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `${(this.tournament?.name || 'Tournament').replace(/\s+/g, '_')}_Fixtures.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
   printSchedule() {
     window.print();
   }
@@ -627,82 +660,74 @@ export class TournamentDetailsComponent implements OnInit, OnDestroy {
     this.statsSaved = false;
     this.cdr.markForCheck();
 
-    // Map TournamentTeamId to real TeamId using this.teams if needed
-    const homeTeamEntry = this.teams.find((t: any) => t.tournamentTeamId === fixture.homeTeamId || t.teamId === fixture.homeTeamId);
-    const homeRealTeamId = fixture.homeRealTeamId || homeTeamEntry?.teamId || fixture.homeTeamId;
+    this.tournamentService.getFixtureById(fixture.fixtureId).subscribe({
+      next: (res: any) => {
+        const detail = res?.data || res;
+        if (detail) {
+          this.homePlayers = (detail.homePlayers || []).map((p: any) => ({
+            id: p.playerId ?? p.PlayerId,
+            playerId: p.playerId ?? p.PlayerId,
+            fullName: p.fullName ?? p.FullName ?? 'Player',
+            primaryPosition: p.primaryPosition ?? p.PrimaryPosition ?? 'FWD'
+          }));
 
-    const awayTeamEntry = this.teams.find((t: any) => t.tournamentTeamId === fixture.awayTeamId || t.teamId === fixture.awayTeamId);
-    const awayRealTeamId = fixture.awayRealTeamId || awayTeamEntry?.teamId || fixture.awayTeamId;
+          this.awayPlayers = (detail.awayPlayers || []).map((p: any) => ({
+            id: p.playerId ?? p.PlayerId,
+            playerId: p.playerId ?? p.PlayerId,
+            fullName: p.fullName ?? p.FullName ?? 'Player',
+            primaryPosition: p.primaryPosition ?? p.PrimaryPosition ?? 'FWD'
+          }));
 
-    let homeLoaded = false;
-    let awayLoaded = false;
+          if (this.homePlayers.length === 0) {
+            this.homePlayers = Array.from({ length: 11 }, (_, i) => ({
+              id: -(i + 1),
+              playerId: -(i + 1),
+              fullName: `${fixture.homeTeamName || 'Home'} Player #${i + 1}`,
+              primaryPosition: 'FWD'
+            }));
+          }
 
-    const checkDone = () => {
-      if (homeLoaded && awayLoaded) {
+          if (this.awayPlayers.length === 0) {
+            this.awayPlayers = Array.from({ length: 11 }, (_, i) => ({
+              id: -(i + 100),
+              playerId: -(i + 100),
+              fullName: `${fixture.awayTeamName || 'Away'} Player #${i + 1}`,
+              primaryPosition: 'FWD'
+            }));
+          }
+
+          this.updateAllPlayers();
+
+          this.statsForm = {
+            goals: (detail.goals || []).map((g: any) => ({
+              playerId: g.playerId ?? g.PlayerId ?? 0,
+              assistPlayerId: g.assistPlayerId ?? g.AssistPlayerId ?? undefined,
+              minute: g.minute ?? g.Minute ?? 1,
+              isHomeSide: g.isHomeSide ?? g.IsHomeSide ?? true
+            })),
+            motmPlayerId: detail.motmPlayerId || undefined
+          };
+
+          this.isLoadingPlayers = false;
+          this.cdr.markForCheck();
+        }
+      },
+      error: (err) => {
+        console.error('Failed to load fixture details', err);
         this.isLoadingPlayers = false;
-        this.updateAllPlayers();
         this.cdr.markForCheck();
       }
-    };
+    });
+  }
 
-    // Helper to attempt loading home squad with fallback
-    const loadHome = (id: number, fallbackId?: number) => {
-      this.coachSquadService.getSquad(id).subscribe({
-        next: (res: any) => {
-          const payload = res?.data ?? res;
-          const players = payload?.players || (Array.isArray(payload) ? payload : []);
-          if (players && players.length > 0) {
-            this.homePlayers = players;
-            homeLoaded = true;
-            checkDone();
-          } else if (fallbackId && fallbackId !== id) {
-            loadHome(fallbackId);
-          } else {
-            homeLoaded = true;
-            checkDone();
-          }
-        },
-        error: () => {
-          if (fallbackId && fallbackId !== id) {
-            loadHome(fallbackId);
-          } else {
-            homeLoaded = true;
-            checkDone();
-          }
-        }
-      });
-    };
-
-    // Helper to attempt loading away squad with fallback
-    const loadAway = (id: number, fallbackId?: number) => {
-      this.coachSquadService.getSquad(id).subscribe({
-        next: (res: any) => {
-          const payload = res?.data ?? res;
-          const players = payload?.players || (Array.isArray(payload) ? payload : []);
-          if (players && players.length > 0) {
-            this.awayPlayers = players;
-            awayLoaded = true;
-            checkDone();
-          } else if (fallbackId && fallbackId !== id) {
-            loadAway(fallbackId);
-          } else {
-            awayLoaded = true;
-            checkDone();
-          }
-        },
-        error: () => {
-          if (fallbackId && fallbackId !== id) {
-            loadAway(fallbackId);
-          } else {
-            awayLoaded = true;
-            checkDone();
-          }
-        }
-      });
-    };
-
-    loadHome(homeRealTeamId, fixture.homeTeamId);
-    loadAway(awayRealTeamId, fixture.awayTeamId);
+  private normalizePlayers(players: any[]) {
+    return (players || []).map(p => ({
+      id: p.playerId ?? p.PlayerId ?? p.id ?? p.Id ?? 0,
+      playerId: p.playerId ?? p.PlayerId ?? p.id ?? p.Id ?? 0,
+      fullName: p.fullName ?? p.FullName ?? p.playerName ?? p.PlayerName ?? p.name ?? 'Player',
+      primaryPosition: p.primaryPosition ?? p.PrimaryPosition ?? 'FWD',
+      overallRating: p.overallRating ?? p.OverallRating ?? 0
+    }));
   }
 
   private updateAllPlayers() {

@@ -85,7 +85,7 @@ namespace Koralytics.API.Filters
                 TierFeature.AIInsights => "Elite",
                 TierFeature.StripePayments => "Pro",
                 TierFeature.AcademyComparison => "Pro",
-                TierFeature.ArchetypeReveal => "Pro",
+                TierFeature.ArchetypeReveal => "Elite",
                 _ => "Elite"
             };
         }

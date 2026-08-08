@@ -121,7 +121,9 @@ namespace Koralytics.Application.Services.Storage
                     BucketName = _bucketName,
                     Key = uniqueFileName,
                     InputStream = stream,
-                    ContentType = file.ContentType
+                    ContentType = file.ContentType,
+                    DisablePayloadSigning = true,
+                    DisableDefaultChecksumValidation = true
                 };
 
                 await _s3Client.PutObjectAsync(putRequest);
@@ -284,7 +286,9 @@ namespace Koralytics.Application.Services.Storage
                     BucketName = _bucketName,
                     Key = uniqueFileName,
                     InputStream = stream,
-                    ContentType = file.ContentType
+                    ContentType = file.ContentType,
+                    DisablePayloadSigning = true,
+                    DisableDefaultChecksumValidation = true
                 };
 
                 await _s3Client.PutObjectAsync(putRequest);

@@ -1,17 +1,26 @@
 <div class="breakdown-section drill-progression-card">
+<div class="panel-header"
+    style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; gap: 15px; flex-wrap: wrap;">
 
-    <!-- PANEL HEADER (Matching Match Performance Breakdown) -->
-    <div class="panel-header" style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; gap: 15px; flex-wrap: wrap;">
+    <div class="hud-title">
         <span>{{ 'PLAYER.DRILL_PROG_ANALYTICS' | translate }}</span>
-        <div style="display: flex; align-items: center; gap: 12px;">
-            <app-button [variant]="tierButtonVariant" (click)="goToDrillTimeline()">{{ 'PLAYER.VIEW_FULL_DRILL_TIMELINE' | translate }}</app-button>
-            <div class="filter-box">
-                <app-select
-                    label=""
-                    [placeholder]="'PLAYER.SELECT_CATEGORY' | translate"
-                    [options]="categoryOptions"
-                    [value]="selectedCategoryId"
-                    (valueChange)="onCategorySelect($event)">
+        <span class="hud-status status-analytics">Analytics</span>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <app-button
+            [variant]="tierButtonVariant"
+            (click)="goToDrillTimeline()">
+            {{ 'PLAYER.VIEW_FULL_DRILL_TIMELINE' | translate }}
+        </app-button>
+
+        <div class="filter-box">
+            <app-select
+                label=""
+                [placeholder]="'PLAYER.SELECT_CATEGORY' | translate"
+                [options]="categoryOptions"
+                [value]="selectedCategoryId"
+                (valueChange)="onCategorySelect($event)">
                 </app-select>
             </div>
         </div>
@@ -24,10 +33,11 @@
     </div>
     } @else if (errorMessage) {
     <div class="error-banner flex-align">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;">
-            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-            <line x1="12" y1="9" x2="12" y2="13"/>
-            <line x1="12" y1="17" x2="12.01" y2="17"/>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            style="margin-right: 8px;">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+            <line x1="12" y1="9" x2="12" y2="13" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
         </svg>
         {{ errorMessage }}
     </div>

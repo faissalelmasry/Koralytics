@@ -165,9 +165,31 @@
 .table-header,
 .table-row {
   display: grid;
-  grid-template-columns: minmax(260px, 1.6fr) 120px 170px 190px 132px 42px;
-  gap: 14px;
+  grid-template-columns: minmax(220px, 1.4fr) 90px 140px 110px 170px 120px 38px;
+  gap: 12px;
   align-items: center;
+}
+
+.fee-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 9px;
+  border-radius: 6px;
+  font-size: 0.76rem;
+  font-weight: 850;
+  letter-spacing: 0.3px;
+}
+
+.fee-badge.free {
+  border: 1px solid rgba(183, 243, 75, 0.28);
+  background: rgba(183, 243, 75, 0.1);
+  color: var(--accent);
+}
+
+.fee-badge.paid {
+  border: 1px solid rgba(98, 168, 255, 0.28);
+  background: rgba(98, 168, 255, 0.1);
+  color: #62a8ff;
 }
 
 .table-header {
@@ -290,13 +312,14 @@
 
 @media (max-width: 760px) {
   .tournament-list-page {
-    width: min(100% - 32px, 1280px);
-    padding-top: 22px;
+    width: calc(100% - 24px);
+    padding: 16px 0 48px;
   }
 
   .workspace-header {
     align-items: stretch;
     flex-direction: column;
+    gap: 14px;
   }
 
   .kpi-strip {
@@ -310,5 +333,36 @@
   ::ng-deep .select-filters app-select {
     width: 100%;
     min-width: 100%;
+  }
+
+  .table-surface {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (max-width: 480px) {
+  .kpi-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .kpi-card {
+    min-height: 72px;
+    padding: 12px;
+  }
+
+  .kpi-card strong {
+    font-size: 1.5rem;
+  }
+
+  .results-line {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .button-inline {
+    width: 100%;
+    justify-content: center;
   }
 }

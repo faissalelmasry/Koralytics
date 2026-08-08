@@ -9,6 +9,7 @@ import { ScouterService } from '../../../../core/services/Scouter/scouter.servic
 import { PlayerCardDto, PlayerSearchFiltersDto } from '../../../../core/interfaces/Scouter.interfaces';
 import { ToastService } from '../../../../core/services/Toast/toast';
 import { extractErrorMessage } from '../../../../core/utils/http-error.util';
+import { cleanAiBotResponse } from '../../../../core/utils/ai-chat.util';
 import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state';
 import { CustomButtonComponent } from '../../../../shared/components/custom-button/custom-button';
@@ -365,10 +366,11 @@ export class ScouterSearchComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (reply) => {
+          const cleanedText = cleanAiBotResponse(reply);
           const botMsg: ChatMessage = {
             id: (Date.now() + 1).toString(),
             sender: 'assistant',
-            text: reply || 'No response returned from AI.',
+            text: cleanedText || 'No response returned from AI.',
             timestamp: new Date()
           };
           this.chatMessages.update(msgs => [...msgs, botMsg]);
@@ -377,15 +379,15 @@ export class ScouterSearchComponent implements OnInit {
         },
         error: (err: HttpErrorResponse) => {
           console.error('AI ChatBot query failed', err);
-          const errorMsg = extractErrorMessage(err, 'Failed to connect to Scouting Assistant AI.');
+          const fallbackMsg = 'عذراً، حدث خطأ أثناء التواصل مع المساعد الذكي. يرجى المحاولة مرة أخرى لاحقاً.';
           const botMsg: ChatMessage = {
             id: (Date.now() + 1).toString(),
             sender: 'assistant',
-            text: `⚠️ ${errorMsg}`,
+            text: `⚠️ ${fallbackMsg}`,
             timestamp: new Date()
           };
           this.chatMessages.update(msgs => [...msgs, botMsg]);
-          this.toastService.show(errorMsg, 'error');
+          this.toastService.show(fallbackMsg, 'error');
           this.isAiLoading.set(false);
           this.scrollChatToBottom();
         }

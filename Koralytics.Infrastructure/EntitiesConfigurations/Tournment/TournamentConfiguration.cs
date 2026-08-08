@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -33,7 +33,16 @@ namespace Koralytics.Infrastructure.EntitiesConfigurations.Tournment
                 t.HasCheckConstraint(
                     "CK_Tournament_Dates",
                     "[EndDate] >= [StartDate]");
+
+                t.HasCheckConstraint(
+                    "CK_Tournament_EntryFee",
+                    "[EntryFee] >= 0");
             });
+
+            builder.Property(x => x.EntryFee)
+                .HasColumnType("decimal(18,2)")
+                .HasDefaultValue(0m)
+                .IsRequired();
         }
     }
 }
