@@ -167,7 +167,10 @@ export class ScouterDashboardComponent implements OnInit {
   scouterFullName = computed<string>(() => {
     const p = this.profile();
     if (!p) return '';
-    return `${p.firstName ?? ''} ${p.lastName ?? ''}`.trim();
+    const first = p.firstName ?? (p as any).FirstName ?? (p as any).first_name ?? '';
+    const last = p.lastName ?? (p as any).LastName ?? (p as any).last_name ?? '';
+    const full = (p as any).fullName ?? (p as any).FullName ?? (p as any).name ?? `${first} ${last}`;
+    return full.replace(/\s+/g, ' ').trim();
   });
 
   followedSample = signal<PlayerCardDto[]>([]);
@@ -465,10 +468,11 @@ export class ScouterDashboardComponent implements OnInit {
   }
 
   getInitials(name?: string): string {
-    if (!name) return 'SC';
-    const parts = name.trim().split(' ');
-    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
-    return name.substring(0, 2).toUpperCase();
+    if (!name || typeof name !== 'string') return 'SC';
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) return 'SC';
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+    return (parts[0][0] + parts[1][0]).toUpperCase();
   }
 
 

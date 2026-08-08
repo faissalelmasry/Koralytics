@@ -1444,76 +1444,86 @@ namespace Koralytics.Application.Services.Academy.AcademyService
                 throw new ArgumentException("Chat message cannot be empty.", nameof(request));
             }
 
-            var baseUrl = _configuration["Langflow:BaseUrl"] ?? "http://localhost:7860/";
-            var endpoint = _configuration["Langflow:AcademySearchEndpoint"] ?? "api/v1/run/AcademySearch?stream=false";
-            var apiKey = _configuration["Langflow:AcademyApiKey"];
-
-            _logger.LogInformation("Sending request to Academy Langflow AI ChatBot (AcademyId: {AcademyId})...", academyId);
-
-            var sessionId = !string.IsNullOrWhiteSpace(request.SessionId)
-                ? request.SessionId
-                : Guid.NewGuid().ToString();
-
-            var tweaks = new Dictionary<string, object>
+            try
             {
+                var baseUrl = _configuration["Langflow:BaseUrl"] ?? "http://localhost:7860/";
+                var endpoint = _configuration["Langflow:AcademySearchEndpoint"] ?? "api/v1/run/AcademySearch?stream=false";
+                var apiKey = _configuration["Langflow:AcademyApiKey"];
+
+                _logger.LogInformation("Sending request to Academy Langflow AI ChatBot (AcademyId: {AcademyId})...", academyId);
+
+                var sessionId = !string.IsNullOrWhiteSpace(request.SessionId)
+                    ? request.SessionId
+                    : Guid.NewGuid().ToString();
+
+                var tweaks = new Dictionary<string, object>
                 {
-                    "Prompt Template-ZVQqp", new { academy_id = academyId.ToString() }
-                },
+                    {
+                        "Prompt Template-ZVQqp", new { academy_id = academyId.ToString() }
+                    },
+                    {
+                        "KoralyticsEntityResolver-tVPUl", new { academy_id = academyId }
+                    }
+                };
+
+                var requestPayload = new
                 {
-                    "KoralyticsEntityResolver-tVPUl", new { academy_id = academyId }
+                    output_type = "chat",
+                    input_type = "chat",
+                    input_value = request.Message,
+                    session_id = sessionId,
+                    tweaks = tweaks
+                };
+
+                var fullUrl = endpoint.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+                    ? endpoint
+                    : $"{baseUrl.TrimEnd('/')}/{(endpoint.StartsWith('/') ? endpoint.Substring(1) : endpoint)}";
+
+                var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, fullUrl)
+                {
+                    Content = new StringContent(
+                        JsonSerializer.Serialize(requestPayload),
+                        Encoding.UTF8,
+                        "application/json"
+                    )
+                };
+
+                if (!string.IsNullOrEmpty(apiKey))
+                {
+                    httpRequestMessage.Headers.Add("x-api-key", apiKey);
                 }
-            };
 
-            var requestPayload = new
-            {
-                output_type = "chat",
-                input_type = "chat",
-                input_value = request.Message,
-                session_id = sessionId,
-                tweaks = tweaks
-            };
+                var response = await _httpClient.SendAsync(httpRequestMessage);
 
-            var fullUrl = endpoint.StartsWith("http", StringComparison.OrdinalIgnoreCase)
-                ? endpoint
-                : $"{baseUrl.TrimEnd('/')}/{(endpoint.StartsWith('/') ? endpoint.Substring(1) : endpoint)}";
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    _logger.LogError("Academy Langflow API failed with status {StatusCode}: {Error}", response.StatusCode, errorContent);
+                    return "عذراً، حدث خطأ أثناء التواصل مع المساعد الذكي. يرجى المحاولة مرة أخرى لاحقاً.";
+                }
 
-            var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, fullUrl)
-            {
-                Content = new StringContent(
-                    JsonSerializer.Serialize(requestPayload),
-                    Encoding.UTF8,
-                    "application/json"
-                )
-            };
+                var responseBody = await response.Content.ReadAsStringAsync();
+                using var jsonDoc = JsonDocument.Parse(responseBody);
 
-            if (!string.IsNullOrEmpty(apiKey))
-            {
-                httpRequestMessage.Headers.Add("x-api-key", apiKey);
+                string botReply = jsonDoc.RootElement
+                    .GetProperty("outputs")[0]
+                    .GetProperty("outputs")[0]
+                    .GetProperty("results")
+                    .GetProperty("message")
+                    .GetProperty("text")
+                    .GetString() ?? string.Empty;
+
+                _logger.LogInformation("Academy Langflow AI ChatBot response generated successfully.");
+
+                return string.IsNullOrWhiteSpace(botReply)
+                    ? "عذراً، لم يتم استلام رد من المساعد الذكي. يرجى المحاولة مرة أخرى."
+                    : botReply;
             }
-
-            var response = await _httpClient.SendAsync(httpRequestMessage);
-
-            if (!response.IsSuccessStatusCode)
+            catch (Exception ex)
             {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                _logger.LogError("Academy Langflow API failed with status {StatusCode}: {Error}", response.StatusCode, errorContent);
-                response.EnsureSuccessStatusCode();
+                _logger.LogError(ex, "An error occurred while calling Academy AI ChatBot.");
+                return "عذراً، حدث خطأ أثناء التواصل مع المساعد الذكي. يرجى المحاولة مرة أخرى لاحقاً.";
             }
-
-            var responseBody = await response.Content.ReadAsStringAsync();
-            using var jsonDoc = JsonDocument.Parse(responseBody);
-
-            string botReply = jsonDoc.RootElement
-                .GetProperty("outputs")[0]
-                .GetProperty("outputs")[0]
-                .GetProperty("results")
-                .GetProperty("message")
-                .GetProperty("text")
-                .GetString() ?? string.Empty;
-
-            _logger.LogInformation("Academy Langflow AI ChatBot response generated successfully.");
-
-            return botReply;
         }
 
         public async Task UpdateAcademyTierAsync(int academyId, Koralytics.Application.DTOs.SystemAdmin.UpdateAcademyTierDto dto, int performedByUserId)

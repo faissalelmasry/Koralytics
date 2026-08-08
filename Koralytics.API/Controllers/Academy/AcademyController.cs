@@ -437,8 +437,15 @@ namespace Koralytics.API.Controllers.Academies
                 });
             }
 
-            var result = await _academyService.AcademySearchAIChatBotAsync(request, academyId);
-            return OkResponse(result, "Academy AI Chat response generated successfully.");
+            try
+            {
+                var result = await _academyService.AcademySearchAIChatBotAsync(request, academyId);
+                return OkResponse(result, "Academy AI Chat response generated successfully.");
+            }
+            catch
+            {
+                return OkResponse("عذراً، حدث خطأ أثناء التواصل مع المساعد الذكي. يرجى المحاولة مرة أخرى لاحقاً.", "Academy AI Chat completed.");
+            }
         }
     }
 }
