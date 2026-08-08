@@ -566,3 +566,72 @@ button:disabled {
 .toast-icon {
     font-size: 16px;
 }
+
+@media (max-width: 768px) {
+    .details-page {
+        padding: 95px 14px 30px;
+    }
+
+    .header-title {
+        font-size: 26px;
+    }
+
+    .page-header.flex-between {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .form-panel {
+        padding: 20px 16px;
+    }
+
+    .player-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .toggle-group {
+        width: 100%;
+    }
+
+    .toggle-btn {
+        flex: 1;
+        text-align: center;
+    }
+
+    .drill-card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 14px;
+    }
+
+    .btn-secondary {
+        width: 100%;
+        text-align: center;
+    }
+
+    .modal-content {
+        width: 94vw;
+        padding: 20px 16px;
+    }
+
+    .results-modal-content {
+        width: 96vw !important;
+        padding: 16px 12px;
+    }
+
+    .results-header-row,
+    .results-row {
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 8px;
+        padding: 10px 8px;
+        font-size: 11px;
+    }
+}

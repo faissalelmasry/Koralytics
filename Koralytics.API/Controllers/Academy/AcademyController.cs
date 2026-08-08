@@ -6,6 +6,7 @@ using Koralytics.Application.DTOs.SystemAdmin;
 using Koralytics.Application.Interfaces.Subscription;
 using Koralytics.Application.Services.Academy.AcademyService;
 using Koralytics.API.Filters;
+using Koralytics.Domain.Enums;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -422,6 +423,7 @@ namespace Koralytics.API.Controllers.Academies
 
         [HttpPost("search-ai-chat")]
         [Authorize(Roles = "AcademyAdmin,Coach")]
+        [RequiresPlanFeature(TierFeature.AIInsights)]
         public async Task<IActionResult> AcademySearchAIChatBot([FromBody] AIChatBotRequestDto request)
         {
             var academyIdStr = User.FindFirstValue("AcademyId") ?? User.FindFirstValue("academyId");

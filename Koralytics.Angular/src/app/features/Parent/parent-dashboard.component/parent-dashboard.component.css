@@ -348,6 +348,46 @@
 }
 
 /* Color Variants for Module Cards */
+.card-ai {
+    background: linear-gradient(135deg, rgba(6, 182, 212, 0.12) 0%, rgba(18, 24, 38, 0.65) 100%);
+    border: 1px solid rgba(6, 182, 212, 0.35);
+}
+
+.card-ai:hover {
+    border-color: rgba(0, 242, 254, 0.6);
+    box-shadow: 0 16px 36px rgba(0, 242, 254, 0.2);
+}
+
+.card-ai:hover .card-glass-glow {
+    background: linear-gradient(90deg, transparent, #00f2fe, #c8ff4d, transparent);
+}
+
+.card-header-icon.ai-icon {
+    background: rgba(0, 242, 254, 0.15);
+    border-color: rgba(0, 242, 254, 0.35);
+    color: #00f2fe;
+}
+
+.ai-badge-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.ai-pill {
+    background: linear-gradient(135deg, rgba(0, 242, 254, 0.25), rgba(200, 255, 77, 0.25));
+    border: 1px solid rgba(0, 242, 254, 0.5);
+    color: #00f2fe;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 3px 9px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+
 .card-cyan:hover {
     border-color: rgba(0, 242, 254, 0.4);
     box-shadow: 0 16px 36px rgba(0, 242, 254, 0.12);
@@ -968,4 +1008,96 @@
 
 .btn-modal-close:hover {
     background: rgba(255, 255, 255, 0.2);
+}
+
+/* ==========================================
+   RESPONSIVE (IPHONE SE & MOBILE)
+========================================== */
+@media (max-width: 900px) {
+    .modules-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .parent-dashboard-page {
+        padding: 95px 16px 40px;
+    }
+
+    .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .header-actions {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .btn-link-child,
+    .btn-manage-sub {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .modules-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .child-hero-card {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 24px 20px;
+    }
+
+    .child-name {
+        font-size: 22px;
+    }
+}
+
+@media (max-width: 480px) {
+    .parent-dashboard-page {
+        padding: 85px 12px 30px;
+    }
+
+    .welcome-title {
+        font-size: 24px;
+    }
+
+    .welcome-subtitle {
+        font-size: 13px;
+    }
+
+    .modules-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .module-card {
+        padding: 20px 16px;
+        min-height: auto;
+    }
+
+    .search-modal-container {
+        width: 95vw;
+        max-height: 90vh;
+    }
+
+    .modal-header,
+    .modal-search-box {
+        margin: 14px;
+        padding: 12px;
+    }
+
+    .player-result-card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .btn-send-req {
+        width: 100%;
+    }
 }

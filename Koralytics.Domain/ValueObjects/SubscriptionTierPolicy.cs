@@ -70,7 +70,7 @@ namespace Koralytics.Domain.ValueObjects
                 AllowTransferRate         : true,
                 AllowFullAnalyticsSuite   : false,
                 AllowAcademyComparison    : true,
-                AllowArchetypeReveal      : true
+                AllowArchetypeReveal      : false
             ),
 
             SubscriptionTier.Elite => new TierLimits(

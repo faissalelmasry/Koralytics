@@ -11,13 +11,13 @@ import {
 import { DifficultyLevel, DrillMode } from '../../../../core/enums/koralytics.enums';
 import { AuthService } from '../../../../core/services/auth/auth.service';
 import { CommonModule } from '@angular/common';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Pagination } from '../../../../shared/components/pagination/pagination';
 import { CustomButtonComponent } from '../../../../shared/components/custom-button/custom-button';
 import { SearchBarComponent } from '../../../../shared/components/search-bar/search-bar';
 import { CustomSelect, SelectOption } from '../../../../shared/components/custom-select/custom-select';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state';
-import { Footer } from '../../../../shared/components/footer/footer';
 import { CustomToggle } from '../../../../shared/components/custom-toggle/custom-toggle';
 import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner';
 import { CustomInputComponent } from '../../../../shared/components/custom-input-component/custom-input-component';
@@ -38,8 +38,7 @@ import { NavbarComponent } from '../../../../shared/components/navbar/navbar';
     CustomSelect,
     CustomToggle,
     LoadingSpinnerComponent,
-    EmptyStateComponent,
-    Footer
+    EmptyStateComponent
   ],
 })
 export class DrillTemplateListComponent implements OnInit, OnDestroy {
@@ -64,6 +63,15 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
     message: '',
     confirmText: '',
     action: () => { }
+  };
+
+  // --- Video Modal State ---
+  videoModal = {
+    isOpen: false,
+    drill: null as DrillTemplateDto | null,
+    rawUrl: '',
+    safeVideoUrl: null as SafeResourceUrl | null,
+    isIframe: false
   };
 
   // --- Filtering & Pagination ---
@@ -120,13 +128,15 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
     private drillTemplateService: DrillTemplateService,
     private fb: FormBuilder,
     private authService: AuthService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private sanitizer: DomSanitizer
   ) {
     this.drillForm = this.fb.group({
       name: ['', [Validators.required, Validators.maxLength(300)]],
       categoryId: [null, Validators.required],
       difficultyLevel: [null, Validators.required],
-      drillMode: [null, Validators.required]
+      drillMode: [null, Validators.required],
+      videoUrl: ['']
     });
   }
 
@@ -267,9 +277,59 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
       name: drill.name,
       categoryId: drill.categoryId,
       difficultyLevel: drill.difficultyLevel,
-      drillMode: drill.drillMode
+      drillMode: drill.drillMode,
+      videoUrl: drill.videoUrl || ''
     });
     this.isFormOpen = true;
+  }
+
+  // ==========================================
+  // VIDEO MODAL MANAGEMENT
+  // ==========================================
+
+  openVideoModal(drill: DrillTemplateDto): void {
+    if (!drill.videoUrl) return;
+    const rawUrl = drill.videoUrl.trim();
+    let safeVideoUrl: SafeResourceUrl | null = null;
+    let isIframe = false;
+
+    // YouTube match: watch?v=ID, embed/ID, or youtu.be/ID
+    const ytMatch = rawUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+    if (ytMatch && ytMatch[1]) {
+      const embedUrl = `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1`;
+      safeVideoUrl = this.sanitizer.bypassSecurityTrustResourceUrl(embedUrl);
+      isIframe = true;
+    } else {
+      // Vimeo match: vimeo.com/ID or player.vimeo.com/video/ID
+      const vimeoMatch = rawUrl.match(/vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/[^\/]*\/videos\/|album\/\d+\/video\/|video\/|)(\d+)/);
+      if (vimeoMatch && vimeoMatch[1]) {
+        const embedUrl = `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=1`;
+        safeVideoUrl = this.sanitizer.bypassSecurityTrustResourceUrl(embedUrl);
+        isIframe = true;
+      } else {
+        isIframe = false;
+      }
+    }
+
+    this.videoModal = {
+      isOpen: true,
+      drill: drill,
+      rawUrl: rawUrl,
+      safeVideoUrl: safeVideoUrl,
+      isIframe: isIframe
+    };
+    this.cdr.detectChanges();
+  }
+
+  closeVideoModal(): void {
+    this.videoModal = {
+      isOpen: false,
+      drill: null,
+      rawUrl: '',
+      safeVideoUrl: null,
+      isIframe: false
+    };
+    this.cdr.detectChanges();
   }
 
   closeForm(): void {

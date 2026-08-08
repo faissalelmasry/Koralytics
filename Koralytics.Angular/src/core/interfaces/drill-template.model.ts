@@ -10,6 +10,7 @@ export interface DrillTemplateDto {
   difficultyLevel: DifficultyLevel;
   drillMode: DrillMode;
   isShared: boolean;
+  videoUrl?: string | null;
   createdById: number;
 }
 
@@ -23,6 +24,7 @@ export interface CreateDrillTemplateDto {
   categoryId: number;
   difficultyLevel: DifficultyLevel;
   drillMode: DrillMode;
+  videoUrl?: string | null;
 }
 
 export interface UpdateDrillTemplateDto {
@@ -30,6 +32,7 @@ export interface UpdateDrillTemplateDto {
   categoryId: number;
   difficultyLevel: DifficultyLevel;
   drillMode: DrillMode;
+  videoUrl?: string | null;
 }
 
 export interface TemplateFilterDto {

@@ -535,3 +535,81 @@
 .text-white { color: #ffffff; }
 .text-slate { color: #8b909a; }
 .text-green { color: #00e676; }
+
+@media (max-width: 768px) {
+  .subscriptions-portal-page {
+    padding: 95px 16px 30px;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .header-title {
+    font-size: 28px;
+  }
+
+  .stats-strip {
+    padding: 16px 20px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .subscriptions-grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .subscriptions-portal-page {
+    padding: 85px 12px 24px;
+  }
+
+  .header-title {
+    font-size: 24px;
+  }
+
+  .stats-strip {
+    padding: 14px 10px;
+    gap: 10px;
+  }
+
+  .stat-item {
+    min-width: 70px;
+  }
+
+  .stat-value {
+    font-size: 22px;
+  }
+
+  .subscription-card {
+    padding: 18px 14px;
+  }
+
+  .price-display {
+    padding: 10px 12px;
+  }
+
+  .price-display .amount {
+    font-size: 22px;
+  }
+
+  .modal-card {
+    width: 95vw;
+    padding: 20px 14px;
+  }
+
+  .history-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .history-table th,
+  .history-table td {
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+}

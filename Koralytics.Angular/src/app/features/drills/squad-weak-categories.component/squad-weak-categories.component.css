@@ -317,3 +317,37 @@
     border: 1px solid #ff4d4d;
     margin-bottom: 20px;
 }
+
+@media (max-width: 768px) {
+    :host {
+        padding: 90px 16px 30px;
+    }
+
+    .flex-between {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .header-title {
+        font-size: 28px;
+    }
+
+    .analytics-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+        margin-top: 20px;
+    }
+
+    .filter-box {
+        width: 100%;
+    }
+
+    .native-select {
+        width: 100%;
+    }
+
+    .panel {
+        padding: 18px 14px;
+    }
+}

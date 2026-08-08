@@ -60,6 +60,10 @@ export class ParentDashboardComponent implements OnInit {
     private toast: ToastService
   ) { }
 
+  goToParentAi(): void {
+    this.router.navigate(['/parent/chat']);
+  }
+
   ngOnInit(): void {
     this.loadData();
   }

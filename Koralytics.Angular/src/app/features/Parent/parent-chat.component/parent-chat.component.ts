@@ -1,4 +1,4 @@
-import { Component, signal, computed, effect, inject, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
+import { Component, OnInit, signal, computed, effect, inject, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -16,6 +16,8 @@ import {
   ParentChatStreamChunk
 } from '@core/services/parent/ParentAiService';
 import { TokenStorageService } from '@core/services/auth/token-storage.service';
+import { ParentService } from '../../../../core/services/parent/parent.service';
+import { FeatureLockComponent } from '../../../shared/components/feature-lock/feature-lock';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -45,14 +47,31 @@ const SESSION_STORAGE_KEY = 'koralytics_parent_chat_session_id';
     Footer,
     CustomButtonComponent,
     LoadingSpinnerComponent,
-    StatusChipComponent
+    StatusChipComponent,
+    FeatureLockComponent
   ],
   templateUrl: './parent-chat.component.html',
   styleUrls: ['./parent-chat.component.css']
 })
-export class ParentChatComponent implements AfterViewChecked {
+export class ParentChatComponent implements OnInit, AfterViewChecked {
   private readonly aiService = inject(ParentAiService);
+  private readonly parentService = inject(ParentService);
   private readonly tokenStorage = inject(TokenStorageService);
+
+  isLocked = signal<boolean>(false);
+
+  ngOnInit(): void {
+    this.parentService.getMyChildren().subscribe({
+      next: (res: any) => {
+        const children = res?.data || res || [];
+        const hasEliteChild = children.some((c: any) => c.isEliteTier || c.academyTier === 'Elite');
+        this.isLocked.set(!hasEliteChild);
+      },
+      error: () => {
+        this.isLocked.set(true);
+      }
+    });
+  }
 
   @ViewChild('chatScrollContainer') private scrollContainer!: ElementRef;
   @ViewChild('chatTextarea') private textareaRef?: ElementRef<HTMLTextAreaElement>;
@@ -100,16 +119,16 @@ export class ParentChatComponent implements AfterViewChecked {
     });
   }
 
- private loadOrCreateSessionId(): string {
+  private loadOrCreateSessionId(): string {
 
-  const currentUser = this.tokenStorage.getUser();
-  if (currentUser && currentUser.userId) {
-    return `parent_${currentUser.userId}`;
+    const currentUser = this.tokenStorage.getUser();
+    if (currentUser && currentUser.userId) {
+      return `parent_${currentUser.userId}`;
+    }
+
+
+    return 'parent_guest';
   }
-
-  
-  return 'parent_guest';
-}
 
   ngAfterViewChecked() {
     this.scrollToBottom();

@@ -117,6 +117,17 @@
         </div>
       </div>
 
+      @if (drill.videoUrl) {
+      <div class="watch-video-container">
+        <button class="watch-video-btn" (click)="openVideoModal(drill)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8 5v14l11-7z" />
+          </svg>
+          Watch Drill Video
+        </button>
+      </div>
+      }
+
       <div class="card-actions">
         <app-button variant="slate" (click)="openEditForm(drill)">Edit</app-button>
         <app-button variant="coral" (click)="onDeleteTemplate(drill)">Delete</app-button>
@@ -187,6 +198,11 @@
       }
     </div>
 
+    <div class="form-group mt-3">
+      <label class="form-label">Video URL (Optional)</label>
+      <input type="url" formControlName="videoUrl" class="form-input" placeholder="e.g. https://www.youtube.com/watch?v=... or https://..." />
+    </div>
+
     @if (formError) {
     <div class="form-error-banner">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -208,13 +224,81 @@
   </form>
 </div>
 
+<!-- VIDEO MODAL -->
+@if (videoModal.isOpen && videoModal.drill) {
+<div class="video-modal-overlay" (click)="closeVideoModal()"></div>
+<div class="video-modal">
+  <div class="modal-tech-bar"></div>
+
+  <div class="video-modal-header">
+    <div class="video-modal-title-wrap">
+      <div class="video-modal-badge-row">
+        <span class="video-modal-badge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="23 7 16 12 23 17 23 7" />
+            <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+          </svg>
+          Drill Video Protocol
+        </span>
+        <span class="card-category-badge">{{ getCategoryLabel(videoModal.drill) }}</span>
+        <span class="badge" [ngClass]="getVisibilityClass(videoModal.drill)">{{ getVisibilityLabel(videoModal.drill) }}</span>
+      </div>
+      <h3 class="video-modal-title">{{ videoModal.drill.name }}</h3>
+    </div>
+    <button class="video-modal-close" (click)="closeVideoModal()" aria-label="Close modal">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="18" y1="6" x2="6" y2="18"/>
+        <line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="video-modal-body">
+    @if (videoModal.isIframe && videoModal.safeVideoUrl) {
+    <iframe [src]="videoModal.safeVideoUrl" class="video-frame" frameborder="0" allowfullscreen
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+    } @else {
+    <video [src]="videoModal.rawUrl" controls autoplay class="video-player"></video>
+    }
+  </div>
+
+  <div class="video-modal-footer">
+    <div class="video-meta-pills">
+      <span class="meta-pill">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+        </svg>
+        Mode: {{ getDrillModeLabel(videoModal.drill.drillMode) }}
+      </span>
+      <span class="meta-pill">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+        </svg>
+        Difficulty: {{ getDifficultyLabel(videoModal.drill.difficultyLevel) }}
+      </span>
+    </div>
+    <app-button variant="slate" (click)="closeVideoModal()">Close Protocol</app-button>
+  </div>
+</div>
+}
+
 <!-- CONFIRM MODAL -->
 @if (confirmModal.isOpen) {
 <div class="confirm-overlay" (click)="closeConfirm()"></div>
 <div class="confirm-modal">
+  <div class="modal-tech-bar warning"></div>
   <div class="confirm-content">
-    <h3 class="confirm-title">{{ confirmModal.title }}</h3>
-    <p class="confirm-message">{{ confirmModal.message }}</p>
+    <div class="confirm-icon-wrap">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ff4d30" stroke-width="2">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+        <line x1="12" y1="9" x2="12" y2="13"/>
+        <line x1="12" y1="17" x2="12.01" y2="17"/>
+      </svg>
+    </div>
+    <div>
+      <h3 class="confirm-title">{{ confirmModal.title }}</h3>
+      <p class="confirm-message">{{ confirmModal.message }}</p>
+    </div>
   </div>
   <div class="confirm-actions">
     <app-button variant="slate" (click)="closeConfirm()">Cancel</app-button>
@@ -227,7 +311,19 @@
 @if (toastMessage) {
 <div class="toast-container">
   <div class="toast" [ngClass]="'toast-' + toastType">
-    <span class="toast-icon">{{ toastType === 'success' ? '✅' : '❌' }}</span>
+    <span class="toast-icon">
+      @if (toastType === 'success') {
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c8ff4d" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      } @else {
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff6a5c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="15" y1="9" x2="9" y2="15"/>
+          <line x1="9" y1="9" x2="15" y2="15"/>
+        </svg>
+      }
+    </span>
     <span class="toast-text">{{ toastMessage }}</span>
   </div>
 </div>

@@ -1,4 +1,4 @@
-﻿using Koralytics.Domain.Enums;
+using Koralytics.Domain.Enums;
 
 namespace Koralytics.Application.DTOs.Drill
 {
@@ -8,5 +8,6 @@ namespace Koralytics.Application.DTOs.Drill
         public int CategoryId { get; set; }
         public DifficultyLevel DifficultyLevel { get; set; }
         public DrillMode DrillMode { get; set; }
+        public string? VideoUrl { get; set; }
     }
 }

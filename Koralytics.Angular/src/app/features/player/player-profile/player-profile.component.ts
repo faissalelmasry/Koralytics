@@ -21,6 +21,7 @@ import { ScouterService } from '@core/services/Scouter/scouter.service';
 import { NotificationService } from '@core/services/SignalR/notificationservice';
 import { ToastService } from '../../../../core/services/Toast/toast';
 import { PlayerDrillProgressionComponent } from '../../drills/player-drill-progression.component/player-drill-progression.component';
+import { ParentService } from '../../../../core/services/parent/parent.service';
 
 Chart.register(...registerables);
 
@@ -43,6 +44,7 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
   private scouterService = inject(ScouterService);
   private notificationService = inject(NotificationService);
   private toastService = inject(ToastService);
+  private parentService = inject(ParentService);
 
   // ── Scouter Follow State ─────────────────────────────────────
   isScouter = false;
@@ -170,6 +172,23 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
     this.isScouter = userRoles.some(r => r.toLowerCase() === 'scouter');
     if (this.isScouter && this.loggedInUserId) {
       this.currentScouterId = this.loggedInUserId;
+    }
+
+    const isParent = userRoles.some(r => r.toLowerCase() === 'parent');
+    if (isParent) {
+      this.parentService.getMyChildren().subscribe({
+        next: (res: any) => {
+          const children = res?.data || res || [];
+          const hasElite = children.some((c: any) => c.isEliteTier || c.academyTier === 'Elite');
+          const hasPro = children.some((c: any) => c.academyTier === 'Pro');
+          if (hasElite) {
+            this.tokenStorage.saveEffectiveTier('Elite');
+          } else if (hasPro) {
+            this.tokenStorage.saveEffectiveTier('Pro');
+          }
+          this.cdr.detectChanges();
+        }
+      });
     }
 
     if (paramId) {

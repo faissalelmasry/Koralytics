@@ -13,6 +13,7 @@ namespace Koralytics.Application.DTOs.Drill
             public DifficultyLevel DifficultyLevel { get; set; }
             public DrillMode DrillMode { get; set; }
             public bool IsShared { get; set; }
+            public string? VideoUrl { get; set; }
             public int CreatedById { get; set; }
     }
         public class DrillCategoryDto

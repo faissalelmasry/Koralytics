@@ -32,7 +32,7 @@
       <a routerLink="/drills/analytics/coach-bias" routerLinkActive="active">Bias</a>
       <a routerLink="/match/requests/incoming" routerLinkActive="active">Incoming</a>
       <a routerLink="/match/requests/outgoing" routerLinkActive="active">Outgoing</a>
-      <a routerLink="/academy-ai" routerLinkActive="active">AI Bot</a>
+      <a routerLink="/academy-ai" routerLinkActive="active" *ngIf="isEliteTier">AI Bot</a>
     </ng-container>
     <!-- Scouter Links (Desktop) -->
     <ng-container *ngIf="isScouter">
@@ -125,7 +125,7 @@
         <a routerLink="/drills/analytics/coach-bias" routerLinkActive="active" (click)="toggleSidebar(false)">Coach Bias</a>
         <a routerLink="/match/requests/incoming" routerLinkActive="active" (click)="toggleSidebar(false)">Incoming Requests</a>
         <a routerLink="/match/requests/outgoing" routerLinkActive="active" (click)="toggleSidebar(false)">Outgoing Requests</a>
-        <a routerLink="/academy-ai" routerLinkActive="active" (click)="toggleSidebar(false)">AI Bot</a>
+        <a routerLink="/academy-ai" routerLinkActive="active" (click)="toggleSidebar(false)" *ngIf="isEliteTier">AI Bot</a>
       </ng-container>
        <!-- Scouter Section (Sidebar) -->
       <ng-container *ngIf="isScouter">

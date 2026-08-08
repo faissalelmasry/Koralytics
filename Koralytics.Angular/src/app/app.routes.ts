@@ -375,8 +375,8 @@ export const routes: Routes = [
     canActivate: [authGuard, roleGuard],
     data: { roles: ['AcademyAdmin', 'Coach'] }
   },
-  
-  
+
+
   {
     path: 'scouter/dashboard',
     loadComponent: () => import('./features/scouter/scouterdashboard/scouterdashboard').then(m => m.ScouterDashboardComponent),
@@ -399,7 +399,7 @@ export const routes: Routes = [
     canActivate: [authGuard, roleGuard],
     data: { roles: ['Parent'] }
   },
-  
+
   { path: 'referenceshowcase', loadComponent: () => import('./reference-showcase').then(m => m.App) },
 
   // Wildcard Catch-all

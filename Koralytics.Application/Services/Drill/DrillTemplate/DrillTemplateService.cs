@@ -205,6 +205,7 @@ namespace Koralytics.Application.Services.Drill.DrillTemplate
             template.DrillMode = dto.DrillMode;
             template.CategoryId = dto.CategoryId;
             template.DifficultyLevel = dto.DifficultyLevel;
+            template.VideoUrl = dto.VideoUrl;
             template.UpdatedById = currentUserId;
 
             await _unitOfWork.SaveChangesAsync();
