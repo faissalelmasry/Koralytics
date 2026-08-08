@@ -1,4 +1,4 @@
-﻿using Koralytics.Domain.Enums;
+using Koralytics.Domain.Enums;
 
     namespace Koralytics.Application.DTOs.Tournament
     {
@@ -13,6 +13,7 @@
             public DateTime StartDate { get; set; }
             public DateTime EndDate { get; set; }
             public TournamentStatus Status { get; set; }
+            public decimal EntryFee { get; set; }
         }
     }
 

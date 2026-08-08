@@ -580,20 +580,38 @@
 
 @media (max-width: 640px) {
   .squad-registration-page {
-    padding: 24px 16px 48px;
+    padding: 16px 12px 48px;
   }
 
   .page-hero,
   .player-header {
     align-items: stretch;
     flex-direction: column;
+    gap: 12px;
   }
 
   .hero-card {
     min-width: 0;
+    width: 100%;
   }
 
   .player-row {
     align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .player-actions,
+  .submit-btn {
+    width: 100%;
+  }
+
+  .submit-btn {
+    justify-content: center;
+  }
+
+  .filter-row {
+    flex-direction: column;
+    align-items: stretch;
   }
 }

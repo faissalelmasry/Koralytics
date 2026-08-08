@@ -120,6 +120,48 @@
           </div>
         </section>
 
+        <section class="surface" scrollReveal direction="bottom" [delay]="225">
+          <div class="section-heading">
+            <div>
+              <h2>Entry Fee</h2>
+              <p>Set a participation fee for this tournament. Leave at 0 for a free-to-enter competition.</p>
+            </div>
+          </div>
+
+          <div class="entry-fee-row">
+            <div class="native-field fee-field">
+              <label for="entryFeeInput">Entry Fee (EGP)</label>
+              <div class="fee-input-wrapper">
+                <span class="fee-currency">EGP</span>
+                <input
+                  id="entryFeeInput"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  formControlName="entryFee"
+                  placeholder="0.00"
+                  [class.is-invalid]="hasError('entryFee')">
+              </div>
+              <span *ngIf="hasError('entryFee')" class="field-error">{{ hasError('entryFee') }}</span>
+            </div>
+            <div class="fee-hint" *ngIf="getControlValue('entryFee') == 0 || getControlValue('entryFee') == null">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+              <span>Free to enter — no fee will be charged to participating academies.</span>
+            </div>
+            <div class="fee-hint paid" *ngIf="getControlValue('entryFee') > 0">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              <span>Entry fee: <strong>EGP {{ getControlValue('entryFee') | number:'1.2-2' }}</strong> per participating academy.</span>
+            </div>
+          </div>
+        </section>
+
         <section class="surface" scrollReveal direction="bottom" [delay]="250">
           <div class="section-heading">
             <div>
@@ -167,6 +209,12 @@
               <span>{{ tournament?.format || 'Format pending' }}</span>
               <span>{{ tournament?.structure || 'Structure pending' }}</span>
               <span>{{ tournament?.startDate | date:'mediumDate' }} - {{ tournament?.endDate | date:'mediumDate' }}</span>
+              <span *ngIf="tournament?.entryFee && tournament!.entryFee > 0" class="fee-badge paid-badge">
+                EGP {{ tournament!.entryFee | number:'1.2-2' }}
+              </span>
+              <span *ngIf="!tournament?.entryFee || tournament!.entryFee === 0" class="fee-badge free-badge">
+                Free Entry
+              </span>
             </div>
           </div>
           @if (tournament?.status) {

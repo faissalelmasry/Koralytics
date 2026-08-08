@@ -2914,6 +2914,11 @@ namespace Koralytics.Infrastructure.Migrations
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<decimal>("EntryFee")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(0m);
+
                     b.Property<int>("Format")
                         .HasColumnType("int");
 
@@ -2962,6 +2967,8 @@ namespace Koralytics.Infrastructure.Migrations
                     b.ToTable("Tournaments", t =>
                         {
                             t.HasCheckConstraint("CK_Tournament_Dates", "[EndDate] >= [StartDate]");
+
+                            t.HasCheckConstraint("CK_Tournament_EntryFee", "[EntryFee] >= 0");
                         });
                 });
 

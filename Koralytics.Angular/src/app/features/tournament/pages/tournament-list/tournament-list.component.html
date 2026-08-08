@@ -90,6 +90,7 @@
         <span>Tournament</span>
         <span>Format</span>
         <span>Structure</span>
+        <span>Entry Fee</span>
         <span>Dates</span>
         <span>Status</span>
         <span></span>
@@ -103,6 +104,13 @@
           </span>
           <span>{{ getFormatLabel(item.format) }}</span>
           <span>{{ getStructureLabel(item.structure) }}</span>
+          <span>
+            @if (item.entryFee && item.entryFee > 0) {
+              <span class="fee-badge paid">EGP {{ item.entryFee | number:'1.0-0' }}</span>
+            } @else {
+              <span class="fee-badge free">FREE</span>
+            }
+          </span>
           <span>{{ item.startDate | date:'MMM d' }} - {{ item.endDate | date:'MMM d, y' }}</span>
           <span>
             <app-status-chip [label]="item.status" [type]="getChipType(item.status)"></app-status-chip>

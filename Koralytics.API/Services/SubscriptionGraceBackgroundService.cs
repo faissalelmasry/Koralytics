@@ -20,11 +20,18 @@ public class SubscriptionGraceBackgroundService : BackgroundService
     {
         using var timer = new PeriodicTimer(_period);
 
-        while (!stoppingToken.IsCancellationRequested && await timer.WaitForNextTickAsync(stoppingToken))
+        while (!stoppingToken.IsCancellationRequested)
         {
             try
             {
+                if (!await timer.WaitForNextTickAsync(stoppingToken))
+                    break;
+
                 await ProcessGracePeriodsAsync(stoppingToken);
+            }
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+            {
+                break;
             }
             catch (Exception ex)
             {

@@ -319,8 +319,9 @@ export class AcademyService {
   }
 
 
-  getAcademies(): Observable<any> {
-    return this.http.get<any>(this.apiUrl);
+  getAcademies(page = 1, pageSize = 100): Observable<any> {
+    const params = new HttpParams().set('page', page).set('pageSize', pageSize);
+    return this.http.get<any>(this.apiUrl, { params });
   }
 
   searchAcademies(name: string): Observable<ApiResponse<any[]>> {

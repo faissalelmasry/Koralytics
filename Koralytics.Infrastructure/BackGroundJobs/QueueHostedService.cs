@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -32,20 +32,27 @@ namespace Koralytics.Infrastructure.BackGroundJobs
 
             while (!stoppingToken.IsCancellationRequested)
             {
-                var workItem = await _taskQueue.DequeueAsync(stoppingToken);
-
                 try
                 {
+                    var workItem = await _taskQueue.DequeueAsync(stoppingToken);
+
                     // IMPORTANT: create a NEW scope for every job.
                     // This gives us a fresh DbContext / UnitOfWork, not the disposed one from the HTTP request.
                     using var scope = _scopeFactory.CreateScope();
                     await workItem(scope.ServiceProvider, stoppingToken);
+                }
+                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+                {
+                    // Expected during application shutdown
+                    break;
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Error occurred executing background work item.");
                 }
             }
+
+            _logger.LogInformation("Queued Hosted Service is stopped.");
         }
     }
 }

@@ -405,19 +405,34 @@ namespace Koralytics.Application.Services.Academy.AcademyService
 
             var totalCount = await query.CountAsync();
 
-            var academies = await query
-                .Include(a => a.Admin)
-                .Include(a => a.Subscription)
-                .Skip((request.Page - 1) * request.PageSize)
-                .Take(request.PageSize)
-                .ToListAsync();
+            var page = request.Page < 1 ? 1 : request.Page;
+            var pageSize = request.PageSize < 1 ? 100 : request.PageSize;
+
+            List<Domain.Entities.Academy.Academy> academies;
+            try
+            {
+                academies = await query
+                    .Include(a => a.Admin)
+                    .Include(a => a.Subscription)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+            }
+            catch
+            {
+                academies = await query
+                    .Include(a => a.Admin)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+            }
 
             return new AcademyListResponseDto
             {
                 Academies = _mapper.Map<List<AcademyResponseDto>>(academies),
                 TotalCount = totalCount,
-                Page = request.Page,
-                PageSize = request.PageSize
+                Page = page,
+                PageSize = pageSize
             };
         }
 

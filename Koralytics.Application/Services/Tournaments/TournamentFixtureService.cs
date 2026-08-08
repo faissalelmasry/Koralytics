@@ -13,8 +13,12 @@ using TournamentFixtureEntity = Koralytics.Domain.Entities.Tournamet.TournamentF
 using TournamentGroupEntity = Koralytics.Domain.Entities.Tournamet.TournamentGroup;
 using TournamentRoundEntity = Koralytics.Domain.Entities.Tournamet.TournamentRound;
 using TournamentStandingEntity = Koralytics.Domain.Entities.Tournamet.TournamentStanding;
+using TournamentSquadEntity = Koralytics.Domain.Entities.Tournamet.TournamentSquad;
+using PlayerEntity = Koralytics.Domain.Entities.Player.Player;
+using PlayerTeamEntity = Koralytics.Domain.Entities.Player.PlayerTeam;
 using Koralytics.Domain.Entities.Match;
 using Koralytics.Domain.Entities.Academy;
+
 namespace Koralytics.Application.Services.Tournaments
 {
     public class TournamentFixtureService : ITournamentFixtureService
@@ -36,34 +40,126 @@ namespace Koralytics.Application.Services.Tournaments
                 .GetQueryable()
                 .Include(f => f.Group).ThenInclude(g => g!.Tournament)
                 .Include(f => f.Round).ThenInclude(r => r!.Tournament)
-                .Include(f => f.HomeTeam).ThenInclude(tt => tt.Team).ThenInclude(t => t.AgeGroup).ThenInclude(t=>t.Academy)
+                .Include(f => f.HomeTeam).ThenInclude(tt => tt.Team).ThenInclude(t => t.AgeGroup).ThenInclude(t => t.Academy)
                 .Include(f => f.AwayTeam).ThenInclude(tt => tt.Team).ThenInclude(t => t.AgeGroup).ThenInclude(t => t.Academy)
                 .FirstOrDefaultAsync(f => f.Id == fixtureId);
 
             if (fixture is null)
                 throw new NotFoundException($"TournamentFixture with Id {fixtureId} not found");
 
-            var tournament = fixture.Group?.Tournament ?? fixture.Round?.Tournament;
+            var tournamentId = fixture.Group?.TournamentId ?? fixture.Round?.TournamentId ?? 0;
+            var tournamentName = fixture.Group?.Tournament?.Name ?? fixture.Round?.Tournament?.Name ?? string.Empty;
+            var format = fixture.Group?.Tournament?.Format ?? fixture.Round?.Tournament?.Format ?? DomainEnums.MatchFormat.ElevenSide;
 
-            return new TournamentFixtureDetailDto
+            var dto = new TournamentFixtureDetailDto
             {
                 FixtureId = fixture.Id,
                 MatchId = fixture.MatchId,
                 HomeTeamId = fixture.HomeTeamId,
                 HomeRealTeamId = fixture.HomeTeam?.TeamId ?? fixture.HomeTeamId,
-                HomeTeamName = fixture.HomeTeam.Team.Name,
-                HomeAcademyName = fixture.HomeTeam.Team.AgeGroup?.Academy?.Name,
+                HomeTeamName = fixture.HomeTeam?.Team?.Name ?? string.Empty,
+                HomeAcademyName = fixture.HomeTeam?.Team?.AgeGroup?.Academy?.Name,
                 AwayTeamId = fixture.AwayTeamId,
                 AwayRealTeamId = fixture.AwayTeam?.TeamId ?? fixture.AwayTeamId,
-                AwayTeamName = fixture.AwayTeam.Team.Name,
-                AwayAcademyName = fixture.AwayTeam.Team.AgeGroup.Academy?.Name,
-                TournamentId = tournament?.Id ?? 0,
-                TournamentName = tournament?.Name ?? string.Empty,
+                AwayTeamName = fixture.AwayTeam?.Team?.Name ?? string.Empty,
+                AwayAcademyName = fixture.AwayTeam?.Team?.AgeGroup?.Academy?.Name,
+                TournamentId = tournamentId,
+                TournamentName = tournamentName,
                 GroupOrRoundName = fixture.Group?.Name ?? fixture.Round?.Name,
-                Format = tournament?.Format ?? DomainEnums.MatchFormat.ElevenSide,
+                Format = format,
                 Status = fixture.Status,
                 LegNumber = fixture.LegNumber
             };
+
+            // Fetch Home Players from TournamentSquad (or Fallback to PlayerTeam)
+            var homeRealTeamId = dto.HomeRealTeamId;
+            var homeSquadPlayers = await _unitOfWork.Repository<TournamentSquadEntity>()
+                .GetQueryableAsNoTracking()
+                .Include(ts => ts.Player)
+                .Where(ts => ts.TournamentId == tournamentId && ts.TeamId == homeRealTeamId)
+                .Select(ts => new TournamentPlayerOptionDto
+                {
+                    PlayerId = ts.PlayerId,
+                    FullName = (ts.Player.FirstName + " " + ts.Player.LastName).Trim(),
+                    PrimaryPosition = "FWD",
+                    IsHomeSide = true
+                })
+                .ToListAsync();
+
+            if (homeSquadPlayers.Count == 0 && homeRealTeamId > 0)
+            {
+                homeSquadPlayers = await _unitOfWork.Repository<PlayerTeamEntity>()
+                    .GetQueryableAsNoTracking()
+                    .Include(pt => pt.Player)
+                    .Where(pt => pt.TeamId == homeRealTeamId)
+                    .Select(pt => new TournamentPlayerOptionDto
+                    {
+                        PlayerId = pt.PlayerId,
+                        FullName = (pt.Player.FirstName + " " + pt.Player.LastName).Trim(),
+                        PrimaryPosition = "FWD",
+                        IsHomeSide = true
+                    })
+                    .ToListAsync();
+            }
+
+            // Fetch Away Players from TournamentSquad (or Fallback to PlayerTeam)
+            var awayRealTeamId = dto.AwayRealTeamId;
+            var awaySquadPlayers = await _unitOfWork.Repository<TournamentSquadEntity>()
+                .GetQueryableAsNoTracking()
+                .Include(ts => ts.Player)
+                .Where(ts => ts.TournamentId == tournamentId && ts.TeamId == awayRealTeamId)
+                .Select(ts => new TournamentPlayerOptionDto
+                {
+                    PlayerId = ts.PlayerId,
+                    FullName = (ts.Player.FirstName + " " + ts.Player.LastName).Trim(),
+                    PrimaryPosition = "FWD",
+                    IsHomeSide = false
+                })
+                .ToListAsync();
+
+            if (awaySquadPlayers.Count == 0 && awayRealTeamId > 0)
+            {
+                awaySquadPlayers = await _unitOfWork.Repository<PlayerTeamEntity>()
+                    .GetQueryableAsNoTracking()
+                    .Include(pt => pt.Player)
+                    .Where(pt => pt.TeamId == awayRealTeamId)
+                    .Select(pt => new TournamentPlayerOptionDto
+                    {
+                        PlayerId = pt.PlayerId,
+                        FullName = (pt.Player.FirstName + " " + pt.Player.LastName).Trim(),
+                        PrimaryPosition = "FWD",
+                        IsHomeSide = false
+                    })
+                    .ToListAsync();
+            }
+
+            dto.HomePlayers = homeSquadPlayers;
+            dto.AwayPlayers = awaySquadPlayers;
+
+            if (fixture.MatchId.HasValue)
+            {
+                var matchId = fixture.MatchId.Value;
+                var goals = await _unitOfWork.Repository<MatchEvent>()
+                    .GetQueryableAsNoTracking()
+                    .Where(e => e.MatchId == matchId && e.EventType == DomainEnums.MatchEventType.Goal)
+                    .Select(e => new GoalEventDto
+                    {
+                        PlayerId = e.PlayerId,
+                        AssistPlayerId = e.AssistPlayerId,
+                        Minute = e.Minute,
+                        IsHomeSide = e.IsHomeSide ?? true
+                    })
+                    .ToListAsync();
+
+                var motmRating = await _unitOfWork.Repository<MatchPlayerRating>()
+                    .GetQueryableAsNoTracking()
+                    .FirstOrDefaultAsync(r => r.MatchId == matchId && r.IsMOTM);
+
+                dto.Goals = goals;
+                dto.MotmPlayerId = motmRating?.PlayerId;
+            }
+
+            return dto;
         }
 
         public async Task UpdateStandingsAsync(int groupId, int matchId)
@@ -653,7 +749,7 @@ namespace Koralytics.Application.Services.Tournaments
             using var transaction = await _unitOfWork.BeginTransactionAsync();
             try
             {
-                // Clean up old events & MOTM
+                // Clean up old events
                 var existingEvents = await _unitOfWork.Repository<MatchEvent>()
                     .GetQueryable()
                     .Where(e => e.MatchId == matchId && e.EventType == MatchEventType.Goal)
@@ -664,19 +760,44 @@ namespace Koralytics.Application.Services.Tournaments
                     _unitOfWork.Repository<MatchEvent>().SoftDelete(ev);
                 }
 
+                // Reset Goals, Assists, and IsMOTM on all existing ratings for this match
                 var existingRatings = await _unitOfWork.Repository<MatchPlayerRating>()
                     .GetQueryable()
-                    .Where(r => r.MatchId == matchId && r.IsMOTM)
+                    .Where(r => r.MatchId == matchId)
                     .ToListAsync();
 
                 foreach (var r in existingRatings)
                 {
+                    r.Goals = 0;
+                    r.Assists = 0;
                     r.IsMOTM = false;
                 }
 
                 await _unitOfWork.SaveChangesAsync();
 
-                // Add new Goals
+                // Helper to get or create MatchPlayerRating for a player
+                async Task<MatchPlayerRating> GetOrCreateRatingAsync(int pid)
+                {
+                    var rating = existingRatings.FirstOrDefault(r => r.PlayerId == pid);
+                    if (rating == null)
+                    {
+                        rating = new MatchPlayerRating
+                        {
+                            MatchId = matchId,
+                            PlayerId = pid,
+                            CoachId = fixture.CreatedById ?? 1,
+                            IsMOTM = false,
+                            Goals = 0,
+                            Assists = 0,
+                            MinutesPlayed = 90
+                        };
+                        await _unitOfWork.Repository<MatchPlayerRating>().AddAsync(rating);
+                        existingRatings.Add(rating);
+                    }
+                    return rating;
+                }
+
+                // Add new Goals and update Player Ratings (Goals & Assists for Player Profile)
                 foreach (var goal in dto.Goals)
                 {
                     var teamId = goal.IsHomeSide ? fixture.HomeTeam.TeamId : fixture.AwayTeam.TeamId;
@@ -691,31 +812,25 @@ namespace Koralytics.Application.Services.Tournaments
                         IsHomeSide = goal.IsHomeSide
                     };
                     await _unitOfWork.Repository<MatchEvent>().AddAsync(matchEvent);
+
+                    if (goal.PlayerId > 0)
+                    {
+                        var scorerRating = await GetOrCreateRatingAsync(goal.PlayerId);
+                        scorerRating.Goals += 1;
+                    }
+
+                    if (goal.AssistPlayerId.HasValue && goal.AssistPlayerId.Value > 0)
+                    {
+                        var assistRating = await GetOrCreateRatingAsync(goal.AssistPlayerId.Value);
+                        assistRating.Assists += 1;
+                    }
                 }
 
-                // Set new MOTM
+                // Set new MOTM for Player Profile
                 if (dto.MotmPlayerId.HasValue && dto.MotmPlayerId.Value > 0)
                 {
-                    var existingRating = await _unitOfWork.Repository<MatchPlayerRating>()
-                        .GetQueryable()
-                        .FirstOrDefaultAsync(r => r.MatchId == matchId && r.PlayerId == dto.MotmPlayerId.Value);
-
-                    if (existingRating != null)
-                    {
-                        existingRating.IsMOTM = true;
-                    }
-                    else
-                    {
-                        var rating = new MatchPlayerRating
-                        {
-                            MatchId = matchId,
-                            PlayerId = dto.MotmPlayerId.Value,
-                            CoachId = fixture.CreatedById ?? 1,
-                            IsMOTM = true,
-                            MinutesPlayed = 0
-                        };
-                        await _unitOfWork.Repository<MatchPlayerRating>().AddAsync(rating);
-                    }
+                    var motmRating = await GetOrCreateRatingAsync(dto.MotmPlayerId.Value);
+                    motmRating.IsMOTM = true;
                 }
 
                 await _unitOfWork.SaveChangesAsync();

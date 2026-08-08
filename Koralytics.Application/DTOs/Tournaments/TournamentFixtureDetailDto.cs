@@ -20,6 +20,18 @@ namespace Koralytics.Application.DTOs.Tournaments
         public MatchFormat Format { get; set; }
         public MatchStatus Status { get; set; }
         public int? LegNumber { get; set; }
+        public List<GoalEventDto> Goals { get; set; } = new();
+        public int? MotmPlayerId { get; set; }
+        public List<TournamentPlayerOptionDto> HomePlayers { get; set; } = new();
+        public List<TournamentPlayerOptionDto> AwayPlayers { get; set; } = new();
+    }
+
+    public class TournamentPlayerOptionDto
+    {
+        public int PlayerId { get; set; }
+        public string FullName { get; set; } = string.Empty;
+        public string PrimaryPosition { get; set; } = string.Empty;
+        public bool IsHomeSide { get; set; }
     }
 
     public class UpdateFixtureResultDto
