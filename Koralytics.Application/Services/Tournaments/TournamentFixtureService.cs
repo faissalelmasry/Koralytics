@@ -168,18 +168,6 @@ namespace Koralytics.Application.Services.Tournaments
                 "Updating standings for group {GroupId} after match {MatchId}",
                 groupId, matchId);
 
-            // Idempotency — check if standings already updated for this match
-            var alreadyUpdated = await _unitOfWork
-                .Repository<TournamentFixtureEntity>()
-                .ExistsAsync(f =>
-                    f.MatchId == matchId &&
-                    f.GroupId == groupId &&
-                    f.Status == MatchStatus.Completed);
-
-            if (alreadyUpdated)
-                throw new ConflictException(
-                    "Standings already updated for this match");
-
             var match = await _unitOfWork.Repository<MatchEntity>()
                 .FindAsync(m => m.Id == matchId);
 
@@ -220,32 +208,75 @@ namespace Koralytics.Application.Services.Tournaments
                 throw new NotFoundException(
                     $"Standing not found for away team in group {groupId}");
 
-            homeStanding.Played++;
-            awayStanding.Played++;
+            int oldHomeScore = fixture.HomeScore ?? 0;
+            int oldAwayScore = fixture.AwayScore ?? 0;
+            bool isPreviouslyCompleted = fixture.Status == MatchStatus.Completed;
 
-            homeStanding.GoalsFor += match.HomeScore;
-            homeStanding.GoalsAgainst += match.AwayScore;
-            awayStanding.GoalsFor += match.AwayScore;
-            awayStanding.GoalsAgainst += match.HomeScore;
+            if (!isPreviouslyCompleted)
+            {
+                homeStanding.Played++;
+                awayStanding.Played++;
 
-            if (match.HomeScore > match.AwayScore)
-            {
-                homeStanding.Won++;
-                homeStanding.Points += 3;
-                awayStanding.Lost++;
-            }
-            else if (match.HomeScore < match.AwayScore)
-            {
-                awayStanding.Won++;
-                awayStanding.Points += 3;
-                homeStanding.Lost++;
+                homeStanding.GoalsFor += match.HomeScore;
+                homeStanding.GoalsAgainst += match.AwayScore;
+                awayStanding.GoalsFor += match.AwayScore;
+                awayStanding.GoalsAgainst += match.HomeScore;
+
+                if (match.HomeScore > match.AwayScore)
+                {
+                    homeStanding.Won++;
+                    homeStanding.Points += 3;
+                    awayStanding.Lost++;
+                }
+                else if (match.HomeScore < match.AwayScore)
+                {
+                    awayStanding.Won++;
+                    awayStanding.Points += 3;
+                    homeStanding.Lost++;
+                }
+                else
+                {
+                    homeStanding.Drawn++;
+                    homeStanding.Points += 1;
+                    awayStanding.Drawn++;
+                    awayStanding.Points += 1;
+                }
             }
             else
             {
-                homeStanding.Drawn++;
-                homeStanding.Points++;
-                awayStanding.Drawn++;
-                awayStanding.Points++;
+                // Differential update for goals
+                homeStanding.GoalsFor = homeStanding.GoalsFor - oldHomeScore + match.HomeScore;
+                homeStanding.GoalsAgainst = homeStanding.GoalsAgainst - oldAwayScore + match.AwayScore;
+                awayStanding.GoalsFor = awayStanding.GoalsFor - oldAwayScore + match.AwayScore;
+                awayStanding.GoalsAgainst = awayStanding.GoalsAgainst - oldHomeScore + match.HomeScore;
+
+                // Revert previous match result impact
+                if (oldHomeScore > oldAwayScore)
+                {
+                    homeStanding.Won--; homeStanding.Points -= 3; awayStanding.Lost--;
+                }
+                else if (oldAwayScore > oldHomeScore)
+                {
+                    awayStanding.Won--; awayStanding.Points -= 3; homeStanding.Lost--;
+                }
+                else
+                {
+                    homeStanding.Drawn--; homeStanding.Points -= 1; awayStanding.Drawn--; awayStanding.Points -= 1;
+                }
+
+                // Apply new match result impact
+                if (match.HomeScore > match.AwayScore)
+                {
+                    homeStanding.Won++; homeStanding.Points += 3; awayStanding.Lost++;
+                }
+                else if (match.AwayScore > match.HomeScore)
+                {
+                    awayStanding.Won++; awayStanding.Points += 3; homeStanding.Lost++;
+                }
+                else
+                {
+                    homeStanding.Drawn++; homeStanding.Points += 1; awayStanding.Drawn++; awayStanding.Points += 1;
+                }
             }
 
             fixture.Status = MatchStatus.Completed;
