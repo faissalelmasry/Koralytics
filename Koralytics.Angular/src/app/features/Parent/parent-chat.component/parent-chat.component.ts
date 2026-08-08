@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { extractErrorMessage } from '../../../../core/utils/http-error.util';
+import { cleanAiBotResponse } from '../../../../core/utils/ai-chat.util';
 
 import { NavbarComponent } from '../../../../shared/components/navbar/navbar';
 import { Footer } from '../../../../shared/components/footer/footer';
@@ -179,7 +180,7 @@ export class ParentChatComponent implements AfterViewChecked {
             const updated = [...msgs];
             updated[assistantIndex] = {
               ...updated[assistantIndex],
-              text: chunk.meta!.answer,
+              text: cleanAiBotResponse(chunk.meta!.answer),
               meta: {
                 usedRAG: chunk.meta!.usedRAG,
                 usedSQL: chunk.meta!.usedSQL,
@@ -201,7 +202,7 @@ export class ParentChatComponent implements AfterViewChecked {
           this.isLoading.set(false);
         }
       },
-      error: (err: HttpErrorResponse) => {
+      error: (err) => {
         this.errorMessage.set(extractErrorMessage(err, 'Failed to connect to the AI Assistant.'));
         this.isLoading.set(false);
       },
@@ -221,7 +222,7 @@ export class ParentChatComponent implements AfterViewChecked {
       next: (res: ParentChatResponse) => {
         this.messages.update(msgs => [...msgs, {
           role: 'assistant',
-          text: res.answer,
+          text: cleanAiBotResponse(res.answer),
           meta: {
             usedRAG: res.usedRAG,
             usedSQL: res.usedSQL,

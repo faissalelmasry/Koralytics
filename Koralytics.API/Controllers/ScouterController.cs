@@ -128,12 +128,23 @@ namespace Koralytics.API.Controllers
             if (request == null || string.IsNullOrWhiteSpace(request.Message))
                 return BadRequest(new { message = "Message is required." });
 
-            var result = await _searchService.AIChatBotAsync(request);
-            return Ok(new
+            try
             {
-                message = "AI ChatBot query completed successfully.",
-                data = result
-            });
+                var result = await _searchService.AIChatBotAsync(request);
+                return Ok(new
+                {
+                    message = "AI ChatBot query completed successfully.",
+                    data = result
+                });
+            }
+            catch
+            {
+                return Ok(new
+                {
+                    message = "AI ChatBot query completed.",
+                    data = "عذراً، حدث خطأ أثناء التواصل مع المساعد الذكي. يرجى المحاولة مرة أخرى لاحقاً."
+                });
+            }
         }
 
         #endregion

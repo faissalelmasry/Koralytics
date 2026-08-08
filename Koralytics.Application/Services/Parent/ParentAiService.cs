@@ -224,24 +224,40 @@ namespace Koralytics.Application.Services.Parent
             {
                 _httpClient.DefaultRequestHeaders.Add("x-api-key", apiKey);
             }
+            else
+            {
+                _logger.LogWarning("Langflow:ParentApiKey is missing or empty in configuration.");
+            }
         }
 
         private (string url, object payload) BuildRunRequest(
             ParentChatRequest request, string parentUserId, IReadOnlyList<int> authorizedPlayerIds, bool stream)
         {
-            var baseUrl = _configuration["Langflow:BaseUrl"];
+            // TrimEnd('/') بيمنع مشكلة الـ double slash لو appsettings فيها trailing slash
+            var baseUrl = _configuration["Langflow:BaseUrl"]?.TrimEnd('/');
             var flowId = _configuration["Langflow:ParentFlowId"];
+
+            if (string.IsNullOrWhiteSpace(baseUrl))
+            {
+                _logger.LogError("Langflow:BaseUrl is missing or empty in configuration.");
+                throw new InvalidOperationException("Langflow:BaseUrl is not configured.");
+            }
+
+            if (string.IsNullOrWhiteSpace(flowId))
+            {
+                _logger.LogError("Langflow:ParentFlowId is missing or empty in configuration.");
+                throw new InvalidOperationException("Langflow:ParentFlowId is not configured.");
+            }
 
             var idsString = string.Join(", ", authorizedPlayerIds);
 
             var prompt = $"""
-                Authorized Player IDs: {idsString}
+        Authorized Player IDs: {idsString}
 
-                User Question:
-                {request.Message}
-                """;
+        User Question:
+        {request.Message}
+        """;
 
-            
             var secureSessionId = $"parent_{parentUserId}";
 
             var payloadDict = new Dictionary<string, object?>
@@ -249,7 +265,7 @@ namespace Koralytics.Application.Services.Parent
                 ["input_value"] = prompt,
                 ["input_type"] = "chat",
                 ["output_type"] = "chat",
-                ["session_id"] = secureSessionId 
+                ["session_id"] = secureSessionId
             };
 
             var tweakComponentId = _configuration["Langflow:PlayerIdTweakComponentId"];
@@ -269,7 +285,6 @@ namespace Koralytics.Application.Services.Parent
             var url = $"{baseUrl}/api/v1/run/{flowId}?stream={(stream ? "true" : "false")}";
             return (url, payloadDict);
         }
-
         private static string? ExtractAnswerText(JsonDocument json)
         {
             try

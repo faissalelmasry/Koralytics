@@ -60,13 +60,12 @@ export class MiniPlayerCardComponent {
     return Math.round(this.player?.overallRating ?? 0);
   }
 
-  getInitials(name: string): string {
-    if (!name) return '';
-    const parts = name.trim().split(' ');
-    if (parts.length > 1) {
-      return (parts[0][0] + parts[1][0]).toUpperCase();
-    }
-    return parts[0][0].toUpperCase();
+  getInitials(name?: string): string {
+    if (!name || typeof name !== 'string') return '';
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) return '';
+    if (parts.length === 1) return parts[0][0].toUpperCase();
+    return (parts[0][0] + parts[1][0]).toUpperCase();
   }
 
   onClick(): void {
