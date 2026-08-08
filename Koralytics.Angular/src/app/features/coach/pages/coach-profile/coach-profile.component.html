@@ -4,7 +4,7 @@
   @if (isLoading) {
   <div class="preloader-overlay">
     <app-loading-spinner size="lg"></app-loading-spinner>
-    <p>Loading coach profile...</p>
+    <p>{{ 'COACH.PROFILE.LOADING' | translate }}</p>
   </div>
   }
 
@@ -19,7 +19,7 @@
         <line x1="12" y1="16" x2="12.01" y2="16"></line>
       </svg>
     </span>
-    <h3>Unable to Load Profile</h3>
+    <h3>{{ 'COACH.PROFILE.UNABLE_TO_LOAD' | translate }}</h3>
     <p>{{ error }}</p>
   </div>
   }
@@ -29,7 +29,7 @@
 
     <!-- TACTICAL TAG & HEADER ROW -->
     <div>
-      <div class="tactical-tag" scrollReveal direction="bottom">Tactical Coach Profile</div>
+      <div class="tactical-tag" scrollReveal direction="bottom">{{ 'COACH.PROFILE.TAG' | translate }}</div>
       <div class="header-row" scrollReveal direction="bottom">
         <h1 class="section-title">{{ profile?.firstName }} {{ profile?.lastName }}</h1>
         <div class="header-actions">
@@ -39,9 +39,9 @@
               <line x1="12" y1="20" x2="12" y2="4"></line>
               <line x1="6" y1="20" x2="6" y2="14"></line>
             </svg>
-            Coach Bias Analytics
+            {{ 'COACH.PROFILE.COACH_BIAS_ANALYTICS' | translate }}
           </a>
-          <span class="badge-count">{{ profile?.academyName || 'Tactical Coach' }}</span>
+          <span class="badge-count">{{ profile?.academyName || ('COACH.PROFILE.TACTICAL_COACH' | translate) }}</span>
         </div>
       </div>
     </div>
@@ -65,7 +65,7 @@
                   d="M12 2L15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2Z">
                 </path>
               </svg>
-              Coach
+              {{ 'COACH.PROFILE.COACH' | translate }}
             </span>
             @if (profile?.userName) {
             <span class="pill">&#64;{{ profile?.userName }}</span>
@@ -118,10 +118,10 @@
             <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
             <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
           </svg>
-          Teams Managed
+          {{ 'COACH.PROFILE.KPI_TEAMS_MANAGED' | translate }}
         </div>
         <div class="kpi-value">{{ teams().length }}</div>
-        <div class="kpi-sub">Active Assigned Teams</div>
+        <div class="kpi-sub">{{ 'COACH.PROFILE.KPI_ACTIVE_TEAMS' | translate }}</div>
       </div>
 
       <div class="kpi-card">
@@ -132,10 +132,10 @@
             <line x1="20" y1="8" x2="20" y2="14"></line>
             <line x1="23" y1="11" x2="17" y2="11"></line>
           </svg>
-          Total Squad Players
+          {{ 'COACH.PROFILE.KPI_TOTAL_SQUAD' | translate }}
         </div>
         <div class="kpi-value">{{ totalPlayers() }}</div>
-        <div class="kpi-sub">Selected Squad Players</div>
+        <div class="kpi-sub">{{ 'COACH.PROFILE.KPI_SELECTED_SQUAD' | translate }}</div>
       </div>
 
       <div class="kpi-card">
@@ -144,10 +144,10 @@
             <circle cx="12" cy="12" r="10"></circle>
             <polygon points="10 8 16 12 10 16 10 8"></polygon>
           </svg>
-          Matches Played
+          {{ 'COACH.PROFILE.KPI_MATCHES_PLAYED' | translate }}
         </div>
         <div class="kpi-value">{{ totalMatchesPlayed() }}</div>
-        <div class="kpi-sub">Competitions & Matches</div>
+        <div class="kpi-sub">{{ 'COACH.PROFILE.KPI_COMPETITIONS' | translate }}</div>
       </div>
 
       <div class="kpi-card">
@@ -155,10 +155,10 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
           </svg>
-          Win Rate
+          {{ 'COACH.PROFILE.KPI_WIN_RATE' | translate }}
         </div>
         <div class="kpi-value">{{ winRate() | number:'1.0-0' }}<span class="kpi-unit">%</span></div>
-        <div class="kpi-sub">Win Percentage</div>
+        <div class="kpi-sub">{{ 'COACH.PROFILE.KPI_WIN_PERCENTAGE' | translate }}</div>
       </div>
     </div>
 
@@ -178,7 +178,7 @@
                   <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
                 </svg>
               </span>
-              Teams Overview
+              {{ 'COACH.PROFILE.TEAMS_OVERVIEW' | translate }}
             </h2>
             @if (teams().length > 1) {
             <div class="team-select-pill">
@@ -199,7 +199,7 @@
                 <polyline points="14 2 14 8 20 8"></polyline>
               </svg>
             </span>
-            <p>No teams assigned to this coach yet.</p>
+            <p>{{ 'COACH.PROFILE.NO_TEAMS_ASSIGNED' | translate }}</p>
           </div>
           } @else {
           <div class="teams-grid">
@@ -218,7 +218,7 @@
                 </div>
               </div>
               <div class="team-card-footer">
-                <span class="player-count-badge">{{ getTeamPlayerCount(team.teamId) }} players</span>
+                <span class="player-count-badge">{{ getTeamPlayerCount(team.teamId) }} {{ 'COACH.PROFILE.PLAYERS' | translate }}</span>
                 <button class="btn-expand" (click)="toggleTeamExpand(team.teamId); $event.stopPropagation()"
                   [class.expanded]="isTeamExpanded(team.teamId)">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -231,7 +231,7 @@
               @if (isTeamExpanded(team.teamId)) {
               <div class="team-squad-expand">
                 @if (getTeamPlayers(team.teamId).length === 0) {
-                <div class="mini-empty">Loading squad players...</div>
+                <div class="mini-empty">{{ 'COACH.PROFILE.LOADING_SQUAD_PLAYERS' | translate }}</div>
                 } @else {
                 @for (player of getTeamPlayers(team.teamId); track player.playerId) {
                 <div class="squad-player-row" (click)="navigateToPlayer(player.playerId); $event.stopPropagation()">
@@ -279,15 +279,15 @@
                   <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                 </svg>
               </span>
-              Squad Roster
+              {{ 'COACH.PROFILE.SQUAD_ROSTER' | translate }}
             </h2>
-            <span class="cyber-badge">{{ totalPlayers() }} Players</span>
+            <span class="cyber-badge">{{ totalPlayers() }} {{ 'COACH.PROFILE.PLAYERS' | translate }}</span>
           </div>
 
           @if (squadLoading()) {
           <div class="section-loading">
             <app-loading-spinner size="sm"></app-loading-spinner>
-            <span>Loading squad roster...</span>
+            <span>{{ 'COACH.PROFILE.LOADING_SQUAD_ROSTER' | translate }}</span>
           </div>
           } @else if (squadPlayers().length === 0) {
           <div class="section-empty">
@@ -297,7 +297,7 @@
                 <circle cx="9" cy="7" r="4"></circle>
               </svg>
             </span>
-            <p>No players in this squad yet.</p>
+            <p>{{ 'COACH.PROFILE.NO_PLAYERS_IN_SQUAD' | translate }}</p>
           </div>
           } @else {
           <div class="squad-mini-cards-grid">
@@ -328,14 +328,14 @@
                   <line x1="6" y1="20" x2="6" y2="14"></line>
                 </svg>
               </span>
-              Match Performance
+              {{ 'COACH.PROFILE.MATCH_PERFORMANCE' | translate }}
             </h2>
           </div>
 
           @if (performanceLoading()) {
           <div class="section-loading">
             <app-loading-spinner size="sm"></app-loading-spinner>
-            <span>Loading match stats...</span>
+            <span>{{ 'COACH.PROFILE.LOADING_MATCH_STATS' | translate }}</span>
           </div>
           } @else if (!performance()) {
           <div class="section-empty">
@@ -346,7 +346,7 @@
                 <line x1="6" y1="20" x2="6" y2="14"></line>
               </svg>
             </span>
-            <p>No match performance records found.</p>
+            <p>{{ 'COACH.PROFILE.NO_MATCH_RECORDS' | translate }}</p>
           </div>
           } @else {
           <div class="perf-content">
@@ -354,15 +354,15 @@
             <div class="wdl-grid">
               <div class="wdl-card win-card">
                 <div class="wdl-value">{{ performance()!.wins }}</div>
-                <div class="wdl-label">Wins</div>
+                <div class="wdl-label">{{ 'COACH.PROFILE.WINS' | translate }}</div>
               </div>
               <div class="wdl-card draw-card">
                 <div class="wdl-value">{{ performance()!.draws }}</div>
-                <div class="wdl-label">Draws</div>
+                <div class="wdl-label">{{ 'COACH.PROFILE.DRAWS' | translate }}</div>
               </div>
               <div class="wdl-card loss-card">
                 <div class="wdl-value">{{ performance()!.losses }}</div>
-                <div class="wdl-label">Losses</div>
+                <div class="wdl-label">{{ 'COACH.PROFILE.LOSSES' | translate }}</div>
               </div>
             </div>
 
@@ -370,7 +370,7 @@
             @if (totalMatchesPlayed() > 0) {
             <div class="winrate-section">
               <div class="winrate-header">
-                <span>Win Rate</span>
+                <span>{{ 'COACH.PROFILE.WIN_RATE' | translate }}</span>
                 <strong>{{ winRate() | number:'1.0-0' }}%</strong>
               </div>
               <div class="winrate-bar">
@@ -382,17 +382,17 @@
             <!-- Goals Summary -->
             <div class="goals-strip">
               <div class="goal-item">
-                <span class="goal-label">Goals For</span>
+                <span class="goal-label">{{ 'COACH.PROFILE.GOALS_FOR' | translate }}</span>
                 <span class="goal-value gf">{{ performance()!.goalsFor }}</span>
               </div>
               <div class="goal-divider"></div>
               <div class="goal-item">
-                <span class="goal-label">Goals Against</span>
+                <span class="goal-label">{{ 'COACH.PROFILE.GOALS_AGAINST' | translate }}</span>
                 <span class="goal-value ga">{{ performance()!.goalsAgainst }}</span>
               </div>
               <div class="goal-divider"></div>
               <div class="goal-item">
-                <span class="goal-label">Goal Diff</span>
+                <span class="goal-label">{{ 'COACH.PROFILE.GOAL_DIFF' | translate }}</span>
                 <span class="goal-value" [class.gf]="goalDifference() >= 0" [class.ga]="goalDifference() < 0">
                   {{ goalDifference() >= 0 ? '+' : '' }}{{ goalDifference() }}
                 </span>
@@ -402,7 +402,7 @@
             <!-- Recent Matches -->
             @if (performance()!.recentMatches && performance()!.recentMatches.length > 0) {
             <div class="recent-results">
-              <span class="recent-title">Recent Results</span>
+              <span class="recent-title">{{ 'COACH.PROFILE.RECENT_RESULTS' | translate }}</span>
               <div class="results-list">
                 @for (match of performance()!.recentMatches; track match.matchId) {
                 <a class="result-row" [routerLink]="['/match', match.matchId]">

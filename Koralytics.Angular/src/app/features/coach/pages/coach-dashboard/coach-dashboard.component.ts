@@ -9,6 +9,7 @@ import { NavbarComponent } from '../../../../../shared/components/navbar/navbar'
 import { Footer } from '../../../../../shared/components/footer/footer';
 import { LoadingSpinnerComponent } from '../../../../../shared/components/loading-spinner/loading-spinner';
 import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { AuthService } from '../../../../../core/services/auth/auth.service';
 import { CoachSquadService } from '../../../../../core/services/coach/coach-squad.service';
@@ -28,7 +29,8 @@ import { DrillSessionDto, SessionFilterDto } from '../../../../../core/interface
     NavbarComponent,
     Footer,
     LoadingSpinnerComponent,
-    ScrollRevealDirective
+    ScrollRevealDirective,
+    TranslatePipe
   ],
   templateUrl: './coach-dashboard.component.html',
   styleUrls: ['./coach-dashboard.component.css']
@@ -269,9 +271,9 @@ export class CoachDashboardComponent implements OnInit {
 
   getSessionStatusLabel(status: any): string {
     const s = (typeof status === 'string' ? status : '').toLowerCase();
-    if (s === 'completed' || status === 2) return 'Completed';
-    if (s === 'inprogress' || s === 'in_progress' || status === 1) return 'In Progress';
-    if (s === 'scheduled' || status === 0) return 'Scheduled';
-    return status?.toString() || 'Unknown';
+    if (s === 'completed' || status === 2) return 'COACH.DASHBOARD.SESSION_STATUS_COMPLETED';
+    if (s === 'inprogress' || s === 'in_progress' || status === 1) return 'COACH.DASHBOARD.SESSION_STATUS_IN_PROGRESS';
+    if (s === 'scheduled' || status === 0) return 'COACH.DASHBOARD.SESSION_STATUS_SCHEDULED';
+    return 'COACH.DASHBOARD.SESSION_STATUS_UNKNOWN';
   }
 }

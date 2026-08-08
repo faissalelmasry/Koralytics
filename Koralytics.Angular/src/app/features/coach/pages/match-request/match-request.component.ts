@@ -8,11 +8,12 @@ import { ModalService } from '../../../../../core/services/Modal/modal';
 import { ToastService } from '../../../../../core/services/Toast/toast';
 import { CreateMatchRequestDto, MatchRequestResponseDto } from '../../../../../core/interfaces/match-request.interfaces';
 import { formatToLocalISO } from '../../../../../core/utils/date.util';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-match-request',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslatePipe],
   templateUrl: './match-request.component.html',
   styleUrls: ['./match-request.component.css']
 })
@@ -21,6 +22,7 @@ export class MatchRequestComponent implements OnInit {
   private modalService = inject(ModalService);
   private toastService = inject(ToastService);
   private destroyRef = inject(DestroyRef);
+  private translate = inject(TranslateService);
 
   teamId = 0; // TODO: resolve from coach profile API or route params
   
@@ -64,7 +66,7 @@ export class MatchRequestComponent implements OnInit {
           this.loading.set(false);
         },
         error: (err) => {
-          this.error.set('Failed to load incoming requests.');
+          this.error.set('COACH.MATCH_REQUEST.FAILED_LOAD_INCOMING');
           this.loading.set(false);
         }
       });
@@ -80,7 +82,7 @@ export class MatchRequestComponent implements OnInit {
           this.loading.set(false);
         },
         error: (err) => {
-          this.error.set('Failed to load outgoing requests.');
+          this.error.set('COACH.MATCH_REQUEST.FAILED_LOAD_OUTGOING');
           this.loading.set(false);
         }
       });
@@ -100,7 +102,7 @@ export class MatchRequestComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
-          this.successMsg.set('Match request sent successfully!');
+          this.successMsg.set('COACH.MATCH_REQUEST.REQUEST_SENT');
           this.submitting.set(false);
           this.newRequest.targetTeamId = 0;
           this.newRequest.location = '';
@@ -110,7 +112,7 @@ export class MatchRequestComponent implements OnInit {
           }, 2000);
         },
         error: (err) => {
-          this.submitError.set(err?.error?.message || 'Failed to send request.');
+          this.submitError.set(err?.error?.message || this.translate.instant('COACH.MATCH_REQUEST.FAILED_SEND'));
           this.submitting.set(false);
         }
       });
@@ -121,16 +123,16 @@ export class MatchRequestComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => this.loadIncoming(),
-        error: (err) => this.toastService.show(err?.error?.message || 'Failed to accept match.', 'error')
+        error: (err) => this.toastService.show(err?.error?.message || this.translate.instant('COACH.MATCH_REQUEST.FAILED_ACCEPT'), 'error')
       });
   }
 
   async declineRequest(id: number): Promise<void> {
     const confirmed = await this.modalService.open({
-      title: 'Decline Match',
-      message: 'Decline this match request?',
-      confirmText: 'Decline',
-      cancelText: 'Cancel',
+      title: this.translate.instant('COACH.MATCH_REQUEST.MODAL_DECLINE_TITLE'),
+      message: this.translate.instant('COACH.MATCH_REQUEST.MODAL_DECLINE_MSG'),
+      confirmText: this.translate.instant('COACH.MATCH_REQUEST.MODAL_DECLINE_CONFIRM'),
+      cancelText: this.translate.instant('COMMON.CANCEL'),
       variant: 'danger'
     });
 
@@ -140,16 +142,16 @@ export class MatchRequestComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => this.loadIncoming(),
-        error: (err) => this.toastService.show(err?.error?.message || 'Failed to decline match.', 'error')
+        error: (err) => this.toastService.show(err?.error?.message || this.translate.instant('COACH.MATCH_REQUEST.FAILED_DECLINE'), 'error')
       });
   }
 
   async cancelRequest(id: number): Promise<void> {
     const confirmed = await this.modalService.open({
-      title: 'Cancel Request',
-      message: 'Cancel this outgoing match request?',
-      confirmText: 'Cancel Request',
-      cancelText: 'Keep',
+      title: this.translate.instant('COACH.MATCH_REQUEST.MODAL_CANCEL_TITLE'),
+      message: this.translate.instant('COACH.MATCH_REQUEST.MODAL_CANCEL_MSG'),
+      confirmText: this.translate.instant('COACH.MATCH_REQUEST.MODAL_CANCEL_CONFIRM'),
+      cancelText: this.translate.instant('COACH.MATCH_REQUEST.MODAL_CANCEL_KEEP'),
       variant: 'danger'
     });
 
@@ -159,7 +161,7 @@ export class MatchRequestComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => this.loadOutgoing(),
-        error: (err) => this.toastService.show(err?.error?.message || 'Failed to cancel request.', 'error')
+        error: (err) => this.toastService.show(err?.error?.message || this.translate.instant('COACH.MATCH_REQUEST.FAILED_CANCEL'), 'error')
       });
   }
 

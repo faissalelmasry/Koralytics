@@ -1,9 +1,9 @@
 <div class="page-container">
   <div class="page-header">
-    <h1 class="page-title">Match <span class="accent">Readiness</span></h1>
-    <p class="page-subtitle">Track player fatigue and physical readiness before matches.</p>
+    <h1 class="page-title">{{ 'COACH.READINESS.TITLE' | translate }} <span class="accent">{{ 'COACH.READINESS.TITLE_ACCENT' | translate }}</span></h1>
+    <p class="page-subtitle">{{ 'COACH.READINESS.SUBTITLE' | translate }}</p>
     <div class="team-selector" *ngIf="teams().length > 1">
-      <label for="teamSelect">Team:</label>
+      <label for="teamSelect">{{ 'COACH.READINESS.TEAM_LABEL' | translate }}</label>
       <select id="teamSelect" [value]="selectedTeamId" (change)="onTeamChange($event)">
         <option *ngFor="let t of teams()" [value]="t.teamId">
           {{ t.teamName }} ({{ t.ageGroupName }})
@@ -14,12 +14,12 @@
 
   <div class="loading-state" *ngIf="loading()">
     <span class="spinner-large"></span>
-    <p>Calculating squad readiness...</p>
+    <p>{{ 'COACH.READINESS.CALCULATING' | translate }}</p>
   </div>
 
   <div class="error-state" *ngIf="error()">
     <p>{{ error() }}</p>
-    <button class="btn-outline" (click)="loadData()">Retry</button>
+    <button class="btn-outline" (click)="loadData()">{{ 'COACH.READINESS.RETRY' | translate }}</button>
   </div>
 
   <div class="readiness-card" *ngIf="!loading() && sortedReadiness().length > 0">
@@ -27,23 +27,23 @@
       <thead>
         <tr>
           <th (click)="sortBy('name')" class="sortable">
-            Player Name 
+            {{ 'COACH.READINESS.TH_PLAYER_NAME' | translate }}
             <span class="sort-icon" *ngIf="sortKey() === 'name'">{{ sortDirection() === 'asc' ? '↑' : '↓' }}</span>
           </th>
           <th (click)="sortBy('availability')" class="sortable text-center">
-            Availability
+            {{ 'COACH.READINESS.TH_AVAILABILITY' | translate }}
             <span class="sort-icon" *ngIf="sortKey() === 'availability'">{{ sortDirection() === 'asc' ? '↑' : '↓' }}</span>
           </th>
           <th (click)="sortBy('score')" class="sortable text-center">
-            Readiness Score
+            {{ 'COACH.READINESS.TH_READINESS_SCORE' | translate }}
             <span class="sort-icon" *ngIf="sortKey() === 'score'">{{ sortDirection() === 'asc' ? '↑' : '↓' }}</span>
           </th>
-          <th class="text-center">Last 3 Sessions</th>
+          <th class="text-center">{{ 'COACH.READINESS.TH_LAST_3_SESSIONS' | translate }}</th>
           <th (click)="sortBy('matches')" class="sortable text-center">
-            Matches (7 Days)
+            {{ 'COACH.READINESS.TH_MATCHES_7_DAYS' | translate }}
             <span class="sort-icon" *ngIf="sortKey() === 'matches'">{{ sortDirection() === 'asc' ? '↑' : '↓' }}</span>
           </th>
-          <th>Recommendation</th>
+          <th>{{ 'COACH.READINESS.TH_RECOMMENDATION' | translate }}</th>
         </tr>
       </thead>
       <tbody>

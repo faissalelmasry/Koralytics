@@ -14,11 +14,12 @@ import {
 } from '../../../../../core/interfaces/coach.interfaces';
 import { MiniPlayerCardComponent } from '../../../match/mini-player-card/mini-player-card.component';
 import { MiniPlayerCardModel } from '../../../../../core/models/Player/mini-player-card-model';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-coach-squad',
   standalone: true,
-  imports: [CommonModule, FormsModule, MiniPlayerCardComponent],
+  imports: [CommonModule, FormsModule, MiniPlayerCardComponent, TranslatePipe],
   templateUrl: './coach-squad.component.html',
   styleUrls: ['./coach-squad.component.css'],
 })

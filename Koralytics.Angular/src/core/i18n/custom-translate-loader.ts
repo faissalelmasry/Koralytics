@@ -8,7 +8,7 @@ export class CustomTranslateLoader implements TranslateLoader {
 
   public getTranslation(lang: string): Observable<any> {
     // List the feature modules that have their own translation files here
-    const modules = ['common', 'auth', 'system-admin', 'academy-admin', 'academy-profile', 'profile'];
+    const modules = ['common', 'auth', 'system-admin', 'academy-admin', 'academy-profile', 'profile', 'coach'];
 
     const requests = modules.map((module) => {
       const path = `${this.prefix}${lang}/${module}.json`;

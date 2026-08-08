@@ -1,22 +1,22 @@
 <div class="page-container">
   <div class="page-header">
-    <h1 class="page-title">Training <span class="accent">Split</span></h1>
-    <p class="page-subtitle">Automatically divide your squad into balanced teams for training sessions.</p>
+    <h1 class="page-title">{{ 'COACH.TRAINING_SPLIT.TITLE' | translate }} <span class="accent">{{ 'COACH.TRAINING_SPLIT.TITLE_ACCENT' | translate }}</span></h1>
+    <p class="page-subtitle">{{ 'COACH.TRAINING_SPLIT.SUBTITLE' | translate }}</p>
   </div>
 
   <div class="controls-card">
     <div class="input-group">
-      <label for="sessionSelect">Select Training Session</label>
+      <label for="sessionSelect">{{ 'COACH.TRAINING_SPLIT.SELECT_SESSION' | translate }}</label>
       <select id="sessionSelect" [(ngModel)]="selectedSessionId" class="glass-input" [disabled]="loadingSessions()">
-        <option *ngIf="loadingSessions()" [value]="0">Loading sessions...</option>
-        <option *ngIf="!loadingSessions() && availableSessions().length === 0" [value]="0">No sessions available</option>
+        <option *ngIf="loadingSessions()" [value]="0">{{ 'COACH.TRAINING_SPLIT.LOADING_SESSIONS' | translate }}</option>
+        <option *ngIf="!loadingSessions() && availableSessions().length === 0" [value]="0">{{ 'COACH.TRAINING_SPLIT.NO_SESSIONS' | translate }}</option>
         <option *ngFor="let session of availableSessions()" [value]="session.id">
-          {{ session.teamName || 'Session' }} — {{ session.sessionDate | date:'mediumDate' }} ({{ session.type }})
+          {{ session.teamName || ('COACH.TRAINING_SPLIT.SESSION_LABEL' | translate) }} — {{ session.sessionDate | date:'mediumDate' }} ({{ session.type }})
         </option>
       </select>
     </div>
     <button class="btn-primary" (click)="generateSplit()" [disabled]="loading() || !selectedSessionId">
-      <span *ngIf="!loading()">⚔️ Split Teams</span>
+      <span *ngIf="!loading()">{{ 'COACH.TRAINING_SPLIT.SPLIT_TEAMS' | translate }}</span>
       <span *ngIf="loading()" class="spinner-small"></span>
     </button>
   </div>
@@ -30,10 +30,10 @@
     <!-- Balance Meter -->
     <div class="balance-meter-container">
       <div class="balance-header">
-        <h3>Squad Balance</h3>
+        <h3>{{ 'COACH.TRAINING_SPLIT.SQUAD_BALANCE' | translate }}</h3>
         <span class="balance-status" [ngClass]="balanceStatus().toLowerCase()">
           {{ balanceStatus() === 'Balanced' ? '✓' : (balanceStatus() === 'Warning' ? '⚠' : '✗') }}
-          Δ {{ ratingDifference() | number:'1.1-1' }} — {{ balanceStatus() }}
+          Δ {{ ratingDifference() | number:'1.1-1' }} — {{ (balanceStatus() === 'Balanced' ? 'COACH.TRAINING_SPLIT.BALANCED' : 'COACH.TRAINING_SPLIT.WARNING') | translate }}
         </span>
       </div>
       <div class="balance-track">
@@ -42,9 +42,9 @@
         <div class="balance-fill team-b-fill" [style.width.%]="100 - balancePercentage()"></div>
       </div>
       <div class="balance-labels">
-        <span class="team-a-label">Team A</span>
-        <span class="center-label">Ideal Balance</span>
-        <span class="team-b-label">Team B</span>
+        <span class="team-a-label">{{ 'COACH.TRAINING_SPLIT.TEAM_A' | translate }}</span>
+        <span class="center-label">{{ 'COACH.TRAINING_SPLIT.IDEAL_BALANCE' | translate }}</span>
+        <span class="team-b-label">{{ 'COACH.TRAINING_SPLIT.TEAM_B' | translate }}</span>
       </div>
     </div>
     
@@ -53,11 +53,11 @@
       <div class="team-column team-a">
       <div class="team-header">
         <div class="team-title">
-          <h2>Team A</h2>
-          <span class="player-count">{{ splitResult()!.teamA.length }} Players</span>
+          <h2>{{ 'COACH.TRAINING_SPLIT.TEAM_A' | translate }}</h2>
+          <span class="player-count">{{ splitResult()!.teamA.length }} {{ 'COACH.TRAINING_SPLIT.PLAYERS' | translate }}</span>
         </div>
         <div class="team-stats">
-          <span class="stat-label">AVG Rating</span>
+          <span class="stat-label">{{ 'COACH.TRAINING_SPLIT.AVG_RATING' | translate }}</span>
           <div class="stat-value">{{ teamAAverage() | number:'1.1-1' }}</div>
         </div>
       </div>
@@ -78,17 +78,17 @@
       </div>
     </div>
 
-    <div class="vs-divider">VS</div>
+    <div class="vs-divider">{{ 'COACH.TRAINING_SPLIT.VS' | translate }}</div>
 
     <!-- Team B Column -->
     <div class="team-column team-b">
       <div class="team-header">
         <div class="team-title">
-          <h2>Team B</h2>
-          <span class="player-count">{{ splitResult()!.teamB.length }} Players</span>
+          <h2>{{ 'COACH.TRAINING_SPLIT.TEAM_B' | translate }}</h2>
+          <span class="player-count">{{ splitResult()!.teamB.length }} {{ 'COACH.TRAINING_SPLIT.PLAYERS' | translate }}</span>
         </div>
         <div class="team-stats">
-          <span class="stat-label">AVG Rating</span>
+          <span class="stat-label">{{ 'COACH.TRAINING_SPLIT.AVG_RATING' | translate }}</span>
           <div class="stat-value">{{ teamBAverage() | number:'1.1-1' }}</div>
         </div>
       </div>

@@ -8,11 +8,12 @@ import { CoachSquadService } from '../../../../../core/services/coach/coach-squa
 import { AuthService } from '../../../../../core/services/auth/auth.service';
 import { CoachNoteDto, SquadOverviewDto, WriteNoteDto, CoachTeamDto } from '../../../../../core/interfaces/coach.interfaces';
 import { NotificationService } from '@core/services/SignalR/notificationservice';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-coach-notes',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslatePipe],
   templateUrl: './coach-notes.component.html',
   styleUrls: ['./coach-notes.component.css']
 })
@@ -22,6 +23,7 @@ export class CoachNotesComponent implements OnInit {
   private authService = inject(AuthService);
   private destroyRef = inject(DestroyRef);
   private notificationService = inject(NotificationService);
+  private translate = inject(TranslateService);
 
   // Team selection — fetched from API
   teams = signal<CoachTeamDto[]>([]);
@@ -66,7 +68,7 @@ export class CoachNotesComponent implements OnInit {
           }
         },
         error: () => {
-          this.error.set('Failed to load your assigned teams.');
+          this.error.set('COACH.NOTES.FAILED_LOAD_TEAMS');
         }
       });
   }
@@ -90,7 +92,7 @@ export class CoachNotesComponent implements OnInit {
           }
         },
         error: (err) => {
-          this.error.set('Failed to load squad.');
+          this.error.set('COACH.NOTES.FAILED_LOAD_SQUAD');
         }
       });
   }
@@ -121,7 +123,7 @@ export class CoachNotesComponent implements OnInit {
         },
         error: (err) => {
           this.loadingNotes.set(false);
-          this.error.set('Failed to load notes.');
+          this.error.set('COACH.NOTES.FAILED_LOAD_NOTES');
         }
       });
   }
@@ -149,8 +151,8 @@ export class CoachNotesComponent implements OnInit {
           this.notes.update(existing => [savedNote, ...existing]);
           //notification
           if (isPublicNote && targetPlayerId) {
-            const playerMessage = "A new coach note has been added to your profile.";
-            const parentMessage = "A new coach note has been added to your child's profile.";
+            const playerMessage = this.translate.instant('COACH.NOTES.NOTIFY_PLAYER');
+            const parentMessage = this.translate.instant('COACH.NOTES.NOTIFY_PARENT');
 
             this.notificationService.notifyPlayerMilestone(targetPlayerId, playerMessage).subscribe({
               error: (e) => console.error('Failed to notify player about the note', e)
@@ -167,13 +169,13 @@ export class CoachNotesComponent implements OnInit {
           this.newNote.sessionId = undefined;
           this.newNote.matchId = undefined;
 
-          this.successMsg.set('Note saved successfully.');
+          this.successMsg.set('COACH.NOTES.NOTE_SAVED');
           this.submittingNote.set(false);
 
           setTimeout(() => this.successMsg.set(''), 3000);
         },
         error: (err) => {
-          this.error.set(err?.error?.message || 'Failed to save note.');
+          this.error.set(err?.error?.message || 'COACH.NOTES.FAILED_SAVE_NOTE');
           this.submittingNote.set(false);
         }
       });

@@ -10,11 +10,12 @@ import { MatchAnalyticsService } from '../../../../../core/services/match/match-
 import { AuthService } from '../../../../../core/services/auth/auth.service';
 import { SquadOverviewDto, CoachTeamDto } from '../../../../../core/interfaces/coach.interfaces';
 import { PlayerReadinessDto } from '../../../../../core/interfaces/match-request.interfaces';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-player-readiness',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslatePipe],
   templateUrl: './player-readiness.component.html',
   styleUrls: ['./player-readiness.component.css']
 })
