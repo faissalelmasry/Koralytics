@@ -326,3 +326,42 @@
         padding: 22px 20px;
     }
 }
+
+@media (max-width: 480px) {
+    .drills-portal-page {
+        padding: 85px 14px 30px;
+    }
+
+    .header-title {
+        font-size: 24px;
+    }
+
+    .header-subtitle {
+        font-size: 13px;
+    }
+
+    .modules-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .module-card {
+        padding: 18px 14px;
+        border-radius: 16px;
+    }
+
+    .card-header-icon {
+        width: 44px;
+        height: 44px;
+        margin-bottom: 16px;
+    }
+
+    .card-header-icon svg {
+        width: 22px;
+        height: 22px;
+    }
+
+    .card-title {
+        font-size: 17px;
+    }
+}

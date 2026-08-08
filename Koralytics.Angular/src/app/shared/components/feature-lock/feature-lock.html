@@ -1,9 +1,7 @@
 <div class="feature-lock-container" [class.is-locked]="isLocked" [class.is-button-mode]="mode === 'button'" [style.--lock-color]="requiredTier === 'Elite' ? '#06b6d4' : '#fbbf24'">
-  @if (!isLocked || mode !== 'button') {
-    <div class="feature-content" [class.blurred]="isLocked">
-      <ng-content></ng-content>
-    </div>
-  }
+  <div class="feature-content" [class.blurred]="isLocked">
+    <ng-content></ng-content>
+  </div>
   
   @if (isLocked) {
     @if (mode === 'button') {

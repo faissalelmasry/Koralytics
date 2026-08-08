@@ -42,7 +42,16 @@ export class TokenStorageService {
     return this.getStorage().getItem(this.ACCESS_TOKEN_KEY);
   }
 
+  private readonly EFFECTIVE_TIER_KEY = 'koralytics_effective_tier';
+
+  public saveEffectiveTier(tier: string): void {
+    this.getStorage().setItem(this.EFFECTIVE_TIER_KEY, tier);
+  }
+
   public getTier(): string {
+    const effective = this.getStorage().getItem(this.EFFECTIVE_TIER_KEY);
+    if (effective) return effective;
+
     const token = this.getAccessToken();
     if (!token) return 'Starter';
     try {
@@ -78,9 +87,11 @@ export class TokenStorageService {
     localStorage.removeItem(this.ACCESS_TOKEN_KEY);
     localStorage.removeItem(this.REFRESH_TOKEN_KEY);
     localStorage.removeItem(this.USER_KEY);
+    localStorage.removeItem(this.EFFECTIVE_TIER_KEY);
     
     sessionStorage.removeItem(this.ACCESS_TOKEN_KEY);
     sessionStorage.removeItem(this.REFRESH_TOKEN_KEY);
     sessionStorage.removeItem(this.USER_KEY);
+    sessionStorage.removeItem(this.EFFECTIVE_TIER_KEY);
   }
 }

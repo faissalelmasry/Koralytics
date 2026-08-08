@@ -1,7 +1,9 @@
-import { Component, signal, HostListener, inject } from '@angular/core';
+import { Component, signal, HostListener, inject, OnInit } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../core/services/auth/auth.service';
+import { TokenStorageService } from '../../../core/services/auth/token-storage.service';
+import { ParentService } from '../../../core/services/parent/parent.service';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog';
 import { LanguageSwitcherComponent } from '../language-switcher/language-switcher.component';
 
@@ -12,9 +14,36 @@ import { LanguageSwitcherComponent } from '../language-switcher/language-switche
   templateUrl: './navbar.html',
   styleUrls: ['./navbar.css']
 })
-export class NavbarComponent {
+export class NavbarComponent implements OnInit {
   private authService = inject(AuthService);
+  private tokenStorage = inject(TokenStorageService);
+  private parentService = inject(ParentService);
   private router = inject(Router);
+
+  ngOnInit() {
+    if (this.isParent) {
+      this.parentService.getMyChildren().subscribe({
+        next: (res: any) => {
+          const children = res?.data || res || [];
+          const hasElite = children.some((c: any) => c.isEliteTier || c.academyTier === 'Elite');
+          const hasPro = children.some((c: any) => c.academyTier === 'Pro');
+          if (hasElite) {
+            this.tokenStorage.saveEffectiveTier('Elite');
+          } else if (hasPro) {
+            this.tokenStorage.saveEffectiveTier('Pro');
+          }
+        }
+      });
+    }
+  }
+
+  get isParent(): boolean {
+    return this.authService.getUserRoles().includes('Parent');
+  }
+
+  get isEliteTier(): boolean {
+    return this.tokenStorage.getTier() === 'Elite';
+  }
 
   variant = signal<'primary' | 'icon'>('icon'); 
   

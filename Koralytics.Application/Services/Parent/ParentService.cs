@@ -1,6 +1,7 @@
 using Koralytics.Application.DTOs.Parent;
 using Koralytics.Application.Interfaces;
 using Koralytics.Application.Services.Parent;
+using Koralytics.Domain.Entities.Academy;
 using Koralytics.Domain.Entities.Parents;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,10 +19,11 @@ namespace Koralytics.Infrastructure.Services.Parents
         public async Task<IEnumerable<ParentChildDto>> GetMyChildrenAsync(int parentUserId)
         {
             var parentPlayerRepo = _unitOfWork.Repository<ParentPlayer>();
+            var subRepo = _unitOfWork.Repository<TenantSubscription>();
 
-            return await parentPlayerRepo.GetQueryable()
+            var rawChildren = await parentPlayerRepo.GetQueryable()
                 .Where(pp => pp.ParentId == parentUserId)
-                .Select(pp => new ParentChildDto
+                .Select(pp => new
                 {
                     PlayerId = pp.Player.Id,
                     FullName = (pp.Player.FirstName + " " + pp.Player.LastName).Trim(),
@@ -41,9 +43,35 @@ namespace Koralytics.Infrastructure.Services.Parents
                         ?? pp.Player.PlayerTeams
                             .Select(pt => pt.Team.Name)
                             .FirstOrDefault()
-                        ?? "Unassigned Team"
+                        ?? "Unassigned Team",
+                    AcademyId = pp.Player.PlayerAcademies
+                        .Where(pa => pa.LeftAt == null)
+                        .Select(pa => pa.AcademyId)
+                        .FirstOrDefault()
                 })
                 .ToListAsync();
+
+            var academyIds = rawChildren.Select(c => c.AcademyId).Where(id => id > 0).Distinct().ToList();
+            var activeSubs = await subRepo.GetQueryableAsNoTracking()
+                .Where(s => academyIds.Contains(s.AcademyId))
+                .ToListAsync();
+
+            var now = DateTime.UtcNow;
+
+            return rawChildren.Select(c => {
+                var sub = activeSubs.FirstOrDefault(s => s.AcademyId == c.AcademyId && s.Status == Koralytics.Domain.Enums.SubscriptionStatus.Paid && now >= s.StartsAt && now <= s.ExpiresAt);
+                var tier = sub?.Tier ?? Koralytics.Domain.Enums.SubscriptionTier.Starter;
+                return new ParentChildDto
+                {
+                    PlayerId = c.PlayerId,
+                    FullName = c.FullName,
+                    PhotoUrl = c.PhotoUrl,
+                    Position = c.Position,
+                    TeamName = c.TeamName,
+                    AcademyTier = tier.ToString(),
+                    IsEliteTier = tier == Koralytics.Domain.Enums.SubscriptionTier.Elite
+                };
+            }).ToList();
         }
 
         public async Task<IEnumerable<ParentPlayerSearchResponseDto>> SearchAvailablePlayersAsync(string? name, int parentUserId)

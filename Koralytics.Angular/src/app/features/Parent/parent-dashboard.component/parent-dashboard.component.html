@@ -149,6 +149,31 @@
     <!-- ACTION CARDS GRID -->
     <section class="modules-grid mt-4">
 
+        <!-- CARD 0: PARENT AI ASSISTANT -->
+        <div class="module-card card-ai" (click)="goToParentAi()">
+            <div class="card-glass-glow"></div>
+            <div class="card-header-icon ai-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/>
+                </svg>
+            </div>
+            <div class="card-content">
+                <div class="ai-badge-row">
+                    <h3 style="margin: 0;">AI Assistant</h3>
+                    <span class="ai-pill">AI Powered</span>
+                </div>
+                <p>Ask queries about player passing performance, squad readiness, tactics, and development advice.</p>
+            </div>
+            <div class="card-action-arrow">
+                <span>Launch Assistant</span>
+                <svg class="arrow-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+            </div>
+        </div>
+
         <!-- CARD 1: FIFA CARD & PROFILE -->
         <div class="module-card card-cyan" (click)="navigateToProfile()">
             <div class="card-glass-glow"></div>

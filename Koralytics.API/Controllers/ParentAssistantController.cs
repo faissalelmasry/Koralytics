@@ -3,6 +3,7 @@ using Koralytics.Application.Interfaces;
 using Koralytics.Application.Services.Parent;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -19,15 +20,18 @@ namespace Koralytics.Api.Controllers
     {
         private readonly IParentAiService _aiService;
         private readonly IParentPlayerAccessService _accessService;
+        private readonly Koralytics.Application.Interfaces.IUnitOfWork _unitOfWork;
         private readonly ILogger<ParentAssistantController> _logger;
 
         public ParentAssistantController(
             IParentAiService aiService,
             IParentPlayerAccessService accessService,
+            Koralytics.Application.Interfaces.IUnitOfWork unitOfWork,
             ILogger<ParentAssistantController> logger)
         {
             _aiService = aiService;
             _accessService = accessService;
+            _unitOfWork = unitOfWork;
             _logger = logger;
         }
 
@@ -140,6 +144,37 @@ namespace Koralytics.Api.Controllers
             if (authorizedPlayerIds == null || authorizedPlayerIds.Count == 0)
             {
                 return ValidationResult.Fail(Forbid(), 403, "Forbidden");
+            }
+
+            var playerIdsToCheck = request!.RequestedPlayerId.HasValue
+                ? new List<int> { request.RequestedPlayerId.Value }
+                : authorizedPlayerIds.ToList();
+
+            var activeAcademies = await _unitOfWork.Repository<Koralytics.Domain.Entities.Player.PlayerAcademy>()
+                .GetQueryableAsNoTracking()
+                .Where(pa => playerIdsToCheck.Contains(pa.PlayerId) && pa.LeftAt == null)
+                .Select(pa => pa.AcademyId)
+                .ToListAsync();
+
+            var now = DateTime.UtcNow;
+            var hasEliteAccess = await _unitOfWork.Repository<Koralytics.Domain.Entities.Academy.TenantSubscription>()
+                .GetQueryableAsNoTracking()
+                .AnyAsync(s => activeAcademies.Contains(s.AcademyId) &&
+                               s.Status == Koralytics.Domain.Enums.SubscriptionStatus.Paid &&
+                               now >= s.StartsAt && now <= s.ExpiresAt &&
+                               s.Tier == Koralytics.Domain.Enums.SubscriptionTier.Elite);
+
+            if (!hasEliteAccess)
+            {
+                var dto = new Koralytics.Application.DTOs.Subscription.PlanLimitExceededDto(
+                    Feature: "Parent Support AI Assistant",
+                    Limit: 1,
+                    Current: 0,
+                    CurrentPlan: "Pro/Starter",
+                    RequiredPlan: "Elite",
+                    UpgradeMessage: "Upgrade to Elite to unlock Parent Support AI Assistant."
+                );
+                return ValidationResult.Fail(new ObjectResult(dto) { StatusCode = StatusCodes.Status403Forbidden }, 403, "Upgrade to Elite to unlock Parent Support AI Assistant.");
             }
 
             if (request!.RequestedPlayerId.HasValue)
