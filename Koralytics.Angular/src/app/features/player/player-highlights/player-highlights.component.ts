@@ -9,11 +9,12 @@ import { ModalService } from '../../../../core/services/Modal/modal';
 import { ToastService } from '../../../../core/services/Toast/toast';
 import { PlayerHighlightDto } from '../../../../core/interfaces/highlight.interfaces';
 import { NotificationService } from '@core/services/SignalR/notificationservice';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-player-highlights',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslatePipe],
   templateUrl: './player-highlights.component.html',
   styleUrls: ['./player-highlights.component.css']
 })

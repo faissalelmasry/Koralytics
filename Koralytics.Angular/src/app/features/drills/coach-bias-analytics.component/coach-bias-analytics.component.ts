@@ -1,4 +1,6 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { LocalizedDatePipe } from '../../../../shared/pipes/localized-date.pipe';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
@@ -41,11 +43,12 @@ export interface BiasReport {
     LoadingSpinnerComponent, 
     StatusChipComponent,
     FeatureLockComponent
-  ],
+  , TranslatePipe, LocalizedDatePipe],
   templateUrl: './coach-bias-analytics.component.html',
   styleUrls: ['./coach-bias-analytics.component.css']
 })
 export class CoachBiasAnalyticsComponent implements OnInit {
+  private translate = inject(TranslateService);
 
   selectedCoachId: number | null = null;
   availableCoaches: { id: number; name: string }[] = [];
@@ -248,10 +251,10 @@ export class CoachBiasAnalyticsComponent implements OnInit {
   }
 
   getAssessmentStatus(): string {
-    if (!this.biasReport) return 'No Data';
-    if (this.biasReport.trustPercentage < 60) return 'Unreliable';
-    if (this.biasReport.trustPercentage < 85) return 'Needs Alignment';
-    return 'Highly Accurate';
+    if (!this.biasReport) return this.translate.instant('DRILLS.BIAS_ANALYTICS.NO_DATA') || 'No Data';
+    if (this.biasReport.trustPercentage < 60) return this.translate.instant('DRILLS.BIAS_ANALYTICS.STATUS_UNRELIABLE') || 'Unreliable';
+    if (this.biasReport.trustPercentage < 85) return this.translate.instant('DRILLS.BIAS_ANALYTICS.STATUS_NEEDS_ALIGNMENT') || 'Needs Alignment';
+    return this.translate.instant('DRILLS.BIAS_ANALYTICS.STATUS_HIGHLY_ACCURATE') || 'Highly Accurate';
   }
 
   getChipType(): 'success' | 'warning' | 'danger' | 'info' {
@@ -273,10 +276,10 @@ export class CoachBiasAnalyticsComponent implements OnInit {
   }
 
   getBiasDescription(): string {
-    if (!this.biasReport) return 'No Data';
+    if (!this.biasReport) return this.translate.instant('DRILLS.BIAS_ANALYTICS.NO_DATA') || 'No Data';
     const delta = (100 - this.biasReport.trustPercentage) / 10;
-    if (delta <= 1.5) return 'Minimal Variance (Fair Assessor)';
-    if (delta <= 3.0) return 'Moderate Variance (Slightly Generous/Harsh)';
-    return 'High Variance (Inconsistent Scoring)';
+    if (delta <= 1.5) return this.translate.instant('DRILLS.BIAS_ANALYTICS.FAIR_ASSESSOR') || 'Minimal Variance (Fair Assessor)';
+    if (delta <= 3.0) return this.translate.instant('DRILLS.BIAS_ANALYTICS.MODERATE_VARIANCE') || 'Moderate Variance (Slightly Generous/Harsh)';
+    return this.translate.instant('DRILLS.BIAS_ANALYTICS.HIGH_VARIANCE') || 'High Variance (Inconsistent Scoring)';
   }
 }

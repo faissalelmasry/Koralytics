@@ -55,7 +55,14 @@
             "THU": "Th",
             "FRI": "Fr",
             "SAT": "Sa"
-        }
+        },
+        "CONFIRM": "Confirm",
+        "REMOVE": "Remove",
+        "CREATE": "Create",
+        "EDIT": "Edit",
+        "CLOSE": "Close",
+        "SELECT": "Select",
+        "SAVE_CHANGES": "Save Changes"
     },
     "ROLES": {
         "PLAYER": "Player",

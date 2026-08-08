@@ -1,5 +1,6 @@
 import { Component, OnInit, OnChanges, SimpleChanges, Input, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DrillSessionService } from '../../../../core/services/drill/drill-session.service';
@@ -16,7 +17,7 @@ interface ProgressionPoint {
 @Component({
   selector: 'app-player-drill-progression',
   standalone: true,
-  imports: [CommonModule, FormsModule, CustomSelect, LoadingSpinnerComponent, CustomButtonComponent],
+  imports: [CommonModule, FormsModule, CustomSelect, LoadingSpinnerComponent, CustomButtonComponent, TranslatePipe],
   templateUrl: './player-drill-progression.component.html',
   styleUrls: ['./player-drill-progression.component.css']
 })
@@ -47,7 +48,8 @@ export class PlayerDrillProgressionComponent implements OnInit, OnChanges {
     private route: ActivatedRoute,
     private router: Router,
     private sessionService: DrillSessionService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private translate: TranslateService
   ) { }
 
   ngOnInit(): void {
@@ -82,7 +84,7 @@ export class PlayerDrillProgressionComponent implements OnInit, OnChanges {
     this.sessionService.getCategories().subscribe({
       next: (cats) => {
         this.categories = cats || [];
-        this.categoryOptions = this.categories.map(c => ({ value: c.id, label: c.name }));
+        this.categoryOptions = this.categories.map(c => ({ value: c.id, label: this.translate.instant('PLAYER.CAT_' + c.name.toUpperCase()) !== 'PLAYER.CAT_' + c.name.toUpperCase() ? this.translate.instant('PLAYER.CAT_' + c.name.toUpperCase()) : c.name }));
         if (this.categories.length > 0) {
           this.selectedCategoryId = this.categories[0].id;
           this.fetchProgression();

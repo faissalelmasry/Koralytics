@@ -4,11 +4,12 @@ import { PlayerCardModel } from '../../../../core/models/Player/player-card-mode
 import { PlayerCardService } from '../../../../core/services/player/player-card.service';
 import { TokenStorageService } from '../../../../core/services/auth/token-storage.service';
 import { MarqueeIfOverflowDirective } from '../../match/match-timeline/marquee-if-overflow.directive';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-player-card',
   standalone: true,
-  imports: [CommonModule, MarqueeIfOverflowDirective],
+  imports: [CommonModule, MarqueeIfOverflowDirective, TranslatePipe],
   templateUrl: './player-card.html',
   styleUrls: ['./player-card.css']
 })

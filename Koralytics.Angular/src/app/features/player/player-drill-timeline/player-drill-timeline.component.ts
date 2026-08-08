@@ -13,6 +13,8 @@ import { ScrollRevealDirective } from '../../../../shared/directives/scroll-reve
 import { PlayerProfileService } from '../../../../core/services/player/player-profile.service';
 import { TokenStorageService } from '../../../../core/services/auth/token-storage.service';
 import { DrillTimelineEvent } from '../../../../core/models/Player/drill-timeline-model';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { LocalizedDatePipe } from '../../../../shared/pipes/localized-date.pipe';
 
 @Component({
   selector: 'app-player-drill-timeline',
@@ -27,13 +29,39 @@ import { DrillTimelineEvent } from '../../../../core/models/Player/drill-timelin
     CustomSelect,
     CustomDatePicker,
     CustomButtonComponent,
-    ScrollRevealDirective
+    ScrollRevealDirective,
+    TranslatePipe,
+    LocalizedDatePipe
   ],
   templateUrl: './player-drill-timeline.component.html',
   styleUrls: ['./player-drill-timeline.component.css']
 })
 export class PlayerDrillTimelineComponent implements OnInit {
+  translateCategory(name: string | null | undefined): string {
+    if (!name) return '';
+    const key = 'PLAYER.CAT_' + name.toUpperCase();
+    const translated = this.translate.instant(key);
+    return translated !== key ? translated : name;
+  }
+
+  translateSessionType(name: string | null | undefined): string {
+    if (!name) return '';
+    // Drill timelines can have 'Regular', or potentially other types. 
+    // Try CAT_ prefix first (for Regular), then MATCH_ prefix (for Session, Friendly, etc)
+    let key = 'PLAYER.CAT_' + name.toUpperCase();
+    let translated = this.translate.instant(key);
+    if (translated !== key) return translated;
+    
+    key = 'PLAYER.MATCH_' + name.toUpperCase();
+    translated = this.translate.instant(key);
+    if (translated !== key) return translated;
+    
+    return name;
+  }
+
+
   private route = inject(ActivatedRoute);
+  private translate = inject(TranslateService);
   private router = inject(Router);
   private profileService = inject(PlayerProfileService);
   private tokenStorage = inject(TokenStorageService);
@@ -58,9 +86,10 @@ export class PlayerDrillTimelineComponent implements OnInit {
   selectedDateTo = '';
 
   private readonly CORE_CATEGORIES = ['Speed', 'Shooting', 'Passing', 'Dribbling', 'Defending', 'Physical'];
-  categoryOptions: { value: string; label: string }[] = this.CORE_CATEGORIES.map(c => ({ value: c, label: c }));
+  categoryOptions: { value: string; label: string }[] = [];
 
   ngOnInit() {
+    this.categoryOptions = this.CORE_CATEGORIES.map(c => ({ value: c, label: this.translate.instant('PLAYER.CAT_' + c.toUpperCase()) !== 'PLAYER.CAT_' + c.toUpperCase() ? this.translate.instant('PLAYER.CAT_' + c.toUpperCase()) : c }));
     const paramId = this.route.snapshot.paramMap.get('playerId');
 
     if (paramId) {
@@ -125,7 +154,7 @@ export class PlayerDrillTimelineComponent implements OnInit {
   private extractCategories() {
     const fromData = [...new Set(this.allEvents.map(e => e.drillCategoryName).filter(Boolean))] as string[];
     const merged = [...new Set([...this.CORE_CATEGORIES, ...fromData])].sort();
-    this.categoryOptions = merged.map(c => ({ value: c, label: c }));
+    this.categoryOptions = merged.map(c => ({ value: c, label: this.translate.instant('PLAYER.CAT_' + c.toUpperCase()) !== 'PLAYER.CAT_' + c.toUpperCase() ? this.translate.instant('PLAYER.CAT_' + c.toUpperCase()) : c }));
   }
 
   private applyCategoryFilter() {

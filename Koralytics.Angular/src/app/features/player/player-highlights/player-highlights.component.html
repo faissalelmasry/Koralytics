@@ -1,28 +1,28 @@
 <div class="page-container">
   <div class="page-header">
-    <h1 class="page-title">Player <span class="accent">Highlights</span></h1>
-    <p class="page-subtitle">Manage and showcase top moments stored in the cloud.</p>
+    <h1 class="page-title">{{ 'PLAYER.PLAYER' | translate }} <span class="accent">{{ 'PLAYER.HIGHLIGHTS' | translate }}</span></h1>
+    <p class="page-subtitle">{{ 'PLAYER.HIGHLIGHTS_SUBTITLE' | translate }}</p>
   </div>
 
   <!-- Upload Section -->
   <div class="upload-section">
-    <h3>Upload New Highlight</h3>
+    <h3>{{ 'PLAYER.UPLOAD_NEW_HIGHLIGHT' | translate }}</h3>
     <div class="upload-form">
       <div class="form-group flex-1">
-        <label for="highlightTitle">Highlight Title</label>
-        <input type="text" id="highlightTitle" class="glass-input" [(ngModel)]="highlightTitle" placeholder="e.g. Great free kick against City FC">
+        <label for="highlightTitle">{{ 'PLAYER.HIGHLIGHT_TITLE' | translate }}</label>
+        <input type="text" id="highlightTitle" class="glass-input" [(ngModel)]="highlightTitle" [placeholder]="'PLAYER.HIGHLIGHT_TITLE_PLACEHOLDER' | translate">
       </div>
       
       <div class="form-group">
-        <label for="highlightFile">Video File (MP4, MOV)</label>
+        <label for="highlightFile">{{ 'PLAYER.VIDEO_FILE' | translate }}</label>
         <div class="file-input-wrapper">
           <input #fileInput type="file" id="highlightFile" (change)="onFileSelected($event)" accept="video/mp4,video/quicktime,video/x-msvideo,video/x-matroska,video/webm">
-          <span class="file-name">{{ selectedFile ? selectedFile.name : 'Choose file...' }}</span>
+          <span class="file-name">{{ selectedFile ? selectedFile.name : ('PLAYER.CHOOSE_FILE' | translate) }}</span>
         </div>
       </div>
       
       <button class="btn-primary" [disabled]="!selectedFile || uploading()" (click)="uploadHighlight()">
-        <span *ngIf="!uploading()">Upload</span>
+        <span *ngIf="!uploading()">{{ 'PLAYER.UPLOAD' | translate }}</span>
         <span *ngIf="uploading()" class="spinner-small"></span>
       </button>
     </div>
@@ -32,19 +32,19 @@
 
   <!-- Gallery Section -->
   <div class="gallery-section">
-    <h3>Highlight Gallery</h3>
+    <h3>{{ 'PLAYER.HIGHLIGHT_GALLERY' | translate }}</h3>
     
     <div class="loading-state" *ngIf="loading()">
-      <span class="spinner-small"></span> Loading highlights...
+      <span class="spinner-small"></span> {{ 'PLAYER.LOADING_HIGHLIGHTS' | translate }}
     </div>
 
     <div class="error-state" *ngIf="error()">
       <p>{{ error() }}</p>
-      <button class="btn-outline" (click)="loadHighlights()">Retry</button>
+      <button class="btn-outline" (click)="loadHighlights()">{{ 'PLAYER.RETRY' | translate }}</button>
     </div>
 
     <div class="empty-state" *ngIf="!loading() && highlights().length === 0">
-      <p>No highlights uploaded yet.</p>
+      <p>{{ 'PLAYER.NO_HIGHLIGHTS' | translate }}</p>
     </div>
 
     <div class="video-grid" *ngIf="highlights().length > 0">
@@ -53,20 +53,20 @@
         
         <div class="video-wrapper">
           <video [src]="h.videoUrl" controls preload="metadata"></video>
-          <div class="pinned-badge" *ngIf="h.isPinned">⭐ Pinned</div>
+          <div class="pinned-badge" *ngIf="h.isPinned">{{ 'PLAYER.PINNED_BADGE' | translate }}</div>
         </div>
         
         <div class="video-info">
-          <h4>{{ h.title || 'Untitled Highlight' }}</h4>
+          <h4>{{ h.title || ('PLAYER.UNTITLED_HIGHLIGHT' | translate) }}</h4>
           <span class="upload-date">{{ h.uploadedAt | date:'mediumDate' }}</span>
         </div>
         
         <div class="video-actions">
           <button class="btn-action pin" (click)="pinHighlight(h.id)" [disabled]="h.isPinned">
-            {{ h.isPinned ? 'Pinned' : 'Pin to Top' }}
+            {{ h.isPinned ? ('PLAYER.PINNED' | translate) : ('PLAYER.PIN_TO_TOP' | translate) }}
           </button>
           <button class="btn-action delete" (click)="deleteHighlight(h.id)">
-            Delete
+            {{ 'PLAYER.DELETE' | translate }}
           </button>
         </div>
 

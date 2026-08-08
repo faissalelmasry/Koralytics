@@ -30,7 +30,7 @@
         "WEIGHT": "Weight",
         "PLAY_STYLE_TAG": "Play Style Tag",
         "ACADEMY_MEMBERSHIP": "Academy Membership",
-        "ACTIVE_MEMBER": "\u2714 Active Member \u2014 {{academy}} (ID: #{{id}})",
+        "ACTIVE_MEMBER": "Active Member \u2014 {{academy}} (ID: #{{id}})",
         "NOT_IN_ACADEMY": "Not currently in any academy",
         "ARCHETYPE_NAME": "Archetype Name",
         "NO_ARCHETYPE": "No archetype selected",
@@ -49,7 +49,7 @@
         "VERIFICATION_PENDING": "\u23f3 Verification Pending",
         "VERIFIED_DATE": "Verified Date",
         "COACH_STATUS_TITLE": "Coach Status",
-        "ACTIVE_COACH_MEMBER": "\u2714 Active Coach Member \u2014 {{academy}} (ID: #{{id}})",
+        "ACTIVE_COACH_MEMBER": "Active Coach Member \u2014 {{academy}} (ID: #{{id}})",
         "PENDING_ACADEMY_REQUESTS": "\u26bd {{count}} Pending Academy Request(s)",
         "NO_AFFILIATION": "Not affiliated with any academy. No active academy membership requests.",
         "LINKED_PARENTS_TITLE": "Linked Guardians / Parents",
@@ -87,6 +87,11 @@
         "FOOT_BOTH": "Both",
         "PHONE_REQUIRED": "Phone number is required.",
         "NA": "N/A",
-        "SELECT_POSITIONS_INSTRUCTION": "Select up to 5 positions. Click \"{{setPrimary}}\" on any selected tag below to make it your main position."
+        "SELECT_POSITIONS_INSTRUCTION": "Select up to 5 positions. Click \"{{setPrimary}}\" on any selected tag below to make it your main position.",
+        "UNLINK_PARENT_BTN": "Unlink",
+        "UNLINK_PARENT_TITLE": "Unlink Parent/Guardian",
+        "UNLINK_PARENT_MSG": "Are you sure you want to unlink this parent/guardian from your account?",
+        "NO_PARENTS_LINKED": "No Parents or Guardians linked.",
+        "PARENT_LINK_REQUEST_INFO": "Parents/Guardians who have permission can manage and view your profile."
     }
 }
