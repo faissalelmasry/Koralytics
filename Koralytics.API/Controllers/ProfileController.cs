@@ -64,7 +64,18 @@ namespace Koralytics.API.Controllers
         {
             var userId = GetCurrentUserId();
             var imageUrl = await _profileService.UpdateProfileImageAsync(userId, dto.Image);
-            return OkResponse(new { profileImageUrl = imageUrl }, "Profile image updated successfully.");
+            return OkResponse(imageUrl, "Profile image updated successfully.");
+        }
+
+        /// <summary>
+        /// Deletes the profile image for the currently authenticated user.
+        /// </summary>
+        [HttpDelete("me/image")]
+        public async Task<IActionResult> RemoveProfileImage()
+        {
+            var userId = GetCurrentUserId();
+            await _profileService.RemoveProfileImageAsync(userId);
+            return OkResponse<object>(null, "Profile image removed successfully.");
         }
     }
 }

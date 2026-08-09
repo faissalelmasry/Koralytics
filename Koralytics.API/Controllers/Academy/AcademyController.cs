@@ -80,6 +80,15 @@ namespace Koralytics.API.Controllers.Academies
             return OkResponse(new { logoUrl = logoUrl }, "Academy logo updated successfully.");
         }
 
+        [HttpDelete("{academyId}/logo")]
+        [Authorize(Roles = "AcademyAdmin,SystemAdmin")]
+        public async Task<IActionResult> RemoveAcademyLogo(int academyId)
+        {
+            var userId = GetCurrentUserId();
+            await _academyService.RemoveAcademyLogoAsync(academyId, userId);
+            return OkResponse("Academy logo removed successfully.");
+        }
+
         [HttpPut("{academyId}/status")]
         [Authorize(Roles = "SystemAdmin")]
         public async Task<IActionResult> UpdateAcademyStatus(int academyId, [FromBody] UpdateAcademyStatusDto dto)

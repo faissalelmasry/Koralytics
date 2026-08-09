@@ -148,7 +148,7 @@
   animation: avatarPulse 3s infinite ease-in-out;
   overflow: hidden;
   position: relative;
-  cursor: pointer;
+  cursor: default;
 }
 
 .avatar-circle img {
@@ -156,29 +156,6 @@
   height: 100%;
   object-fit: cover;
   border-radius: 50%;
-}
-
-.avatar-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.65);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.25s ease;
-  border-radius: 50%;
-}
-
-.camera-icon {
-  font-size: 20px;
-}
-
-.avatar-circle:hover .avatar-overlay {
-  opacity: 1;
 }
 
 .admin-identity h1 {
@@ -212,6 +189,67 @@
   background: rgba(0, 229, 255, 0.12);
   border-color: rgba(0, 229, 255, 0.4);
   color: #00e5ff;
+}
+
+.btn-edit-logo-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 229, 255, 0.1);
+  border: 1px solid rgba(0, 229, 255, 0.4);
+  color: #00e5ff;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Inter', sans-serif;
+  line-height: 1.2;
+}
+
+.btn-edit-logo-pill:hover {
+  background: rgba(0, 229, 255, 0.25);
+  border-color: #00e5ff;
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.remove-photo-row {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.btn-remove-photo {
+  background: rgba(239, 68, 68, 0.12);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 8px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  font-family: 'Inter', sans-serif;
+}
+
+.btn-remove-photo:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.25);
+  color: #ffffff;
+  border-color: #ef4444;
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.3);
+}
+
+.btn-remove-photo:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .bio-quick-list {

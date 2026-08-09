@@ -48,6 +48,10 @@ export class AcademyService {
     return this.http.patch<ApiResponse<any>>(`${this.apiUrl}/${academyId}/logo`, formData);
   }
 
+  removeAcademyLogo(academyId: number): Observable<ApiResponse<any>> {
+    return this.http.delete<ApiResponse<any>>(`${this.apiUrl}/${academyId}/logo`);
+  }
+
   getAcademyBadges(academyId: number): Observable<ApiResponse<AcademyBadgeResponseDto[]>> {
     return this.http.get<ApiResponse<AcademyBadgeResponseDto[]>>(`${this.apiUrl}/${academyId}/badges`);
   }

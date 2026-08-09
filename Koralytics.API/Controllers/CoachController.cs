@@ -62,11 +62,10 @@ namespace Koralytics.API.Controllers
         /// using a snake-draft algorithm sorted by overall rating.
         /// </summary>
         [HttpPost("sessions/{sessionId}/split")]
-        [Authorize(Roles = "Coach")]
         public async Task<IActionResult> SplitTrainingTeams(int sessionId)
         {
-            var coachId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-            var split = await _coachSquadService.SplitTrainingTeamsAsync(coachId, sessionId);
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var split = await _coachSquadService.SplitTrainingTeamsAsync(userId, sessionId);
             return Ok(split);
         }
 

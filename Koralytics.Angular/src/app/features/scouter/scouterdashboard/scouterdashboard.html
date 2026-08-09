@@ -41,9 +41,13 @@
       <section class="scout-hero-card mt-4">
         <div class="hero-glow-bg"></div>
         <div class="hero-avatar">
-          <div class="avatar-fallback">
-            <span class="avatar-initials">{{ getInitials(scouterFullName()) }}</span>
-          </div>
+          @if ((scouterImageUrl() || $any(p).profileImageUrl) && !heroImageError) {
+            <img [src]="scouterImageUrl() || $any(p).profileImageUrl" [alt]="scouterFullName()" class="hero-avatar-img" (error)="heroImageError = true" />
+          } @else {
+            <div class="avatar-fallback">
+              <span class="avatar-initials">{{ getInitials(scouterFullName()) }}</span>
+            </div>
+          }
           <div class="avatar-border-ring"></div>
         </div>
         <div class="hero-details">

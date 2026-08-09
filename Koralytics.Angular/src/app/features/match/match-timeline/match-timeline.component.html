@@ -3,7 +3,7 @@
   <div class="hero-scoreboard">
     <div class="team-box home">
       <div class="team-text">
-        <span class="team-name">{{ matchInfo.homeTeam }}</span>
+        <span class="team-name" appMarqueeIfOverflow [marqueeText]="matchInfo.homeTeam">{{ matchInfo.homeTeam }}</span>
         @if (matchInfo.homeAcademy) {
           @if (matchInfo.homeAcademyId) {
             <a [routerLink]="['/academy/profile', matchInfo.homeAcademyId]" class="academy-sub academy-link">{{ matchInfo.homeAcademy }}</a>
@@ -12,6 +12,23 @@
           }
         }
       </div>
+      @if (matchInfo.homeAcademyId) {
+        <a [routerLink]="['/academy/profile', matchInfo.homeAcademyId]" class="avatar-circle logo-link" [title]="matchInfo.homeAcademy || matchInfo.homeTeam">
+          @if (matchInfo.homeAcademyLogoUrl && !homeLogoError) {
+            <img [src]="matchInfo.homeAcademyLogoUrl" [alt]="matchInfo.homeAcademy || matchInfo.homeTeam" class="academy-logo-img" (error)="homeLogoError = true" />
+          } @else {
+            <span class="avatar-initials">{{ getInitials(matchInfo.homeAcademy || matchInfo.homeTeam) }}</span>
+          }
+        </a>
+      } @else {
+        <div class="avatar-circle" [title]="matchInfo.homeAcademy || matchInfo.homeTeam">
+          @if (matchInfo.homeAcademyLogoUrl && !homeLogoError) {
+            <img [src]="matchInfo.homeAcademyLogoUrl" [alt]="matchInfo.homeAcademy || matchInfo.homeTeam" class="academy-logo-img" (error)="homeLogoError = true" />
+          } @else {
+            <span class="avatar-initials">{{ getInitials(matchInfo.homeAcademy || matchInfo.homeTeam) }}</span>
+          }
+        </div>
+      }
     </div>
     <div class="score-center">
       <div class="score-digits">{{ matchInfo.homeScore }} - {{ matchInfo.awayScore }}</div>
@@ -22,8 +39,25 @@
       @if (isLive) { <span class="ft-badge live">LIVE</span> }
     </div>
     <div class="team-box away">
+      @if (matchInfo.awayAcademyId) {
+        <a [routerLink]="['/academy/profile', matchInfo.awayAcademyId]" class="avatar-circle logo-link" [title]="matchInfo.awayAcademy || matchInfo.awayTeam">
+          @if (matchInfo.awayAcademyLogoUrl && !awayLogoError) {
+            <img [src]="matchInfo.awayAcademyLogoUrl" [alt]="matchInfo.awayAcademy || matchInfo.awayTeam" class="academy-logo-img" (error)="awayLogoError = true" />
+          } @else {
+            <span class="avatar-initials">{{ getInitials(matchInfo.awayAcademy || matchInfo.awayTeam) }}</span>
+          }
+        </a>
+      } @else {
+        <div class="avatar-circle" [title]="matchInfo.awayAcademy || matchInfo.awayTeam">
+          @if (matchInfo.awayAcademyLogoUrl && !awayLogoError) {
+            <img [src]="matchInfo.awayAcademyLogoUrl" [alt]="matchInfo.awayAcademy || matchInfo.awayTeam" class="academy-logo-img" (error)="awayLogoError = true" />
+          } @else {
+            <span class="avatar-initials">{{ getInitials(matchInfo.awayAcademy || matchInfo.awayTeam) }}</span>
+          }
+        </div>
+      }
       <div class="team-text">
-        <span class="team-name">{{ matchInfo.awayTeam }}</span>
+        <span class="team-name" appMarqueeIfOverflow [marqueeText]="matchInfo.awayTeam">{{ matchInfo.awayTeam }}</span>
         @if (matchInfo.awayAcademy) {
           @if (matchInfo.awayAcademyId) {
             <a [routerLink]="['/academy/profile', matchInfo.awayAcademyId]" class="academy-sub academy-link">{{ matchInfo.awayAcademy }}</a>

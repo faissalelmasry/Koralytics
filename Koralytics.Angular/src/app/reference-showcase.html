@@ -11,7 +11,7 @@
 
 <!-- ⚽ 3. Background Master Wrapper (BFA Style) -->
 <div class="bfa-cyber-pitch-wrapper">
-  
+
   <!-- BFA Glow Core Aurora Blobs -->
   <div class="bfa-blob bfa-blob-lime"></div>
   <div class="bfa-blob bfa-blob-cyan"></div>
@@ -19,56 +19,51 @@
   <!-- Pure SVG Tactical Pitch Blueprint -->
   <div class="bfa-pitch-container">
     <svg viewBox="0 0 1000 600" preserveAspectRatio="none" class="bfa-pitch-svg">
-      <rect x="20" y="20" width="960" height="560" class="pitch-line standard-line"/>
-      <line x1="500" y1="20" x2="500" y2="580" class="pitch-line standard-line"/>
-      <circle cx="500" cy="300" r="90" class="pitch-line dashed-line"/>
-      <circle cx="500" cy="300" r="4" class="pitch-spot"/>
-      <rect x="20" y="150" width="160" height="300" class="pitch-line standard-line"/>
-      <rect x="20" y="220" width="60" height="160" class="pitch-line standard-line"/>
-      <circle cx="180" cy="300" r="4" class="pitch-spot"/>
-      <path d="M 180 250 A 90 90 0 0 1 180 350" class="pitch-line dashed-line"/>
-      <rect x="820" y="150" width="160" height="300" class="pitch-line standard-line"/>
-      <rect x="920" y="220" width="60" height="160" class="pitch-line standard-line"/>
-      <circle cx="820" cy="300" r="4" class="pitch-spot"/>
-      <path d="M 820 250 A 90 90 0 0 0 820 350" class="pitch-line dashed-line"/>
-      <path d="M 20 40 A 20 20 0 0 0 40 20" class="pitch-line standard-line"/>
-      <path d="M 20 560 A 20 20 0 0 1 40 580" class="pitch-line standard-line"/>
-      <path d="M 980 40 A 20 20 0 0 1 960 20" class="pitch-line standard-line"/>
-      <path d="M 980 560 A 20 20 0 0 0 960 580" class="pitch-line standard-line"/>
+      <rect x="20" y="20" width="960" height="560" class="pitch-line standard-line" />
+      <line x1="500" y1="20" x2="500" y2="580" class="pitch-line standard-line" />
+      <circle cx="500" cy="300" r="90" class="pitch-line dashed-line" />
+      <circle cx="500" cy="300" r="4" class="pitch-spot" />
+      <rect x="20" y="150" width="160" height="300" class="pitch-line standard-line" />
+      <rect x="20" y="220" width="60" height="160" class="pitch-line standard-line" />
+      <circle cx="180" cy="300" r="4" class="pitch-spot" />
+      <path d="M 180 250 A 90 90 0 0 1 180 350" class="pitch-line dashed-line" />
+      <rect x="820" y="150" width="160" height="300" class="pitch-line standard-line" />
+      <rect x="920" y="220" width="60" height="160" class="pitch-line standard-line" />
+      <circle cx="820" cy="300" r="4" class="pitch-spot" />
+      <path d="M 820 250 A 90 90 0 0 0 820 350" class="pitch-line dashed-line" />
+      <path d="M 20 40 A 20 20 0 0 0 40 20" class="pitch-line standard-line" />
+      <path d="M 20 560 A 20 20 0 0 1 40 580" class="pitch-line standard-line" />
+      <path d="M 980 40 A 20 20 0 0 1 960 20" class="pitch-line standard-line" />
+      <path d="M 980 560 A 20 20 0 0 0 960 580" class="pitch-line standard-line" />
     </svg>
   </div>
 
   <!-- 🎛️ 4. App Content Layout -->
   <div class="app-main-layout" [class.content-ready]="!isAppLoading">
-    
+
     <!-- Showcase Control Panel -->
-    <div class="showcase-container" style="max-width: 600px; margin: 40px auto; display: flex; flex-direction: column; gap: 24px; padding: 0 20px;">
-      
+    <div class="showcase-container"
+      style="max-width: 600px; margin: 40px auto; display: flex; flex-direction: column; gap: 24px; padding: 0 20px;">
+
       <div scrollReveal direction="bottom">
-        <app-search-bar 
-          placeholderText="search players, tactics, or clubs..." 
-          (searchChange)="mySearch = $event">
+        <app-search-bar placeholderText="search players, tactics, or clubs..." (searchChange)="mySearch = $event">
         </app-search-bar>
       </div>
 
       <!-- Text Inputs Form Block -->
-      <div scrollReveal direction="bottom" [delay]="100" class="inputs-row" style="display: flex; flex-direction: column; gap: 16px;">
-        <app-text-input 
-          label="player name" 
-          placeholder="e.g. mohamed salah"
-          [(value)]="playerName">
+      <div scrollReveal direction="bottom" [delay]="100" class="inputs-row"
+        style="display: flex; flex-direction: column; gap: 16px;">
+        <app-text-input label="player name" placeholder="e.g. mohamed salah" [(value)]="playerName">
         </app-text-input>
 
-        <app-text-input 
-          label="academy registration code" 
-          type="password"
-          placeholder="enter 6 digit code"
+        <app-text-input label="academy registration code" type="password" placeholder="enter 6 digit code"
           errorMessage="invalid code, try again">
         </app-text-input>
       </div>
 
       <!-- Action Buttons -->
-      <div scrollReveal direction="bottom" [delay]="150" class="buttons-test-zone" style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;">
+      <div scrollReveal direction="bottom" [delay]="150" class="buttons-test-zone"
+        style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;">
         <app-button variant="accent">Log in</app-button>
         <app-button variant="coral">Delete Club</app-button>
         <app-button variant="cyan">analyze tactics</app-button>
@@ -76,36 +71,25 @@
         <app-button variant="coral" (click)="quickModalTest()">Delete Club</app-button>
       </div>
       <div scrollReveal direction="bottom" [delay]="200">
-        <app-file-upload
-          accept="video/mp4,video/mkv"
-          [maxFileSizeMb]="100"
-          [isUploading]="isFootageUploading"
-          [uploadProgress]="uploadProgressValue"
-          (fileSelected)="onMatchFootageSelected($event)">
+        <app-file-upload accept="video/mp4,video/mkv" [maxFileSizeMb]="100" [isUploading]="isFootageUploading"
+          [uploadProgress]="uploadProgressValue" (fileSelected)="onMatchFootageSelected($event)">
         </app-file-upload>
       </div>
 
       <div scrollReveal direction="bottom" [delay]="250">
-        <app-image-upload
-          [maxFileSizeMb]="3"
-          [isUploading]="isAvatarUploading"
-          aspectRatio="circle"
+        <app-image-upload [maxFileSizeMb]="3" [isUploading]="isAvatarUploading" aspectRatio="circle"
           (imageSelected)="onPlayerAvatarSelected($event)">
         </app-image-upload>
       </div>
 
       <div scrollReveal direction="bottom" [delay]="280">
-        <app-image-upload
-          [maxFileSizeMb]="3"
-          [isUploading]="isAvatarUploading"
-          aspectRatio="square"
+        <app-image-upload [maxFileSizeMb]="3" [isUploading]="isAvatarUploading" aspectRatio="square"
           (imageSelected)="onPlayerAvatarSelected($event)">
         </app-image-upload>
       </div>
 
       <div scrollReveal direction="bottom" [delay]="320">
-        <app-empty-state 
-          title="no players registered" 
+        <app-empty-state title="no players registered"
           description="there are no squad profiles inside this academy database yet.">
         </app-empty-state>
       </div>
@@ -115,59 +99,50 @@
       </div>
 
       <div scrollReveal direction="bottom" [delay]="420">
-        <app-data-table 
-          [columns]="tableColumns" 
-          [data]="playersData"
-          (actionClick)="handleTableAction($event)">
+        <app-data-table [columns]="tableColumns" [data]="playersData" (actionClick)="handleTableAction($event)">
         </app-data-table>
       </div>
 
       <div scrollReveal direction="bottom" [delay]="480">
-        <app-pagination
-          [totalItems]="playersData.length"
-          [pageSize]="pageSize"
-          [currentPage]="currentPage"
+        <app-pagination [totalItems]="playersData.length" [pageSize]="pageSize" [currentPage]="currentPage"
           (pageChange)="onPageChanged($event)">
         </app-pagination>
       </div>
 
       <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-        <span scrollReveal direction="bottom" [delay]="540"><app-status-chip label="active roster" type="success"></app-status-chip></span>
-        <span scrollReveal direction="bottom" [delay]="570"><app-status-chip label="injured" type="danger"></app-status-chip></span>
-        <span scrollReveal direction="bottom" [delay]="600"><app-status-chip label="live video tracking" type="info" [pulse]="true"></app-status-chip></span>
+        <span scrollReveal direction="bottom" [delay]="540"><app-status-chip label="active roster"
+            type="success"></app-status-chip></span>
+        <span scrollReveal direction="bottom" [delay]="570"><app-status-chip label="injured"
+            type="danger"></app-status-chip></span>
+        <span scrollReveal direction="bottom" [delay]="600"><app-status-chip label="live video tracking" type="info"
+            [pulse]="true"></app-status-chip></span>
       </div>
 
       <div scrollReveal direction="bottom" [delay]="650">
-        <app-select 
-          label="preferred position" 
-          [options]="[
+        <app-select label="preferred position" [options]="[
             { value: 'lw', label: 'left winger' },
             { value: 'st', label: 'striker' },
             { value: 'rw', label: 'right winger' },
             { value: 'cm', label: 'central midfielder' }
-          ]"
-          [(value)]="selectedPosition">
+          ]" [(value)]="selectedPosition">
         </app-select>
       </div>
 
       <div scrollReveal direction="bottom" [delay]="700">
-        <app-date-picker 
-          label="player date of birth" 
-          [(value)]="playerBirthDate">
+        <app-date-picker label="player date of birth" [(value)]="playerBirthDate">
         </app-date-picker>
       </div>
 
       <div scrollReveal direction="bottom" [delay]="750">
-        <app-toggle 
-          label="enable real-time video analysis tracking" 
-          [(checked)]="isAiAnalysisEnabled">
+        <app-toggle label="enable real-time video analysis tracking" [(checked)]="isAiAnalysisEnabled">
         </app-toggle>
       </div>
 
       <!-- Shared Components Showcase: Rating Display, Card, Chart, Confirm Dialog -->
-      <div scrollReveal direction="bottom" [delay]="770" style="display: flex; flex-direction: column; gap: 20px; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 20px;">
+      <div scrollReveal direction="bottom" [delay]="770"
+        style="display: flex; flex-direction: column; gap: 20px; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 20px;">
         <h3 style="color: #f2f3f5; font-size: 1.2rem; font-weight: 700; margin: 0 0 10px 0;">New Shared Components</h3>
-        
+
         <!-- RATING DISPLAYS -->
         <div style="display: flex; flex-direction: column; gap: 16px;">
           <h4 style="color: #9ca3af; font-size: 0.9rem; font-weight: 600; margin: 0;">Rating Displays</h4>
@@ -182,12 +157,15 @@
         <!-- CARDS -->
         <div style="display: flex; flex-direction: column; gap: 16px;">
           <h4 style="color: #9ca3af; font-size: 0.9rem; font-weight: 600; margin: 0;">Cards</h4>
-          <app-card title="Tactical Analysis Report" subtitle="Tournament performance review" variant="elevated" [hoverable]="true">
+          <app-card title="Tactical Analysis Report" subtitle="Tournament performance review" variant="elevated"
+            [hoverable]="true">
             <div body>
-              <p style="margin: 0; font-size: 0.9rem; color: #d1d5db;">The squad is playing with excellent synergy. Acceleration rates are showing 15% progression compared to last month.</p>
+              <p style="margin: 0; font-size: 0.9rem; color: #d1d5db;">The squad is playing with excellent synergy.
+                Acceleration rates are showing 15% progression compared to last month.</p>
             </div>
             <div footer>
-              <app-button variant="slate" style="transform: scale(0.85);" (click)="isConfirmDialogOpen = true">Request Redirection</app-button>
+              <app-button variant="slate" style="transform: scale(0.85);" (click)="isConfirmDialogOpen = true">Request
+                Redirection</app-button>
               <app-button variant="accent" style="transform: scale(0.85);">Export PDF</app-button>
             </div>
           </app-card>
@@ -202,18 +180,12 @@
         <!-- CONFIRM DIALOG TRIGGER -->
         <div style="display: flex; flex-direction: column; gap: 10px;">
           <app-button variant="coral" (click)="isConfirmDialogOpen = true">Test Cyber Confirm Overlay</app-button>
-          
-          <app-confirm-dialog
-            [isOpen]="isConfirmDialogOpen"
-            title="Terminate Active Tournament Session"
+
+          <app-confirm-dialog [isOpen]="isConfirmDialogOpen" title="Terminate Active Tournament Session"
             message="Are you sure you want to completely end the current tournament database? This action will archive all results permanently."
             [details]="['Participating academy squads will be locked', 'No new match reports can be logged']"
-            level="danger"
-            confirmText="Yes, Complete"
-            cancelText="Abort"
-            [requiresConfirmation]="true"
-            confirmationText="ARCHIVE"
-            (confirm)="isConfirmDialogOpen = false; triggerFakeTest()"
+            level="danger" confirmText="Yes, Complete" cancelText="Abort" [requiresConfirmation]="true"
+            confirmationText="ARCHIVE" (confirm)="isConfirmDialogOpen = false; triggerFakeTest()"
             (cancel)="isConfirmDialogOpen = false">
           </app-confirm-dialog>
         </div>
@@ -223,9 +195,7 @@
     <!-- Main Routing Area -->
     <main class="main-content">
       <div style="padding: 40px; display: flex; justify-content: center;" scrollReveal direction="bottom" [delay]="800">
-        <button 
-          (click)="triggerFakeTest()" 
-          style="
+        <button (click)="triggerFakeTest()" style="
             background: #c8ff4d; 
             color: #0a0c0f; 
             border: none; 
@@ -236,7 +206,7 @@
             cursor: pointer;
             box-shadow: 0 0 20px rgba(200, 255, 77, 0.3);
           ">
-          ⚡ run cyber toast test
+          run cyber toast test
         </button>
       </div>
       <router-outlet></router-outlet>

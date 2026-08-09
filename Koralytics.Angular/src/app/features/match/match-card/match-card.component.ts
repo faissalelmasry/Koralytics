@@ -1,6 +1,7 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatchCardModel } from '../../../../core/models/Match/match-card.model';
+import { MarqueeIfOverflowDirective } from '../match-timeline/marquee-if-overflow.directive';
 
 const FORMAT_LABELS: Record<string, string> = {
   FiveSide: '5 v 5',
@@ -11,7 +12,7 @@ const FORMAT_LABELS: Record<string, string> = {
 @Component({
   selector: 'app-match-card',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, MarqueeIfOverflowDirective],
   templateUrl: './match-card.component.html',
   styleUrls: ['./match-card.component.css']
 })

@@ -9,5 +9,6 @@ namespace Koralytics.Application.Services.ProfileManagement
         Task<BaseUserProfileResponseDto> GetMyProfileAsync(int userId);
         Task<BaseUserProfileResponseDto> UpdateProfileAsync(int userId, UpdateProfileRequestDto dto);
         Task<string> UpdateProfileImageAsync(int userId, IFormFile image);
+        Task RemoveProfileImageAsync(int userId);
     }
 }

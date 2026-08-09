@@ -30,6 +30,11 @@ namespace Koralytics.Application.Services.Academy.AcademyService
         Task<string> UpdateAcademyLogoAsync(int academyId, IFormFile image, int performedByUserId);
 
         /// <summary>
+        /// Removes the academy logo image.
+        /// </summary>
+        Task RemoveAcademyLogoAsync(int academyId, int performedByUserId);
+
+        /// <summary>
         /// Updates the status of an academy (e.g. Active, Suspended, Inactive).
         /// </summary>
         Task<AcademyResponseDto> UpdateAcademyStatusAsync(int academyId, UpdateAcademyStatusDto dto, int performedByUserId);

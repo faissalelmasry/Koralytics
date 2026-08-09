@@ -5,7 +5,7 @@
   border-radius: inherit;
 }
 
-.feature-lock-container.is-locked {
+.feature-lock-container.is-locked:not(.is-button-mode) {
   overflow: hidden;
 }
 
@@ -22,6 +22,48 @@
   user-select: none;
 }
 
+.feature-content.button-locked {
+  pointer-events: none;
+  user-select: none;
+  opacity: 0.85;
+}
+
+.button-lock-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 10px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: inherit;
+  backdrop-filter: blur(1px);
+  transition: all 0.2s ease;
+}
+
+.button-lock-overlay:hover {
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.button-lock-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--lock-color, #fbbf24);
+  color: #090d16;
+  box-shadow: 0 0 12px color-mix(in srgb, var(--lock-color, #fbbf24) 60%, transparent);
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.button-lock-overlay:hover .button-lock-badge {
+  transform: scale(1.18);
+}
+
 .lock-overlay {
   position: absolute;
   inset: 0;
@@ -35,13 +77,13 @@
 }
 
 .lock-card {
-  background: rgba(30, 30, 35, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
+  background: rgba(18, 20, 28, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
   padding: 2rem;
   text-align: center;
-  max-width: 320px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  max-width: 340px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -52,20 +94,22 @@
 .lock-icon {
   width: 56px;
   height: 56px;
-  background: rgba(234, 179, 8, 0.15);
-  color: #eab308;
+  background: color-mix(in srgb, var(--lock-color, #fbbf24) 15%, transparent);
+  color: var(--lock-color, #fbbf24);
   border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
   margin-bottom: 4px;
+  box-shadow: 0 0 20px color-mix(in srgb, var(--lock-color, #fbbf24) 20%, transparent);
 }
 
 .lock-title {
   margin: 0;
-  font-size: 1.25rem;
-  font-weight: 600;
+  font-size: 1.35rem;
+  font-weight: 700;
   color: #f8fafc;
+  letter-spacing: -0.01em;
 }
 
 .lock-message {
@@ -77,11 +121,71 @@
 }
 
 .tier-highlight {
-  color: #eab308;
+  color: var(--lock-color, #fbbf24);
   font-weight: 700;
+}
+
+/* Modal Backdrop & Dialog Popup */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  padding: 1rem;
+  animation: fadeIn 0.2s ease-out forwards;
+}
+
+.modal-card.lock-card {
+  position: relative;
+  background: rgba(18, 20, 28, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  padding: 2.5rem 2rem 2rem 2rem;
+  text-align: center;
+  max-width: 360px;
+  width: 100%;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 30px color-mix(in srgb, var(--lock-color, #fbbf24) 15%, transparent);
+  animation: modalPop 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modal-close-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  transform: scale(1.05);
 }
 
 @keyframes slideUp {
   0% { opacity: 0; transform: translateY(20px) scale(0.95); }
   100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalPop {
+  0% { opacity: 0; transform: scale(0.9) translateY(15px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
 }

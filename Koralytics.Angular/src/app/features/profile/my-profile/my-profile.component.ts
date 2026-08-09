@@ -60,6 +60,7 @@ export class MyProfileComponent implements OnInit {
   pendingAcademyRequests: any[] = [];
   isRespondingToAcademyRequest = false;
   isLoading = true;
+  imageError = false;
   isEditing = false;
   isSaving = false;
   isUnlinkingParent = false;
@@ -88,11 +89,11 @@ export class MyProfileComponent implements OnInit {
   ];
 
   readonly weakFootOptions: SelectOption[] = [
-    { value: 1, label: '1 ★' },
-    { value: 2, label: '2 ★' },
-    { value: 3, label: '3 ★' },
-    { value: 4, label: '4 ★' },
-    { value: 5, label: '5 ★' }
+    { value: 1, label: '1 / 5' },
+    { value: 2, label: '2 / 5' },
+    { value: 3, label: '3 / 5' },
+    { value: 4, label: '4 / 5' },
+    { value: 5, label: '5 / 5' }
   ];
 
   editPositions: PlayerPositionDto[] = [];
@@ -463,12 +464,16 @@ export class MyProfileComponent implements OnInit {
   onImageSelected(file: File): void {
     this.isUploadingImage = true;
     this.profileService.updateProfileImage(file).subscribe({
-      next: (res) => {
+      next: (res: any) => {
         this.isUploadingImage = false;
-        if (res.isSuccess && res.data && this.profile) {
-          this.profile.profileImageUrl = res.data;
+        if (res.isSuccess) {
+          const newUrl = typeof res.data === 'string' ? res.data : (res.data?.profileImageUrl || res.data);
+          if (this.profile && newUrl) {
+            this.profile.profileImageUrl = newUrl;
+          }
           this.showImageUploadModal = false;
           this.toast.show('Profile image updated successfully.', 'success');
+          this.loadProfile();
         } else {
           this.toast.show(res.message || 'Failed to upload image.', 'error');
         }
@@ -476,6 +481,32 @@ export class MyProfileComponent implements OnInit {
       error: (err) => {
         this.isUploadingImage = false;
         const msg = err.error?.message || 'Failed to upload profile image.';
+        this.toast.show(msg, 'error');
+      }
+    });
+  }
+
+  removeProfileImage(): void {
+    if (!this.profile?.profileImageUrl) return;
+
+    this.isUploadingImage = true;
+    this.profileService.removeProfileImage().subscribe({
+      next: (res) => {
+        this.isUploadingImage = false;
+        if (res.isSuccess) {
+          if (this.profile) {
+            this.profile.profileImageUrl = null;
+          }
+          this.showImageUploadModal = false;
+          this.toast.show(res.message || 'Profile photo removed successfully.', 'success');
+          this.loadProfile();
+        } else {
+          this.toast.show(res.message || 'Failed to remove profile photo.', 'error');
+        }
+      },
+      error: (err) => {
+        this.isUploadingImage = false;
+        const msg = err.error?.message || 'Failed to remove profile photo.';
         this.toast.show(msg, 'error');
       }
     });

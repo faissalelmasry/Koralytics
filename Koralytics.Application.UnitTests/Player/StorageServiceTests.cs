@@ -486,6 +486,28 @@ namespace Koralytics.Application.UnitTests.Player
             _unitOfWorkMock.Verify(u => u.SaveChangesAsync(), Times.Once);
         }
 
+        [Fact]
+        public async Task UnpinHighlightAsync_Success_UnpinsHighlight()
+        {
+            // Arrange
+            var highlightToUnpin = new PlayerHighlight { Id = 1, PlayerId = 1, IsPinned = true };
+
+            var highlightRepoMock = new Mock<IRepository<PlayerHighlight>>();
+            highlightRepoMock.Setup(r => r.FindAsync(It.IsAny<Expression<Func<PlayerHighlight, bool>>>()))
+                .ReturnsAsync(highlightToUnpin);
+
+            _unitOfWorkMock.Setup(u => u.Repository<PlayerHighlight>())
+                .Returns(highlightRepoMock.Object);
+
+            // Act
+            var result = await _service.UnpinHighlightAsync(1, 1);
+
+            // Assert
+            Assert.True(result);
+            Assert.False(highlightToUnpin.IsPinned);
+            _unitOfWorkMock.Verify(u => u.SaveChangesAsync(), Times.Once);
+        }
+
         // ──────────────────────────────────────────────────────────────
         // GetHighlightsAsync Tests
         // ──────────────────────────────────────────────────────────────

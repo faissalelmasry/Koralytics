@@ -29,4 +29,8 @@ export class ProfileService {
     formData.append('image', image);
     return this.http.patch<ApiResponse<string>>(`${this.apiUrl}/me/image`, formData);
   }
+
+  removeProfileImage(): Observable<ApiResponse<void>> {
+    return this.http.delete<ApiResponse<void>>(`${this.apiUrl}/me/image`);
+  }
 }

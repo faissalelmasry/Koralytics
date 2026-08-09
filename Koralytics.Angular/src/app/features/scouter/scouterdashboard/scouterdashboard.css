@@ -141,6 +141,15 @@
   width: 68px;
   height: 68px;
   flex-shrink: 0;
+  overflow: hidden;
+  border-radius: 50%;
+}
+
+.hero-avatar-img {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .avatar-fallback {

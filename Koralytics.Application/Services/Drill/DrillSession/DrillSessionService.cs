@@ -167,6 +167,9 @@ namespace Koralytics.Application.Services.Drill.DrillSession
                 .Include(s => s.SessionDrills)
                     .ThenInclude(d => d.DrillTemplate)
                         .ThenInclude(dt => dt.DrillCategory)
+                .Include(s => s.SessionAttendances)
+                    .ThenInclude(sa => sa.Player)
+                        .ThenInclude(p => p.PlayerPositions)
                 .AsNoTracking()
                 .Where(s => s.Id == sessionId && s.AcademyId == currentAcademyId);
 

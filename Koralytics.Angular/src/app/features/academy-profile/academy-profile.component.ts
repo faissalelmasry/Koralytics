@@ -55,6 +55,7 @@ export class AcademyProfileComponent implements OnInit, OnDestroy {
 
   academyId = 0;
   isLoading = true;
+  logoImageError = false;
   error: string | null = null;
 
   // Data
