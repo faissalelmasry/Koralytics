@@ -625,29 +625,52 @@
 /* ─── Responsive ──────────────────────────────────────────────── */
 
 /* Tablet */
+/* Tablet */
 @media (max-width: 900px) {
+  .page-wrapper {
+    padding: 100px 16px 40px;
+    gap: 16px;
+    box-sizing: border-box;
+  }
+
   .builder-workspace {
     grid-template-columns: 1fr;
+    gap: 16px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .pitch-and-bench-wrapper {
+    width: 100%;
+    min-width: 0;
   }
 
   .squad-sidebar-card {
     max-height: 320px;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .squad-scroll-list {
-    max-height: 250px;
+    max-height: 240px;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .builder-header-card {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
     gap: 16px;
+    padding: 18px;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .header-actions {
     width: 100%;
     flex-wrap: wrap;
     gap: 12px;
+    box-sizing: border-box;
   }
 
   .formation-selector-box {
@@ -657,10 +680,12 @@
 
   .side-toggle-slider {
     width: 100%;
+    box-sizing: border-box;
   }
 
   .toggle-btn {
     flex: 1;
+    min-width: 0;
     text-align: center;
     padding: 8px 10px;
     font-size: 0.78rem;
@@ -670,19 +695,20 @@
 /* Mobile */
 @media (max-width: 600px) {
   .page-wrapper {
-    padding: 90px 14px 40px;
+    padding: 88px 12px 30px;
     gap: 14px;
   }
 
   /* ── Header ── */
   .builder-header-card {
-    padding: 16px;
+    padding: 14px;
     border-radius: 14px;
-    gap: 14px;
+    gap: 12px;
   }
 
   .builder-title {
-    font-size: 1.3rem;
+    font-size: 1.25rem;
+    line-height: 1.2;
   }
 
   .builder-subtitle {
@@ -701,11 +727,13 @@
 
   .toggle-btn {
     flex: 1;
-    font-size: 0.75rem;
-    padding: 7px 6px;
+    min-width: 0;
+    font-size: 0.72rem;
+    padding: 8px 4px;
     white-space: normal;
     text-align: center;
     line-height: 1.2;
+    word-break: break-word;
   }
 
   .formation-selector-box {
@@ -713,25 +741,53 @@
     width: 100%;
   }
 
+  .header-actions app-button {
+    width: 100%;
+  }
+
   /* ── Squad Sidebar ── */
   .squad-sidebar-card {
-    max-height: 260px;
-    padding: 14px;
+    max-height: 280px;
+    padding: 12px;
     border-radius: 14px;
   }
 
+  .sidebar-header {
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .sidebar-title {
+    font-size: 0.9rem;
+  }
+
+  .squad-count-badge {
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    flex-shrink: 0;
+  }
+
   .squad-scroll-list {
-    max-height: 190px;
+    max-height: 200px;
     gap: 8px;
   }
 
   .squad-item-row {
-    padding: 6px 10px;
+    padding: 6px 8px;
     gap: 8px;
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .squad-player-meta {
+    flex: 1;
+    min-width: 0;
   }
 
   .squad-player-meta .player-name {
     font-size: 0.82rem;
+    max-width: 100%;
   }
 
   .squad-player-meta .player-position-tag {
@@ -741,31 +797,47 @@
   /* ── Pitch ── */
   .tactical-pitch-container {
     height: 420px;
-    padding: 8px;
+    padding: 6px;
     border-radius: 16px;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .pitch-grass {
-    padding: 10px 6px;
+    padding: 10px 4px;
     border-radius: 12px;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  .formation-row {
+    padding: 0 2px;
   }
 
   .pitch-center-circle {
-    width: 80px;
-    height: 80px;
+    width: 70px;
+    height: 70px;
   }
 
   .pitch-penalty-area-top,
   .pitch-penalty-area-bottom {
-    width: 130px;
-    height: 48px;
+    width: 120px;
+    height: 44px;
   }
 
   .pitch-slot {
-    width: 52px;
-    height: 70px;
+    width: 48px;
+    height: 68px;
     border-radius: 8px;
     border-width: 1.5px;
+    flex-shrink: 0;
+  }
+
+  .pitch-slot app-mini-player-card,
+  .bench-slot app-mini-player-card,
+  .slotted-mini-card app-mini-player-card {
+    width: 100% !important;
+    height: 100% !important;
   }
 
   .slot-role-code {
@@ -786,29 +858,50 @@
 
   /* ── Bench ── */
   .bench-section-card {
-    padding: 12px 14px;
+    padding: 12px;
     border-radius: 14px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
   }
 
   .bench-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
   }
 
   .bench-title {
-    font-size: 0.8rem;
+    font-size: 0.82rem;
+  }
+
+  .starters-status {
+    font-size: 0.72rem;
+    padding: 2px 8px;
+    flex-shrink: 0;
   }
 
   .bench-slot {
-    min-width: 58px;
-    height: 78px;
+    width: 54px;
+    min-width: 54px;
+    height: 74px;
     border-radius: 10px;
+    flex-shrink: 0;
   }
 
   .bench-flex-container {
-    min-height: 85px;
+    min-height: 80px;
     gap: 8px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 4px 2px 8px 2px;
   }
 
   .empty-bench-placeholder {
@@ -816,44 +909,67 @@
   }
 }
 
-/* Extra-small phones (≤390px) */
+/* Extra-small phones (≤390px, e.g. iPhone SE) */
 @media (max-width: 390px) {
   .page-wrapper {
-    padding: 80px 10px 32px;
+    padding: 80px 8px 24px;
+    gap: 12px;
+  }
+
+  .builder-header-card {
+    padding: 12px;
   }
 
   .builder-title {
-    font-size: 1.1rem;
+    font-size: 1.15rem;
   }
 
   .toggle-btn {
     font-size: 0.68rem;
-    padding: 6px 4px;
+    padding: 6px 3px;
   }
 
-  /* Pitch: even smaller slots for very narrow screens */
+  .squad-sidebar-card {
+    padding: 10px;
+    max-height: 260px;
+  }
+
+  .squad-item-row {
+    padding: 5px 6px;
+    gap: 6px;
+  }
+
+  /* Pitch: optimized dimensions for narrow mobile screens */
   .tactical-pitch-container {
-    height: 360px;
+    height: 370px;
+    padding: 4px;
+  }
+
+  .pitch-grass {
+    padding: 8px 2px;
   }
 
   .pitch-slot {
     width: 42px;
-    height: 58px;
+    height: 60px;
+    border-radius: 6px;
   }
 
   .bench-slot {
-    min-width: 48px;
-    height: 66px;
+    width: 46px;
+    min-width: 46px;
+    height: 64px;
+    border-radius: 8px;
   }
 
   .pitch-center-circle {
-    width: 60px;
-    height: 60px;
+    width: 54px;
+    height: 54px;
   }
 
   .pitch-penalty-area-top,
   .pitch-penalty-area-bottom {
-    width: 100px;
-    height: 38px;
+    width: 90px;
+    height: 32px;
   }
 }

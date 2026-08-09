@@ -301,3 +301,60 @@ h4 {
   color: #00e5ff;
   text-decoration: underline;
 }
+
+@media (max-width: 640px) {
+  .section-container {
+    padding: 12px;
+    border-radius: 12px;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .search-panel,
+  .pending-section {
+    padding: 14px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .cyber-search-bar {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-input-wrapper {
+    width: 100%;
+  }
+
+  .cyber-input {
+    width: 100% !important;
+    box-sizing: border-box;
+  }
+
+  .cyber-input:focus {
+    width: 100% !important;
+  }
+
+  .btn-search-cyber {
+    width: 100%;
+  }
+
+  .user-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .table-container {
+    width: 100%;
+    overflow-x: auto;
+  }
+}

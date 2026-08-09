@@ -449,3 +449,13 @@
     justify-content: center;
   }
 }
+
+@media (max-width: 640px) {
+  .profile-page {
+    padding: 85px 12px 30px;
+  }
+
+  .hero-banner {
+    padding: 18px 16px;
+  }
+}

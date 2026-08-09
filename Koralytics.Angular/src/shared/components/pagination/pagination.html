@@ -13,24 +13,27 @@
       class="btn-nav" 
       [disabled]="currentPage === 1" 
       (click)="goToPage(currentPage - 1)">
-      &larr; {{ 'COMMON.PAGINATION.PREV' | translate }}
+      &larr; <span class="nav-text">{{ 'COMMON.PAGINATION.PREV' | translate }}</span>
     </button>
 
     <!-- Page Numbers Loop -->
-    <button 
-      *ngFor="let page of pagesArray" 
-      class="btn-page-num" 
-      [class.active]="page === currentPage"
-      (click)="goToPage(page)">
-      {{ page }}
-    </button>
+    <ng-container *ngFor="let page of visiblePages">
+      <span *ngIf="page === '...'" class="pagination-ellipsis">&hellip;</span>
+      <button 
+        *ngIf="page !== '...'"
+        class="btn-page-num" 
+        [class.active]="page === currentPage"
+        (click)="goToPage(page)">
+        {{ page }}
+      </button>
+    </ng-container>
 
     <!-- Next Arrow -->
     <button 
       class="btn-nav" 
-      [disabled]="currentPage === totalPages" 
+      [disabled]="currentPage === totalPages || totalPages === 0" 
       (click)="goToPage(currentPage + 1)">
-      {{ 'COMMON.PAGINATION.NEXT' | translate }} &rarr;
+      <span class="nav-text">{{ 'COMMON.PAGINATION.NEXT' | translate }}</span> &rarr;
     </button>
 
   </div>

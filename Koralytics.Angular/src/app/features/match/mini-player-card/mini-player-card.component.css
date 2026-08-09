@@ -347,3 +347,45 @@
   font-size: 6.5px;
 }
 
+/* Compact sizing for pitch and bench slots on mobile screens */
+@media (max-width: 600px) {
+  :host-context(.pitch-slot) .mini-card-wrapper,
+  :host-context(.bench-slot) .mini-card-wrapper {
+    padding: 2px 3px !important;
+    border-radius: 8px !important;
+  }
+
+  :host-context(.pitch-slot) .overall-rating,
+  :host-context(.bench-slot) .overall-rating {
+    font-size: 11px !important;
+  }
+
+  :host-context(.pitch-slot) .position-code,
+  :host-context(.bench-slot) .position-code {
+    font-size: 6px !important;
+  }
+
+  :host-context(.pitch-slot) .mini-logo,
+  :host-context(.bench-slot) .mini-logo {
+    width: 9px !important;
+    height: 9px !important;
+  }
+
+  :host-context(.pitch-slot) .player-avatar-box,
+  :host-context(.bench-slot) .player-avatar-box {
+    width: 22px !important;
+    height: 22px !important;
+  }
+
+  :host-context(.pitch-slot) .player-initials,
+  :host-context(.bench-slot) .player-initials {
+    font-size: 9px !important;
+  }
+
+  :host-context(.pitch-slot) .player-fullname,
+  :host-context(.bench-slot) .player-fullname {
+    font-size: 6px !important;
+  }
+}
+
+

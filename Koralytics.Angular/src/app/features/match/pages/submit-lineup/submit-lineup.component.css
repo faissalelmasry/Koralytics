@@ -617,36 +617,62 @@
   }
 
   .page-wrapper {
-    padding: 95px 14px 40px;
+    padding: 100px 16px 40px;
     gap: 16px;
+    box-sizing: border-box;
   }
 
   .builder-workspace {
     grid-template-columns: 1fr;
     gap: 16px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .pitch-and-bench-wrapper {
+    width: 100%;
+    min-width: 0;
   }
 
   .squad-sidebar-card {
-    max-height: none;
-    padding: 14px;
+    max-height: 320px;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .squad-scroll-list {
     max-height: 240px;
     gap: 8px;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .squad-item-row {
     padding: 6px 10px;
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .squad-player-meta {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .squad-player-meta .player-name {
+    max-width: 100%;
   }
 
   .tactical-pitch-container {
     height: 520px;
     padding: 10px;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .pitch-grass {
     padding: 14px 8px;
+    box-sizing: border-box;
   }
 
   .builder-header-card {
@@ -654,12 +680,15 @@
     flex-direction: column;
     align-items: stretch;
     gap: 14px;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .header-actions {
     width: 100%;
     display: flex;
     gap: 12px;
+    box-sizing: border-box;
   }
 
   .formation-selector-box {
@@ -667,23 +696,30 @@
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 600px) {
   :host {
-    --slot-w: 52px;
-    --slot-h: 72px;
+    --slot-w: 48px;
+    --slot-h: 68px;
   }
 
   .page-wrapper {
-    padding: 85px 10px 30px;
+    padding: 88px 12px 30px;
+    gap: 14px;
   }
 
   .builder-title {
-    font-size: 1.4rem;
+    font-size: 1.25rem;
+    line-height: 1.2;
+  }
+
+  .builder-subtitle {
+    font-size: 0.78rem;
   }
 
   .header-actions {
     flex-direction: column;
     align-items: stretch;
+    gap: 10px;
   }
 
   .formation-selector-box {
@@ -694,84 +730,87 @@
     width: 100%;
   }
 
-  .tactical-pitch-container {
-    height: 460px;
-    border-radius: 16px;
-    padding: 8px;
+  /* ── Squad Sidebar ── */
+  .squad-sidebar-card {
+    max-height: 280px;
+    padding: 12px;
+    border-radius: 14px;
   }
 
-  .pitch-grass {
-    padding: 10px 4px;
-    border-radius: 12px;
-  }
-
-  .pitch-center-circle {
-    width: 95px;
-    height: 95px;
-  }
-
-  .pitch-penalty-area-top,
-  .pitch-penalty-area-bottom {
-    width: 150px;
-    height: 50px;
-  }
-
-  .slot-role-code {
-    font-size: 0.72rem;
-  }
-
-  .slot-plus-icon {
-    font-size: 0.85rem;
-  }
-
-  .bench-section-card {
-    padding: 12px 14px;
-  }
-
-  .bench-flex-container {
+  .sidebar-header {
     gap: 8px;
-    min-height: 76px;
+    flex-wrap: wrap;
+  }
+
+  .sidebar-title {
+    font-size: 0.9rem;
+  }
+
+  .squad-count-badge {
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    flex-shrink: 0;
   }
 
   .squad-scroll-list {
     max-height: 200px;
   }
 
-  .pitch-slot app-mini-player-card,
-  .bench-slot app-mini-player-card {
-    transform: scale(0.82);
-    transform-origin: center center;
-  }
-}
-
-@media (max-width: 430px) {
-  :host {
-    --slot-w: 44px;
-    --slot-h: 60px;
+  .squad-item-row {
+    padding: 6px 8px;
+    gap: 8px;
   }
 
-  .page-wrapper {
-    padding: 80px 8px 24px;
+  .squad-player-meta .player-name {
+    font-size: 0.82rem;
   }
 
+  .squad-player-meta .player-position-tag {
+    font-size: 0.68rem;
+  }
+
+  /* ── Pitch ── */
   .tactical-pitch-container {
-    height: 410px;
+    height: 420px;
+    border-radius: 16px;
     padding: 6px;
   }
 
   .pitch-grass {
-    padding: 8px 2px;
+    padding: 10px 4px;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .formation-row {
+    padding: 0 2px;
   }
 
   .pitch-center-circle {
-    width: 75px;
-    height: 75px;
+    width: 70px;
+    height: 70px;
   }
 
   .pitch-penalty-area-top,
   .pitch-penalty-area-bottom {
     width: 120px;
-    height: 40px;
+    height: 44px;
+  }
+
+  .pitch-slot {
+    width: 48px;
+    height: 68px;
+    border-radius: 8px;
+    border-width: 1.5px;
+    flex-shrink: 0;
+  }
+
+  .pitch-slot app-mini-player-card,
+  .bench-slot app-mini-player-card,
+  .slotted-mini-card app-mini-player-card {
+    width: 100% !important;
+    height: 100% !important;
+    transform: none !important;
   }
 
   .slot-role-code {
@@ -779,41 +818,130 @@
   }
 
   .slot-plus-icon {
-    font-size: 0.75rem;
+    font-size: 0.85rem;
   }
 
   .btn-remove-slot {
     width: 15px;
     height: 15px;
     font-size: 9px;
-    top: -4px;
-    right: -4px;
+    top: -5px;
+    right: -5px;
   }
 
-  .pitch-slot app-mini-player-card,
-  .bench-slot app-mini-player-card {
-    transform: scale(0.68);
-    transform-origin: center center;
+  /* ── Bench ── */
+  .bench-section-card {
+    padding: 12px;
+    border-radius: 14px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  .bench-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+
+  .bench-title {
+    font-size: 0.82rem;
+  }
+
+  .starters-status {
+    font-size: 0.72rem;
+    padding: 2px 8px;
+    flex-shrink: 0;
+  }
+
+  .bench-slot {
+    width: 54px;
+    min-width: 54px;
+    height: 74px;
+    border-radius: 10px;
+    flex-shrink: 0;
+  }
+
+  .bench-flex-container {
+    min-height: 80px;
+    gap: 8px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 4px 2px 8px 2px;
+  }
+
+  .empty-bench-placeholder {
+    font-size: 0.6rem;
   }
 }
 
-@media (max-width: 360px) {
+/* Extra-small phones (≤390px, e.g. iPhone SE) */
+@media (max-width: 390px) {
   :host {
-    --slot-w: 38px;
-    --slot-h: 52px;
+    --slot-w: 42px;
+    --slot-h: 60px;
+  }
+
+  .page-wrapper {
+    padding: 80px 8px 24px;
+    gap: 12px;
+  }
+
+  .builder-header-card {
+    padding: 12px;
+  }
+
+  .builder-title {
+    font-size: 1.15rem;
+  }
+
+  .squad-sidebar-card {
+    padding: 10px;
+    max-height: 260px;
+  }
+
+  .squad-item-row {
+    padding: 5px 6px;
+    gap: 6px;
   }
 
   .tactical-pitch-container {
     height: 370px;
+    padding: 4px;
   }
 
-  .slot-role-code {
-    font-size: 0.6rem;
+  .pitch-grass {
+    padding: 8px 2px;
   }
 
-  .pitch-slot app-mini-player-card,
-  .bench-slot app-mini-player-card {
-    transform: scale(0.58);
-    transform-origin: center center;
+  .pitch-slot {
+    width: 42px;
+    height: 60px;
+    border-radius: 6px;
+  }
+
+  .bench-slot {
+    width: 46px;
+    min-width: 46px;
+    height: 64px;
+    border-radius: 8px;
+  }
+
+  .pitch-center-circle {
+    width: 54px;
+    height: 54px;
+  }
+
+  .pitch-penalty-area-top,
+  .pitch-penalty-area-bottom {
+    width: 90px;
+    height: 32px;
   }
 }
