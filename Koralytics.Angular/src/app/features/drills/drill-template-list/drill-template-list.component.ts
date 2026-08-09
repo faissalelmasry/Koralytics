@@ -24,6 +24,7 @@ import { CustomToggle } from '../../../../shared/components/custom-toggle/custom
 import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner';
 import { CustomInputComponent } from '../../../../shared/components/custom-input-component/custom-input-component';
 import { NavbarComponent } from '../../../../shared/components/navbar/navbar';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Footer } from '../../../../shared/components/footer/footer';
 
 @Component({
@@ -43,6 +44,7 @@ import { Footer } from '../../../../shared/components/footer/footer';
     CustomToggle,
     LoadingSpinnerComponent,
     EmptyStateComponent,
+    TranslatePipe
     Footer, TranslatePipe, LocalizedDatePipe
   ],
 })
@@ -149,7 +151,8 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private authService: AuthService,
     private cdr: ChangeDetectorRef,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private translate: TranslateService
   ) {
     this.drillForm = this.fb.group({
       name: ['', [Validators.required, Validators.maxLength(300)]],
@@ -421,6 +424,40 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
+  closeForm(): void {
+    this.isFormOpen = false;
+    setTimeout(() => this.drillForm.reset(), 300);
+  }
+
+  onSubmitForm(): void {
+    if (this.drillForm.invalid) {
+      this.drillForm.markAllAsTouched();
+      return;
+    }
+
+    this.isSaving = true;
+    this.formError = '';
+    const formData = this.drillForm.value;
+
+    const request$ = this.isEditing && this.selectedDrillId
+      ? this.drillTemplateService.updateTemplate(this.selectedDrillId, formData)
+      : this.drillTemplateService.createTemplate(formData);
+
+    request$.pipe(
+      finalize(() => this.isSaving = false)
+    ).subscribe({
+      next: () => {
+        this.closeForm();
+        this.showToast(this.translate.instant(this.isEditing ? 'DRILLS.TEMPLATES.TOAST_UPDATED' : 'DRILLS.TEMPLATES.TOAST_CREATED'), 'success');
+        this.fetchTemplates();
+      },
+      error: (err) => {
+        const errorMsg = this.extractErrorMessage(err, this.translate.instant('DRILLS.TEMPLATES.FAILED_SAVE'));
+        this.formError = errorMsg;
+        this.showErrorDialog(this.translate.instant('DRILLS.TEMPLATES.DIALOG_SAVE_FAILED'), errorMsg);
+      }
+    });
+  }
   // ==========================================
   // FEEDBACK & MUTATIONS
   // ==========================================
@@ -440,54 +477,48 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
       isOpen: true,
       title: title,
       message: message,
-      confirmText: this.translate.instant('COMMON.OK') || 'OK',
+      confirmText: this.translate.instant('DRILLS.TEMPLATES.BTN_OK'),
       action: () => { this.closeConfirm(); }
     };
     this.cdr.detectChanges();
   }
 
   onShareTemplate(drill: DrillTemplateDto): void {
-    this.subscriptions.add(
-      this.drillTemplateService.shareTemplate(drill.id).subscribe({
-        next: () => {
-          const index = this.visibleTemplates.findIndex(t => t.id === drill.id);
-          if (index !== -1) {
-            this.visibleTemplates[index].isShared = !this.visibleTemplates[index].isShared;
-            this.showToast(this.visibleTemplates[index].isShared ? this.translate.instant('DRILLS.TEMPLATE_LIST.SHARE_SUCCESS') || 'Template shared successfully.' : this.translate.instant('DRILLS.TEMPLATE_LIST.UNSHARE_SUCCESS') || 'Template unshared successfully.', 'success');
-            this.calculateStats();
-            this.cdr.detectChanges();
-          }
-        },
-        error: (err) => {
-          this.showErrorDialog(this.translate.instant('DRILLS.TEMPLATE_LIST.SHARE_FAIL') || 'Share Failed', this.extractErrorMessage(err, 'Failed to toggle share status.'));
+    this.drillTemplateService.shareTemplate(drill.id).subscribe({
+      next: () => {
+        const index = this.visibleTemplates.findIndex(t => t.id === drill.id);
+        if (index !== -1) {
+          this.visibleTemplates[index].isShared = !this.visibleTemplates[index].isShared;
+          this.showToast(this.translate.instant(this.visibleTemplates[index].isShared ? 'DRILLS.TEMPLATES.TOAST_SHARED' : 'DRILLS.TEMPLATES.TOAST_UNSHARED'), 'success');
+          this.calculateStats();
         }
-      })
-    );
+      },
+      error: (err) => {
+        this.showErrorDialog(this.translate.instant('DRILLS.TEMPLATES.DIALOG_SHARE_FAILED'), this.extractErrorMessage(err, this.translate.instant('DRILLS.TEMPLATES.FAILED_SHARE')));
+      }
+    });
   }
 
   onDeleteTemplate(drill: DrillTemplateDto): void {
     this.confirmModal = {
       isOpen: true,
-      title: 'DRILLS.TEMPLATE_LIST.DELETE_TITLE',
-      message: 'DRILLS.TEMPLATE_LIST.DELETE_MESSAGE',
-      messageParams: { name: drill.name },
-      confirmText: 'DRILLS.TEMPLATE_LIST.DELETE_YES',
+      title: this.translate.instant('DRILLS.TEMPLATES.CONFIRM_DELETE_TITLE'),
+      message: this.translate.instant('DRILLS.TEMPLATES.CONFIRM_DELETE_MSG', { name: drill.name }),
+      confirmText: this.translate.instant('DRILLS.TEMPLATES.CONFIRM_DELETE_BTN'),
       action: () => {
-        this.subscriptions.add(
-          this.drillTemplateService.deleteTemplate(drill.id).subscribe({
-            next: () => {
-              this.visibleTemplates = this.visibleTemplates.filter(t => t.id !== drill.id);
-              if (this.totalItems > 0) this.totalItems--;
-              this.showToast(this.translate.instant('DRILLS.TEMPLATE_LIST.DELETE_SUCCESS') || 'Template deleted successfully.', 'success');
-              this.calculateStats();
-              this.calculatePagination();
-              this.closeConfirm();
-            },
-            error: (err) => {
-              this.showErrorDialog(this.translate.instant('DRILLS.TEMPLATE_LIST.DELETE_FAIL_TITLE') || 'Cannot Delete Template', this.extractErrorMessage(err, 'Cannot delete this template.'));
-            }
-          })
-        );
+        this.drillTemplateService.deleteTemplate(drill.id).subscribe({
+          next: () => {
+            this.visibleTemplates = this.visibleTemplates.filter(t => t.id !== drill.id);
+            if (this.totalItems > 0) this.totalItems--;
+            this.showToast(this.translate.instant('DRILLS.TEMPLATES.TOAST_DELETED'), 'success');
+            this.calculateStats();
+            this.calculatePagination();
+            this.closeConfirm();
+          },
+          error: (err) => {
+            this.showErrorDialog(this.translate.instant('DRILLS.TEMPLATES.DIALOG_DELETE_FAILED'), this.extractErrorMessage(err, this.translate.instant('DRILLS.TEMPLATES.FAILED_DELETE')));
+          }
+        });
       }
     };
     this.cdr.detectChanges();

@@ -13,6 +13,7 @@ import { CustomButtonComponent } from '../../../../shared/components/custom-butt
 import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner';
 import { StatusChipComponent } from '../../../../shared/components/status-chip/status-chip';
 import { FeatureLockComponent } from '../../../shared/components/feature-lock/feature-lock';
+import { TranslatePipe } from '@ngx-translate/core';
 import { User } from '@core/interfaces/user.model';
 
 export interface PlayerComparison {

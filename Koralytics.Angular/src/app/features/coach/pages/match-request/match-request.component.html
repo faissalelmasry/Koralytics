@@ -1,29 +1,29 @@
 <div class="page-container">
   <div class="page-header">
-    <h1 class="page-title">Match <span class="accent">Requests</span></h1>
-    <p class="page-subtitle">Schedule friendly matches with other academies and manage incoming invitations.</p>
+    <h1 class="page-title">{{ 'COACH.MATCH_REQUEST.TITLE' | translate }} <span class="accent">{{ 'COACH.MATCH_REQUEST.TITLE_ACCENT' | translate }}</span></h1>
+    <p class="page-subtitle">{{ 'COACH.MATCH_REQUEST.SUBTITLE' | translate }}</p>
   </div>
 
   <div class="tabs-container">
     <button class="tab-btn" [class.active]="activeTab() === 'incoming'" (click)="setTab('incoming')">
-      Incoming Requests
+      {{ 'COACH.MATCH_REQUEST.TAB_INCOMING' | translate }}
       <span class="tab-badge" *ngIf="incomingRequests().length > 0">{{ incomingRequests().length }}</span>
     </button>
     <button class="tab-btn" [class.active]="activeTab() === 'outgoing'" (click)="setTab('outgoing')">
-      Sent Requests
+      {{ 'COACH.MATCH_REQUEST.TAB_SENT' | translate }}
     </button>
     <button class="tab-btn" [class.active]="activeTab() === 'new'" (click)="setTab('new')">
-      + Propose Match
+      {{ 'COACH.MATCH_REQUEST.TAB_PROPOSE' | translate }}
     </button>
   </div>
 
   <div class="tab-content" *ngIf="activeTab() === 'incoming'">
     <div class="loading-state" *ngIf="loading()">
-      <span class="spinner-small"></span> Loading incoming requests...
+      <span class="spinner-small"></span> {{ 'COACH.MATCH_REQUEST.LOADING_INCOMING' | translate }}
     </div>
 
     <div class="empty-state" *ngIf="!loading() && incomingRequests().length === 0">
-      <p>No incoming match requests.</p>
+      <p>{{ 'COACH.MATCH_REQUEST.NO_INCOMING' | translate }}</p>
     </div>
 
     <div class="request-list" *ngIf="!loading() && incomingRequests().length > 0">
@@ -31,8 +31,8 @@
         <div class="request-header">
           <div class="request-teams">
             <span class="team-name">{{ req.requesterTeamName }}</span>
-            <span class="vs">vs</span>
-            <span class="team-name my-team">Your Team</span>
+            <span class="vs">{{ 'COACH.MATCH_REQUEST.VS' | translate }}</span>
+            <span class="team-name my-team">{{ 'COACH.MATCH_REQUEST.YOUR_TEAM' | translate }}</span>
           </div>
           <span class="status-badge" [ngClass]="getStatusClass(req.status)">{{ req.status }}</span>
         </div>
@@ -52,13 +52,13 @@
           </div>
           <div class="detail-item">
             <span class="detail-icon">👤</span>
-            <span>Coach: {{ req.requesterCoachName }}</span>
+            <span>{{ 'COACH.MATCH_REQUEST.COACH_LABEL' | translate }} {{ req.requesterCoachName }}</span>
           </div>
         </div>
 
         <div class="request-actions" *ngIf="req.status === 'Pending'">
-          <button class="btn-primary" (click)="acceptRequest(req.id)">Accept</button>
-          <button class="btn-outline-danger" (click)="declineRequest(req.id)">Decline</button>
+          <button class="btn-primary" (click)="acceptRequest(req.id)">{{ 'COACH.MATCH_REQUEST.ACCEPT' | translate }}</button>
+          <button class="btn-outline-danger" (click)="declineRequest(req.id)">{{ 'COACH.MATCH_REQUEST.DECLINE' | translate }}</button>
         </div>
       </div>
     </div>
@@ -66,19 +66,19 @@
 
   <div class="tab-content" *ngIf="activeTab() === 'outgoing'">
     <div class="loading-state" *ngIf="loading()">
-      <span class="spinner-small"></span> Loading sent requests...
+      <span class="spinner-small"></span> {{ 'COACH.MATCH_REQUEST.LOADING_SENT' | translate }}
     </div>
 
     <div class="empty-state" *ngIf="!loading() && outgoingRequests().length === 0">
-      <p>No outgoing match requests.</p>
+      <p>{{ 'COACH.MATCH_REQUEST.NO_OUTGOING' | translate }}</p>
     </div>
 
     <div class="request-list" *ngIf="!loading() && outgoingRequests().length > 0">
       <div class="request-card" *ngFor="let req of outgoingRequests()">
         <div class="request-header">
           <div class="request-teams">
-            <span class="team-name my-team">Your Team</span>
-            <span class="vs">vs</span>
+            <span class="team-name my-team">{{ 'COACH.MATCH_REQUEST.YOUR_TEAM' | translate }}</span>
+            <span class="vs">{{ 'COACH.MATCH_REQUEST.VS' | translate }}</span>
             <span class="team-name">{{ req.targetTeamName }}</span>
           </div>
           <span class="status-badge" [ngClass]="getStatusClass(req.status)">{{ req.status }}</span>
@@ -101,7 +101,7 @@
 
         <div class="request-actions" *ngIf="req.status === 'Pending'">
           <button class="btn-outline-danger" (click)="cancelRequest(req.id)">
-            Cancel Request
+            {{ 'COACH.MATCH_REQUEST.CANCEL_REQUEST' | translate }}
           </button>
         </div>
       </div>
@@ -110,15 +110,15 @@
 
   <div class="tab-content" *ngIf="activeTab() === 'new'">
     <div class="compose-card">
-      <h3>Propose Friendly Match</h3>
+      <h3>{{ 'COACH.MATCH_REQUEST.PROPOSE_TITLE' | translate }}</h3>
       
       <div class="form-row">
         <div class="form-group half">
-          <label for="targetTeam">Opponent Team ID</label>
-          <input type="number" id="targetTeam" class="glass-input" [(ngModel)]="newRequest.targetTeamId" placeholder="Enter Team ID">
+          <label for="targetTeam">{{ 'COACH.MATCH_REQUEST.OPPONENT_TEAM_ID' | translate }}</label>
+          <input type="number" id="targetTeam" class="glass-input" [(ngModel)]="newRequest.targetTeamId" [placeholder]="'COACH.MATCH_REQUEST.ENTER_TEAM_ID' | translate">
         </div>
         <div class="form-group half">
-          <label for="format">Match Format</label>
+          <label for="format">{{ 'COACH.MATCH_REQUEST.MATCH_FORMAT' | translate }}</label>
           <select id="format" class="glass-input" [(ngModel)]="newRequest.format">
             <option value="11v11">11 v 11</option>
             <option value="9v9">9 v 9</option>
@@ -130,24 +130,24 @@
 
       <div class="form-row">
         <div class="form-group half">
-          <label for="date">Proposed Date & Time</label>
+          <label for="date">{{ 'COACH.MATCH_REQUEST.PROPOSED_DATE' | translate }}</label>
           <input type="datetime-local" id="date" class="glass-input" [(ngModel)]="newRequest.proposedDate">
         </div>
         <div class="form-group half">
-          <label for="location">Location (Optional)</label>
-          <input type="text" id="location" class="glass-input" [(ngModel)]="newRequest.location" placeholder="e.g. Academy Main Pitch">
+          <label for="location">{{ 'COACH.MATCH_REQUEST.LOCATION_OPTIONAL' | translate }}</label>
+          <input type="text" id="location" class="glass-input" [(ngModel)]="newRequest.location" [placeholder]="'COACH.MATCH_REQUEST.LOCATION_PLACEHOLDER' | translate">
         </div>
       </div>
 
       <div class="form-actions">
         <button class="btn-primary" [disabled]="submitting() || !newRequest.targetTeamId || !newRequest.proposedDate" (click)="sendRequest()">
-          <span *ngIf="!submitting()">Send Match Request</span>
+          <span *ngIf="!submitting()">{{ 'COACH.MATCH_REQUEST.SEND_REQUEST' | translate }}</span>
           <span *ngIf="submitting()" class="spinner-small"></span>
         </button>
       </div>
 
-      <div class="alert success" *ngIf="successMsg()">{{ successMsg() }}</div>
-      <div class="alert error" *ngIf="submitError()">{{ submitError() }}</div>
+      <div class="alert success" *ngIf="successMsg()">{{ successMsg() | translate }}</div>
+      <div class="alert error" *ngIf="submitError()">{{ submitError() | translate }}</div>
     </div>
   </div>
 

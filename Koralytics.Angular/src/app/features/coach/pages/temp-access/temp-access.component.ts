@@ -7,11 +7,12 @@ import { CoachAccessService } from '../../../../../core/services/coach/coach-acc
 import { ModalService } from '../../../../../core/services/Modal/modal';
 import { ToastService } from '../../../../../core/services/Toast/toast';
 import { GrantTempAccessDto, TempAccessDto } from '../../../../../core/interfaces/coach.interfaces';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-temp-access',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslatePipe],
   templateUrl: './temp-access.component.html',
   styleUrls: ['./temp-access.component.css']
 })
@@ -20,6 +21,7 @@ export class TempAccessComponent implements OnInit {
   private modalService = inject(ModalService);
   private toastService = inject(ToastService);
   private destroyRef = inject(DestroyRef);
+  private translate = inject(TranslateService);
 
   activeGrants = signal<TempAccessDto[]>([]);
   loading = signal(false);
@@ -55,7 +57,7 @@ export class TempAccessComponent implements OnInit {
           this.loading.set(false);
         },
         error: (err) => {
-          this.error.set(err?.error?.message || 'Failed to load access grants.');
+          this.error.set(err?.error?.message || this.translate.instant('COACH.TEMP_ACCESS.FAILED_LOAD_GRANTS'));
           this.loading.set(false);
         }
       });
@@ -81,12 +83,12 @@ export class TempAccessComponent implements OnInit {
           this.newGrant.accessLevel = 'ReadOnly';
           this.newGrant.expiresAt = this.defaultExpiry;
           
-          this.successMsg.set('Access granted successfully.');
+          this.successMsg.set('COACH.TEMP_ACCESS.GRANT_SUCCESS');
           this.submitting.set(false);
           setTimeout(() => this.successMsg.set(''), 3000);
         },
         error: (err) => {
-          this.grantError.set(err?.error?.message || 'Failed to grant access.');
+          this.grantError.set(err?.error?.message || this.translate.instant('COACH.TEMP_ACCESS.FAILED_GRANT'));
           this.submitting.set(false);
         }
       });
@@ -94,10 +96,10 @@ export class TempAccessComponent implements OnInit {
 
   async revokeAccess(accessId: number): Promise<void> {
     const confirmed = await this.modalService.open({
-      title: 'Revoke Access',
-      message: 'Are you sure you want to revoke this access immediately?',
-      confirmText: 'Revoke',
-      cancelText: 'Cancel',
+      title: this.translate.instant('COACH.TEMP_ACCESS.MODAL_REVOKE_TITLE'),
+      message: this.translate.instant('COACH.TEMP_ACCESS.MODAL_REVOKE_MSG'),
+      confirmText: this.translate.instant('COACH.TEMP_ACCESS.MODAL_REVOKE_CONFIRM'),
+      cancelText: this.translate.instant('COMMON.CANCEL'),
       variant: 'danger'
     });
 
@@ -108,10 +110,10 @@ export class TempAccessComponent implements OnInit {
       .subscribe({
         next: (revokedAccess) => {
           this.activeGrants.update(list => list.filter(g => g.id !== accessId));
-          this.toastService.show('Access revoked successfully.', 'success');
+          this.toastService.show(this.translate.instant('COACH.TEMP_ACCESS.GRANT_SUCCESS'), 'success');
         },
         error: (err) => {
-          this.toastService.show(err?.error?.message || 'Failed to revoke access.', 'error');
+          this.toastService.show(err?.error?.message || this.translate.instant('COACH.TEMP_ACCESS.FAILED_REVOKE'), 'error');
         }
       });
   }

@@ -1,0 +1,19 @@
+{
+  "ACADEMY": {
+    "AI_CHAT": {
+      "TITLE": "Academy AI Assistant",
+      "SUBTITLE": "Intelligent Academy Analytics & Player Performance Assistant",
+      "BTN_DASHBOARD": "Dashboard",
+      "BTN_NEW_CHAT": "New Chat",
+      "STATUS_READY": "AI Engine Ready",
+      "WELCOME_TITLE": "How can I assist your academy today?",
+      "WELCOME_DESC": "Ask queries about player passing performance, squad readiness, drill metrics, match tactics, or technical player evaluations.",
+      "SUGGESTED_TITLE": "Suggested Academy Queries:",
+      "AI_AUTHOR": "Koralytics Academy AI",
+      "USER_AUTHOR": "User",
+      "STATUS_ANALYZING": "Analyzing Data",
+      "LOADING_TEXT": "Analyzing academy metrics & performance database…",
+      "INPUT_PLACEHOLDER": "Ask Academy AI (e.g. what about his passing performance?)…"
+    }
+  }
+}
