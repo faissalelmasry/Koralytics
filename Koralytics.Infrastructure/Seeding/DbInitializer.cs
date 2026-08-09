@@ -93,19 +93,69 @@ namespace Koralytics.Infrastructure.Seeding
 
             // ---- SEED TEST DATA (Development only) ----
 
-            // Second Academy (needed for match AwayTeam)
-            if (!await context.Academies.AnyAsync(a => a.Name == "Zamalek Academy"))
+            // Second Academy (Zamalek) & Admin User
+            var zamalekAdminUser = await userManager.FindByEmailAsync("zamalekadmin@test.com");
+            if (zamalekAdminUser == null)
             {
-                var academy2 = new Academy
+                var systemAdminUser = await userManager.FindByEmailAsync("admin@koralytics.com");
+                zamalekAdminUser = new User
+                {
+                    UserName = "zamalekadmin@test.com",
+                    Email = "zamalekadmin@test.com",
+                    EmailConfirmed = true,
+                    FirstName = "Zamalek",
+                    LastName = "Admin",
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    CreatedById = systemAdminUser?.Id ?? 1
+                };
+                await userManager.CreateAsync(zamalekAdminUser, "Admin@123456");
+                await context.SaveChangesAsync();
+                context.ChangeTracker.Clear();
+
+                var freshZamAdmin = await userManager.FindByEmailAsync("zamalekadmin@test.com");
+                await userManager.AddToRoleAsync(freshZamAdmin!, "AcademyAdmin");
+                await context.SaveChangesAsync();
+                context.ChangeTracker.Clear();
+                zamalekAdminUser = freshZamAdmin!;
+            }
+
+            var zamalekAcademy = await context.Academies.FirstOrDefaultAsync(a => a.Name == "Zamalek Academy");
+            if (zamalekAcademy == null)
+            {
+                zamalekAcademy = new Academy
                 {
                     Name = "Zamalek Academy",
                     Status = AcademyStatus.Active,
-                    AdminUserId = 1,
+                    AdminUserId = zamalekAdminUser.Id,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
-                context.Academies.Add(academy2);
+                context.Academies.Add(zamalekAcademy);
                 await context.SaveChangesAsync();
+                context.ChangeTracker.Clear();
+
+                await context.Database.ExecuteSqlRawAsync(
+                    "INSERT INTO AcademyAdmins (Id, AcademyId) VALUES ({0}, {1})",
+                    zamalekAdminUser.Id,
+                    zamalekAcademy.Id
+                );
+            }
+            else
+            {
+                if (zamalekAcademy.AdminUserId != zamalekAdminUser.Id)
+                {
+                    zamalekAcademy.AdminUserId = zamalekAdminUser.Id;
+                    await context.SaveChangesAsync();
+                }
+                if (!await context.AcademyAdmins.AnyAsync(a => a.Id == zamalekAdminUser.Id))
+                {
+                    await context.Database.ExecuteSqlRawAsync(
+                        "INSERT INTO AcademyAdmins (Id, AcademyId) VALUES ({0}, {1})",
+                        zamalekAdminUser.Id,
+                        zamalekAcademy.Id
+                    );
+                }
             }
 
             // Main Academy
@@ -208,7 +258,7 @@ namespace Koralytics.Infrastructure.Seeding
                 context.Teams.Add(team);
 
                 // --- Away Team (Zamalek) ---
-                var zamalekAcademy = await context.Academies.FirstAsync(a => a.Name == "Zamalek Academy");
+                zamalekAcademy = await context.Academies.FirstAsync(a => a.Name == "Zamalek Academy");
                 var zamalekAgeGroup = new AgeGroup
                 {
                     AcademyId = zamalekAcademy.Id,
@@ -1696,15 +1746,47 @@ namespace Koralytics.Infrastructure.Seeding
                     pyramidsTeam = await context.Teams.FirstAsync(t => t.AcademyId == pyramidsAcademy.Id);
                 }
 
-                // Al Masry Academy
+                // Al Masry Academy & Admin User
+                var masryAdminUser = await userManager.FindByEmailAsync("masryadmin@test.com");
+                if (masryAdminUser == null)
+                {
+                    masryAdminUser = new User
+                    {
+                        UserName = "masryadmin@test.com",
+                        Email = "masryadmin@test.com",
+                        EmailConfirmed = true,
+                        FirstName = "Masry",
+                        LastName = "Admin",
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow,
+                        CreatedById = adminUser!.Id
+                    };
+                    await userManager.CreateAsync(masryAdminUser, "Admin@123456");
+                    await context.SaveChangesAsync();
+                    context.ChangeTracker.Clear();
+
+                    var freshMasryAdmin = await userManager.FindByEmailAsync("masryadmin@test.com");
+                    await userManager.AddToRoleAsync(freshMasryAdmin!, "AcademyAdmin");
+                    await context.SaveChangesAsync();
+                    context.ChangeTracker.Clear();
+                    masryAdminUser = freshMasryAdmin!;
+                }
+
                 var masryAcademy = await context.Academies.FirstOrDefaultAsync(a => a.Name == "Al Masry Academy");
                 AgeGroup masryAgeGroup;
                 Team masryTeam;
                 if (masryAcademy == null)
                 {
-                    masryAcademy = new Academy { Name = "Al Masry Academy", Status = AcademyStatus.Active, AdminUserId = adminUser!.Id, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+                    masryAcademy = new Academy { Name = "Al Masry Academy", Status = AcademyStatus.Active, AdminUserId = masryAdminUser.Id, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
                     context.Academies.Add(masryAcademy);
                     await context.SaveChangesAsync();
+                    context.ChangeTracker.Clear();
+
+                    await context.Database.ExecuteSqlRawAsync(
+                        "INSERT INTO AcademyAdmins (Id, AcademyId) VALUES ({0}, {1})",
+                        masryAdminUser.Id,
+                        masryAcademy.Id
+                    );
 
                     masryAgeGroup = new AgeGroup { AcademyId = masryAcademy.Id, Name = "U17", MinAge = 15, MaxAge = 17 };
                     context.AgeGroups.Add(masryAgeGroup);
@@ -1742,8 +1824,71 @@ namespace Koralytics.Infrastructure.Seeding
                 }
                 else
                 {
+                    if (masryAcademy.AdminUserId != masryAdminUser.Id)
+                    {
+                        masryAcademy.AdminUserId = masryAdminUser.Id;
+                        await context.SaveChangesAsync();
+                    }
+                    if (!await context.AcademyAdmins.AnyAsync(a => a.Id == masryAdminUser.Id))
+                    {
+                        await context.Database.ExecuteSqlRawAsync(
+                            "INSERT INTO AcademyAdmins (Id, AcademyId) VALUES ({0}, {1})",
+                            masryAdminUser.Id,
+                            masryAcademy.Id
+                        );
+                    }
                     masryAgeGroup = await context.AgeGroups.FirstAsync(g => g.AcademyId == masryAcademy.Id && g.Name == "U17");
                     masryTeam = await context.Teams.FirstAsync(t => t.AcademyId == masryAcademy.Id);
+                }
+
+                // Al Masry Coach
+                var masryCoachEmail = "masrycoach@test.com";
+                if (!await context.Users.AnyAsync(u => u.Email == masryCoachEmail))
+                {
+                    var masryCoachUser = new User
+                    {
+                        UserName = masryCoachEmail,
+                        Email = masryCoachEmail,
+                        EmailConfirmed = true,
+                        FirstName = "Hossam",
+                        LastName = "Hassan",
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow,
+                        CreatedById = adminUser!.Id
+                    };
+                    await userManager.CreateAsync(masryCoachUser, "Coach@123456");
+                    await userManager.AddToRoleAsync(masryCoachUser, "Coach");
+
+                    await context.Database.ExecuteSqlRawAsync("INSERT INTO Coaches (Id) VALUES ({0})", masryCoachUser.Id);
+
+                    context.CoachAcademies.Add(new CoachAcademy { CoachUserId = masryCoachUser.Id, AcademyId = masryAcademy.Id, JoinedAt = DateTime.UtcNow });
+                    context.CoachTeams.Add(new CoachTeam { CoachUserId = masryCoachUser.Id, TeamId = masryTeam.Id, AssignedAt = DateTime.UtcNow });
+                    await context.SaveChangesAsync();
+                }
+
+                // Pyramids Coach
+                var pyramidsCoachEmail = "pyramidscoach@test.com";
+                if (!await context.Users.AnyAsync(u => u.Email == pyramidsCoachEmail))
+                {
+                    var pyramidsCoachUser = new User
+                    {
+                        UserName = pyramidsCoachEmail,
+                        Email = pyramidsCoachEmail,
+                        EmailConfirmed = true,
+                        FirstName = "Krunoslav",
+                        LastName = "Jurcic",
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow,
+                        CreatedById = adminUser!.Id
+                    };
+                    await userManager.CreateAsync(pyramidsCoachUser, "Coach@123456");
+                    await userManager.AddToRoleAsync(pyramidsCoachUser, "Coach");
+
+                    await context.Database.ExecuteSqlRawAsync("INSERT INTO Coaches (Id) VALUES ({0})", pyramidsCoachUser.Id);
+
+                    context.CoachAcademies.Add(new CoachAcademy { CoachUserId = pyramidsCoachUser.Id, AcademyId = pyramidsAcademy.Id, JoinedAt = DateTime.UtcNow });
+                    context.CoachTeams.Add(new CoachTeam { CoachUserId = pyramidsCoachUser.Id, TeamId = pyramidsTeam.Id, AssignedAt = DateTime.UtcNow });
+                    await context.SaveChangesAsync();
                 }
 
                 // Tournament

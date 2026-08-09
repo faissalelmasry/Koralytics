@@ -13,7 +13,7 @@ using System.Security.Claims;
 namespace Koralytics.API.Controllers
 {
     [Route("api/[controller]")]
-    //[Authorize]
+    [Authorize]
     public class TournamentController : ApiBaseController
     {
         private readonly ITournamentService _tournamentService;
@@ -37,6 +37,7 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> GetTournaments()
         {
             var result = await _tournamentService.GetAllAsync();
@@ -44,6 +45,7 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpGet("{tournamentId}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetTournament(int tournamentId)
         {
             var result = await _tournamentService.GetByIdAsync(tournamentId);
@@ -53,8 +55,9 @@ namespace Koralytics.API.Controllers
 
             return OkResponse(result);
         }
+
         [HttpPost]
-        //[Authorize(Roles = "SuperAdmin")]
+        [Authorize(Roles = "SystemAdmin,SuperAdmin")]
         public async Task<IActionResult> CreateTournament(
             [FromBody] CreateTournamentDto dto)
         {
@@ -70,7 +73,7 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpPost("{tournamentId}/invite/{academyId}")]
-        //[Authorize(Roles = "SuperAdmin")]
+        [Authorize(Roles = "SystemAdmin,SuperAdmin")]
         public async Task<IActionResult> InviteAcademy(
             int tournamentId, int academyId)
         {
@@ -79,7 +82,7 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpPut("{tournamentId}/accept/{academyId}")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "SystemAdmin,SuperAdmin,AcademyAdmin")]
         public async Task<IActionResult> AcceptInvitation(
             int tournamentId, int academyId)
         {
@@ -88,6 +91,7 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpPost("{tournamentId}/squad/{teamId}")]
+        [Authorize(Roles = "SystemAdmin,SuperAdmin,AcademyAdmin,Coach")]
         public async Task<IActionResult> RegisterSquad(
             int tournamentId,
             int teamId,
@@ -108,8 +112,7 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpPost("{tournamentId}/seeding")]
-        //[Authorize(Roles = "SuperAdmin")]
-
+        [Authorize(Roles = "SystemAdmin,SuperAdmin")]
         public async Task<IActionResult> GenerateSeeding(int tournamentId)
         {
             await _tournamentDrawService.GenerateSeedingAsync(tournamentId);
@@ -117,7 +120,7 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpPost("{tournamentId}/draw")]
-        //[Authorize(Roles = "SuperAdmin")]
+        [Authorize(Roles = "SystemAdmin,SuperAdmin")]
         public async Task<IActionResult> GenerateDraw(int tournamentId)
         {
             await _tournamentDrawService.GenerateDrawAsync(tournamentId);
@@ -125,7 +128,7 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpPost("{tournamentId}/rounds/{roundId}/advance")]
-        //[Authorize(Roles = "SuperAdmin")]
+        [Authorize(Roles = "SystemAdmin,SuperAdmin")]
         public async Task<IActionResult> AdvanceKnockout(
             int tournamentId, int roundId)
         {
@@ -135,6 +138,7 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpGet("{tournamentId}/bracket")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetBracket(int tournamentId)
         {
             var result = await _tournamentReportService
@@ -150,6 +154,7 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpPut("fixture/{fixtureId}/result")]
+        [Authorize(Roles = "SystemAdmin,SuperAdmin")]
         public async Task<IActionResult> UpdateFixtureResult(int fixtureId, [FromBody] UpdateFixtureResultDto dto)
         {
             await _tournamentFixtureService.UpdateFixtureResultAsync(fixtureId, dto.HomeScore, dto.AwayScore);
@@ -157,6 +162,7 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpPost("{tournamentId}/generate-knockout")]
+        [Authorize(Roles = "SystemAdmin,SuperAdmin")]
         public async Task<IActionResult> GenerateKnockoutFromGroups(int tournamentId)
         {
             await _tournamentFixtureService.GenerateKnockoutFromGroupsAsync(tournamentId);
@@ -164,6 +170,7 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpPost("fixture/{fixtureId}/stats")]
+        [Authorize(Roles = "SystemAdmin,SuperAdmin")]
         public async Task<IActionResult> UpdateFixtureStats(int fixtureId, [FromBody] UpdateFixtureStatsDto dto)
         {
             await _tournamentFixtureService.UpdateFixtureStatsAsync(fixtureId, dto);
@@ -171,6 +178,7 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpGet("{tournamentId}/teams")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetTeams(int tournamentId)
         {
             var result = await _tournamentService.GetTeamsAsync(tournamentId);
@@ -185,6 +193,7 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpGet("{tournamentId}/hall-of-fame")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetHallOfFame(int tournamentId)
         {
             var result = await _tournamentReportService
@@ -206,7 +215,7 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpPost("{tournamentId}/regenerate-report")]
-        [Authorize(Roles = "AcademyAdmin")]
+        [Authorize(Roles = "AcademyAdmin,SystemAdmin,SuperAdmin")]
         [RequiresPlanFeature(TierFeature.AIInsights)]
         public async Task<IActionResult> RegenerateTournamentReport(int tournamentId)
         {
@@ -214,10 +223,8 @@ namespace Koralytics.API.Controllers
             return NoContentResponse("AI report regeneration triggered successfully");
         }
 
-
-
         [HttpPost("{tournamentId}/complete")]
-        //[Authorize(Roles = "SuperAdmin")]
+        [Authorize(Roles = "SystemAdmin,SuperAdmin")]
         public async Task<IActionResult> CompleteTournament(int tournamentId)
         {
             await _tournamentReportService.CompleteTournamentAsync(tournamentId);
@@ -225,6 +232,7 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpPost("{tournamentId}/simulate")]
+        [Authorize(Roles = "SystemAdmin,SuperAdmin")]
         public async Task<IActionResult> SimulateTournament(int tournamentId)
         {
             await _tournamentService.SimulateTournamentAsync(tournamentId);
@@ -232,6 +240,7 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpPost("{tournamentId}/simulate-three-academies")]
+        [Authorize(Roles = "SystemAdmin,SuperAdmin")]
         public async Task<IActionResult> SimulateThreeAcademies(int tournamentId)
         {
             await _tournamentService.SimulateThreeAcademiesTournamentAsync(tournamentId);
@@ -249,9 +258,9 @@ namespace Koralytics.API.Controllers
 
             return userId;
         }
-      
+
         [HttpPut("{tournamentId}/status")]
-        //[Authorize(Roles = "SuperAdmin")]
+        [Authorize(Roles = "SystemAdmin,SuperAdmin")]
         public async Task<IActionResult> UpdateStatus(
             int tournamentId, [FromBody] TournamentStatus status)
         {
