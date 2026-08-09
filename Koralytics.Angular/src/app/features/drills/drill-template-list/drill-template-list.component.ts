@@ -208,7 +208,7 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
 
           // For filter bar: prepend "All Categories"
           this.categoryOptions = [
-            { value: 0, label: this.translate.instant('DRILLS.TEMPLATE_LIST.ALL_CATEGORIES') || 'All Categories' },
+            { value: 0, label: this.translate.instant('DRILLS.TEMPLATES.ALL_CATEGORIES') || 'All Categories' },
             ...this.categories.map(c => ({ value: c.id as any, label: this.translateCategory(c.name) }))
           ];
 
@@ -364,7 +364,7 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
       ).subscribe({
         next: () => {
           this.closeForm();
-          this.showToast(this.isEditing ? this.translate.instant('DRILLS.TEMPLATE_LIST.UPDATE_SUCCESS') || 'Template updated successfully.' : this.translate.instant('DRILLS.TEMPLATE_LIST.CREATE_SUCCESS') || 'Template created successfully.', 'success');
+          this.showToast(this.isEditing ? this.translate.instant('DRILLS.TEMPLATES.UPDATE_SUCCESS') || 'Template updated successfully.' : this.translate.instant('DRILLS.TEMPLATES.CREATE_SUCCESS') || 'Template created successfully.', 'success');
           this.fetchTemplates();
         },
         error: (err) => {
@@ -549,13 +549,13 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
     let key = '';
     let fallback = '';
     if (drill.academyId === null) {
-      key = 'DRILLS.TEMPLATE_LIST.VISIBILITY_GLOBAL';
+      key = 'DRILLS.TEMPLATES.VISIBILITY_GLOBAL';
       fallback = 'Global';
     } else if (drill.isShared) {
-      key = 'DRILLS.TEMPLATE_LIST.VISIBILITY_SHARED';
+      key = 'DRILLS.TEMPLATES.VISIBILITY_SHARED';
       fallback = 'Shared';
     } else {
-      key = 'DRILLS.TEMPLATE_LIST.VISIBILITY_PRIVATE';
+      key = 'DRILLS.TEMPLATES.VISIBILITY_PRIVATE';
       fallback = 'Private';
     }
     const translated = this.translate.instant(key);
