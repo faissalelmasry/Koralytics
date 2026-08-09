@@ -171,7 +171,7 @@
         <div class="flex-between">
             <div>
                 <h2>{{ 'DRILLS.SESSION_DETAILS.SCORECARD' | translate }}: {{ activeDrillForResults.templateName | translate }}</h2>
-                <p class="helper-text">{{ 'DRILLS.TEMPLATE_LIST.MODE' | translate }}: {{ (activeDrillForResults.mode == 0 || activeDrillForResults.mode ===
+                <p class="helper-text">{{ 'DRILLS.TEMPLATE_LIST.MODE' | translate }}: {{ ($any(activeDrillForResults.mode) == 0 || activeDrillForResults.mode ===
                     'Manual') ? ('DRILLS.SESSION_DETAILS.MANUAL_SCORE' | translate) : ('DRILLS.SESSION_DETAILS.SUCCESS_MISSED' | translate) }}</p>
             </div>
             <button class="btn-secondary flex-center" (click)="closeResultsModal()" title="Close Scorecard">

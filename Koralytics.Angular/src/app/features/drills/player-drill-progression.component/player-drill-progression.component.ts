@@ -1,7 +1,5 @@
 import { Component, OnInit, OnDestroy, OnChanges, SimpleChanges, Input, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
-import { Component, OnInit, OnChanges, SimpleChanges, Input, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -28,7 +26,6 @@ interface ProgressionResponse {
   selector: 'app-player-drill-progression',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush, // 🟢 OPTIMIZATION: OnPush enabled
-  imports: [CommonModule, FormsModule, CustomSelect, LoadingSpinnerComponent, CustomButtonComponent],
   imports: [CommonModule, FormsModule, CustomSelect, LoadingSpinnerComponent, CustomButtonComponent, TranslatePipe],
   templateUrl: './player-drill-progression.component.html',
   styleUrls: ['./player-drill-progression.component.css']
@@ -64,8 +61,7 @@ export class PlayerDrillProgressionComponent implements OnInit, OnChanges, OnDes
     private router: Router,
     private sessionService: DrillSessionService,
     private cdr: ChangeDetectorRef,
-    private translate: TranslateService
-    private cdr: ChangeDetectorRef,
+    private translate: TranslateService,
     private location: Location
   ) { }
 
@@ -109,7 +105,7 @@ export class PlayerDrillProgressionComponent implements OnInit, OnChanges, OnDes
       this.sessionService.getCategories().subscribe({
         next: (cats: DrillCategoryDto[]) => {
           this.categories = cats || [];
-          this.categoryOptions = this.categories.map(c => ({ value: c.id, label: c.name }));
+          this.categoryOptions = this.categories.map(c => ({ value: c.id, label: this.translate.instant('PLAYER.CAT_' + c.name.toUpperCase()) !== 'PLAYER.CAT_' + c.name.toUpperCase() ? this.translate.instant('PLAYER.CAT_' + c.name.toUpperCase()) : c.name }));
           if (this.categories.length > 0) {
             this.selectedCategoryId = this.categories[0].id;
             this.fetchProgression();
@@ -126,23 +122,6 @@ export class PlayerDrillProgressionComponent implements OnInit, OnChanges, OnDes
         }
       })
     );
-    this.sessionService.getCategories().subscribe({
-      next: (cats) => {
-        this.categories = cats || [];
-        this.categoryOptions = this.categories.map(c => ({ value: c.id, label: this.translate.instant('PLAYER.CAT_' + c.name.toUpperCase()) !== 'PLAYER.CAT_' + c.name.toUpperCase() ? this.translate.instant('PLAYER.CAT_' + c.name.toUpperCase()) : c.name }));
-        if (this.categories.length > 0) {
-          this.selectedCategoryId = this.categories[0].id;
-          this.fetchProgression();
-        } else {
-          this.isLoading = false;
-        }
-      },
-      error: (err) => {
-        console.error('Failed to load categories', err);
-        this.errorMessage = 'Could not load drill categories.';
-        this.isLoading = false;
-      }
-    });
   }
 
   onCategoryChange(): void {

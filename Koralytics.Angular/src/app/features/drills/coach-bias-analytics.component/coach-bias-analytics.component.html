@@ -89,7 +89,7 @@
                 <h2>{{ 'DRILLS.BIAS_ANALYTICS.PLAYER_EVAL_SAMPLE' | translate }}</h2>
                 <p class="section-desc">{{ 'DRILLS.BIAS_ANALYTICS.COMP_COACH_PREFIX' | translate }} <a [routerLink]="selectedCoachId || biasReport.coachId ? ['/coach/profile', selectedCoachId || biasReport.coachId] : ['/coach/profile']" class="coach-link">{{ biasReport.coachName }}</a>{{ 'DRILLS.BIAS_ANALYTICS.COMP_COACH_SUFFIX' | translate }}</p>
             </div>
-            <app-status-chip [label]="'DRILLS.BIAS_ANALYTICS.TOP_PLAYERS' | translate:{ top: topPlayerComparisons.length, total: biasReport.playersAnalyzedCount }" type="info"></app-status-chip>
+            <app-status-chip [label]="'DRILLS.BIAS_ANALYTICS.TOP_PLAYERS' | translate:{ top: topComparisons.length, total: biasReport.playersAnalyzedCount }" type="info"></app-status-chip>
         </div>
 
         <div class="table-card mt-3">

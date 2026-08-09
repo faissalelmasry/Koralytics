@@ -1,7 +1,6 @@
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LocalizedDatePipe } from '../../../../shared/pipes/localized-date.pipe';
-import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
-import { Component, OnInit, OnDestroy, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';

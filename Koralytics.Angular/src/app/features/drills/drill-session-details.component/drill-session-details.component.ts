@@ -1,7 +1,6 @@
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LocalizedDatePipe } from '../../../../shared/pipes/localized-date.pipe';
-import { Component, OnInit, inject } from '@angular/core';
-import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription, Observable, forkJoin, of } from 'rxjs';
@@ -84,7 +83,6 @@ export class DrillSessionDetailsComponent implements OnInit {
         }));
     }  // 🟢 OPTIMIZATION: Memory management
   private subscriptions = new Subscription();
-  templateOptions: SelectOption[] = [];
 
   onTemplateSelect(val: string | number | null): void {
     this.selectedTemplateId = val ? Number(val) : null;
@@ -267,16 +265,11 @@ export class DrillSessionDetailsComponent implements OnInit {
       this.templateService.getTemplates(filter).subscribe({
         next: (res: any) => {
           this.availableTemplates = res.items || [];
-          this.templateOptions = this.availableTemplates.map(t => ({
-            value: t.id,
-            label: `${t.name} (${(t as any).categoryName || 'General'})`
-          }));
           this.cdr.detectChanges();
         },
         error: (err) => {
           console.error('Failed to load drill templates', err);
           this.availableTemplates = [];
-          this.templateOptions = [];
           this.cdr.detectChanges();
         }
       })

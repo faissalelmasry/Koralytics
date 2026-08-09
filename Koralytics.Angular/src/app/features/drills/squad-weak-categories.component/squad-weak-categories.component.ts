@@ -1,7 +1,6 @@
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LocalizedDatePipe } from '../../../../shared/pipes/localized-date.pipe';
-import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
-import { Component, OnInit, OnDestroy, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -30,7 +29,6 @@ import { StatusChipComponent } from '../../../../shared/components/status-chip/s
   selector: 'app-squad-weak-categories',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush, // 🟢 OPTIMIZATION: Maximum performance
-  imports: [CommonModule, FormsModule, CustomSelect, LoadingSpinnerComponent, StatusChipComponent],
   imports: [CommonModule, FormsModule, CustomSelect, LoadingSpinnerComponent, StatusChipComponent, TranslatePipe, LocalizedDatePipe],
   templateUrl: './squad-weak-categories.component.html',
   styleUrls: ['./squad-weak-categories.component.css']

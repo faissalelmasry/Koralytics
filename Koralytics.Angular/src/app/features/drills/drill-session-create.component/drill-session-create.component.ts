@@ -1,7 +1,6 @@
-import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LocalizedDatePipe } from '../../../../shared/pipes/localized-date.pipe';
-import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -37,7 +36,6 @@ export interface TeamData {
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, CustomSelect, CustomButtonComponent, CustomDatePicker, TranslatePipe, LocalizedDatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush, // 🟢 OPTIMIZATION: OnPush enabled
-  imports: [CommonModule, ReactiveFormsModule, CustomSelect, CustomButtonComponent, CustomDatePicker],
   templateUrl: './drill-session-create.component.html',
   styleUrls: ['./drill-session-create.component.css']
 })
@@ -153,7 +151,6 @@ export class DrillSessionCreateComponent implements OnInit, OnDestroy {
               id: t.id,
               name: t.name
             }));
-            this.teamOptionsList = this.availableTeams.map(t => ({ value: t.id, label: t.name }));
             this.cdr.markForCheck();
           }
         },

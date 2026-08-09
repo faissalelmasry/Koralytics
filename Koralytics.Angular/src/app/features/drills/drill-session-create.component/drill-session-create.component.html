@@ -29,7 +29,7 @@
                 <app-select
                     label="{{ 'DRILLS.SESSION_CREATE.TARGET_SQUAD' | translate }}"
                     [placeholder]="'DRILLS.SESSION_CREATE.SELECT_TEAM' | translate"
-                    [options]="teamOptionsList
+                    [options]="teamOptions"
                     [value]="sessionForm.get('teamId')?.value"
                     (valueChange)="onTeamChangeCustom($event)">
                 </app-select>
@@ -56,7 +56,7 @@
                     <app-select
                         label="{{ 'DRILLS.SESSION_CREATE.SESSION_TYPE' | translate }}"
                         [placeholder]="'DRILLS.SESSION_CREATE.SELECT_TYPE' | translate"
-                        [options]="typeOptionsList"
+                        [options]="typeOptions"
                         [value]="sessionForm.get('type')?.value"
                         (valueChange)="onTypeChangeCustom($event)">
                     </app-select>
