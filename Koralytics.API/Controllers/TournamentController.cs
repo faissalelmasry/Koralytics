@@ -202,8 +202,9 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpGet("{tournamentId}/report")]
-        [Authorize]
-        [RequiresPlanFeature(TierFeature.AIInsights)]
+        // [Authorize]
+        // [RequiresPlanFeature(TierFeature.AIInsights)]
+        [AllowAnonymous]
         public async Task<IActionResult> GetTournamentReport(int tournamentId)
         {
             var result = await _aiReportService.GetTournamentReportAsync(tournamentId);

@@ -34,20 +34,7 @@ namespace Koralytics.API.Services.AI
             string prompt,
             CancellationToken cancellationToken = default)
         {
-            // 1. Try Groq if key exists
-            var groqKey = _config["Groq:ApiKey"];
-            if (!string.IsNullOrWhiteSpace(groqKey))
-            {
-                _logger.LogInformation("Attempting AI report generation via Groq Llama 3...");
-                var groqResult = await TryGroqAsync(groqKey, prompt, cancellationToken);
-                if (!string.IsNullOrWhiteSpace(groqResult))
-                {
-                    _logger.LogInformation("Successfully generated report via Groq.");
-                    return groqResult;
-                }
-            }
-
-            // 2. Try Gemini if key exists
+            // 1. Try Gemini first if key exists
             var geminiKey = _config["AI:GoogleApiKey"] 
                          ?? _config["Gemini:ApiKey"] 
                          ?? _config["GoogleAI:ApiKey"];
@@ -62,9 +49,22 @@ namespace Koralytics.API.Services.AI
                 }
             }
 
+            // 2. Try Groq as fallback
+            var groqKey = _config["Groq:ApiKey"];
+            if (!string.IsNullOrWhiteSpace(groqKey))
+            {
+                _logger.LogInformation("Attempting AI report generation via Groq Llama 3...");
+                var groqResult = await TryGroqAsync(groqKey, prompt, cancellationToken);
+                if (!string.IsNullOrWhiteSpace(groqResult))
+                {
+                    _logger.LogInformation("Successfully generated report via Groq.");
+                    return groqResult;
+                }
+            }
+
             throw new InvalidOperationException(
-                "Failed to generate AI report: Neither Groq nor Gemini API succeeded. " +
-                "Please ensure a valid Groq (Groq:ApiKey) or Gemini (AI:GoogleApiKey) key is configured in User Secrets.");
+                "Failed to generate AI report: Neither Gemini nor Groq API succeeded. " +
+                "Please ensure a valid Gemini (AI:GoogleApiKey) or Groq (Groq:ApiKey) key is configured in User Secrets.");
         }
 
         private async Task<string?> TryGroqAsync(string apiKey, string prompt, CancellationToken cancellationToken)
