@@ -18,6 +18,31 @@ namespace Koralytics.Application.Services.Drill.DrillTemplate
             _mapper = mapper;
         }
 
+        // ==========================================
+        // PRIVATE HELPERS (OPTIMIZATION)
+        // ==========================================
+
+        /// <summary>
+        /// Centralizes the base query, eager loading, and strict security filtering 
+        /// so it does not have to be repeated across multiple endpoints.
+        /// </summary>
+        private IQueryable<Domain.Entities.Drill.DrillTemplate> BuildBaseTemplateQuery(int academyId, int currentUserId)
+        {
+            return _unitOfWork.Repository<Domain.Entities.Drill.DrillTemplate>()
+                .GetQueryableAsNoTracking()
+                .Include(t => t.DrillCategory)
+                .Include(t => t.DrillTemplateAcademy)
+                .Where(t =>
+                    t.AcademyId == null || // System templates
+                    (t.AcademyId == academyId && t.IsShared == true) || // Shared academy templates
+                    (t.AcademyId == academyId && t.CreatedById == currentUserId) // User's private templates
+                );
+        }
+
+        // ==========================================
+        // PUBLIC METHODS
+        // ==========================================
+
         public async Task<DrillTemplateDto> CreateTemplateAsync(CreateDrillTemplateDto dto, int currentUserId, string currentUserRole, int? currentUserAcademyId)
         {
             var categoryExists = await _unitOfWork.Repository<DrillCategory>().ExistsAsync(c => c.Id == dto.CategoryId);
@@ -25,9 +50,9 @@ namespace Koralytics.Application.Services.Drill.DrillTemplate
             {
                 throw new KeyNotFoundException($"Drill Category with ID {dto.CategoryId} does not exist.");
             }
+
             var template = _mapper.Map<Domain.Entities.Drill.DrillTemplate>(dto);
             template.IsShared = false;
-
             template.CreatedById = currentUserId;
 
             if (currentUserRole == "SystemAdmin")
@@ -47,15 +72,8 @@ namespace Koralytics.Application.Services.Drill.DrillTemplate
 
         public async Task<PagedResult<DrillTemplateDto>> GetTemplatesAsync(int academyId, int currentUserId, TemplateFilterDto filter)
         {
-            var query = _unitOfWork.Repository<Domain.Entities.Drill.DrillTemplate>()
-                .GetQueryableAsNoTracking()
-                .Include(t => t.DrillCategory) // 🟢 ADDED: Eager load the category entity
-                .Include(t => t.DrillTemplateAcademy) // 🟢 ADDED: Eager load the academy entity
-                .Where(t =>
-                    t.AcademyId == null ||
-                    (t.AcademyId == academyId && t.IsShared == true) ||
-                    (t.AcademyId == academyId && t.CreatedById == currentUserId)
-                );
+            // 🟢 OPTIMIZED: Utilizing the centralized base query
+            var query = BuildBaseTemplateQuery(academyId, currentUserId);
 
             if (!string.IsNullOrEmpty(filter.SearchTerm))
             {
@@ -65,7 +83,7 @@ namespace Koralytics.Application.Services.Drill.DrillTemplate
             var totalCount = await query.CountAsync();
 
             var pagedTemplates = await query
-                .OrderByDescending(t => t.Id) 
+                .OrderByDescending(t => t.Id)
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
                 .ToListAsync();
@@ -81,17 +99,9 @@ namespace Koralytics.Application.Services.Drill.DrillTemplate
 
         public async Task<PagedResult<DrillTemplateDto>> GetTemplatesByCategoryAsync(int categoryId, int academyId, int currentUserId, TemplateFilterDto filter)
         {
-            var query = _unitOfWork.Repository<Domain.Entities.Drill.DrillTemplate>()
-                .GetQueryableAsNoTracking()
-                .Include(t => t.DrillCategory)
-                .Include(t => t.DrillTemplateAcademy)
-                .Where(t =>
-                    t.CategoryId == categoryId && (
-                        t.AcademyId == null ||
-                        (t.AcademyId == academyId && t.IsShared == true) ||
-                        (t.AcademyId == academyId && t.CreatedById == currentUserId)
-                    )
-                );
+            // 🟢 OPTIMIZED: Utilizing the centralized base query and chaining the category filter
+            var query = BuildBaseTemplateQuery(academyId, currentUserId)
+                .Where(t => t.CategoryId == categoryId);
 
             if (!string.IsNullOrEmpty(filter.SearchTerm))
             {
@@ -149,6 +159,7 @@ namespace Koralytics.Application.Services.Drill.DrillTemplate
                 await _unitOfWork.SaveChangesAsync();
             }
         }
+
         public async Task<DrillTemplateDto> GetTemplateByIdAsync(int id, int currentUserId, int? currentUserAcademyId)
         {
             var template = await _unitOfWork.Repository<Domain.Entities.Drill.DrillTemplate>()
@@ -243,12 +254,11 @@ namespace Koralytics.Application.Services.Drill.DrillTemplate
                 throw new InvalidOperationException("This template cannot be deleted because it is already attached to historical drill sessions. Consider renaming it or marking it as inactive instead.");
             }
 
-            await _unitOfWork.Repository<Domain.Entities.Drill.DrillTemplate>()
-                .GetQueryable()
-                .Where(t => t.Id == id)
-                .ExecuteDeleteAsync();
+            // 🟢 OPTIMIZED: Uses standard deletion to respect EF Core tracking since the entity is already in memory
+            _unitOfWork.Repository<Domain.Entities.Drill.DrillTemplate>().SoftDelete(template);
+            await _unitOfWork.SaveChangesAsync();
         }
-       
+
         public async Task<IEnumerable<DrillCategoryDto>> GetCategoriesAsync()
         {
             var categories = await _unitOfWork.Repository<DrillCategory>()

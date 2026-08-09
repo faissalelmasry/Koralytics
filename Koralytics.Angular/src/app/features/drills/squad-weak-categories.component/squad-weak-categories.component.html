@@ -27,7 +27,7 @@
             <app-select
                 [label]="'DRILLS.WEAK_CATEGORIES.SELECTED_SQUAD' | translate"
                 [placeholder]="'DRILLS.SESSION_CREATE.SELECT_TEAM' | translate"
-                [options]="teamOptions"
+                [options]="teamOptionsList"
                 [value]="selectedTeamId"
                 (valueChange)="onTeamSelect($event)">
             </app-select>

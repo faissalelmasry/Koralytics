@@ -26,6 +26,7 @@ export interface DrillSessionDto {
     status: SessionStatus;
     notes?: string | null;
     location?: string | null;
+    createdAt?: string;
 }
 
 export interface DrillDto {

@@ -1,8 +1,11 @@
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LocalizedDatePipe } from '../../../../shared/pipes/localized-date.pipe';
 import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subscription, Observable, forkJoin, of } from 'rxjs';
+import { switchMap, catchError } from 'rxjs/operators';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DrillSessionService } from '../../../../core/services/drill/drill-session.service';
 import { DrillTemplateService } from '../../../../core/services/drill/drill-template.service';
@@ -14,16 +17,50 @@ import { CustomButtonComponent } from '../../../../shared/components/custom-butt
 import { CustomInputComponent } from '../../../../shared/components/custom-input-component/custom-input-component';
 import { CustomNumberInputComponent } from '../../../../shared/components/custom-number-input/custom-number-input';
 import { NotificationService } from '@core/services/SignalR/notificationservice';
+import { DrillSessionDetailsDto, DrillDto } from '../../../../core/interfaces/drill-session.model';
+import { DrillTemplateDto } from '../../../../core/interfaces/drill-template.model';
+
+export interface PlayerAttendance {
+  playerId: number;
+  playerFullName: string;
+  name?: string;
+  position: string;
+  isPresent: boolean;
+}
+
+export interface ExtendedDrillDto extends DrillDto {
+  templateName?: string;
+  categoryName?: string;
+}
+
+export interface PlayerScoreEntry {
+  playerId: number;
+  playerFullName: string;
+  position: string;
+  manualScore: number | null;
+  doneCount: number | null;
+  missedCount: number | null;
+  coachNotes: string;
+}
+
+export interface ExtendedDrillSessionDetails extends DrillSessionDetailsDto {
+  attendance?: PlayerAttendance[];
+  teamName?: string | null;
+  coachName?: string | null;
+  sessionDrills: ExtendedDrillDto[];
+}
+
 
 @Component({
   selector: 'app-drill-session-details',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush, // 🟢 OPTIMIZATION: Massive performance boost
   imports: [
-    CommonModule, 
-    FormsModule, 
-    StatusChipComponent, 
-    CustomButtonComponent, 
-    CustomSelect, 
+    CommonModule,
+    FormsModule,
+    StatusChipComponent,
+    CustomButtonComponent,
+    CustomSelect,
     LoadingSpinnerComponent,
     CustomInputComponent,
     CustomNumberInputComponent
@@ -40,14 +77,16 @@ export class DrillSessionDetailsComponent implements OnInit {
     return translated !== key ? translated : name;
   }
 
-  get templateOptions(): SelectOption[] {
-    return this.availableTemplates.map(t => ({
-      value: t.id,
-      label: `${t.name} (${t.categoryName || 'General'})`
-    }));
-  }
+    get templateOptions(): SelectOption[] {
+        return this.availableTemplates.map(t => ({
+            value: t.id,
+            label: `${t.name} (${t.categoryName || 'General'})`
+        }));
+    }  // 🟢 OPTIMIZATION: Memory management
+  private subscriptions = new Subscription();
+  templateOptions: SelectOption[] = [];
 
-  onTemplateSelect(val: any): void {
+  onTemplateSelect(val: string | number | null): void {
     this.selectedTemplateId = val ? Number(val) : null;
   }
   sessionId!: number;
@@ -66,17 +105,17 @@ export class DrillSessionDetailsComponent implements OnInit {
     action: () => { }
   };
 
-  sessionData: any = null;
+  sessionData: ExtendedDrillSessionDetails | null = null;
 
   // --- Add Drill Modal States ---
   isAddDrillModalOpen = false;
-  availableTemplates: any[] = [];
+  availableTemplates: DrillTemplateDto[] = [];
   selectedTemplateId: number | null = null;
 
   // --- Enter Results Modal States ---
   isResultsModalOpen = false;
-  activeDrillForResults: any = null;
-  playerScoreEntries: any[] = [];
+  activeDrillForResults: ExtendedDrillDto | null = null;
+  playerScoreEntries: PlayerScoreEntry[] = [];
   isSubmittingResults = false;
 
   constructor(
@@ -85,20 +124,28 @@ export class DrillSessionDetailsComponent implements OnInit {
     private sessionService: DrillSessionService,
     private templateService: DrillTemplateService,
     private authService: AuthService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
-    this.route.paramMap.subscribe(params => {
-      const id = params.get('id');
-      if (id) {
-        this.sessionId = Number(id);
-        this.loadSessionDetails();
-      } else {
-        this.errorMessage = 'Invalid Session ID';
-        this.isLoading = false;
-      }
-    });
+    this.subscriptions.add(
+      this.route.paramMap.subscribe(params => {
+        const id = params.get('id');
+        if (id) {
+          this.sessionId = Number(id);
+          this.loadSessionDetails();
+        } else {
+          this.errorMessage = 'Invalid Session ID';
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        }
+      })
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
   }
 
   // --- Computed Property for Read-Only Mode ---
@@ -128,76 +175,86 @@ export class DrillSessionDetailsComponent implements OnInit {
     this.isLoading = true;
     this.errorMessage = '';
 
-    this.sessionService.getSessionById(this.sessionId).subscribe({
-      next: (res) => {
-        if (res) {
-          this.sessionData = res;
-          if (this.sessionData.sessionDate && !this.sessionData.sessionDate.endsWith('Z') && !this.sessionData.sessionDate.includes('+')) {
-            this.sessionData.sessionDate += 'Z';
+    this.subscriptions.add(
+      this.sessionService.getSessionById(this.sessionId).subscribe({
+        next: (res) => {
+          if (res) {
+            this.sessionData = res as ExtendedDrillSessionDetails;
+            if (this.sessionData.sessionDate && !this.sessionData.sessionDate.endsWith('Z') && !this.sessionData.sessionDate.includes('+')) {
+              this.sessionData.sessionDate += 'Z';
+            }
+            this.loadAttendanceRoster();
+          } else {
+            this.errorMessage = 'Could not load session details.';
+            this.isLoading = false;
+            this.cdr.detectChanges();
           }
-          this.loadAttendanceRoster();
-        } else {
-          this.errorMessage = 'Could not load session details.';
+        },
+        error: (err) => {
+          console.error('API Error:', err);
+          this.errorMessage = err.error?.message || 'Failed to fetch session from the database.';
           this.isLoading = false;
+          this.cdr.detectChanges();
         }
-      },
-      error: (err) => {
-        console.error('API Error:', err);
-        this.errorMessage = err.error?.message || 'Failed to fetch session from the database.';
-        this.isLoading = false;
-      }
-    });
+      })
+    );
   }
 
   private loadAttendanceRoster(): void {
-    this.sessionService.getSessionAttendance(this.sessionId).subscribe({
-      next: (roster: any) => {
-        this.sessionData.attendance = roster;
-        this.isLoading = false;
-      },
-      error: (err) => {
-        console.error('Attendance Error:', err);
-        this.errorMessage = 'Failed to load session attendance sheet.';
-        this.isLoading = false;
-      }
-    });
+    this.subscriptions.add(
+      this.sessionService.getSessionAttendance(this.sessionId).subscribe({
+        next: (roster: PlayerAttendance[]) => {
+          if (this.sessionData) {
+            this.sessionData.attendance = roster;
+          }
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error('Attendance Error:', err);
+          this.errorMessage = 'Failed to load session attendance sheet.';
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        }
+      })
+    );
   }
 
-  setAttendance(player: any, isPresent: boolean): void {
+  setAttendance(player: PlayerAttendance, isPresent: boolean): void {
     if (this.isSessionCompleted) return; // 🟢 Guard: Prevent toggling if session is locked
 
     player.isPresent = isPresent;
 
     const payload = {
-      attendances: this.sessionData.attendance.map((p: any) => ({
+      attendances: this.sessionData?.attendance?.map((p: PlayerAttendance) => ({
         playerId: p.playerId,
         isPresent: p.isPresent
-      }))
+      })) || []
     };
 
-    this.sessionService.updateAttendance(this.sessionId, payload).subscribe({
-      //notification
-      next: () => {
-       
-        if (!isPresent) {
-          const playerMsg = "You were marked absent from today's drill session.";
-          const parentMsg = `Your child has been marked absent from today's drill session.`;
+    this.subscriptions.add(
+      this.sessionService.updateAttendance(this.sessionId, payload).pipe(
+        switchMap(() => {
+          if (!isPresent) {
+            const playerMsg = "You were marked absent from today's drill session.";
+            const parentMsg = `Your child has been marked absent from today's drill session.`;
 
-          this.notificationService.notifyPlayerMilestone(player.playerId, playerMsg).subscribe({
-            error: (e) => console.error(`Failed to notify player ${player.playerId} for absence`, e)
-          });
-          this.notificationService.notifyPlayerParents(player.playerId, parentMsg).subscribe({
-            error: (e) => console.error(`Failed to notify parent for player ${player.playerId} absence`, e)
-          });
-        }
-      },
-      error: (err) => console.error('Failed to auto-save attendance', err)
-    });
+            return forkJoin([
+              this.notificationService.notifyPlayerMilestone(player.playerId, playerMsg).pipe(catchError(e => { console.error(`Failed to notify player ${player.playerId} for absence`, e); return of(null); })),
+              this.notificationService.notifyPlayerParents(player.playerId, parentMsg).pipe(catchError(e => { console.error(`Failed to notify parent for player ${player.playerId} absence`, e); return of(null); }))
+            ]);
+          }
+          return of(null);
+        })
+      ).subscribe({
+        error: (err) => console.error('Failed to auto-save attendance', err)
+      })
+    );
   }
 
   getPresentCount(): number {
     if (!this.sessionData?.attendance) return 0;
-    return this.sessionData.attendance.filter((p: any) => p.isPresent).length;
+    return this.sessionData.attendance.filter((p: PlayerAttendance) => p.isPresent).length;
   }
 
   // --- Add Drill Modal ---
@@ -206,37 +263,49 @@ export class DrillSessionDetailsComponent implements OnInit {
     this.selectedTemplateId = null;
 
     const filter = { pageNumber: 1, pageSize: 50 };
-    this.templateService.getTemplates(filter).subscribe({
-      next: (res: any) => {
-        this.availableTemplates = res.items || [];
-      },
-      error: (err) => {
-        console.error('Failed to load drill templates', err);
-        this.availableTemplates = [];
-      }
-    });
+    this.subscriptions.add(
+      this.templateService.getTemplates(filter).subscribe({
+        next: (res: any) => {
+          this.availableTemplates = res.items || [];
+          this.templateOptions = this.availableTemplates.map(t => ({
+            value: t.id,
+            label: `${t.name} (${(t as any).categoryName || 'General'})`
+          }));
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error('Failed to load drill templates', err);
+          this.availableTemplates = [];
+          this.templateOptions = [];
+          this.cdr.detectChanges();
+        }
+      })
+    );
   }
 
   closeAddDrillModal(): void {
     this.isAddDrillModalOpen = false;
     this.selectedTemplateId = null;
+    this.cdr.detectChanges();
   }
 
   saveDrillToSession(): void {
     if (!this.selectedTemplateId) return;
 
     const payload: any = { drillTemplateId: Number(this.selectedTemplateId) };
-    this.sessionService.addDrillToSession(this.sessionId, payload).subscribe({
-      next: () => {
-        this.closeAddDrillModal();
-        this.showToast('Drill added to session.', 'success');
-        this.loadSessionDetails();
-      },
-      error: (err) => {
-        console.error('Failed to add drill to session', err);
-        this.showToast(err.error?.message || 'Failed to add drill to session.', 'error');
-      }
-    });
+    this.subscriptions.add(
+      this.sessionService.addDrillToSession(this.sessionId, payload).subscribe({
+        next: () => {
+          this.closeAddDrillModal();
+          this.showToast('Drill added to session.', 'success');
+          this.loadSessionDetails();
+        },
+        error: (err) => {
+          console.error('Failed to add drill to session', err);
+          this.showToast(err.error?.message || 'Failed to add drill to session.', 'error');
+        }
+      })
+    );
   }
 
   removeDrill(drillId: number): void {
@@ -252,24 +321,27 @@ export class DrillSessionDetailsComponent implements OnInit {
       messageParams: { name: drillName },
       confirmText: 'DRILLS.SESSION_DETAILS.REMOVE_BTN',
       action: () => {
-        this.sessionService.removeDrillFromSession(this.sessionId, drillId).subscribe({
-          next: () => {
-            this.showToast('Drill removed from session.', 'success');
-            this.loadSessionDetails();
-            this.closeConfirm();
-          },
-          error: (err) => {
-            console.error('Failed to remove drill', err);
-            this.showToast(err.error?.message || 'Failed to remove drill from session.', 'error');
-            this.closeConfirm();
-          }
-        });
+        this.subscriptions.add(
+          this.sessionService.removeDrillFromSession(this.sessionId, drillId).subscribe({
+            next: () => {
+              this.showToast('Drill removed from session.', 'success');
+              this.loadSessionDetails();
+              this.closeConfirm();
+            },
+            error: (err) => {
+              console.error('Failed to remove drill', err);
+              this.showToast(err.error?.message || 'Failed to remove drill from session.', 'error');
+              this.closeConfirm();
+            }
+          })
+        );
       }
     };
   }
 
   closeConfirm(): void {
     this.confirmModal.isOpen = false;
+    this.cdr.detectChanges();
   }
 
   executeConfirm(): void {
@@ -281,8 +353,10 @@ export class DrillSessionDetailsComponent implements OnInit {
   showToast(msg: string, type: 'success' | 'error' = 'success'): void {
     this.toastMessage = msg;
     this.toastType = type;
+    this.cdr.detectChanges();
     setTimeout(() => {
       this.toastMessage = '';
+      this.cdr.detectChanges();
     }, 3500);
   }
 
@@ -297,7 +371,7 @@ export class DrillSessionDetailsComponent implements OnInit {
     ];
   }
 
-  getMatchingRatingPreset(score: any): string | number {
+  getMatchingRatingPreset(score: string | number | null | undefined): string | number {
     if (score === null || score === undefined || score === '') return '';
     const num = Number(score);
     if (num >= 8.75) return 10;
@@ -307,9 +381,11 @@ export class DrillSessionDetailsComponent implements OnInit {
     return '';
   }
 
-  onRatingPresetChange(entry: any, val: any): void {
+  onRatingPresetChange(entry: PlayerScoreEntry, val: string | number | null): void {
     if (val !== null && val !== undefined && val !== '') {
       entry.manualScore = Number(val);
+    } else {
+      entry.manualScore = null;
     }
   }
 
@@ -318,38 +394,46 @@ export class DrillSessionDetailsComponent implements OnInit {
     this.activeDrillForResults = drill;
     this.isResultsModalOpen = true;
 
-    const presentPlayers = (this.sessionData.attendance || []).filter((p: any) => p.isPresent);
+    const presentPlayers = (this.sessionData?.attendance || []).filter((p: PlayerAttendance) => p.isPresent);
 
-    this.sessionService.getDrillResults(this.sessionId, drill.id).subscribe({
-      next: (existingResults: any[]) => {
-        this.playerScoreEntries = presentPlayers.map((player: any) => {
-          const existing = existingResults.find((r: any) => r.playerId === player.playerId);
-          return {
+    this.subscriptions.add(
+      this.sessionService.getDrillResults(this.sessionId, drill.id).subscribe({
+        next: (existingResults: any[]) => {
+          this.playerScoreEntries = presentPlayers.map((player: PlayerAttendance) => {
+            const existing = existingResults.find((r: any) => r.playerId === player.playerId);
+            return {
+              playerId: player.playerId,
+              playerFullName: player.playerFullName,
+              position: player.position || 'Player',
+              manualScore: existing?.manualScore !== undefined ? Number(existing.manualScore) : null,
+              doneCount: existing?.doneCount !== undefined ? Number(existing.doneCount) : null,
+              missedCount: existing?.missedCount !== undefined ? Number(existing.missedCount) : null,
+              coachNotes: existing?.coachNotes || ''
+            };
+          });
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.playerScoreEntries = presentPlayers.map((player: PlayerAttendance) => ({
             playerId: player.playerId,
             playerFullName: player.playerFullName,
             position: player.position || 'Player',
-            manualScore: existing ? existing.manualScore : undefined,
-            doneCount: existing ? existing.doneCount : undefined,
-            missedCount: existing ? existing.missedCount : undefined,
-            coachNotes: existing ? existing.coachNotes : ''
-          };
-        });
-      },
-      error: () => {
-        this.playerScoreEntries = presentPlayers.map((player: any) => ({
-          playerId: player.playerId,
-          playerFullName: player.playerFullName,
-          position: player.position || 'Player',
-          coachNotes: ''
-        }));
-      }
-    });
+            manualScore: null,
+            doneCount: null,
+            missedCount: null,
+            coachNotes: ''
+          }));
+          this.cdr.detectChanges();
+        }
+      })
+    );
   }
 
   closeResultsModal(): void {
     this.isResultsModalOpen = false;
     this.activeDrillForResults = null;
     this.playerScoreEntries = [];
+    this.cdr.detectChanges();
   }
 
   saveDrillResults(): void {
@@ -358,7 +442,7 @@ export class DrillSessionDetailsComponent implements OnInit {
     this.isSubmittingResults = true;
     const payload = {
       results: this.playerScoreEntries.map(entry => {
-        let score = entry.manualScore !== null && entry.manualScore !== undefined && entry.manualScore !== ''
+        let score = entry.manualScore !== null && entry.manualScore !== undefined
           ? Math.min(10, Math.max(0, Number(entry.manualScore)))
           : null;
         return {
@@ -371,29 +455,37 @@ export class DrillSessionDetailsComponent implements OnInit {
       })
     };
 
-    this.sessionService.submitDrillResults(this.sessionId, this.activeDrillForResults.id, payload).subscribe({
-      next: () => {
-        this.isSubmittingResults = false;
-        // notification
-        this.playerScoreEntries.forEach(entry => {
-          const playerMsg = "A new drill result has been recorded.";
-          const parentMsg = "A new drill result has been recorded for your child."; 
-          this.notificationService.notifyPlayerMilestone(entry.playerId, playerMsg).subscribe({
-            error: (e) => console.error(`Failed to notify player ${entry.playerId}`, e)
+    this.subscriptions.add(
+      this.sessionService.submitDrillResults(this.sessionId, this.activeDrillForResults.id, payload).pipe(
+        switchMap(() => {
+          this.isSubmittingResults = false;
+          // 🟢 TODO: Refactor to use bulk endpoint (e.g., notifyBulkPlayers) to prevent DDOSing backend!
+          const notificationCalls: Observable<any>[] = [];
+          this.playerScoreEntries.forEach(entry => {
+            const playerMsg = "A new drill result has been recorded.";
+            const parentMsg = "A new drill result has been recorded for your child.";
+            notificationCalls.push(
+              this.notificationService.notifyPlayerMilestone(entry.playerId, playerMsg).pipe(catchError(e => { console.error(`Failed to notify player ${entry.playerId}`, e); return of(null); }))
+            );
+            notificationCalls.push(
+              this.notificationService.notifyPlayerParents(entry.playerId, parentMsg).pipe(catchError(e => { console.error(`Failed to notify parent for player ${entry.playerId}`, e); return of(null); }))
+            );
           });
-          this.notificationService.notifyPlayerParents(entry.playerId, parentMsg).subscribe({
-            error: (e) => console.error(`Failed to notify parent for player ${entry.playerId}`, e)
-          });
-        });
-        this.closeResultsModal();
-        this.showToast('Drill results saved successfully!', 'success');
-      },
-      error: (err) => {
-        this.isSubmittingResults = false;
-        console.error('Failed to submit results', err);
-        this.showToast(err.error?.message || 'Failed to submit drill results.', 'error');
-      }
-    });
+          return notificationCalls.length > 0 ? forkJoin(notificationCalls) : of(null);
+        })
+      ).subscribe({
+        next: () => {
+          this.closeResultsModal();
+          this.showToast('Drill results saved successfully!', 'success');
+          this.loadSessionDetails();
+        },
+        error: (err) => {
+          this.isSubmittingResults = false;
+          console.error('Failed to submit results', err);
+          this.showToast(err.error?.message || 'Failed to submit drill results.', 'error');
+        }
+      })
+    );
   }
 
   completeSession(): void {
@@ -404,20 +496,22 @@ export class DrillSessionDetailsComponent implements OnInit {
       messageParams: {},
       confirmText: 'DRILLS.SESSION_DETAILS.COMPLETE_BTN',
       action: () => {
-        this.sessionService.completeSession(this.sessionId).subscribe({
-          next: (res: any) => {
-            this.showToast('Session completed successfully.', 'success');
-            this.closeConfirm();
-            setTimeout(() => {
-              this.router.navigate(['/drills/sessions']);
-            }, 1200);
-          },
-          error: (err) => {
-            console.error('Failed to complete session', err);
-            this.showToast(err.error?.message || 'Could not complete session.', 'error');
-            this.closeConfirm();
-          }
-        });
+        this.subscriptions.add(
+          this.sessionService.completeSession(this.sessionId).subscribe({
+            next: (res: any) => {
+              this.showToast('Session completed successfully.', 'success');
+              this.closeConfirm();
+              setTimeout(() => {
+                this.router.navigate(['/drills/sessions']);
+              }, 1200);
+            },
+            error: (err) => {
+              console.error('Failed to complete session', err);
+              this.showToast(err.error?.message || 'Could not complete session.', 'error');
+              this.closeConfirm();
+            }
+          })
+        );
       }
     };
   }

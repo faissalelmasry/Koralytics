@@ -23,9 +23,9 @@
                 <app-select
                     [label]="'DRILLS.BIAS_ANALYTICS.SELECT_TARGET_COACH' | translate"
                     [placeholder]="'DRILLS.BIAS_ANALYTICS.SELECT_COACH_PLACEHOLDER' | translate"
-                    [options]="coachOptions"
+                    [options]="coachOptionsList"
                     [(value)]="selectedCoachId"
-                    [disabled]="isCoachesLoading || coachOptions.length === 0">
+                    [disabled]="isCoachesLoading || coachOptionsList.length === 0">
                 </app-select>
 
                 <app-button
@@ -82,7 +82,7 @@
     </section>
 
     <!-- PLAYER BREAKDOWN TABLE (TOP 5 SAMPLE ONLY) -->
-    @if (topPlayerComparisons.length > 0) {
+    @if (topComparisons.length > 0) {
     <div class="breakdown-section">
         <div class="section-title-row flex-between">
             <div>
@@ -104,7 +104,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @for (item of topPlayerComparisons; track item.playerId) {
+                    @for (item of topComparisons; track item.playerId) {
                     <tr>
                         <td class="player-name-cell clickable" [routerLink]="['/player/profile', item.playerId]" [title]="'DRILLS.BIAS_ANALYTICS.VIEW_PLAYER_PROFILE' | translate">
                             <div class="player-avatar-box">

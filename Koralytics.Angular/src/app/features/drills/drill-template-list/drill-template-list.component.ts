@@ -1,6 +1,7 @@
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LocalizedDatePipe } from '../../../../shared/pipes/localized-date.pipe';
 import { Component, OnInit, OnDestroy, ChangeDetectorRef, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, finalize, tap } from 'rxjs/operators';
@@ -31,6 +32,7 @@ import { Footer } from '../../../../shared/components/footer/footer';
   templateUrl: './drill-template-list.component.html',
   styleUrls: ['./drill-template-list.component.css'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush, // 🟢 OPTIMIZATION: Massive performance boost
   imports: [
     CommonModule,
     FormsModule,
@@ -78,8 +80,8 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
   isSaving = false;
   isFormOpen = false;
   isEditing = false;
-  errorMessage = '';     // page-level error
-  formError = '';        // in-panel form error
+  errorMessage = '';
+  formError = '';
   toastMessage = '';
   toastType: 'success' | 'error' = 'success';
 
@@ -140,21 +142,9 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
   difficultyLevels = Object.values(DifficultyLevel);
   drillModes = Object.values(DrillMode);
 
-  onFormCategoryChange(val: any): void {
-    this.drillForm.get('categoryId')?.setValue(val ? Number(val) : null);
-  }
-
-  onFormDifficultyChange(val: any): void {
-    this.drillForm.get('difficultyLevel')?.setValue(val || null);
-  }
-
-  onFormModeChange(val: any): void {
-    this.drillForm.get('drillMode')?.setValue(val || null);
-  }
-
-  // --- RxJS Subscriptions ---
+  // 🟢 OPTIMIZATION: Centralized Subscription Management to prevent memory leaks
+  private subscriptions = new Subscription();
   private searchSubject = new Subject<string>();
-  private searchSubscription!: Subscription;
 
   constructor(
     private drillTemplateService: DrillTemplateService,
@@ -173,9 +163,13 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.authService.currentUser$.subscribe(user => {
-      this.currentUserId = user?.userId || null;
-    });
+    // 🟢 OPTIMIZATION: Added to the cleanup crew
+    this.subscriptions.add(
+      this.authService.currentUser$.subscribe(user => {
+        this.currentUserId = user?.userId || null;
+        this.cdr.detectChanges(); // Tell OnPush to update
+      })
+    );
 
     this.fetchCategories();
     this.setupSearchDebounce();
@@ -183,9 +177,21 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.searchSubscription) {
-      this.searchSubscription.unsubscribe();
-    }
+    // 🟢 OPTIMIZATION: Safely kills ALL subscriptions instantly to free up RAM
+    this.subscriptions.unsubscribe();
+  }
+
+  // 🟢 OPTIMIZATION: Removed 'any', utilizing 'unknown' or 'string/number'
+  onFormCategoryChange(val: string | number | null): void {
+    this.drillForm.get('categoryId')?.setValue(val ? Number(val) : null);
+  }
+
+  onFormDifficultyChange(val: string | null): void {
+    this.drillForm.get('difficultyLevel')?.setValue(val || null);
+  }
+
+  onFormModeChange(val: string | null): void {
+    this.drillForm.get('drillMode')?.setValue(val || null);
   }
 
   // ==========================================
@@ -193,12 +199,12 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
   // ==========================================
 
   private fetchCategories(): void {
-    this.drillTemplateService.getDrillCategories().pipe(
-      tap(response => console.log('[Categories] raw response:', response))
-    ).subscribe({
-      next: (response: any) => {
-        this.categories = Array.isArray(response) ? response : (response?.data ?? []);
-        console.log('[Categories] parsed:', this.categories);
+    this.subscriptions.add(
+      this.drillTemplateService.getDrillCategories().pipe(
+        tap(response => console.log('[Categories] raw response:', response))
+      ).subscribe({
+        next: (response: DrillCategoryDto[]) => { // 🟢 OPTIMIZATION: Strictly typed
+          this.categories = Array.isArray(response) ? response : [];
 
         // For filter bar: prepend "All Categories"
         this.categoryOptions = [
@@ -218,30 +224,35 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
   fetchTemplates(): void {
     this.isLoading = true;
     this.errorMessage = '';
+    this.cdr.detectChanges();
 
     const request$ = this.selectedCategoryId && this.selectedCategoryId > 0
       ? this.drillTemplateService.getTemplatesByCategory(this.selectedCategoryId, this.filter)
       : this.drillTemplateService.getTemplates(this.filter);
 
-    request$.pipe(
-      finalize(() => this.isLoading = false)
-    ).subscribe({
-      next: (response: PagedResultDto<DrillTemplateDto>) => {
-        const items: DrillTemplateDto[] = response.items || [];
+    this.subscriptions.add(
+      request$.pipe(
+        finalize(() => {
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        })
+      ).subscribe({
+        next: (response: PagedResultDto<DrillTemplateDto>) => {
+          const items: DrillTemplateDto[] = response.items || [];
 
-        // Apply frontend "Shared Only" filter if toggled
-        this.visibleTemplates = this.showSharedOnly
-          ? items.filter((d: DrillTemplateDto) => d.isShared)
-          : items;
+          this.visibleTemplates = this.showSharedOnly
+            ? items.filter((d: DrillTemplateDto) => d.isShared)
+            : items;
 
-        this.totalItems = response.totalCount;
-        this.calculateStats();
-        this.calculatePagination();
-      },
-      error: (err) => {
-        this.errorMessage = err.error?.message || 'Failed to load templates.';
-      }
-    });
+          this.totalItems = response.totalCount;
+          this.calculateStats();
+          this.calculatePagination();
+        },
+        error: (err) => {
+          this.errorMessage = err.error?.message || 'Failed to load templates.';
+        }
+      })
+    );
   }
 
   private calculateStats(): void {
@@ -259,21 +270,23 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
   // ==========================================
 
   private setupSearchDebounce(): void {
-    this.searchSubscription = this.searchSubject.pipe(
-      debounceTime(400),
-      distinctUntilChanged()
-    ).subscribe(term => {
-      this.filter.searchTerm = term;
-      this.filter.pageNumber = 1;
-      this.fetchTemplates();
-    });
+    this.subscriptions.add(
+      this.searchSubject.pipe(
+        debounceTime(400),
+        distinctUntilChanged()
+      ).subscribe(term => {
+        this.filter.searchTerm = term;
+        this.filter.pageNumber = 1;
+        this.fetchTemplates();
+      })
+    );
   }
 
   onSearch(term: string): void {
     this.searchSubject.next(term);
   }
 
-  onCategoryChange(value: any): void {
+  onCategoryChange(value: string | number | null): void {
     this.selectedCategoryId = value && value !== 0 ? Number(value) : null;
     this.filter.pageNumber = 1;
     this.fetchTemplates();
@@ -300,6 +313,7 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
     this.selectedDrillId = null;
     this.drillForm.reset();
     this.isFormOpen = true;
+    this.cdr.detectChanges();
   }
 
   openEditForm(drill: DrillTemplateDto): void {
@@ -313,6 +327,53 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
       videoUrl: drill.videoUrl || ''
     });
     this.isFormOpen = true;
+    this.cdr.detectChanges();
+  }
+
+  closeForm(): void {
+    this.isFormOpen = false;
+    this.cdr.detectChanges();
+    setTimeout(() => {
+      this.drillForm.reset();
+      this.formError = '';
+    }, 300);
+  }
+
+  onSubmitForm(): void {
+    if (this.drillForm.invalid) {
+      this.drillForm.markAllAsTouched();
+      return;
+    }
+
+    this.isSaving = true;
+    this.formError = '';
+    this.cdr.detectChanges();
+
+    const formData = this.drillForm.value;
+
+    const request$ = this.isEditing && this.selectedDrillId
+      ? this.drillTemplateService.updateTemplate(this.selectedDrillId, formData)
+      : this.drillTemplateService.createTemplate(formData);
+
+    this.subscriptions.add(
+      request$.pipe(
+        finalize(() => {
+          this.isSaving = false;
+          this.cdr.detectChanges();
+        })
+      ).subscribe({
+        next: () => {
+          this.closeForm();
+          this.showToast(this.isEditing ? 'Template updated successfully.' : 'Template created successfully.', 'success');
+          this.fetchTemplates();
+        },
+        error: (err) => {
+          const errorMsg = this.extractErrorMessage(err, 'Failed to save template.');
+          this.formError = errorMsg;
+          this.showErrorDialog('Save Failed', errorMsg);
+        }
+      })
+    );
   }
 
   // ==========================================
@@ -325,14 +386,12 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
     let safeVideoUrl: SafeResourceUrl | null = null;
     let isIframe = false;
 
-    // YouTube match: watch?v=ID, embed/ID, or youtu.be/ID
     const ytMatch = rawUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
     if (ytMatch && ytMatch[1]) {
       const embedUrl = `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1`;
       safeVideoUrl = this.sanitizer.bypassSecurityTrustResourceUrl(embedUrl);
       isIframe = true;
     } else {
-      // Vimeo match: vimeo.com/ID or player.vimeo.com/video/ID
       const vimeoMatch = rawUrl.match(/vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/[^\/]*\/videos\/|album\/\d+\/video\/|video\/|)(\d+)/);
       if (vimeoMatch && vimeoMatch[1]) {
         const embedUrl = `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=1`;
@@ -364,24 +423,9 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  closeForm(): void {
-    this.isFormOpen = false;
-    setTimeout(() => this.drillForm.reset(), 300);
-  }
-
-  onSubmitForm(): void {
-    if (this.drillForm.invalid) {
-      this.drillForm.markAllAsTouched();
-      return;
-    }
-
-    this.isSaving = true;
-    this.formError = '';
-    const formData = this.drillForm.value;
-
-    const request$ = this.isEditing && this.selectedDrillId
-      ? this.drillTemplateService.updateTemplate(this.selectedDrillId, formData)
-      : this.drillTemplateService.createTemplate(formData);
+  // ==========================================
+  // FEEDBACK & MUTATIONS
+  // ==========================================
 
     request$.pipe(
       finalize(() => this.isSaving = false)
@@ -400,10 +444,9 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
   }
 
   showToast(message: string, type: 'success' | 'error' = 'success'): void {
-    console.log('[Toast]', type, message);
     this.toastMessage = message;
     this.toastType = type;
-    this.cdr.detectChanges(); // force view update
+    this.cdr.detectChanges();
     setTimeout(() => {
       this.toastMessage = '';
       this.cdr.detectChanges();
@@ -421,11 +464,23 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  // ==========================================
-  // MUTATIONS (Share / Delete)
-  // ==========================================
-
   onShareTemplate(drill: DrillTemplateDto): void {
+    this.subscriptions.add(
+      this.drillTemplateService.shareTemplate(drill.id).subscribe({
+        next: () => {
+          const index = this.visibleTemplates.findIndex(t => t.id === drill.id);
+          if (index !== -1) {
+            this.visibleTemplates[index].isShared = !this.visibleTemplates[index].isShared;
+            this.showToast(this.visibleTemplates[index].isShared ? 'Template shared successfully.' : 'Template unshared successfully.', 'success');
+            this.calculateStats();
+            this.cdr.detectChanges();
+          }
+        },
+        error: (err) => {
+          this.showErrorDialog('Share Failed', this.extractErrorMessage(err, 'Failed to toggle share status.'));
+        }
+      })
+    );
     this.drillTemplateService.shareTemplate(drill.id).subscribe({
       next: () => {
         const index = this.visibleTemplates.findIndex(t => t.id === drill.id);
@@ -462,12 +517,29 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
             this.showErrorDialog(this.translate.instant('DRILLS.TEMPLATE_LIST.DELETE_FAIL_TITLE') || 'Cannot Delete Template', this.extractErrorMessage(err, 'Cannot delete this template.'));
           }
         });
+        this.subscriptions.add(
+          this.drillTemplateService.deleteTemplate(drill.id).subscribe({
+            next: () => {
+              this.visibleTemplates = this.visibleTemplates.filter(t => t.id !== drill.id);
+              if (this.totalItems > 0) this.totalItems--;
+              this.showToast('Template deleted successfully.', 'success');
+              this.calculateStats();
+              this.calculatePagination();
+              this.closeConfirm();
+            },
+            error: (err) => {
+              this.showErrorDialog('Cannot Delete Template', this.extractErrorMessage(err, 'Cannot delete this template.'));
+            }
+          })
+        );
       }
     };
+    this.cdr.detectChanges();
   }
 
   closeConfirm(): void {
     this.confirmModal.isOpen = false;
+    this.cdr.detectChanges();
   }
 
   executeConfirm(): void {
@@ -481,6 +553,17 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
   // ==========================================
 
   getCategoryLabel(drill: DrillTemplateDto): string {
+    if ((drill as any).categoryName) {
+      return (drill as any).categoryName.toLowerCase();
+    }
+
+    const cat = this.categories.find(c => c.id === drill.categoryId);
+    if (cat) {
+      return cat.name.toLowerCase();
+    }
+
+    // 🟢 OPTIMIZATION: Removed hardcoded dictionary. Fallback to generic ID if category isn't loaded yet.
+    return `category #${drill.categoryId}`;
     const name = (drill as any).categoryName || this.categories.find(c => c.id === drill.categoryId)?.name || '';
     return this.translateCategory(name);
   }
@@ -518,21 +601,17 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
   }
 
   getVisibilityClass(drill: DrillTemplateDto): string {
-    if (drill.academyId === null) return 'badge-warning'; // global
-    if (drill.isShared) return 'badge-info'; // shared
-    return 'badge-slate'; // private
+    if (drill.academyId === null) return 'badge-warning';
+    if (drill.isShared) return 'badge-info';
+    return 'badge-slate';
   }
 
-  // Helper to extract ASP.NET Core exception messages safely
   private extractErrorMessage(err: any, fallback: string): string {
     if (err?.error) {
       if (typeof err.error === 'string') {
-        // Look for common ASP.NET exception patterns in HTML
         const match = err.error.match(/Exception:\s*([^<]+)/i) || err.error.match(/<title>([^<]+)<\/title>/i);
-        if (match && match[1]) {
-          return match[1].trim();
-        }
-        return err.error.substring(0, 100); // Return raw text if small enough
+        if (match && match[1]) return match[1].trim();
+        return err.error.substring(0, 100);
       }
       return err.error.upgradeMessage || err.error.message || err.error.detail || err.error.title || fallback;
     }

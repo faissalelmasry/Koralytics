@@ -1,3 +1,4 @@
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LocalizedDatePipe } from '../../../../shared/pipes/localized-date.pipe';
 import { Component, OnInit, inject } from '@angular/core';
@@ -16,16 +17,35 @@ import { formatToLocalISO } from '../../../../core/utils/date.util';
 import { CustomButtonComponent } from '../../../../shared/components/custom-button/custom-button';
 import { CustomDatePicker } from '../../../../shared/components/custom-date-picker/custom-date-picker';
 import { NotificationService } from '@core/services/SignalR/notificationservice';
+import { Subscription } from 'rxjs';
+
+export interface TeamRosterPlayer {
+  id: number;
+  name: string;
+  position: string;
+  selected: boolean;
+}
+
+export interface TeamData {
+  id: number;
+  name: string;
+  players?: any[];
+}
 
 @Component({
   selector: 'app-drill-session-create',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, CustomSelect, CustomButtonComponent, CustomDatePicker, TranslatePipe, LocalizedDatePipe],
+  changeDetection: ChangeDetectionStrategy.OnPush, // 🟢 OPTIMIZATION: OnPush enabled
+  imports: [CommonModule, ReactiveFormsModule, CustomSelect, CustomButtonComponent, CustomDatePicker],
   templateUrl: './drill-session-create.component.html',
   styleUrls: ['./drill-session-create.component.css']
 })
-export class DrillSessionCreateComponent implements OnInit {
-  private translate = inject(TranslateService);
+export class DrillSessionCreateComponent implements OnInit, OnDestroy {
+  // 🟢 OPTIMIZATION: Memory management
+    private subscriptions = new Subscription();
+    private translate = inject(TranslateService);
+
   sessionForm!: FormGroup;
   isSubmitting = false;
   errorMessage = '';
@@ -53,9 +73,9 @@ export class DrillSessionCreateComponent implements OnInit {
     this.sessionForm.get('type')?.setValue(val);
   }
 
-  fullTeamsData: any[] = [];
+  fullTeamsData: TeamData[] = [];
   availableTeams: { id: number; name: string }[] = [];
-  availablePlayers: { id: number; name: string; position: string; selected: boolean }[] = [];
+  availablePlayers: TeamRosterPlayer[] = [];
 
   // 🟢 No hardcoded data!
   currentAcademyId!: number;
@@ -65,8 +85,9 @@ export class DrillSessionCreateComponent implements OnInit {
     private sessionService: DrillSessionService,
     private academyService: AcademyService,
     private router: Router,
-    private authService: AuthService ,// 🟢 Auth Service Injected
-    private notificationService: NotificationService
+    private authService: AuthService, // 🟢 Auth Service Injected
+    private notificationService: NotificationService,
+    private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
@@ -77,6 +98,10 @@ export class DrillSessionCreateComponent implements OnInit {
     }
     this.initForm();
     this.setDynamicAcademyId(); // Load the ID before making API calls
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
   }
 
   private setDynamicAcademyId(): void {
@@ -106,28 +131,35 @@ export class DrillSessionCreateComponent implements OnInit {
       notes: ['']
     });
 
-    this.sessionForm.get('teamId')?.valueChanges.subscribe(teamId => {
-      if (teamId) {
-        this.loadTeamRoster(Number(teamId));
-      } else {
-        this.availablePlayers = [];
-      }
-    });
+    this.subscriptions.add(
+      this.sessionForm.get('teamId')?.valueChanges.subscribe(teamId => {
+        if (teamId) {
+          this.loadTeamRoster(Number(teamId));
+        } else {
+          this.availablePlayers = [];
+          this.cdr.markForCheck();
+        }
+      })
+    );
   }
 
   private loadAcademyTeams(): void {
-    this.academyService.getTeams(this.currentAcademyId).subscribe({
-      next: (res) => {
-        if (res.isSuccess && res.data) {
-          this.fullTeamsData = res.data;
-          this.availableTeams = res.data.map((t: any) => ({
-            id: t.id,
-            name: t.name
-          }));
-        }
-      },
-      error: (err) => console.error('Failed to load teams', err)
-    });
+    this.subscriptions.add(
+      this.academyService.getTeams(this.currentAcademyId).subscribe({
+        next: (res) => {
+          if (res.isSuccess && res.data) {
+            this.fullTeamsData = res.data;
+            this.availableTeams = res.data.map((t: any) => ({
+              id: t.id,
+              name: t.name
+            }));
+            this.teamOptionsList = this.availableTeams.map(t => ({ value: t.id, label: t.name }));
+            this.cdr.markForCheck();
+          }
+        },
+        error: (err) => console.error('Failed to load teams', err)
+      })
+    );
   }
 
   private loadTeamRoster(teamId: number): void {
@@ -143,18 +175,22 @@ export class DrillSessionCreateComponent implements OnInit {
     } else {
       this.availablePlayers = [];
     }
+    this.cdr.markForCheck();
   }
 
-  togglePlayerSelection(player: any): void {
+  togglePlayerSelection(player: TeamRosterPlayer): void {
     player.selected = !player.selected;
+    this.cdr.markForCheck();
   }
 
   selectAllPlayers(): void {
     this.availablePlayers.forEach(p => p.selected = true);
+    this.cdr.markForCheck();
   }
 
   deselectAllPlayers(): void {
     this.availablePlayers.forEach(p => p.selected = false);
+    this.cdr.markForCheck();
   }
 
   onSubmit(): void {
@@ -188,30 +224,38 @@ export class DrillSessionCreateComponent implements OnInit {
       playerIds: selectedPlayerIds
     };
 
-    this.sessionService.createSession(payload).subscribe({
-      next: (response) => {
-        this.isSubmitting = false;
-        //notification
-        selectedPlayerIds.forEach(playerId => {
-          const playerMsg = "A new training session has been scheduled for your team.";
-          const parentMsg = "A new training session has been scheduled for your child's team.";
-
-          this.notificationService.notifyPlayerMilestone(playerId, playerMsg).subscribe({
-            error: (e) => console.error(`Failed to notify player ${playerId} for new session`, e)
+    this.subscriptions.add(
+      this.sessionService.createSession(payload).subscribe({
+        next: (response) => {
+          this.isSubmitting = false;
+          //notification
+          // 🟢 TODO: Aly needs to build a bulk .NET endpoint for this to prevent DDOSing the backend!
+          selectedPlayerIds.forEach(playerId => {
+            const playerMsg = "A new training session has been scheduled for your team.";
+            const parentMsg = "A new training session has been scheduled for your child's team.";
+  
+            this.subscriptions.add(
+              this.notificationService.notifyPlayerMilestone(playerId, playerMsg).subscribe({
+                error: (e) => console.error(`Failed to notify player ${playerId} for new session`, e)
+              })
+            );
+  
+            this.subscriptions.add(
+              this.notificationService.notifyPlayerParents(playerId, parentMsg).subscribe({
+                error: (e) => console.error(`Failed to notify parent for player ${playerId} new session`, e)
+              })
+            );
           });
-
-          this.notificationService.notifyPlayerParents(playerId, parentMsg).subscribe({
-            error: (e) => console.error(`Failed to notify parent for player ${playerId} new session`, e)
-          });
-        });
-        this.router.navigate(['/drills/sessions']);
-      },
-      error: (err) => {
-        this.isSubmitting = false;
-        console.error('Full API Error:', err);
-        this.errorMessage = err.error?.title || err.error?.message || err.error || 'Failed to schedule the session.';
-      }
-    });
+          this.router.navigate(['/drills/sessions']);
+        },
+        error: (err) => {
+          this.isSubmitting = false;
+          console.error('Full API Error:', err);
+          this.errorMessage = err.error?.title || err.error?.message || err.error || 'Failed to schedule the session.';
+          this.cdr.markForCheck();
+        }
+      })
+    );
   }
 
   cancel(): void {
