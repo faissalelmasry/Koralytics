@@ -11,10 +11,10 @@
         </svg>
       </div>
       <div>
-        <h1>Squad <span class="accent">Overview</span></h1>
+        <h1>{{ 'COACH.SQUAD.TITLE' | translate }} <span class="accent">{{ 'COACH.SQUAD.TITLE_ACCENT' | translate }}</span></h1>
         <div class="meta-pills">
           <div class="team-selector-wrap" *ngIf="teams().length > 0">
-            <span class="team-lbl">Select Team:</span>
+            <span class="team-lbl">{{ 'COACH.SQUAD.SELECT_TEAM' | translate }}</span>
             <select id="teamSelect" class="team-dropdown" [value]="selectedTeamId" (change)="onTeamChange($event)">
               <option *ngFor="let t of teams()" [value]="t.teamId">
                 {{ t.teamName }} ({{ t.ageGroupName }})
@@ -27,15 +27,15 @@
 
     <div class="bio-quick-list" *ngIf="squad() && !loading()">
       <div class="bio-item">
-        <span class="bio-lbl">Total Roster</span>
+        <span class="bio-lbl">{{ 'COACH.SQUAD.TOTAL_ROSTER' | translate }}</span>
         <span class="bio-val">{{ totalPlayersCount }}</span>
       </div>
       <div class="bio-item">
-        <span class="bio-lbl">Available</span>
+        <span class="bio-lbl">{{ 'COACH.SQUAD.AVAILABLE' | translate }}</span>
         <span class="bio-val accent-val">{{ availablePlayersCount }}</span>
       </div>
       <div class="bio-item">
-        <span class="bio-lbl">Squad Avg OVR</span>
+        <span class="bio-lbl">{{ 'COACH.SQUAD.SQUAD_AVG_OVR' | translate }}</span>
         <span class="bio-val">{{ averageOverallRating }}</span>
       </div>
     </div>
@@ -45,30 +45,30 @@
   <div class="action-bar" *ngIf="squad()?.players?.length">
     <div class="action-info">
       <span class="selection-hint" *ngIf="!canCompare()">
-        Select 2 players to compare stats
+        {{ 'COACH.SQUAD.SELECT_2_PLAYERS' | translate }}
       </span>
       <span class="selection-hint active" *ngIf="canCompare()">
-        2 players selected! Ready to compare
+        {{ 'COACH.SQUAD.READY_TO_COMPARE' | translate }}
       </span>
     </div>
     <button
       class="btn-compare"
       [disabled]="!canCompare()"
       (click)="openComparison()">
-      Compare Players
+      {{ 'COACH.SQUAD.COMPARE_PLAYERS' | translate }}
     </button>
   </div>
 
   <!-- Loading State -->
   <div class="loading-state" *ngIf="loading()">
-    <app-loading-spinner size="lg"></app-loading-spinner>
-    <p>Loading squad stats...</p>
+    <div class="spinner"></div>
+    <p>{{ 'COACH.SQUAD.LOADING_SQUAD_STATS' | translate }}</p>
   </div>
 
   <!-- Error State -->
   <div class="error-state" *ngIf="error()">
     <p>{{ error() }}</p>
-    <button class="btn-retry" (click)="loadSquad()">Retry</button>
+    <button class="btn-retry" (click)="loadSquad()">{{ 'COACH.SQUAD.RETRY' | translate }}</button>
   </div>
 
   <!-- Squad Mini Cards Grid -->
@@ -101,14 +101,14 @@
       </div>
 
       <div class="foot-tag" *ngIf="player.preferredFoot">
-        {{ player.preferredFoot }} Foot
+        {{ player.preferredFoot }} {{ 'COACH.SQUAD.FOOT_LABEL' | translate }}
       </div>
     </div>
   </div>
 
   <!-- Empty State -->
   <div class="empty-state" *ngIf="squad() && !squad()!.players.length && !loading()">
-    <p>No players found in this squad.</p>
+    <p>{{ 'COACH.SQUAD.NO_PLAYERS_FOUND' | translate }}</p>
   </div>
 
   <!-- Comparison Modal -->
@@ -116,8 +116,8 @@
     <div class="modal-content comparison-modal" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <div class="modal-title-group">
-          <h2>Player Comparison</h2>
-          <span class="modal-subtitle">Full Attribute Breakdown</span>
+          <h2>{{ 'COACH.SQUAD.PLAYER_COMPARISON' | translate }}</h2>
+          <span class="modal-subtitle">{{ 'COACH.SQUAD.FULL_BREAKDOWN' | translate }}</span>
         </div>
         <button class="modal-close" (click)="closeComparison()" aria-label="Close modal">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -141,13 +141,13 @@
             <span class="status-chip" [ngClass]="getAvailabilityClass(cmp.playerA.availabilityStatus)">
               {{ cmp.playerA.availabilityStatus }}
             </span>
-            <span class="view-profile-hint">View Profile &rarr;</span>
+            <span class="view-profile-hint">{{ 'COACH.SQUAD.VIEW_PROFILE' | translate }}</span>
           </div>
         </div>
 
         <!-- Center Attribute Comparison Bars -->
         <div class="compare-bars-panel">
-          <div class="bars-header">Attribute Breakdown</div>
+          <div class="bars-header">{{ 'COACH.SQUAD.ATTRIBUTE_BREAKDOWN' | translate }}</div>
           <div class="compare-bars">
             <div class="bar-row" *ngFor="let cat of getComparisonCategories(cmp.playerA, cmp.playerB)">
               <div class="bar-left" [class.winner]="getRating(cmp.playerA, cat) >= getRating(cmp.playerB, cat)" [style.width.%]="(getRating(cmp.playerA, cat) / 100) * 100">
@@ -163,12 +163,12 @@
           <div class="extra-compare-grid">
             <div class="extra-row">
               <span class="val-left">{{ cmp.playerA.preferredFoot }} ({{ cmp.playerA.weakFootRating }}★)</span>
-              <span class="row-label">FOOT / WEAK</span>
+              <span class="row-label">{{ 'COACH.SQUAD.FOOT_WEAK' | translate }}</span>
               <span class="val-right">{{ cmp.playerB.preferredFoot }} ({{ cmp.playerB.weakFootRating }}★)</span>
             </div>
             <div class="extra-row" *ngIf="cmp.playerA.playStyleTag || cmp.playerB.playStyleTag">
               <span class="val-left">{{ cmp.playerA.playStyleTag || 'N/A' }}</span>
-              <span class="row-label">STYLE</span>
+              <span class="row-label">{{ 'COACH.SQUAD.STYLE' | translate }}</span>
               <span class="val-right">{{ cmp.playerB.playStyleTag || 'N/A' }}</span>
             </div>
           </div>
@@ -187,7 +187,7 @@
             <span class="status-chip" [ngClass]="getAvailabilityClass(cmp.playerB.availabilityStatus)">
               {{ cmp.playerB.availabilityStatus }}
             </span>
-            <span class="view-profile-hint">View Profile &rarr;</span>
+            <span class="view-profile-hint">{{ 'COACH.SQUAD.VIEW_PROFILE' | translate }}</span>
           </div>
         </div>
       </div>

@@ -7,11 +7,12 @@ import { CoachSquadService } from '../../../../../core/services/coach/coach-squa
 import { DrillSessionService } from '../../../../../core/services/drill/drill-session.service';
 import { TrainingTeamSplitDto, SquadPlayerDto } from '../../../../../core/interfaces/coach.interfaces';
 import { DrillSessionDto, SessionFilterDto } from '../../../../../core/interfaces/drill-session.model';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-training-split',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslatePipe],
   templateUrl: './training-split.component.html',
   styleUrls: ['./training-split.component.css']
 })

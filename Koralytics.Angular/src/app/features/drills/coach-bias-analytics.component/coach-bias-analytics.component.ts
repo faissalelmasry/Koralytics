@@ -63,13 +63,13 @@ interface AcademyMember {
     LoadingSpinnerComponent,
     StatusChipComponent,
     FeatureLockComponent
-  , TranslatePipe, LocalizedDatePipe],
+    , TranslatePipe, LocalizedDatePipe],
   templateUrl: './coach-bias-analytics.component.html',
   styleUrls: ['./coach-bias-analytics.component.css']
 })
 export class CoachBiasAnalyticsComponent implements OnInit {
-    private translate = inject(TranslateService);
-    private subscriptions = new Subscription();
+  private translate = inject(TranslateService);
+  private subscriptions = new Subscription();
 
 
   selectedCoachId: number | null = null;

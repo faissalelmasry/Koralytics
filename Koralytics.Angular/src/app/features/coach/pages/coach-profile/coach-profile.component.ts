@@ -20,6 +20,7 @@ import {
 } from '../../../../../core/models/profile/profile.models';
 import { MiniPlayerCardComponent } from '../../../match/mini-player-card/mini-player-card.component';
 import { MiniPlayerCardModel } from '../../../../../core/models/Player/mini-player-card-model';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-coach-profile',
@@ -29,7 +30,8 @@ import { MiniPlayerCardModel } from '../../../../../core/models/Player/mini-play
     RouterModule,
     LoadingSpinnerComponent,
     ScrollRevealDirective,
-    MiniPlayerCardComponent
+    MiniPlayerCardComponent,
+    TranslatePipe
   ],
   templateUrl: './coach-profile.component.html',
   styleUrls: ['./coach-profile.component.css']

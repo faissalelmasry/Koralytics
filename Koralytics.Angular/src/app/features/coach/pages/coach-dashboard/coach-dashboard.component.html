@@ -4,7 +4,7 @@
   <!-- Page Preloader Overlay -->
   <div class="preloader-overlay" *ngIf="pageLoading()">
     <app-loading-spinner size="lg"></app-loading-spinner>
-    <p>Loading coach hub...</p>
+    <p>{{ 'COACH.DASHBOARD.LOADING' | translate }}</p>
   </div>
 
   <!-- Dashboard Content -->
@@ -13,9 +13,9 @@
 
       <!-- TACTICAL TAG & HEADER ROW -->
       <div>
-        <div class="tactical-tag" scrollReveal direction="bottom" [delay]="0">Tactical Coach</div>
+        <div class="tactical-tag" scrollReveal direction="bottom" [delay]="0">{{ 'COACH.DASHBOARD.TAG' | translate }}</div>
         <div class="header-row" scrollReveal direction="bottom" [delay]="40">
-          <h1 class="section-title">Coach Dashboard</h1>
+          <h1 class="section-title">{{ 'COACH.DASHBOARD.TITLE' | translate }}</h1>
           <span class="badge-count">{{ selectedTeamName() }}</span>
         </div>
       </div>
@@ -30,10 +30,10 @@
           <div>
             <h1 class="accent">{{ userName }}</h1>
             <div class="meta-pills">
-              <span class="pill gold">Head Coach</span>
+              <span class="pill gold">{{ 'COACH.DASHBOARD.HEAD_COACH' | translate }}</span>
               <span class="pill">{{ todayFormatted }}</span>
               <div class="team-select-pill" *ngIf="teams().length > 1">
-                <label for="dashTeamSelect">Team:</label>
+                <label for="dashTeamSelect">{{ 'COACH.DASHBOARD.TEAM_LABEL' | translate }}</label>
                 <select id="dashTeamSelect" [value]="selectedTeamId" (change)="onTeamChange($event)">
                   <option *ngFor="let t of teams()" [value]="t.teamId">
                     {{ t.teamName }} ({{ t.ageGroupName }})
@@ -48,27 +48,27 @@
       <!-- =============== 2. KPI GRID =============== -->
       <div class="kpi-grid" scrollReveal direction="bottom" [delay]="140">
         <div class="kpi-card">
-          <div class="kpi-header">Squad Players</div>
+          <div class="kpi-header">{{ 'COACH.DASHBOARD.KPI_SQUAD_PLAYERS' | translate }}</div>
           <div class="kpi-value">{{ totalPlayers() }}</div>
-          <div class="kpi-sub">{{ availableCount() }} Available / {{ injuredCount() }} Injured</div>
+          <div class="kpi-sub">{{ 'COACH.DASHBOARD.KPI_AVAILABLE_INJURED' | translate:{ available: availableCount(), injured: injuredCount() } }}</div>
         </div>
 
         <div class="kpi-card">
-          <div class="kpi-header">Upcoming Matches</div>
+          <div class="kpi-header">{{ 'COACH.DASHBOARD.KPI_UPCOMING_MATCHES' | translate }}</div>
           <div class="kpi-value">{{ upcomingMatchCount() }}</div>
-          <div class="kpi-sub">Scheduled fixtures</div>
+          <div class="kpi-sub">{{ 'COACH.DASHBOARD.KPI_SCHEDULED_FIXTURES' | translate }}</div>
         </div>
 
         <div class="kpi-card">
-          <div class="kpi-header">Recent Sessions</div>
+          <div class="kpi-header">{{ 'COACH.DASHBOARD.KPI_RECENT_SESSIONS' | translate }}</div>
           <div class="kpi-value">{{ recentSessionCount() }}</div>
-          <div class="kpi-sub">Training sessions logged</div>
+          <div class="kpi-sub">{{ 'COACH.DASHBOARD.KPI_SESSIONS_LOGGED' | translate }}</div>
         </div>
 
         <div class="kpi-card">
-          <div class="kpi-header">Avg Squad Rating</div>
+          <div class="kpi-header">{{ 'COACH.DASHBOARD.KPI_AVG_RATING' | translate }}</div>
           <div class="kpi-value">{{ avgRating() | number:'1.0-1' }}</div>
-          <div class="kpi-sub">Squad overall rating</div>
+          <div class="kpi-sub">{{ 'COACH.DASHBOARD.KPI_OVERALL_RATING' | translate }}</div>
         </div>
       </div>
 
@@ -87,14 +87,14 @@
                   <path d="M12 6V2M8.5 8.5L5 6M15.5 8.5L19 6M8.5 12.5L5 15M15.5 12.5L19 15M12 15v5"></path>
                 </svg>
               </span>
-              Upcoming Matches
+              {{ 'COACH.DASHBOARD.UPCOMING_MATCHES' | translate }}
             </h2>
-            <a class="cyber-btn-sm" routerLink="/coach/matches">VIEW ALL →</a>
+            <a class="cyber-btn-sm" routerLink="/coach/matches">{{ 'COACH.DASHBOARD.VIEW_ALL' | translate }}</a>
           </div>
 
           <div class="section-loading" *ngIf="matchesLoading()">
             <app-loading-spinner size="sm"></app-loading-spinner>
-            <span>Loading matches...</span>
+            <span>{{ 'COACH.DASHBOARD.LOADING_MATCHES' | translate }}</span>
           </div>
 
           <ng-container *ngIf="!matchesLoading()">
@@ -108,7 +108,7 @@
                   </path>
                 </svg>
               </span>
-              No upcoming matches scheduled
+              {{ 'COACH.DASHBOARD.NO_UPCOMING_MATCHES' | translate }}
             </div>
 
             <a *ngFor="let match of upcomingMatches()" class="match-item" [routerLink]="['/match', match.id]">
@@ -147,14 +147,14 @@
                   <path d="M9 12h6M9 16h4"></path>
                 </svg>
               </span>
-              Recent Sessions
+              {{ 'COACH.DASHBOARD.RECENT_SESSIONS' | translate }}
             </h2>
-            <a class="cyber-btn-sm" routerLink="/drills/sessions">VIEW ALL →</a>
+            <a class="cyber-btn-sm" routerLink="/drills/sessions">{{ 'COACH.DASHBOARD.VIEW_ALL' | translate }}</a>
           </div>
 
           <div class="section-loading" *ngIf="sessionsLoading()">
             <app-loading-spinner size="sm"></app-loading-spinner>
-            <span>Loading sessions...</span>
+            <span>{{ 'COACH.DASHBOARD.LOADING_SESSIONS' | translate }}</span>
           </div>
 
           <ng-container *ngIf="!sessionsLoading()">
@@ -168,7 +168,7 @@
                   </path>
                 </svg>
               </span>
-              No recent training sessions
+              {{ 'COACH.DASHBOARD.NO_RECENT_SESSIONS' | translate }}
             </div>
 
             <a *ngFor="let session of recentSessions()" class="session-item"
@@ -181,14 +181,14 @@
                 </svg>
               </div>
               <div class="session-details">
-                <div class="session-name">{{ session.teamName || 'Training Session' }}</div>
+                <div class="session-name">{{ session.teamName || ('COACH.DASHBOARD.TRAINING_SESSION' | translate) }}</div>
                 <div class="session-meta">
                   {{ session.sessionDate | date:'mediumDate' }}
                   <span *ngIf="session.location"> · {{ session.location }}</span>
                 </div>
               </div>
               <span class="session-status" [ngClass]="getSessionStatusClass(session.status)">
-                {{ getSessionStatusLabel(session.status) }}
+                {{ getSessionStatusLabel(session.status) | translate }}
               </span>
             </a>
           </ng-container>
@@ -207,14 +207,14 @@
                   <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                 </svg>
               </span>
-              Squad Readiness
+              {{ 'COACH.DASHBOARD.SQUAD_READINESS' | translate }}
             </h2>
-            <a class="cyber-btn-sm" routerLink="/coach/squad">DETAILS →</a>
+            <a class="cyber-btn-sm" routerLink="/coach/squad">{{ 'COACH.DASHBOARD.DETAILS' | translate }}</a>
           </div>
 
           <div class="section-loading" *ngIf="squadLoading()">
             <app-loading-spinner size="sm"></app-loading-spinner>
-            <span>Loading squad...</span>
+            <span>{{ 'COACH.DASHBOARD.LOADING_SQUAD' | translate }}</span>
           </div>
 
           <ng-container *ngIf="!squadLoading()">
@@ -226,22 +226,22 @@
                   <circle cx="9" cy="7" r="4"></circle>
                 </svg>
               </span>
-              No squad data available
+              {{ 'COACH.DASHBOARD.NO_SQUAD_DATA' | translate }}
             </div>
 
             <ng-container *ngIf="totalPlayers() > 0">
               <div class="readiness-summary">
                 <div class="readiness-stat available">
                   <div class="count">{{ availableCount() }}</div>
-                  <div class="label">Available</div>
+                  <div class="label">{{ 'COACH.DASHBOARD.AVAILABLE' | translate }}</div>
                 </div>
                 <div class="readiness-stat injured">
                   <div class="count">{{ injuredCount() }}</div>
-                  <div class="label">Injured</div>
+                  <div class="label">{{ 'COACH.DASHBOARD.INJURED' | translate }}</div>
                 </div>
                 <div class="readiness-stat other">
                   <div class="count">{{ otherCount() }}</div>
-                  <div class="label">Other</div>
+                  <div class="label">{{ 'COACH.DASHBOARD.OTHER' | translate }}</div>
                 </div>
               </div>
 
@@ -266,14 +266,14 @@
                   <line x1="6" y1="20" x2="6" y2="14"></line>
                 </svg>
               </span>
-              Match Performance
+              {{ 'COACH.DASHBOARD.MATCH_PERFORMANCE' | translate }}
             </h2>
-            <a class="cyber-btn-sm" routerLink="/coach/matches">HISTORY →</a>
+            <a class="cyber-btn-sm" routerLink="/coach/matches">{{ 'COACH.DASHBOARD.HISTORY' | translate }}</a>
           </div>
 
           <div class="section-loading" *ngIf="performanceLoading()">
             <app-loading-spinner size="sm"></app-loading-spinner>
-            <span>Loading stats...</span>
+            <span>{{ 'COACH.DASHBOARD.LOADING_STATS' | translate }}</span>
           </div>
 
           <ng-container *ngIf="!performanceLoading()">
@@ -286,33 +286,33 @@
                   <line x1="6" y1="20" x2="6" y2="14"></line>
                 </svg>
               </span>
-              No match data available yet
+              {{ 'COACH.DASHBOARD.NO_MATCH_DATA' | translate }}
             </div>
 
             <ng-container *ngIf="performance() as perf">
               <div class="performance-grid">
                 <div class="perf-stat-card">
                   <div class="perf-value wins">{{ perf.wins }}</div>
-                  <div class="perf-label">Wins</div>
+                  <div class="perf-label">{{ 'COACH.DASHBOARD.WINS' | translate }}</div>
                 </div>
                 <div class="perf-stat-card">
                   <div class="perf-value losses">{{ perf.losses }}</div>
-                  <div class="perf-label">Losses</div>
+                  <div class="perf-label">{{ 'COACH.DASHBOARD.LOSSES' | translate }}</div>
                 </div>
                 <div class="perf-stat-card">
                   <div class="perf-value draws">{{ perf.draws }}</div>
-                  <div class="perf-label">Draws</div>
+                  <div class="perf-label">{{ 'COACH.DASHBOARD.DRAWS' | translate }}</div>
                 </div>
                 <div class="perf-stat-card">
                   <div class="perf-value gd">{{ perf.goalsFor - perf.goalsAgainst >= 0 ? '+' : '' }}{{ perf.goalsFor -
                     perf.goalsAgainst }}</div>
-                  <div class="perf-label">Goal Diff</div>
+                  <div class="perf-label">{{ 'COACH.DASHBOARD.GOAL_DIFF' | translate }}</div>
                 </div>
               </div>
 
               <div class="win-rate-section" *ngIf="totalMatchesPlayed() > 0">
                 <div class="win-rate-label">
-                  Win Rate: <strong>{{ winRate() | number:'1.0-0' }}%</strong>
+                  {{ 'COACH.DASHBOARD.WIN_RATE' | translate }} <strong>{{ winRate() | number:'1.0-0' }}%</strong>
                 </div>
                 <div class="win-rate-bar">
                   <div class="win-rate-fill" [style.width.%]="winRate()"></div>
