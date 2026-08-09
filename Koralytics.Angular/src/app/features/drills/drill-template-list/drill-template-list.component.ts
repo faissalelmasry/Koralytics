@@ -24,6 +24,7 @@ import { CustomToggle } from '../../../../shared/components/custom-toggle/custom
 import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner';
 import { CustomInputComponent } from '../../../../shared/components/custom-input-component/custom-input-component';
 import { NavbarComponent } from '../../../../shared/components/navbar/navbar';
+import { Footer } from '../../../../shared/components/footer/footer';
 
 @Component({
   selector: 'app-drill-template-list',
