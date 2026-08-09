@@ -1,0 +1,173 @@
+{
+  "PARENT": {
+    "PAGE": {
+      "GUARDIAN_PORTAL": "Guardian Portal",
+      "DASHBOARD_TITLE": "Parent Dashboard",
+      "DASHBOARD_SUBTITLE": "Monitor performance, match history, and drill analytics for your children.",
+      "LINK_CHILD": "+ Link Child Player",
+      "GUARDIAN_BILLING": "GUARDIAN BILLING",
+      "SUBSCRIPTIONS_TITLE": "My Children Subscriptions",
+      "SUBSCRIPTIONS_SUBTITLE": "Manage membership plans, payment status, dues, and payment history for your enrolled children."
+    },
+    "DASHBOARD": {
+      "LOADING_FAMILY": "Loading family profiles and children data...",
+      "FETCH_ERROR": "Could not fetch your linked players.",
+      "EMPTY_TITLE": "No Children Linked",
+      "EMPTY_DESC": "You don't have any linked player profiles yet. Click '+ Link Child Player' above to search and send a request to your child.",
+      "SELECT_CHILD_PROFILE": "Select Child Profile",
+      "TEAM_BADGE_FALLBACK": "Academy Squad",
+      "POSITION_FALLBACK": "Squad Player",
+      "UNLINK_PLAYER": "Unlink Player"
+    },
+    "PENDING": {
+      "TITLE": "Pending Player Link Requests",
+      "COUNT": "{{count}} Pending",
+      "REQUESTED_ON": "Requested on {{date}}",
+      "AWAITING_APPROVAL": "Awaiting Player Approval",
+      "CANCEL": "Cancel"
+    },
+    "CHILD": {
+      "POSITION": "Position"
+    },
+    "CARDS": {
+      "AI_ASSISTANT": {
+        "TITLE": "AI Assistant",
+        "BADGE": "AI Powered",
+        "DESC": "Ask queries about player passing performance, squad readiness, tactics, and development advice.",
+        "ACTION": "Launch Assistant"
+      },
+      "PROFILE": {
+        "TITLE": "Player Profile Card",
+        "DESC": "View overall FIFA attributes, physical stats, academy details, and verified skills.",
+        "ACTION": "Open Profile"
+      },
+      "TIMELINE": {
+        "TITLE": "Match Timeline",
+        "DESC": "Track live match events, goals, substitutions, cards, and chronological game history.",
+        "ACTION": "View Timeline"
+      },
+      "DRILLS": {
+        "TITLE": "Drill Progression",
+        "DESC": "Monitor training attendance, skill drill analytics, ratings over time, and coach evaluations.",
+        "ACTION": "View Progression"
+      },
+      "EVENTS": {
+        "TITLE": "Team Events & Schedule",
+        "DESC": "View your child's upcoming team matches, training sessions, location, and session notes.",
+        "ACTION": "View Team Events"
+      },
+      "SUBSCRIPTIONS": {
+        "TITLE": "Subscriptions & Billing",
+        "DESC": "Manage academy membership plans, payment status, dues, and renewal invoices.",
+        "ACTION": "View Subscriptions"
+      }
+    },
+    "SEARCH_MODAL": {
+      "TITLE": "Link Child Player",
+      "SUBTITLE": "Search for your child by name to send a parent join request.",
+      "PLACEHOLDER": "Search player name (e.g. Karim...)",
+      "SEARCH_BTN": "Search",
+      "LOADING": "Searching players...",
+      "NO_RESULTS": "No players found matching your search. Try searching by first or last name.",
+      "ALREADY_LINKED": "Already Linked",
+      "REQUEST_PENDING": "Request Pending",
+      "SEND_REQUEST": "+ Send Request",
+      "SENDING": "Sending...",
+      "CLOSE": "Close"
+    },
+    "SUBSCRIPTIONS": {
+      "LOADING": "Loading subscription details...",
+      "EMPTY_TITLE": "No Active Subscriptions",
+      "EMPTY_DESC": "There are currently no active or pending subscription records for your linked player profiles.",
+      "START_DATE": "Start Date",
+      "DUE_DATE": "Due Date",
+      "GRACE_UNTIL": "Grace Until",
+      "PAY_NOW": "Pay Now",
+      "PAY_OFFLINE": "Pay Offline",
+      "SETTLED": "Settled",
+      "HISTORY": "History",
+      "NA": "N/A"
+    },
+    "STATS": {
+      "TOTAL_PLANS": "Total Plans",
+      "PAID_SETTLED": "Paid & Settled",
+      "PENDING_DUES": "Pending Dues",
+      "GRACE_PERIOD": "Grace Period"
+    },
+    "STATUS": {
+      "PAID": "Paid",
+      "UNPAID": "Unpaid",
+      "GRACE": "Grace",
+      "UNKNOWN": "Unknown"
+    },
+    "DURATION": {
+      "MONTHLY": "Monthly",
+      "QUARTERLY": "Quarterly (3M)",
+      "SEMI_ANNUAL": "Semi-Annual (6M)",
+      "ANNUAL": "Annual (1Y)",
+      "UNKNOWN": "Monthly"
+    },
+    "PAYMENT_MODAL": {
+      "TITLE": "Visa / Mastercard Checkout",
+      "SUBTITLE": "Authorized by Stripe Payment Gateway",
+      "PLAYER_NAME": "Player Name:",
+      "ACADEMY": "Academy:",
+      "PLAN_DURATION": "Plan Duration:",
+      "TOTAL_DUES": "Total Dues:",
+      "CARD_DETAILS": "Card Details (Stripe Sandbox)",
+      "LOADING_STRIPE": "Loading Stripe Secure Input...",
+      "CANCEL": "Cancel",
+      "PAY_BUTTON": "Pay {{amount}} EGP with Visa"
+    },
+    "HISTORY_MODAL": {
+      "TITLE": "Payment & Billing History",
+      "SUBTITLE": "Billing cycle history for",
+      "LOADING": "Loading history...",
+      "EMPTY": "No prior billing records found for this player.",
+      "TABLE_PERIOD": "Period",
+      "TABLE_AMOUNT": "Amount",
+      "TABLE_STATUS": "Status",
+      "TABLE_PAID_AT": "Paid At",
+      "CLOSE": "Close"
+    },
+    "CHAT": {
+      "TOPBAR_LABEL": "AI Assistant",
+      "TOPBAR_CURRENT": "Parent Support",
+      "EMPTY_TITLE": "Parent Support",
+      "EMPTY_SUBTITLE": "Ask about player performance, tactical rules, or development advice.",
+      "PROMPT_1_LABEL": "Performance trends",
+      "PROMPT_2_LABEL": "Position advice",
+      "PROMPT_3_LABEL": "Training tips",
+      "PROMPT_4_LABEL": "Understand a rule",
+      "ROLE_ASSISTANT": "Assistant",
+      "ROLE_YOU": "You",
+      "COMPOSER_PLACEHOLDER": "Message the assistant...",
+      "SEND": "Send",
+      "COMPOSER_HINT": "Press Enter to send · Shift + Enter for a new line",
+      "WELCOME_MESSAGE": "Welcome to KORALYTICS Parent Assistant. How can I help you support your player today?",
+      "DEFAULT_ERROR": "Sorry, an error occurred while accessing academy data. Please try again later.",
+      "CONNECT_ERROR": "Failed to connect to the AI Assistant.",
+      "META_DATA": "Data",
+      "META_KNOWLEDGE": "Knowledge"
+    },
+    "TOAST": {
+      "JOIN_REQUEST_SENT": "Join request sent to {{name}}!",
+      "JOIN_REQUEST_CANCELLED": "Join request cancelled.",
+      "UNLINK_SUCCESS": "{{name}} unlinked successfully.",
+      "CANCEL_CONFIRM": "Are you sure you want to cancel this join request?",
+      "UNLINK_CONFIRM": "Are you sure you want to unlink {{name}} from your parent account?",
+      "PAYMENT_SUCCESS": "Visa Payment Successful! {{amount}} EGP paid for {{name}}."
+    },
+    "ERRORS": {
+      "STRIPE_NOT_READY": "Stripe payment processor is not ready.",
+      "PAYMENT_FAILED": "Payment authorization failed.",
+      "BACKEND_UPDATE_FAILED": "Payment authorized, but backend update failed.",
+      "INIT_STRIPE_FAILED": "Failed to initialize Stripe checkout.",
+      "LOAD_HISTORY_FAILED": "Failed to load subscription history.",
+      "LOAD_SUBS_FAILED": "Failed to load subscription details. Please try again.",
+      "SEND_REQUEST_FAILED": "Failed to send join request.",
+      "CANCEL_REQUEST_FAILED": "Failed to cancel join request.",
+      "UNLINK_FAILED": "Failed to unlink player."
+    }
+  }
+}

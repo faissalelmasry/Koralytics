@@ -66,9 +66,9 @@
                 @for (item of categoriesPerformance; track item.categoryName) {
                 <div class="bar-row">
                     <div class="bar-info flex-between">
-                        <span class="category-name">{{ item.categoryName }}</span>
+                        <span class="category-name">{{ translateCategory(item.categoryName) }}</span>
                         <span class="score-badge" [class]="getScoreClass(item.averageScore)">
-                            Avg: {{ item.averageScore }} / 10
+                            {{ 'DRILLS.WEAK_CATEGORIES.AVG' | translate }}: {{ item.averageScore }} / 10
                         </span>
                     </div>
 

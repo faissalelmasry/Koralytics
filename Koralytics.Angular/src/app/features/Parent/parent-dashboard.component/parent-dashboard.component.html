@@ -5,10 +5,10 @@
         <div>
             <div class="header-eyebrow">
                 <span class="eyebrow-dot"></span>
-                <span class="eyebrow-text">Guardian Portal</span>
+                <span class="eyebrow-text">{{ 'PARENT.PAGE.GUARDIAN_PORTAL' | translate }}</span>
             </div>
-            <h1 class="header-title">Parent Dashboard</h1>
-            <p class="header-subtitle">Monitor performance, match history, and drill analytics for your children.</p>
+            <h1 class="header-title">{{ 'PARENT.PAGE.DASHBOARD_TITLE' | translate }}</h1>
+            <p class="header-subtitle">{{ 'PARENT.PAGE.DASHBOARD_SUBTITLE' | translate }}</p>
         </div>
         <div class="header-actions">
             <button class="btn-link-player" (click)="openSearchModal()">
@@ -17,14 +17,15 @@
                     <line x1="12" y1="5" x2="12" y2="19"></line>
                     <line x1="5" y1="12" x2="19" y2="12"></line>
                 </svg>
-                <span>+ Link Child Player</span>
+                <span>{{ 'PARENT.PAGE.LINK_CHILD' | translate }}</span>
             </button>
         </div>
     </header>
 
     @if (isLoading) {
     <div class="loading-wrapper mt-4">
-        <app-loading-spinner text="Loading family profiles and children data..."></app-loading-spinner>
+        <app-loading-spinner></app-loading-spinner>
+        <p class="loading-text">{{ 'PARENT.DASHBOARD.LOADING_FAMILY' | translate }}</p>
     </div>
     } @else if (errorMessage) {
     <div class="error-banner mt-4">
@@ -43,9 +44,9 @@
         <div class="pending-header">
             <div class="pending-header-left">
                 <span class="pending-dot"></span>
-                <h3 class="pending-title">Pending Player Link Requests</h3>
+                <h3 class="pending-title">{{ 'PARENT.PENDING.TITLE' | translate }}</h3>
             </div>
-            <span class="pending-count">{{ pendingRequests.length }} Pending</span>
+            <span class="pending-count">{{ 'PARENT.PENDING.COUNT' | translate: { count: pendingRequests.length } }}</span>
         </div>
         <div class="pending-list">
             @for (req of pendingRequests; track req.id) {
@@ -62,12 +63,12 @@
                     </div>
                     <div class="pending-info">
                         <h4 class="pending-player-name">{{ req.playerName }}</h4>
-                        <span class="pending-meta">Requested on {{ req.requestedAt | date:'mediumDate' }}</span>
+                        <span class="pending-meta">{{ 'PARENT.PENDING.REQUESTED_ON' | translate: { date: (req.requestedAt | date:'mediumDate') } }}</span>
                     </div>
                 </div>
                 <div class="pending-card-right">
-                    <span class="status-badge status-pending">Awaiting Player Approval</span>
-                    <button class="btn-cancel-req" (click)="cancelRequest(req.id)">Cancel</button>
+                    <span class="status-badge status-pending">{{ 'PARENT.PENDING.AWAITING_APPROVAL' | translate }}</span>
+                    <button class="btn-cancel-req" (click)="cancelRequest(req.id)">{{ 'PARENT.PENDING.CANCEL' | translate }}</button>
                 </div>
             </div>
             }
@@ -77,8 +78,8 @@
 
     @if (children.length === 0) {
     <div class="empty-wrapper mt-4">
-        <app-empty-state title="No Children Linked"
-            message="You don't have any linked player profiles yet. Click '+ Link Child Player' above to search and send a request to your child.">
+        <app-empty-state [title]="'PARENT.DASHBOARD.EMPTY_TITLE' | translate"
+            [description]="'PARENT.DASHBOARD.EMPTY_DESC' | translate">
         </app-empty-state>
     </div>
     } @else {
@@ -93,7 +94,7 @@
                 <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
                 <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
             </svg>
-            <span class="switcher-label">Select Child Profile</span>
+            <span class="switcher-label">{{ 'PARENT.DASHBOARD.SELECT_CHILD_PROFILE' | translate }}</span>
         </div>
         <div class="children-pills">
             @for (child of children; track child.playerId) {
@@ -127,20 +128,20 @@
         </div>
         <div class="hero-details">
             <div class="hero-top-row flex-between">
-                <span class="team-badge">{{ selectedChild.teamName || 'Academy Squad' }}</span>
+                <span class="team-badge">{{ selectedChild.teamName || ('PARENT.DASHBOARD.TEAM_BADGE_FALLBACK' | translate) }}</span>
                 <button class="btn-unlink" (click)="unlinkChild(selectedChild)">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v1"></path>
                         <path d="M18 8h4l-4-4m0 8l4-4"></path>
                     </svg>
-                    <span>Unlink Player</span>
+                    <span>{{ 'PARENT.DASHBOARD.UNLINK_PLAYER' | translate }}</span>
                 </button>
             </div>
             <h2 class="child-name">{{ selectedChild.fullName }}</h2>
             <div class="child-meta">
                 <div class="meta-item">
-                    <span class="meta-label">Position</span>
-                    <span class="meta-val">{{ selectedChild.position || 'Squad Player' }}</span>
+                    <span class="meta-label">{{ 'PARENT.CHILD.POSITION' | translate }}</span>
+                    <span class="meta-val">{{ selectedChild.position || ('PARENT.DASHBOARD.POSITION_FALLBACK' | translate) }}</span>
                 </div>
             </div>
         </div>
@@ -160,13 +161,13 @@
             </div>
             <div class="card-content">
                 <div class="ai-badge-row">
-                    <h3 style="margin: 0;">AI Assistant</h3>
-                    <span class="ai-pill">AI Powered</span>
+                    <h3 style="margin: 0;">{{ 'PARENT.CARDS.AI_ASSISTANT.TITLE' | translate }}</h3>
+                    <span class="ai-pill">{{ 'PARENT.CARDS.AI_ASSISTANT.BADGE' | translate }}</span>
                 </div>
-                <p>Ask queries about player passing performance, squad readiness, tactics, and development advice.</p>
+                <p>{{ 'PARENT.CARDS.AI_ASSISTANT.DESC' | translate }}</p>
             </div>
             <div class="card-action-arrow">
-                <span>Launch Assistant</span>
+                <span>{{ 'PARENT.CARDS.AI_ASSISTANT.ACTION' | translate }}</span>
                 <svg class="arrow-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                     <line x1="5" y1="12" x2="19" y2="12"></line>
                     <polyline points="12 5 19 12 12 19"></polyline>
@@ -185,11 +186,11 @@
                 </svg>
             </div>
             <div class="card-content">
-                <h3>Player Profile Card</h3>
-                <p>View overall FIFA attributes, physical stats, academy details, and verified skills.</p>
+                <h3>{{ 'PARENT.CARDS.PROFILE.TITLE' | translate }}</h3>
+                <p>{{ 'PARENT.CARDS.PROFILE.DESC' | translate }}</p>
             </div>
             <div class="card-action-arrow">
-                <span>Open Profile</span>
+                <span>{{ 'PARENT.CARDS.PROFILE.ACTION' | translate }}</span>
                 <svg class="arrow-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                     <line x1="5" y1="12" x2="19" y2="12"></line>
                     <polyline points="12 5 19 12 12 19"></polyline>
@@ -208,11 +209,11 @@
                 </svg>
             </div>
             <div class="card-content">
-                <h3>Match Timeline</h3>
-                <p>Track live match events, goals, substitutions, cards, and chronological game history.</p>
+                <h3>{{ 'PARENT.CARDS.TIMELINE.TITLE' | translate }}</h3>
+                <p>{{ 'PARENT.CARDS.TIMELINE.DESC' | translate }}</p>
             </div>
             <div class="card-action-arrow">
-                <span>View Timeline</span>
+                <span>{{ 'PARENT.CARDS.TIMELINE.ACTION' | translate }}</span>
                 <svg class="arrow-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                     <line x1="5" y1="12" x2="19" y2="12"></line>
                     <polyline points="12 5 19 12 12 19"></polyline>
@@ -230,11 +231,11 @@
                 </svg>
             </div>
             <div class="card-content">
-                <h3>Drill Progression</h3>
-                <p>Monitor training attendance, skill drill analytics, ratings over time, and coach evaluations.</p>
+                <h3>{{ 'PARENT.CARDS.DRILLS.TITLE' | translate }}</h3>
+                <p>{{ 'PARENT.CARDS.DRILLS.DESC' | translate }}</p>
             </div>
             <div class="card-action-arrow">
-                <span>View Progression</span>
+                <span>{{ 'PARENT.CARDS.DRILLS.ACTION' | translate }}</span>
                 <svg class="arrow-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                     <line x1="5" y1="12" x2="19" y2="12"></line>
                     <polyline points="12 5 19 12 12 19"></polyline>
@@ -255,11 +256,11 @@
                 </svg>
             </div>
             <div class="card-content">
-                <h3>Team Events & Schedule</h3>
-                <p>View your child's upcoming team matches, training sessions, location, and session notes.</p>
+                <h3>{{ 'PARENT.CARDS.EVENTS.TITLE' | translate }}</h3>
+                <p>{{ 'PARENT.CARDS.EVENTS.DESC' | translate }}</p>
             </div>
             <div class="card-action-arrow">
-                <span>View Team Events</span>
+                <span>{{ 'PARENT.CARDS.EVENTS.ACTION' | translate }}</span>
                 <svg class="arrow-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                     <line x1="5" y1="12" x2="19" y2="12"></line>
                     <polyline points="12 5 19 12 12 19"></polyline>
@@ -278,11 +279,11 @@
                 </svg>
             </div>
             <div class="card-content">
-                <h3>Subscriptions & Billing</h3>
-                <p>Manage academy membership plans, payment status, dues, and renewal invoices.</p>
+                <h3>{{ 'PARENT.CARDS.SUBSCRIPTIONS.TITLE' | translate }}</h3>
+                <p>{{ 'PARENT.CARDS.SUBSCRIPTIONS.DESC' | translate }}</p>
             </div>
             <div class="card-action-arrow">
-                <span>View Subscriptions</span>
+                <span>{{ 'PARENT.CARDS.SUBSCRIPTIONS.ACTION' | translate }}</span>
                 <svg class="arrow-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                     <line x1="5" y1="12" x2="19" y2="12"></line>
                     <polyline points="12 5 19 12 12 19"></polyline>
@@ -302,8 +303,8 @@
         <div class="modal-glass-card" (click)="$event.stopPropagation()">
             <div class="modal-header">
                 <div>
-                    <h3 class="modal-title">Link Child Player</h3>
-                    <p class="modal-subtitle">Search for your child by name to send a parent join request.</p>
+                    <h3 class="modal-title">{{ 'PARENT.SEARCH_MODAL.TITLE' | translate }}</h3>
+                    <p class="modal-subtitle">{{ 'PARENT.SEARCH_MODAL.SUBTITLE' | translate }}</p>
                 </div>
                 <button class="btn-close-modal" (click)="closeSearchModal()">✕</button>
             </div>
@@ -314,18 +315,19 @@
                     <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
                 <input type="text" [(ngModel)]="searchQuery" (keyup.enter)="onSearchPlayers()"
-                    placeholder="Search player name (e.g. Karim...)" class="search-input" />
-                <button class="btn-search-go" (click)="onSearchPlayers()">Search</button>
+                    [placeholder]="'PARENT.SEARCH_MODAL.PLACEHOLDER' | translate" class="search-input" />
+                <button class="btn-search-go" (click)="onSearchPlayers()">{{ 'PARENT.SEARCH_MODAL.SEARCH_BTN' | translate }}</button>
             </div>
 
             <div class="modal-results-container">
                 @if (isSearching) {
                 <div class="search-loading">
-                    <app-loading-spinner text="Searching players..."></app-loading-spinner>
+                    <app-loading-spinner></app-loading-spinner>
+                    <p>{{ 'PARENT.SEARCH_MODAL.LOADING' | translate }}</p>
                 </div>
                 } @else if (searchResults.length === 0) {
                 <div class="no-results-msg">
-                    <p>No players found matching your search. Try searching by first or last name.</p>
+                    <p>{{ 'PARENT.SEARCH_MODAL.NO_RESULTS' | translate }}</p>
                 </div>
                 } @else {
                 <div class="player-results-list">
@@ -350,13 +352,13 @@
 
                         <div class="player-result-right">
                             @if (player.isAlreadyLinked) {
-                            <span class="badge-status badge-linked">Already Linked</span>
+                            <span class="badge-status badge-linked">{{ 'PARENT.SEARCH_MODAL.ALREADY_LINKED' | translate }}</span>
                             } @else if (player.hasPendingRequest) {
-                            <span class="badge-status badge-pending">Request Pending</span>
+                            <span class="badge-status badge-pending">{{ 'PARENT.SEARCH_MODAL.REQUEST_PENDING' | translate }}</span>
                             } @else {
                             <button class="btn-send-req" [disabled]="isSendingRequest[player.playerId]"
                                 (click)="sendLinkRequest(player)">
-                                {{ isSendingRequest[player.playerId] ? 'Sending...' : '+ Send Request' }}
+                                {{ isSendingRequest[player.playerId] ? ('PARENT.SEARCH_MODAL.SENDING' | translate) : ('PARENT.SEARCH_MODAL.SEND_REQUEST' | translate) }}
                             </button>
                             }
                         </div>
@@ -367,7 +369,7 @@
             </div>
 
             <div class="modal-footer">
-                <button class="btn-modal-close" (click)="closeSearchModal()">Close</button>
+                <button class="btn-modal-close" (click)="closeSearchModal()">{{ 'PARENT.SEARCH_MODAL.CLOSE' | translate }}</button>
             </div>
         </div>
     </div>

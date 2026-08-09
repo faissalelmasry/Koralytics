@@ -19,6 +19,7 @@ import {
 import { TokenStorageService } from '@core/services/auth/token-storage.service';
 import { ParentService } from '../../../../core/services/parent/parent.service';
 import { FeatureLockComponent } from '../../../shared/components/feature-lock/feature-lock';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -49,7 +50,8 @@ const SESSION_STORAGE_KEY = 'koralytics_parent_chat_session_id';
     CustomButtonComponent,
     LoadingSpinnerComponent,
     StatusChipComponent,
-    FeatureLockComponent
+    FeatureLockComponent,
+    TranslatePipe
   ],
   templateUrl: './parent-chat.component.html',
   styleUrls: ['./parent-chat.component.css']
@@ -58,6 +60,7 @@ export class ParentChatComponent implements OnInit, AfterViewChecked {
   private readonly aiService = inject(ParentAiService);
   private readonly parentService = inject(ParentService);
   private readonly tokenStorage = inject(TokenStorageService);
+  private readonly translate = inject(TranslateService);
 
   isLocked = signal<boolean>(false);
 
@@ -72,6 +75,11 @@ export class ParentChatComponent implements OnInit, AfterViewChecked {
         this.isLocked.set(true);
       }
     });
+
+    this.messages.set([{
+      role: 'assistant',
+      text: this.translate.instant('PARENT.CHAT.WELCOME_MESSAGE')
+    }]);
   }
 
   @ViewChild('chatScrollContainer') private scrollContainer!: ElementRef;
@@ -88,21 +96,20 @@ export class ParentChatComponent implements OnInit, AfterViewChecked {
 
   currentInput = signal<string>('');
 
-  messages = signal<ChatMessage[]>([{
-    role: 'assistant',
-    text: 'Welcome to KORALYTICS Parent Assistant. How can I help you support your player today?'
-  }]);
+  messages = signal<ChatMessage[]>([]);
 
   // ── UI-only additions below (empty-state prompts, textarea auto-grow) --
   // none of this touches how messages are sent; sendMessage/sendStreaming/
   // sendNonStreaming are unchanged from the original file.
 
-  readonly suggestedPrompts: SuggestedPrompt[] = [
-    { icon: 'trend', label: 'Performance trends', prompt: "How has my child's performance trended over the last month?" },
-    { icon: 'target', label: 'Position advice', prompt: 'What position best suits my child based on their stats?' },
-    { icon: 'book', label: 'Training tips', prompt: 'What can we work on at home to improve their game?' },
-    { icon: 'shield', label: 'Understand a rule', prompt: 'Can you explain the offside rule simply?' },
-  ];
+  get suggestedPrompts(): SuggestedPrompt[] {
+    return [
+      { icon: 'trend', label: this.translate.instant('PARENT.CHAT.PROMPT_1_LABEL'), prompt: "How has my child's performance trended over the last month?" },
+      { icon: 'target', label: this.translate.instant('PARENT.CHAT.PROMPT_2_LABEL'), prompt: 'What position best suits my child based on their stats?' },
+      { icon: 'book', label: this.translate.instant('PARENT.CHAT.PROMPT_3_LABEL'), prompt: 'What can we work on at home to improve their game?' },
+      { icon: 'shield', label: this.translate.instant('PARENT.CHAT.PROMPT_4_LABEL'), prompt: 'Can you explain the offside rule simply?' },
+    ];
+  }
 
   // Only the seeded welcome message present (and nothing in flight yet) =
   // show the centered empty/start state with suggested prompts instead of
@@ -214,7 +221,7 @@ export class ParentChatComponent implements OnInit, AfterViewChecked {
             const updated = [...msgs];
             updated[assistantIndex] = {
               ...updated[assistantIndex],
-              text: chunk.text ?? 'عذراً، حدث خطأ أثناء الوصول إلى بيانات الأكاديمية. يرجى المحاولة مرة أخرى لاحقاً.'
+              text: chunk.text ?? this.translate.instant('PARENT.CHAT.DEFAULT_ERROR')
             };
             return updated;
           });
@@ -222,7 +229,7 @@ export class ParentChatComponent implements OnInit, AfterViewChecked {
         }
       },
       error: (err) => {
-        this.errorMessage.set(extractErrorMessage(err, 'Failed to connect to the AI Assistant.'));
+        this.errorMessage.set(extractErrorMessage(err, this.translate.instant('PARENT.CHAT.CONNECT_ERROR')));
         this.isLoading.set(false);
       },
       complete: () => {
@@ -251,7 +258,7 @@ export class ParentChatComponent implements OnInit, AfterViewChecked {
         this.isLoading.set(false);
       },
       error: (err: HttpErrorResponse) => {
-        this.errorMessage.set(extractErrorMessage(err, 'Failed to connect to the AI Assistant.'));
+        this.errorMessage.set(extractErrorMessage(err, this.translate.instant('PARENT.CHAT.CONNECT_ERROR')));
         this.isLoading.set(false);
       }
     });

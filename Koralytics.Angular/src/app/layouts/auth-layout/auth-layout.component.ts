@@ -4,9 +4,11 @@ import { RouterModule } from '@angular/router';
 import { NavbarComponent } from '../../../shared/components/navbar/navbar';
 import { LoadingSpinnerComponent } from "../../../shared/components/loading-spinner/loading-spinner";
 
+import { TranslatePipe } from '@ngx-translate/core';
+
 @Component({
   selector: 'app-auth-layout',
-  imports: [CommonModule, RouterModule, NavbarComponent, LoadingSpinnerComponent],
+  imports: [CommonModule, RouterModule, NavbarComponent, LoadingSpinnerComponent, TranslatePipe],
   templateUrl: './auth-layout.component.html',
   styleUrls: ['./auth-layout.component.css']
 })

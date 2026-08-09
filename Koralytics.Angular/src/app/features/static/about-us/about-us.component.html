@@ -4,13 +4,13 @@
   <section class="hero-section">
     <span class="eyebrow">
       <span class="pulse-dot"></span>
-      About Koralytics Ecosystem
+      {{ 'STATIC.ABOUT.HERO_EYEBROW' | translate }}
     </span>
     <h1 class="hero-headline">
-      Transforming Youth Football Development Through <span class="grad-text">Data-Driven Intelligence</span>.
+      {{ 'STATIC.ABOUT.HERO_HEADLINE' | translate }}<span class="grad-text">{{ 'STATIC.ABOUT.HERO_HEADLINE_GRAD' | translate }}</span>.
     </h1>
     <p class="hero-subheadline">
-      A unified ecosystem connecting Academy Managers, Coaches, Analysts, Players, and Parents into a seamless, high-performance telemetry network.
+      {{ 'STATIC.ABOUT.HERO_SUB' | translate }}
     </p>
     
     <div class="vision-banner">
@@ -20,8 +20,8 @@
         </svg>
       </div>
       <div class="vision-content">
-        <h3>Platform Vision</h3>
-        <p>Bridge the gap between daily academy administration and advanced sports telemetry to unlock every player's true potential.</p>
+        <h3>{{ 'STATIC.ABOUT.VISION_TITLE' | translate }}</h3>
+        <p>{{ 'STATIC.ABOUT.VISION_DESC' | translate }}</p>
       </div>
     </div>
   </section>
@@ -29,68 +29,68 @@
   <!-- Target Audience & Value Proposition -->
   <section class="value-prop-section">
     <div class="section-header">
-      <h2>Target Audience & <span class="grad-text">Value Proposition</span></h2>
-      <p>Tailored telemetry tools engineered for every stakeholder in the academy ecosystem.</p>
+      <h2>{{ 'STATIC.ABOUT.TARGET_TITLE' | translate }}<span class="grad-text">{{ 'STATIC.ABOUT.TARGET_TITLE_GRAD' | translate }}</span></h2>
+      <p>{{ 'STATIC.ABOUT.TARGET_SUB' | translate }}</p>
     </div>
 
     <div class="value-grid">
       <!-- Academy Managers -->
       <div class="glass-card value-card">
-        <div class="card-badge manager">Management</div>
+        <div class="card-badge manager">{{ 'STATIC.ABOUT.ROLE_MANAGERS_BADGE' | translate }}</div>
         <div class="icon-wrap">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="3" y="3" width="18" height="18" rx="2"/>
             <path d="M3 9h18M9 21V9"/>
           </svg>
         </div>
-        <h3>Academy Managers</h3>
-        <p>Streamline administrative, branch management, subscription tracking, and financial workflows with unified real-time telemetry dashboards.</p>
+        <h3>{{ 'STATIC.ABOUT.ROLE_MANAGERS_TITLE' | translate }}</h3>
+        <p>{{ 'STATIC.ABOUT.ROLE_MANAGERS_DESC' | translate }}</p>
         <ul class="card-features">
-          <li>Automated billing & subscriptions</li>
-          <li>Multi-branch resource allocation</li>
-          <li>Staff & coach performance analytics</li>
+          <li>{{ 'STATIC.ABOUT.ROLE_MANAGERS_F1' | translate }}</li>
+          <li>{{ 'STATIC.ABOUT.ROLE_MANAGERS_F2' | translate }}</li>
+          <li>{{ 'STATIC.ABOUT.ROLE_MANAGERS_F3' | translate }}</li>
         </ul>
       </div>
 
       <!-- Coaches & Analysts -->
       <div class="glass-card value-card">
-        <div class="card-badge coach">Coaching</div>
+        <div class="card-badge coach">{{ 'STATIC.ABOUT.ROLE_COACHES_BADGE' | translate }}</div>
         <div class="icon-wrap">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10"/>
             <path d="M12 8v8M8 12h8"/>
           </svg>
         </div>
-        <h3>Coaches & Analysts</h3>
-        <p>Track tactical lineups, physical readiness, drill sessions, and technical player telemetry with instant entity resolution search.</p>
+        <h3>{{ 'STATIC.ABOUT.ROLE_COACHES_TITLE' | translate }}</h3>
+        <p>{{ 'STATIC.ABOUT.ROLE_COACHES_DESC' | translate }}</p>
         <ul class="card-features">
-          <li>Drill performance analytics & bias tracking</li>
-          <li>Custom match technical reporting</li>
-          <li>Instant player telemetry retrieval</li>
+          <li>{{ 'STATIC.ABOUT.ROLE_COACHES_F1' | translate }}</li>
+          <li>{{ 'STATIC.ABOUT.ROLE_COACHES_F2' | translate }}</li>
+          <li>{{ 'STATIC.ABOUT.ROLE_COACHES_F3' | translate }}</li>
         </ul>
       </div>
 
       <!-- Players -->
       <div class="glass-card value-card">
-        <div class="card-badge player">Athletes</div>
+        <div class="card-badge player">{{ 'STATIC.ABOUT.ROLE_PLAYERS_BADGE' | translate }}</div>
         <div class="icon-wrap">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
             <circle cx="12" cy="7" r="4"/>
           </svg>
         </div>
-        <h3>Players</h3>
-        <p>Monitor personal growth curves, drill progression timelines, match ratings, scouter views, and career development milestones.</p>
+        <h3>{{ 'STATIC.ABOUT.ROLE_PLAYERS_TITLE' | translate }}</h3>
+        <p>{{ 'STATIC.ABOUT.ROLE_PLAYERS_DESC' | translate }}</p>
         <ul class="card-features">
-          <li>Visual skill radar charts</li>
-          <li>Match timeline & milestone logs</li>
-          <li>Academy benchmark comparisons</li>
+          <li>{{ 'STATIC.ABOUT.ROLE_PLAYERS_F1' | translate }}</li>
+          <li>{{ 'STATIC.ABOUT.ROLE_PLAYERS_F2' | translate }}</li>
+          <li>{{ 'STATIC.ABOUT.ROLE_PLAYERS_F3' | translate }}</li>
         </ul>
       </div>
 
       <!-- Parents -->
       <div class="glass-card value-card">
-        <div class="card-badge parent">Parents</div>
+        <div class="card-badge parent">{{ 'STATIC.ABOUT.ROLE_PARENTS_BADGE' | translate }}</div>
         <div class="icon-wrap">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
@@ -98,12 +98,12 @@
             <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
           </svg>
         </div>
-        <h3>Parents</h3>
-        <p>Stay informed about child development, training schedules, coach notes, subscription status, and performance transparently.</p>
+        <h3>{{ 'STATIC.ABOUT.ROLE_PARENTS_TITLE' | translate }}</h3>
+        <p>{{ 'STATIC.ABOUT.ROLE_PARENTS_DESC' | translate }}</p>
         <ul class="card-features">
-          <li>Real-time training & match schedules</li>
-          <li>Direct coach note visibility</li>
-          <li>Child development transparency</li>
+          <li>{{ 'STATIC.ABOUT.ROLE_PARENTS_F1' | translate }}</li>
+          <li>{{ 'STATIC.ABOUT.ROLE_PARENTS_F2' | translate }}</li>
+          <li>{{ 'STATIC.ABOUT.ROLE_PARENTS_F3' | translate }}</li>
         </ul>
       </div>
     </div>
@@ -114,34 +114,34 @@
     <div class="glass-card benchmark-card">
       <div class="benchmark-grid">
         <div class="benchmark-info">
-          <span class="eyebrow violet">Market Standard Telemetry</span>
-          <h2>Establishing Regional <span class="grad-text">Performance Standards</span></h2>
+          <span class="eyebrow violet">{{ 'STATIC.ABOUT.BENCHMARK_EYEBROW' | translate }}</span>
+          <h2>{{ 'STATIC.ABOUT.BENCHMARK_TITLE' | translate }}<span class="grad-text">{{ 'STATIC.ABOUT.BENCHMARK_TITLE_GRAD' | translate }}</span></h2>
           <p>
-            Koralytics leverages aggregated, non-sensitive football statistics (such as pass completion ratios, sprint velocities by age category, and drill completion speeds) to build unified regional standards.
+            {{ 'STATIC.ABOUT.BENCHMARK_P1' | translate }}
           </p>
           <p>
-            This enables academies to measure their teams and players against regional market averages without ever exposing sensitive private operational data.
+            {{ 'STATIC.ABOUT.BENCHMARK_P2' | translate }}
           </p>
           <div class="benchmark-pills">
             <div class="pill">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
               <div class="pill-info">
-                <span class="pill-title">PII Data Firewall</span>
-                <span class="pill-label">100% Isolated Data</span>
+                <span class="pill-title">{{ 'STATIC.ABOUT.PILL_1_TITLE' | translate }}</span>
+                <span class="pill-label">{{ 'STATIC.ABOUT.PILL_1_LABEL' | translate }}</span>
               </div>
             </div>
             <div class="pill">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
               <div class="pill-info">
-                <span class="pill-title">Regional Indices</span>
-                <span class="pill-label">Ecosystem Standards</span>
+                <span class="pill-title">{{ 'STATIC.ABOUT.PILL_2_TITLE' | translate }}</span>
+                <span class="pill-label">{{ 'STATIC.ABOUT.PILL_2_LABEL' | translate }}</span>
               </div>
             </div>
             <div class="pill">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
               <div class="pill-info">
-                <span class="pill-title">Live Telemetry</span>
-                <span class="pill-label">Real-Time Sync</span>
+                <span class="pill-title">{{ 'STATIC.ABOUT.PILL_3_TITLE' | translate }}</span>
+                <span class="pill-label">{{ 'STATIC.ABOUT.PILL_3_LABEL' | translate }}</span>
               </div>
             </div>
           </div>
@@ -151,25 +151,25 @@
           <div class="capability-box">
             <div class="cap-header">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-              <h4>Tactical Radar Telemetry</h4>
+              <h4>{{ 'STATIC.ABOUT.CAP_1_TITLE' | translate }}</h4>
             </div>
-            <p>Spatial movement tracking, positional pass maps, and pressing intensity indices.</p>
+            <p>{{ 'STATIC.ABOUT.CAP_1_DESC' | translate }}</p>
           </div>
 
           <div class="capability-box">
             <div class="cap-header violet">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              <h4>Physical Readiness Matrix</h4>
+              <h4>{{ 'STATIC.ABOUT.CAP_2_TITLE' | translate }}</h4>
             </div>
-            <p>Sprint acceleration, fatigue thresholds, and age-group physical recovery benchmarks.</p>
+            <p>{{ 'STATIC.ABOUT.CAP_2_DESC' | translate }}</p>
           </div>
 
           <div class="capability-box">
             <div class="cap-header cyan">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-              <h4>Technical Skill Standards</h4>
+              <h4>{{ 'STATIC.ABOUT.CAP_3_TITLE' | translate }}</h4>
             </div>
-            <p>Drill completion precision, touch quality ratings, and match performance scoring.</p>
+            <p>{{ 'STATIC.ABOUT.CAP_3_DESC' | translate }}</p>
           </div>
         </div>
       </div>

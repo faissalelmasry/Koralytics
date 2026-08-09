@@ -4,27 +4,27 @@
   <section class="hero-section">
     <span class="eyebrow">
       <span class="pulse-dot"></span>
-      Knowledge Base & Support
+      {{ 'STATIC.FAQ.HERO_EYEBROW' | translate }}
     </span>
     <h1 class="hero-headline">
-      Frequently Asked <span class="grad-text">Questions</span>.
+      {{ 'STATIC.FAQ.HERO_HEADLINE' | translate }}<span class="grad-text">{{ 'STATIC.FAQ.HERO_HEADLINE_GRAD' | translate }}</span>.
     </h1>
     <p class="hero-subheadline">
-      Everything you need to know about Koralytics telemetry, ecosystem benchmarking, data isolation, and user portals.
+      {{ 'STATIC.FAQ.HERO_SUB' | translate }}
     </p>
 
     <!-- Search & Filter Controls -->
     <div class="faq-controls">
       <div class="search-input-wrap">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" [(ngModel)]="searchQuery" placeholder="Search questions or keywords...">
+        <input type="text" [(ngModel)]="searchQuery" [placeholder]="'STATIC.FAQ.SEARCH_PLACEHOLDER' | translate">
       </div>
 
       <div class="category-pills">
-        <button [class.active]="selectedCategory === 'all'" (click)="setCategory('all')">All Questions</button>
-        <button [class.active]="selectedCategory === 'privacy'" (click)="setCategory('privacy')">Privacy & Data</button>
-        <button [class.active]="selectedCategory === 'portals'" (click)="setCategory('portals')">Player & Parent Portals</button>
-        <button [class.active]="selectedCategory === 'general'" (click)="setCategory('general')">General & Onboarding</button>
+        <button [class.active]="selectedCategory === 'all'" (click)="setCategory('all')">{{ 'STATIC.FAQ.CAT_ALL' | translate }}</button>
+        <button [class.active]="selectedCategory === 'privacy'" (click)="setCategory('privacy')">{{ 'STATIC.FAQ.CAT_PRIVACY' | translate }}</button>
+        <button [class.active]="selectedCategory === 'portals'" (click)="setCategory('portals')">{{ 'STATIC.FAQ.CAT_PORTALS' | translate }}</button>
+        <button [class.active]="selectedCategory === 'general'" (click)="setCategory('general')">{{ 'STATIC.FAQ.CAT_GENERAL' | translate }}</button>
       </div>
     </div>
   </section>
@@ -35,16 +35,16 @@
       
       <div *ngFor="let item of filteredFaqs" class="glass-card faq-item" [class.open]="item.open">
         <div class="faq-question" (click)="toggleFaq(item)">
-          <h3>{{ item.question }}</h3>
+          <h3>{{ item.questionKey | translate }}</h3>
           <span class="toggle-icon">{{ item.open ? '−' : '+' }}</span>
         </div>
         <div class="faq-answer" *ngIf="item.open">
-          <p>{{ item.answer }}</p>
+          <p>{{ item.answerKey | translate }}</p>
         </div>
       </div>
 
       <div *ngIf="filteredFaqs.length === 0" class="no-results glass-card">
-        <p>No questions matched your search criteria. Try a different query or contact support.</p>
+        <p>{{ 'STATIC.FAQ.NO_RESULTS' | translate }}</p>
       </div>
 
     </div>
@@ -54,10 +54,10 @@
   <section class="still-questions">
     <div class="glass-card help-card">
       <div class="help-text">
-        <h3>Still Have Questions?</h3>
-        <p>Our onboarding engineers and customer success team are ready to answer your specific academy requirements.</p>
+        <h3>{{ 'STATIC.FAQ.STILL_HAVE_Q' | translate }}</h3>
+        <p>{{ 'STATIC.FAQ.STILL_HAVE_Q_DESC' | translate }}</p>
       </div>
-      <a routerLink="/contact" class="btn btn-primary">Contact Support Team</a>
+      <a routerLink="/contact" class="btn btn-primary">{{ 'STATIC.FAQ.BTN_CONTACT' | translate }}</a>
     </div>
   </section>
 

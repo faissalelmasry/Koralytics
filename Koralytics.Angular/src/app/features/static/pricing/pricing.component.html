@@ -4,24 +4,24 @@
   <section class="hero-section">
     <span class="eyebrow">
       <span class="pulse-dot"></span>
-      Transparent Academy Plans
+      {{ 'STATIC.PRICING.HERO_EYEBROW' | translate }}
     </span>
     <h1 class="hero-headline">
-      Predictable Pricing for <span class="grad-text">Every Academy Scale</span>.
+      {{ 'STATIC.PRICING.HERO_HEADLINE' | translate }}<span class="grad-text">{{ 'STATIC.PRICING.HERO_HEADLINE_GRAD' | translate }}</span>.
     </h1>
     <p class="hero-subheadline">
-      Choose a plan tailored to your academy's active players and branch structure. Upgrade or adjust anytime.
+      {{ 'STATIC.PRICING.HERO_SUB' | translate }}
     </p>
 
     <!-- Billing Cycle Toggle -->
     <div class="billing-toggle-wrap">
-      <span [class.active]="!isAnnual" (click)="toggleBilling(false)">Monthly Billing</span>
+      <span [class.active]="!isAnnual" (click)="toggleBilling(false)">{{ 'STATIC.PRICING.BILLING_MONTHLY' | translate }}</span>
       <div class="switch" [class.annual]="isAnnual" (click)="toggleBilling(!isAnnual)">
         <div class="knob"></div>
       </div>
       <span [class.active]="isAnnual" (click)="toggleBilling(true)">
-        Annual Billing
-        <span class="discount-badge">Save 20%</span>
+        {{ 'STATIC.PRICING.BILLING_ANNUAL' | translate }}
+        <span class="discount-badge">{{ 'STATIC.PRICING.BILLING_SAVE' | translate }}</span>
       </span>
     </div>
   </section>
@@ -32,86 +32,86 @@
     <!-- Starter Tier -->
     <div class="glass-card pricing-card">
       <div class="card-header">
-        <span class="tier-name">Starter</span>
-        <p class="tier-desc">Designed for single-branch local academies getting started with digital tracking.</p>
+        <span class="tier-name">{{ 'STATIC.PRICING.TIER_STARTER' | translate }}</span>
+        <p class="tier-desc">{{ 'STATIC.PRICING.STARTER_DESC' | translate }}</p>
         <div class="price-box">
           <span class="amount">{{ isAnnual ? '2,000' : '2,500' }}</span>
-          <span class="currency"> EGP</span>
-          <span class="period">/ branch / mo</span>
+          <span class="currency">{{ 'STATIC.PRICING.CURRENCY' | translate }}</span>
+          <span class="period">{{ 'STATIC.PRICING.PERIOD' | translate }}</span>
         </div>
         <div class="usd-equivalent" style="font-size: 0.85rem; color: #a1a1aa; margin-top: 4px;">
-          (~${{ isAnnual ? '40' : '50' }} USD)
+          {{ 'STATIC.PRICING.STARTER_USD' | translate: { usd: isAnnual ? '40' : '50' } }}
         </div>
       </div>
       <div class="card-body">
         <ul class="feature-list">
-          <li><span>✓</span> Single Branch Management</li>
-          <li><span>✓</span> Up to 50 Active Players</li>
-          <li><span>✓</span> Core Player Tracking & Attendance</li>
-          <li><span>✓</span> Standard Coach & Admin Access</li>
-          <li><span>✓</span> Basic Match Reports</li>
-          <li class="disabled"><span>✕</span> Advanced Telemetry Analytics</li>
-          <li class="disabled"><span>✕</span> Parent & Player Portals</li>
+          <li><span>✓</span> {{ 'STATIC.PRICING.STARTER_F1' | translate }}</li>
+          <li><span>✓</span> {{ 'STATIC.PRICING.STARTER_F2' | translate }}</li>
+          <li><span>✓</span> {{ 'STATIC.PRICING.STARTER_F3' | translate }}</li>
+          <li><span>✓</span> {{ 'STATIC.PRICING.STARTER_F4' | translate }}</li>
+          <li><span>✓</span> {{ 'STATIC.PRICING.STARTER_F5' | translate }}</li>
+          <li class="disabled"><span>✕</span> {{ 'STATIC.PRICING.STARTER_F6' | translate }}</li>
+          <li class="disabled"><span>✕</span> {{ 'STATIC.PRICING.STARTER_F7' | translate }}</li>
         </ul>
       </div>
       <div class="card-footer">
-        <a routerLink="/contact" class="btn btn-secondary full-width">Get Started</a>
+        <a routerLink="/contact" class="btn btn-secondary full-width">{{ 'STATIC.PRICING.BTN_GET_STARTED' | translate }}</a>
       </div>
     </div>
 
     <!-- Pro Tier (Popular) -->
     <div class="glass-card pricing-card pro-card">
-      <div class="popular-badge">Most Popular</div>
+      <div class="popular-badge">{{ 'STATIC.PRICING.BADGE_POPULAR' | translate }}</div>
       <div class="card-header">
-        <span class="tier-name grad-text">Pro</span>
-        <p class="tier-desc">Designed for multi-branch competitive academies requiring full sports telemetry & portals.</p>
+        <span class="tier-name grad-text">{{ 'STATIC.PRICING.TIER_PRO' | translate }}</span>
+        <p class="tier-desc">{{ 'STATIC.PRICING.PRO_DESC' | translate }}</p>
         <div class="price-box">
           <span class="amount">{{ isAnnual ? '7,500' : '8,000' }}</span>
-          <span class="currency"> EGP</span>
-          <span class="period">/ branch / mo</span>
+          <span class="currency">{{ 'STATIC.PRICING.CURRENCY' | translate }}</span>
+          <span class="period">{{ 'STATIC.PRICING.PERIOD' | translate }}</span>
         </div>
         <div class="usd-equivalent" style="font-size: 0.85rem; color: #a1a1aa; margin-top: 4px;">
-          (~${{ isAnnual ? '150' : '160' }} USD)
+          {{ 'STATIC.PRICING.PRO_USD' | translate: { usd: isAnnual ? '150' : '160' } }}
         </div>
       </div>
       <div class="card-body">
         <ul class="feature-list">
-          <li><span>✓</span> Multi-Branch & Pitch Scheduling</li>
-          <li><span>✓</span> Up to 200 Active Players</li>
-          <li><span>✓</span> Full Tactical & Physical Telemetry</li>
-          <li><span>✓</span> Player & Parent Portal Access</li>
-          <li><span>✓</span> Drill Progression & Bias Analytics</li>
-          <li><span>✓</span> Regional Market Benchmarking</li>
-          <li><span>✓</span> Entity Resolution Search</li>
+          <li><span>✓</span> {{ 'STATIC.PRICING.PRO_F1' | translate }}</li>
+          <li><span>✓</span> {{ 'STATIC.PRICING.PRO_F2' | translate }}</li>
+          <li><span>✓</span> {{ 'STATIC.PRICING.PRO_F3' | translate }}</li>
+          <li><span>✓</span> {{ 'STATIC.PRICING.PRO_F4' | translate }}</li>
+          <li><span>✓</span> {{ 'STATIC.PRICING.PRO_F5' | translate }}</li>
+          <li><span>✓</span> {{ 'STATIC.PRICING.PRO_F6' | translate }}</li>
+          <li><span>✓</span> {{ 'STATIC.PRICING.PRO_F7' | translate }}</li>
         </ul>
       </div>
       <div class="card-footer">
-        <a routerLink="/contact" class="btn btn-primary full-width">Start 14-Day Free Trial</a>
+        <a routerLink="/contact" class="btn btn-primary full-width">{{ 'STATIC.PRICING.BTN_TRIAL' | translate }}</a>
       </div>
     </div>
 
     <!-- Enterprise Tier -->
     <div class="glass-card pricing-card">
       <div class="card-header">
-        <span class="tier-name">Enterprise</span>
-        <p class="tier-desc">Custom solutions for large regional network academies & governing bodies requiring custom integrations.</p>
+        <span class="tier-name">{{ 'STATIC.PRICING.TIER_ENT' | translate }}</span>
+        <p class="tier-desc">{{ 'STATIC.PRICING.ENT_DESC' | translate }}</p>
         <div class="price-box custom">
-          <span class="amount">Custom</span>
+          <span class="amount">{{ 'STATIC.PRICING.ENT_CUSTOM' | translate }}</span>
         </div>
       </div>
       <div class="card-body">
         <ul class="feature-list">
-          <li><span>✓</span> Unlimited Branches & Players</li>
-          <li><span>✓</span> Custom Telemetry Hardware Integrations</li>
-          <li><span>✓</span> Dedicated Account Manager & SLA</li>
-          <li><span>✓</span> Custom Regional Benchmarks</li>
-          <li><span>✓</span> Scouter & Talent Pipeline Hub</li>
-          <li><span>✓</span> White-label Branding Options</li>
-          <li><span>✓</span> 24/7 Priority Support</li>
+          <li><span>✓</span> {{ 'STATIC.PRICING.ENT_F1' | translate }}</li>
+          <li><span>✓</span> {{ 'STATIC.PRICING.ENT_F2' | translate }}</li>
+          <li><span>✓</span> {{ 'STATIC.PRICING.ENT_F3' | translate }}</li>
+          <li><span>✓</span> {{ 'STATIC.PRICING.ENT_F4' | translate }}</li>
+          <li><span>✓</span> {{ 'STATIC.PRICING.ENT_F5' | translate }}</li>
+          <li><span>✓</span> {{ 'STATIC.PRICING.ENT_F6' | translate }}</li>
+          <li><span>✓</span> {{ 'STATIC.PRICING.ENT_F7' | translate }}</li>
         </ul>
       </div>
       <div class="card-footer">
-        <a routerLink="/contact" class="btn btn-secondary full-width">Contact Sales</a>
+        <a routerLink="/contact" class="btn btn-secondary full-width">{{ 'STATIC.PRICING.BTN_SALES' | translate }}</a>
       </div>
     </div>
 
@@ -123,16 +123,16 @@
       <div class="note-item">
         <div class="note-header">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          <h4>Flexible Access per Active Player or Branch</h4>
+          <h4>{{ 'STATIC.PRICING.NOTE_1_TITLE' | translate }}</h4>
         </div>
-        <p>Scale your subscription effortlessly as your academy expands. Active player counts are calculated dynamically each month.</p>
+        <p>{{ 'STATIC.PRICING.NOTE_1_DESC' | translate }}</p>
       </div>
       <div class="note-item">
         <div class="note-header violet">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          <h4>100% Data Ownership & Privacy</h4>
+          <h4>{{ 'STATIC.PRICING.NOTE_2_TITLE' | translate }}</h4>
         </div>
-        <p>Your operational and athlete PII data remains strictly isolated and completely owned by your academy at all times.</p>
+        <p>{{ 'STATIC.PRICING.NOTE_2_DESC' | translate }}</p>
       </div>
     </div>
   </section>

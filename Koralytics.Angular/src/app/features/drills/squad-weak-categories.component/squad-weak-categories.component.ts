@@ -39,7 +39,7 @@ export class SquadWeakCategoriesComponent implements OnInit, OnDestroy {
 
   translateCategory(name: string | null | undefined): string {
     if (!name) return '';
-    const key = 'DRILLS.CAT_' + name.toUpperCase();
+    const key = 'DRILLS.DYNAMIC.CAT_' + name.toUpperCase();
     const translated = this.translate.instant(key);
     return translated !== key ? translated : name;
   }
