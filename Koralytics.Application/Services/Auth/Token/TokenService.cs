@@ -43,7 +43,11 @@ namespace Koralytics.Application.Services.Auth.Token
         public async Task<TokenPair> GenerateTokenPairAsync(User user, IList<string> roles, int? academyId, string? deviceInfo = null, string? ipAddress = null)
         {
             string tier = "Starter";
-            if (academyId.HasValue)
+            if (roles.Contains("Scouter"))
+            {
+                tier = "Elite";
+            }
+            else if (academyId.HasValue)
             {
                 var tierEnum = await _tenantSubscriptionService.GetTierAsync(academyId.Value);
                 tier = tierEnum.ToString();
@@ -107,7 +111,11 @@ namespace Koralytics.Application.Services.Auth.Token
             var academyId = await getAcademyIdFunc(user, roles);
 
             string tier = "Starter";
-            if (academyId.HasValue)
+            if (roles.Contains("Scouter"))
+            {
+                tier = "Elite";
+            }
+            else if (academyId.HasValue)
             {
                 var tierEnum = await _tenantSubscriptionService.GetTierAsync(academyId.Value);
                 tier = tierEnum.ToString();

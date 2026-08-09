@@ -8,12 +8,14 @@ import { SignalRService } from '../../../../../core/services/SignalR/signalrserv
 import { Tournament, TournamentStatus, MatchFormat, TournamentStructure, GoalEventDto, UpdateFixtureStatsDto } from '../../../../../core/interfaces/tournament.models';
 import { CustomButtonComponent } from '../../../../../shared/components/custom-button/custom-button';
 import { StatusChipComponent } from '../../../../../shared/components/status-chip/status-chip';
+import { SearchBarComponent } from '../../../../../shared/components/search-bar/search-bar';
 import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
 import { forkJoin, of, Subscription } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 import { FormsModule } from '@angular/forms';
 import { NotificationService } from '@core/services/SignalR/notificationservice';
+import { AuthService } from '../../../../../core/services/auth/auth.service';
 
 @Component({
   selector: 'app-tournament-details',
@@ -24,6 +26,7 @@ import { NotificationService } from '@core/services/SignalR/notificationservice'
     RouterModule,
     CustomButtonComponent,
     StatusChipComponent,
+    SearchBarComponent,
     ScrollRevealDirective
   ],
   templateUrl: './tournament-details.component.html',
@@ -44,7 +47,9 @@ export class TournamentDetailsComponent implements OnInit, OnDestroy {
   private cdr = inject(ChangeDetectorRef);
   private announcementSub?: Subscription;
   private notificationService = inject(NotificationService);
+  private authService = inject(AuthService);
 
+  isSystemAdmin = false;
   tournamentId!: number;
   tournament: Tournament | null = null;
   isLoading = true;
@@ -55,6 +60,26 @@ export class TournamentDetailsComponent implements OnInit, OnDestroy {
   rounds: any[] = [];      // From BracketDto.rounds -> RoundDto[]
   teams: any[] = [];       // From GET /tournament/{id}/teams
   availableAcademies: any[] = [];
+  academySearchText: string = '';
+
+  get filteredAvailableAcademies(): any[] {
+    if (!this.academySearchText || !this.academySearchText.trim()) {
+      return this.availableAcademies;
+    }
+    const query = this.academySearchText.toLowerCase().trim();
+    return this.availableAcademies.filter(a => {
+      const nameMatch = a.name ? a.name.toLowerCase().includes(query) : false;
+      const cityMatch = a.city ? a.city.toLowerCase().includes(query) : false;
+      const locationMatch = a.location ? a.location.toLowerCase().includes(query) : false;
+      return nameMatch || cityMatch || locationMatch;
+    });
+  }
+
+  onAcademySearchChange(search: string) {
+    this.academySearchText = search;
+    this.cdr.markForCheck();
+  }
+
   hallOfFame: any[] = [];
   report: any | null = null;
   parsedReport: { meta: string[]; sections: { title: string; content: string[] }[] } | null = null;
@@ -113,6 +138,10 @@ export class TournamentDetailsComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    this.authService.currentUser$.subscribe(user => {
+      this.isSystemAdmin = user?.roles?.includes('SystemAdmin') ?? false;
+      this.cdr.markForCheck();
+    });
     this.route.paramMap.subscribe(params => {
       const id = params.get('id');
       if (id) {
@@ -541,6 +570,39 @@ export class TournamentDetailsComponent implements OnInit, OnDestroy {
 
   printSchedule() {
     window.print();
+  }
+
+  onFixtureClick(fixture: any) {
+    if (!fixture || !this.isSystemAdmin) return;
+
+    if (fixture.matchId) {
+      this.router.navigate(['/match', fixture.matchId]);
+      return;
+    }
+
+    const fixtureId = fixture.fixtureId || fixture.id;
+    if (!fixtureId) return;
+
+    this.router.navigate(['/tournament/fixture', fixtureId, 'create-match'], {
+      state: {
+        fixtureId: fixtureId,
+        homeTeamId: fixture.homeTeamId,
+        awayTeamId: fixture.awayTeamId,
+        homeTeamName: fixture.homeTeamName,
+        awayTeamName: fixture.awayTeamName,
+        homeAcademyName: fixture.homeAcademyName || '',
+        awayAcademyName: fixture.awayAcademyName || '',
+        tournamentId: this.tournamentId,
+        tournamentName: this.tournament?.name,
+        groupOrRoundName: fixture.groupName
+      },
+      queryParams: {
+        homeTeamId: fixture.homeTeamId,
+        awayTeamId: fixture.awayTeamId,
+        homeTeamName: fixture.homeTeamName,
+        awayTeamName: fixture.awayTeamName
+      }
+    });
   }
 
   // Fixture score editing

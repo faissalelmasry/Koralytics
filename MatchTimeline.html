@@ -1,10 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Koralytics - Ultra Smooth Match Hub</title>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Chakra+Petch:wght@700;800&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Chakra+Petch:wght@700;800&display=swap"
+    rel="stylesheet">
   <style>
     :root {
       --bg-dark: #05070c;
@@ -24,7 +27,11 @@
       --spring-bounce: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
     body {
       background-color: var(--bg-dark);
@@ -55,34 +62,63 @@
       display: grid;
       grid-template-columns: 1fr 140px 1fr;
       align-items: center;
-      box-shadow: 0 15px 35px rgba(0,0,0,0.8);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8);
       transition: var(--transition-smooth);
     }
 
-    .team-box { font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
-    .team-box.home { justify-content: flex-end; text-align: right; }
-    .team-box.away { justify-content: flex-start; text-align: left; }
+    .team-box {
+      font-size: 16px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-    .score-center { display: flex; flex-direction: column; align-items: center; }
+    .team-box.home {
+      justify-content: flex-end;
+      text-align: right;
+    }
+
+    .team-box.away {
+      justify-content: flex-start;
+      text-align: left;
+    }
+
+    .score-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
     .score-digits {
       font-family: 'Chakra Petch', sans-serif;
-      font-size: 38px; font-weight: 800;
+      font-size: 38px;
+      font-weight: 800;
       color: var(--neon-yellow);
       letter-spacing: 2px;
       text-shadow: 0 0 20px rgba(250, 204, 21, 0.4);
     }
 
     .ft-badge {
-      font-size: 10px; font-weight: 800; letter-spacing: 1px;
-      padding: 2px 10px; border-radius: 12px;
-      background: rgba(250, 204, 21, 0.1); color: var(--neon-yellow);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      padding: 2px 10px;
+      border-radius: 12px;
+      background: rgba(250, 204, 21, 0.1);
+      color: var(--neon-yellow);
       border: 1px solid rgba(250, 204, 21, 0.3);
       animation: pulseGlow 2.5s ease-in-out infinite alternate;
     }
 
     @keyframes pulseGlow {
-      0% { box-shadow: 0 0 5px rgba(250, 204, 21, 0.2); }
-      100% { box-shadow: 0 0 18px rgba(250, 204, 21, 0.6); }
+      0% {
+        box-shadow: 0 0 5px rgba(250, 204, 21, 0.2);
+      }
+
+      100% {
+        box-shadow: 0 0 18px rgba(250, 204, 21, 0.6);
+      }
     }
 
     /* 2. TABS BAR WITH SMOOTH INDICATOR */
@@ -96,10 +132,15 @@
     }
 
     .tab-btn {
-      flex: 1; background: transparent; border: none;
-      color: var(--text-muted); padding: 12px 0;
-      font-size: 13px; font-weight: 800; cursor: pointer;
-      border-radius: 10px; 
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 12px 0;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      border-radius: 10px;
       transition: var(--transition-smooth);
       z-index: 2;
     }
@@ -112,31 +153,52 @@
     }
 
     /* 3. CAROUSEL ENGINE WITH SMOOTH TRANSITION */
-    .swipe-viewport { width: 100%; overflow: hidden; border-radius: 20px; }
-    .swipe-track { 
-      display: flex; 
-      width: 200%; 
-      transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1); 
+    .swipe-viewport {
+      width: 100%;
+      overflow: hidden;
+      border-radius: 20px;
     }
-    .slide-page { width: 50%; flex-shrink: 0; }
+
+    .swipe-track {
+      display: flex;
+      width: 200%;
+      transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    .slide-page {
+      width: 50%;
+      flex-shrink: 0;
+    }
 
     /* =========================================================
        MINI FIFA CARD SMOOTH ANIMATIONS
     ========================================================= */
     .mini-card-wrapper {
-      width: 80px; height: 110px;
+      width: 80px;
+      height: 110px;
       background: linear-gradient(145deg, #1c1d1a 0%, #0b0c0e 100%);
       border: 1.5px solid rgba(250, 204, 21, 0.35);
-      border-radius: 12px; position: relative; padding: 5px;
-      display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-      overflow: hidden; box-shadow: 0 8px 20px rgba(0,0,0,0.8);
+      border-radius: 12px;
+      position: relative;
+      padding: 5px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      overflow: hidden;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.8);
       cursor: pointer;
       transition: var(--spring-bounce);
       will-change: transform;
     }
 
     .mini-card-wrapper::before {
-      content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
       background: repeating-linear-gradient(-45deg, transparent, transparent 5px, rgba(255, 255, 255, 0.02) 5px, rgba(255, 255, 255, 0.02) 10px);
       pointer-events: none;
     }
@@ -147,8 +209,13 @@
     }
 
     @keyframes floatCard {
-      0% { transform: translateY(0px); }
-      100% { transform: translateY(-7px); }
+      0% {
+        transform: translateY(0px);
+      }
+
+      100% {
+        transform: translateY(-7px);
+      }
     }
 
     .mini-card-wrapper:hover {
@@ -158,15 +225,40 @@
       z-index: 30;
     }
 
-    .card-top-bar { width: 100%; display: flex; justify-content: space-between; align-items: flex-start; z-index: 2; }
-    .overall-rating { font-family: 'Chakra Petch', sans-serif; font-size: 14px; font-weight: 800; color: var(--neon-yellow); }
-    .position-code { font-size: 8px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; }
+    .card-top-bar {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      z-index: 2;
+    }
+
+    .overall-rating {
+      font-family: 'Chakra Petch', sans-serif;
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--neon-yellow);
+    }
+
+    .position-code {
+      font-size: 8px;
+      font-weight: 800;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
 
     .player-avatar-box {
-      width: 36px; height: 36px; border-radius: 50%;
-      border: 1.5px solid rgba(250, 204, 21, 0.5); background: #11141a;
-      display: flex; align-items: center; justify-content: center;
-      overflow: hidden; z-index: 2; transition: var(--transition-smooth);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(250, 204, 21, 0.5);
+      background: #11141a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      z-index: 2;
+      transition: var(--transition-smooth);
     }
 
     .mini-card-wrapper:hover .player-avatar-box {
@@ -174,15 +266,31 @@
       transform: scale(1.05);
     }
 
-    .player-initials { font-family: 'Chakra Petch', sans-serif; font-size: 12px; font-weight: 800; color: #717d93; }
+    .player-initials {
+      font-family: 'Chakra Petch', sans-serif;
+      font-size: 12px;
+      font-weight: 800;
+      color: #717d93;
+    }
 
     .player-name-box {
-      width: 100%; text-align: center; background: rgba(0, 0, 0, 0.6);
-      border-radius: 4px; padding: 2px 1px; z-index: 2; border: 1px solid rgba(255,255,255,0.05);
+      width: 100%;
+      text-align: center;
+      background: rgba(0, 0, 0, 0.6);
+      border-radius: 4px;
+      padding: 2px 1px;
+      z-index: 2;
+      border: 1px solid rgba(255, 255, 255, 0.05);
     }
+
     .player-fullname {
-      font-size: 8px; font-weight: 800; color: #fff; text-transform: uppercase;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      font-size: 8px;
+      font-weight: 800;
+      color: #fff;
+      text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     /* =========================================================
@@ -201,8 +309,13 @@
     }
 
     .timeline-container::before {
-      content: ''; position: absolute; top: 30px; bottom: 30px; left: 50%;
-      width: 2px; background: linear-gradient(180deg, rgba(250, 204, 21, 0.5), rgba(255, 255, 255, 0.05));
+      content: '';
+      position: absolute;
+      top: 30px;
+      bottom: 30px;
+      left: 50%;
+      width: 2px;
+      background: linear-gradient(180deg, rgba(250, 204, 21, 0.5), rgba(255, 255, 255, 0.05));
       transform: translateX(-50%);
     }
 
@@ -229,30 +342,59 @@
       border-color: rgba(250, 204, 21, 0.4);
       background: rgba(250, 204, 21, 0.05);
       transform: translateY(-3px);
-      box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
     }
 
-    .timeline-event-box.home { justify-content: flex-end; text-align: right; margin-right: 10px; }
-    .timeline-event-box.away { justify-content: flex-start; text-align: left; margin-left: 10px; }
-    .timeline-event-box.empty { opacity: 0; pointer-events: none; }
+    .timeline-event-box.home {
+      justify-content: flex-end;
+      text-align: right;
+      margin-right: 10px;
+    }
 
-    .event-details { display: flex; flex-direction: column; }
+    .timeline-event-box.away {
+      justify-content: flex-start;
+      text-align: left;
+      margin-left: 10px;
+    }
+
+    .timeline-event-box.empty {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .event-details {
+      display: flex;
+      flex-direction: column;
+    }
+
     .event-type-badge {
-      font-size: 11px; font-weight: 800;
+      font-size: 11px;
+      font-weight: 800;
       color: var(--neon-yellow);
-      display: flex; align-items: center; gap: 4px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
     }
-    .event-subtext { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+
+    .event-subtext {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
 
     .minute-badge {
-      width: 44px; height: 44px;
+      width: 44px;
+      height: 44px;
       border-radius: 50%;
       background: #0b0e14;
       border: 2px solid var(--neon-yellow);
       color: var(--neon-yellow);
       font-family: 'Chakra Petch', sans-serif;
-      font-size: 13px; font-weight: 800;
-      display: flex; align-items: center; justify-content: center;
+      font-size: 13px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       margin: 0 auto;
       box-shadow: 0 0 12px rgba(250, 204, 21, 0.3);
       transition: var(--transition-smooth);
@@ -266,45 +408,101 @@
     /* =========================================================
        TAB 2: LINEUPS & PITCH DESIGN WITH SMOOTH SWITCHING
     ========================================================= */
-    .team-subtabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 14px; }
+    .team-subtabs {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
     .subtab-btn {
-      background: var(--card-bg); border: 1px solid var(--card-border);
-      color: var(--text-muted); padding: 8px 20px; border-radius: 20px;
-      font-size: 12px; font-weight: 800; cursor: pointer; 
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      padding: 8px 20px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
       transition: var(--transition-smooth);
     }
+
     .subtab-btn.active {
-      border-color: var(--neon-yellow); color: var(--neon-yellow);
-      background: rgba(250, 204, 21, 0.12); box-shadow: 0 0 15px rgba(250, 204, 21, 0.25);
+      border-color: var(--neon-yellow);
+      color: var(--neon-yellow);
+      background: rgba(250, 204, 21, 0.12);
+      box-shadow: 0 0 15px rgba(250, 204, 21, 0.25);
     }
 
     .full-pitch {
-      width: 100%; height: 600px;
+      width: 100%;
+      height: 600px;
       background: radial-gradient(circle at 50% 50%, #122115 0%, #050d08 100%);
       border: 2px solid rgba(250, 204, 21, 0.3);
-      border-radius: 24px; position: relative; overflow: hidden;
-      display: flex; flex-direction: column; justify-content: space-around;
+      border-radius: 24px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
       padding: 15px 10px;
-      box-shadow: inset 0 0 60px #000, 0 10px 30px rgba(0,0,0,0.8);
+      box-shadow: inset 0 0 60px #000, 0 10px 30px rgba(0, 0, 0, 0.8);
       transition: var(--transition-smooth);
     }
 
-    .pitch-center-line { position: absolute; top: 50%; left: 0; right: 0; height: 2px; background: rgba(250, 204, 21, 0.2); }
-    .pitch-center-circle {
-      position: absolute; top: 50%; left: 50%; width: 120px; height: 120px;
-      border: 2px solid rgba(250, 204, 21, 0.2); border-radius: 50%; transform: translate(-50%, -50%);
+    .pitch-center-line {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: rgba(250, 204, 21, 0.2);
     }
 
-    .formation-row { display: flex; justify-content: space-around; align-items: center; z-index: 2; width: 100%; }
+    .pitch-center-circle {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 120px;
+      height: 120px;
+      border: 2px solid rgba(250, 204, 21, 0.2);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .formation-row {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 2;
+      width: 100%;
+    }
 
     /* BENCH SECTION */
     .bench-card {
-      background: var(--card-bg); border: 1px solid var(--card-border);
-      border-radius: 16px; padding: 14px; margin-top: 14px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 14px;
+      margin-top: 14px;
       transition: var(--transition-smooth);
     }
-    .bench-title { font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px; }
-    .bench-flex { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; scroll-behavior: smooth; }
+
+    .bench-title {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .bench-flex {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 5px;
+      scroll-behavior: smooth;
+    }
 
     /* FADE SMOOTH FOR PITCH TOGGLE */
     .pitch-view-container {
@@ -312,6 +510,7 @@
       opacity: 1;
       transform: scale(1);
     }
+
     .pitch-view-container.hidden {
       opacity: 0;
       transform: scale(0.97);
@@ -321,24 +520,25 @@
     }
   </style>
 </head>
+
 <body>
 
   <div class="match-hub-wrapper">
 
     <!-- 1. SCOREBOARD -->
     <div class="hero-scoreboard">
-      <div class="team-box home">🦅 Eagles Academy</div>
+      <div class="team-box home">Eagles Academy</div>
       <div class="score-center">
         <div class="score-digits">2 - 1</div>
         <span class="ft-badge">FULL TIME</span>
       </div>
-      <div class="team-box away">🛡️ Lions FC</div>
+      <div class="team-box away">Lions FC</div>
     </div>
 
     <!-- 2. MAIN TABS -->
     <div class="nav-tabs-container">
       <button class="tab-btn active" id="btn-timeline" onclick="switchMainTab(0)">⚡ Match Timeline</button>
-      <button class="tab-btn" id="btn-lineups" onclick="switchMainTab(1)">📋 Lineups & Tactics</button>
+      <button class="tab-btn" id="btn-lineups" onclick="switchMainTab(1)">Lineups & Tactics</button>
     </div>
 
     <!-- 3. VIEWPORT -->
@@ -359,9 +559,13 @@
                   <span class="event-subtext">Assist: Zizo</span>
                 </div>
                 <div class="mini-card-wrapper" style="width: 65px; height: 90px; border-color: var(--neon-yellow);">
-                  <div class="card-top-bar"><span class="overall-rating" style="font-size: 12px;">89</span><span class="position-code" style="font-size: 7px;">RW</span></div>
-                  <div class="player-avatar-box" style="width: 30px; height: 30px;"><span class="player-initials" style="font-size: 10px;">MS</span></div>
-                  <div class="player-name-box"><div class="player-fullname" style="font-size: 7px;">M. SALAH</div></div>
+                  <div class="card-top-bar"><span class="overall-rating" style="font-size: 12px;">89</span><span
+                      class="position-code" style="font-size: 7px;">RW</span></div>
+                  <div class="player-avatar-box" style="width: 30px; height: 30px;"><span class="player-initials"
+                      style="font-size: 10px;">MS</span></div>
+                  <div class="player-name-box">
+                    <div class="player-fullname" style="font-size: 7px;">M. SALAH</div>
+                  </div>
                 </div>
               </div>
               <div class="minute-badge">14'</div>
@@ -374,9 +578,14 @@
               <div class="minute-badge">28'</div>
               <div class="timeline-event-box away">
                 <div class="mini-card-wrapper" style="width: 65px; height: 90px; border-color: var(--neon-red);">
-                  <div class="card-top-bar"><span class="overall-rating" style="font-size: 12px; color: var(--neon-red);">72</span><span class="position-code" style="font-size: 7px;">LB</span></div>
-                  <div class="player-avatar-box" style="width: 30px; height: 30px;"><span class="player-initials" style="font-size: 10px;">AA</span></div>
-                  <div class="player-name-box"><div class="player-fullname" style="font-size: 7px;">ASHRAF</div></div>
+                  <div class="card-top-bar"><span class="overall-rating"
+                      style="font-size: 12px; color: var(--neon-red);">72</span><span class="position-code"
+                      style="font-size: 7px;">LB</span></div>
+                  <div class="player-avatar-box" style="width: 30px; height: 30px;"><span class="player-initials"
+                      style="font-size: 10px;">AA</span></div>
+                  <div class="player-name-box">
+                    <div class="player-fullname" style="font-size: 7px;">ASHRAF</div>
+                  </div>
                 </div>
                 <div class="event-details">
                   <span class="event-type-badge" style="color: var(--neon-red);">🟨 YELLOW CARD</span>
@@ -391,9 +600,13 @@
               <div class="minute-badge">42'</div>
               <div class="timeline-event-box away">
                 <div class="mini-card-wrapper" style="width: 65px; height: 90px;">
-                  <div class="card-top-bar"><span class="overall-rating" style="font-size: 12px;">76</span><span class="position-code" style="font-size: 7px;">ST</span></div>
-                  <div class="player-avatar-box" style="width: 30px; height: 30px;"><span class="player-initials" style="font-size: 10px;">MK</span></div>
-                  <div class="player-name-box"><div class="player-fullname" style="font-size: 7px;">KAHRABA</div></div>
+                  <div class="card-top-bar"><span class="overall-rating" style="font-size: 12px;">76</span><span
+                      class="position-code" style="font-size: 7px;">ST</span></div>
+                  <div class="player-avatar-box" style="width: 30px; height: 30px;"><span class="player-initials"
+                      style="font-size: 10px;">MK</span></div>
+                  <div class="player-name-box">
+                    <div class="player-fullname" style="font-size: 7px;">KAHRABA</div>
+                  </div>
                 </div>
                 <div class="event-details">
                   <span class="event-type-badge">⚽ PENALTY GOAL</span>
@@ -410,9 +623,13 @@
                   <span class="event-subtext">Cross by Hany</span>
                 </div>
                 <div class="mini-card-wrapper" style="width: 65px; height: 90px;">
-                  <div class="card-top-bar"><span class="overall-rating" style="font-size: 12px;">81</span><span class="position-code" style="font-size: 7px;">ST</span></div>
-                  <div class="player-avatar-box" style="width: 30px; height: 30px;"><span class="player-initials" style="font-size: 10px;">MM</span></div>
-                  <div class="player-name-box"><div class="player-fullname" style="font-size: 7px;">MOSTAFA</div></div>
+                  <div class="card-top-bar"><span class="overall-rating" style="font-size: 12px;">81</span><span
+                      class="position-code" style="font-size: 7px;">ST</span></div>
+                  <div class="player-avatar-box" style="width: 30px; height: 30px;"><span class="player-initials"
+                      style="font-size: 10px;">MM</span></div>
+                  <div class="player-name-box">
+                    <div class="player-fullname" style="font-size: 7px;">MOSTAFA</div>
+                  </div>
                 </div>
               </div>
               <div class="minute-badge">68'</div>
@@ -424,12 +641,18 @@
               <div class="timeline-event-box home">
                 <div class="event-details">
                   <span class="event-type-badge" style="color: var(--neon-green);">🔄 SUBSTITUTION</span>
-                  <span class="event-subtext"><b style="color: var(--neon-green);">IN:</b> Adel | <b style="color: var(--neon-red);">OUT:</b> Marmoush</span>
+                  <span class="event-subtext"><b style="color: var(--neon-green);">IN:</b> Adel | <b
+                      style="color: var(--neon-red);">OUT:</b> Marmoush</span>
                 </div>
                 <div class="mini-card-wrapper" style="width: 65px; height: 90px; border-color: var(--neon-green);">
-                  <div class="card-top-bar"><span class="overall-rating" style="font-size: 12px; color: var(--neon-green);">75</span><span class="position-code" style="font-size: 7px;">LW</span></div>
-                  <div class="player-avatar-box" style="width: 30px; height: 30px;"><span class="player-initials" style="font-size: 10px;">IA</span></div>
-                  <div class="player-name-box"><div class="player-fullname" style="font-size: 7px;">ADEL</div></div>
+                  <div class="card-top-bar"><span class="overall-rating"
+                      style="font-size: 12px; color: var(--neon-green);">75</span><span class="position-code"
+                      style="font-size: 7px;">LW</span></div>
+                  <div class="player-avatar-box" style="width: 30px; height: 30px;"><span class="player-initials"
+                      style="font-size: 10px;">IA</span></div>
+                  <div class="player-name-box">
+                    <div class="player-fullname" style="font-size: 7px;">ADEL</div>
+                  </div>
                 </div>
               </div>
               <div class="minute-badge">75'</div>
@@ -443,9 +666,10 @@
              SLIDE 2: LINEUPS (COMPLETE PLAYERS & BENCH)
         ==================================== -->
         <div class="slide-page" style="position: relative;">
-          
+
           <div class="team-subtabs">
-            <button class="subtab-btn active" id="sub-home" onclick="switchTeam('home')">🦅 Eagles Academy (4-3-3)</button>
+            <button class="subtab-btn active" id="sub-home" onclick="switchTeam('home')">🦅 Eagles Academy
+              (4-3-3)</button>
             <button class="subtab-btn" id="sub-away" onclick="switchTeam('away')">🛡️ Lions FC (3-4-3)</button>
           </div>
 
@@ -458,71 +682,148 @@
               <!-- Attackers (3) -->
               <div class="formation-row">
                 <div class="mini-card-wrapper pitch-card-float">
-                  <div class="card-top-bar"><div><div class="overall-rating">78</div><div class="position-code">LW</div></div></div>
+                  <div class="card-top-bar">
+                    <div>
+                      <div class="overall-rating">78</div>
+                      <div class="position-code">LW</div>
+                    </div>
+                  </div>
                   <div class="player-avatar-box"><span class="player-initials">OM</span></div>
-                  <div class="player-name-box"><div class="player-fullname">MARMOUSH</div></div>
+                  <div class="player-name-box">
+                    <div class="player-fullname">MARMOUSH</div>
+                  </div>
                 </div>
                 <div class="mini-card-wrapper pitch-card-float" style="animation-delay: 0.3s;">
-                  <div class="card-top-bar"><div><div class="overall-rating">81</div><div class="position-code">ST</div></div></div>
+                  <div class="card-top-bar">
+                    <div>
+                      <div class="overall-rating">81</div>
+                      <div class="position-code">ST</div>
+                    </div>
+                  </div>
                   <div class="player-avatar-box"><span class="player-initials">MM</span></div>
-                  <div class="player-name-box"><div class="player-fullname">MOSTAFA</div></div>
+                  <div class="player-name-box">
+                    <div class="player-fullname">MOSTAFA</div>
+                  </div>
                 </div>
                 <div class="mini-card-wrapper pitch-card-float" style="animation-delay: 0.6s;">
-                  <div class="card-top-bar"><div><div class="overall-rating">89</div><div class="position-code">RW</div></div></div>
+                  <div class="card-top-bar">
+                    <div>
+                      <div class="overall-rating">89</div>
+                      <div class="position-code">RW</div>
+                    </div>
+                  </div>
                   <div class="player-avatar-box"><span class="player-initials">MS</span></div>
-                  <div class="player-name-box"><div class="player-fullname">M. SALAH</div></div>
+                  <div class="player-name-box">
+                    <div class="player-fullname">M. SALAH</div>
+                  </div>
                 </div>
               </div>
 
               <!-- Midfielders (3) -->
               <div class="formation-row">
                 <div class="mini-card-wrapper pitch-card-float" style="animation-delay: 0.2s;">
-                  <div class="card-top-bar"><div><div class="overall-rating">79</div><div class="position-code">CM</div></div></div>
+                  <div class="card-top-bar">
+                    <div>
+                      <div class="overall-rating">79</div>
+                      <div class="position-code">CM</div>
+                    </div>
+                  </div>
                   <div class="player-avatar-box"><span class="player-initials">AZ</span></div>
-                  <div class="player-name-box"><div class="player-fullname">ZIZO</div></div>
+                  <div class="player-name-box">
+                    <div class="player-fullname">ZIZO</div>
+                  </div>
                 </div>
                 <div class="mini-card-wrapper pitch-card-float" style="animation-delay: 0.5s;">
-                  <div class="card-top-bar"><div><div class="overall-rating">76</div><div class="position-code">CDM</div></div></div>
+                  <div class="card-top-bar">
+                    <div>
+                      <div class="overall-rating">76</div>
+                      <div class="position-code">CDM</div>
+                    </div>
+                  </div>
                   <div class="player-avatar-box"><span class="player-initials">ME</span></div>
-                  <div class="player-name-box"><div class="player-fullname">ELNENY</div></div>
+                  <div class="player-name-box">
+                    <div class="player-fullname">ELNENY</div>
+                  </div>
                 </div>
                 <div class="mini-card-wrapper pitch-card-float" style="animation-delay: 0.1s;">
-                  <div class="card-top-bar"><div><div class="overall-rating">75</div><div class="position-code">CM</div></div></div>
+                  <div class="card-top-bar">
+                    <div>
+                      <div class="overall-rating">75</div>
+                      <div class="position-code">CM</div>
+                    </div>
+                  </div>
                   <div class="player-avatar-box"><span class="player-initials">MA</span></div>
-                  <div class="player-name-box"><div class="player-fullname">ATTIA</div></div>
+                  <div class="player-name-box">
+                    <div class="player-fullname">ATTIA</div>
+                  </div>
                 </div>
               </div>
 
               <!-- Defenders (4) -->
               <div class="formation-row">
                 <div class="mini-card-wrapper pitch-card-float">
-                  <div class="card-top-bar"><div><div class="overall-rating">76</div><div class="position-code">LB</div></div></div>
+                  <div class="card-top-bar">
+                    <div>
+                      <div class="overall-rating">76</div>
+                      <div class="position-code">LB</div>
+                    </div>
+                  </div>
                   <div class="player-avatar-box"><span class="player-initials">AF</span></div>
-                  <div class="player-name-box"><div class="player-fullname">FATOUH</div></div>
+                  <div class="player-name-box">
+                    <div class="player-fullname">FATOUH</div>
+                  </div>
                 </div>
                 <div class="mini-card-wrapper pitch-card-float" style="animation-delay: 0.4s;">
-                  <div class="card-top-bar"><div><div class="overall-rating">78</div><div class="position-code">CB</div></div></div>
+                  <div class="card-top-bar">
+                    <div>
+                      <div class="overall-rating">78</div>
+                      <div class="position-code">CB</div>
+                    </div>
+                  </div>
                   <div class="player-avatar-box"><span class="player-initials">MA</span></div>
-                  <div class="player-name-box"><div class="player-fullname">ABDELMONEM</div></div>
+                  <div class="player-name-box">
+                    <div class="player-fullname">ABDELMONEM</div>
+                  </div>
                 </div>
                 <div class="mini-card-wrapper pitch-card-float" style="animation-delay: 0.2s;">
-                  <div class="card-top-bar"><div><div class="overall-rating">75</div><div class="position-code">CB</div></div></div>
+                  <div class="card-top-bar">
+                    <div>
+                      <div class="overall-rating">75</div>
+                      <div class="position-code">CB</div>
+                    </div>
+                  </div>
                   <div class="player-avatar-box"><span class="player-initials">YI</span></div>
-                  <div class="player-name-box"><div class="player-fullname">YASSER</div></div>
+                  <div class="player-name-box">
+                    <div class="player-fullname">YASSER</div>
+                  </div>
                 </div>
                 <div class="mini-card-wrapper pitch-card-float" style="animation-delay: 0.5s;">
-                  <div class="card-top-bar"><div><div class="overall-rating">74</div><div class="position-code">RB</div></div></div>
+                  <div class="card-top-bar">
+                    <div>
+                      <div class="overall-rating">74</div>
+                      <div class="position-code">RB</div>
+                    </div>
+                  </div>
                   <div class="player-avatar-box"><span class="player-initials">MH</span></div>
-                  <div class="player-name-box"><div class="player-fullname">HANY</div></div>
+                  <div class="player-name-box">
+                    <div class="player-fullname">HANY</div>
+                  </div>
                 </div>
               </div>
 
               <!-- Goalkeeper (1) -->
               <div class="formation-row">
                 <div class="mini-card-wrapper pitch-card-float" style="animation-delay: 0.3s;">
-                  <div class="card-top-bar"><div><div class="overall-rating">77</div><div class="position-code">GK</div></div></div>
+                  <div class="card-top-bar">
+                    <div>
+                      <div class="overall-rating">77</div>
+                      <div class="position-code">GK</div>
+                    </div>
+                  </div>
                   <div class="player-avatar-box"><span class="player-initials">MS</span></div>
-                  <div class="player-name-box"><div class="player-fullname">SHENAWY</div></div>
+                  <div class="player-name-box">
+                    <div class="player-fullname">SHENAWY</div>
+                  </div>
                 </div>
               </div>
 
@@ -532,13 +833,90 @@
             <div class="bench-card">
               <div class="bench-title">Substitutes Bench (Eagles) 🪑</div>
               <div class="bench-flex">
-                <div class="mini-card-wrapper" style="transform: scale(0.85); flex-shrink: 0;"><div class="card-top-bar"><div><div class="overall-rating">74</div><div class="position-code">GK</div></div></div><div class="player-avatar-box"><span class="player-initials">MS</span></div><div class="player-name-box"><div class="player-fullname">SOBHI</div></div></div>
-                <div class="mini-card-wrapper" style="transform: scale(0.85); flex-shrink: 0;"><div class="card-top-bar"><div><div class="overall-rating">75</div><div class="position-code">LW</div></div></div><div class="player-avatar-box"><span class="player-initials">IA</span></div><div class="player-name-box"><div class="player-fullname">ADEL</div></div></div>
-                <div class="mini-card-wrapper" style="transform: scale(0.85); flex-shrink: 0;"><div class="card-top-bar"><div><div class="overall-rating">73</div><div class="position-code">CB</div></div></div><div class="player-avatar-box"><span class="player-initials">AR</span></div><div class="player-name-box"><div class="player-fullname">RABIA</div></div></div>
-                <div class="mini-card-wrapper" style="transform: scale(0.85); flex-shrink: 0;"><div class="card-top-bar"><div><div class="overall-rating">72</div><div class="position-code">CM</div></div></div><div class="player-avatar-box"><span class="player-initials">MF</span></div><div class="player-name-box"><div class="player-fullname">FATHI</div></div></div>
-                <div class="mini-card-wrapper" style="transform: scale(0.85); flex-shrink: 0;"><div class="card-top-bar"><div><div class="overall-rating">74</div><div class="position-code">ST</div></div></div><div class="player-avatar-box"><span class="player-initials">OS</span></div><div class="player-name-box"><div class="player-fullname">SHERIF</div></div></div>
-                <div class="mini-card-wrapper" style="transform: scale(0.85); flex-shrink: 0;"><div class="card-top-bar"><div><div class="overall-rating">71</div><div class="position-code">RB</div></div></div><div class="player-avatar-box"><span class="player-initials">OK</span></div><div class="player-name-box"><div class="player-fullname">KAMAL</div></div></div>
-                <div class="mini-card-wrapper" style="transform: scale(0.85); flex-shrink: 0;"><div class="card-top-bar"><div><div class="overall-rating">70</div><div class="position-code">CAM</div></div></div><div class="player-avatar-box"><span class="player-initials">AM</span></div><div class="player-name-box"><div class="player-fullname">MAGDY</div></div></div>
+                <div class="mini-card-wrapper" style="transform: scale(0.85); flex-shrink: 0;">
+                  <div class="card-top-bar">
+                    <div>
+                      <div class="overall-rating">74</div>
+                      <div class="position-code">GK</div>
+                    </div>
+                  </div>
+                  <div class="player-avatar-box"><span class="player-initials">MS</span></div>
+                  <div class="player-name-box">
+                    <div class="player-fullname">SOBHI</div>
+                  </div>
+                </div>
+                <div class="mini-card-wrapper" style="transform: scale(0.85); flex-shrink: 0;">
+                  <div class="card-top-bar">
+                    <div>
+                      <div class="overall-rating">75</div>
+                      <div class="position-code">LW</div>
+                    </div>
+                  </div>
+                  <div class="player-avatar-box"><span class="player-initials">IA</span></div>
+                  <div class="player-name-box">
+                    <div class="player-fullname">ADEL</div>
+                  </div>
+                </div>
+                <div class="mini-card-wrapper" style="transform: scale(0.85); flex-shrink: 0;">
+                  <div class="card-top-bar">
+                    <div>
+                      <div class="overall-rating">73</div>
+                      <div class="position-code">CB</div>
+                    </div>
+                  </div>
+                  <div class="player-avatar-box"><span class="player-initials">AR</span></div>
+                  <div class="player-name-box">
+                    <div class="player-fullname">RABIA</div>
+                  </div>
+                </div>
+                <div class="mini-card-wrapper" style="transform: scale(0.85); flex-shrink: 0;">
+                  <div class="card-top-bar">
+                    <div>
+                      <div class="overall-rating">72</div>
+                      <div class="position-code">CM</div>
+                    </div>
+                  </div>
+                  <div class="player-avatar-box"><span class="player-initials">MF</span></div>
+                  <div class="player-name-box">
+                    <div class="player-fullname">FATHI</div>
+                  </div>
+                </div>
+                <div class="mini-card-wrapper" style="transform: scale(0.85); flex-shrink: 0;">
+                  <div class="card-top-bar">
+                    <div>
+                      <div class="overall-rating">74</div>
+                      <div class="position-code">ST</div>
+                    </div>
+                  </div>
+                  <div class="player-avatar-box"><span class="player-initials">OS</span></div>
+                  <div class="player-name-box">
+                    <div class="player-fullname">SHERIF</div>
+                  </div>
+                </div>
+                <div class="mini-card-wrapper" style="transform: scale(0.85); flex-shrink: 0;">
+                  <div class="card-top-bar">
+                    <div>
+                      <div class="overall-rating">71</div>
+                      <div class="position-code">RB</div>
+                    </div>
+                  </div>
+                  <div class="player-avatar-box"><span class="player-initials">OK</span></div>
+                  <div class="player-name-box">
+                    <div class="player-fullname">KAMAL</div>
+                  </div>
+                </div>
+                <div class="mini-card-wrapper" style="transform: scale(0.85); flex-shrink: 0;">
+                  <div class="card-top-bar">
+                    <div>
+                      <div class="overall-rating">70</div>
+                      <div class="position-code">CAM</div>
+                    </div>
+                  </div>
+                  <div class="player-avatar-box"><span class="player-initials">AM</span></div>
+                  <div class="player-name-box">
+                    <div class="player-fullname">MAGDY</div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -552,71 +930,148 @@
               <!-- Attackers (3) -->
               <div class="formation-row">
                 <div class="mini-card-wrapper pitch-card-float">
-                  <div class="card-top-bar"><div><div class="overall-rating">77</div><div class="position-code">LW</div></div></div>
+                  <div class="card-top-bar">
+                    <div>
+                      <div class="overall-rating">77</div>
+                      <div class="position-code">LW</div>
+                    </div>
+                  </div>
                   <div class="player-avatar-box"><span class="player-initials">TR</span></div>
-                  <div class="player-name-box"><div class="player-fullname">TREZEGUET</div></div>
+                  <div class="player-name-box">
+                    <div class="player-fullname">TREZEGUET</div>
+                  </div>
                 </div>
                 <div class="mini-card-wrapper pitch-card-float" style="animation-delay: 0.3s;">
-                  <div class="card-top-bar"><div><div class="overall-rating">76</div><div class="position-code">ST</div></div></div>
+                  <div class="card-top-bar">
+                    <div>
+                      <div class="overall-rating">76</div>
+                      <div class="position-code">ST</div>
+                    </div>
+                  </div>
                   <div class="player-avatar-box"><span class="player-initials">MK</span></div>
-                  <div class="player-name-box"><div class="player-fullname">KAHRABA</div></div>
+                  <div class="player-name-box">
+                    <div class="player-fullname">KAHRABA</div>
+                  </div>
                 </div>
                 <div class="mini-card-wrapper pitch-card-float" style="animation-delay: 0.5s;">
-                  <div class="card-top-bar"><div><div class="overall-rating">78</div><div class="position-code">RW</div></div></div>
+                  <div class="card-top-bar">
+                    <div>
+                      <div class="overall-rating">78</div>
+                      <div class="position-code">RW</div>
+                    </div>
+                  </div>
                   <div class="player-avatar-box"><span class="player-initials">EA</span></div>
-                  <div class="player-name-box"><div class="player-fullname">ASHOUR</div></div>
+                  <div class="player-name-box">
+                    <div class="player-fullname">ASHOUR</div>
+                  </div>
                 </div>
               </div>
 
               <!-- Midfielders (4) -->
               <div class="formation-row">
                 <div class="mini-card-wrapper pitch-card-float" style="animation-delay: 0.1s;">
-                  <div class="card-top-bar"><div><div class="overall-rating">73</div><div class="position-code">LM</div></div></div>
+                  <div class="card-top-bar">
+                    <div>
+                      <div class="overall-rating">73</div>
+                      <div class="position-code">LM</div>
+                    </div>
+                  </div>
                   <div class="player-avatar-box"><span class="player-initials">HS</span></div>
-                  <div class="player-name-box"><div class="player-fullname">SHAHAT</div></div>
+                  <div class="player-name-box">
+                    <div class="player-fullname">SHAHAT</div>
+                  </div>
                 </div>
                 <div class="mini-card-wrapper pitch-card-float" style="animation-delay: 0.4s;">
-                  <div class="card-top-bar"><div><div class="overall-rating">76</div><div class="position-code">CM</div></div></div>
+                  <div class="card-top-bar">
+                    <div>
+                      <div class="overall-rating">76</div>
+                      <div class="position-code">CM</div>
+                    </div>
+                  </div>
                   <div class="player-avatar-box"><span class="player-initials">HF</span></div>
-                  <div class="player-name-box"><div class="player-fullname">HAMDY</div></div>
+                  <div class="player-name-box">
+                    <div class="player-fullname">HAMDY</div>
+                  </div>
                 </div>
                 <div class="mini-card-wrapper pitch-card-float" style="animation-delay: 0.2s;">
-                  <div class="card-top-bar"><div><div class="overall-rating">74</div><div class="position-code">CM</div></div></div>
+                  <div class="card-top-bar">
+                    <div>
+                      <div class="overall-rating">74</div>
+                      <div class="position-code">CM</div>
+                    </div>
+                  </div>
                   <div class="player-avatar-box"><span class="player-initials">NK</span></div>
-                  <div class="player-name-box"><div class="player-fullname">KOKA</div></div>
+                  <div class="player-name-box">
+                    <div class="player-fullname">KOKA</div>
+                  </div>
                 </div>
                 <div class="mini-card-wrapper pitch-card-float" style="animation-delay: 0.6s;">
-                  <div class="card-top-bar"><div><div class="overall-rating">72</div><div class="position-code">RM</div></div></div>
+                  <div class="card-top-bar">
+                    <div>
+                      <div class="overall-rating">72</div>
+                      <div class="position-code">RM</div>
+                    </div>
+                  </div>
                   <div class="player-avatar-box"><span class="player-initials">TA</span></div>
-                  <div class="player-name-box"><div class="player-fullname">TAHER</div></div>
+                  <div class="player-name-box">
+                    <div class="player-fullname">TAHER</div>
+                  </div>
                 </div>
               </div>
 
               <!-- Defenders (3) -->
               <div class="formation-row">
                 <div class="mini-card-wrapper pitch-card-float" style="animation-delay: 0.2s;">
-                  <div class="card-top-bar"><div><div class="overall-rating">79</div><div class="position-code">CB</div></div></div>
+                  <div class="card-top-bar">
+                    <div>
+                      <div class="overall-rating">79</div>
+                      <div class="position-code">CB</div>
+                    </div>
+                  </div>
                   <div class="player-avatar-box"><span class="player-initials">AH</span></div>
-                  <div class="player-name-box"><div class="player-fullname">HEGAZI</div></div>
+                  <div class="player-name-box">
+                    <div class="player-fullname">HEGAZI</div>
+                  </div>
                 </div>
                 <div class="mini-card-wrapper pitch-card-float" style="animation-delay: 0.5s;">
-                  <div class="card-top-bar"><div><div class="overall-rating">73</div><div class="position-code">CB</div></div></div>
+                  <div class="card-top-bar">
+                    <div>
+                      <div class="overall-rating">73</div>
+                      <div class="position-code">CB</div>
+                    </div>
+                  </div>
                   <div class="player-avatar-box"><span class="player-initials">BM</span></div>
-                  <div class="player-name-box"><div class="player-fullname">EL MOHAMADY</div></div>
+                  <div class="player-name-box">
+                    <div class="player-fullname">EL MOHAMADY</div>
+                  </div>
                 </div>
                 <div class="mini-card-wrapper pitch-card-float" style="animation-delay: 0.3s;">
-                  <div class="card-top-bar"><div><div class="overall-rating">74</div><div class="position-code">CB</div></div></div>
+                  <div class="card-top-bar">
+                    <div>
+                      <div class="overall-rating">74</div>
+                      <div class="position-code">CB</div>
+                    </div>
+                  </div>
                   <div class="player-avatar-box"><span class="player-initials">AG</span></div>
-                  <div class="player-name-box"><div class="player-fullname">GABR</div></div>
+                  <div class="player-name-box">
+                    <div class="player-fullname">GABR</div>
+                  </div>
                 </div>
               </div>
 
               <!-- Goalkeeper (1) -->
               <div class="formation-row">
                 <div class="mini-card-wrapper pitch-card-float" style="animation-delay: 0.4s;">
-                  <div class="card-top-bar"><div><div class="overall-rating">76</div><div class="position-code">GK</div></div></div>
+                  <div class="card-top-bar">
+                    <div>
+                      <div class="overall-rating">76</div>
+                      <div class="position-code">GK</div>
+                    </div>
+                  </div>
                   <div class="player-avatar-box"><span class="player-initials">MG</span></div>
-                  <div class="player-name-box"><div class="player-fullname">GABASKI</div></div>
+                  <div class="player-name-box">
+                    <div class="player-fullname">GABASKI</div>
+                  </div>
                 </div>
               </div>
 
@@ -626,13 +1081,90 @@
             <div class="bench-card">
               <div class="bench-title">Substitutes Bench (Lions) 🪑</div>
               <div class="bench-flex">
-                <div class="mini-card-wrapper" style="transform: scale(0.85); flex-shrink: 0;"><div class="card-top-bar"><div><div class="overall-rating">72</div><div class="position-code">LB</div></div></div><div class="player-avatar-box"><span class="player-initials">AA</span></div><div class="player-name-box"><div class="player-fullname">ASHRAF</div></div></div>
-                <div class="mini-card-wrapper" style="transform: scale(0.85); flex-shrink: 0;"><div class="card-top-bar"><div><div class="overall-rating">73</div><div class="position-code">GK</div></div></div><div class="player-avatar-box"><span class="player-initials">AL</span></div><div class="player-name-box"><div class="player-fullname">LOTFI</div></div></div>
-                <div class="mini-card-wrapper" style="transform: scale(0.85); flex-shrink: 0;"><div class="card-top-bar"><div><div class="overall-rating">71</div><div class="position-code">ST</div></div></div><div class="player-avatar-box"><span class="player-initials">HR</span></div><div class="player-name-box"><div class="player-fullname">RAYAN</div></div></div>
-                <div class="mini-card-wrapper" style="transform: scale(0.85); flex-shrink: 0;"><div class="card-top-bar"><div><div class="overall-rating">70</div><div class="position-code">CDM</div></div></div><div class="player-avatar-box"><span class="player-initials">MD</span></div><div class="player-name-box"><div class="player-fullname">DONGA</div></div></div>
-                <div class="mini-card-wrapper" style="transform: scale(0.85); flex-shrink: 0;"><div class="card-top-bar"><div><div class="overall-rating">69</div><div class="position-code">CB</div></div></div><div class="player-avatar-box"><span class="player-initials">MA</span></div><div class="player-name-box"><div class="player-fullname">ALAAM</div></div></div>
-                <div class="mini-card-wrapper" style="transform: scale(0.85); flex-shrink: 0;"><div class="card-top-bar"><div><div class="overall-rating">72</div><div class="position-code">RW</div></div></div><div class="player-avatar-box"><span class="player-initials">ME</span></div><div class="player-name-box"><div class="player-fullname">ELEYAN</div></div></div>
-                <div class="mini-card-wrapper" style="transform: scale(0.85); flex-shrink: 0;"><div class="card-top-bar"><div><div class="overall-rating">68</div><div class="position-code">CAM</div></div></div><div class="player-avatar-box"><span class="player-initials">HY</span></div><div class="player-name-box"><div class="player-fullname">YASSIN</div></div></div>
+                <div class="mini-card-wrapper" style="transform: scale(0.85); flex-shrink: 0;">
+                  <div class="card-top-bar">
+                    <div>
+                      <div class="overall-rating">72</div>
+                      <div class="position-code">LB</div>
+                    </div>
+                  </div>
+                  <div class="player-avatar-box"><span class="player-initials">AA</span></div>
+                  <div class="player-name-box">
+                    <div class="player-fullname">ASHRAF</div>
+                  </div>
+                </div>
+                <div class="mini-card-wrapper" style="transform: scale(0.85); flex-shrink: 0;">
+                  <div class="card-top-bar">
+                    <div>
+                      <div class="overall-rating">73</div>
+                      <div class="position-code">GK</div>
+                    </div>
+                  </div>
+                  <div class="player-avatar-box"><span class="player-initials">AL</span></div>
+                  <div class="player-name-box">
+                    <div class="player-fullname">LOTFI</div>
+                  </div>
+                </div>
+                <div class="mini-card-wrapper" style="transform: scale(0.85); flex-shrink: 0;">
+                  <div class="card-top-bar">
+                    <div>
+                      <div class="overall-rating">71</div>
+                      <div class="position-code">ST</div>
+                    </div>
+                  </div>
+                  <div class="player-avatar-box"><span class="player-initials">HR</span></div>
+                  <div class="player-name-box">
+                    <div class="player-fullname">RAYAN</div>
+                  </div>
+                </div>
+                <div class="mini-card-wrapper" style="transform: scale(0.85); flex-shrink: 0;">
+                  <div class="card-top-bar">
+                    <div>
+                      <div class="overall-rating">70</div>
+                      <div class="position-code">CDM</div>
+                    </div>
+                  </div>
+                  <div class="player-avatar-box"><span class="player-initials">MD</span></div>
+                  <div class="player-name-box">
+                    <div class="player-fullname">DONGA</div>
+                  </div>
+                </div>
+                <div class="mini-card-wrapper" style="transform: scale(0.85); flex-shrink: 0;">
+                  <div class="card-top-bar">
+                    <div>
+                      <div class="overall-rating">69</div>
+                      <div class="position-code">CB</div>
+                    </div>
+                  </div>
+                  <div class="player-avatar-box"><span class="player-initials">MA</span></div>
+                  <div class="player-name-box">
+                    <div class="player-fullname">ALAAM</div>
+                  </div>
+                </div>
+                <div class="mini-card-wrapper" style="transform: scale(0.85); flex-shrink: 0;">
+                  <div class="card-top-bar">
+                    <div>
+                      <div class="overall-rating">72</div>
+                      <div class="position-code">RW</div>
+                    </div>
+                  </div>
+                  <div class="player-avatar-box"><span class="player-initials">ME</span></div>
+                  <div class="player-name-box">
+                    <div class="player-fullname">ELEYAN</div>
+                  </div>
+                </div>
+                <div class="mini-card-wrapper" style="transform: scale(0.85); flex-shrink: 0;">
+                  <div class="card-top-bar">
+                    <div>
+                      <div class="overall-rating">68</div>
+                      <div class="position-code">CAM</div>
+                    </div>
+                  </div>
+                  <div class="player-avatar-box"><span class="player-initials">HY</span></div>
+                  <div class="player-name-box">
+                    <div class="player-fullname">YASSIN</div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -681,4 +1213,5 @@
     }
   </script>
 </body>
+
 </html>

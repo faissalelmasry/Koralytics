@@ -13,6 +13,8 @@ import { StatusChipComponent } from '../../../../../shared/components/status-chi
 import { Pagination } from '../../../../../shared/components/pagination/pagination';
 import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
 
+import { AuthService } from '../../../../../core/services/auth/auth.service';
+
 @Component({
   selector: 'app-tournament-list',
   standalone: true,
@@ -34,9 +36,11 @@ import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-r
 })
 export class TournamentListComponent implements OnInit {
   private tournamentService = inject(TournamentService);
+  private authService = inject(AuthService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
 
+  isSystemAdmin = false;
   tournaments: Tournament[] = [];
   filteredTournaments: Tournament[] = [];
   paginatedTournaments: Tournament[] = [];
@@ -75,6 +79,10 @@ export class TournamentListComponent implements OnInit {
   ];
 
   ngOnInit() {
+    this.authService.currentUser$.subscribe(user => {
+      this.isSystemAdmin = user?.roles?.includes('SystemAdmin') ?? false;
+      this.cdr.markForCheck();
+    });
     this.loadTournaments();
   }
 

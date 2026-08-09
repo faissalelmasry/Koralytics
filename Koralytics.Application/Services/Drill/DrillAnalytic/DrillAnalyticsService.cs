@@ -1,6 +1,10 @@
 using Koralytics.Application.DTOs.Drill;
 using Koralytics.Application.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Koralytics.Application.Services.Drill.DrillAnalytic
 {
@@ -32,7 +36,6 @@ namespace Koralytics.Application.Services.Drill.DrillAnalytic
 
         public async Task<CoachBiasReportDto> DetectCoachBiasAsync(int targetCoachId, int academyId, int currentUserId, string currentUserRole)
         {
-            // 🛑 Security Check: Coaches can only view their own bias reports. Academy Admins can view any coach.
             if (string.Equals(currentUserRole, "Coach", StringComparison.OrdinalIgnoreCase) && currentUserId != targetCoachId)
             {
                 throw new UnauthorizedAccessException("Coaches can only view their own bias reports. Academy Admins can view any coach.");
@@ -40,6 +43,7 @@ namespace Koralytics.Application.Services.Drill.DrillAnalytic
 
             var coachUser = await _unitOfWork.Repository<Domain.Entities.Coach.Coach>()
                 .GetQueryableAsNoTracking()
+                .Select(u => new { u.Id, u.FirstName, u.LastName, u.UserName }) // Lightweight projection
                 .FirstOrDefaultAsync(u => u.Id == targetCoachId);
 
             string coachName = coachUser != null
@@ -54,11 +58,10 @@ namespace Koralytics.Application.Services.Drill.DrillAnalytic
             var cutoffDate = DateTime.UtcNow.AddDays(-30);
 
             // ====================================================================
-            // 1. FETCH PRACTICE SCORES (Subjective — Drills + Friendly + Session Matches)
+            // 1. FETCH PRACTICE SCORES 
             // ====================================================================
 
-            // 1a. Drill results (Manual mode only)
-            var drillScores = await _unitOfWork.Repository<Domain.Entities.Drill.DrillResult>()
+            var drillScoresList = await _unitOfWork.Repository<Domain.Entities.Drill.DrillResult>()
                 .GetQueryableAsNoTracking()
                 .Where(dr => (dr.CreatedById == targetCoachId || dr.Drill.DrillSession.CoachId == targetCoachId)
                           && (dr.Drill.Mode == Koralytics.Domain.Enums.DrillMode.Manual || dr.Drill.DrillTemplate.DrillMode == Koralytics.Domain.Enums.DrillMode.Manual)
@@ -72,8 +75,7 @@ namespace Koralytics.Application.Services.Drill.DrillAnalytic
                 })
                 .ToListAsync();
 
-            // 1b. Practice match ratings: Friendly + Session matches (non-tournament)
-            var practiceMatchScores = await _unitOfWork.Repository<Domain.Entities.Match.MatchPlayerCategoryRating>()
+            var practiceMatchScoresList = await _unitOfWork.Repository<Domain.Entities.Match.MatchPlayerCategoryRating>()
                 .GetQueryableAsNoTracking()
                 .Where(cr => (cr.MatchPlayerRating.Match.Type == Koralytics.Domain.Enums.MatchType.Friendly
                            || cr.MatchPlayerRating.Match.Type == Koralytics.Domain.Enums.MatchType.Session)
@@ -88,25 +90,27 @@ namespace Koralytics.Application.Services.Drill.DrillAnalytic
                 })
                 .ToListAsync();
 
-            // Merge drill + practice match scores into a weighted average per player
-            var allPracticePlayerIds = drillScores.Select(d => d.PlayerId)
-                .Union(practiceMatchScores.Select(p => p.PlayerId))
+            var allPracticePlayerIds = drillScoresList.Select(d => d.PlayerId)
+                .Union(practiceMatchScoresList.Select(p => p.PlayerId))
                 .Distinct()
                 .ToList();
 
-            // Also grab player names
-            var playerNames = await _unitOfWork.Repository<Domain.Entities.Player.Player>()
+            var playerNamesList = await _unitOfWork.Repository<Domain.Entities.Player.Player>()
                 .GetQueryableAsNoTracking()
                 .Where(p => allPracticePlayerIds.Contains(p.Id))
                 .Select(p => new { p.Id, p.FirstName, p.LastName })
                 .ToListAsync();
 
+            // 🟢 OPTIMIZATION: Convert lists to Dictionaries for O(1) instant memory lookups
+            var drillScores = drillScoresList.ToDictionary(d => d.PlayerId);
+            var practiceMatchScores = practiceMatchScoresList.ToDictionary(m => m.PlayerId);
+            var playerNames = playerNamesList.ToDictionary(p => p.Id);
+
             var practiceScores = allPracticePlayerIds.Select(playerId =>
             {
-                var drill = drillScores.FirstOrDefault(d => d.PlayerId == playerId);
-                var pracMatch = practiceMatchScores.FirstOrDefault(m => m.PlayerId == playerId);
+                drillScores.TryGetValue(playerId, out var drill);
+                practiceMatchScores.TryGetValue(playerId, out var pracMatch);
 
-                // Weighted blend: sum of (score × count) / total count
                 decimal totalScore = 0;
                 int totalCount = 0;
 
@@ -123,7 +127,7 @@ namespace Koralytics.Application.Services.Drill.DrillAnalytic
 
                 decimal blendedAvg = totalCount > 0 ? totalScore / totalCount : 0;
 
-                var nameEntry = playerNames.FirstOrDefault(p => p.Id == playerId);
+                playerNames.TryGetValue(playerId, out var nameEntry);
                 string name = nameEntry != null
                     ? $"{nameEntry.FirstName} {nameEntry.LastName}".Trim()
                     : $"Player #{playerId}";
@@ -146,9 +150,9 @@ namespace Koralytics.Application.Services.Drill.DrillAnalytic
             }
 
             // ====================================================================
-            // 2. FETCH TOURNAMENT MATCH SCORES (Objective Reality)
+            // 2. FETCH TOURNAMENT MATCH SCORES 
             // ====================================================================
-            var matchScores = await _unitOfWork.Repository<Domain.Entities.Match.MatchPlayerCategoryRating>()
+            var matchScoresList = await _unitOfWork.Repository<Domain.Entities.Match.MatchPlayerCategoryRating>()
                 .GetQueryableAsNoTracking()
                 .Where(cr => playerIdsToAnalyze.Contains(cr.MatchPlayerRating.PlayerId)
                           && cr.MatchPlayerRating.Match.Type == Koralytics.Domain.Enums.MatchType.Tournament
@@ -161,6 +165,9 @@ namespace Koralytics.Application.Services.Drill.DrillAnalytic
                 })
                 .ToListAsync();
 
+            // 🟢 OPTIMIZATION: Dictionary for instant tournament matching
+            var matchScores = matchScoresList.ToDictionary(m => m.PlayerId);
+
             // ====================================================================
             // 3. THE TRUST INDEX CALCULATION
             // ====================================================================
@@ -170,11 +177,10 @@ namespace Koralytics.Application.Services.Drill.DrillAnalytic
 
             foreach (var practice in practiceScores)
             {
-                var match = matchScores.FirstOrDefault(m => m.PlayerId == practice.PlayerId);
-
-                if (match != null)
+                // 🟢 OPTIMIZATION: O(1) Instant Lookup
+                if (matchScores.TryGetValue(practice.PlayerId, out var match))
                 {
-                    var practiceAvg = Math.Round((decimal)practice.AvgPracticeScore, 2);
+                    var practiceAvg = Math.Round(practice.AvgPracticeScore, 2);
                     var matchAvg = Math.Round(match.AvgMatchScore, 2);
                     var delta = Math.Round(Math.Abs(practiceAvg - matchAvg), 2);
 
@@ -211,23 +217,20 @@ namespace Koralytics.Application.Services.Drill.DrillAnalytic
 
             decimal averageDelta = totalDelta / validPlayerComparisons;
             decimal rawTrustPercentage = 100 - (averageDelta * 10);
-
             decimal finalTrustPercentage = Math.Max(0, Math.Round(rawTrustPercentage, 2));
 
             // ====================================================================
             // 4. SAVE THE AUDIT TO THE DATABASE
             // ====================================================================
-            var coachAcademyRecord = await _unitOfWork.Repository<Domain.Entities.Coach.CoachAcademy>()
+
+            // 🟢 OPTIMIZATION: Bulk Update via ExecuteUpdateAsync (Requires EF Core 7+)
+            // If your generic repository blocks this, you can safely revert to the FirstOrDefault/SaveChanges method.
+            await _unitOfWork.Repository<Domain.Entities.Coach.CoachAcademy>()
                 .GetQueryable()
-                .FirstOrDefaultAsync(ca => ca.CoachUserId == targetCoachId && (academyId == 0 || ca.AcademyId == academyId) && ca.LeftAt == null);
-
-            if (coachAcademyRecord != null)
-            {
-                coachAcademyRecord.BiasScore = finalTrustPercentage;
-                coachAcademyRecord.BiasLastCalculatedAt = DateTime.UtcNow;
-
-                await _unitOfWork.SaveChangesAsync();
-            }
+                .Where(ca => ca.CoachUserId == targetCoachId && (academyId == 0 || ca.AcademyId == academyId) && ca.LeftAt == null)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(c => c.BiasScore, finalTrustPercentage)
+                    .SetProperty(c => c.BiasLastCalculatedAt, DateTime.UtcNow));
 
             return new CoachBiasReportDto
             {
@@ -240,4 +243,4 @@ namespace Koralytics.Application.Services.Drill.DrillAnalytic
             };
         }
     }
-}
+}

@@ -26,6 +26,7 @@ export interface DrillSessionDto {
     status: SessionStatus;
     notes?: string | null;
     location?: string | null;
+    createdAt?: string;
 }
 
 export interface DrillDto {
@@ -35,6 +36,13 @@ export interface DrillDto {
     mode: DrillMode;
     difficultyLevel: DifficultyLevel;
     notes?: string | null;
+}
+
+export interface PlayerAttendanceDto {
+    playerId: number;
+    playerFullName: string;
+    position?: string | null;
+    isPresent: boolean;
 }
 
 export interface DrillSessionDetailsDto {
@@ -48,6 +56,7 @@ export interface DrillSessionDetailsDto {
     notes?: string | null;
     sessionDrills: DrillDto[];
     location?: string | null;
+    attendance?: PlayerAttendanceDto[];
 }
 
 // ==========================================

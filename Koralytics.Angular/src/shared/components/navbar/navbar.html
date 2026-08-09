@@ -50,6 +50,16 @@
       </svg>
     </a>
 
+    <!-- Academy Admin Links (Desktop) -->
+    <ng-container *ngIf="isAcademyAdmin">
+      <a routerLink="/academy-admin/drills-dashboard" routerLinkActive="active">Drills</a>
+    </ng-container>
+
+    <!-- System Admin Links (Desktop) -->
+    <ng-container *ngIf="isSystemAdmin && !isAcademyAdmin">
+      <a routerLink="/drills" routerLinkActive="active">Drills</a>
+    </ng-container>
+
     <!-- Auth Actions (Desktop) -->
     <a (click)="requestLogout()" style="cursor: pointer;" *ngIf="isLoggedIn" class="nav-icon-link" title="Sign Out">
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -60,16 +70,6 @@
     </a>
     <a routerLink="/auth/login" routerLinkActive="active" *ngIf="!isLoggedIn">Sign In</a>
     <a routerLink="/auth/register" routerLinkActive="active" *ngIf="!isLoggedIn">Register</a>
-
-    <!-- Academy Admin Links (Desktop) -->
-    <ng-container *ngIf="isAcademyAdmin">
-      <a routerLink="/academy-admin/drills-dashboard" routerLinkActive="active">drills</a>
-    </ng-container>
-
-    <!-- System Admin Links (Desktop) -->
-    <ng-container *ngIf="isSystemAdmin && !isAcademyAdmin">
-      <a routerLink="/drills" routerLinkActive="active">drills</a>
-    </ng-container>
 
     <app-language-switcher></app-language-switcher>
   </nav>

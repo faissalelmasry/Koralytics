@@ -1,28 +1,28 @@
 <div class="page-wrapper">
 
-  <div class="tactical-tag" scrollReveal direction="bottom" [delay]="0">Friendly Match</div>
+  <div class="tactical-tag" scrollReveal direction="bottom" [delay]="0">{{ 'MATCH.FRIENDLY_REQUEST.TAG' | translate }}</div>
 
   <div class="header-row" scrollReveal direction="bottom" [delay]="50">
-    <h2 class="section-title">Request Friendly Match</h2>
-    <span class="badge-subtitle">Challenge an opponent academy</span>
+    <h2 class="section-title">{{ 'MATCH.FRIENDLY_REQUEST.HEADER_TITLE' | translate }}</h2>
+    <span class="badge-subtitle">{{ 'MATCH.FRIENDLY_REQUEST.HEADER_SUBTITLE' | translate }}</span>
   </div>
 
   @if (isLoadingTeams) {
     <div class="loading-state">
       <app-loading-spinner size="lg"></app-loading-spinner>
-      <p>Loading your teams...</p>
+      <p>{{ 'MATCH.LIST.LOADING' | translate }}</p>
     </div>
   }
   @else {
 
     <div class="matchup-bar" scrollReveal direction="bottom" [delay]="100">
       <div class="team-badge-box">
-        <span class="team-label">Your Team</span>
+        <span class="team-label">{{ 'MATCH.FRIENDLY_REQUEST.FIELD_YOUR_TEAM' | translate }}</span>
         <span class="team-name">{{ requesterTeamName || '-- Select --' }}</span>
       </div>
       <div class="vs-circle">VS</div>
       <div class="team-badge-box">
-        <span class="team-label">Opponent</span>
+        <span class="team-label">{{ 'MATCH.FRIENDLY_REQUEST.STEPS.1' | translate }}</span>
         <span class="team-name">{{ targetTeamName || '-- Select --' }}</span>
       </div>
     </div>
@@ -32,7 +32,7 @@
 
         <div class="form-group full-width">
           <app-select
-            label="1. Select Your Team"
+            [label]="'MATCH.FRIENDLY_REQUEST.FIELD_YOUR_TEAM' | translate"
             [options]="coachTeams"
             [(value)]="requesterTeamId">
           </app-select>
@@ -41,8 +41,8 @@
         <div class="form-group">
           <div class="autocomplete-wrapper">
             <app-text-input
-              label="2. Search Opponent Academy"
-              placeholder="Type academy name..."
+              [label]="'MATCH.FRIENDLY_REQUEST.FIELD_SEARCH_TEAM' | translate"
+              [placeholder]="'MATCH.FRIENDLY_REQUEST.SEARCH_PLACEHOLDER' | translate"
               [value]="academySearchQuery"
               (valueChange)="onAcademySearch($event)"
               (focus)="onFocusAcademySearch()"
@@ -77,7 +77,7 @@
           }
           @else {
             <app-select
-              label="3. Select Opponent Team"
+              [label]="'MATCH.FRIENDLY_REQUEST.STEPS.1' | translate"
               [options]="opponentTeams"
               [(value)]="targetTeamId"
               [disabled]="!selectedAcademyId">
@@ -87,7 +87,7 @@
 
         <div class="form-group">
           <app-select
-            label="4. Match Format"
+            [label]="'MATCH.FRIENDLY_REQUEST.FIELD_FORMAT' | translate"
             [options]="formatOptions"
             [(value)]="format">
           </app-select>
@@ -95,14 +95,14 @@
 
         <div class="form-group">
           <app-date-time-picker
-            label="5. Proposed Date & Time"
+            [label]="'MATCH.FRIENDLY_REQUEST.FIELD_DATE' | translate"
             [(value)]="proposedDate">
           </app-date-time-picker>
         </div>
 
         <div class="form-group full-width">
           <app-text-input
-            label="6. Stadium / Location"
+            [label]="'MATCH.FRIENDLY_REQUEST.FIELD_LOCATION' | translate"
             placeholder="e.g. Cairo International Stadium Field B"
             [value]="location"
             (valueChange)="location = $event">
@@ -125,7 +125,7 @@
           [loading]="isSubmitting"
           [disabled]="isSubmitting"
           (click)="submit()">
-          {{ isSubmitting ? 'Sending...' : 'Send Challenge Request' }}
+          {{ 'MATCH.FRIENDLY_REQUEST.BTN_SEND' | translate }}
         </app-button>
       </div>
     </div>

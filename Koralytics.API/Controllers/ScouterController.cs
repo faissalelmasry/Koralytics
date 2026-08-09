@@ -199,6 +199,21 @@ namespace Koralytics.API.Controllers
             });
         }
 
+        [HttpGet("{scouterId}/is-shortlisted/{playerId}")]
+        [Authorize(Roles = "Scouter,SystemAdmin")]
+        public async Task<IActionResult> IsShortlisted(int scouterId, int playerId)
+        {
+            if (!TryAuthorizeScouterOwnership(scouterId, out var authError))
+                return authError!;
+
+            var isShortlisted = await _shortlistService.IsShortlistedAsync(scouterId, playerId);
+            return Ok(new
+            {
+                message = "Shortlist status checked successfully.",
+                data = isShortlisted
+            });
+        }
+
         #endregion
 
         #region 3. Social Interaction & Engagement Tracking

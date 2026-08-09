@@ -2,17 +2,18 @@
 
   @if (isLoading) {
     <div class="loading-state">
-      <app-loading-spinner text="Loading team post-match analysis..."></app-loading-spinner>
+      <app-loading-spinner></app-loading-spinner>
+      <p style="margin-top: 1rem; color: var(--text-secondary);">{{ 'MATCH.ANALYSIS.LOADING' | translate }}</p>
     </div>
   } @else if (error) {
     <app-empty-state
-      title="Error Loading Analysis"
+      [title]="'MATCH.ANALYSIS.ERROR_TITLE' | translate"
       [description]="error"
     ></app-empty-state>
   } @else if (!analysisData) {
     <app-empty-state
-      title="No Analysis Available"
-      description="No post-match analysis data is currently available for this team."
+      [title]="'MATCH.ANALYSIS.NO_DATA_TITLE' | translate"
+      [description]="'MATCH.ANALYSIS.NO_DATA_DESC' | translate"
     ></app-empty-state>
   } @else {
 
@@ -21,7 +22,7 @@
       <div class="header-top-row">
         <div class="header-tag">
           <span class="tag-dot"></span>
-          <span>Match Analytics</span>
+          <span>{{ 'MATCH.ANALYSIS.MATCH_ANALYTICS' | translate }}</span>
         </div>
 
         @if (hasTeamToggle) {
@@ -31,21 +32,21 @@
               [class.active]="selectedSide === 'home'" 
               (click)="selectSide('home')">
               <span class="team-dot home-dot"></span>
-              {{ homeTeamName || 'Home Team' }}
+              {{ homeTeamName || ('MATCH.ANALYSIS.HOME_TEAM' | translate) }}
             </button>
             <button 
               class="toggle-btn" 
               [class.active]="selectedSide === 'away'" 
               (click)="selectSide('away')">
               <span class="team-dot away-dot"></span>
-              {{ awayTeamName || 'Away Team' }}
+              {{ awayTeamName || ('MATCH.ANALYSIS.AWAY_TEAM' | translate) }}
             </button>
           </div>
         }
       </div>
 
-      <h2 class="h2h-title">Post-Match Performance Analysis</h2>
-      <p class="h2h-subtitle">Season overview &amp; recent match form breakdown for {{ activeTeamName }}</p>
+      <h2 class="h2h-title">{{ 'MATCH.ANALYSIS.TITLE' | translate }}</h2>
+      <p class="h2h-subtitle">{{ 'MATCH.ANALYSIS.SUBTITLE' | translate: { team: activeTeamName } }}</p>
     </div>
 
     <!-- MAIN SUMMARY HERO CARD -->
@@ -56,14 +57,14 @@
         <div class="team-display team-a">
           <div class="team-badge team-a-badge">{{ getTeamInitials(analysisData.teamName || activeTeamName) }}</div>
           <div class="team-info">
-            <span class="team-sub">{{ (selectedSide === 'home' ? 'HOME TEAM' : 'AWAY TEAM') }}</span>
+            <span class="team-sub">{{ (selectedSide === 'home' ? ('MATCH.ANALYSIS.HOME_TEAM' | translate) : ('MATCH.ANALYSIS.AWAY_TEAM' | translate)) }}</span>
             <h3 class="team-name">{{ analysisData.teamName || activeTeamName }}</h3>
           </div>
         </div>
 
         <!-- Season Overview Badge -->
         <div class="vs-badge-container">
-          <span class="vs-badge">SEASON OVERVIEW</span>
+          <span class="vs-badge">{{ 'MATCH.ANALYSIS.SEASON_OVERVIEW' | translate }}</span>
         </div>
 
       </div>
@@ -72,19 +73,19 @@
       <div class="h2h-stats-grid">
         <div class="stat-card">
           <span class="val total-val">{{ totalMatches }}</span>
-          <span class="lbl">Total Matches</span>
+          <span class="lbl">{{ 'MATCH.ANALYSIS.TOTAL_MATCHES' | translate }}</span>
         </div>
         <div class="stat-card team-a-card">
           <span class="val team-a-val">{{ analysisData.wins }}</span>
-          <span class="lbl">Wins</span>
+          <span class="lbl">{{ 'MATCH.ANALYSIS.WINS' | translate }}</span>
         </div>
         <div class="stat-card draws-card">
           <span class="val draws-val">{{ analysisData.draws }}</span>
-          <span class="lbl">Draws</span>
+          <span class="lbl">{{ 'MATCH.ANALYSIS.DRAWS' | translate }}</span>
         </div>
         <div class="stat-card team-b-card">
           <span class="val team-b-val">{{ analysisData.losses }}</span>
-          <span class="lbl">Losses</span>
+          <span class="lbl">{{ 'MATCH.ANALYSIS.LOSSES' | translate }}</span>
         </div>
       </div>
 
@@ -92,11 +93,11 @@
       <div class="h2h-stats-grid secondary-stats-grid">
         <div class="stat-card">
           <span class="val goal-for-val">{{ analysisData.goalsFor }}</span>
-          <span class="lbl">Goals For</span>
+          <span class="lbl">{{ 'MATCH.ANALYSIS.GOALS_FOR' | translate }}</span>
         </div>
         <div class="stat-card">
           <span class="val goal-against-val">{{ analysisData.goalsAgainst }}</span>
-          <span class="lbl">Goals Against</span>
+          <span class="lbl">{{ 'MATCH.ANALYSIS.GOALS_AGAINST' | translate }}</span>
         </div>
         <div class="stat-card">
           <span 
@@ -106,11 +107,11 @@
             [class.draws-val]="goalDifference === 0">
             {{ (goalDifference > 0 ? '+' : '') + goalDifference }}
           </span>
-          <span class="lbl">Goal Diff</span>
+          <span class="lbl">{{ 'MATCH.ANALYSIS.GOAL_DIFF' | translate }}</span>
         </div>
         <div class="stat-card">
           <span class="val win-rate-val">{{ winRate | number:'1.0-0' }}%</span>
-          <span class="lbl">Win Rate</span>
+          <span class="lbl">{{ 'MATCH.ANALYSIS.WIN_RATE' | translate }}</span>
         </div>
       </div>
 
@@ -122,9 +123,9 @@
           <div class="bar-segment loss-segment" [style.width.%]="lossRate" [attr.title]="'Losses: ' + analysisData.losses"></div>
         </div>
         <div class="proportion-legend">
-          <span class="leg-item win-leg"><span class="dot"></span>Wins: {{ analysisData.wins }} ({{ winRate | number:'1.0-0' }}%)</span>
-          <span class="leg-item draw-leg"><span class="dot"></span>Draws: {{ analysisData.draws }} ({{ drawRate | number:'1.0-0' }}%)</span>
-          <span class="leg-item loss-leg"><span class="dot"></span>Losses: {{ analysisData.losses }} ({{ lossRate | number:'1.0-0' }}%)</span>
+          <span class="leg-item win-leg"><span class="dot"></span>{{ 'MATCH.ANALYSIS.WINS' | translate }}: {{ analysisData.wins }} ({{ winRate | number:'1.0-0' }}%)</span>
+          <span class="leg-item draw-leg"><span class="dot"></span>{{ 'MATCH.ANALYSIS.DRAWS' | translate }}: {{ analysisData.draws }} ({{ drawRate | number:'1.0-0' }}%)</span>
+          <span class="leg-item loss-leg"><span class="dot"></span>{{ 'MATCH.ANALYSIS.LOSSES' | translate }}: {{ analysisData.losses }} ({{ lossRate | number:'1.0-0' }}%)</span>
         </div>
       </div>
 
@@ -133,14 +134,14 @@
     <!-- RECENT MATCHES FORM LIST -->
     <div class="history-section">
       <div class="section-header">
-        <h3 class="section-title">Recent Matches Form</h3>
-        <span class="match-count-badge">Last {{ analysisData.recentMatches.length }} Matches</span>
+        <h3 class="section-title">{{ 'MATCH.ANALYSIS.RECENT_FORM' | translate }}</h3>
+        <span class="match-count-badge">{{ 'MATCH.ANALYSIS.LAST_MATCHES' | translate: { count: analysisData.recentMatches.length } }}</span>
       </div>
 
       @if (analysisData.recentMatches.length === 0) {
         <app-empty-state
-          title="No Recent Matches"
-          description="No completed matches recorded for this team."
+          [title]="'MATCH.ANALYSIS.NO_RECENT_MATCHES_TITLE' | translate"
+          [description]="'MATCH.ANALYSIS.NO_RECENT_MATCHES_DESC' | translate"
         ></app-empty-state>
       } @else {
         <div class="match-history-list">

@@ -46,7 +46,7 @@
 .team-box {
   display: flex;
   align-items: center;
-  gap: clamp(4px, 1vw, 8px);
+  gap: clamp(8px, 1.5vw, 14px);
   min-width: 0; /* allow flex children to shrink */
 }
 
@@ -60,19 +60,77 @@
   text-align: left;
 }
 
+/* ============================================================
+   ACADEMY LOGO CIRCLE (Matching Hero Banner style)
+   ============================================================ */
+
+.avatar-circle {
+  width: clamp(38px, 6vw, 56px);
+  height: clamp(38px, 6vw, 56px);
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(250, 204, 21, 0.2), rgba(200, 255, 77, 0.1));
+  border: 2px solid var(--neon-yellow, #facc15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Bebas Neue', 'Plus Jakarta Sans', sans-serif;
+  font-size: clamp(0.95rem, 2.5vw, 1.4rem);
+  color: #fff;
+  letter-spacing: 1px;
+  box-shadow: 0 0 15px rgba(250, 204, 21, 0.3);
+  animation: avatarPulse 4s infinite alternate;
+  overflow: hidden;
+  flex-shrink: 0;
+  text-decoration: none;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+a.avatar-circle.logo-link:hover {
+  transform: scale(1.08);
+  box-shadow: 0 0 22px rgba(250, 204, 21, 0.6);
+  border-color: #fde047;
+}
+
+@keyframes avatarPulse {
+  0% { box-shadow: 0 0 12px rgba(250, 204, 21, 0.25); border-color: var(--neon-yellow, #facc15); }
+  100% { box-shadow: 0 0 22px rgba(200, 255, 77, 0.4); border-color: #fde047; }
+}
+
+.academy-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-initials {
+  line-height: 1;
+  font-weight: 700;
+}
+
 .team-text {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  overflow: hidden; /* clips the scrolling .team-name span */
 }
 
 /* clamp: 11px on 320px screens → 16px on 900px+ screens */
 .team-name {
+  display: block;
   font-size: clamp(11px, 3.5vw, 16px);
   font-weight: 800;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  letter-spacing: 0.3px;
+}
+
+.team-name.is-scrolling {
+  animation: teamNameMarquee 5s ease-in-out 0.5s infinite;
+}
+
+@keyframes teamNameMarquee {
+  0%, 15% { transform: translateX(0); }
+  60%, 85% { transform: translateX(var(--marquee-scroll, -16px)); }
+  100% { transform: translateX(0); }
 }
 
 .academy-sub {
@@ -280,6 +338,17 @@ a.academy-sub.academy-link:hover {
       "home score away"
       "action action action";
     grid-template-rows: auto auto;
+    padding: 10px 8px;
+  }
+
+  .team-box {
+    gap: 6px;
+  }
+
+  .avatar-circle {
+    width: clamp(28px, 8vw, 38px);
+    height: clamp(28px, 8vw, 38px);
+    font-size: clamp(0.75rem, 2.8vw, 0.95rem);
   }
 
   .team-box.home { grid-area: home; }

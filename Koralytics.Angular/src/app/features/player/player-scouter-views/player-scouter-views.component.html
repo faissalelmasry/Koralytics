@@ -2,41 +2,41 @@
 
 <div class="page-wrapper">
 
-  <div class="tactical-tag" scrollReveal direction="bottom" [delay]="0">Scout Visibility Analytics</div>
+  <div class="tactical-tag" scrollReveal direction="bottom" [delay]="0">{{ 'PLAYER.SCOUT_VISIBILITY_ANALYTICS' | translate }}</div>
 
   <div class="header-row" scrollReveal direction="bottom" [delay]="50">
-    <h2 class="section-title">Profile Views</h2>
+    <h2 class="section-title">{{ 'PLAYER.PROFILE_VIEWS' | translate }}</h2>
   </div>
 
   @if (isLoading) {
   <div class="loading-state">
     <app-loading-spinner size="lg"></app-loading-spinner>
-    <p>Loading scouter analytics...</p>
+    <p>{{ 'PLAYER.LOADING_SCOUTER_ANALYTICS' | translate }}</p>
   </div>
   }
   @else if (error) {
   <div class="error-state">
     <div class="error-icon">!</div>
     <p>{{ error }}</p>
-    <button class="retry-btn" (click)="loadViews()">Retry</button>
+    <button class="retry-btn" (click)="loadViews()">{{ 'PLAYER.RETRY' | translate }}</button>
   </div>
   }
   @else {
   <div class="metrics-summary-grid" scrollReveal direction="bottom" [delay]="100">
     <div class="summary-card">
-      <div class="label">Total Scout Views</div>
+      <div class="label">{{ 'PLAYER.TOTAL_SCOUT_VIEWS' | translate }}</div>
       <div class="value value-glow">{{ displayTotalViews }}</div>
-      <div class="sub-text">Total times scouts viewed this profile</div>
+      <div class="sub-text">{{ 'PLAYER.TOTAL_SCOUT_VIEWS_DESC' | translate }}</div>
     </div>
 
     <div class="summary-card">
-      <div class="label">Recent Activity</div>
+      <div class="label">{{ 'PLAYER.RECENT_ACTIVITY' | translate }}</div>
       <div class="value">{{ displayRecentCount }}</div>
-      <div class="sub-text">Scout interactions recorded</div>
+      <div class="sub-text">{{ 'PLAYER.SCOUT_INTERACTIONS_RECORDED' | translate }}</div>
     </div>
   </div>
 
-  <div class="views-section-title" scrollReveal direction="bottom" [delay]="150">Recent Scout Activity</div>
+  <div class="views-section-title" scrollReveal direction="bottom" [delay]="150">{{ 'PLAYER.RECENT_SCOUT_ACTIVITY' | translate }}</div>
 
   @if (!recentViews || recentViews.length === 0) {
   <div class="empty-radar-card" scrollReveal direction="bottom" [delay]="200">
@@ -47,10 +47,9 @@
         <circle cx="12" cy="12" r="4" />
       </svg>
     </div>
-    <div class="empty-title">Radar Active & Monitoring</div>
+    <div class="empty-title">{{ 'PLAYER.RADAR_ACTIVE' | translate }}</div>
     <div class="empty-desc">
-      Your profile is currently live in the talent marketplace. When scouts review your profile, their interactions will
-      appear here in real-time.
+      {{ 'PLAYER.RADAR_DESC' | translate }}
     </div>
   </div>
   } @else {
@@ -61,12 +60,12 @@
         <div class="club-avatar">{{ getAvatarInitials(view.scouterName) }}</div>
         <div class="scout-details">
           <div class="scout-name">
-            {{ view.scouterName || 'Official Scout' }}
+            {{ view.scouterName || ('PLAYER.OFFICIAL_SCOUT' | translate) }}
             @if (view.isScouterVerified) {
-            <span class="verified-badge" title="Verified Scouter">&#10003;</span>
+            <span class="verified-badge" [title]="'PLAYER.VERIFIED_SCOUTER' | translate">&#10003;</span>
             }
           </div>
-          <div class="club-name">Verified Club &bull; Talent Evaluator</div>
+          <div class="club-name" [innerHTML]="'PLAYER.VERIFIED_CLUB' | translate"></div>
         </div>
       </div>
       <div class="time-badge">{{ getTimeAgo(view.viewedAt) }}</div>

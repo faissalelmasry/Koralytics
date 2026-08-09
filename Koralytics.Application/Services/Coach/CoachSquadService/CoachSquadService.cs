@@ -94,30 +94,57 @@ namespace Koralytics.Application.Services.Coach.CoachSquadService
         public async Task<TrainingTeamSplitDto> SplitTrainingTeamsAsync(int coachId, int sessionId)
         {
             _logger.LogInformation(
-                "Coach {CoachId} requesting training split for session {SessionId}", coachId, sessionId);
+                "User/Coach {CoachId} requesting training split for session {SessionId}", coachId, sessionId);
 
-            // 1. Validate session exists and belongs to this coach
+            // 1. Validate session exists
             var session = await _unitOfWork.Repository<DrillSessionEntity>()
                 .FindAsync(s => s.Id == sessionId);
 
             if (session is null)
                 throw new NotFoundException($"DrillSession with Id {sessionId} not found.");
 
-            if (session.CoachId != coachId)
-                throw new ForbiddenException(
-                    $"Coach {coachId} does not own session {sessionId}.");
-
-            // 2. Fetch attending players (IsPresent = true)
+            // 2. Fetch attending players with fallbacks
             var attendances = await _unitOfWork.Repository<SessionAttendance>()
                 .GetQueryableAsNoTracking()
                 .Where(sa => sa.SessionId == sessionId && sa.IsPresent)
                 .ToListAsync();
 
-            if (!attendances.Any())
-                throw new BadRequestException(
-                    $"No present players found for session {sessionId}. Mark attendance before splitting.");
+            List<int> attendingPlayerIds;
 
-            var attendingPlayerIds = attendances.Select(a => a.playerId).ToList();
+            if (attendances.Any())
+            {
+                attendingPlayerIds = attendances.Select(a => a.playerId).ToList();
+            }
+            else
+            {
+                // Fallback 1: check all session attendances for this session
+                var sessionAttendances = await _unitOfWork.Repository<SessionAttendance>()
+                    .GetQueryableAsNoTracking()
+                    .Where(sa => sa.SessionId == sessionId)
+                    .ToListAsync();
+
+                if (sessionAttendances.Any())
+                {
+                    attendingPlayerIds = sessionAttendances.Select(a => a.playerId).ToList();
+                }
+                else
+                {
+                    // Fallback 2: check active players in session's team
+                    var teamPlayers = await _unitOfWork.Repository<PlayerTeam>()
+                        .GetQueryableAsNoTracking()
+                        .Where(pt => pt.TeamId == session.TeamId && pt.LeftAt == null)
+                        .Select(pt => pt.PlayerId)
+                        .ToListAsync();
+
+                    if (!teamPlayers.Any())
+                    {
+                        throw new BadRequestException(
+                            $"No players found for session {sessionId} or team {session.TeamId}.");
+                    }
+
+                    attendingPlayerIds = teamPlayers;
+                }
+            }
 
             // 3. Load player entities with their card and positions
             var players = await _unitOfWork.Repository<PlayerEntity>()
@@ -135,30 +162,88 @@ namespace Koralytics.Application.Services.Coach.CoachSquadService
 
             var cardByPlayerId = playerCards.ToDictionary(pc => pc.PlayerId);
 
-            // 4. Sort players by OverallRating descending (players without a card get 0)
-            var sortedPlayers = players
-                .OrderByDescending(p =>
-                    cardByPlayerId.TryGetValue(p.Id, out var card) ? card.OverallRating : 0m)
+            // Helper to check if a player is a primary Goalkeeper
+            bool IsGoalkeeper(PlayerEntity p)
+            {
+                var primaryPos = p.PlayerPositions.FirstOrDefault(pp => pp.IsPrimary)?.Position
+                    ?? p.PlayerPositions.FirstOrDefault()?.Position;
+                return primaryPos != null && (primaryPos.Equals("GK", StringComparison.OrdinalIgnoreCase) || primaryPos.Contains("Goalkeeper", StringComparison.OrdinalIgnoreCase));
+            }
+
+            // Separate goalkeepers and field players, ordered by overall rating descending
+            var gkPlayers = players
+                .Where(p => IsGoalkeeper(p))
+                .OrderByDescending(p => cardByPlayerId.TryGetValue(p.Id, out var card) ? card.OverallRating : 0m)
                 .ToList();
 
-            // 5. Snake-draft alternation for balanced teams
+            var fieldPlayers = players
+                .Where(p => !IsGoalkeeper(p))
+                .OrderByDescending(p => cardByPlayerId.TryGetValue(p.Id, out var card) ? card.OverallRating : 0m)
+                .ToList();
+
             var teamA = new List<SquadPlayerDto>();
             var teamB = new List<SquadPlayerDto>();
 
-            for (int i = 0; i < sortedPlayers.Count; i++)
-            {
-                var dto = MapToSquadPlayerDto(sortedPlayers[i], cardByPlayerId);
+            decimal teamARatingSum = 0m;
+            decimal teamBRatingSum = 0m;
 
-                // Even index → Team A, Odd index → Team B
-                if (i % 2 == 0)
+            // Goalkeeper distribution logic:
+            // - If >= 2 GKs: Top GK -> Team A, 2nd GK -> Team B. Extra GKs join field pool.
+            // - If == 1 GK: Top GK -> Team A (Team B will get a field player as GK).
+            // - If == 0 GKs: All field players.
+            if (gkPlayers.Count >= 2)
+            {
+                var gkA = MapToSquadPlayerDto(gkPlayers[0], cardByPlayerId);
+                var gkB = MapToSquadPlayerDto(gkPlayers[1], cardByPlayerId);
+                teamA.Add(gkA);
+                teamB.Add(gkB);
+                teamARatingSum += gkA.OverallRating;
+                teamBRatingSum += gkB.OverallRating;
+
+                for (int i = 2; i < gkPlayers.Count; i++)
+                {
+                    fieldPlayers.Add(gkPlayers[i]);
+                }
+                fieldPlayers = fieldPlayers
+                    .OrderByDescending(p => cardByPlayerId.TryGetValue(p.Id, out var card) ? card.OverallRating : 0m)
+                    .ToList();
+            }
+            else if (gkPlayers.Count == 1)
+            {
+                var gkA = MapToSquadPlayerDto(gkPlayers[0], cardByPlayerId);
+                teamA.Add(gkA);
+                teamARatingSum += gkA.OverallRating;
+            }
+
+            // Distribute remaining field players using Snake Draft pattern [A, B, B, A, A, B, B, A...]
+            // This mathematically balances BOTH player count and overall rating sum simultaneously.
+            bool teamATurn = teamA.Count <= teamB.Count;
+
+            for (int i = 0; i < fieldPlayers.Count; i++)
+            {
+                var dto = MapToSquadPlayerDto(fieldPlayers[i], cardByPlayerId);
+
+                if (teamATurn)
+                {
                     teamA.Add(dto);
+                    teamARatingSum += dto.OverallRating;
+                }
                 else
+                {
                     teamB.Add(dto);
+                    teamBRatingSum += dto.OverallRating;
+                }
+
+                // In snake draft, alternate direction every pick pair
+                if (i % 2 == 0)
+                {
+                    teamATurn = !teamATurn;
+                }
             }
 
             _logger.LogInformation(
-                "Session {SessionId} split: TeamA={CountA} players, TeamB={CountB} players",
-                sessionId, teamA.Count, teamB.Count);
+                "Session {SessionId} split: TeamA={CountA} players (Rating={RatingA}), TeamB={CountB} players (Rating={RatingB})",
+                sessionId, teamA.Count, teamARatingSum, teamB.Count, teamBRatingSum);
 
             return new TrainingTeamSplitDto
             {

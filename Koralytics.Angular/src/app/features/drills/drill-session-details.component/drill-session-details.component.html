@@ -1,7 +1,7 @@
 @if (isLoading) {
 <div class="loading-state text-center py-5">
     <app-loading-spinner size="lg"></app-loading-spinner>
-    <p class="loading-text mt-3">Loading session data...</p>
+    <p class="loading-text mt-3">{{ 'DRILLS.SESSION_DETAILS.LOADING_SESSION_DATA' | translate }}</p>
 </div>
 } @else if (errorMessage) {
 <div class="error-banner">{{ errorMessage }}</div>
@@ -16,31 +16,31 @@
                     [class.bg-danger]="isSessionCancelled"></span>
                 <span
                     [class]="isSessionCancelled ? 'text-danger' : (isSessionCompleted ? 'text-success' : 'text-warning')">
-                    {{ isSessionCancelled ? 'CANCELLED' : (isSessionCompleted ? 'COMPLETED' : 'IN PROGRESS') }}
+                    {{ isSessionCancelled ? ('DRILLS.SESSION_DETAILS.STATUS_CANCELLED' | translate) : (isSessionCompleted ? ('DRILLS.SESSION_DETAILS.STATUS_COMPLETED' | translate) : ('DRILLS.SESSION_DETAILS.STATUS_IN_PROGRESS' | translate)) }}
                 </span>
             </div>
-            <h1 class="header-title">{{ sessionData.teamName || 'Team #' + sessionData.teamId }} - Session</h1>
+            <h1 class="header-title">{{ sessionData.teamName || ('DRILLS.SESSION_DETAILS.TEAM' | translate) + ' #' + sessionData.teamId }} - Session</h1>
             <p class="header-subtitle">
                 {{ sessionData.sessionDate | date:'dd MMM yyyy' }} •
                 {{ sessionData.location || 'Main Pitch' }} •
-                Coach: {{ sessionData.coachName || 'Assigned Coach' }}
+                {{ 'DRILLS.SESSION_DETAILS.COACH' | translate }}: {{ sessionData.coachName || 'Assigned Coach' }}
             </p>
         </div>
 
         <!-- Hide complete button if already completed or read-only -->
         @if (!isReadOnly) {
-        <app-button variant="accent" (click)="completeSession()">Complete Session</app-button>
+        <app-button variant="accent" (click)="completeSession()">{{ 'DRILLS.SESSION_DETAILS.COMPLETE_SESSION' | translate }}</app-button>
         } @else if (isSessionCompleted) {
-        <app-status-chip label="Session Completed" type="success"></app-status-chip>
+        <app-status-chip [label]="'DRILLS.SESSION_DETAILS.STATUS_COMPLETED' | translate" type="success"></app-status-chip>
         } @else if (isSessionCancelled) {
-        <app-status-chip label="Session Cancelled" type="danger"></app-status-chip>
+        <app-status-chip [label]="'DRILLS.SESSION_DETAILS.STATUS_CANCELLED' | translate" type="danger"></app-status-chip>
         }
     </header>
 
     @if (isSessionCancelled) {
     <div class="cancelled-banner">
-        <div class="cancelled-badge">SESSION CANCELLED</div>
-        <div class="cancelled-title">Reason for Cancellation</div>
+        <div class="cancelled-badge">{{ 'DRILLS.SESSION_DETAILS.SESSION_CANCELLED' | translate }}</div>
+        <div class="cancelled-title">{{ 'DRILLS.SESSION_DETAILS.REASON_FOR_CANCELLATION' | translate }}</div>
         <p class="cancelled-reason">"{{ sessionData.notes || 'No specific cancellation reason provided.' }}"</p>
     </div>
     } @else {
@@ -49,12 +49,11 @@
         <!-- LEFT COLUMN: Attendance -->
         <section class="form-panel roster-panel">
             <div class="roster-header flex-between">
-                <h2 class="panel-title">1. Attendance Report</h2>
-                <span class="badge">{{ getPresentCount() }} / {{ sessionData.attendance?.length || 0 }} Present</span>
+                <h2 class="panel-title">{{ 'DRILLS.SESSION_DETAILS.ATTENDANCE_REPORT' | translate }}</h2>
+                <span class="badge">{{ getPresentCount() }} / {{ sessionData.attendance?.length || 0 }} {{ 'DRILLS.SESSION_DETAILS.PRESENT' | translate }}</span>
             </div>
             <p class="helper-text">
-                {{ isReadOnly ? 'Final attendance for this session. Click a player to view progression.' : 'Only players
-                marked \'Present\' can participate in drills. Click a player to view progression.' }}
+                {{ isReadOnly ? ('DRILLS.SESSION_DETAILS.ATTENDANCE_READONLY_DESC' | translate) : ('DRILLS.SESSION_DETAILS.ATTENDANCE_EDIT_DESC' | translate) }}
             </p>
 
             <div class="roster-list mt-3">
@@ -68,25 +67,25 @@
                             {{ player.playerFullName || player.name }} <span
                                 style="font-size: 11px; opacity: 0.7; color: #00f2fe;">↗</span>
                         </span>
-                        <span class="player-pos">{{ player.position || 'Squad Player' }}</span>
+                        <span class="player-pos">{{ player.position || ('DRILLS.SESSION_DETAILS.SQUAD_PLAYER' | translate) }}</span>
                     </div>
                     <div class="toggle-group">
                         <button type="button" class="toggle-btn" [class.active-green]="player.isPresent"
                             [class.inactive]="!player.isPresent" [disabled]="isReadOnly"
                             (click)="setAttendance(player, true)">
-                            Present
+                            {{ 'DRILLS.SESSION_DETAILS.PRESENT' | translate }}
                         </button>
                         <button type="button" class="toggle-btn" [class.active-red]="!player.isPresent"
                             [class.inactive]="player.isPresent" [disabled]="isReadOnly"
                             (click)="setAttendance(player, false)">
-                            Absent
+                            {{ 'DRILLS.SESSION_DETAILS.ABSENT' | translate }}
                         </button>
                     </div>
                 </div>
                 }
                 } @else {
                 <div class="empty-roster">
-                    <p style="text-align: center; color: #8b949e;">No attendance records found for this session.</p>
+                    <p style="text-align: center; color: #8b949e;">{{ 'DRILLS.SESSION_DETAILS.NO_ATTENDANCE_RECORDS' | translate }}</p>
                 </div>
                 }
             </div>
@@ -95,17 +94,16 @@
         <!-- RIGHT COLUMN: Drills & Results -->
         <section class="form-panel drills-panel">
             <div class="drills-header flex-between">
-                <h2 class="panel-title">2. Session Drills</h2>
+                <h2 class="panel-title">{{ 'DRILLS.SESSION_DETAILS.SESSION_DRILLS' | translate }}</h2>
                 @if (!isReadOnly) {
                 <div style="display: flex; gap: 10px; align-items: center;">
-                    <app-button variant="accent" (click)="openAddDrillModal()">+ Add Drill</app-button>
-                    <app-button variant="accent" (click)="createMatchSession()">+ Create Match</app-button>
+                    <app-button variant="accent" (click)="openAddDrillModal()">{{ 'DRILLS.SESSION_DETAILS.ADD_DRILL' | translate }}</app-button>
+                    <app-button variant="accent" (click)="createMatchSession()">{{ 'DRILLS.SESSION_DETAILS.CREATE_MATCH' | translate }}</app-button>
                 </div>
                 }
             </div>
             <p class="helper-text">
-                {{ isReadOnly ? 'Player performance metrics and scorecard.' : 'Add drills to this session and record
-                player metrics.' }}
+                {{ isReadOnly ? ('DRILLS.SESSION_DETAILS.DRILLS_READONLY_DESC' | translate) : ('DRILLS.SESSION_DETAILS.DRILLS_EDIT_DESC' | translate) }}
             </p>
 
             <div class="drills-list mt-3">
@@ -113,16 +111,16 @@
                 @for (drill of sessionData.sessionDrills; track drill.id) {
                 <div class="drill-card">
                     <div class="drill-info">
-                        <h3>{{ drill.templateName || 'Training Drill' }}</h3>
-                        <span class="category-badge">{{ drill.categoryName || 'General' }}</span>
+                        <h3>{{ drill.templateName | translate }}</h3>
+                        <span class="category-badge">{{ (drill.categoryName ? ('DRILLS.DYNAMIC.CAT_' + drill.categoryName.toUpperCase() | translate) : 'General') }}</span>
                     </div>
                     <div class="drill-action" style="display: flex; gap: 8px;">
                         <app-button variant="slate" (click)="openResultsModal(drill)">
-                            {{ isReadOnly ? 'View Results' : 'Enter Results' }}
+                            {{ isReadOnly ? ('DRILLS.SESSION_DETAILS.VIEW_RESULTS' | translate) : ('DRILLS.SESSION_DETAILS.ENTER_RESULTS' | translate) }}
                         </app-button>
                         @if (!isReadOnly) {
                         <app-button variant="coral" (click)="removeDrill(drill.id)">
-                            Remove
+                            {{ 'COMMON.REMOVE' | translate }}
                         </app-button>
                         }
                     </div>
@@ -130,7 +128,7 @@
                 }
                 } @else {
                 <div class="empty-drills" style="text-align: center; padding: 30px; color: #8b949e;">
-                    <p>No drills attached to this session.</p>
+                    <p>{{ 'DRILLS.SESSION_DETAILS.NO_DRILLS_ATTACHED' | translate }}</p>
                 </div>
                 }
             </div>
@@ -145,13 +143,13 @@
 @if (isAddDrillModalOpen) {
 <div class="modal-backdrop">
     <div class="modal-content">
-        <h2>Select Drill from Library</h2>
-        <p class="helper-text">Choose a template to inject into this training session.</p>
+        <h2>{{ 'DRILLS.SESSION_DETAILS.SELECT_DRILL_FROM_LIBRARY' | translate }}</h2>
+        <p class="helper-text">{{ 'DRILLS.SESSION_DETAILS.CHOOSE_TEMPLATE_INJECT' | translate }}</p>
 
         <div class="mt-3">
             <app-select
-                label="Drill Template"
-                placeholder="-- Select a Drill Template --"
+                [label]="'DRILLS.TEMPLATE_LIST.DRILL_TEMPLATE' | translate"
+                [placeholder]="'DRILLS.SESSION_DETAILS.SELECT_TEMPLATE' | translate"
                 [options]="templateOptions"
                 [value]="selectedTemplateId"
                 (valueChange)="onTemplateSelect($event)">
@@ -159,9 +157,8 @@
         </div>
 
         <div class="modal-actions mt-3 flex-between">
-            <app-button variant="slate" (click)="closeAddDrillModal()">Cancel</app-button>
-            <app-button variant="accent" [disabled]="!selectedTemplateId" (click)="saveDrillToSession()">Confirm &
-                Add</app-button>
+            <app-button variant="slate" (click)="closeAddDrillModal()">{{ 'COMMON.CANCEL' | translate }}</app-button>
+            <app-button variant="accent" [disabled]="!selectedTemplateId" (click)="saveDrillToSession()">{{ 'DRILLS.SESSION_DETAILS.CONFIRM_ADD' | translate }}</app-button>
         </div>
     </div>
 </div>
@@ -173,9 +170,9 @@
     <div class="modal-content results-modal-content">
         <div class="flex-between">
             <div>
-                <h2>Scorecard: {{ activeDrillForResults.templateName }}</h2>
-                <p class="helper-text">Mode: {{ (activeDrillForResults.mode == 0 || activeDrillForResults.mode ===
-                    'Manual') ? 'Manual Score' : 'Success / Missed' }}</p>
+                <h2>{{ 'DRILLS.SESSION_DETAILS.SCORECARD' | translate }}: {{ activeDrillForResults.templateName | translate }}</h2>
+                <p class="helper-text">{{ 'DRILLS.TEMPLATE_LIST.MODE' | translate }}: {{ ($any(activeDrillForResults.mode) == 0 || activeDrillForResults.mode ===
+                    'Manual') ? ('DRILLS.SESSION_DETAILS.MANUAL_SCORE' | translate) : ('DRILLS.SESSION_DETAILS.SUCCESS_MISSED' | translate) }}</p>
             </div>
             <button class="btn-secondary flex-center" (click)="closeResultsModal()" title="Close Scorecard">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -188,9 +185,9 @@
         <div class="results-table-container mt-3">
             @if (playerScoreEntries.length > 0) {
             <div class="results-header-row">
-                <span>Player</span>
-                <span>Score Input</span>
-                <span>Coach Notes</span>
+                <span>{{ 'DRILLS.SESSION_DETAILS.PLAYER' | translate }}</span>
+                <span>{{ 'DRILLS.SESSION_DETAILS.SCORE_INPUT' | translate }}</span>
+                <span>{{ 'DRILLS.SESSION_DETAILS.COACH_NOTES' | translate }}</span>
             </div>
             @for (entry of playerScoreEntries; track entry.playerId) {
             <div class="results-row">
@@ -209,11 +206,11 @@
                 </div>
 
                 <div class="score-input-cell">
-                    @if (activeDrillForResults.mode == 0 || activeDrillForResults.mode === 'Manual') {
+                    @if (activeDrillForResults.mode === 'Manual') {
                     <div class="score-preset-group" style="display: flex; gap: 8px; align-items: flex-end;">
                         <div style="flex: 1; min-width: 90px;">
                             <app-number-input
-                                label="Score (0-10)"
+                                label="{{ 'DRILLS.SESSION_DETAILS.SCORE_0_10' | translate }}"
                                 [step]="0.5"
                                 [min]="0"
                                 [max]="10"
@@ -224,8 +221,8 @@
                         </div>
                         <div style="flex: 1.3; min-width: 125px;">
                             <app-select
-                                label="Quick Rating"
-                                placeholder="Select..."
+                                label="{{ 'DRILLS.SESSION_DETAILS.QUICK_RATING' | translate }}"
+                                [placeholder]="'COMMON.SELECT' | translate"
                                 [options]="ratingPresetOptions"
                                 [value]="getMatchingRatingPreset(entry.manualScore)"
                                 (valueChange)="onRatingPresetChange(entry, $event)"
@@ -236,7 +233,7 @@
                     } @else {
                     <div class="flex-group" style="display: flex; gap: 8px;">
                         <app-number-input
-                            label="Done"
+                            label="{{ 'DRILLS.SESSION_DETAILS.DONE' | translate }}"
                             [step]="1"
                             [min]="0"
                             [value]="entry.doneCount"
@@ -244,7 +241,7 @@
                             [disabled]="isReadOnly">
                         </app-number-input>
                         <app-number-input
-                            label="Missed"
+                            label="{{ 'DRILLS.SESSION_DETAILS.MISSED' | translate }}"
                             [step]="1"
                             [min]="0"
                             [value]="entry.missedCount"
@@ -258,7 +255,7 @@
                 <div class="notes-input-cell">
                     <app-text-input
                         type="text"
-                        label="Notes"
+                        [label]="'DRILLS.SESSION_DETAILS.COACH_NOTES' | translate"
                         [value]="entry.coachNotes"
                         (valueChange)="entry.coachNotes = $event"
                         [disabled]="isReadOnly">
@@ -267,18 +264,17 @@
             </div>
             }
             } @else {
-            <p style="text-align: center; color: #ff4757; padding: 20px;">No players are marked 'Present' for this
-                session.</p>
+            <p style="text-align: center; color: #ff4757; padding: 20px;">{{ 'DRILLS.SESSION_DETAILS.NO_PLAYERS_PRESENT' | translate }}</p>
             }
         </div>
 
         <div class="modal-actions mt-3 flex-between">
-            <app-button variant="slate" (click)="closeResultsModal()">Close</app-button>
+            <app-button variant="slate" (click)="closeResultsModal()">{{ 'COMMON.CLOSE' | translate }}</app-button>
 
             @if (!isReadOnly) {
             <app-button variant="accent" [disabled]="playerScoreEntries.length === 0" [loading]="isSubmittingResults"
                 (click)="saveDrillResults()">
-                Save Scores
+                {{ 'DRILLS.SESSION_DETAILS.SAVE_SCORES' | translate }}
             </app-button>
             }
         </div>
@@ -291,12 +287,12 @@
 <div class="confirm-overlay" (click)="closeConfirm()"></div>
 <div class="confirm-modal">
     <div class="confirm-content">
-        <h3 class="confirm-title">{{ confirmModal.title }}</h3>
-        <p class="confirm-message">{{ confirmModal.message }}</p>
+        <h3 class="confirm-title">{{ confirmModal.title | translate }}</h3>
+        <p class="confirm-message">{{ confirmModal.message | translate:confirmModal.messageParams }}</p>
     </div>
     <div class="confirm-actions">
-        <app-button variant="slate" (click)="closeConfirm()">Cancel</app-button>
-        <app-button variant="coral" (click)="executeConfirm()">{{ confirmModal.confirmText }}</app-button>
+        <app-button variant="slate" (click)="closeConfirm()">{{ 'COMMON.CANCEL' | translate }}</app-button>
+        <app-button variant="coral" (click)="executeConfirm()">{{ confirmModal.confirmText | translate }}</app-button>
     </div>
 </div>
 }

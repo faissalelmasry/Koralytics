@@ -24,7 +24,8 @@
       <div class="hero-banner" scrollReveal direction="bottom" [delay]="90">
         <div class="admin-identity">
           <div class="avatar-circle">
-            <span>{{ userInitial }}</span>
+            <img *ngIf="profileImageUrl && !imageError" [src]="profileImageUrl" [alt]="userName" class="avatar-img" (error)="imageError = true" />
+            <span *ngIf="!profileImageUrl || imageError">{{ userInitial }}</span>
           </div>
           <div>
             <h1 class="accent">{{ userName }}</h1>

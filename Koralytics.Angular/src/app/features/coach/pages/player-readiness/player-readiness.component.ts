@@ -12,10 +12,12 @@ import { SquadOverviewDto, CoachTeamDto } from '../../../../../core/interfaces/c
 import { PlayerReadinessDto } from '../../../../../core/interfaces/match-request.interfaces';
 import { TranslatePipe } from '@ngx-translate/core';
 
+import { LoadingSpinnerComponent } from '../../../../../shared/components/loading-spinner/loading-spinner';
+
 @Component({
   selector: 'app-player-readiness',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslatePipe],
+  imports: [CommonModule, FormsModule, TranslatePipe, LoadingSpinnerComponent],
   templateUrl: './player-readiness.component.html',
   styleUrls: ['./player-readiness.component.css']
 })

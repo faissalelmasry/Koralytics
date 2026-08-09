@@ -3,7 +3,7 @@
   <div class="hero-scoreboard">
     <div class="team-box home">
       <div class="team-text">
-        <span class="team-name">{{ matchInfo.homeTeam }}</span>
+        <span class="team-name" appMarqueeIfOverflow [marqueeText]="matchInfo.homeTeam">{{ matchInfo.homeTeam }}</span>
         @if (matchInfo.homeAcademy) {
           @if (matchInfo.homeAcademyId) {
             <a [routerLink]="['/academy/profile', matchInfo.homeAcademyId]" class="academy-sub academy-link">{{ matchInfo.homeAcademy }}</a>
@@ -12,18 +12,52 @@
           }
         }
       </div>
+      @if (matchInfo.homeAcademyId) {
+        <a [routerLink]="['/academy/profile', matchInfo.homeAcademyId]" class="avatar-circle logo-link" [title]="matchInfo.homeAcademy || matchInfo.homeTeam">
+          @if (matchInfo.homeAcademyLogoUrl && !homeLogoError) {
+            <img [src]="matchInfo.homeAcademyLogoUrl" [alt]="matchInfo.homeAcademy || matchInfo.homeTeam" class="academy-logo-img" (error)="homeLogoError = true" />
+          } @else {
+            <span class="avatar-initials">{{ getInitials(matchInfo.homeAcademy || matchInfo.homeTeam) }}</span>
+          }
+        </a>
+      } @else {
+        <div class="avatar-circle" [title]="matchInfo.homeAcademy || matchInfo.homeTeam">
+          @if (matchInfo.homeAcademyLogoUrl && !homeLogoError) {
+            <img [src]="matchInfo.homeAcademyLogoUrl" [alt]="matchInfo.homeAcademy || matchInfo.homeTeam" class="academy-logo-img" (error)="homeLogoError = true" />
+          } @else {
+            <span class="avatar-initials">{{ getInitials(matchInfo.homeAcademy || matchInfo.homeTeam) }}</span>
+          }
+        </div>
+      }
     </div>
     <div class="score-center">
       <div class="score-digits">{{ matchInfo.homeScore }} - {{ matchInfo.awayScore }}</div>
       @if (matchInfo.homePenaltyScore != null && matchInfo.awayPenaltyScore != null) {
-      <span class="penalties-score-badge">({{ matchInfo.homePenaltyScore }} - {{ matchInfo.awayPenaltyScore }} Pen)</span>
+      <span class="penalties-score-badge">{{ 'MATCH.TIMELINE.PEN_SCORE' | translate:{home: matchInfo.homePenaltyScore, away: matchInfo.awayPenaltyScore} }}</span>
       }
-      @if (isCompleted) { <span class="ft-badge">FULL TIME</span> }
-      @if (isLive) { <span class="ft-badge live">LIVE</span> }
+      @if (isCompleted) { <span class="ft-badge">{{ 'MATCH.TIMELINE.FULL_TIME' | translate }}</span> }
+      @if (isLive) { <span class="ft-badge live">{{ 'MATCH.TIMELINE.LIVE' | translate }}</span> }
     </div>
     <div class="team-box away">
+      @if (matchInfo.awayAcademyId) {
+        <a [routerLink]="['/academy/profile', matchInfo.awayAcademyId]" class="avatar-circle logo-link" [title]="matchInfo.awayAcademy || matchInfo.awayTeam">
+          @if (matchInfo.awayAcademyLogoUrl && !awayLogoError) {
+            <img [src]="matchInfo.awayAcademyLogoUrl" [alt]="matchInfo.awayAcademy || matchInfo.awayTeam" class="academy-logo-img" (error)="awayLogoError = true" />
+          } @else {
+            <span class="avatar-initials">{{ getInitials(matchInfo.awayAcademy || matchInfo.awayTeam) }}</span>
+          }
+        </a>
+      } @else {
+        <div class="avatar-circle" [title]="matchInfo.awayAcademy || matchInfo.awayTeam">
+          @if (matchInfo.awayAcademyLogoUrl && !awayLogoError) {
+            <img [src]="matchInfo.awayAcademyLogoUrl" [alt]="matchInfo.awayAcademy || matchInfo.awayTeam" class="academy-logo-img" (error)="awayLogoError = true" />
+          } @else {
+            <span class="avatar-initials">{{ getInitials(matchInfo.awayAcademy || matchInfo.awayTeam) }}</span>
+          }
+        </div>
+      }
       <div class="team-text">
-        <span class="team-name">{{ matchInfo.awayTeam }}</span>
+        <span class="team-name" appMarqueeIfOverflow [marqueeText]="matchInfo.awayTeam">{{ matchInfo.awayTeam }}</span>
         @if (matchInfo.awayAcademy) {
           @if (matchInfo.awayAcademyId) {
             <a [routerLink]="['/academy/profile', matchInfo.awayAcademyId]" class="academy-sub academy-link">{{ matchInfo.awayAcademy }}</a>
@@ -41,7 +75,7 @@
             stroke-linecap="round" stroke-linejoin="round">
             <polygon points="5 3 19 12 5 21 5 3" fill="#A3E635" stroke="#FFFFFF" stroke-width="1" />
           </svg>
-          <span>Start Match</span>
+          <span>{{ 'MATCH.TIMELINE.START_MATCH' | translate }}</span>
         </span>
       </app-button>
     </div>
@@ -54,7 +88,7 @@
             stroke-linecap="round" stroke-linejoin="round">
             <rect x="5" y="5" width="14" height="14" rx="2.5" fill="#EF4444" stroke="#FCA5A5" stroke-width="1" />
           </svg>
-          <span>End Match</span>
+          <span>{{ 'MATCH.TIMELINE.END_MATCH' | translate }}</span>
         </span>
       </app-button>
     </div>
@@ -63,22 +97,22 @@
 
   <div class="nav-tabs-container">
     <button class="tab-btn" [class.active]="selectedTab === 'timeline'" (click)="selectTab('timeline', true)">
-      Match Timeline
+      {{ 'MATCH.TIMELINE.TABS.TIMELINE' | translate }}
     </button>
     <button class="tab-btn" [class.active]="selectedTab === 'lineups'" (click)="selectTab('lineups', true)">
-      Lineups &amp; Tactics
+      {{ 'MATCH.TIMELINE.TABS.LINEUPS' | translate }}
     </button>
     @if (!isSessionMatch) {
     <button class="tab-btn" [class.active]="selectedTab === 'h2h'" (click)="selectTab('h2h', true)">
-      Head To Head
+      {{ 'MATCH.TIMELINE.TABS.H2H' | translate }}
     </button>
     <button class="tab-btn" [class.active]="selectedTab === 'analysis'" (click)="selectTab('analysis', true)">
-      Post-Match Analysis
+      {{ 'MATCH.TIMELINE.TABS.ANALYSIS' | translate }}
     </button>
     }
     @if (isCompleted) {
     <button class="tab-btn" [class.active]="selectedTab === 'ratings'" (click)="selectTab('ratings', true)">
-      Match Ratings
+      {{ 'MATCH.TIMELINE.TABS.RATINGS' | translate }}
     </button>
     }
   </div>
@@ -89,10 +123,11 @@
       <div class="slide-page left-page" [style.width]="slidePageWidth">
         @if (eventsLoading) {
         <div style="padding: 4rem 0; display: flex; justify-content: center; width: 100%;">
-          <app-loading-spinner text="Loading timeline events..."></app-loading-spinner>
+          <app-loading-spinner></app-loading-spinner>
+          <p style="margin-top: 1rem; color: var(--text-secondary);">{{ 'MATCH.TIMELINE.LOADING_EVENTS' | translate }}</p>
         </div>
         } @else if (eventsLoaded && timelineEvents.length === 0) {
-        <app-empty-state title="No Match Events" description="Timeline events have not been recorded for this match." />
+        <app-empty-state [title]="'MATCH.TIMELINE.NO_EVENTS_TITLE' | translate" [description]="'MATCH.TIMELINE.NO_EVENTS_DESC' | translate" />
         } @else {
         <app-match-timeline-events [events]="timelineEvents" [matchId]="matchId" [canLogEvents]="canLogEvents" (eventDisallowed)="onEventDisallowed($event)" />
         }
@@ -101,7 +136,8 @@
       <div class="slide-page right-page" [style.width]="slidePageWidth">
         @if (lineupsLoading) {
         <div style="padding: 4rem 0; display: flex; justify-content: center; width: 100%;">
-          <app-loading-spinner text="Loading lineups &amp; tactics..."></app-loading-spinner>
+          <app-loading-spinner></app-loading-spinner>
+          <p style="margin-top: 1rem; color: var(--text-secondary);">{{ 'MATCH.TIMELINE.LOADING_LINEUPS' | translate }}</p>
         </div>
         } @else {
         <app-match-lineups [homeName]="matchInfo.homeTeam" [homeFormation]="matchInfo.formation || '4-3-3'"
@@ -139,11 +175,12 @@
         @if (ratingsInitialized) {
         @if (lineupsLoading) {
         <div style="padding: 4rem 0; display: flex; justify-content: center; width: 100%;">
-          <app-loading-spinner text="Loading player ratings..."></app-loading-spinner>
+          <app-loading-spinner></app-loading-spinner>
+          <p style="margin-top: 1rem; color: var(--text-secondary);">{{ 'MATCH.TIMELINE.LOADING_RATINGS' | translate }}</p>
         </div>
         } @else if (lineupsLoaded && homeStarters.length === 0 && awayStarters.length === 0) {
-        <app-empty-state title="No Lineups Available"
-          description="Lineups have not been submitted for this match, so ratings cannot be submitted." />
+        <app-empty-state [title]="'MATCH.RATINGS.NO_LINEUPS_TITLE' | translate"
+          [description]="'MATCH.RATINGS.NO_LINEUPS_DESC' | translate" />
         } @else {
         <app-match-ratings [matchId]="matchId" [matchInfo]="matchInfo" [homePlayers]="allHomePlayers"
           [awayPlayers]="allAwayPlayers" [canSubmitRatings]="canSubmitRatings" />
@@ -156,12 +193,12 @@
 
 </div>
 
-<app-confirm-dialog [isOpen]="isStartMatchDialogOpen" title="Start Match"
-  message="Are you sure you want to start this match? This will change the match status to Live."
-  confirmText="Start Match" level="info" (confirm)="confirmStartMatch()"
+<app-confirm-dialog [isOpen]="isStartMatchDialogOpen" [title]="'MATCH.TIMELINE.START_MATCH_DIALOG_TITLE' | translate"
+  [message]="'MATCH.TIMELINE.START_MATCH_DIALOG_MSG' | translate"
+  [confirmText]="'MATCH.TIMELINE.START_MATCH' | translate" level="info" (confirm)="confirmStartMatch()"
   (cancel)="isStartMatchDialogOpen = false"></app-confirm-dialog>
 
-<app-confirm-dialog [isOpen]="isEndMatchDialogOpen" title="End Match"
-  message="Are you sure you want to end this match? This action will finalize the match and cannot be undone."
-  confirmText="End Match" level="danger" (confirm)="confirmEndMatch()"
+<app-confirm-dialog [isOpen]="isEndMatchDialogOpen" [title]="'MATCH.TIMELINE.END_MATCH_DIALOG_TITLE' | translate"
+  [message]="'MATCH.TIMELINE.END_MATCH_DIALOG_MSG' | translate"
+  [confirmText]="'MATCH.TIMELINE.END_MATCH' | translate" level="danger" (confirm)="confirmEndMatch()"
   (cancel)="isEndMatchDialogOpen = false"></app-confirm-dialog>

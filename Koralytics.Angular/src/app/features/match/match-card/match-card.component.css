@@ -311,6 +311,9 @@
   display: flex;
   flex-direction: column;
   align-items: inherit;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden; /* clips the scrolling .team-name span */
 }
 
 .team.home .team-info {
@@ -322,9 +325,20 @@
 }
 
 .team-name {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 6px;
+  white-space: nowrap;
+}
+
+.team-name.is-scrolling {
+  animation: teamNameMarquee 5s ease-in-out 0.5s infinite;
+}
+
+@keyframes teamNameMarquee {
+  0%, 15% { transform: translateX(0); }
+  60%, 85% { transform: translateX(var(--marquee-scroll, -16px)); }
+  100% { transform: translateX(0); }
 }
 
 .academy-name {

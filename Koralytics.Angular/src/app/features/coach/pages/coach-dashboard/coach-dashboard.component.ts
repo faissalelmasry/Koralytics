@@ -15,6 +15,7 @@ import { AuthService } from '../../../../../core/services/auth/auth.service';
 import { CoachSquadService } from '../../../../../core/services/coach/coach-squad.service';
 import { MatchService, PostMatchAnalysisResponseDto } from '../../../../../core/services/match/match.service';
 import { DrillSessionService } from '../../../../../core/services/drill/drill-session.service';
+import { ProfileService } from '../../../../../core/services/profile/profile.service';
 
 import { CoachTeamDto, SquadPlayerDto } from '../../../../../core/interfaces/coach.interfaces';
 import { MatchCardModel } from '../../../../../core/models/Match/match-card.model';
@@ -40,11 +41,14 @@ export class CoachDashboardComponent implements OnInit {
   private squadService = inject(CoachSquadService);
   private matchService = inject(MatchService);
   private sessionService = inject(DrillSessionService);
+  private profileService = inject(ProfileService);
   private destroyRef = inject(DestroyRef);
 
   // ── User ──
   userName = '';
   userInitial = '';
+  profileImageUrl: string | null = null;
+  imageError = false;
   todayFormatted = '';
 
   // ── Teams ──
@@ -118,8 +122,27 @@ export class CoachDashboardComponent implements OnInit {
     const user = this.authService.getCurrentUserSync();
     if (user) {
       this.userName = user.fullName || user.userName;
-      this.userInitial = this.userName ? this.userName[0].toUpperCase() : 'C';
+      const parts = this.userName.trim().split(/\s+/);
+      this.userInitial = parts.length > 1 && parts[1]
+        ? (parts[0][0] + parts[1][0]).toUpperCase()
+        : (this.userName[0] || 'C').toUpperCase();
     }
+
+    this.profileService.getMyProfile().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (res) => {
+        if (res.isSuccess && res.data) {
+          if (res.data.profileImageUrl) {
+            this.profileImageUrl = res.data.profileImageUrl;
+          }
+          if (res.data.firstName || res.data.lastName) {
+            const first = res.data.firstName?.charAt(0) || '';
+            const last = res.data.lastName?.charAt(0) || '';
+            const combined = `${first}${last}`.toUpperCase();
+            if (combined) this.userInitial = combined;
+          }
+        }
+      }
+    });
 
     // Format today
     const now = new Date();

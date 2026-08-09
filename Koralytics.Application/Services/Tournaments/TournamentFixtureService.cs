@@ -282,7 +282,12 @@ namespace Koralytics.Application.Services.Tournaments
             fixture.Status = MatchStatus.Completed;
             fixture.HomeScore = match.HomeScore;
             fixture.AwayScore = match.AwayScore;
-            fixture.WinnerTeamId = match.WinningTeamId;
+            if (match.HomeScore > match.AwayScore)
+                fixture.WinnerTeamId = fixture.HomeTeamId;
+            else if (match.AwayScore > match.HomeScore)
+                fixture.WinnerTeamId = fixture.AwayTeamId;
+            else
+                fixture.WinnerTeamId = null;
 
             await _unitOfWork.SaveChangesAsync();
 

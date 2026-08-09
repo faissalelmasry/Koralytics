@@ -47,7 +47,7 @@
 
       @if (isGK) {
         <div class="gk-stat-block">
-          <div class="gk-label">GOALKEEEPING</div>
+          <div class="gk-label">{{ 'PLAYER.GOALKEEPING' | translate | uppercase }}</div>
           <div class="stat-top">
             <span class="num">0</span>
             <span class="label">GKP</span>
@@ -79,23 +79,23 @@
             <i [class.on]="star <= player.weakFootRating">&#9733;</i>
           }
         </div>
-        <span>{{ player.preferredFoot }}-Foot</span>
+        <span>{{ 'PROFILE.FOOT_' + (player.preferredFoot | uppercase) | translate }}</span>
       </div>
     </div>
 
     <div class="face back">
       <h3>{{ player.playerName }}</h3>
-      <p class="sub">{{ player.position }} · Overall-Rating <span>{{ player.overallRating | number:'1.0-0' }}</span></p>
+      <p class="sub">{{ player.position }} · {{ 'PLAYER.OVERALL_RATING' | translate }} <span>{{ player.overallRating | number:'1.0-0' }}</span></p>
       
-      <div class="info-row"><span>Classification</span><span>{{ player.transferClassification }}</span></div>
+      <div class="info-row"><span>{{ 'PLAYER.CLASSIFICATION' | translate }}</span><span>{{ player.transferClassification }}</span></div>
       @if (player.archetypePlayerName) {
-        <div class="info-row"><span>Play-Style</span><span>{{ player.archetypePlayerName }}</span></div>
+        <div class="info-row"><span>{{ 'PLAYER.PLAY_STYLE' | translate }}</span><span>{{ player.archetypePlayerName }}</span></div>
       }
       @else {
-        <div class="info-row"><span>Play-Style</span><span>Under Evaluation...</span></div>
+        <div class="info-row"><span>{{ 'PLAYER.PLAY_STYLE' | translate }}</span><span>{{ 'PLAYER.UNDER_EVALUATION' | translate }}</span></div>
       }
-      <div class="info-row"><span>Weak-Foot</span><span>{{ player.weakFootRating }} / 5</span></div>
-      <div class="info-row"><span>Preferred-Foot</span><span>{{ player.preferredFoot }}</span></div>
+      <div class="info-row"><span>{{ 'PLAYER.WEAK_FOOT' | translate }}</span><span>{{ player.weakFootRating }} / 5</span></div>
+      <div class="info-row"><span>{{ 'PLAYER.PREFERRED_FOOT' | translate }}</span><span>{{ 'PROFILE.FOOT_' + (player.preferredFoot | uppercase) | translate }}</span></div>
       
     </div>
 

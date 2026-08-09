@@ -25,7 +25,7 @@
                     [placeholder]="'DRILLS.COACH_BIAS.COACH_PLACEHOLDER' | translate"
                     [options]="coachOptions"
                     [(value)]="selectedCoachId"
-                    [disabled]="isCoachesLoading || coachOptions.length === 0">
+                    [disabled]="isCoachesLoading || coachOptionsList.length === 0">
                 </app-select>
 
                 <app-button
@@ -82,14 +82,14 @@
     </section>
 
     <!-- PLAYER BREAKDOWN TABLE (TOP 5 SAMPLE ONLY) -->
-    @if (topPlayerComparisons.length > 0) {
+    @if (topComparisons.length > 0) {
     <div class="breakdown-section">
         <div class="section-title-row flex-between">
             <div>
                 <h2>{{ 'DRILLS.COACH_BIAS.SAMPLE_TITLE' | translate }}</h2>
                 <p class="section-desc">{{ 'DRILLS.COACH_BIAS.SAMPLE_DESC' | translate }} <a [routerLink]="selectedCoachId || biasReport.coachId ? ['/coach/profile', selectedCoachId || biasReport.coachId] : ['/coach/profile']" class="coach-link">{{ biasReport.coachName }}</a></p>
             </div>
-            <app-status-chip [label]="'Top ' + topPlayerComparisons.length + ' of ' + biasReport.playersAnalyzedCount + ' Players'" type="info"></app-status-chip>
+            <app-status-chip [label]="'DRILLS.BIAS_ANALYTICS.TOP_PLAYERS' | translate:{ top: topComparisons.length, total: biasReport.playersAnalyzedCount }" type="info"></app-status-chip>
         </div>
 
         <div class="table-card mt-3">
@@ -104,9 +104,9 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @for (item of topPlayerComparisons; track item.playerId) {
+                    @for (item of topComparisons; track item.playerId) {
                     <tr>
-                        <td class="player-name-cell clickable" [routerLink]="['/player/profile', item.playerId]" title="View Player Profile">
+                        <td class="player-name-cell clickable" [routerLink]="['/player/profile', item.playerId]" [title]="'DRILLS.BIAS_ANALYTICS.VIEW_PLAYER_PROFILE' | translate">
                             <div class="player-avatar-box">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -116,17 +116,17 @@
                             <span class="player-name">{{ item.playerName }}</span>
                         </td>
                         <td class="score-cell practice-score">
-                            <strong>{{ item.avgPracticeScore }}</strong> <span class="max-scale">/ 10</span>
+                            <strong>{{ item.avgPracticeScore }}</strong> <span class="max-scale">{{ 'DRILLS.BIAS_ANALYTICS.OUT_OF_10' | translate }}</span>
                         </td>
                         <td class="score-cell match-score">
-                            <strong>{{ item.avgMatchScore }}</strong> <span class="max-scale">/ 10</span>
+                            <strong>{{ item.avgMatchScore }}</strong> <span class="max-scale">{{ 'DRILLS.BIAS_ANALYTICS.OUT_OF_10' | translate }}</span>
                         </td>
                         <td class="delta-cell">
-                            ±{{ item.delta }} pts
+                            ±{{ item.delta }} {{ 'DRILLS.BIAS_ANALYTICS.PTS' | translate }}
                         </td>
                         <td>
                             <app-status-chip
-                                [label]="item.status"
+                                [label]="'DRILLS.BIAS_ANALYTICS.STATUS_' + (item.status.toUpperCase().replace('-', '_')) | translate"
                                 [type]="item.status === 'Accurate' ? 'success' : (item.status === 'Over-rated' ? 'warning' : 'danger')">
                             </app-status-chip>
                         </td>

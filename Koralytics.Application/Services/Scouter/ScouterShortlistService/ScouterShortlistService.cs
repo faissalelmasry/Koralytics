@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Koralytics.Application.DTOs.Player;
 using Koralytics.Application.DTOs.ScouterDtos;
@@ -54,13 +54,22 @@ namespace Koralytics.Application.Services.Scouter.ScouterShortlistService
                 throw new NotFoundException($"Player with ID {playerId} not found.");
             }
 
-            var alreadyShortlisted = await _unitOfWork.Repository<ScouterShortlist>()
-                .FindAsNoTrackingAsync(sl => sl.ScouterUserId == scouterId && sl.PlayerId == playerId);
+            var existingShortlist = await _unitOfWork.Repository<ScouterShortlist>()
+                .FindAsync(sl => sl.ScouterUserId == scouterId && sl.PlayerId == playerId);
 
-            if (alreadyShortlisted != null)
+            if (existingShortlist != null)
             {
-                _logger.LogInformation("Idempotency triggered: Player {PlayerId} is already shortlisted by Scouter {ScouterId}. Returning mapped existing record.", playerId, scouterId);
-                return _mapper.Map<ScouterShortlistDto>(alreadyShortlisted);
+                if (!existingShortlist.IsDeleted)
+                {
+                    _logger.LogInformation("Idempotency triggered: Player {PlayerId} is already shortlisted by Scouter {ScouterId}. Returning mapped existing record.", playerId, scouterId);
+                    return _mapper.Map<ScouterShortlistDto>(existingShortlist);
+                }
+
+                existingShortlist.IsDeleted = false;
+                existingShortlist.AddedAt = DateTime.UtcNow;
+                await _unitOfWork.SaveChangesAsync();
+                _logger.LogInformation("Successfully restored shortlist record for ScouterId: {ScouterId}, PlayerId: {PlayerId}", scouterId, playerId);
+                return _mapper.Map<ScouterShortlistDto>(existingShortlist);
             }
 
             var entry = new ScouterShortlist
@@ -168,6 +177,13 @@ namespace Koralytics.Application.Services.Scouter.ScouterShortlistService
                 PageNumber = pageNumber,
                 PageSize = pageSize
             };
+        }
+
+        public async Task<bool> IsShortlistedAsync(int scouterId, int playerId)
+        {
+            return await _unitOfWork.Repository<ScouterShortlist>()
+                .GetQueryableAsNoTracking()
+                .AnyAsync(sl => sl.ScouterUserId == scouterId && sl.PlayerId == playerId && !sl.IsDeleted);
         }
     }
 }

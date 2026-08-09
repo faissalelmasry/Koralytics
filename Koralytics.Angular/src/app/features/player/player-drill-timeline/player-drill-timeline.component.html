@@ -2,30 +2,30 @@
 
 <div class="page-wrapper">
 
-  <div class="tactical-tag" scrollReveal direction="bottom" [delay]="0">Drill Timeline</div>
+  <div class="tactical-tag" scrollReveal direction="bottom" [delay]="0">{{ 'PLAYER.DRILL_TIMELINE' | translate }}</div>
 
   <div class="header-row" scrollReveal direction="bottom" [delay]="50">
-    <h2 class="section-title">{{ playerName || 'Player' }}</h2>
-    <span class="badge-count">{{ totalItems }} Drills</span>
+    <h2 class="section-title">{{ playerName || ('PLAYER.PLAYER' | translate) }}</h2>
+    <span class="badge-count">{{ totalItems }} {{ 'PLAYER.DRILLS' | translate }}</span>
   </div>
 
   <div class="filter-panel-card" scrollReveal direction="bottom" [delay]="100">
     <div class="filter-grid">
       <div class="filter-item">
-        <app-select label="Category" [options]="categoryOptions" [(value)]="selectedCategory">
+        <app-select [label]="'PLAYER.CATEGORY' | translate" [options]="categoryOptions" [(value)]="selectedCategory">
         </app-select>
       </div>
       <div class="filter-item">
-        <app-date-picker label="From" [(value)]="selectedDateFrom" (valueChange)="onDateFromChange()">
+        <app-date-picker [label]="'PLAYER.FROM' | translate" [(value)]="selectedDateFrom" (valueChange)="onDateFromChange()">
         </app-date-picker>
       </div>
       <div class="filter-item">
-        <app-date-picker label="To" [(value)]="selectedDateTo" (valueChange)="onDateToChange()">
+        <app-date-picker [label]="'PLAYER.TO' | translate" [(value)]="selectedDateTo" (valueChange)="onDateToChange()">
         </app-date-picker>
       </div>
       <div class="filter-actions">
-        <app-button variant="accent" (click)="applyFilters()">Apply</app-button>
-        <app-button variant="slate" (click)="clearFilters()">Clear</app-button>
+        <app-button variant="accent" (click)="applyFilters()">{{ 'PLAYER.APPLY' | translate }}</app-button>
+        <app-button variant="slate" (click)="clearFilters()">{{ 'PLAYER.CLEAR' | translate }}</app-button>
       </div>
     </div>
   </div>
@@ -37,25 +37,25 @@
   @if (isLoading) {
   <div class="loading-state">
     <app-loading-spinner size="lg"></app-loading-spinner>
-    <p>Loading drill history...</p>
+    <p>{{ 'PLAYER.LOADING_DRILL_HISTORY' | translate }}</p>
   </div>
   }
   @else if (error) {
   <div class="error-state">
     <div class="error-icon">!</div>
     <p>{{ error }}</p>
-    <app-button variant="accent" (click)="loadTimeline()">Retry</app-button>
+    <app-button variant="accent" (click)="loadTimeline()">{{ 'PLAYER.RETRY' | translate }}</app-button>
   </div>
   }
   @else if (!events || events.length === 0) {
   <div class="empty-state-wrapper">
-    <app-empty-state title="No Drills Found"
-      description="No drills match the selected filters or there is no drill history recorded for this player yet.">
+    <app-empty-state [title]="'PLAYER.NO_DRILLS_FOUND' | translate"
+      [description]="'PLAYER.NO_DRILLS_DESC' | translate">
     </app-empty-state>
   </div>
   }
   @else {
-  <div class="group-label" scrollReveal direction="bottom" [delay]="200">Drill Performances</div>
+  <div class="group-label" scrollReveal direction="bottom" [delay]="200">{{ 'PLAYER.DRILL_PERFORMANCES' | translate }}</div>
 
   <div class="drills-grid">
     @for (event of events; track event.sessionId; let i = $index) {
@@ -67,12 +67,12 @@
       <div class="card-left-info">
         <div class="meta-header">
           @if (event.drillCategoryName) {
-          <span class="category-badge" [ngClass]="getScoreColorClass(event)">{{ event.drillCategoryName }}</span>
+          <span class="category-badge" [ngClass]="getScoreColorClass(event)">{{ translateCategory(event.drillCategoryName) }}</span>
           }
           <span class="meta-date">{{ formatDate(event.date) }}</span>
         </div>
-        <div class="card-title">{{ event.title }}</div>
-        <div class="card-subtitle">{{ event.sessionType }}</div>
+        <div class="card-title">{{ translateCategory(event.title) }}</div>
+        <div class="card-subtitle">{{ translateSessionType(event.sessionType) }}</div>
 
         @if (event.drillNotes) {
         <div class="coach-note">&ldquo;{{ event.drillNotes }}&rdquo;</div>
@@ -91,9 +91,9 @@
         </div>
 
         <div class="score-display-box">
-          <span class="lbl">RESULT</span>
+          <span class="lbl">{{ 'PLAYER.RESULT' | translate }}</span>
           <div class="score-display-val" [ngClass]="getScoreColorClass(event)">
-            <span>{{ event.finalScore ? event.finalScore.toFixed(1) : 'N/A' }}</span>
+            <span>{{ event.finalScore ? event.finalScore.toFixed(1) : ('PLAYER.NA' | translate) }}</span>
             <span class="max-mark">/10</span>
           </div>
         </div>

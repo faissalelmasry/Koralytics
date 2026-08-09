@@ -7,7 +7,7 @@
                 <line x1="19" y1="12" x2="5" y2="12"></line>
                 <polyline points="12 19 5 12 12 5"></polyline>
             </svg>
-            <span>Back to Drill Sessions</span>
+            <span>{{ 'DRILLS.WEAK_CATEGORIES.BACK_TO_DRILL_SESSIONS' | translate }}</span>
         </button>
     </div>
 
@@ -16,18 +16,18 @@
         <div>
             <div class="header-eyebrow">
                 <span class="eyebrow-dot"></span>
-                <span class="eyebrow-text">Squad Diagnostics</span>
+                <span class="eyebrow-text">{{ 'DRILLS.WEAK_CATEGORIES.SQUAD_DIAGNOSTICS' | translate }}</span>
             </div>
-            <h1 class="header-title">Weak Categories Analysis</h1>
-            <p class="header-subtitle">Identify performance gaps and generate automated session remedies.</p>
+            <h1 class="header-title">{{ 'DRILLS.WEAK_CATEGORIES.WEAK_CATEGORIES_ANALYSIS' | translate }}</h1>
+            <p class="header-subtitle">{{ 'DRILLS.WEAK_CATEGORIES.IDENTIFY_GAPS_DESC' | translate }}</p>
         </div>
 
         <!-- TEAM FILTER DROPDOWN -->
         <div class="filter-box">
             <app-select
-                label="Selected Squad / Team"
-                placeholder="Select Team"
-                [options]="teamOptions"
+                [label]="'DRILLS.WEAK_CATEGORIES.SELECTED_SQUAD' | translate"
+                [placeholder]="'DRILLS.SESSION_CREATE.SELECT_TEAM' | translate"
+                [options]="teamOptionsList"
                 [value]="selectedTeamId"
                 (valueChange)="onTeamSelect($event)">
             </app-select>
@@ -37,7 +37,7 @@
     @if (isLoading) {
     <div class="loading-state text-center py-5">
         <app-loading-spinner size="lg"></app-loading-spinner>
-        <p class="loading-text mt-3">Analyzing squad drill ratings and aggregating weak metrics...</p>
+        <p class="loading-text mt-3">{{ 'DRILLS.WEAK_CATEGORIES.ANALYZING_SQUAD_RATINGS' | translate }}</p>
     </div>
     } @else if (errorMessage) {
     <div class="error-banner flex-align">
@@ -56,8 +56,8 @@
         <section class="panel chart-panel">
             <div class="panel-header flex-between">
                 <div>
-                    <h2>Category Performance Spectrum</h2>
-                    <p class="helper-text">Sorted from lowest performing category to highest.</p>
+                    <h2>{{ 'DRILLS.WEAK_CATEGORIES.CATEGORY_PERFORMANCE_SPECTRUM' | translate }}</h2>
+                    <p class="helper-text">{{ 'DRILLS.WEAK_CATEGORIES.SORTED_FROM_LOWEST_DESC' | translate }}</p>
                 </div>
             </div>
 
@@ -82,7 +82,7 @@
             </div>
             } @else {
             <div class="empty-state">
-                <p>No drill performance records found for this team yet.</p>
+                <p>{{ 'DRILLS.WEAK_CATEGORIES.NO_DRILL_RECORDS_FOUND' | translate }}</p>
             </div>
             }
         </section>
@@ -91,10 +91,10 @@
         <section class="panel suggestions-panel">
             <div class="panel-header flex-between">
                 <div>
-                    <h2>Recommended Remedial Drills</h2>
-                    <p class="helper-text">Suggested drills to fix identified squad weaknesses.</p>
+                    <h2>{{ 'DRILLS.WEAK_CATEGORIES.RECOMMENDED_REMEDIAL_DRILLS' | translate }}</h2>
+                    <p class="helper-text">{{ 'DRILLS.WEAK_CATEGORIES.SUGGESTED_DRILLS_DESC' | translate }}</p>
                 </div>
-                <button class="btn-accent-small" (click)="scheduleSuggestedSession()">+ Schedule Session</button>
+                <button class="btn-accent-small" (click)="scheduleSuggestedSession()">+ {{ 'DRILLS.SESSION_CREATE.SCHEDULE_SESSION' | translate }}</button>
             </div>
 
             <div class="suggestions-list mt-3">
@@ -103,15 +103,15 @@
                     <div class="card-top flex-between">
                         <h3 class="sug-category">{{ sug.categoryName }}</h3>
                         <app-status-chip
-                            [label]="sug.priority + ' PRIORITY'"
+                            [label]="'DRILLS.WEAK_CATEGORIES.PRIORITY_' + (sug.priority | uppercase) | translate"
                             [type]="getPriorityChipType(sug.priority)">
                         </app-status-chip>
                     </div>
 
-                    <p class="sug-focus">{{ sug.recommendedFocus }}</p>
+                    <p class="sug-focus">{{ sug.recommendedFocus | translate }}</p>
 
                     <div class="suggested-drills-box mt-2">
-                        <span class="drills-label">Suggested Drill Templates:</span>
+                        <span class="drills-label">{{ 'DRILLS.WEAK_CATEGORIES.SUGGESTED_DRILL_TEMPLATES' | translate }}</span>
                         <ul class="drills-list">
                             @for (drillName of sug.suggestedDrills; track $index) {
                             <li>

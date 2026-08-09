@@ -22,6 +22,7 @@ export class FeatureLockComponent implements OnInit, OnChanges {
 
   isLocked: boolean = false;
   requiredTier: string = 'Pro';
+  showModal: boolean = false;
 
   ngOnInit() {
     this.checkAccess();
@@ -61,8 +62,20 @@ export class FeatureLockComponent implements OnInit, OnChanges {
     }
   }
 
+  openModal(event?: Event) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    this.showModal = true;
+  }
+
+  closeModal() {
+    this.showModal = false;
+  }
+
   upgrade() {
-    // Could route to pricing/upgrade page if available
-    this.router.navigate(['/']);
+    this.showModal = false;
+    this.router.navigate(['/pricing']);
   }
 }

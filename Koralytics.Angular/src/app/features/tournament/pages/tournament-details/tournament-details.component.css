@@ -1631,3 +1631,194 @@
     gap: 10px;
   }
 }
+
+.academy-search-box {
+  margin-bottom: 20px;
+  max-width: 450px;
+}
+
+.fixture-row.clickable,
+.match-box.clickable {
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.fixture-row.clickable:hover,
+.match-box.clickable:hover {
+  border-color: #00f2fe;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 242, 254, 0.15);
+}
+
+.fixture-action-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  background: rgba(0, 242, 254, 0.1);
+  color: #00f2fe;
+  border: 1px solid rgba(0, 242, 254, 0.25);
+  transition: all 0.2s ease;
+}
+
+.fixture-row.clickable:hover .fixture-action-badge {
+  background: #00f2fe;
+  color: #000;
+}
+
+.fixture-action-badge.completed {
+  background: rgba(46, 204, 113, 0.1);
+  color: #2ecc71;
+  border-color: rgba(46, 204, 113, 0.25);
+}
+
+.fixture-row.clickable:hover .fixture-action-badge.completed {
+  background: #2ecc71;
+  color: #fff;
+}
+
+/* Knockout Stage Banner Card */
+.knockout-cta-card {
+  position: relative;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.9) 100%);
+  border: 1px solid rgba(0, 242, 254, 0.25);
+  border-radius: 14px;
+  padding: 24px 28px;
+  margin-bottom: 24px;
+  overflow: hidden;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.35), 0 0 20px rgba(0, 242, 254, 0.08);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.knockout-cta-card:hover {
+  border-color: rgba(0, 242, 254, 0.45);
+  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.45), 0 0 30px rgba(0, 242, 254, 0.15);
+}
+
+.cta-glow-bg {
+  position: absolute;
+  top: -50px;
+  right: -50px;
+  width: 220px;
+  height: 220px;
+  background: radial-gradient(circle, rgba(0, 242, 254, 0.18) 0%, rgba(79, 70, 229, 0.08) 50%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(20px);
+}
+
+.cta-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 768px) {
+  .cta-inner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.cta-header-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 620px;
+}
+
+.cta-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #00f2fe;
+  background: rgba(0, 242, 254, 0.1);
+  border: 1px solid rgba(0, 242, 254, 0.2);
+  padding: 4px 10px;
+  border-radius: 20px;
+  width: fit-content;
+}
+
+.cta-title {
+  margin: 4px 0 0 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+}
+
+.cta-description {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.cta-generate-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+  color: #090d16;
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 12px 24px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 4px 16px rgba(0, 242, 254, 0.3);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.cta-generate-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 242, 254, 0.45);
+  background: linear-gradient(135deg, #38f9d7 0%, #4facfe 100%);
+}
+
+.cta-generate-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.cta-feedback-banner {
+  margin-top: 16px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  z-index: 1;
+}
+
+.cta-feedback-banner.success {
+  background: rgba(46, 204, 113, 0.12);
+  color: #2ecc71;
+  border: 1px solid rgba(46, 204, 113, 0.3);
+}
+
+.cta-feedback-banner.error {
+  background: rgba(231, 76, 60, 0.12);
+  color: #e74c3c;
+  border: 1px solid rgba(231, 76, 60, 0.3);
+}
+
+
+

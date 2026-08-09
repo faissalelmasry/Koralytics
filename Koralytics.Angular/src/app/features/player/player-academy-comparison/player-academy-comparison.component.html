@@ -4,7 +4,7 @@
   @if (isLoading) {
     <div class="loading-state">
       <app-loading-spinner size="lg"></app-loading-spinner>
-      <p>Loading comparison...</p>
+      <p>{{ 'PLAYER.LOADING_COMPARISON' | translate }}</p>
     </div>
   }
   @else if (error) {
@@ -18,9 +18,12 @@
 
       <!-- HEADER BANNER – same style as player-profile hero-banner, clickable -->
       <div class="hero-banner profile-style-banner" (click)="goToProfile()" role="button" tabindex="0"
-           (keydown.enter)="goToProfile()" title="View Player Profile">
+           (keydown.enter)="goToProfile()" [title]="'PLAYER.VIEW_PLAYER_PROFILE' | translate">
         <div class="player-identity">
-          <div class="avatar-circle">{{ playerInitials }}</div>
+          <div class="avatar-circle">
+            <img *ngIf="profileImageUrl && !imageError" [src]="profileImageUrl" [alt]="data.playerName" class="avatar-img" (error)="imageError = true" />
+            <span *ngIf="!profileImageUrl || imageError">{{ playerInitials }}</span>
+          </div>
           <div>
             <h1>{{ data.playerName }}</h1>
             <div class="meta-pills">
@@ -38,16 +41,16 @@
 
         <div class="bio-quick-list">
           <div class="bio-item">
-            <span class="bio-lbl">Above Avg</span>
+            <span class="bio-lbl">{{ 'PLAYER.ABOVE_AVG' | translate }}</span>
             <span class="bio-val" style="color: var(--tier-neon);">{{ aboveAvgCount }}</span>
           </div>
           <div class="bio-item">
-            <span class="bio-lbl">Avg Rating</span>
+            <span class="bio-lbl">{{ 'PLAYER.AVG_RATING' | translate }}</span>
             <span class="bio-val">{{ avgRating }}</span>
           </div>
           <div class="bio-item">
-            <span class="bio-lbl">Position</span>
-            <span class="bio-val" style="color: var(--tier-neon);">{{ data.isGoalkeeper ? 'GK' : 'Field' }}</span>
+            <span class="bio-lbl">{{ 'PLAYER.POSITION' | translate }}</span>
+            <span class="bio-val" style="color: var(--tier-neon);">{{ data.isGoalkeeper ? ('PLAYER.GK' | translate) : ('PLAYER.FIELD' | translate) }}</span>
           </div>
         </div>
 
@@ -64,7 +67,7 @@
         @for (cat of data.categories; track cat.categoryId) {
           <div class="gk-full-card">
             <div class="gk-full-card-header">
-              <span class="card-title">Player Goalkeeping vs Academy GK Avg</span>
+              <span class="card-title">{{ 'PLAYER.PLAYER_GK_VS_ACADEMY_GK_AVG' | translate }}</span>
               <span class="diff-badge" [class.gold]="isAboveAvg(cat)" [class.green]="!isAboveAvg(cat)">
                 {{ categoryDiffLabel(cat) }}
               </span>
@@ -72,12 +75,12 @@
 
             <div class="gk-full-scores">
               <div class="gk-full-player" [class.gold]="isAboveAvg(cat)" [class.green]="!isAboveAvg(cat)">
-                <span class="gk-full-lbl">Player</span>
+                <span class="gk-full-lbl">{{ 'PLAYER.PLAYER' | translate }}</span>
                 <span class="gk-full-val">{{ cat.playerAverage.toFixed(1) }}</span>
               </div>
-              <div class="gk-full-vs">VS</div>
+              <div class="gk-full-vs">{{ 'PLAYER.VS' | translate }}</div>
               <div class="gk-full-acad">
-                <span class="gk-full-lbl">Academy GK Avg</span>
+                <span class="gk-full-lbl">{{ 'PLAYER.ACADEMY_GK_AVG' | translate }}</span>
                 <span class="gk-full-val">{{ cat.academyAverage.toFixed(1) }}</span>
               </div>
             </div>
@@ -89,8 +92,8 @@
             </div>
 
             <div class="gk-full-legend">
-              <span><span class="legend-dot" style="color:var(--status-gold, #ffd700);">●</span> Player</span>
-              <span><span class="legend-dot" style="color:var(--electric-cyan, #00e5ff);">●</span> Academy GK Avg</span>
+              <span><span class="legend-dot" style="color:var(--status-gold, #ffd700);">●</span> {{ 'PLAYER.PLAYER' | translate }}</span>
+              <span><span class="legend-dot" style="color:var(--electric-cyan, #00e5ff);">●</span> {{ 'PLAYER.ACADEMY_GK_AVG' | translate }}</span>
             </div>
           </div>
         }
@@ -99,10 +102,10 @@
         <div class="dashboard-grid">
           <div class="radar-card">
             <div class="card-title">
-              <span>Skill Radar Comparison</span>
+              <span>{{ 'PLAYER.SKILL_RADAR_COMPARISON' | translate }}</span>
               <span class="legend-keys">
-                <span class="legend-dot" style="color:#ffd700;">●</span> Player
-                <span class="legend-dot" style="color:#00e5ff;">●</span> Academy
+                <span class="legend-dot" style="color:#ffd700;">●</span> {{ 'PLAYER.PLAYER' | translate }}
+                <span class="legend-dot" style="color:#00e5ff;">●</span> {{ 'PLAYER.ACADEMY' | translate }}
               </span>
             </div>
             <div class="radar-wrapper">
@@ -114,20 +117,20 @@
             @for (cat of data.categories; track cat.categoryId) {
               <div class="metric-card" [class.above-avg]="isAboveAvg(cat)" [class.below-avg]="!isAboveAvg(cat)">
                 <div class="metric-header">
-                  <span class="metric-name">{{ cat.categoryName }}</span>
+                  <span class="metric-name">{{ ('PLAYER.CAT_' + cat.categoryName.toUpperCase()) | translate }}</span>
                   <span class="diff-badge" [class.gold]="isAboveAvg(cat)" [class.green]="!isAboveAvg(cat)">
                     {{ categoryDiffLabel(cat) }}
                   </span>
                 </div>
                 <div class="metric-body">
                   <div class="p-score-box">
-                    <div class="lbl">Player Score</div>
+                    <div class="lbl">{{ 'PLAYER.PLAYER_SCORE' | translate }}</div>
                     <div class="p-score" [class.gold]="isAboveAvg(cat)" [class.green]="!isAboveAvg(cat)">
                       {{ cat.playerAverage.toFixed(1) }}
                     </div>
                   </div>
                   <div class="acad-score-box">
-                    <div class="lbl">Academy Avg</div>
+                    <div class="lbl">{{ 'PLAYER.ACADEMY_AVG' | translate }}</div>
                     <div class="acad-score">{{ cat.academyAverage.toFixed(1) }}</div>
                   </div>
                 </div>
@@ -145,7 +148,7 @@
         @for (cat of data.categories; track cat.categoryId) {
           <div class="gk-full-card">
             <div class="gk-full-card-header">
-              <span class="card-title">Player {{ cat.categoryName }} vs Academy Avg</span>
+              <span class="card-title">{{ 'PLAYER.PLAYER_VS_ACADEMY_AVG' | translate:{category: ('PLAYER.CAT_' + cat.categoryName.toUpperCase() | translate)} }}</span>
               <span class="diff-badge" [class.gold]="isAboveAvg(cat)" [class.green]="!isAboveAvg(cat)">
                 {{ categoryDiffLabel(cat) }}
               </span>
@@ -153,12 +156,12 @@
 
             <div class="gk-full-scores">
               <div class="gk-full-player" [class.gold]="isAboveAvg(cat)" [class.green]="!isAboveAvg(cat)">
-                <span class="gk-full-lbl">Player</span>
+                <span class="gk-full-lbl">{{ 'PLAYER.PLAYER' | translate }}</span>
                 <span class="gk-full-val">{{ cat.playerAverage.toFixed(1) }}</span>
               </div>
-              <div class="gk-full-vs">VS</div>
+              <div class="gk-full-vs">{{ 'PLAYER.VS' | translate }}</div>
               <div class="gk-full-acad">
-                <span class="gk-full-lbl">Academy Avg</span>
+                <span class="gk-full-lbl">{{ 'PLAYER.ACADEMY_AVG' | translate }}</span>
                 <span class="gk-full-val">{{ cat.academyAverage.toFixed(1) }}</span>
               </div>
             </div>
@@ -170,8 +173,8 @@
             </div>
 
             <div class="gk-full-legend">
-              <span><span class="legend-dot" style="color:var(--status-gold, #ffd700);">●</span> Player</span>
-              <span><span class="legend-dot" style="color:var(--electric-cyan, #00e5ff);">●</span> Academy Avg</span>
+              <span><span class="legend-dot" style="color:var(--status-gold, #ffd700);">●</span> {{ 'PLAYER.PLAYER' | translate }}</span>
+              <span><span class="legend-dot" style="color:var(--electric-cyan, #00e5ff);">●</span> {{ 'PLAYER.ACADEMY_AVG' | translate }}</span>
             </div>
           </div>
         }

@@ -55,6 +55,33 @@
             "THU": "Th",
             "FRI": "Fr",
             "SAT": "Sa"
+        },
+        "CONFIRM": "Confirm",
+        "REMOVE": "Remove",
+        "CREATE": "Create",
+        "EDIT": "Edit",
+        "CLOSE": "Close",
+        "SELECT": "Select",
+        "SAVE_CHANGES": "Save Changes",
+        "POSITIONS": {
+            "FWD": "FWD",
+            "MID": "MID",
+            "DEF": "DEF",
+            "GK": "GK",
+            "CB": "CB",
+            "LB": "LB",
+            "RB": "RB",
+            "LWB": "LWB",
+            "RWB": "RWB",
+            "CDM": "CDM",
+            "CM": "CM",
+            "CAM": "CAM",
+            "LM": "LM",
+            "RM": "RM",
+            "LW": "LW",
+            "RW": "RW",
+            "ST": "ST",
+            "CF": "CF"
         }
     },
     "ROLES": {

@@ -1,10 +1,11 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-transfer-canvas',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslatePipe],
   templateUrl: './transfer-canvas.component.html',
   styleUrls: ['./transfer-canvas.component.css']
 })
@@ -27,6 +28,13 @@ export class TransferCanvasComponent {
     if (!this.transferClassification) return '';
     if (this.transferClassification === 'Natural') return 'Expert';
     return this.transferClassification;
+  }
+
+  get displayClassificationKey(): string {
+    const cls = this.displayClassification;
+    if (!cls) return 'PLAYER.PLAYER';
+    if (cls === 'NeedsWork') return 'PLAYER.NEEDS_WORK';
+    return 'PLAYER.' + cls.toUpperCase();
   }
 
   get nodeLeft(): string {

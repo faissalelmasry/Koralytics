@@ -1,6 +1,9 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatchCardModel } from '../../../../core/models/Match/match-card.model';
+import { MarqueeIfOverflowDirective } from '../match-timeline/marquee-if-overflow.directive';
+import { TranslatePipe } from '@ngx-translate/core';
+import { LocalizedDatePipe } from '../../../../shared/pipes/localized-date.pipe';
 
 const FORMAT_LABELS: Record<string, string> = {
   FiveSide: '5 v 5',
@@ -11,7 +14,7 @@ const FORMAT_LABELS: Record<string, string> = {
 @Component({
   selector: 'app-match-card',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, MarqueeIfOverflowDirective, TranslatePipe, LocalizedDatePipe],
   templateUrl: './match-card.component.html',
   styleUrls: ['./match-card.component.css']
 })
@@ -40,10 +43,10 @@ export class MatchCardComponent {
 
   get statusLabel(): string {
     switch (this.match?.status) {
-      case 'Live': return 'IN PROGRESS';
-      case 'Scheduled': return 'SCHEDULED';
-      case 'Completed': return 'COMPLETED';
-      case 'Cancelled': return 'CANCELLED';
+      case 'Live': return 'MATCH.CARD.IN_PROGRESS';
+      case 'Scheduled': return 'MATCH.CARD.SCHEDULED';
+      case 'Completed': return 'MATCH.CARD.COMPLETED';
+      case 'Cancelled': return 'MATCH.CARD.CANCELLED';
       default: return '';
     }
   }
@@ -111,7 +114,11 @@ export class MatchCardComponent {
   }
 
   get formatLabel(): string {
-    return FORMAT_LABELS[this.match?.format] ?? this.match?.format;
+    const raw = this.match?.format;
+    if (raw === 'FiveSide') return 'MATCH.FORMAT.FIVE_SIDE';
+    if (raw === 'SevenSide') return 'MATCH.FORMAT.SEVEN_SIDE';
+    if (raw === 'ElevenSide') return 'MATCH.FORMAT.ELEVEN_SIDE';
+    return raw;
   }
 
   onClick(): void {

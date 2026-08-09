@@ -3,7 +3,7 @@ import { User } from './user.model';
 export interface AcademyResponseDto {
   id: number;
   name: string;
-  logoUrl?: string;
+  logoUrl?: string | null;
   contactEmail?: string;
   contactPhone?: string;
   createdAt: string;

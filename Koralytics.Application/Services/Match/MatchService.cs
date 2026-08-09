@@ -384,14 +384,19 @@ namespace Koralytics.Application.Services.Match
             await _unitOfWork.SaveChangesAsync();
 
             var fixture = await _unitOfWork.Repository<TournamentFixture>()
-                .GetQueryableAsNoTracking()
-                .FirstOrDefaultAsync(f => f.MatchId == matchId && f.GroupId != null);
+                .GetQueryable()
+                .FirstOrDefaultAsync(f => f.MatchId == matchId);
 
             if (fixture != null)
             {
                 fixture.HomeScore = match.HomeScore;
                 fixture.AwayScore = match.AwayScore;
-                fixture.WinnerTeamId = match.WinningTeamId;
+                if (match.HomeScore > match.AwayScore)
+                    fixture.WinnerTeamId = fixture.HomeTeamId;
+                else if (match.AwayScore > match.HomeScore)
+                    fixture.WinnerTeamId = fixture.AwayTeamId;
+                else
+                    fixture.WinnerTeamId = null;
                 fixture.Status = MatchStatus.Completed;
 
                 await _unitOfWork.SaveChangesAsync();

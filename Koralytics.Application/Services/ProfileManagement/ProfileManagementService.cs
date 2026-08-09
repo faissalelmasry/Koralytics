@@ -230,5 +230,36 @@ namespace Koralytics.Application.Services.ProfileManagement
 
             return newImageUrl;
         }
+
+        public async Task RemoveProfileImageAsync(int userId)
+        {
+            _logger.LogInformation("Removing profile image for user ID: {UserId}", userId);
+
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null)
+            {
+                throw new NotFoundException($"User with ID {userId} was not found.");
+            }
+
+            if (!string.IsNullOrEmpty(user.ProfileImageUrl))
+            {
+                try
+                {
+                    await _storageService.DeleteFileAsync(user.ProfileImageUrl);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to delete old profile image {Url} for user ID {UserId}", user.ProfileImageUrl, userId);
+                }
+                user.ProfileImageUrl = null;
+                var updateResult = await _userManager.UpdateAsync(user);
+                if (!updateResult.Succeeded)
+                {
+                    var errors = string.Join(", ", updateResult.Errors.Select(e => e.Description));
+                    _logger.LogWarning("Failed to clear profile image URL for user ID {UserId}: {Errors}", userId, errors);
+                    throw new BadRequestException($"Failed to remove profile image: {errors}");
+                }
+            }
+        }
     }
 }

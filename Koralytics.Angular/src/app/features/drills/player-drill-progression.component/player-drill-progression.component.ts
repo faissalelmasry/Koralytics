@@ -1,5 +1,6 @@
-import { Component, OnInit, OnChanges, SimpleChanges, Input, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, OnDestroy, OnChanges, SimpleChanges, Input, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { CommonModule, Location } from '@angular/common';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DrillSessionService } from '../../../../core/services/drill/drill-session.service';
@@ -7,26 +8,38 @@ import { CustomSelect, SelectOption } from '../../../../shared/components/custom
 import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner';
 import { CustomButtonComponent } from '../../../../shared/components/custom-button/custom-button';
 
+import { Subscription } from 'rxjs';
+import { DrillCategoryDto } from '../../../../core/interfaces/drill-template.model';
+
 interface ProgressionPoint {
   sessionDate: string;
   finalScore: number;
   drillName: string;
 }
 
+interface ProgressionResponse {
+  categoryName?: string;
+  progressionChart?: ProgressionPoint[];
+}
+
 @Component({
   selector: 'app-player-drill-progression',
   standalone: true,
-  imports: [CommonModule, FormsModule, CustomSelect, LoadingSpinnerComponent, CustomButtonComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush, // 🟢 OPTIMIZATION: OnPush enabled
+  imports: [CommonModule, FormsModule, CustomSelect, LoadingSpinnerComponent, CustomButtonComponent, TranslatePipe],
   templateUrl: './player-drill-progression.component.html',
   styleUrls: ['./player-drill-progression.component.css']
 })
-export class PlayerDrillProgressionComponent implements OnInit, OnChanges {
+export class PlayerDrillProgressionComponent implements OnInit, OnChanges, OnDestroy {
+  // 🟢 OPTIMIZATION: Memory management
+  private subscriptions = new Subscription();
+
   @Input() playerId?: number | null;
   @Input() tierButtonVariant: 'accent' | 'coral' | 'cyan' | 'slate' | 'amber' | 'gold' = 'accent';
 
   categoryOptions: SelectOption[] = [];
   selectedCategoryId: number | null = null;
-  categories: any[] = [];
+  categories: DrillCategoryDto[] = [];
   progressionData: ProgressionPoint[] = [];
 
   categoryName = '';
@@ -47,24 +60,33 @@ export class PlayerDrillProgressionComponent implements OnInit, OnChanges {
     private route: ActivatedRoute,
     private router: Router,
     private sessionService: DrillSessionService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private translate: TranslateService,
+    private location: Location
   ) { }
 
   ngOnInit(): void {
     if (this.playerId) {
       this.loadCategories();
     } else {
-      this.route.paramMap.subscribe(params => {
-        const id = params.get('id') || params.get('playerId');
-        if (id) {
-          this.playerId = Number(id);
-          this.loadCategories();
-        } else {
-          this.errorMessage = 'No Player ID provided.';
-          this.isLoading = false;
-        }
-      });
+      this.subscriptions.add(
+        this.route.paramMap.subscribe(params => {
+          const id = params.get('id') || params.get('playerId');
+          if (id) {
+            this.playerId = Number(id);
+            this.loadCategories();
+          } else {
+            this.errorMessage = 'No Player ID provided.';
+            this.isLoading = false;
+            this.cdr.markForCheck();
+          }
+        })
+      );
     }
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -73,29 +95,33 @@ export class PlayerDrillProgressionComponent implements OnInit, OnChanges {
     }
   }
 
-  onCategorySelect(catId: any): void {
+  onCategorySelect(catId: string | number | null): void {
     this.selectedCategoryId = catId ? Number(catId) : null;
     this.onCategoryChange();
   }
 
   private loadCategories(): void {
-    this.sessionService.getCategories().subscribe({
-      next: (cats) => {
-        this.categories = cats || [];
-        this.categoryOptions = this.categories.map(c => ({ value: c.id, label: c.name }));
-        if (this.categories.length > 0) {
-          this.selectedCategoryId = this.categories[0].id;
-          this.fetchProgression();
-        } else {
+    this.subscriptions.add(
+      this.sessionService.getCategories().subscribe({
+        next: (cats: DrillCategoryDto[]) => {
+          this.categories = cats || [];
+          this.categoryOptions = this.categories.map(c => ({ value: c.id, label: this.translate.instant('PLAYER.CAT_' + c.name.toUpperCase()) !== 'PLAYER.CAT_' + c.name.toUpperCase() ? this.translate.instant('PLAYER.CAT_' + c.name.toUpperCase()) : c.name }));
+          if (this.categories.length > 0) {
+            this.selectedCategoryId = this.categories[0].id;
+            this.fetchProgression();
+          } else {
+            this.isLoading = false;
+            this.cdr.markForCheck();
+          }
+        },
+        error: (err) => {
+          console.error('Failed to load categories', err);
+          this.errorMessage = 'Could not load drill categories.';
           this.isLoading = false;
+          this.cdr.markForCheck();
         }
-      },
-      error: (err) => {
-        console.error('Failed to load categories', err);
-        this.errorMessage = 'Could not load drill categories.';
-        this.isLoading = false;
-      }
-    });
+      })
+    );
   }
 
   onCategoryChange(): void {
@@ -111,21 +137,23 @@ export class PlayerDrillProgressionComponent implements OnInit, OnChanges {
     this.errorMessage = '';
     this.hoveredPoint = null;
 
-    this.sessionService.getPlayerProgression(this.playerId, this.selectedCategoryId).subscribe({
-      next: (res: any) => {
-        this.categoryName = res.categoryName || 'Category Progression';
-        this.progressionData = res.progressionChart || [];
-        this.calculateChartData();
-        this.isLoading = false;
-        this.cdr.markForCheck();
-      },
-      error: (err) => {
-        console.error('Progression Fetch Error', err);
-        this.errorMessage = err.error?.message || 'Failed to load player progression data.';
-        this.isLoading = false;
-        this.cdr.markForCheck();
-      }
-    });
+    this.subscriptions.add(
+      this.sessionService.getPlayerProgression(this.playerId, this.selectedCategoryId).subscribe({
+        next: (res: ProgressionResponse) => {
+          this.categoryName = res.categoryName || 'Category Progression';
+          this.progressionData = res.progressionChart || [];
+          this.calculateChartData();
+          this.isLoading = false;
+          this.cdr.markForCheck();
+        },
+        error: (err) => {
+          console.error('Progression Fetch Error', err);
+          this.errorMessage = err.error?.message || 'Failed to load player progression data.';
+          this.isLoading = false;
+          this.cdr.markForCheck();
+        }
+      })
+    );
   }
 
   private calculateChartData(): void {
@@ -171,7 +199,7 @@ export class PlayerDrillProgressionComponent implements OnInit, OnChanges {
   }
 
   goBack(): void {
-    window.history.back();
+    this.location.back();
   }
 
   goToDrillTimeline(): void {

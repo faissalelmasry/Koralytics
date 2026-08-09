@@ -2,10 +2,10 @@
     <header class="page-header">
         <div class="header-eyebrow">
             <span class="eyebrow-dot"></span>
-            <span class="eyebrow-text">Session Planner</span>
+            <span class="eyebrow-text">{{ 'DRILLS.SESSION_CREATE.SESSION_PLANNER' | translate }}</span>
         </div>
-        <h1 class="header-title">Schedule Session</h1>
-        <p class="header-subtitle">Configure pitch details and select the expected squad</p>
+        <h1 class="header-title">{{ 'DRILLS.SESSION_CREATE.SCHEDULE_SESSION' | translate }}</h1>
+        <p class="header-subtitle">{{ 'DRILLS.SESSION_CREATE.CONFIGURE_PITCH_DESC' | translate }}</p>
     </header>
 
     @if (errorMessage) {
@@ -23,30 +23,30 @@
 
         <!-- LEFT COLUMN: SESSION DETAILS -->
         <section class="form-panel details-panel">
-            <h2 class="panel-title">Session Details</h2>
+            <h2 class="panel-title">{{ 'DRILLS.SESSION_CREATE.SESSION_DETAILS' | translate }}</h2>
             
             <div class="form-group">
                 <app-select
-                    label="Target Squad (Team)"
-                    placeholder="Select a team..."
+                    label="{{ 'DRILLS.SESSION_CREATE.TARGET_SQUAD' | translate }}"
+                    [placeholder]="'DRILLS.SESSION_CREATE.SELECT_TEAM' | translate"
                     [options]="teamOptions"
                     [value]="sessionForm.get('teamId')?.value"
                     (valueChange)="onTeamChangeCustom($event)">
                 </app-select>
                 @if (sessionForm.get('teamId')?.touched && sessionForm.get('teamId')?.invalid) {
-                <span class="error-text">Team selection is required.</span>
+                <span class="error-text">{{ 'DRILLS.SESSION_CREATE.TEAM_SELECTION_REQUIRED' | translate }}</span>
                 }
             </div>
 
             <div class="row-group mt-3">
                 <div class="form-group half">
                     <app-date-picker
-                        label="Date"
+                        label="{{ 'DRILLS.SESSION_CREATE.DATE' | translate }}"
                         formControlName="sessionDate">
                     </app-date-picker>
                 </div>
                 <div class="form-group half">
-                    <label>Time</label>
+                    <label>{{ 'DRILLS.SESSION_CREATE.TIME' | translate }}</label>
                     <input type="time" class="native-input" formControlName="sessionTime">
                 </div>
             </div>
@@ -54,22 +54,22 @@
             <div class="row-group mt-3">
                 <div class="form-group half">
                     <app-select
-                        label="Session Type"
-                        placeholder="Select type..."
+                        label="{{ 'DRILLS.SESSION_CREATE.SESSION_TYPE' | translate }}"
+                        [placeholder]="'DRILLS.SESSION_CREATE.SELECT_TYPE' | translate"
                         [options]="typeOptions"
                         [value]="sessionForm.get('type')?.value"
                         (valueChange)="onTypeChangeCustom($event)">
                     </app-select>
                 </div>
                 <div class="form-group half">
-                    <label>Location / Pitch</label>
+                    <label>{{ 'DRILLS.SESSION_CREATE.LOCATION_PITCH' | translate }}</label>
                     <input type="text" class="native-input" formControlName="location"
                         placeholder="e.g., Main Pitch - North">
                 </div>
             </div>
 
             <div class="form-group mt-3">
-                <label>Tactical Notes</label>
+                <label>{{ 'DRILLS.SESSION_CREATE.TACTICAL_NOTES' | translate }}</label>
                 <textarea class="native-input textarea" formControlName="notes" rows="4"
                     placeholder="Enter tactical objectives or gear requirements..."></textarea>
             </div>
@@ -78,12 +78,12 @@
         <!-- RIGHT COLUMN: ROSTER SELECTION -->
         <section class="form-panel roster-panel">
             <div class="roster-header flex-between">
-                <h2 class="panel-title">Expected Squad</h2>
+                <h2 class="panel-title">{{ 'DRILLS.SESSION_CREATE.EXPECTED_SQUAD' | translate }}</h2>
                 @if (availablePlayers.length > 0) {
                 <div class="roster-actions">
-                    <button type="button" class="btn-text" (click)="selectAllPlayers()">Select All</button>
+                    <button type="button" class="btn-text" (click)="selectAllPlayers()">{{ 'DRILLS.SESSION_CREATE.SELECT_ALL' | translate }}</button>
                     <span class="divider">|</span>
-                    <button type="button" class="btn-text" (click)="deselectAllPlayers()">Clear</button>
+                    <button type="button" class="btn-text" (click)="deselectAllPlayers()">{{ 'DRILLS.SESSION_CREATE.CLEAR' | translate }}</button>
                 </div>
                 }
             </div>
@@ -91,7 +91,7 @@
             <div class="roster-list">
                 @if (availablePlayers.length === 0) {
                 <div class="empty-roster">
-                    <p>Select a team to load the roster.</p>
+                    <p>{{ 'DRILLS.SESSION_CREATE.SELECT_TEAM_TO_LOAD' | translate }}</p>
                 </div>
                 } @else {
                 @for (player of availablePlayers; track player.id) {
@@ -111,9 +111,9 @@
 
         <!-- BOTTOM ACTION BAR -->
         <div class="action-bar">
-            <app-button variant="slate" (click)="cancel()">Cancel</app-button>
+            <app-button variant="slate" (click)="cancel()">{{ 'COMMON.CANCEL' | translate }}</app-button>
             <app-button variant="accent" [loading]="isSubmitting" [disabled]="sessionForm.invalid || isSubmitting" (click)="onSubmit()">
-                Schedule Session
+                {{ 'DRILLS.SESSION_CREATE.SCHEDULE_SESSION' | translate }}
             </app-button>
         </div>
 

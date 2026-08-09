@@ -7,11 +7,12 @@ import { TimelineEvent } from '../match-timeline/match-timeline.types';
 import { MatchService } from '../../../../core/services/match/match.service';
 import { ToastService } from '../../../../core/services/Toast/toast';
 import { MarqueeIfOverflowDirective } from './marquee-if-overflow.directive';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-match-timeline-events',
   standalone: true,
-  imports: [CommonModule, MiniPlayerCardComponent, MarqueeIfOverflowDirective],
+  imports: [CommonModule, MiniPlayerCardComponent, MarqueeIfOverflowDirective, TranslatePipe],
   templateUrl: './match-timeline-events.component.html',
   styleUrls: ['./match-timeline-events.component.css']
 })
@@ -21,6 +22,7 @@ export class MatchTimelineEventsComponent {
   private cdr = inject(ChangeDetectorRef);
   private matchService = inject(MatchService);
   private toastService = inject(ToastService);
+  private translate = inject(TranslateService);
 
   @Input() matchId!: number;
   @Input() canLogEvents: boolean = false;
@@ -77,7 +79,7 @@ export class MatchTimelineEventsComponent {
     if (!this.matchId || this.deletingEventId) return;
 
     if (!eventId) {
-      this.toastService.show('Cannot disallow event: missing event ID', 'error');
+      this.toastService.show(this.translate.instant('MATCH.TIMELINE.ERROR_MISSING_ID', { Default: 'Cannot disallow event: missing event ID' }), 'error');
       return;
     }
 
@@ -85,7 +87,7 @@ export class MatchTimelineEventsComponent {
     this.matchService.deleteMatchEvent(this.matchId, eventId).subscribe({
       next: () => {
         this.deletingEventId = null;
-        this.toastService.show('Event disallowed successfully', 'success');
+        this.toastService.show(this.translate.instant('MATCH.TIMELINE.EVENT_DISALLOWED_SUCCESS', { Default: 'Event disallowed successfully' }), 'success');
         this._events = this._events.filter(e => e.id !== eventId);
         this.eventsWithIcons = this.eventsWithIcons.filter(e => e.id !== eventId);
         this.eventDisallowed.emit(eventId);
@@ -93,7 +95,7 @@ export class MatchTimelineEventsComponent {
       },
       error: (err: any) => {
         this.deletingEventId = null;
-        const msg = err?.error?.message ?? 'Failed to disallow event';
+        const msg = err?.error?.message ?? this.translate.instant('MATCH.TIMELINE.EVENT_DISALLOW_FAIL', { Default: 'Failed to disallow event' });
         this.toastService.show(msg, 'error');
         this.cdr.detectChanges();
       }

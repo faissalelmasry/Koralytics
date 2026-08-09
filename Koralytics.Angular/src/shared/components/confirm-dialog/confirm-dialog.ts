@@ -16,8 +16,8 @@ export class ConfirmDialogComponent {
   @Input() message: string = '';
   @Input() details: string[] = [];
   @Input() level: 'info' | 'warning' | 'danger' = 'info';
-  @Input() confirmText: string = 'Confirm';
-  @Input() cancelText: string = 'Cancel';
+  @Input() confirmText: string = 'COMMON.CONFIRM';
+  @Input() cancelText: string = 'COMMON.CANCEL';
   @Input() requiresConfirmation: boolean = false;
   @Input() confirmationText: string = '';
 

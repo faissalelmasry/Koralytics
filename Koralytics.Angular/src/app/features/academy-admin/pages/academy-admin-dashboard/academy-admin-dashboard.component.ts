@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../../../core/services/auth/auth.service';
 import { AcademyService } from '../../../../../core/services/academy/academy.service';
+import { ProfileService } from '../../../../../core/services/profile/profile.service';
 import { TournamentService } from '../../../../../core/services/tournament/tournament.service';
 import { ToastService } from '../../../../../core/services/Toast/toast';
 import { CustomInputComponent } from '../../../../../shared/components/custom-input-component/custom-input-component';
@@ -57,6 +58,7 @@ import { LocalizedDatePipe } from '../../../../../shared/pipes/localized-date.pi
 export class AcademyAdminDashboardComponent implements OnInit {
   private authService = inject(AuthService);
   private academyService = inject(AcademyService);
+  private profileService = inject(ProfileService);
   private toast = inject(ToastService);
   private fb = inject(FormBuilder);
   private router = inject(Router);
@@ -67,7 +69,29 @@ export class AcademyAdminDashboardComponent implements OnInit {
 
   // State
   isLoading = true;
+  adminAvatarError = false;
+  logoImageError = false;
+  userProfileImageUrl: string | null = null;
   hasAcademy = false;
+
+  get adminAvatarUrl(): string | null {
+    return this.userProfileImageUrl || (this.currentUser as any)?.profileImageUrl || null;
+  }
+
+  get adminInitials(): string {
+    if (this.currentUser?.fullName) {
+      const words = this.currentUser.fullName.trim().split(/\s+/);
+      if (words.length > 1) {
+        return (words[0].charAt(0) + words[1].charAt(0)).toUpperCase();
+      }
+      return this.currentUser.fullName.substring(0, 2).toUpperCase();
+    }
+    return 'AA';
+  }
+
+  get heroImageUrl(): string | null {
+    return this.academyDetails?.logoUrl || null;
+  }
   academyDetails: AcademyResponseDto | null = null;
   totalMembersCount = 0;
   playersCount = 0;
@@ -92,6 +116,15 @@ export class AcademyAdminDashboardComponent implements OnInit {
   myPendingAdminRequests: any[] = [];
 
   ngOnInit() {
+    this.profileService.getMyProfile().subscribe({
+      next: (res) => {
+        if (res.isSuccess && res.data?.profileImageUrl) {
+          this.userProfileImageUrl = res.data.profileImageUrl;
+          this.cdr.markForCheck();
+        }
+      }
+    });
+    this.updateInitials();
     this.checkAcademyStatus();
   }
 
@@ -207,12 +240,21 @@ export class AcademyAdminDashboardComponent implements OnInit {
 
   updateInitials() {
     if (this.academyDetails?.name) {
-      const words = this.academyDetails.name.split(' ');
+      const words = this.academyDetails.name.trim().split(/\s+/);
       if (words.length > 1) {
         this.initials = (words[0].charAt(0) + words[1].charAt(0)).toUpperCase();
       } else {
         this.initials = this.academyDetails.name.substring(0, 2).toUpperCase();
       }
+    } else if (this.currentUser?.fullName) {
+      const words = this.currentUser.fullName.trim().split(/\s+/);
+      if (words.length > 1) {
+        this.initials = (words[0].charAt(0) + words[1].charAt(0)).toUpperCase();
+      } else {
+        this.initials = this.currentUser.fullName.substring(0, 2).toUpperCase();
+      }
+    } else {
+      this.initials = 'AA';
     }
   }
 
@@ -290,7 +332,9 @@ export class AcademyAdminDashboardComponent implements OnInit {
       next: (res) => {
         this.isUploadingLogo = false;
         if (res.isSuccess && res.data && this.academyDetails) {
-          this.academyDetails.logoUrl = res.data.logoUrl || res.data;
+          const newUrl = typeof res.data === 'string' ? res.data : (res.data.logoUrl || res.data);
+          this.academyDetails.logoUrl = newUrl;
+          this.logoImageError = false;
           this.showLogoUploadModal = false;
           this.toast.show('Academy logo updated successfully.', 'success');
         } else {
@@ -300,6 +344,33 @@ export class AcademyAdminDashboardComponent implements OnInit {
       error: (err) => {
         this.isUploadingLogo = false;
         const msg = err.error?.message || 'Failed to update academy logo.';
+        this.toast.show(msg, 'error');
+      }
+    });
+  }
+
+  removeAcademyLogo(): void {
+    if (!this.academyDetails?.id || !this.academyDetails.logoUrl) return;
+
+    this.isUploadingLogo = true;
+
+    this.academyService.removeAcademyLogo(this.academyDetails.id).subscribe({
+      next: (res) => {
+        this.isUploadingLogo = false;
+        if (res.isSuccess) {
+          if (this.academyDetails) {
+            this.academyDetails.logoUrl = undefined;
+          }
+          this.logoImageError = false;
+          this.showLogoUploadModal = false;
+          this.toast.show(res.message || 'Academy logo removed successfully.', 'success');
+        } else {
+          this.toast.show(res.message || 'Failed to remove logo.', 'error');
+        }
+      },
+      error: (err) => {
+        this.isUploadingLogo = false;
+        const msg = err.error?.message || 'Failed to remove academy logo.';
         this.toast.show(msg, 'error');
       }
     });

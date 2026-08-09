@@ -1272,6 +1272,10 @@ namespace Koralytics.Infrastructure.Migrations
                     b.Property<int?>("UpdatedByUserId")
                         .HasColumnType("int");
 
+                    b.Property<string>("VideoUrl")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AcademyId");

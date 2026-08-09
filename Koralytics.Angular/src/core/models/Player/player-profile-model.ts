@@ -9,8 +9,8 @@ export interface PlayerProfileModel {
   heightCm?: number | null;
   weightKg?: number | null;
   archetypeText: string | null;
-  availabilityStatus: number;
-
+  profileImageUrl?: string | null;
+  availabilityStatus?: number | string | null;
   positions: PlayerPositionModel[];
   currentAcademy: PlayerAcademyModel | null;
   teams: PlayerTeamModel[];

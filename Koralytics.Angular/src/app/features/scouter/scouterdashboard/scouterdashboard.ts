@@ -14,6 +14,7 @@ import {
 } from 'chart.js';
 
 import { ScouterService } from '../../../../core/services/Scouter/scouter.service';
+import { ProfileService } from '../../../../core/services/profile/profile.service';
 import { PlayerCardDto, ScouterProfileDto } from '../../../../core/interfaces/Scouter.interfaces';
 import { ToastService } from '../../../../core/services/Toast/toast';
 // Confirmed real path (used the same way in player-scouter-views.component.ts).
@@ -66,13 +67,15 @@ interface DashboardInsight {
     CustomButtonComponent,
     ScrollRevealDirective,
     NavbarComponent,
-    Footer
+    Footer,
+    ToastContainerComponent
   ],
   templateUrl: './scouterdashboard.html',
   styleUrls: ['./scouterdashboard.css'],
 })
 export class ScouterDashboardComponent implements OnInit {
   private readonly scouterService = inject(ScouterService);
+  private readonly profileService = inject(ProfileService);
   private readonly toastService = inject(ToastService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -87,6 +90,8 @@ export class ScouterDashboardComponent implements OnInit {
   errorMessage = signal<string | null>(null);
 
   profile = signal<ScouterProfileDto | null>(null);
+  scouterImageUrl = signal<string | null>(null);
+  heroImageError = false;
 
 
   isOwnProfile = signal<boolean>(true);
@@ -317,6 +322,17 @@ export class ScouterDashboardComponent implements OnInit {
     this.errorMessage.set(null);
     this.viewedFollowedCount.set(null);
 
+    this.profileService
+      .getProfileById(scouterId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          if (res.isSuccess && res.data?.profileImageUrl) {
+            this.scouterImageUrl.set(res.data.profileImageUrl);
+          }
+        }
+      });
+
     this.scouterService
       .getScouterById(scouterId)
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -324,11 +340,6 @@ export class ScouterDashboardComponent implements OnInit {
         next: (profile) => {
           this.profile.set(profile);
           this.isLoading.set(false);
-          // Followed players, shortlist, KPIs, insights, and the position/
-          // rating charts are this scouter's own private scouting data --
-          // intentionally not fetched or shown when another role is just
-          // viewing this scouter's public profile. The one exception is a
-          // simple follow *count*, fetched best-effort below.
           this.loadViewedFollowedCount(scouterId);
         },
         error: (err: HttpErrorResponse) => {
@@ -339,12 +350,6 @@ export class ScouterDashboardComponent implements OnInit {
   }
 
   private loadViewedFollowedCount(scouterId: number): void {
-    // Backend: [Authorize(Roles = "Scouter,SystemAdmin")] plus an ownership
-    // check on top -- so this can only ever succeed for a SystemAdmin
-    // caller (a Scouter caller would fail the ownership check against a
-    // different scouter's id, and Player/Parent aren't in the role list at
-    // all). Skip the request entirely for any other role instead of firing
-    // a call that's guaranteed to 401/403.
     const currentUser = this.tokenStorage.getUser();
     const isSystemAdmin = !!currentUser?.roles?.some((r: string) => r.toLowerCase() === 'systemadmin');
     if (!isSystemAdmin) return;
@@ -362,11 +367,17 @@ export class ScouterDashboardComponent implements OnInit {
     this.isLoading.set(true);
     this.errorMessage.set(null);
 
-    // getMyProfile() resolves the current scouter's id from auth claims
-    // server-side, so there's no need to decode the JWT client-side here
-    // (unlike a couple of the other scouter pages, which do that because
-    // they also support an admin viewing someone else's data via a
-    // :scouterId route param -- this dashboard is always "my own").
+    this.profileService
+      .getMyProfile()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          if (res.isSuccess && res.data?.profileImageUrl) {
+            this.scouterImageUrl.set(res.data.profileImageUrl);
+          }
+        }
+      });
+
     this.scouterService
       .getMyProfile()
       .pipe(takeUntilDestroyed(this.destroyRef))

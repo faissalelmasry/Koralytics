@@ -11,8 +11,11 @@ import { CustomDatePicker } from '../../../../shared/components/custom-date-pick
 import { CustomButtonComponent } from '../../../../shared/components/custom-button/custom-button';
 import { ScrollRevealDirective } from '../../../../shared/directives/scroll-reveal.directive';
 import { PlayerProfileService } from '../../../../core/services/player/player-profile.service';
+import { TranslateService } from '@ngx-translate/core';
 import { TokenStorageService } from '../../../../core/services/auth/token-storage.service';
 import { MatchTimelineEventModel } from '../../../../core/models/Player/match-timeline-model';
+import { TranslatePipe } from '@ngx-translate/core';
+import { LocalizedDatePipe } from '../../../../shared/pipes/localized-date.pipe';
 
 @Component({
   selector: 'app-player-match-timeline',
@@ -28,7 +31,9 @@ import { MatchTimelineEventModel } from '../../../../core/models/Player/match-ti
     CustomSelect,
     CustomDatePicker,
     CustomButtonComponent,
-    ScrollRevealDirective
+    ScrollRevealDirective,
+    TranslatePipe,
+    LocalizedDatePipe
   ],
   templateUrl: './player-match-timeline.component.html',
   styleUrls: ['./player-match-timeline.component.css']
@@ -36,6 +41,7 @@ import { MatchTimelineEventModel } from '../../../../core/models/Player/match-ti
 export class PlayerMatchTimelineComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private translate = inject(TranslateService);
   private profileService = inject(PlayerProfileService);
   private tokenStorage = inject(TokenStorageService);
   private cdr = inject(ChangeDetectorRef);
@@ -56,11 +62,13 @@ export class PlayerMatchTimelineComponent implements OnInit {
   selectedDateFrom = '';
   selectedDateTo = '';
 
-  matchTypeOptions = [
-    { value: 'Session', label: 'Session' },
-    { value: 'Friendly', label: 'Friendly' },
-    { value: 'Tournament', label: 'Tournament' }
-  ];
+  get matchTypeOptions() {
+    return [
+      { value: 'Session', label: this.translate.instant('PLAYER.MATCH_SESSION') },
+      { value: 'Friendly', label: this.translate.instant('PLAYER.MATCH_FRIENDLY') },
+      { value: 'Tournament', label: this.translate.instant('PLAYER.MATCH_TOURNAMENT') }
+    ];
+  }
 
   ngOnInit() {
     const paramId = this.route.snapshot.paramMap.get('playerId');

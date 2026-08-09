@@ -12,8 +12,8 @@
     <div class="header-banner" scrollReveal direction="bottom">
       <div class="player-title-box">
         <div class="avatar-wrapper" (click)="openImageUpload()" title="{{ 'PROFILE.UPDATE_PHOTO_TITLE' | translate }}">
-          @if (profile.profileImageUrl) {
-          <img [src]="profile.profileImageUrl" alt="Avatar" class="avatar-img" />
+          @if (profile.profileImageUrl && !imageError) {
+          <img [src]="profile.profileImageUrl" alt="Avatar" class="avatar-img" (error)="imageError = true" />
           }
           @else {
           <div class="avatar-circle">{{ initials }}</div>
@@ -152,6 +152,10 @@
         <div class="card-header-row">
           <span class="panel-title">{{ 'PROFILE.PERSONAL_IDENTITY' | translate }}</span>
           <button class="btn-action btn-yellow edit-btn" (click)="startEditing()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle; margin-right: 6px;">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
             {{ 'PROFILE.BTN_EDIT_PROFILE' | translate }}
           </button>
         </div>
@@ -186,11 +190,20 @@
           </div>
           <div class="info-item">
             <span class="info-lbl">{{ 'PROFILE.PREFERRED_FOOT' | translate }}</span>
-            <span class="info-val">{{ footLabel }}</span>
+            <span class="info-val">{{ footLabel | translate }}</span>
           </div>
           <div class="info-item">
             <span class="info-lbl">{{ 'PROFILE.WEAK_FOOT_RATING' | translate }}</span>
-            <span class="info-val">{{ asPlayer.weakFootRating ? asPlayer.weakFootRating + ' ★' : 'N/A' }}</span>
+            <span class="info-val">
+              @if (asPlayer.weakFootRating) {
+                {{ asPlayer.weakFootRating }}/5
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="#facc15" stroke="none" style="display: inline-block; vertical-align: middle; margin-left: 2px;">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                </svg>
+              } @else {
+                N/A
+              }
+            </span>
           </div>
           <div class="info-item">
             <span class="info-lbl">{{ 'PROFILE.HEIGHT' | translate }}</span>
@@ -208,10 +221,11 @@
             <span class="info-lbl">{{ 'PROFILE.ACADEMY_MEMBERSHIP' | translate }}</span>
             <span class="info-val">
               @if (asPlayer.academyName) {
-                <span style="color: #4ade80; font-weight: 600;">{{ 'PROFILE.ACTIVE_MEMBER' | translate:{academy: asPlayer.academyName, id: asPlayer.academyId} }}</span>
-
-                <span style="color: #4ade80; font-weight: 600;">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle; margin-right: 4px;"><polyline points="20 6 9 17 4 12"></polyline></svg>Active Member — {{ 'PROFILE.ACTIVE_MEMBER' | translate:{academy: asPlayer.academyName, id: asPlayer.academyId} }})
+                <span style="color: #4ade80; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  {{ 'PROFILE.ACTIVE_MEMBER' | translate:{academy: asPlayer.academyName, id: asPlayer.academyId} }}
                 </span>
               } @else {
                 <span style="color: #9ca3af;">{{ 'PROFILE.NOT_IN_ACADEMY' | translate }}</span>
@@ -245,7 +259,12 @@
                          top: ($any(allPitchPositions.find(p => p.id === pos.position.toUpperCase()))?.top || '50%'),
                          left: ($any(allPitchPositions.find(p => p.id === pos.position.toUpperCase()))?.left || '50%')
                        }">
-            {{ pos.position }} {{ pos.isPrimary ? '★' : '' }}
+            {{ pos.position }}
+            @if (pos.isPrimary) {
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="display: inline-block; vertical-align: middle; margin-left: 2px;">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+              </svg>
+            }
           </div>
           }
         </div>
@@ -423,7 +442,7 @@
                 class="btn-unlink-parent"
                 [disabled]="isUnlinkingParent"
                 (click)="unlinkParent(parent.parentId)">
-                Unlink
+                {{ 'PROFILE.UNLINK_PARENT_BTN' | translate }}
               </button>
             </div>
           </div>
@@ -448,6 +467,7 @@
 
 <p>{{ 'PROFILE.NO_PARENTS_LINKED' | translate }}</p>
 
+<span>{{ 'PROFILE.PARENT_LINK_REQUEST_INFO' | translate }}</span>
         </div>
         }
       </div>
@@ -537,7 +557,12 @@
           <button type="button" class="pitch-node-btn" [class.selected]="isPositionSelected(pos.id)"
             [class.primary-node]="isPositionPrimary(pos.id)" [style.top]="pos.top" [style.left]="pos.left"
             (click)="togglePosition(pos.id)">
-            {{ pos.name }} {{ isPositionPrimary(pos.id) ? '★' : '' }}
+            {{ pos.name }}
+            @if (isPositionPrimary(pos.id)) {
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="display: inline-block; vertical-align: middle; margin-left: 2px;">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+              </svg>
+            }
           </button>
           }
         </div>
@@ -550,15 +575,26 @@
             <div class="pos-chip" [class.primary-chip]="p.isPrimary">
               <span class="chip-code">{{ p.position }}</span>
               @if (p.isPrimary) {
-              <span class="primary-badge">{{ 'PROFILE.PRIMARY_BADGE' | translate }}</span>
+              <span class="primary-badge" style="display: inline-flex; align-items: center; gap: 3px;">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                </svg>
+                {{ 'PROFILE.PRIMARY_BADGE' | translate }}
+              </span>
               }
               @else {
-              <button type="button" class="btn-set-primary" (click)="setPrimaryPosition(p.position, $event)">
+              <button type="button" class="btn-set-primary" (click)="setPrimaryPosition(p.position, $event)" style="display: inline-flex; align-items: center; gap: 3px;">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                </svg>
                 {{ 'PROFILE.SET_PRIMARY' | translate }}
               </button>
               }
-              <button type="button" class="btn-remove-chip" (click)="togglePosition(p.position)">
-                ✕
+              <button type="button" class="btn-remove-chip" (click)="togglePosition(p.position)" title="Remove">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle;">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
               </button>
             </div>
             }
@@ -589,7 +625,12 @@
     <div class="upload-modal-content" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h3>{{ 'PROFILE.UPDATE_PHOTO' | translate }}</h3>
-        <button class="close-btn" (click)="closeImageUpload()">✕</button>
+        <button class="close-btn" (click)="closeImageUpload()" title="Close">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle;">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
       </div>
       <p class="modal-sub">{{ 'PROFILE.UPDATE_PHOTO_SUB' | translate }}</p>
       <div class="upload-wrapper">
@@ -597,7 +638,27 @@
           (imageSelected)="onImageSelected($event)">
         </app-image-upload>
       </div>
+      @if (profile?.profileImageUrl) {
+      <div class="remove-photo-row">
+        <button type="button" class="btn-remove-photo" [disabled]="isUploadingImage" (click)="removeProfileImage()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle; margin-right: 6px;">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+          {{ 'PROFILE.REMOVE_PHOTO' | translate }}
+        </button>
+      </div>
+      }
     </div>
   </div>
   }
+
+  <app-confirm-dialog
+    [isOpen]="showUnlinkConfirmDialog"
+    [title]="'PROFILE.UNLINK_PARENT_TITLE' | translate"
+    [message]="'PROFILE.UNLINK_PARENT_MSG' | translate"
+    level="danger"
+    (confirm)="confirmUnlinkParent()"
+    (cancel)="cancelUnlinkParent()">
+  </app-confirm-dialog>
 </div>

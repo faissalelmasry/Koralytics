@@ -16,6 +16,7 @@ import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-r
 import { MatchSignalrService } from '../../../../../core/services/match-signalr.service';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-coach-match-list',
@@ -33,6 +34,7 @@ export class CoachMatchListComponent implements OnInit, OnDestroy {
   private matchService = inject(MatchService);
   private cdr = inject(ChangeDetectorRef);
   private signalrService = inject(MatchSignalrService);
+  private translate = inject(TranslateService);
 
   private signalrSub?: Subscription;
 
@@ -54,19 +56,23 @@ export class CoachMatchListComponent implements OnInit, OnDestroy {
     return this.selectedStatus === 'Live';
   }
 
-  statusOptions = [
-    { value: '', label: 'All' },
-    { value: 'Scheduled', label: 'Scheduled' },
-    { value: 'Live', label: 'Live' },
-    { value: 'Completed', label: 'Completed' }
-  ];
+  get statusOptions() {
+    return [
+      { value: '', label: this.translate.instant('MATCH.REQUEST_STATUS.ALL') },
+      { value: 'Scheduled', label: this.translate.instant('MATCH.STATUS.SCHEDULED') },
+      { value: 'Live', label: this.translate.instant('MATCH.STATUS.LIVE') },
+      { value: 'Completed', label: this.translate.instant('MATCH.STATUS.COMPLETED') }
+    ];
+  }
 
-  matchTypeOptions = [
-    { value: '', label: 'All' },
-    { value: 'Friendly', label: 'Friendly' },
-    { value: 'Tournament', label: 'Tournament' },
-    { value: 'Session', label: 'Session' }
-  ];
+  get matchTypeOptions() {
+    return [
+      { value: '', label: this.translate.instant('MATCH.REQUEST_STATUS.ALL') },
+      { value: 'Friendly', label: this.translate.instant('MATCH.TYPE.FRIENDLY') },
+      { value: 'Tournament', label: this.translate.instant('MATCH.TYPE.TOURNAMENT') },
+      { value: 'Session', label: this.translate.instant('MATCH.TYPE.SESSION') }
+    ];
+  }
 
   ngOnInit(): void {
     this.loadMatches();
@@ -145,7 +151,7 @@ export class CoachMatchListComponent implements OnInit, OnDestroy {
       },
       error: () => {
         this.isLoading = false;
-        this.error = 'MATCH.COACH_LIST.FAILED_LOAD';
+        this.error = this.translate.instant('MATCH.ERRORS.GENERIC_LOAD');
         this.cdr.detectChanges();
       }
     });
@@ -155,7 +161,7 @@ export class CoachMatchListComponent implements OnInit, OnDestroy {
     this.filterError = '';
 
     if (this.selectedDateFrom && this.selectedDateTo && this.selectedDateFrom > this.selectedDateTo) {
-      this.filterError = 'MATCH.COACH_LIST.FILTER_DATE_ERROR';
+      this.filterError = this.translate.instant('MATCH.ERRORS.DATE_FROM_BEFORE_TO');
       return;
     }
 

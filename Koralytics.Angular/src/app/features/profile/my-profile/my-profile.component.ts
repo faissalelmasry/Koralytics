@@ -1,5 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ProfileService } from '../../../../core/services/profile/profile.service';
 import { ToastService } from '../../../../core/services/Toast/toast';
@@ -40,7 +41,8 @@ import { LocalizedDatePipe } from '../../../../shared/pipes/localized-date.pipe'
     ScrollRevealDirective,
     ImageUpload,
     TranslatePipe,
-    LocalizedDatePipe
+    LocalizedDatePipe,
+    ConfirmDialogComponent
   ],
   templateUrl: './my-profile.component.html',
   styleUrls: ['./my-profile.component.css']
@@ -60,11 +62,15 @@ export class MyProfileComponent implements OnInit {
   pendingAcademyRequests: any[] = [];
   isRespondingToAcademyRequest = false;
   isLoading = true;
+  imageError = false;
   isEditing = false;
   isSaving = false;
   isUnlinkingParent = false;
   isUploadingImage = false;
   showImageUploadModal = false;
+
+  showUnlinkConfirmDialog = false;
+  parentToUnlinkId: number | null = null;
 
   readonly allPitchPositions = [
     { id: 'LW', name: 'LW', top: '22%', left: '78%' },
@@ -88,11 +94,11 @@ export class MyProfileComponent implements OnInit {
   ];
 
   readonly weakFootOptions: SelectOption[] = [
-    { value: 1, label: '1 ★' },
-    { value: 2, label: '2 ★' },
-    { value: 3, label: '3 ★' },
-    { value: 4, label: '4 ★' },
-    { value: 5, label: '5 ★' }
+    { value: 1, label: '1 / 5' },
+    { value: 2, label: '2 / 5' },
+    { value: 3, label: '3 / 5' },
+    { value: 4, label: '4 / 5' },
+    { value: 5, label: '5 / 5' }
   ];
 
   editPositions: PlayerPositionDto[] = [];
@@ -253,9 +259,16 @@ export class MyProfileComponent implements OnInit {
   }
 
   unlinkParent(parentId: number): void {
-    if (!confirm('Are you sure you want to unlink this parent/guardian from your account?')) {
-      return;
-    }
+    this.parentToUnlinkId = parentId;
+    this.showUnlinkConfirmDialog = true;
+  }
+
+  confirmUnlinkParent(): void {
+    if (!this.parentToUnlinkId) return;
+    const parentId = this.parentToUnlinkId;
+    this.showUnlinkConfirmDialog = false;
+    this.parentToUnlinkId = null;
+    
     this.isUnlinkingParent = true;
     this.parentService.unlinkParent(parentId).subscribe({
       next: () => {
@@ -269,6 +282,11 @@ export class MyProfileComponent implements OnInit {
         this.toast.show('Failed to unlink parent/guardian.', 'error');
       }
     });
+  }
+
+  cancelUnlinkParent(): void {
+    this.showUnlinkConfirmDialog = false;
+    this.parentToUnlinkId = null;
   }
 
   get initials(): string {
@@ -463,12 +481,16 @@ export class MyProfileComponent implements OnInit {
   onImageSelected(file: File): void {
     this.isUploadingImage = true;
     this.profileService.updateProfileImage(file).subscribe({
-      next: (res) => {
+      next: (res: any) => {
         this.isUploadingImage = false;
-        if (res.isSuccess && res.data && this.profile) {
-          this.profile.profileImageUrl = res.data;
+        if (res.isSuccess) {
+          const newUrl = typeof res.data === 'string' ? res.data : (res.data?.profileImageUrl || res.data);
+          if (this.profile && newUrl) {
+            this.profile.profileImageUrl = newUrl;
+          }
           this.showImageUploadModal = false;
           this.toast.show('Profile image updated successfully.', 'success');
+          this.loadProfile();
         } else {
           this.toast.show(res.message || 'Failed to upload image.', 'error');
         }
@@ -476,6 +498,32 @@ export class MyProfileComponent implements OnInit {
       error: (err) => {
         this.isUploadingImage = false;
         const msg = err.error?.message || 'Failed to upload profile image.';
+        this.toast.show(msg, 'error');
+      }
+    });
+  }
+
+  removeProfileImage(): void {
+    if (!this.profile?.profileImageUrl) return;
+
+    this.isUploadingImage = true;
+    this.profileService.removeProfileImage().subscribe({
+      next: (res) => {
+        this.isUploadingImage = false;
+        if (res.isSuccess) {
+          if (this.profile) {
+            this.profile.profileImageUrl = null;
+          }
+          this.showImageUploadModal = false;
+          this.toast.show(res.message || 'Profile photo removed successfully.', 'success');
+          this.loadProfile();
+        } else {
+          this.toast.show(res.message || 'Failed to remove profile photo.', 'error');
+        }
+      },
+      error: (err) => {
+        this.isUploadingImage = false;
+        const msg = err.error?.message || 'Failed to remove profile photo.';
         this.toast.show(msg, 'error');
       }
     });

@@ -20,11 +20,13 @@ import { LoadingSpinnerComponent } from '../../../../shared/components/loading-s
 import { NotificationService } from '@core/services/SignalR/notificationservice';
 
 import { RouterLink } from '@angular/router';
+import { MarqueeIfOverflowDirective } from './marquee-if-overflow.directive';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-match-timeline',
   standalone: true,
-  imports: [CommonModule, RouterLink, MatchTimelineEventsComponent, MatchLineupsComponent, MatchRatingsComponent, MatchH2hComponent, MatchAnalysisComponent, EmptyStateComponent, CustomButtonComponent, ConfirmDialogComponent, LoadingSpinnerComponent],
+  imports: [CommonModule, RouterLink, MatchTimelineEventsComponent, MatchLineupsComponent, MatchRatingsComponent, MatchH2hComponent, MatchAnalysisComponent, EmptyStateComponent, CustomButtonComponent, ConfirmDialogComponent, LoadingSpinnerComponent, MarqueeIfOverflowDirective, TranslatePipe],
   templateUrl: './match-timeline.component.html',
   styleUrls: ['./match-timeline.component.css']
 })
@@ -37,6 +39,7 @@ export class MatchTimelineComponent implements OnInit, OnDestroy, OnChanges {
 
   private signalrSub?: Subscription;
   private notificationService = inject(NotificationService);
+  private translate = inject(TranslateService);
 
   @Input() matchId!: number;
   @Input() matchInfo!: {
@@ -46,6 +49,8 @@ export class MatchTimelineComponent implements OnInit, OnDestroy, OnChanges {
     awayAcademy?: string;
     homeAcademyId?: number | null;
     awayAcademyId?: number | null;
+    homeAcademyLogoUrl?: string | null;
+    awayAcademyLogoUrl?: string | null;
     homeScore: number;
     awayScore: number;
     homePenaltyScore?: number | null;
@@ -64,6 +69,18 @@ export class MatchTimelineComponent implements OnInit, OnDestroy, OnChanges {
   @Input() canSubmitRatings: boolean = false;
 
   @Output() eventLogged = new EventEmitter<void>();
+
+  homeLogoError = false;
+  awayLogoError = false;
+
+  getInitials(name?: string): string {
+    if (!name) return 'KA';
+    const parts = name.trim().split(' ');
+    if (parts.length >= 2 && parts[0] && parts[1]) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase();
+  }
 
   selectedTab: 'timeline' | 'lineups' | 'h2h' | 'ratings' | 'analysis' = 'timeline';
   hasUserSelectedTab = false;
@@ -199,7 +216,9 @@ export class MatchTimelineComponent implements OnInit, OnDestroy, OnChanges {
       minute: e.minute ?? 0,
       eventType: this.formatEventType(e.eventType),
       eventSubtext: e.assistPlayerName
-        ? (e.eventType === 'Substitution' || e.rawType === 'Substitution' ? `In: ${e.assistPlayerName}` : `Assist: ${e.assistPlayerName}`)
+        ? (e.eventType === 'Substitution' || e.rawType === 'Substitution' 
+            ? `${this.translate.instant('COMMON.IN', { Default: 'In' })}: ${e.assistPlayerName}` 
+            : `${this.translate.instant('MATCH.EVENT.ASSIST')}: ${e.assistPlayerName}`)
         : '',
       rawType: e.eventType,
       side: e.isHomeSide === true ? 'home' :
@@ -469,7 +488,9 @@ export class MatchTimelineComponent implements OnInit, OnDestroy, OnChanges {
         minute: e.minute,
         eventType: this.formatEventType(e.eventType),
         eventSubtext: e.assistPlayerName
-          ? (e.eventType === 'Substitution' || e.rawType === 'Substitution' ? `In: ${e.assistPlayerName}` : `Assist: ${e.assistPlayerName}`)
+          ? (e.eventType === 'Substitution' || e.rawType === 'Substitution' 
+              ? `${this.translate.instant('COMMON.IN', { Default: 'In' })}: ${e.assistPlayerName}` 
+              : `${this.translate.instant('MATCH.EVENT.ASSIST')}: ${e.assistPlayerName}`)
           : '',
         rawType: e.eventType,
         side: e.isHomeSide === true ? 'home' :
@@ -728,13 +749,13 @@ export class MatchTimelineComponent implements OnInit, OnDestroy, OnChanges {
 
   private formatEventType(type: string): string {
     switch (type) {
-      case 'Goal': return 'Solo Goal';
-      case 'OwnGoal': return 'Own Goal';
-      case 'PenaltyScored': return 'Pen Scored';
-      case 'PenaltyMissed': return 'Pen Missed';
-      case 'Substitution': return 'Substitution';
-      case 'YellowCard': return 'Yellow Card';
-      case 'RedCard': return 'Red Card';
+      case 'Goal': return this.translate.instant('MATCH.EVENT.GOAL');
+      case 'OwnGoal': return this.translate.instant('MATCH.EVENT.OWN_GOAL');
+      case 'PenaltyScored': return this.translate.instant('MATCH.EVENT.PENALTY_SCORED');
+      case 'PenaltyMissed': return this.translate.instant('MATCH.EVENT.PENALTY_MISSED');
+      case 'Substitution': return this.translate.instant('MATCH.EVENT.SUBSTITUTION');
+      case 'YellowCard': return this.translate.instant('MATCH.EVENT.YELLOW_CARD');
+      case 'RedCard': return this.translate.instant('MATCH.EVENT.RED_CARD');
       default: return type;
     }
   }
