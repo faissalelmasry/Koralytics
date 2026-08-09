@@ -6,9 +6,9 @@
   <!-- SLIM TOP BAR -->
   <div class="pc-topbar">
     <span class="pc-live-dot"></span>
-    <span class="pc-topbar-label">AI Assistant</span>
+    <span class="pc-topbar-label">{{ 'PARENT.CHAT.TOPBAR_LABEL' | translate }}</span>
     <span class="pc-topbar-sep">/</span>
-    <span class="pc-topbar-current">Parent Support</span>
+    <span class="pc-topbar-current">{{ 'PARENT.CHAT.TOPBAR_CURRENT' | translate }}</span>
   </div>
 
   <!-- ERROR BANNER -->
@@ -31,8 +31,8 @@
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
         </svg>
       </div>
-      <h1 class="pc-empty-title">Parent Support</h1>
-      <p class="pc-empty-subtitle">Ask about player performance, tactical rules, or development advice.</p>
+      <h1 class="pc-empty-title">{{ 'PARENT.CHAT.EMPTY_TITLE' | translate }}</h1>
+      <p class="pc-empty-subtitle">{{ 'PARENT.CHAT.EMPTY_SUBTITLE' | translate }}</p>
 
       <div class="pc-prompt-grid">
         @for (item of suggestedPrompts; track item.label) {
@@ -97,7 +97,7 @@
             </div>
 
             <div class="pc-row-body">
-              <div class="pc-row-role">{{ msg.role === 'assistant' ? 'Assistant' : 'You' }}</div>
+              <div class="pc-row-role">{{ msg.role === 'assistant' ? ('PARENT.CHAT.ROLE_ASSISTANT' | translate) : ('PARENT.CHAT.ROLE_YOU' | translate) }}</div>
               <div class="pc-row-text" dir="auto">{{ msg.text }}</div>
 
               @if (msg.meta) {
@@ -110,10 +110,10 @@
                     {{ msg.meta.responseTime }}s
                   </span>
                   @if (msg.meta.usedSQL) {
-                    <app-status-chip label="Data" type="success"></app-status-chip>
+                    <app-status-chip [label]="'PARENT.CHAT.META_DATA' | translate" type="success"></app-status-chip>
                   }
                   @if (msg.meta.usedRAG) {
-                    <app-status-chip label="Knowledge" type="info"></app-status-chip>
+                    <app-status-chip [label]="'PARENT.CHAT.META_KNOWLEDGE' | translate" type="info"></app-status-chip>
                   }
                 </div>
               }
@@ -131,7 +131,7 @@
               </svg>
             </div>
             <div class="pc-row-body">
-              <div class="pc-row-role">Assistant</div>
+              <div class="pc-row-role">{{ 'PARENT.CHAT.ROLE_ASSISTANT' | translate }}</div>
               <div class="pc-typing">
                 <span></span><span></span><span></span>
               </div>
@@ -150,7 +150,7 @@
         #chatTextarea
         class="pc-textarea"
         rows="1"
-        placeholder="Message the assistant..."
+        [placeholder]="'PARENT.CHAT.COMPOSER_PLACEHOLDER' | translate"
         [ngModel]="currentInput()"
         (ngModelChange)="currentInput.set($event)"
         (keydown)="onKeyDown($event)">
@@ -160,10 +160,10 @@
           <line x1="22" y1="2" x2="11" y2="13"></line>
           <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
         </svg>
-        Send
+        {{ 'PARENT.CHAT.SEND' | translate }}
       </app-button>
     </div>
-    <p class="pc-composer-hint">Press Enter to send · Shift + Enter for a new line</p>
+    <p class="pc-composer-hint">{{ 'PARENT.CHAT.COMPOSER_HINT' | translate }}</p>
   </div>
 
 </div>

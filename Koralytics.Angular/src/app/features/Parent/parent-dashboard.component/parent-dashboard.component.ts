@@ -11,11 +11,12 @@ import {
 import { ToastService } from '../../../../core/services/Toast/toast';
 import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-parent-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, LoadingSpinnerComponent, EmptyStateComponent],
+  imports: [CommonModule, FormsModule, LoadingSpinnerComponent, EmptyStateComponent, TranslatePipe],
   templateUrl: './parent-dashboard.component.html',
   styleUrls: ['./parent-dashboard.component.css']
 })
@@ -56,7 +57,8 @@ export class ParentDashboardComponent implements OnInit {
     private parentService: ParentService,
     private router: Router,
     private cdr: ChangeDetectorRef,
-    private toast: ToastService
+    private toast: ToastService,
+    private translate: TranslateService
   ) { }
 
   goToParentAi(): void {
@@ -86,7 +88,7 @@ export class ParentDashboardComponent implements OnInit {
       },
       error: (err) => {
         console.error('Failed to load children', err);
-        this.errorMessage = err.error?.message || 'Could not fetch your linked players.';
+        this.errorMessage = err.error?.message || this.translate.instant('PARENT.ERRORS.FETCH_ERROR') || 'Could not fetch your linked players.';
         this.isLoading = false;
         this.cdr.detectChanges();
       }
@@ -150,13 +152,13 @@ export class ParentDashboardComponent implements OnInit {
       next: () => {
         this.isSendingRequest[player.playerId] = false;
         player.hasPendingRequest = true;
-        this.toast.show(`Join request sent to ${player.fullName}!`, 'success');
+        this.toast.show(this.translate.instant('PARENT.TOAST.JOIN_REQUEST_SENT', { name: player.fullName }), 'success');
         this.loadPendingRequests();
         this.cdr.detectChanges();
       },
       error: (err) => {
         this.isSendingRequest[player.playerId] = false;
-        const msg = err.error?.message || 'Failed to send join request.';
+        const msg = err.error?.message || this.translate.instant('PARENT.ERRORS.SEND_REQUEST_FAILED') || 'Failed to send join request.';
         this.toast.show(msg, 'error');
         this.cdr.detectChanges();
       }
@@ -164,30 +166,30 @@ export class ParentDashboardComponent implements OnInit {
   }
 
   cancelRequest(requestId: number): void {
-    if (!confirm('Are you sure you want to cancel this join request?')) return;
+    if (!confirm(this.translate.instant('PARENT.TOAST.CANCEL_CONFIRM'))) return;
 
     this.parentService.cancelChildRequest(requestId).subscribe({
       next: () => {
-        this.toast.show('Join request cancelled.', 'info');
+        this.toast.show(this.translate.instant('PARENT.TOAST.JOIN_REQUEST_CANCELLED'), 'info');
         this.loadPendingRequests();
       },
       error: (err) => {
-        const msg = err.error?.message || 'Failed to cancel join request.';
+        const msg = err.error?.message || this.translate.instant('PARENT.ERRORS.CANCEL_REQUEST_FAILED') || 'Failed to cancel join request.';
         this.toast.show(msg, 'error');
       }
     });
   }
 
   unlinkChild(child: ParentChild): void {
-    if (!confirm(`Are you sure you want to unlink ${child.fullName} from your parent account?`)) return;
+    if (!confirm(this.translate.instant('PARENT.TOAST.UNLINK_CONFIRM', { name: child.fullName }))) return;
 
     this.parentService.unlinkChild(child.playerId).subscribe({
       next: () => {
-        this.toast.show(`${child.fullName} unlinked successfully.`, 'success');
+        this.toast.show(this.translate.instant('PARENT.TOAST.UNLINK_SUCCESS', { name: child.fullName }), 'success');
         this.loadData();
       },
       error: (err) => {
-        const msg = err.error?.message || 'Failed to unlink player.';
+        const msg = err.error?.message || this.translate.instant('PARENT.ERRORS.UNLINK_FAILED') || 'Failed to unlink player.';
         this.toast.show(msg, 'error');
       }
     });

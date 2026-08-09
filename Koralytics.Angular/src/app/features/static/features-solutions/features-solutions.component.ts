@@ -2,10 +2,12 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
+import { TranslatePipe } from '@ngx-translate/core';
+
 @Component({
   selector: 'app-features-solutions',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, TranslatePipe],
   templateUrl: './features-solutions.component.html',
   styleUrls: ['./features-solutions.component.css']
 })

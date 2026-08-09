@@ -7,45 +7,45 @@
         <img src="images/logo/primary/logo-primary-dark.png" alt="Koralytics Logo">
       </div>
       <p class="brand-desc">
-        Transforming youth football development through data-driven telemetry, player analytics, and unified academy intelligence.
+        {{ 'FOOTER.BRAND_DESC' | translate }}
       </p>
     </div>
 
     <!-- Column 2: Explore Navigation Links -->
     <div class="footer-col footer-links" scrollReveal direction="bottom" [delay]="100">
-      <h4 class="col-title">explore</h4>
+      <h4 class="col-title">{{ 'FOOTER.EXPLORE' | translate }}</h4>
       <nav class="footer-nav">
-        <a routerLink="/">home</a>
-        <a routerLink="/about">about us</a>
-        <a routerLink="/features">features & solutions</a>
-        <a routerLink="/pricing">pricing & plans</a>
+        <a routerLink="/">{{ 'FOOTER.HOME' | translate }}</a>
+        <a routerLink="/about">{{ 'FOOTER.ABOUT_US' | translate }}</a>
+        <a routerLink="/features">{{ 'FOOTER.FEATURES_SOLUTIONS' | translate }}</a>
+        <a routerLink="/pricing">{{ 'FOOTER.PRICING_PLANS' | translate }}</a>
       </nav>
     </div>
 
     <!-- Column 3: Support & Legal Links -->
     <div class="footer-col footer-links" scrollReveal direction="bottom" [delay]="150">
-      <h4 class="col-title">support & legal</h4>
+      <h4 class="col-title">{{ 'FOOTER.SUPPORT_LEGAL' | translate }}</h4>
       <nav class="footer-nav">
-        <a routerLink="/contact">contact & support</a>
-        <a routerLink="/faq">frequently asked questions</a>
-        <a routerLink="/privacy-terms">privacy & terms of service</a>
+        <a routerLink="/contact">{{ 'FOOTER.CONTACT_SUPPORT' | translate }}</a>
+        <a routerLink="/faq">{{ 'FOOTER.FAQ' | translate }}</a>
+        <a routerLink="/privacy-terms">{{ 'FOOTER.PRIVACY_TERMS' | translate }}</a>
       </nav>
     </div>
 
     <!-- Column 4: Platform Metrics / System Status -->
     <div class="footer-col footer-status" scrollReveal direction="bottom" [delay]="200">
-      <h4 class="col-title">system status</h4>
+      <h4 class="col-title">{{ 'FOOTER.SYSTEM_STATUS' | translate }}</h4>
       <div class="status-wrapper">
         <div class="status-indicator"></div>
-        <span class="status-text">all telemetry engines operational</span>
+        <span class="status-text">{{ 'FOOTER.ALL_SYSTEMS_OPERATIONAL' | translate }}</span>
       </div>
-      <p class="version-tag">v1.0.0-beta • Enterprise Ready</p>
+      <p class="version-tag">{{ 'FOOTER.VERSION_TAG' | translate }}</p>
     </div>
 
   </div>
 
   <!-- Bottom Bar: Copyrights & Legal -->
   <div class="footer-bottom" scrollReveal direction="bottom" [delay]="250">
-    <p>&copy; 2026 koralytics. data. performance. future. all rights reserved.</p>
+    <p>{{ 'FOOTER.COPYRIGHT' | translate }}</p>
   </div>
 </footer>

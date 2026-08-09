@@ -73,6 +73,11 @@ main.loaded .card-wrap {
   margin: 0 0 16px;
 }
 
+:host-context([dir="rtl"]) .pitch h1,
+[dir="rtl"] .pitch h1 {
+  line-height: 1.3;
+}
+
 .grad-text {
   background: linear-gradient(90deg, var(--accent), var(--coral), var(--violet), var(--accent));
   background-size: 300% 100%;

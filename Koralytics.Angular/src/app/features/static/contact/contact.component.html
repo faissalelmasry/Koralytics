@@ -4,14 +4,13 @@
   <section class="hero-section">
     <span class="eyebrow">
       <span class="pulse-dot"></span>
-      Direct Support & Inquiries
+      {{ 'STATIC.CONTACT.HERO_EYEBROW' | translate }}
     </span>
     <h1 class="hero-headline">
-      Get in Touch with Our <span class="grad-text">Telemetry Specialists</span>.
+      {{ 'STATIC.CONTACT.HERO_HEADLINE' | translate }}<span class="grad-text">{{ 'STATIC.CONTACT.HERO_HEADLINE_GRAD' | translate }}</span>.
     </h1>
     <p class="hero-subheadline">
-      Have a question about onboarding your academy, technical integrations, or subscription plans? We're here to
-      assist.
+      {{ 'STATIC.CONTACT.HERO_SUB' | translate }}
     </p>
   </section>
 
@@ -22,54 +21,54 @@
     <div class="glass-card form-card">
 
       <div *ngIf="!submitted">
-        <h3>General Inquiry Form</h3>
-        <p class="form-sub">Fill in your details and our team will get back to you shortly.</p>
+        <h3>{{ 'STATIC.CONTACT.FORM_TITLE' | translate }}</h3>
+        <p class="form-sub">{{ 'STATIC.CONTACT.FORM_SUB' | translate }}</p>
 
         <form (ngSubmit)="onSubmit()" #contactForm="ngForm">
           <div class="form-row">
             <div class="form-group">
-              <label>Full Name *</label>
+              <label>{{ 'STATIC.CONTACT.LABEL_NAME' | translate }}</label>
               <input type="text" [(ngModel)]="formData.fullName" name="fullName" required
-                placeholder="e.g. Captain Alex Morgan">
+                [placeholder]="'STATIC.CONTACT.PLACE_NAME' | translate">
             </div>
 
             <div class="form-group">
-              <label>Email Address *</label>
-              <input type="email" [(ngModel)]="formData.email" name="email" required placeholder="alex@academy.com">
+              <label>{{ 'STATIC.CONTACT.LABEL_EMAIL' | translate }}</label>
+              <input type="email" [(ngModel)]="formData.email" name="email" required [placeholder]="'STATIC.CONTACT.PLACE_EMAIL' | translate">
             </div>
           </div>
 
           <div class="form-row">
             <div class="form-group">
-              <label>Academy Name</label>
+              <label>{{ 'STATIC.CONTACT.LABEL_ACADEMY' | translate }}</label>
               <input type="text" [(ngModel)]="formData.academyName" name="academyName"
-                placeholder="e.g. Apex Football Academy">
+                [placeholder]="'STATIC.CONTACT.PLACE_ACADEMY' | translate">
             </div>
 
             <div class="form-group">
-              <label>User Role *</label>
+              <label>{{ 'STATIC.CONTACT.LABEL_ROLE' | translate }}</label>
               <select [(ngModel)]="formData.userRole" name="userRole" required>
-                <option value="Manager">Academy Manager</option>
-                <option value="Coach">Coach / Analyst</option>
-                <option value="Parent">Parent</option>
-                <option value="Player">Player</option>
+                <option value="Manager">{{ 'STATIC.CONTACT.ROLE_OPT_MANAGER' | translate }}</option>
+                <option value="Coach">{{ 'STATIC.CONTACT.ROLE_OPT_COACH' | translate }}</option>
+                <option value="Parent">{{ 'STATIC.CONTACT.ROLE_OPT_PARENT' | translate }}</option>
+                <option value="Player">{{ 'STATIC.CONTACT.ROLE_OPT_PLAYER' | translate }}</option>
               </select>
             </div>
           </div>
 
           <div class="form-group">
-            <label>Subject</label>
-            <input type="text" [(ngModel)]="formData.subject" name="subject" placeholder="How can we help?">
+            <label>{{ 'STATIC.CONTACT.LABEL_SUBJECT' | translate }}</label>
+            <input type="text" [(ngModel)]="formData.subject" name="subject" [placeholder]="'STATIC.CONTACT.PLACE_SUBJECT' | translate">
           </div>
 
           <div class="form-group">
-            <label>Message *</label>
+            <label>{{ 'STATIC.CONTACT.LABEL_MSG' | translate }}</label>
             <textarea [(ngModel)]="formData.message" name="message" rows="5" required
-              placeholder="Describe your request or question in detail..."></textarea>
+              [placeholder]="'STATIC.CONTACT.PLACE_MSG' | translate"></textarea>
           </div>
 
           <button type="submit" class="btn btn-primary full-width" [disabled]="!contactForm.form.valid">
-            Send Inquiry
+            {{ 'STATIC.CONTACT.BTN_SEND' | translate }}
           </button>
         </form>
       </div>
@@ -77,11 +76,10 @@
       <!-- Success Confirmation -->
       <div *ngIf="submitted" class="success-state">
         <div class="success-icon">✓</div>
-        <h2>Message Received!</h2>
-        <p>Thank you, <strong>{{ formData.fullName }}</strong>. Your inquiry has been dispatched to our support team.
-        </p>
-        <div class="sla-badge">Expected Response: Within 24 business hours</div>
-        <button class="btn btn-secondary" (click)="resetForm()">Send Another Message</button>
+        <h2>{{ 'STATIC.CONTACT.SUCCESS_TITLE' | translate }}</h2>
+        <p [innerHTML]="'STATIC.CONTACT.SUCCESS_DESC' | translate: { name: formData.fullName }"></p>
+        <div class="sla-badge">{{ 'STATIC.CONTACT.SUCCESS_SLA' | translate }}</div>
+        <button class="btn btn-secondary" (click)="resetForm()">{{ 'STATIC.CONTACT.BTN_ANOTHER' | translate }}</button>
       </div>
 
     </div>
@@ -96,8 +94,8 @@
             <polyline points="22,6 12,13 2,6" />
           </svg>
         </div>
-        <h4>Academy Support Email</h4>
-        <p>Direct assistance for active academies, technical issues, and billing.</p>
+        <h4>{{ 'STATIC.CONTACT.CHAN_EMAIL_TITLE' | translate }}</h4>
+        <p>{{ 'STATIC.CONTACT.CHAN_EMAIL_DESC' | translate }}</p>
         <a href="mailto:koralytics@gmail.com" class="channel-link">koralyticscommunity@gmail.com</a>
       </div>
 
@@ -108,10 +106,10 @@
               d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
           </svg>
         </div>
-        <h4>Academy Onboarding & Phone Support</h4>
-        <p>Direct technical guidance for new academy setups and pitch hardware integrations.</p>
+        <h4>{{ 'STATIC.CONTACT.CHAN_PHONE_TITLE' | translate }}</h4>
+        <p>{{ 'STATIC.CONTACT.CHAN_PHONE_DESC' | translate }}</p>
         <a href="tel:+201276255517" class="channel-link">+20 1276255517</a>
-        <span class="sla-text">Estimated Response: Within 24 business hours</span>
+        <span class="sla-text">{{ 'STATIC.CONTACT.CHAN_PHONE_SLA' | translate }}</span>
       </div>
 
       <div class="glass-card channel-card">
@@ -121,9 +119,9 @@
             <path d="M12 16v-4M12 8h.01" />
           </svg>
         </div>
-        <h4>Frequently Asked Questions</h4>
-        <p>Looking for quick answers regarding privacy, logins, or benchmark data?</p>
-        <a routerLink="/faq" class="channel-link">Browse Knowledge Base & FAQ &rarr;</a>
+        <h4>{{ 'STATIC.CONTACT.CHAN_FAQ_TITLE' | translate }}</h4>
+        <p>{{ 'STATIC.CONTACT.CHAN_FAQ_DESC' | translate }}</p>
+        <a routerLink="/faq" class="channel-link">{{ 'STATIC.CONTACT.CHAN_FAQ_LINK' | translate }}</a>
       </div>
 
     </div>

@@ -169,7 +169,7 @@
 .card-badge {
   position: absolute;
   top: 24px;
-  right: 24px;
+  inset-inline-end: 24px;
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 1px;

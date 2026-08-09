@@ -239,7 +239,8 @@
       "PRIORITY_GOOD": "Low Priority",
       "FOCUS_CRITICAL": "High priority focus on this weakness",
       "FOCUS_MODERATE": "Moderate focus on fundamental improvements",
-      "FOCUS_GOOD": "Low priority maintenance"
+      "FOCUS_GOOD": "Low priority maintenance",
+      "AVG": "Avg"
     },
     "DYNAMIC": {
       "CAT_PASSING": "Passing",

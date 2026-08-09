@@ -11,6 +11,7 @@ import { CustomButtonComponent } from '@shared/components/custom-button/custom-b
 import { StatusChipComponent } from '@shared/components/status-chip/status-chip';
 import { Pagination } from '@shared/components/pagination/pagination';
 import { NotificationService } from '@core/services/SignalR/notificationservice';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-parent-subscriptions',
@@ -22,7 +23,8 @@ import { NotificationService } from '@core/services/SignalR/notificationservice'
     EmptyStateComponent,
     CustomButtonComponent,
     StatusChipComponent,
-    Pagination
+    Pagination,
+    TranslatePipe
   ],
   templateUrl: './parent-subscriptions.component.html',
   styleUrls: ['./parent-subscriptions.component.css']
@@ -55,7 +57,11 @@ export class ParentSubscriptionsComponent implements OnInit {
   readonly Status = SubscriptionStatus;
   readonly Duration = SubscriptionDuration;
 
-  constructor(private subscriptionService: SubscriptionService, private notificationService: NotificationService) { }
+  constructor(
+    private subscriptionService: SubscriptionService, 
+    private notificationService: NotificationService,
+    private translate: TranslateService
+  ) { }
 
   ngOnInit(): void {
     this.loadSubscriptions();
@@ -74,7 +80,7 @@ export class ParentSubscriptionsComponent implements OnInit {
       },
       error: (err) => {
         console.error('Failed to load subscriptions:', err);
-        this.errorMessage = err?.error?.message || 'Failed to load subscription details. Please try again.';
+        this.errorMessage = err?.error?.message || this.translate.instant('PARENT.ERRORS.LOAD_SUBS_FAILED');
         this.isLoading = false;
       }
     });
@@ -120,7 +126,7 @@ export class ParentSubscriptionsComponent implements OnInit {
       },
       error: (err) => {
         console.error('Failed to load history:', err);
-        this.errorMessage = 'Failed to load subscription history.';
+        this.errorMessage = this.translate.instant('PARENT.ERRORS.LOAD_HISTORY_FAILED');
         this.isLoadingHistory = false;
       }
     });
@@ -187,7 +193,7 @@ export class ParentSubscriptionsComponent implements OnInit {
         }
       },
       error: (err) => {
-        this.errorMessage = err?.error?.message || 'Failed to initialize Stripe checkout.';
+        this.errorMessage = err?.error?.message || this.translate.instant('PARENT.ERRORS.INIT_STRIPE_FAILED');
         this.isStripeLoading = false;
       }
     });
@@ -203,7 +209,7 @@ export class ParentSubscriptionsComponent implements OnInit {
     this.successMessage = '';
 
     if (!this.stripe || !this.cardElement || !this.clientSecret) {
-      this.errorMessage = 'Stripe payment processor is not ready.';
+      this.errorMessage = this.translate.instant('PARENT.ERRORS.STRIPE_NOT_READY');
       this.isProcessingId = null;
       return;
     }
@@ -213,12 +219,12 @@ export class ParentSubscriptionsComponent implements OnInit {
     });
 
     if (result.error) {
-      this.errorMessage = result.error.message || 'Payment authorization failed.';
+      this.errorMessage = result.error.message || this.translate.instant('PARENT.ERRORS.PAYMENT_FAILED');
       this.isProcessingId = null;
     } else if (result.paymentIntent && result.paymentIntent.status === 'succeeded') {
       this.subscriptionService.paySubscription(sub.id).subscribe({
         next: () => {
-          this.successMessage = `Visa Payment Successful! ${sub.amount} EGP paid for ${sub.playerName}.`;
+          this.successMessage = this.translate.instant('PARENT.TOAST.PAYMENT_SUCCESS', { amount: sub.amount, name: sub.playerName });
           // notification
           this.notificationService.notifyAcademySubscriptionPaid(sub.academyId, sub.id).subscribe({
             error: (e) => console.error('Failed to notify academy of payment', e)
@@ -233,7 +239,7 @@ export class ParentSubscriptionsComponent implements OnInit {
           this.loadSubscriptions();
         },
         error: (err) => {
-          this.errorMessage = err?.error?.message || 'Payment authorized, but backend update failed.';
+          this.errorMessage = err?.error?.message || this.translate.instant('PARENT.ERRORS.BACKEND_UPDATE_FAILED');
           this.isProcessingId = null;
         }
       });
@@ -250,11 +256,19 @@ export class ParentSubscriptionsComponent implements OnInit {
 
   formatDuration(duration: SubscriptionDuration | string | number): string {
     const d = String(duration || '').toLowerCase();
-    if (d === 'onemonth' || d === '1') return 'Monthly';
-    if (d === 'threemonths' || d === '3') return 'Quarterly (3M)';
-    if (d === 'sixmonths' || d === '6') return 'Semi-Annual (6M)';
-    if (d === 'oneyear' || d === '12') return 'Annual (1Y)';
-    return String(duration) || 'Monthly';
+    if (d === 'onemonth' || d === '1') return this.translate.instant('PARENT.DURATION.MONTHLY');
+    if (d === 'threemonths' || d === '3') return this.translate.instant('PARENT.DURATION.QUARTERLY');
+    if (d === 'sixmonths' || d === '6') return this.translate.instant('PARENT.DURATION.SEMI_ANNUAL');
+    if (d === 'oneyear' || d === '12') return this.translate.instant('PARENT.DURATION.ANNUAL');
+    return this.translate.instant('PARENT.DURATION.UNKNOWN');
+  }
+
+  getStatusLabel(status: SubscriptionStatus | string | number): string {
+    const s = String(status || '').toLowerCase();
+    if (s === 'paid' || s === '0' || s === '1') return this.translate.instant('PARENT.STATUS.PAID');
+    if (s === 'unpaid' || s === '2') return this.translate.instant('PARENT.STATUS.UNPAID');
+    if (s === 'grace' || s === '3') return this.translate.instant('PARENT.STATUS.GRACE');
+    return this.translate.instant('PARENT.STATUS.UNKNOWN');
   }
 
   isPaid(status: SubscriptionStatus | string | number): boolean {

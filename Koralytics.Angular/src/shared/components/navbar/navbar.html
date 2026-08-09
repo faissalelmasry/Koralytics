@@ -4,42 +4,72 @@
   </div>
 
   <nav class="desktop-nav">
-    <a [routerLink]="isLoggedIn ? userDashboardRoute : '/auth/login'" routerLinkActive="active">Home</a>
+    <a [routerLink]="isLoggedIn ? userDashboardRoute : '/auth/login'" routerLinkActive="active">{{ 'NAVBAR.HOME' | translate }}</a>
 
     <!-- Logged Out Navigation -->
     <ng-container *ngIf="!isLoggedIn">
-      <a routerLink="/about" routerLinkActive="active">About</a>
-      <a routerLink="/features" routerLinkActive="active">Features</a>
-      <a routerLink="/pricing" routerLinkActive="active">Pricing</a>
-      <a routerLink="/faq" routerLinkActive="active">FAQ</a>
-      <a routerLink="/contact" routerLinkActive="active">Contact</a>
+      <a routerLink="/about" routerLinkActive="active">{{ 'NAVBAR.ABOUT' | translate }}</a>
+      <a routerLink="/features" routerLinkActive="active">{{ 'NAVBAR.FEATURES' | translate }}</a>
+      <a routerLink="/pricing" routerLinkActive="active">{{ 'NAVBAR.PRICING' | translate }}</a>
+      <a routerLink="/faq" routerLinkActive="active">{{ 'NAVBAR.FAQ' | translate }}</a>
+      <a routerLink="/contact" routerLinkActive="active">{{ 'NAVBAR.CONTACT' | translate }}</a>
     </ng-container>
 
     <!-- Player Links (Desktop) -->
     <ng-container *ngIf="isPlayer">
-      <a routerLink="/player/team-events" routerLinkActive="active">Upcoming Events</a>
-      <a routerLink="/player/scouter-views" routerLinkActive="active">Views</a>
+      <a routerLink="/player/team-events" routerLinkActive="active">{{ 'NAVBAR.UPCOMING_EVENTS' | translate }}</a>
+      <a routerLink="/player/scouter-views" routerLinkActive="active">{{ 'NAVBAR.SCOUTER_VIEWS' | translate }}</a>
     </ng-container>
 
     <!-- Highlights Link (Desktop) -->
-    <a routerLink="/player/highlights" routerLinkActive="active" *ngIf="isPlayer">Highlights</a>
+    <a routerLink="/player/highlights" routerLinkActive="active" *ngIf="isPlayer">{{ 'NAVBAR.HIGHLIGHTS' | translate }}</a>
 
     <!-- Coach Links (Desktop) -->
     <ng-container *ngIf="isCoach">
-      <a routerLink="/coach/squad" routerLinkActive="active">Squad</a>
-      <a routerLink="/coach/matches" routerLinkActive="active">Matches</a>
-      <a routerLink="/drills" routerLinkActive="active">Templates</a>
-      <a routerLink="/drills/analytics/coach-bias" routerLinkActive="active">Bias</a>
-      <a routerLink="/match/requests/incoming" routerLinkActive="active">Incoming</a>
-      <a routerLink="/match/requests/outgoing" routerLinkActive="active">Outgoing</a>
-      <a routerLink="/academy-ai" routerLinkActive="active" *ngIf="isEliteTier">AI Bot</a>
+      <a routerLink="/coach/squad" routerLinkActive="active">{{ 'NAVBAR.SQUAD' | translate }}</a>
+      <a routerLink="/coach/matches" routerLinkActive="active">{{ 'NAVBAR.MATCHES' | translate }}</a>
+      <a routerLink="/drills" routerLinkActive="active">{{ 'NAVBAR.TEMPLATES' | translate }}</a>
+      <a routerLink="/drills/analytics/coach-bias" routerLinkActive="active">{{ 'NAVBAR.BIAS' | translate }}</a>
+      <a routerLink="/drills/analytics/weak-categories" routerLinkActive="active">{{ 'NAVBAR.WEAK_CATS' | translate }}</a>
+      <a routerLink="/match/requests/incoming" routerLinkActive="active">{{ 'NAVBAR.INCOMING' | translate }}</a>
+      <a routerLink="/match/requests/outgoing" routerLinkActive="active">{{ 'NAVBAR.OUTGOING' | translate }}</a>
+      <a routerLink="/academy-ai" routerLinkActive="active" *ngIf="isEliteTier">{{ 'NAVBAR.AI_BOT' | translate }}</a>
     </ng-container>
+
+    <!-- Academy Admin Links (Desktop) -->
+    <ng-container *ngIf="isAcademyAdmin">
+      <a routerLink="/academy-admin/drills-dashboard" routerLinkActive="active">{{ 'NAVBAR.ACADEMY_DRILLS' | translate }}</a>
+      <a routerLink="/academy-admin/subscriptions" routerLinkActive="active">{{ 'NAVBAR.SUBSCRIPTIONS' | translate }}</a>
+      <a routerLink="/academy/matches" routerLinkActive="active">{{ 'NAVBAR.ACADEMY_MATCHES' | translate }}</a>
+      <ng-container *ngIf="!isCoach">
+        <a routerLink="/drills" routerLinkActive="active">{{ 'NAVBAR.TEMPLATES' | translate }}</a>
+        <a routerLink="/drills/analytics/coach-bias" routerLinkActive="active">{{ 'NAVBAR.BIAS' | translate }}</a>
+        <a routerLink="/drills/analytics/weak-categories" routerLinkActive="active">{{ 'NAVBAR.WEAK_CATS' | translate }}</a>
+        <a routerLink="/match/requests/incoming" routerLinkActive="active">{{ 'NAVBAR.INCOMING' | translate }}</a>
+        <a routerLink="/match/requests/outgoing" routerLinkActive="active">{{ 'NAVBAR.OUTGOING' | translate }}</a>
+        <a routerLink="/academy-ai" routerLinkActive="active" *ngIf="isEliteTier">{{ 'NAVBAR.AI_BOT' | translate }}</a>
+      </ng-container>
+    </ng-container>
+
+    <!-- System Admin Links (Desktop) -->
+    <ng-container *ngIf="isSystemAdmin">
+      <a routerLink="/admin/scouterverification" routerLinkActive="active">{{ 'NAVBAR.SCOUTER_VERIFICATION' | translate }}</a>
+      <ng-container *ngIf="!isAcademyAdmin">
+        <a routerLink="/academy/matches" routerLinkActive="active">{{ 'NAVBAR.ACADEMY_MATCHES' | translate }}</a>
+      </ng-container>
+      <ng-container *ngIf="!isCoach && !isAcademyAdmin">
+        <a routerLink="/drills" routerLinkActive="active">{{ 'NAVBAR.TEMPLATES' | translate }}</a>
+        <a routerLink="/drills/analytics/coach-bias" routerLinkActive="active">{{ 'NAVBAR.BIAS' | translate }}</a>
+        <a routerLink="/drills/analytics/weak-categories" routerLinkActive="active">{{ 'NAVBAR.WEAK_CATS' | translate }}</a>
+      </ng-container>
+    </ng-container>
+
     <!-- Scouter Links (Desktop) -->
     <ng-container *ngIf="isScouter">
-      <a routerLink="/search" routerLinkActive="active">Search</a>
-      <a routerLink="/scouter-ai" routerLinkActive="active">AI Assistant</a>
-      <a routerLink="/shortlist/" routerLinkActive="active">Shortlist</a>
-      <a routerLink="/followed-players" routerLinkActive="active">Followed Players</a>
+      <a routerLink="/search" routerLinkActive="active">{{ 'NAVBAR.SEARCH' | translate }}</a>
+      <a routerLink="/scouter-ai" routerLinkActive="active">{{ 'NAVBAR.AI_ASSISTANT' | translate }}</a>
+      <a routerLink="/shortlist/" routerLinkActive="active">{{ 'NAVBAR.SHORTLIST' | translate }}</a>
+      <a routerLink="/followed-players" routerLinkActive="active">{{ 'NAVBAR.FOLLOWED_PLAYERS' | translate }}</a>
     </ng-container>
 
     <!-- Notifications Link (Desktop) -->
@@ -50,16 +80,6 @@
       </svg>
     </a>
 
-    <!-- Academy Admin Links (Desktop) -->
-    <ng-container *ngIf="isAcademyAdmin">
-      <a routerLink="/academy-admin/drills-dashboard" routerLinkActive="active">Drills</a>
-    </ng-container>
-
-    <!-- System Admin Links (Desktop) -->
-    <ng-container *ngIf="isSystemAdmin && !isAcademyAdmin">
-      <a routerLink="/drills" routerLinkActive="active">Drills</a>
-    </ng-container>
-
     <!-- Auth Actions (Desktop) -->
     <a (click)="requestLogout()" style="cursor: pointer;" *ngIf="isLoggedIn" class="nav-icon-link" title="Sign Out">
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -68,8 +88,8 @@
         <line x1="21" y1="12" x2="9" y2="12"></line>
       </svg>
     </a>
-    <a routerLink="/auth/login" routerLinkActive="active" *ngIf="!isLoggedIn">Sign In</a>
-    <a routerLink="/auth/register" routerLinkActive="active" *ngIf="!isLoggedIn">Register</a>
+    <a routerLink="/auth/login" routerLinkActive="active" *ngIf="!isLoggedIn">{{ 'NAVBAR.SIGN_IN' | translate }}</a>
+    <a routerLink="/auth/register" routerLinkActive="active" *ngIf="!isLoggedIn">{{ 'NAVBAR.REGISTER' | translate }}</a>
 
     <app-language-switcher></app-language-switcher>
   </nav>
@@ -97,98 +117,111 @@
   <div class="sidebar-content">
     <nav class="sidebar-nav">
       <a [routerLink]="isLoggedIn ? userDashboardRoute : '/auth/login'" routerLinkActive="active"
-        (click)="toggleSidebar(false)">Home</a>
+        (click)="toggleSidebar(false)">{{ 'NAVBAR.HOME' | translate }}</a>
 
       <!-- Public Section (Logged Out Sidebar) -->
       <div class="sidebar-section" *ngIf="!isLoggedIn">
-        <span class="section-label">Explore</span>
-        <a routerLink="/about" routerLinkActive="active" (click)="toggleSidebar(false)">About Us</a>
-        <a routerLink="/features" routerLinkActive="active" (click)="toggleSidebar(false)">Features & Solutions</a>
-        <a routerLink="/pricing" routerLinkActive="active" (click)="toggleSidebar(false)">Pricing & Plans</a>
-        <a routerLink="/faq" routerLinkActive="active" (click)="toggleSidebar(false)">FAQ</a>
-        <a routerLink="/contact" routerLinkActive="active" (click)="toggleSidebar(false)">Contact & Support</a>
-        <a routerLink="/privacy-terms" routerLinkActive="active" (click)="toggleSidebar(false)">Privacy & Terms</a>
+        <span class="section-label">{{ 'NAVBAR.EXPLORE' | translate }}</span>
+        <a routerLink="/about" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.ABOUT_US' | translate }}</a>
+        <a routerLink="/features" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.FEATURES_SOLUTIONS' | translate }}</a>
+        <a routerLink="/pricing" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.PRICING_PLANS' | translate }}</a>
+        <a routerLink="/faq" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.FAQ' | translate }}</a>
+        <a routerLink="/contact" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.CONTACT_SUPPORT' | translate }}</a>
+        <a routerLink="/privacy-terms" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.PRIVACY_TERMS' | translate }}</a>
       </div>
 
       <!-- Player Section -->
       <div class="sidebar-section" *ngIf="isPlayer">
-        <span class="section-label">Player Hub</span>
-        <a routerLink="/player/team-events" routerLinkActive="active" (click)="toggleSidebar(false)">Upcoming Events</a>
-        <a routerLink="/player/scouter-views" routerLinkActive="active" (click)="toggleSidebar(false)">Scouter Views</a>
-        <a routerLink="/player/academy-comparison" routerLinkActive="active" (click)="toggleSidebar(false)">Academy
-          Comparison</a>
+        <span class="section-label">{{ 'NAVBAR.PLAYER_HUB' | translate }}</span>
+        <a routerLink="/player/team-events" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.UPCOMING_EVENTS' | translate }}</a>
+        <a routerLink="/player/scouter-views" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.SCOUTER_VIEWS' | translate }}</a>
+        <a routerLink="/player/academy-comparison" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.ACADEMY_COMPARISON' | translate }}</a>
       </div>
 
       <!-- Player Highlights -->
       <div class="sidebar-section" *ngIf="isPlayer">
-        <span class="section-label">Media</span>
-        <a routerLink="/player/highlights" routerLinkActive="active" (click)="toggleSidebar(false)">Highlights</a>
+        <span class="section-label">{{ 'NAVBAR.MEDIA' | translate }}</span>
+        <a routerLink="/player/highlights" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.HIGHLIGHTS' | translate }}</a>
       </div>
 
       <!-- Coach Links (Sidebar Hub) -->
       <ng-container *ngIf="isCoach">
         <div class="sidebar-section-title"
           style="color: var(--accent-lime, #c8ff4d); margin-top: 16px; padding-left: 12px; font-family: 'Bebas Neue'; letter-spacing: 1px;">
-          COACH HUB</div>
-        <a routerLink="/coach/squad" routerLinkActive="active" (click)="toggleSidebar(false)">Squad Overview</a>
-        <a routerLink="/coach/matches" routerLinkActive="active" (click)="toggleSidebar(false)">Matches</a>
-        <a routerLink="/drills" routerLinkActive="active" (click)="toggleSidebar(false)">Drill Templates</a>
-        <a routerLink="/drills/analytics/coach-bias" routerLinkActive="active" (click)="toggleSidebar(false)">Coach Bias</a>
-        <a routerLink="/match/requests/incoming" routerLinkActive="active" (click)="toggleSidebar(false)">Incoming Requests</a>
-        <a routerLink="/match/requests/outgoing" routerLinkActive="active" (click)="toggleSidebar(false)">Outgoing Requests</a>
-        <a routerLink="/academy-ai" routerLinkActive="active" (click)="toggleSidebar(false)" *ngIf="isEliteTier">AI Bot</a>
-      </ng-container>
-       <!-- Scouter Section (Sidebar) -->
-      <ng-container *ngIf="isScouter">
-        <div class="sidebar-section-title" style="color:#c8ff4d; margin-top: 16px; padding-left: 12px; font-family: 'Bebas Neue'; letter-spacing: 1px;">SCOUTER HUB</div>
-        <a routerLink="/search" routerLinkActive="active" (click)="toggleSidebar(false)">Search</a>
-        <a routerLink="/scouter-ai" routerLinkActive="active" (click)="toggleSidebar(false)">AI Assistant</a>
-        <a routerLink="/shortlist/" routerLinkActive="active" (click)="toggleSidebar(false)">Shortlist</a>
-        <a routerLink="/followed-players" routerLinkActive="active" (click)="toggleSidebar(false)">Followed Players</a>
+          {{ 'NAVBAR.COACH_HUB' | translate }}</div>
+        <a routerLink="/coach/squad" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.SQUAD_OVERVIEW' | translate }}</a>
+        <a routerLink="/coach/matches" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.MATCHES' | translate }}</a>
+        <a routerLink="/drills" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.DRILL_TEMPLATES' | translate }}</a>
+        <a routerLink="/drills/analytics/coach-bias" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.COACH_BIAS' | translate }}</a>
+        <a routerLink="/drills/analytics/weak-categories" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.WEAK_CATEGORIES' | translate }}</a>
+        <a routerLink="/match/requests/incoming" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.INCOMING_REQUESTS' | translate }}</a>
+        <a routerLink="/match/requests/outgoing" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.OUTGOING_REQUESTS' | translate }}</a>
+        <a routerLink="/academy-ai" routerLinkActive="active" (click)="toggleSidebar(false)" *ngIf="isEliteTier">{{ 'NAVBAR.AI_BOT' | translate }}</a>
       </ng-container>
 
-      <!-- Settings & Auth Section (Sidebar) -->
-      <div class="sidebar-section" style="margin-top: 12px;">
-        <span class="section-label" *ngIf="isLoggedIn">Settings</span>
-        <a routerLink="/notifications-list" routerLinkActive="active" (click)="toggleSidebar(false)"
-          *ngIf="isLoggedIn && !isSystemAdmin">Notifications</a>
-        <a routerLink="/profile/me" routerLinkActive="active" (click)="toggleSidebar(false)" *ngIf="isLoggedIn">Edit
-          Profile</a>
-        <a routerLink="/settings/change-password" routerLinkActive="active" (click)="toggleSidebar(false)"
-          *ngIf="isLoggedIn">Change Password</a>
-        <a (click)="requestLogout()" style="cursor: pointer;" (click)="toggleSidebar(false)" *ngIf="isLoggedIn">Sign
-          Out</a>
-        <a routerLink="/auth/login" routerLinkActive="active" (click)="toggleSidebar(false)" *ngIf="!isLoggedIn">Sign
-          In</a>
-        <a routerLink="/auth/register" routerLinkActive="active" (click)="toggleSidebar(false)"
-          *ngIf="!isLoggedIn">Register</a>
-      </div>
+       <!-- Scouter Section (Sidebar) -->
+      <ng-container *ngIf="isScouter">
+        <div class="sidebar-section-title" style="color:#c8ff4d; margin-top: 16px; padding-left: 12px; font-family: 'Bebas Neue'; letter-spacing: 1px;">{{ 'NAVBAR.SCOUTER_HUB' | translate }}</div>
+        <a routerLink="/search" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.SEARCH' | translate }}</a>
+        <a routerLink="/scouter-ai" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.AI_ASSISTANT' | translate }}</a>
+        <a routerLink="/shortlist/" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.SHORTLIST' | translate }}</a>
+        <a routerLink="/followed-players" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.FOLLOWED_PLAYERS' | translate }}</a>
+      </ng-container>
 
       <!-- Academy Admin Links (Sidebar) -->
       <ng-container *ngIf="isAcademyAdmin">
         <div class="sidebar-section-title"
           style="color: #00f2fe; margin-top: 16px; padding-left: 12px; font-family: 'Bebas Neue'; letter-spacing: 1px;">
-          ACADEMY HUB</div>
-        <a routerLink="/academy-admin/dashboard" routerLinkActive="active" (click)="toggleSidebar(false)">academy
-          dashboard</a>
-        <a routerLink="/academy-admin/drills-dashboard" routerLinkActive="active"
-          (click)="toggleSidebar(false)">drills</a>
+          {{ 'NAVBAR.ACADEMY_HUB' | translate }}</div>
+        <a routerLink="/academy-admin/dashboard" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.ACADEMY_DASHBOARD' | translate }}</a>
+        <a routerLink="/academy-admin/drills-dashboard" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.ACADEMY_DRILLS' | translate }}</a>
+        <a routerLink="/academy-admin/subscriptions" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.SUBSCRIPTIONS' | translate }}</a>
+        <a routerLink="/academy/matches" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.ACADEMY_MATCHES' | translate }}</a>
+        <ng-container *ngIf="!isCoach">
+          <a routerLink="/drills" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.DRILL_TEMPLATES' | translate }}</a>
+          <a routerLink="/drills/analytics/coach-bias" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.COACH_BIAS' | translate }}</a>
+          <a routerLink="/drills/analytics/weak-categories" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.WEAK_CATEGORIES' | translate }}</a>
+          <a routerLink="/match/requests/incoming" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.INCOMING_REQUESTS' | translate }}</a>
+          <a routerLink="/match/requests/outgoing" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.OUTGOING_REQUESTS' | translate }}</a>
+          <a routerLink="/academy-ai" routerLinkActive="active" (click)="toggleSidebar(false)" *ngIf="isEliteTier">{{ 'NAVBAR.AI_BOT' | translate }}</a>
+        </ng-container>
       </ng-container>
 
       <!-- System Admin Links (Sidebar) -->
       <ng-container *ngIf="isSystemAdmin">
         <div class="sidebar-section-title"
           style="color: #a855f7; margin-top: 16px; padding-left: 12px; font-family: 'Bebas Neue'; letter-spacing: 1px;">
-          SYSTEM ADMIN HUB</div>
-        <a routerLink="/system-admin/dashboard" routerLinkActive="active" (click)="toggleSidebar(false)">admin
-          dashboard</a>
-        <a routerLink="/drills" routerLinkActive="active" (click)="toggleSidebar(false)">drills</a>
+          {{ 'NAVBAR.SYSTEM_ADMIN_HUB' | translate }}</div>
+        <a routerLink="/system-admin/dashboard" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.ADMIN_DASHBOARD' | translate }}</a>
+        <a routerLink="/admin/scouterverification" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.SCOUTER_VERIFICATION' | translate }}</a>
+        <ng-container *ngIf="!isAcademyAdmin">
+          <a routerLink="/academy/matches" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.ACADEMY_MATCHES' | translate }}</a>
+        </ng-container>
+        <ng-container *ngIf="!isCoach && !isAcademyAdmin">
+          <a routerLink="/drills" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.DRILL_TEMPLATES' | translate }}</a>
+          <a routerLink="/drills/analytics/coach-bias" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.COACH_BIAS' | translate }}</a>
+          <a routerLink="/drills/analytics/weak-categories" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.WEAK_CATEGORIES' | translate }}</a>
+        </ng-container>
       </ng-container>
+
+      <!-- Settings & Auth Section (Sidebar) -->
+      <div class="sidebar-section" style="margin-top: 12px;">
+        <span class="section-label" *ngIf="isLoggedIn">{{ 'NAVBAR.SETTINGS' | translate }}</span>
+        <a routerLink="/notifications-list" routerLinkActive="active" (click)="toggleSidebar(false)"
+          *ngIf="isLoggedIn && !isSystemAdmin">{{ 'NAVBAR.NOTIFICATIONS' | translate }}</a>
+        <a routerLink="/profile/me" routerLinkActive="active" (click)="toggleSidebar(false)" *ngIf="isLoggedIn">{{ 'NAVBAR.EDIT_PROFILE' | translate }}</a>
+        <a routerLink="/settings/change-password" routerLinkActive="active" (click)="toggleSidebar(false)"
+          *ngIf="isLoggedIn">{{ 'NAVBAR.CHANGE_PASSWORD' | translate }}</a>
+        <a (click)="requestLogout()" style="cursor: pointer;" (click)="toggleSidebar(false)" *ngIf="isLoggedIn">{{ 'NAVBAR.SIGN_OUT' | translate }}</a>
+        <a routerLink="/auth/login" routerLinkActive="active" (click)="toggleSidebar(false)" *ngIf="!isLoggedIn">{{ 'NAVBAR.SIGN_IN' | translate }}</a>
+        <a routerLink="/auth/register" routerLinkActive="active" (click)="toggleSidebar(false)"
+          *ngIf="!isLoggedIn">{{ 'NAVBAR.REGISTER' | translate }}</a>
+      </div>
     </nav>
   </div>
 </aside>
 
 <!-- Sign Out Confirmation Dialog -->
-<app-confirm-dialog [isOpen]="showSignOutConfirm" title="Sign Out" message="Are you sure you want to sign out?"
-  level="warning" confirmText="Sign Out" cancelText="Cancel" (confirm)="logout()" (cancel)="cancelLogout()">
+<app-confirm-dialog [isOpen]="showSignOutConfirm" [title]="'NAVBAR.SIGN_OUT' | translate" [message]="'NAVBAR.SIGN_OUT_MSG' | translate"
+  level="warning" [confirmText]="'NAVBAR.SIGN_OUT' | translate" [cancelText]="'COMMON.CANCEL' | translate" (confirm)="logout()" (cancel)="cancelLogout()">
 </app-confirm-dialog>

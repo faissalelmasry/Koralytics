@@ -4,21 +4,21 @@
   <section class="hero-section">
     <span class="eyebrow">
       <span class="pulse-dot"></span>
-      Security & Compliance Blueprint
+      {{ 'STATIC.PRIVACY.HERO_EYEBROW' | translate }}
     </span>
     <h1 class="hero-headline">
-      Data Privacy & <span class="grad-text">Terms of Service</span>.
+      {{ 'STATIC.PRIVACY.HERO_HEADLINE' | translate }}<span class="grad-text">{{ 'STATIC.PRIVACY.HERO_HEADLINE_GRAD' | translate }}</span>.
     </h1>
     <p class="hero-subheadline">
-      Our explicit commitment to minor protection, 100% academy data ownership, and strict PII anonymization firewalls.
+      {{ 'STATIC.PRIVACY.HERO_SUB' | translate }}
     </p>
 
     <!-- Navigation Pills -->
     <div class="nav-pills">
-      <button [class.active]="activeSection === 'minor'" (click)="setSection('minor')">Minor Protection</button>
-      <button [class.active]="activeSection === 'ownership'" (click)="setSection('ownership')">Data Ownership</button>
-      <button [class.active]="activeSection === 'anonymization'" (click)="setSection('anonymization')">Anonymization Firewall</button>
-      <button [class.active]="activeSection === 'terms'" (click)="setSection('terms')">Terms of Service</button>
+      <button [class.active]="activeSection === 'minor'" (click)="setSection('minor')">{{ 'STATIC.PRIVACY.TAB_MINOR' | translate }}</button>
+      <button [class.active]="activeSection === 'ownership'" (click)="setSection('ownership')">{{ 'STATIC.PRIVACY.TAB_OWNERSHIP' | translate }}</button>
+      <button [class.active]="activeSection === 'anonymization'" (click)="setSection('anonymization')">{{ 'STATIC.PRIVACY.TAB_ANON' | translate }}</button>
+      <button [class.active]="activeSection === 'terms'" (click)="setSection('terms')">{{ 'STATIC.PRIVACY.TAB_TERMS' | translate }}</button>
     </div>
   </section>
 
@@ -28,82 +28,82 @@
       
       <!-- Section 1: Minor Privacy Protection -->
       <div *ngIf="activeSection === 'minor'" class="policy-block">
-        <span class="policy-badge cyan">Child Safety Standard</span>
-        <h2>1. Minor Privacy Protection Policy</h2>
+        <span class="policy-badge cyan">{{ 'STATIC.PRIVACY.SEC1_BADGE' | translate }}</span>
+        <h2>{{ 'STATIC.PRIVACY.SEC1_TITLE' | translate }}</h2>
         <p class="lead">
-          Koralytics enforces strict regulatory compliance policies governing all data collection, storage, and processing for young athletes and children under 18.
+          {{ 'STATIC.PRIVACY.SEC1_LEAD' | translate }}
         </p>
         <div class="policy-points">
           <div class="point-box">
-            <h4>Parental Consent First</h4>
-            <p>Minor athlete profiles can only be created and managed under authorized academy administration with parent/guardian portal verification.</p>
+            <h4>{{ 'STATIC.PRIVACY.SEC1_P1_TITLE' | translate }}</h4>
+            <p>{{ 'STATIC.PRIVACY.SEC1_P1_DESC' | translate }}</p>
           </div>
           <div class="point-box">
-            <h4>Encrypted Identity & Contact Details</h4>
-            <p>Personally Identifiable Information (PII) such as home addresses, phone numbers, and school details are strictly encrypted and hidden from non-authorized users.</p>
+            <h4>{{ 'STATIC.PRIVACY.SEC1_P2_TITLE' | translate }}</h4>
+            <p>{{ 'STATIC.PRIVACY.SEC1_P2_DESC' | translate }}</p>
           </div>
           <div class="point-box">
-            <h4>Scouter Inquiry Safeguards</h4>
-            <p>Scouters and external talent queries can view sports performance radar metrics only. Direct communication with minor athletes is completely disabled; inquiries route directly to parents and head coaches.</p>
+            <h4>{{ 'STATIC.PRIVACY.SEC1_P3_TITLE' | translate }}</h4>
+            <p>{{ 'STATIC.PRIVACY.SEC1_P3_DESC' | translate }}</p>
           </div>
         </div>
       </div>
 
       <!-- Section 2: Data Ownership -->
       <div *ngIf="activeSection === 'ownership'" class="policy-block">
-        <span class="policy-badge lime">100% Retained Rights</span>
-        <h2>2. Academy Data Ownership Policy</h2>
+        <span class="policy-badge lime">{{ 'STATIC.PRIVACY.SEC2_BADGE' | translate }}</span>
+        <h2>{{ 'STATIC.PRIVACY.SEC2_TITLE' | translate }}</h2>
         <p class="lead">
-          Every sports academy, club, and organization using Koralytics retains 100% absolute legal ownership of their operational, financial, and athlete data.
+          {{ 'STATIC.PRIVACY.SEC2_LEAD' | translate }}
         </p>
         <div class="policy-points">
           <div class="point-box">
-            <h4>No Third-Party Monetization</h4>
-            <p>Koralytics never sells, leases, or trades private academy data, subscription histories, or contact records to third-party advertisers or data brokers.</p>
+            <h4>{{ 'STATIC.PRIVACY.SEC2_P1_TITLE' | translate }}</h4>
+            <p>{{ 'STATIC.PRIVACY.SEC2_P1_DESC' | translate }}</p>
           </div>
           <div class="point-box">
-            <h4>Data Export & Portability</h4>
-            <p>Academy managers can export complete squad telemetry, drill records, and financial reports in structured JSON or CSV format at any time without penalty.</p>
+            <h4>{{ 'STATIC.PRIVACY.SEC2_P2_TITLE' | translate }}</h4>
+            <p>{{ 'STATIC.PRIVACY.SEC2_P2_DESC' | translate }}</p>
           </div>
           <div class="point-box">
-            <h4>Instant Deletion Rights</h4>
-            <p>Upon contract termination, all private academy databases and isolated tenant tables are purged permanently within 30 days in compliance with deletion SLAs.</p>
+            <h4>{{ 'STATIC.PRIVACY.SEC2_P3_TITLE' | translate }}</h4>
+            <p>{{ 'STATIC.PRIVACY.SEC2_P3_DESC' | translate }}</p>
           </div>
         </div>
       </div>
 
       <!-- Section 3: Anonymized Analytics Policy -->
       <div *ngIf="activeSection === 'anonymization'" class="policy-block">
-        <span class="policy-badge violet">Architectural Firewall</span>
-        <h2>3. Anonymized Analytics & Telemetry Firewall</h2>
+        <span class="policy-badge violet">{{ 'STATIC.PRIVACY.SEC3_BADGE' | translate }}</span>
+        <h2>{{ 'STATIC.PRIVACY.SEC3_TITLE' | translate }}</h2>
         <p class="lead">
-          Understanding the explicit firewall between private personal identifiable information (PII) and public/aggregated football performance metrics.
+          {{ 'STATIC.PRIVACY.SEC3_LEAD' | translate }}
         </p>
 
         <div class="firewall-diagram">
           <div class="diagram-box private">
-            <span class="box-tag">Strictly Isolated (Private)</span>
-            <h4>Academy & Athlete PII</h4>
+            <span class="box-tag">{{ 'STATIC.PRIVACY.SEC3_TAG_PRI' | translate }}</span>
+            <h4>{{ 'STATIC.PRIVACY.SEC3_PRI_TITLE' | translate }}</h4>
             <ul>
-              <li>Athlete Full Name & Contact Info</li>
-              <li>Parent Records & Billing Details</li>
-              <li>Coach Private Tactical Notes</li>
-              <li>Attendance & Payment Logs</li>
+              <li>{{ 'STATIC.PRIVACY.SEC3_PRI_1' | translate }}</li>
+              <li>{{ 'STATIC.PRIVACY.SEC3_PRI_2' | translate }}</li>
+              <li>{{ 'STATIC.PRIVACY.SEC3_PRI_3' | translate }}</li>
+              <li>{{ 'STATIC.PRIVACY.SEC3_PRI_4' | translate }}</li>
             </ul>
           </div>
 
           <div class="firewall-barrier">
-            <span class="barrier-text">KORALYTICS ANONYMIZATION FIREWALL</span>
+            <span class="barrier-text">{{ 'STATIC.PRIVACY.SEC3_BARRIER' | translate }}</span>
           </div>
 
           <div class="diagram-box public">
-            <span class="box-tag">Aggregated (Regional Standards)</span>
-            <h4>Anonymized Telemetry Indices</h4>
+            <span class="box-tag">{{ 'STATIC.PRIVACY.SEC3_TAG_PUB' | translate }}</span>
+            <h4>{{ 'STATIC.PRIVACY.SEC3_PUB_TITLE' | translate }}</h4>
             <ul>
-              <li>Avg Pass Accuracy by Age Group</li>
-              <li>Sprint Speed Percentiles (U12-U18)</li>
-              <li>Drill Execution Speed Averages</li>
-              <li>Regional Tactical Benchmark Metrics</li>
+              <li>{{ 'STATIC.PRIVACY.SEC3_PUB_1' | translate }}</li>
+              <li>{{ 'STATIC.PRIVACY.SEC3_PUB_2' | translate }}</li>
+              <li>{{ 'STATIC.PRIVACY.SEC3_PUB_3' | translate }}</li>
+              <li>{{ 'STATIC.PRIVACY.SEC3_PUB_4' | translate }}</li>
             </ul>
           </div>
         </div>
@@ -111,23 +111,23 @@
 
       <!-- Section 4: Terms of Service -->
       <div *ngIf="activeSection === 'terms'" class="policy-block">
-        <span class="policy-badge coral">Legal Contract</span>
-        <h2>4. General Terms of Service</h2>
+        <span class="policy-badge coral">{{ 'STATIC.PRIVACY.SEC4_BADGE' | translate }}</span>
+        <h2>{{ 'STATIC.PRIVACY.SEC4_TITLE' | translate }}</h2>
         <p class="lead">
-          By registering an academy account or accessing Koralytics portals, you agree to comply with our platform terms of service.
+          {{ 'STATIC.PRIVACY.SEC4_LEAD' | translate }}
         </p>
         <div class="terms-list">
           <div class="term-item">
-            <h4>4.1 Service SLA & Uptime</h4>
-            <p>Koralytics commits to a 99.8% monthly uptime SLA for core telemetry databases and match recording servers.</p>
+            <h4>{{ 'STATIC.PRIVACY.SEC4_P1_TITLE' | translate }}</h4>
+            <p>{{ 'STATIC.PRIVACY.SEC4_P1_DESC' | translate }}</p>
           </div>
           <div class="term-item">
-            <h4>4.2 Account Credentials & Security</h4>
-            <p>Academy admins, coaches, and parents are responsible for safeguarding password credentials and enforcing multi-factor security on admin accounts.</p>
+            <h4>{{ 'STATIC.PRIVACY.SEC4_P2_TITLE' | translate }}</h4>
+            <p>{{ 'STATIC.PRIVACY.SEC4_P2_DESC' | translate }}</p>
           </div>
           <div class="term-item">
-            <h4>4.3 Fair Telemetry Usage Policy</h4>
-            <p>Academies must submit authentic match data and refrains from automated bot queries or scraping telemetry analytics APIs.</p>
+            <h4>{{ 'STATIC.PRIVACY.SEC4_P3_TITLE' | translate }}</h4>
+            <p>{{ 'STATIC.PRIVACY.SEC4_P3_DESC' | translate }}</p>
           </div>
         </div>
       </div>

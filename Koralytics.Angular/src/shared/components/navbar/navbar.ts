@@ -6,11 +6,12 @@ import { TokenStorageService } from '../../../core/services/auth/token-storage.s
 import { ParentService } from '../../../core/services/parent/parent.service';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog';
 import { LanguageSwitcherComponent } from '../language-switcher/language-switcher.component';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [RouterModule, CommonModule, ConfirmDialogComponent, LanguageSwitcherComponent],
+  imports: [RouterModule, CommonModule, ConfirmDialogComponent, LanguageSwitcherComponent, TranslatePipe],
   templateUrl: './navbar.html',
   styleUrls: ['./navbar.css']
 })

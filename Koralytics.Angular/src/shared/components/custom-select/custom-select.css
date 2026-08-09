@@ -69,6 +69,10 @@
   transform-origin: left top;
   transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.2s ease;
   z-index: 2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: calc(100% - 40px);
 }
 
 :host-context([dir="rtl"]) .floating-label {

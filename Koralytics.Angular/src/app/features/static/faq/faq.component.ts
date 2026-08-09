@@ -2,10 +2,11 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 interface FaqItem {
-  question: string;
-  answer: string;
+  questionKey: string;
+  answerKey: string;
   category: 'general' | 'privacy' | 'portals';
   open?: boolean;
 }
@@ -13,7 +14,7 @@ interface FaqItem {
 @Component({
   selector: 'app-faq',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, TranslatePipe],
   templateUrl: './faq.component.html',
   styleUrls: ['./faq.component.css']
 })
@@ -21,40 +22,42 @@ export class FaqComponent {
   searchQuery = '';
   selectedCategory: 'all' | 'general' | 'privacy' | 'portals' = 'all';
 
+  constructor(private translate: TranslateService) {}
+
   faqs: FaqItem[] = [
     {
-      question: 'How does Koralytics use football statistics across academies?',
-      answer: 'We aggregate anonymized performance data (e.g., average pass accuracy, sprint speeds by age group) to create competitive benchmarks. No personally identifiable information (PII) is ever exposed.',
+      questionKey: 'STATIC.FAQ.Q1_Q',
+      answerKey: 'STATIC.FAQ.Q1_A',
       category: 'privacy',
       open: true
     },
     {
-      question: 'Can parents and players log in directly?',
-      answer: 'Yes, Koralytics provides dedicated portals for players and parents to track individual growth curves, match stats, attendance records, and schedules transparently.',
+      questionKey: 'STATIC.FAQ.Q2_Q',
+      answerKey: 'STATIC.FAQ.Q2_A',
       category: 'portals',
       open: true
     },
     {
-      question: 'Is data isolated between different academies?',
-      answer: 'Absolutely. Every academy\'s private operational, financial, and personal data is completely isolated within tenant boundaries. Only anonymized, aggregated football metrics contribute to overall ecosystem analytics.',
+      questionKey: 'STATIC.FAQ.Q3_Q',
+      answerKey: 'STATIC.FAQ.Q3_A',
       category: 'privacy',
       open: true
     },
     {
-      question: 'How quickly can our academy onboard?',
-      answer: 'Onboarding takes less than 24 hours. Once your academy account is initialized, branch managers can invite coaches, register squads, and begin tracking telemetry immediately.',
+      questionKey: 'STATIC.FAQ.Q4_Q',
+      answerKey: 'STATIC.FAQ.Q4_A',
       category: 'general',
       open: false
     },
     {
-      question: 'What hardware or sensors are required for telemetry?',
-      answer: 'Koralytics works out of the box with standard mobile tablets and web browsers for manual drill & match input. It also integrates seamlessly with GPS player vests and optical camera video systems.',
+      questionKey: 'STATIC.FAQ.Q5_Q',
+      answerKey: 'STATIC.FAQ.Q5_A',
       category: 'general',
       open: false
     },
     {
-      question: 'How are minor athletes\' data protected?',
-      answer: 'We enforce strict minor data protection protocols. Scouters and external users cannot view minor contact details or personal IDs; only sports telemetry radar metrics are visible under parental consent.',
+      questionKey: 'STATIC.FAQ.Q6_Q',
+      answerKey: 'STATIC.FAQ.Q6_A',
       category: 'privacy',
       open: false
     }
@@ -67,9 +70,12 @@ export class FaqComponent {
   get filteredFaqs(): FaqItem[] {
     return this.faqs.filter(faq => {
       const matchesCategory = this.selectedCategory === 'all' || faq.category === this.selectedCategory;
+      const qText = this.translate.instant(faq.questionKey).toLowerCase();
+      const aText = this.translate.instant(faq.answerKey).toLowerCase();
+      const query = this.searchQuery.toLowerCase();
       const matchesQuery = !this.searchQuery || 
-        faq.question.toLowerCase().includes(this.searchQuery.toLowerCase()) || 
-        faq.answer.toLowerCase().includes(this.searchQuery.toLowerCase());
+        qText.includes(query) || 
+        aText.includes(query);
       return matchesCategory && matchesQuery;
     });
   }
