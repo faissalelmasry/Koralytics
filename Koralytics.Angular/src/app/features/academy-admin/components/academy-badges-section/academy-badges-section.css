@@ -100,3 +100,23 @@
   margin-bottom: 12px;
   opacity: 0.5;
 }
+
+@media (max-width: 640px) {
+  .section-container {
+    padding: 12px;
+    border-radius: 12px;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  .badges-grid {
+    gap: 10px;
+  }
+
+  .badge-card {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+}

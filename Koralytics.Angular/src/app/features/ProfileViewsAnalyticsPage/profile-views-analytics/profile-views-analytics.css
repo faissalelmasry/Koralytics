@@ -368,30 +368,13 @@
     display: block;
   }
 
-  .cyber-data-table thead {
-    display: none;
-  }
-
-  .cyber-data-table tbody tr {
-    padding: 10px 4px;
-  }
-
-  .cyber-data-table td {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 12px;
-    border: none;
-    text-align: right;
-  }
-
-  .cyber-data-table td::before {
-    content: attr(data-label);
-    font-size: 11px;
-    font-weight: 600;
-    color: #808897;
-    text-transform: uppercase;
-  }
+/* Smooth horizontal scrollbar */
+.cyber-table-responsive-container::-webkit-scrollbar {
+  height: 6px;
+}
+.cyber-table-responsive-container::-webkit-scrollbar-thumb {
+  background: rgba(0, 229, 255, 0.2);
+  border-radius: 4px;
 }
 
 /* ===================================================

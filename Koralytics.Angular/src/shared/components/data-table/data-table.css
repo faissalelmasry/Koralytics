@@ -7,6 +7,7 @@
 .cyber-table-responsive-container {
   width: 100%;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   background: rgba(18, 22, 28, 0.4);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 12px;
@@ -19,6 +20,7 @@
   border-collapse: collapse;
   text-align: start;
   font-family: 'Inter', sans-serif;
+  white-space: nowrap;
 }
 
 /* Header Styling */
@@ -31,6 +33,7 @@
   color: #8b909a;
   text-transform: lowercase;
   letter-spacing: 0.5px;
+  white-space: nowrap;
 }
 
 /* Row Styling */
@@ -157,40 +160,23 @@
   box-shadow: 0 0 15px rgba(163, 230, 53, 0.25);
 }
 
-/* 📱 Responsive Design Matrix (For Mobile Screens) */
-@media (max-width: 768px) {
-  .cyber-data-table, .cyber-data-table thead, .cyber-data-table tbody, .cyber-data-table th, .cyber-data-table td, .cyber-data-table tr {
-    display: block;
-  }
-  
-  .cyber-data-table thead {
-    display: none;
-  }
-  
-  .cyber-data-table tbody tr {
-    padding: 12px 6px;
-  }
-  
-  .cyber-data-table td {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 16px;
-    border: none;
-    text-align: right;
-  }
-  
-  .cyber-data-table td::before {
-    content: attr(data-label);
-    font-size: 12px;
-    font-weight: 600;
-    color: #8b909a;
-    text-transform: lowercase;
-  }
-  
-  .table-actions-hub {
-    justify-content: flex-end;
-  }
+/* Horizontal Scrollbar Styling for Data Table */
+.cyber-table-responsive-container::-webkit-scrollbar {
+  height: 6px;
+}
+
+.cyber-table-responsive-container::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 4px;
+}
+
+.cyber-table-responsive-container::-webkit-scrollbar-thumb {
+  background: rgba(0, 229, 255, 0.2);
+  border-radius: 4px;
+}
+
+.cyber-table-responsive-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 229, 255, 0.5);
 }
 /* User Info Layout */
 .user-info { display: flex; align-items: center; gap: 12px; }

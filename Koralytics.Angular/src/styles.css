@@ -98,3 +98,110 @@ th {
   text-align: start !important;
 }
 
+/* ============================================
+   Uniform Cyber Table & Single-Line Row Rules
+   ============================================ */
+.cyber-table-responsive-container,
+.table-responsive-container,
+.table-container {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  box-sizing: border-box !important;
+}
+
+.cyber-data-table,
+.data-table,
+.readiness-table,
+.standings-table,
+.history-table,
+.breakdown-table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  white-space: nowrap !important;
+}
+
+.cyber-data-table th,
+.cyber-data-table td,
+.data-table th,
+.data-table td,
+.readiness-table th,
+.readiness-table td,
+.standings-table th,
+.standings-table td,
+.history-table th,
+.history-table td,
+.breakdown-table th,
+.breakdown-table td {
+  white-space: nowrap !important;
+  vertical-align: middle;
+}
+
+/* ============================================
+   Global Cyber & Standard Modal Mobile Responsiveness
+   ============================================ */
+.modal-backdrop-cyber,
+.modal-backdrop {
+  z-index: 9999 !important;
+  padding: 16px !important;
+  box-sizing: border-box !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+.cyber-modal-card,
+.modal-card {
+  max-height: calc(100vh - 32px) !important;
+  max-height: calc(100dvh - 32px) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  box-sizing: border-box !important;
+}
+
+.modal-header-cyber,
+.modal-header {
+  flex-shrink: 0 !important;
+}
+
+.modal-body-cyber,
+.modal-body {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+.modal-footer-cyber,
+.modal-footer {
+  flex-shrink: 0 !important;
+}
+
+@media (max-width: 640px) {
+  .modal-backdrop-cyber,
+  .modal-backdrop {
+    padding: 10px !important;
+  }
+
+  .cyber-modal-card,
+  .modal-card {
+    padding: 18px 16px !important;
+    border-radius: 16px !important;
+    max-height: calc(100vh - 20px) !important;
+    max-height: calc(100dvh - 20px) !important;
+  }
+
+  .modal-header-cyber h4,
+  .modal-header h4 {
+    font-size: 20px !important;
+  }
+
+  .btn-close-cyber,
+  .btn-close {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 18px !important;
+    flex-shrink: 0 !important;
+  }
+}
+

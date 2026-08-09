@@ -113,6 +113,7 @@
   box-shadow: 0 0 25px rgba(0, 229, 255, 0.25);
   animation: avatarPulse 4s infinite alternate;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 @keyframes avatarPulse {
@@ -133,6 +134,9 @@
   letter-spacing: 1.5px;
   color: #fff;
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  line-height: 1.1;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .meta-pills {
@@ -166,8 +170,12 @@
 .bio-quick-list {
   display: flex;
   align-items: center;
-  gap: 28px;
+  gap: 24px;
   flex-wrap: wrap;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 12px 20px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
 }
 
 .bio-item {
@@ -1093,6 +1101,23 @@
    6. RESPONSIVE BREAKPOINTS
 ========================================================= */
 @media (max-width: 1024px) {
+  .hero-banner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 20px;
+    padding: 24px;
+  }
+
+  .player-identity {
+    width: 100%;
+  }
+
+  .bio-quick-list {
+    width: 100%;
+    justify-content: space-between;
+    box-sizing: border-box;
+  }
+
   .kpi-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -1102,18 +1127,159 @@
   }
 }
 
-@media (max-width: 640px) {
-  .kpi-grid {
-    grid-template-columns: 1fr;
+@media (max-width: 768px) {
+  .profile-container {
+    padding: 0 16px;
+    gap: 20px;
+  }
+
+  .profile-page {
+    padding-top: 20px;
+    padding-bottom: 40px;
   }
 
   .hero-banner {
-    flex-direction: column;
-    align-items: flex-start;
+    padding: 20px;
+    border-radius: 16px;
+    gap: 16px;
+  }
+
+  .player-identity {
+    gap: 16px;
+  }
+
+  .avatar-circle {
+    width: 70px;
+    height: 70px;
+    font-size: 1.8rem;
+  }
+
+  .player-identity h1 {
+    font-size: 2.2rem;
+    margin-bottom: 6px;
   }
 
   .bio-quick-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px 10px;
+    padding: 12px 16px;
+  }
+
+  .hero-action-btn {
+    grid-column: 1 / -1;
+    margin-left: 0;
     width: 100%;
+  }
+
+  .hero-action-btn app-button,
+  .hero-action-btn ::ng-deep button,
+  .hero-action-btn ::ng-deep .custom-btn {
+    width: 100% !important;
+    justify-content: center !important;
+    display: flex !important;
+  }
+}
+
+@media (max-width: 576px) {
+  .profile-container {
+    padding: 0 12px;
+  }
+
+  .hero-banner {
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .player-identity {
+    gap: 12px;
+  }
+
+  .avatar-circle {
+    width: 56px;
+    height: 56px;
+    font-size: 1.4rem;
+    letter-spacing: 1px;
+  }
+
+  .player-identity h1 {
+    font-size: 1.75rem;
+    letter-spacing: 1px;
+  }
+
+  .meta-pills {
+    gap: 6px;
+  }
+
+  .pill {
+    font-size: 0.72rem;
+    padding: 3px 10px;
+  }
+
+  .bio-quick-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px 6px;
+    padding: 10px 12px;
+    border-radius: 10px;
+  }
+
+  .bio-item {
+    min-width: 0;
+  }
+
+  .bio-lbl {
+    font-size: 0.65rem;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .bio-val {
+    font-size: 0.88rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 400px) {
+  .player-identity {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .avatar-circle {
+    width: 50px;
+    height: 50px;
+    font-size: 1.25rem;
+  }
+
+  .player-identity h1 {
+    font-size: 1.5rem;
+  }
+
+  .bio-quick-list {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .bio-item {
+    flex-direction: row;
     justify-content: space-between;
+    align-items: center;
+  }
+
+  .bio-lbl {
+    font-size: 0.7rem;
+  }
+
+  .bio-val {
+    font-size: 0.9rem;
   }
 }

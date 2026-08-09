@@ -72,6 +72,9 @@ header {
   .mobile-nav-toggle {
     display: flex;
   }
+  .floating-sidebar-trigger {
+    display: none !important;
+  }
   .logo-wrapper img {
     max-height: 56px;
   }

@@ -280,10 +280,13 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 10px;
+  min-width: 0;
+  width: 100%;
 }
 
 .team {
-  flex: 1;
+  flex: 1 1 0%;
+  min-width: 0;
   font-size: 14px;
   font-weight: 700;
   color: #ffffff;
@@ -355,12 +358,14 @@
   color: #82f768;
   padding: 1px 4px;
   border-radius: 3px;
+  flex-shrink: 0;
 }
 
 .side-label {
   font-size: 9px;
   font-weight: 500;
   color: #6b7280;
+  flex-shrink: 0;
 }
 
 .score-box {
@@ -512,8 +517,8 @@
   .match-card {
     grid-template-columns: 1fr;
     grid-template-rows: auto auto auto;
-    padding: 14px 16px;
-    gap: 12px;
+    padding: 12px 14px;
+    gap: 10px;
   }
 
   /* META row: type badge + format + location in a row */
@@ -533,13 +538,16 @@
   /* CENTER: teams + score stacked nicely */
   .match-center {
     padding: 0;
-    gap: 10px;
-    justify-content: center;
+    gap: 8px;
+    justify-content: space-between;
+    width: 100%;
+    min-width: 0;
   }
 
   .team {
-    flex: unset;
-    font-size: 13px;
+    flex: 1 1 0%;
+    min-width: 0;
+    font-size: 12px;
   }
 
   .team.home {
@@ -552,22 +560,39 @@
     text-align: left;
   }
 
+  .win-tag {
+    font-size: 8px;
+    padding: 1px 3px;
+  }
+
+  .side-label {
+    font-size: 8px;
+  }
+
   .score-box {
-    min-width: 80px;
+    flex-shrink: 0;
+    min-width: 65px;
   }
 
   .main-score {
-    font-size: 20px;
+    font-size: 18px;
     letter-spacing: 1px;
+    white-space: nowrap;
   }
 
   .vs-badge {
-    font-size: 11px;
-    padding: 3px 8px;
+    font-size: 10px;
+    padding: 2px 7px;
   }
 
   .scheduled-time {
-    font-size: 13px;
+    font-size: 12px;
+  }
+
+  .penalty-tag {
+    font-size: 8px;
+    padding: 1px 4px;
+    white-space: nowrap;
   }
 
   /* STATUS row: spread left-right */
@@ -576,7 +601,7 @@
     justify-content: space-between;
     align-items: center;
     border-top: 1px solid rgba(255, 255, 255, 0.06);
-    padding-top: 10px;
+    padding-top: 8px;
   }
 
   /* Prevent hover lift on touch */
