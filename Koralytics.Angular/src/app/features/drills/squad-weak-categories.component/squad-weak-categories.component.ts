@@ -1,8 +1,10 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { DrillSessionService } from '../../../../core/services/drill/drill-session.service';
+import { DrillSessionDto } from '../../../../core/interfaces/drill-session.model';
+import { Subscription } from 'rxjs';
 
 interface CategoryPerformance {
   categoryName: string;
@@ -24,14 +26,16 @@ import { StatusChipComponent } from '../../../../shared/components/status-chip/s
 @Component({
   selector: 'app-squad-weak-categories',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush, // 🟢 OPTIMIZATION: Maximum performance
   imports: [CommonModule, FormsModule, CustomSelect, LoadingSpinnerComponent, StatusChipComponent],
   templateUrl: './squad-weak-categories.component.html',
   styleUrls: ['./squad-weak-categories.component.css']
 })
-export class SquadWeakCategoriesComponent implements OnInit {
-  get teamOptions(): SelectOption[] {
-    return this.availableTeams.map(t => ({ value: t.id, label: t.name }));
-  }
+export class SquadWeakCategoriesComponent implements OnInit, OnDestroy {
+  // 🟢 OPTIMIZATION: Memory management
+  private subscriptions = new Subscription();
+
+  teamOptionsList: SelectOption[] = [];
 
   onTeamSelect(teamIdVal: any): void {
     this.selectedTeamId = teamIdVal ? Number(teamIdVal) : 1;
@@ -62,6 +66,10 @@ export class SquadWeakCategoriesComponent implements OnInit {
     this.loadInitialData();
   }
 
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
+  }
+
   goBack(): void {
     this.router.navigate(['/drills/sessions']);
   }
@@ -69,51 +77,59 @@ export class SquadWeakCategoriesComponent implements OnInit {
   private loadInitialData(): void {
     // Fetch available sessions/teams to populate dropdown
     const filter = { pageNumber: 1, pageSize: 50 };
-    this.sessionService.getCoachSessions(filter).subscribe({
-      next: (sessions: any) => {
-        const items = Array.isArray(sessions) ? sessions : (sessions.items || []);
+    this.subscriptions.add(
+      this.sessionService.getCoachSessions(filter).subscribe({
+        next: (sessions: DrillSessionDto[] | { items: DrillSessionDto[] } | any) => {
+          const items: DrillSessionDto[] = Array.isArray(sessions) ? sessions : (sessions.items || sessions.data?.items || []);
 
-        // Extract unique teams
-        const teamMap = new Map<number, string>();
-        items.forEach((s: any) => {
-          if (s.teamId) teamMap.set(s.teamId, s.teamName || `Team #${s.teamId}`);
-        });
+          // Extract unique teams
+          const teamMap = new Map<number, string>();
+          items.forEach(s => {
+            if (s.teamId) teamMap.set(s.teamId, s.teamName || `Team #${s.teamId}`);
+          });
 
-        this.availableTeams = Array.from(teamMap.entries()).map(([id, name]) => ({ id, name }));
+          this.availableTeams = Array.from(teamMap.entries()).map(([id, name]) => ({ id, name }));
 
-        if (this.availableTeams.length > 0) {
-          this.selectedTeamId = this.availableTeams[0].id;
+          if (this.availableTeams.length > 0) {
+            this.selectedTeamId = this.availableTeams[0].id;
+          }
+
+          // 🟢 OPTIMIZATION: Map exactly once instead of constant Getter evaluation
+          this.teamOptionsList = this.availableTeams.map(t => ({ value: t.id, label: t.name }));
+
+          this.fetchWeakCategories();
+        },
+        error: () => {
+          // Fallback team if no sessions exist
+          this.availableTeams = [{ id: 1, name: 'U17 Team A' }];
+          this.teamOptionsList = this.availableTeams.map(t => ({ value: t.id, label: t.name }));
+          this.fetchWeakCategories();
         }
-
-        this.fetchWeakCategories();
-      },
-      error: () => {
-        // Fallback team if no sessions exist
-        this.availableTeams = [{ id: 1, name: 'U17 Team A' }];
-        this.fetchWeakCategories();
-      }
-    });
+      })
+    );
   }
 
   fetchWeakCategories(): void {
     this.isLoading = true;
     this.errorMessage = '';
 
-    this.sessionService.getSquadWeakCategories(this.selectedTeamId).subscribe({
-      next: (data: CategoryPerformance[]) => {
-        // Sort lowest score first (weakest categories at top)
-        this.categoriesPerformance = (data || []).sort((a, b) => a.averageScore - b.averageScore);
-        this.generateSessionSuggestions();
-        this.isLoading = false;
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error('Failed to load weak categories', err);
-        this.errorMessage = err.error?.message || 'Could not fetch squad analytics.';
-        this.isLoading = false;
-        this.cdr.detectChanges();
-      }
-    });
+    this.subscriptions.add(
+      this.sessionService.getSquadWeakCategories(this.selectedTeamId).subscribe({
+        next: (data: CategoryPerformance[]) => {
+          // Sort lowest score first (weakest categories at top)
+          this.categoriesPerformance = (data || []).sort((a, b) => a.averageScore - b.averageScore);
+          this.generateSessionSuggestions();
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error('Failed to load weak categories', err);
+          this.errorMessage = err.error?.message || 'Could not fetch squad analytics.';
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        }
+      })
+    );
   }
 
   onTeamChange(): void {

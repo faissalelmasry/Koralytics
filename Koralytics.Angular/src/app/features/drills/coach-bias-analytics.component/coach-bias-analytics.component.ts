@@ -1,7 +1,8 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { DrillSessionService } from '../../../../core/services/drill/drill-session.service';
 import { AcademyService } from '../../../../core/services/academy/academy.service';
 import { AuthService } from '../../../../core/services/auth/auth.service';
@@ -10,6 +11,7 @@ import { CustomButtonComponent } from '../../../../shared/components/custom-butt
 import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner';
 import { StatusChipComponent } from '../../../../shared/components/status-chip/status-chip';
 import { FeatureLockComponent } from '../../../shared/components/feature-lock/feature-lock';
+import { User } from '@core/interfaces/user.model';
 
 export interface PlayerComparison {
   playerId: number;
@@ -29,26 +31,50 @@ export interface BiasReport {
   playerComparisons?: PlayerComparison[];
 }
 
+// 🟢 OPTIMIZATION: Strict typings for the API payloads
+interface AppUser {
+  userId: number;
+  email: string;
+  userName: string;
+  fullName: string;
+  roles: string[];
+  academyId?: number | null;
+}
+
+interface AcademyMember {
+  userId: number;
+  fullName?: string;
+  email: string;
+  role: string;
+}
+
 @Component({
   selector: 'app-coach-bias-analytics',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush, // 🟢 OPTIMIZATION: Maximum performance
   imports: [
-    CommonModule, 
-    FormsModule, 
+    CommonModule,
+    FormsModule,
     RouterModule,
-    CustomSelect, 
-    CustomButtonComponent, 
-    LoadingSpinnerComponent, 
+    CustomSelect,
+    CustomButtonComponent,
+    LoadingSpinnerComponent,
     StatusChipComponent,
     FeatureLockComponent
   ],
   templateUrl: './coach-bias-analytics.component.html',
   styleUrls: ['./coach-bias-analytics.component.css']
 })
-export class CoachBiasAnalyticsComponent implements OnInit {
+export class CoachBiasAnalyticsComponent implements OnInit, OnDestroy {
+  // 🟢 OPTIMIZATION: Memory management
+  private subscriptions = new Subscription();
 
   selectedCoachId: number | null = null;
   availableCoaches: { id: number; name: string }[] = [];
+
+  // 🟢 OPTIMIZATION: Static arrays to prevent GC churn on every render cycle
+  coachOptionsList: SelectOption[] = [];
+  topComparisons: PlayerComparison[] = [];
 
   biasReport: BiasReport | null = null;
   isLoading = false;
@@ -69,15 +95,12 @@ export class CoachBiasAnalyticsComponent implements OnInit {
     this.loadCoaches();
   }
 
-  goBack(): void {
-    this.location.back();
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
   }
 
-  get coachOptions(): SelectOption[] {
-    return this.availableCoaches.map(c => ({
-      value: c.id,
-      label: `${c.name} (ID: ${c.id})`
-    }));
+  goBack(): void {
+    this.location.back();
   }
 
   getSelectedCoachName(): string {
@@ -86,6 +109,7 @@ export class CoachBiasAnalyticsComponent implements OnInit {
     }
     const found = this.availableCoaches.find(c => Number(c.id) === Number(this.selectedCoachId));
     if (found) return found.name;
+
     const user = this.authService.getCurrentUserValue();
     return user?.fullName || user?.userName || 'Coach';
   }
@@ -95,37 +119,49 @@ export class CoachBiasAnalyticsComponent implements OnInit {
 
     if (!currentUser) {
       this.isCoachesLoading = true;
-      this.authService.getCurrentUser().subscribe({
-        next: (res) => {
-          this.isCoachesLoading = false;
-          if (res.isSuccess && res.data) {
-            const user = {
-              userId: Number(res.data.userId || res.data.id),
-              email: res.data.email,
-              userName: res.data.name || res.data.userName,
-              fullName: res.data.name || res.data.fullName,
-              roles: res.data.roles || [],
-              academyId: res.data.academyId
-            };
-            this.processUserAndLoadCoaches(user);
-          } else {
-            this.errorMessage = 'Could not load user information.';
+      this.cdr.detectChanges();
+
+      this.subscriptions.add(
+        this.authService.getCurrentUser().subscribe({
+          next: (res: any) => {
+            this.isCoachesLoading = false;
+            if (res.isSuccess && res.data) {
+              const user: AppUser = {
+                userId: Number(res.data.userId || res.data.id),
+                email: res.data.email,
+                userName: res.data.name || res.data.userName,
+                fullName: res.data.name || res.data.fullName,
+                roles: res.data.roles || [],
+                academyId: res.data.academyId
+              };
+              this.processUserAndLoadCoaches(user);
+            } else {
+              this.errorMessage = 'Could not load user information.';
+              this.cdr.detectChanges();
+            }
+          },
+          error: (err) => {
+            this.isCoachesLoading = false;
+            console.error('Error fetching current user:', err);
+            this.errorMessage = 'Failed to authenticate user.';
             this.cdr.detectChanges();
           }
-        },
-        error: (err) => {
-          this.isCoachesLoading = false;
-          console.error('Error fetching current user:', err);
-          this.errorMessage = 'Failed to authenticate user.';
-          this.cdr.detectChanges();
-        }
-      });
+        })
+      );
     } else {
-      this.processUserAndLoadCoaches(currentUser);
+      const mappedUser: AppUser = {
+        userId: currentUser.userId,
+        email: currentUser.email || '',
+        userName: currentUser.userName || '',
+        fullName: currentUser.fullName || '',
+        roles: currentUser.roles || [],
+        academyId: currentUser.academyId
+      };
+      this.processUserAndLoadCoaches(mappedUser);
     }
   }
 
-  private processUserAndLoadCoaches(user: any): void {
+  private processUserAndLoadCoaches(user: AppUser): void {
     const routeCoachId = this.route.snapshot.params['coachId'];
     const isCoachOnly = user.roles?.includes('Coach') &&
       !user.roles?.includes('AcademyAdmin') &&
@@ -142,6 +178,7 @@ export class CoachBiasAnalyticsComponent implements OnInit {
         id: user.userId,
         name: user.fullName || user.userName || 'Current Coach'
       }];
+      this.updateCoachOptions();
       this.selectedCoachId = user.userId;
       this.calculateBias();
     } else if (user.academyId) {
@@ -155,37 +192,51 @@ export class CoachBiasAnalyticsComponent implements OnInit {
 
   private fetchAcademyCoaches(academyId: number): void {
     this.isCoachesLoading = true;
-    this.academyService.getAcademyMembers(academyId, { pageNumber: 1, pageSize: 1000 }).subscribe({
-      next: (res) => {
-        this.isCoachesLoading = false;
-        if (res.isSuccess && res.data && res.data.items) {
-          const coachMembers = res.data.items.filter(
-            (m: any) => m.role === 'Coach' || m.role?.toLowerCase() === 'coach'
-          );
+    this.cdr.detectChanges();
 
-          this.availableCoaches = coachMembers.map((c: any) => ({
-            id: c.userId,
-            name: c.fullName || c.email
-          }));
+    this.subscriptions.add(
+      this.academyService.getAcademyMembers(academyId, { pageNumber: 1, pageSize: 1000 }).subscribe({
+        next: (res: any) => {
+          this.isCoachesLoading = false;
+          if (res.isSuccess && res.data && res.data.items) {
+            const coachMembers: AcademyMember[] = res.data.items.filter(
+              (m: AcademyMember) => m.role === 'Coach' || m.role?.toLowerCase() === 'coach'
+            );
 
-          if (this.availableCoaches.length > 0) {
-            this.selectedCoachId = this.availableCoaches[0].id;
-            this.calculateBias();
+            this.availableCoaches = coachMembers.map(c => ({
+              id: c.userId,
+              name: c.fullName || c.email
+            }));
+
+            this.updateCoachOptions();
+
+            if (this.availableCoaches.length > 0) {
+              this.selectedCoachId = this.availableCoaches[0].id;
+              this.calculateBias();
+            } else {
+              this.errorMessage = 'No coaches found in this academy.';
+            }
           } else {
-            this.errorMessage = 'No coaches found in this academy.';
+            this.errorMessage = 'Failed to load coaches list.';
           }
-        } else {
-          this.errorMessage = 'Failed to load coaches list.';
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          this.isCoachesLoading = false;
+          console.error('Error fetching coaches:', err);
+          this.errorMessage = 'Error loading coaches list from backend.';
+          this.cdr.detectChanges();
         }
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        this.isCoachesLoading = false;
-        console.error('Error fetching coaches:', err);
-        this.errorMessage = 'Error loading coaches list from backend.';
-        this.cdr.detectChanges();
-      }
-    });
+      })
+    );
+  }
+
+  // 🟢 OPTIMIZATION: Maps the array exactly once
+  private updateCoachOptions(): void {
+    this.coachOptionsList = this.availableCoaches.map(c => ({
+      value: c.id,
+      label: `${c.name} (ID: ${c.id})`
+    }));
   }
 
   calculateBias(): void {
@@ -196,32 +247,41 @@ export class CoachBiasAnalyticsComponent implements OnInit {
     this.isLoading = true;
     this.errorMessage = '';
     this.biasReport = null;
+    this.topComparisons = [];
+    this.cdr.detectChanges();
 
-    this.sessionService.getCoachBiasReport(coachId).subscribe({
-      next: (report: BiasReport) => {
-        const selectedCoach = this.availableCoaches.find(c => Number(c.id) === coachId);
+    this.subscriptions.add(
+      this.sessionService.getCoachBiasReport(coachId).subscribe({
+        next: (report: BiasReport) => {
+          const selectedCoach = this.availableCoaches.find(c => Number(c.id) === coachId);
 
-        this.biasReport = {
-          ...report,
-          coachName: report.coachName || selectedCoach?.name || 'Coach'
-        };
+          this.biasReport = {
+            ...report,
+            coachName: report.coachName || selectedCoach?.name || 'Coach'
+          };
 
-        this.isLoading = false;
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error('Bias Analysis Error:', err);
-        this.errorMessage =
-          err.error?.detail ||
-          err.error?.title ||
-          err.error?.message ||
-          (typeof err.error === 'string' ? err.error : '') ||
-          err.message ||
-          'Failed to calculate Trust Index.';
-        this.isLoading = false;
-        this.cdr.detectChanges();
-      }
-    });
+          // 🟢 OPTIMIZATION: Slice the array once when data arrives
+          if (this.biasReport.playerComparisons) {
+            this.topComparisons = this.biasReport.playerComparisons.slice(0, 5);
+          }
+
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error('Bias Analysis Error:', err);
+          this.errorMessage =
+            err.error?.detail ||
+            err.error?.title ||
+            err.error?.message ||
+            (typeof err.error === 'string' ? err.error : '') ||
+            err.message ||
+            'Failed to calculate Trust Index.';
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        }
+      })
+    );
   }
 
   // --- UI GAUGE HELPERS ---
@@ -259,11 +319,6 @@ export class CoachBiasAnalyticsComponent implements OnInit {
     if (this.biasReport.trustPercentage < 60) return 'danger';
     if (this.biasReport.trustPercentage < 85) return 'warning';
     return 'success';
-  }
-
-  get topPlayerComparisons(): PlayerComparison[] {
-    if (!this.biasReport?.playerComparisons) return [];
-    return this.biasReport.playerComparisons.slice(0, 5);
   }
 
   getAverageDelta(): string {

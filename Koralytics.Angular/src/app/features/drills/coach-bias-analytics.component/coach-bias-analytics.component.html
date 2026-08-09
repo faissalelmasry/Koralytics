@@ -23,9 +23,9 @@
                 <app-select
                     label="Select Target Coach"
                     placeholder="-- Select Coach --"
-                    [options]="coachOptions"
+                    [options]="coachOptionsList"
                     [(value)]="selectedCoachId"
-                    [disabled]="isCoachesLoading || coachOptions.length === 0">
+                    [disabled]="isCoachesLoading || coachOptionsList.length === 0">
                 </app-select>
 
                 <app-button
@@ -82,14 +82,14 @@
     </section>
 
     <!-- PLAYER BREAKDOWN TABLE (TOP 5 SAMPLE ONLY) -->
-    @if (topPlayerComparisons.length > 0) {
+    @if (topComparisons.length > 0) {
     <div class="breakdown-section">
         <div class="section-title-row flex-between">
             <div>
                 <h2>Player Evaluation Sample</h2>
                 <p class="section-desc">Comparison of Coach <a [routerLink]="selectedCoachId || biasReport.coachId ? ['/coach/profile', selectedCoachId || biasReport.coachId] : ['/coach/profile']" class="coach-link">{{ biasReport.coachName }}</a>'s practice drill scores vs. actual match ratings.</p>
             </div>
-            <app-status-chip [label]="'Top ' + topPlayerComparisons.length + ' of ' + biasReport.playersAnalyzedCount + ' Players'" type="info"></app-status-chip>
+            <app-status-chip [label]="'Top ' + topComparisons.length + ' of ' + biasReport.playersAnalyzedCount + ' Players'" type="info"></app-status-chip>
         </div>
 
         <div class="table-card mt-3">
@@ -104,7 +104,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @for (item of topPlayerComparisons; track item.playerId) {
+                    @for (item of topComparisons; track item.playerId) {
                     <tr>
                         <td class="player-name-cell clickable" [routerLink]="['/player/profile', item.playerId]" title="View Player Profile">
                             <div class="player-avatar-box">

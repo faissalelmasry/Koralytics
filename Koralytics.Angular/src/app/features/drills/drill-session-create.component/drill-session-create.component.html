@@ -29,7 +29,7 @@
                 <app-select
                     label="Target Squad (Team)"
                     placeholder="Select a team..."
-                    [options]="teamOptions"
+                    [options]="teamOptionsList"
                     [value]="sessionForm.get('teamId')?.value"
                     (valueChange)="onTeamChangeCustom($event)">
                 </app-select>
@@ -56,7 +56,7 @@
                     <app-select
                         label="Session Type"
                         placeholder="Select type..."
-                        [options]="typeOptions"
+                        [options]="typeOptionsList"
                         [value]="sessionForm.get('type')?.value"
                         (valueChange)="onTypeChangeCustom($event)">
                     </app-select>

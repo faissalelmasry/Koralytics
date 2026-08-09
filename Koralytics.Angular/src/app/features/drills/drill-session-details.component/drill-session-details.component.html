@@ -174,8 +174,7 @@
         <div class="flex-between">
             <div>
                 <h2>Scorecard: {{ activeDrillForResults.templateName }}</h2>
-                <p class="helper-text">Mode: {{ (activeDrillForResults.mode == 0 || activeDrillForResults.mode ===
-                    'Manual') ? 'Manual Score' : 'Success / Missed' }}</p>
+                <p class="helper-text">Mode: {{ (activeDrillForResults.mode === 'Manual') ? 'Manual Score' : 'Success / Missed' }}</p>
             </div>
             <button class="btn-secondary flex-center" (click)="closeResultsModal()" title="Close Scorecard">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -209,7 +208,7 @@
                 </div>
 
                 <div class="score-input-cell">
-                    @if (activeDrillForResults.mode == 0 || activeDrillForResults.mode === 'Manual') {
+                    @if (activeDrillForResults.mode === 'Manual') {
                     <div class="score-preset-group" style="display: flex; gap: 8px; align-items: flex-end;">
                         <div style="flex: 1; min-width: 90px;">
                             <app-number-input

@@ -63,22 +63,31 @@ namespace Koralytics.Application.Services.Drill.DrillSession
 
         public async Task<DrillDto> AddDrillToSessionAsync(int sessionId, AddSessionDrillDto dto, int currentCoachId)
         {
-            var session = await _unitOfWork.Repository<DrillSessionEntity>().GetByIdAsNoTrackingAsync(sessionId);
+            // 🟢 OPTIMIZED: Anonymous projection. Only pulls the CoachId column instead of the whole row.
+            var sessionData = await _unitOfWork.Repository<DrillSessionEntity>()
+                .GetQueryableAsNoTracking()
+                .Where(s => s.Id == sessionId)
+                .Select(s => new { s.CoachId })
+                .FirstOrDefaultAsync();
 
-            if (session == null)
+            if (sessionData == null)
             {
                 throw new KeyNotFoundException($"Drill Session with ID {sessionId} was not found.");
             }
 
-            if (session.CoachId != currentCoachId)
+            if (sessionData.CoachId != currentCoachId)
             {
                 throw new UnauthorizedAccessException("You can only add drills to your own scheduled sessions.");
             }
 
-            var template = await _unitOfWork.Repository<Domain.Entities.Drill.DrillTemplate>()
-                .GetByIdAsNoTrackingAsync(dto.DrillTemplateId);
+            // 🟢 OPTIMIZED: Anonymous projection. Only pulls Mode and Difficulty.
+            var templateData = await _unitOfWork.Repository<Domain.Entities.Drill.DrillTemplate>()
+                .GetQueryableAsNoTracking()
+                .Where(t => t.Id == dto.DrillTemplateId)
+                .Select(t => new { t.DrillMode, t.DifficultyLevel })
+                .FirstOrDefaultAsync();
 
-            if (template == null)
+            if (templateData == null)
             {
                 throw new KeyNotFoundException($"Drill Template with ID {dto.DrillTemplateId} does not exist.");
             }
@@ -88,8 +97,8 @@ namespace Koralytics.Application.Services.Drill.DrillSession
             drill.SessionId = sessionId;
             drill.CreatedById = currentCoachId;
 
-            if (drill.Mode == 0) drill.Mode = template.DrillMode;
-            if (drill.DifficultyLevel == 0) drill.DifficultyLevel = template.DifficultyLevel;
+            if (drill.Mode == 0) drill.Mode = templateData.DrillMode;
+            if (drill.DifficultyLevel == 0) drill.DifficultyLevel = templateData.DifficultyLevel;
 
             await _unitOfWork.Repository<Domain.Entities.Drill.Drill>().AddAsync(drill);
             await _unitOfWork.SaveChangesAsync();
@@ -97,14 +106,12 @@ namespace Koralytics.Application.Services.Drill.DrillSession
             return _mapper.Map<DrillDto>(drill);
         }
 
-        // 🟢 MODIFIED: Accepts Role to conditionally bypass coach restriction
         public async Task<Koralytics.Application.Common.PagedResult<DrillSessionDto>> GetCoachSessionsAsync(int currentUserId, string currentUserRole, int currentAcademyId, SessionFilterDto filter)
         {
             var query = _unitOfWork.Repository<DrillSessionEntity>()
-                .GetQueryable()
-                .Include(s => s.DrillSessionCoach) // 🟢 Pulls the User data
-                .Include(s => s.DrillSessionTeam)  // 🟢 Pulls the Team data
-                .AsNoTracking()
+                .GetQueryableAsNoTracking()
+                .Include(s => s.DrillSessionCoach)
+                .Include(s => s.DrillSessionTeam)
                 .Where(s => s.AcademyId == currentAcademyId);
 
             bool isAdmin = string.Equals(currentUserRole, "AcademyAdmin", StringComparison.OrdinalIgnoreCase);
@@ -161,13 +168,12 @@ namespace Koralytics.Application.Services.Drill.DrillSession
         public async Task<DrillSessionDetailsDto> GetSessionByIdAsync(int sessionId, int currentUserId, string currentUserRole, int currentAcademyId)
         {
             var query = _unitOfWork.Repository<DrillSessionEntity>()
-                .GetQueryable()
+                .GetQueryableAsNoTracking()
                 .Include(s => s.DrillSessionTeam)
                 .Include(s => s.DrillSessionCoach)
                 .Include(s => s.SessionDrills)
                     .ThenInclude(d => d.DrillTemplate)
                         .ThenInclude(dt => dt.DrillCategory)
-                .AsNoTracking()
                 .Where(s => s.Id == sessionId && s.AcademyId == currentAcademyId);
 
             bool isAdmin = string.Equals(currentUserRole, "AcademyAdmin", StringComparison.OrdinalIgnoreCase);
@@ -198,24 +204,29 @@ namespace Koralytics.Application.Services.Drill.DrillSession
                 throw new KeyNotFoundException($"Session with ID {sessionId} was not found or you do not have permission to modify it.");
             }
 
-            if (dto.SessionDate > DateTime.MinValue.AddYears(100))
+            // 🟢 OPTIMIZED: Standard DateTime empty check
+            if (dto.SessionDate != default(DateTime))
             {
                 session.SessionDate = dto.SessionDate;
             }
+
             if (dto.Type != 0)
             {
                 session.Type = dto.Type;
             }
+
             if (dto.Location != null)
             {
                 session.Location = dto.Location;
             }
 
             session.Status = dto.Status;
+
             if (dto.Notes != null)
             {
                 session.Notes = dto.Notes;
             }
+
             session.UpdatedById = currentCoachId;
 
             await _unitOfWork.SaveChangesAsync();
@@ -259,7 +270,6 @@ namespace Koralytics.Application.Services.Drill.DrillSession
 
         public async Task CompleteSessionAsync(int sessionId, int currentCoachId)
         {
-            // 1. Fetch the session and the attendance sheet in one go
             var session = await _unitOfWork.Repository<DrillSessionEntity>()
                 .GetQueryable()
                 .Include(s => s.SessionAttendances)
@@ -275,20 +285,16 @@ namespace Koralytics.Application.Services.Drill.DrillSession
                 throw new InvalidOperationException("This session is already marked as completed.");
             }
 
-            // 2. Change the status
             session.Status = Koralytics.Domain.Enums.SessionStatus.Completed;
             session.UpdatedById = currentCoachId;
 
-            // 3. Save to the database FIRST
             await _unitOfWork.SaveChangesAsync();
 
-            // 4. THE MAGIC: Extract only the players who were marked "IsPresent = true"
             var presentPlayerIds = session.SessionAttendances
                 .Where(sa => sa.IsPresent)
                 .Select(sa => sa.playerId)
                 .ToList();
 
-            // 5. Fire them into Faissal's memory list!
             foreach (var playerId in presentPlayerIds)
             {
                 _invalidationList.Invalidate(playerId);
