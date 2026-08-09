@@ -14,6 +14,7 @@ import { CustomDatePicker } from '../../../../../shared/components/custom-date-p
 import { CustomButtonComponent } from '../../../../../shared/components/custom-button/custom-button';
 import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
 import { MatchSignalrService } from '../../../../../core/services/match-signalr.service';
+import { TranslatePipe } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -22,7 +23,7 @@ import { Subscription } from 'rxjs';
   imports: [
     CommonModule, MatchCardComponent, Pagination, LoadingSpinnerComponent,
     EmptyStateComponent, NavbarComponent, Footer, CustomSelect,
-    CustomDatePicker, CustomButtonComponent, ScrollRevealDirective
+    CustomDatePicker, CustomButtonComponent, ScrollRevealDirective, TranslatePipe
   ],
   templateUrl: './coach-match-list.component.html',
   styleUrls: ['./coach-match-list.component.css']
@@ -144,7 +145,7 @@ export class CoachMatchListComponent implements OnInit, OnDestroy {
       },
       error: () => {
         this.isLoading = false;
-        this.error = 'Failed to load matches.';
+        this.error = 'MATCH.COACH_LIST.FAILED_LOAD';
         this.cdr.detectChanges();
       }
     });
@@ -154,7 +155,7 @@ export class CoachMatchListComponent implements OnInit, OnDestroy {
     this.filterError = '';
 
     if (this.selectedDateFrom && this.selectedDateTo && this.selectedDateFrom > this.selectedDateTo) {
-      this.filterError = '"From" date must be earlier than "To" date.';
+      this.filterError = 'MATCH.COACH_LIST.FILTER_DATE_ERROR';
       return;
     }
 

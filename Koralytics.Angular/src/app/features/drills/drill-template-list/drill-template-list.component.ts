@@ -22,6 +22,7 @@ import { CustomToggle } from '../../../../shared/components/custom-toggle/custom
 import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner';
 import { CustomInputComponent } from '../../../../shared/components/custom-input-component/custom-input-component';
 import { NavbarComponent } from '../../../../shared/components/navbar/navbar';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-drill-template-list',
@@ -38,7 +39,8 @@ import { NavbarComponent } from '../../../../shared/components/navbar/navbar';
     CustomSelect,
     CustomToggle,
     LoadingSpinnerComponent,
-    EmptyStateComponent
+    EmptyStateComponent,
+    TranslatePipe
   ],
 })
 export class DrillTemplateListComponent implements OnInit, OnDestroy {
@@ -129,7 +131,8 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private authService: AuthService,
     private cdr: ChangeDetectorRef,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private translate: TranslateService
   ) {
     this.drillForm = this.fb.group({
       name: ['', [Validators.required, Validators.maxLength(300)]],
@@ -356,13 +359,13 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
     ).subscribe({
       next: () => {
         this.closeForm();
-        this.showToast(this.isEditing ? 'Template updated successfully.' : 'Template created successfully.', 'success');
+        this.showToast(this.translate.instant(this.isEditing ? 'DRILLS.TEMPLATES.TOAST_UPDATED' : 'DRILLS.TEMPLATES.TOAST_CREATED'), 'success');
         this.fetchTemplates();
       },
       error: (err) => {
-        const errorMsg = this.extractErrorMessage(err, 'Failed to save template.');
+        const errorMsg = this.extractErrorMessage(err, this.translate.instant('DRILLS.TEMPLATES.FAILED_SAVE'));
         this.formError = errorMsg;
-        this.showErrorDialog('Save Failed', errorMsg);
+        this.showErrorDialog(this.translate.instant('DRILLS.TEMPLATES.DIALOG_SAVE_FAILED'), errorMsg);
       }
     });
   }
@@ -383,7 +386,7 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
       isOpen: true,
       title: title,
       message: message,
-      confirmText: 'OK',
+      confirmText: this.translate.instant('DRILLS.TEMPLATES.BTN_OK'),
       action: () => { this.closeConfirm(); }
     };
     this.cdr.detectChanges();
@@ -399,12 +402,12 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
         const index = this.visibleTemplates.findIndex(t => t.id === drill.id);
         if (index !== -1) {
           this.visibleTemplates[index].isShared = !this.visibleTemplates[index].isShared;
-          this.showToast(this.visibleTemplates[index].isShared ? 'Template shared successfully.' : 'Template unshared successfully.', 'success');
+          this.showToast(this.translate.instant(this.visibleTemplates[index].isShared ? 'DRILLS.TEMPLATES.TOAST_SHARED' : 'DRILLS.TEMPLATES.TOAST_UNSHARED'), 'success');
           this.calculateStats();
         }
       },
       error: (err) => {
-        this.showErrorDialog('Share Failed', this.extractErrorMessage(err, 'Failed to toggle share status.'));
+        this.showErrorDialog(this.translate.instant('DRILLS.TEMPLATES.DIALOG_SHARE_FAILED'), this.extractErrorMessage(err, this.translate.instant('DRILLS.TEMPLATES.FAILED_SHARE')));
       }
     });
   }
@@ -412,21 +415,21 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
   onDeleteTemplate(drill: DrillTemplateDto): void {
     this.confirmModal = {
       isOpen: true,
-      title: 'Delete Template',
-      message: `Are you sure you want to delete "${drill.name}"? This action cannot be undone.`,
-      confirmText: 'Yes, Delete',
+      title: this.translate.instant('DRILLS.TEMPLATES.CONFIRM_DELETE_TITLE'),
+      message: this.translate.instant('DRILLS.TEMPLATES.CONFIRM_DELETE_MSG', { name: drill.name }),
+      confirmText: this.translate.instant('DRILLS.TEMPLATES.CONFIRM_DELETE_BTN'),
       action: () => {
         this.drillTemplateService.deleteTemplate(drill.id).subscribe({
           next: () => {
             this.visibleTemplates = this.visibleTemplates.filter(t => t.id !== drill.id);
             if (this.totalItems > 0) this.totalItems--;
-            this.showToast('Template deleted successfully.', 'success');
+            this.showToast(this.translate.instant('DRILLS.TEMPLATES.TOAST_DELETED'), 'success');
             this.calculateStats();
             this.calculatePagination();
             this.closeConfirm();
           },
           error: (err) => {
-            this.showErrorDialog('Cannot Delete Template', this.extractErrorMessage(err, 'Cannot delete this template.'));
+            this.showErrorDialog(this.translate.instant('DRILLS.TEMPLATES.DIALOG_DELETE_FAILED'), this.extractErrorMessage(err, this.translate.instant('DRILLS.TEMPLATES.FAILED_DELETE')));
           }
         });
       }

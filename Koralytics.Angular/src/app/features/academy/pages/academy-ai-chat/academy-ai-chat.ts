@@ -15,6 +15,7 @@ import { Footer } from '../../../../../shared/components/footer/footer';
 import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
 import { LoadingSpinnerComponent } from '../../../../../shared/components/loading-spinner/loading-spinner';
 import { FeatureLockComponent } from '../../../../shared/components/feature-lock/feature-lock';
+import { TranslatePipe } from '@ngx-translate/core';
 
 export interface ChatMessage {
   id: string;
@@ -34,7 +35,8 @@ export interface ChatMessage {
     Footer,
     ScrollRevealDirective,
     LoadingSpinnerComponent,
-    FeatureLockComponent
+    FeatureLockComponent,
+    TranslatePipe
   ],
   templateUrl: './academy-ai-chat.html',
   styleUrls: ['./academy-ai-chat.css']

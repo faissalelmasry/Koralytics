@@ -1,6 +1,6 @@
 <app-navbar></app-navbar>
 
-<app-feature-lock feature="AIInsights" featureName="Academy AI Assistant">
+<app-feature-lock feature="AIInsights" [featureName]="'ACADEMY.AI_CHAT.TITLE' | translate">
 <div class="ai-chat-page">
 
   <!-- ================= PAGE HEADER ================= -->
@@ -12,32 +12,32 @@
           <span class="live-pulse-dot"></span>
         </div>
         <div>
-          <h1 class="header-title">Academy AI Assistant</h1>
-          <p class="header-subtitle">Intelligent Academy Analytics & Player Performance Assistant</p>
+          <h1 class="header-title">{{ 'ACADEMY.AI_CHAT.TITLE' | translate }}</h1>
+          <p class="header-subtitle">{{ 'ACADEMY.AI_CHAT.SUBTITLE' | translate }}</p>
         </div>
       </div>
 
       <div class="header-actions">
-        <button type="button" class="nav-search-btn" (click)="navigateToDashboard()" title="Return to Dashboard">
+        <button type="button" class="nav-search-btn" (click)="navigateToDashboard()" [title]="'ACADEMY.AI_CHAT.BTN_DASHBOARD' | translate">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
             <polyline points="9 22 9 12 15 12 15 22"/>
           </svg>
-          <span>Dashboard</span>
+          <span>{{ 'ACADEMY.AI_CHAT.BTN_DASHBOARD' | translate }}</span>
         </button>
 
         @if (chatMessages().length > 0) {
-          <button type="button" class="clear-chat-btn" (click)="onNewChat()" title="Start a new chat session">
+          <button type="button" class="clear-chat-btn" (click)="onNewChat()" [title]="'ACADEMY.AI_CHAT.BTN_NEW_CHAT' | translate">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
               <path d="M12 5v14M5 12h14"/>
             </svg>
-            <span>New Chat</span>
+            <span>{{ 'ACADEMY.AI_CHAT.BTN_NEW_CHAT' | translate }}</span>
           </button>
         }
 
         <div class="status-badge">
           <span class="badge-dot"></span>
-          <span>AI Engine Ready</span>
+          <span>{{ 'ACADEMY.AI_CHAT.STATUS_READY' | translate }}</span>
         </div>
       </div>
     </div>
@@ -56,13 +56,13 @@
             <img src="images/logo/app-icon/logo-icon-dark.png" alt="Koralytics AI" class="hero-logo-img" />
           </div>
 
-          <h2 class="welcome-headline">How can I assist your academy today?</h2>
+          <h2 class="welcome-headline">{{ 'ACADEMY.AI_CHAT.WELCOME_TITLE' | translate }}</h2>
           <p class="welcome-subtext">
-            Ask queries about player passing performance, squad readiness, drill metrics, match tactics, or technical player evaluations.
+            {{ 'ACADEMY.AI_CHAT.WELCOME_DESC' | translate }}
           </p>
 
           <div class="prompts-grid">
-            <span class="prompts-title">Suggested Academy Queries:</span>
+            <span class="prompts-title">{{ 'ACADEMY.AI_CHAT.SUGGESTED_TITLE' | translate }}</span>
             <div class="prompts-chips">
               @for (prompt of suggestedPrompts; track prompt) {
                 <button type="button" class="prompt-chip-btn" (click)="useSuggestedPrompt(prompt)">
@@ -103,7 +103,7 @@
             <!-- MESSAGE BUBBLE -->
             <div class="msg-bubble-wrap">
               <div class="msg-meta-bar">
-                <span class="msg-author">{{ msg.sender === 'assistant' ? 'Koralytics Academy AI' : 'User' }}</span>
+                <span class="msg-author">{{ msg.sender === 'assistant' ? ('ACADEMY.AI_CHAT.AI_AUTHOR' | translate) : ('ACADEMY.AI_CHAT.USER_AUTHOR' | translate) }}</span>
                 <span class="msg-time">{{ msg.timestamp | date:'shortTime' }}</span>
               </div>
               <div class="msg-content" [innerHTML]="formatMessageText(msg.text)"></div>
@@ -123,14 +123,14 @@
 
             <div class="msg-bubble-wrap">
               <div class="msg-meta-bar">
-                <span class="msg-author">Koralytics Academy AI</span>
-                <span class="msg-status-tag">Analyzing Data</span>
+                <span class="msg-author">{{ 'ACADEMY.AI_CHAT.AI_AUTHOR' | translate }}</span>
+                <span class="msg-status-tag">{{ 'ACADEMY.AI_CHAT.STATUS_ANALYZING' | translate }}</span>
               </div>
               
               <div class="msg-content ai-loading-content">
                 <div class="brand-loader-inline">
                   <app-loading-spinner size="sm"></app-loading-spinner>
-                  <span class="loading-text">Analyzing academy metrics & performance database…</span>
+                  <span class="loading-text">{{ 'ACADEMY.AI_CHAT.LOADING_TEXT' | translate }}</span>
                 </div>
               </div>
             </div>
@@ -152,7 +152,7 @@
         <input
           type="text"
           class="chat-text-input"
-          placeholder="Ask Academy AI (e.g. what about his passing performance?)…"
+          [placeholder]="'ACADEMY.AI_CHAT.INPUT_PLACEHOLDER' | translate"
           [ngModel]="nlQuery()"
           (ngModelChange)="nlQuery.set($event)"
           [disabled]="isAiLoading()"

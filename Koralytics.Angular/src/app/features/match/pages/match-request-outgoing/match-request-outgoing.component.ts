@@ -14,6 +14,7 @@ import { CustomDatePicker } from '../../../../../shared/components/custom-date-p
 import { CustomButtonComponent } from '../../../../../shared/components/custom-button/custom-button';
 import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
 import { MarqueeIfOverflowDirective } from '../../match-timeline/marquee-if-overflow.directive';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-match-request-outgoing',
@@ -22,7 +23,7 @@ import { MarqueeIfOverflowDirective } from '../../match-timeline/marquee-if-over
     CommonModule, RouterLink, Pagination, LoadingSpinnerComponent,
     EmptyStateComponent, NavbarComponent, Footer, CustomSelect,
     CustomDatePicker, CustomButtonComponent, ScrollRevealDirective,
-    MarqueeIfOverflowDirective
+    MarqueeIfOverflowDirective, TranslatePipe
   ],
   templateUrl: './match-request-outgoing.component.html',
   styleUrls: ['./match-request-outgoing.component.css']

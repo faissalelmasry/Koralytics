@@ -4,13 +4,13 @@
     <div class="header-left">
       <div class="header-eyebrow">
         <span class="eyebrow-dot"></span>
-        <span class="eyebrow-text">TACTICAL ENGINE</span>
+        <span class="eyebrow-text">{{ 'DRILLS.TEMPLATES.EYEBROW' | translate }}</span>
       </div>
-      <h1 class="header-title">Drill Templates</h1>
-      <p class="header-subtitle">Manage and deploy training drill protocols for your academy</p>
+      <h1 class="header-title">{{ 'DRILLS.TEMPLATES.TITLE' | translate }}</h1>
+      <p class="header-subtitle">{{ 'DRILLS.TEMPLATES.SUBTITLE' | translate }}</p>
     </div>
     <div class="header-right">
-      <app-button variant="accent" (click)="openCreateForm()">+ New Drill Template</app-button>
+      <app-button variant="accent" (click)="openCreateForm()">{{ 'DRILLS.TEMPLATES.BTN_NEW' | translate }}</app-button>
     </div>
   </div>
 
@@ -18,41 +18,41 @@
   <div class="stats-strip">
     <div class="stat-item">
       <span class="stat-value">{{ totalItems }}</span>
-      <span class="stat-label">Total Templates</span>
+      <span class="stat-label">{{ 'DRILLS.TEMPLATES.STAT_TOTAL' | translate }}</span>
     </div>
     <div class="stat-divider"></div>
     <div class="stat-item">
       <span class="stat-value coral">{{ advancedCount }}</span>
-      <span class="stat-label">Advanced</span>
+      <span class="stat-label">{{ 'DRILLS.TEMPLATES.STAT_ADVANCED' | translate }}</span>
     </div>
     <div class="stat-divider"></div>
     <div class="stat-item">
       <span class="stat-value cyan">{{ sharedCount }}</span>
-      <span class="stat-label">Shared</span>
+      <span class="stat-label">{{ 'DRILLS.TEMPLATES.STAT_SHARED' | translate }}</span>
     </div>
     <div class="stat-divider"></div>
     <div class="stat-item">
       <span class="stat-value accent">{{ visibleTemplates.length }}</span>
-      <span class="stat-label">Showing</span>
+      <span class="stat-label">{{ 'DRILLS.TEMPLATES.STAT_SHOWING' | translate }}</span>
     </div>
   </div>
 
   <!-- FILTER BAR -->
   <div class="filter-bar">
     <div class="filter-search">
-      <app-search-bar placeholderText="search drill templates..." (searchChange)="onSearch($event)">
+      <app-search-bar [placeholderText]="'DRILLS.TEMPLATES.SEARCH_PLACEHOLDER' | translate" (searchChange)="onSearch($event)">
       </app-search-bar>
     </div>
 
     <div class="filter-controls">
       <div class="filter-select-wrapper">
-        <app-select label="Category" [options]="categoryOptions" [value]="selectedCategoryId ?? 0"
+        <app-select [label]="'DRILLS.TEMPLATES.FILTER_CATEGORY' | translate" [options]="categoryOptions" [value]="selectedCategoryId ?? 0"
           (valueChange)="onCategoryChange($event)">
         </app-select>
       </div>
 
       <div class="filter-toggle-wrapper">
-        <app-toggle label="Shared Only" [checked]="showSharedOnly" (checkedChange)="onToggleShared($event)">
+        <app-toggle [label]="'DRILLS.TEMPLATES.FILTER_SHARED_ONLY' | translate" [checked]="showSharedOnly" (checkedChange)="onToggleShared($event)">
         </app-toggle>
       </div>
     </div>
@@ -89,7 +89,7 @@
           <span class="badge" [ngClass]="getVisibilityClass(drill)">{{ getVisibilityLabel(drill) }}</span>
           @if (drill.academyId !== null && drill.createdById === currentUserId) {
           <div class="card-share-toggle">
-            <app-toggle label="Share" [checked]="drill.isShared" (checkedChange)="onShareTemplate(drill)">
+            <app-toggle [label]="'DRILLS.TEMPLATES.SHARE' | translate" [checked]="drill.isShared" (checkedChange)="onShareTemplate(drill)">
             </app-toggle>
           </div>
           }
@@ -106,14 +106,14 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
           </svg>
-          Mode: {{ getDrillModeLabel(drill.drillMode) }}
+          {{ 'DRILLS.TEMPLATES.MODE_LABEL' | translate }} {{ getDrillModeLabel(drill.drillMode) }}
         </div>
         <div class="meta-row">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
             <polyline points="9 22 9 12 15 12 15 22" />
           </svg>
-          Scope: {{ drill.academyId !== null ? (drill.academyName || 'Academy Template') : 'Koralytics Global' }}
+          {{ 'DRILLS.TEMPLATES.SCOPE_LABEL' | translate }} {{ drill.academyId !== null ? (drill.academyName || ('DRILLS.TEMPLATES.SCOPE_ACADEMY' | translate)) : ('DRILLS.TEMPLATES.SCOPE_GLOBAL' | translate) }}
         </div>
       </div>
 
@@ -123,23 +123,23 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
             <path d="M8 5v14l11-7z" />
           </svg>
-          Watch Drill Video
+          {{ 'DRILLS.TEMPLATES.WATCH_VIDEO' | translate }}
         </button>
       </div>
       }
 
       <div class="card-actions">
-        <app-button variant="slate" (click)="openEditForm(drill)">Edit</app-button>
-        <app-button variant="coral" (click)="onDeleteTemplate(drill)">Delete</app-button>
+        <app-button variant="slate" (click)="openEditForm(drill)">{{ 'DRILLS.TEMPLATES.BTN_EDIT' | translate }}</app-button>
+        <app-button variant="coral" (click)="onDeleteTemplate(drill)">{{ 'DRILLS.TEMPLATES.BTN_DELETE' | translate }}</app-button>
       </div>
     </div>
     }
   </div>
   } @else {
   <!-- EMPTY STATE -->
-  <app-empty-state title="No Drill Templates Found"
-    description="No templates match your current filters. Create one to get started."
-    actionText="+ Create Drill Template" (actionClick)="openCreateForm()">
+  <app-empty-state [title]="'DRILLS.TEMPLATES.EMPTY_TITLE' | translate"
+    [description]="'DRILLS.TEMPLATES.EMPTY_DESC' | translate"
+    [actionText]="'DRILLS.TEMPLATES.EMPTY_ACTION' | translate" (actionClick)="openCreateForm()">
   </app-empty-state>
   }
 
@@ -156,51 +156,51 @@
 <div class="form-panel" [class.open]="isFormOpen">
   <div class="panel-header">
     <div>
-      <h4 class="panel-eyebrow">{{ isEditing ? 'Edit' : 'Create' }}</h4>
-      <h2 class="panel-title">Drill Template</h2>
+      <h4 class="panel-eyebrow">{{ (isEditing ? 'DRILLS.TEMPLATES.PANEL_EDIT' : 'DRILLS.TEMPLATES.PANEL_CREATE') | translate }}</h4>
+      <h2 class="panel-title">{{ 'DRILLS.TEMPLATES.PANEL_TITLE' | translate }}</h2>
     </div>
     <button class="panel-close" (click)="closeForm()">×</button>
   </div>
 
   <form [formGroup]="drillForm" (ngSubmit)="onSubmitForm()" class="panel-form">
     <div class="form-group">
-      <label class="form-label">Template Name</label>
-      <input type="text" formControlName="name" class="form-input" placeholder="e.g. High Press Transition" />
+      <label class="form-label">{{ 'DRILLS.TEMPLATES.LBL_NAME' | translate }}</label>
+      <input type="text" formControlName="name" class="form-input" [placeholder]="'DRILLS.TEMPLATES.NAME_PLACEHOLDER' | translate" />
       @if (drillForm.get('name')?.invalid && drillForm.get('name')?.touched) {
-      <span class="field-error">Name is required</span>
+      <span class="field-error">{{ 'DRILLS.TEMPLATES.NAME_REQUIRED' | translate }}</span>
       }
     </div>
 
     <div class="form-group">
-      <app-select label="Category" placeholder="Select a category..." [options]="formCategoryOptions"
+      <app-select [label]="'DRILLS.TEMPLATES.LBL_CATEGORY' | translate" [placeholder]="'DRILLS.TEMPLATES.CATEGORY_PLACEHOLDER' | translate" [options]="formCategoryOptions"
         [value]="drillForm.get('categoryId')?.value" (valueChange)="onFormCategoryChange($event)">
       </app-select>
       @if (drillForm.get('categoryId')?.invalid && drillForm.get('categoryId')?.touched) {
-      <span class="field-error">Category is required</span>
+      <span class="field-error">{{ 'DRILLS.TEMPLATES.CATEGORY_REQUIRED' | translate }}</span>
       }
     </div>
 
     <div class="form-group mt-3">
-      <app-select label="Difficulty Level" placeholder="Select difficulty..." [options]="difficultyOptions"
+      <app-select [label]="'DRILLS.TEMPLATES.LBL_DIFFICULTY' | translate" [placeholder]="'DRILLS.TEMPLATES.DIFFICULTY_PLACEHOLDER' | translate" [options]="difficultyOptions"
         [value]="drillForm.get('difficultyLevel')?.value" (valueChange)="onFormDifficultyChange($event)">
       </app-select>
       @if (drillForm.get('difficultyLevel')?.invalid && drillForm.get('difficultyLevel')?.touched) {
-      <span class="field-error">Difficulty is required</span>
+      <span class="field-error">{{ 'DRILLS.TEMPLATES.DIFFICULTY_REQUIRED' | translate }}</span>
       }
     </div>
 
     <div class="form-group mt-3">
-      <app-select label="Drill Mode" placeholder="Select drill mode..." [options]="drillModeOptions"
+      <app-select [label]="'DRILLS.TEMPLATES.LBL_DRILL_MODE' | translate" [placeholder]="'DRILLS.TEMPLATES.DRILL_MODE_PLACEHOLDER' | translate" [options]="drillModeOptions"
         [value]="drillForm.get('drillMode')?.value" (valueChange)="onFormModeChange($event)">
       </app-select>
       @if (drillForm.get('drillMode')?.invalid && drillForm.get('drillMode')?.touched) {
-      <span class="field-error">Drill mode is required</span>
+      <span class="field-error">{{ 'DRILLS.TEMPLATES.DRILL_MODE_REQUIRED' | translate }}</span>
       }
     </div>
 
     <div class="form-group mt-3">
-      <label class="form-label">Video URL (Optional)</label>
-      <input type="url" formControlName="videoUrl" class="form-input" placeholder="e.g. https://www.youtube.com/watch?v=... or https://..." />
+      <label class="form-label">{{ 'DRILLS.TEMPLATES.LBL_VIDEO_URL' | translate }}</label>
+      <input type="url" formControlName="videoUrl" class="form-input" [placeholder]="'DRILLS.TEMPLATES.VIDEO_URL_PLACEHOLDER' | translate" />
     </div>
 
     @if (formError) {
@@ -216,9 +216,9 @@
     }
 
     <div class="panel-actions">
-      <app-button variant="slate" type="button" (click)="closeForm()">Cancel</app-button>
+      <app-button variant="slate" type="button" (click)="closeForm()">{{ 'DRILLS.TEMPLATES.BTN_CANCEL' | translate }}</app-button>
       <app-button variant="accent" type="submit" [loading]="isSaving" [disabled]="drillForm.invalid">
-        {{ isEditing ? 'Save Changes' : 'Create Template' }}
+        {{ (isEditing ? 'DRILLS.TEMPLATES.BTN_SAVE_CHANGES' : 'DRILLS.TEMPLATES.BTN_CREATE_TEMPLATE') | translate }}
       </app-button>
     </div>
   </form>
@@ -238,7 +238,7 @@
             <polygon points="23 7 16 12 23 17 23 7" />
             <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
           </svg>
-          Drill Video Protocol
+          {{ 'DRILLS.TEMPLATES.VIDEO_PROTOCOL' | translate }}
         </span>
         <span class="card-category-badge">{{ getCategoryLabel(videoModal.drill) }}</span>
         <span class="badge" [ngClass]="getVisibilityClass(videoModal.drill)">{{ getVisibilityLabel(videoModal.drill) }}</span>
@@ -268,16 +268,16 @@
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
         </svg>
-        Mode: {{ getDrillModeLabel(videoModal.drill.drillMode) }}
+        {{ 'DRILLS.TEMPLATES.MODE_PREFIX' | translate }} {{ getDrillModeLabel(videoModal.drill.drillMode) }}
       </span>
       <span class="meta-pill">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
         </svg>
-        Difficulty: {{ getDifficultyLabel(videoModal.drill.difficultyLevel) }}
+        {{ 'DRILLS.TEMPLATES.DIFFICULTY_PREFIX' | translate }} {{ getDifficultyLabel(videoModal.drill.difficultyLevel) }}
       </span>
     </div>
-    <app-button variant="slate" (click)="closeVideoModal()">Close Protocol</app-button>
+    <app-button variant="slate" (click)="closeVideoModal()">{{ 'DRILLS.TEMPLATES.BTN_CLOSE_PROTOCOL' | translate }}</app-button>
   </div>
 </div>
 }
@@ -301,7 +301,7 @@
     </div>
   </div>
   <div class="confirm-actions">
-    <app-button variant="slate" (click)="closeConfirm()">Cancel</app-button>
+    <app-button variant="slate" (click)="closeConfirm()">{{ 'DRILLS.TEMPLATES.BTN_CANCEL' | translate }}</app-button>
     <app-button variant="coral" (click)="executeConfirm()">{{ confirmModal.confirmText }}</app-button>
   </div>
 </div>
