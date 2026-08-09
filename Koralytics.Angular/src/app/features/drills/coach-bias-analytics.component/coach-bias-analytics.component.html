@@ -23,7 +23,7 @@
                 <app-select
                     [label]="'DRILLS.COACH_BIAS.SELECT_COACH' | translate"
                     [placeholder]="'DRILLS.COACH_BIAS.COACH_PLACEHOLDER' | translate"
-                    [options]="coachOptions"
+                    [options]="coachOptionsList"
                     [(value)]="selectedCoachId"
                     [disabled]="isCoachesLoading || coachOptionsList.length === 0">
                 </app-select>

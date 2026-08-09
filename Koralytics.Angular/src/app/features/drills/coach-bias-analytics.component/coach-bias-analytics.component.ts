@@ -13,7 +13,6 @@ import { CustomButtonComponent } from '../../../../shared/components/custom-butt
 import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner';
 import { StatusChipComponent } from '../../../../shared/components/status-chip/status-chip';
 import { FeatureLockComponent } from '../../../shared/components/feature-lock/feature-lock';
-import { TranslatePipe } from '@ngx-translate/core';
 import { User } from '@core/interfaces/user.model';
 
 export interface PlayerComparison {
@@ -64,13 +63,13 @@ interface AcademyMember {
     LoadingSpinnerComponent,
     StatusChipComponent,
     FeatureLockComponent
-  , TranslatePipe, LocalizedDatePipe],
+    , TranslatePipe, LocalizedDatePipe],
   templateUrl: './coach-bias-analytics.component.html',
   styleUrls: ['./coach-bias-analytics.component.css']
 })
 export class CoachBiasAnalyticsComponent implements OnInit {
-    private translate = inject(TranslateService);
-    private subscriptions = new Subscription();
+  private translate = inject(TranslateService);
+  private subscriptions = new Subscription();
 
 
   selectedCoachId: number | null = null;

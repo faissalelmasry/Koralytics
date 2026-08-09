@@ -24,7 +24,6 @@ import { CustomToggle } from '../../../../shared/components/custom-toggle/custom
 import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner';
 import { CustomInputComponent } from '../../../../shared/components/custom-input-component/custom-input-component';
 import { NavbarComponent } from '../../../../shared/components/navbar/navbar';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Footer } from '../../../../shared/components/footer/footer';
 
 @Component({
@@ -44,12 +43,12 @@ import { Footer } from '../../../../shared/components/footer/footer';
     CustomToggle,
     LoadingSpinnerComponent,
     EmptyStateComponent,
-    TranslatePipe
-    Footer, TranslatePipe, LocalizedDatePipe
+    TranslatePipe,
+    Footer, LocalizedDatePipe
   ],
 })
 export class DrillTemplateListComponent implements OnInit, OnDestroy {
-  private translate = inject(TranslateService);
+
 
   translateCategory(name: string | null | undefined): string {
     if (!name) return '';
@@ -207,19 +206,19 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
         next: (response: DrillCategoryDto[]) => { // 🟢 OPTIMIZATION: Strictly typed
           this.categories = Array.isArray(response) ? response : [];
 
-        // For filter bar: prepend "All Categories"
-        this.categoryOptions = [
-          { value: 0, label: this.translate.instant('DRILLS.TEMPLATE_LIST.ALL_CATEGORIES') || 'All Categories' },
-          ...this.categories.map(c => ({ value: c.id as any, label: this.translateCategory(c.name) }))
-        ];
+          // For filter bar: prepend "All Categories"
+          this.categoryOptions = [
+            { value: 0, label: this.translate.instant('DRILLS.TEMPLATE_LIST.ALL_CATEGORIES') || 'All Categories' },
+            ...this.categories.map(c => ({ value: c.id as any, label: this.translateCategory(c.name) }))
+          ];
 
-        // For create/edit form: only real categories
-        this.formCategoryOptions = this.categories.map(c => ({ value: c.id as any, label: this.translateCategory(c.name) }));
+          // For create/edit form: only real categories
+          this.formCategoryOptions = this.categories.map(c => ({ value: c.id as any, label: this.translateCategory(c.name) }));
 
-        console.log('[Categories] options:', this.categoryOptions);
-      },
-      error: (err) => console.error('[Categories] FAILED:', err)
-    }));
+          console.log('[Categories] options:', this.categoryOptions);
+        },
+        error: (err) => console.error('[Categories] FAILED:', err)
+      }));
   }
 
   fetchTemplates(): void {
@@ -424,40 +423,6 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  closeForm(): void {
-    this.isFormOpen = false;
-    setTimeout(() => this.drillForm.reset(), 300);
-  }
-
-  onSubmitForm(): void {
-    if (this.drillForm.invalid) {
-      this.drillForm.markAllAsTouched();
-      return;
-    }
-
-    this.isSaving = true;
-    this.formError = '';
-    const formData = this.drillForm.value;
-
-    const request$ = this.isEditing && this.selectedDrillId
-      ? this.drillTemplateService.updateTemplate(this.selectedDrillId, formData)
-      : this.drillTemplateService.createTemplate(formData);
-
-    request$.pipe(
-      finalize(() => this.isSaving = false)
-    ).subscribe({
-      next: () => {
-        this.closeForm();
-        this.showToast(this.translate.instant(this.isEditing ? 'DRILLS.TEMPLATES.TOAST_UPDATED' : 'DRILLS.TEMPLATES.TOAST_CREATED'), 'success');
-        this.fetchTemplates();
-      },
-      error: (err) => {
-        const errorMsg = this.extractErrorMessage(err, this.translate.instant('DRILLS.TEMPLATES.FAILED_SAVE'));
-        this.formError = errorMsg;
-        this.showErrorDialog(this.translate.instant('DRILLS.TEMPLATES.DIALOG_SAVE_FAILED'), errorMsg);
-      }
-    });
-  }
   // ==========================================
   // FEEDBACK & MUTATIONS
   // ==========================================

@@ -14,7 +14,6 @@ import { CustomDatePicker } from '../../../../../shared/components/custom-date-p
 import { CustomButtonComponent } from '../../../../../shared/components/custom-button/custom-button';
 import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
 import { MatchSignalrService } from '../../../../../core/services/match-signalr.service';
-import { TranslatePipe } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
