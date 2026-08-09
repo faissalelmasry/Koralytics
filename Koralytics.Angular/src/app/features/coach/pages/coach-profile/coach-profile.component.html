@@ -50,8 +50,8 @@
     <div class="hero-banner" scrollReveal direction="bottom">
       <div class="admin-identity">
         <div class="avatar-circle">
-          @if (profile?.profileImageUrl) {
-          <img [src]="profile!.profileImageUrl" alt="Coach avatar" class="coach-avatar-img" />
+          @if (profile?.profileImageUrl && !imageError) {
+          <img [src]="profile!.profileImageUrl" alt="Coach avatar" class="coach-avatar-img" (error)="imageError = true" />
           } @else {
           <span>{{ initials }}</span>
           }

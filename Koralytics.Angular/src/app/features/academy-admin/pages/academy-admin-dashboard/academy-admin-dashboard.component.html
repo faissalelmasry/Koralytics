@@ -25,13 +25,10 @@
       <!-- =============== 1. HERO BANNER =============== -->
       <div class="hero-banner" scrollReveal direction="bottom" [delay]="90">
         <div class="admin-identity">
-          <div class="avatar-circle" (click)="openLogoUpload()" title="{{ 'ACADEMY_ADMIN.DASHBOARD.TOOLTIP_UPDATE_LOGO' | translate }}">
-            <img *ngIf="academyDetails?.logoUrl" [src]="academyDetails?.logoUrl" alt="Academy Logo"
-              class="avatar-img" />
-            <span *ngIf="!academyDetails?.logoUrl">{{ initials || 'AC' }}</span>
-            <div class="avatar-overlay">
-              <span class="camera-icon">📷</span>
-            </div>
+          <div class="avatar-circle">
+            <img *ngIf="adminAvatarUrl && !adminAvatarError" [src]="adminAvatarUrl" alt="Admin Avatar"
+              class="avatar-img" (error)="adminAvatarError = true" />
+            <span *ngIf="!adminAvatarUrl || adminAvatarError">{{ adminInitials }}</span>
           </div>
           <div>
             <h1>{{ academyDetails?.name || 'ACADEMY_ADMIN.DASHBOARD.ACADEMY_ADMINISTRATION_DEFAULT' | translate }}</h1>
@@ -39,6 +36,13 @@
               <span class="pill gold">{{ 'ACADEMY_ADMIN.DASHBOARD.ROLE_ACADEMY_ADMIN' | translate }}</span>
               <span class="pill" *ngIf="currentUser?.email">{{ currentUser?.email }}</span>
               <span class="pill" *ngIf="academyDetails?.contactPhone">{{ academyDetails?.contactPhone }}</span>
+              <button type="button" class="btn-edit-logo-pill" (click)="openLogoUpload()" title="{{ 'ACADEMY_ADMIN.DASHBOARD.TOOLTIP_UPDATE_LOGO' | translate }}">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                  <circle cx="12" cy="13" r="4"></circle>
+                </svg>
+                <span>{{ 'ACADEMY_ADMIN.DASHBOARD.BTN_EDIT_LOGO' | translate }}</span>
+              </button>
             </div>
           </div>
         </div>
@@ -439,7 +443,12 @@
     <div class="upload-modal-content" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h3>{{ 'ACADEMY_ADMIN.DASHBOARD.UPDATE_LOGO_TITLE' | translate }}</h3>
-        <button class="close-btn" (click)="closeLogoUpload()">✕</button>
+        <button class="close-btn" (click)="closeLogoUpload()" title="Close">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle;">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
       </div>
       <p class="modal-sub">{{ 'ACADEMY_ADMIN.DASHBOARD.UPDATE_LOGO_SUB' | translate }}</p>
       <div class="upload-wrapper">
@@ -447,6 +456,17 @@
           (imageSelected)="onLogoSelected($event)">
         </app-image-upload>
       </div>
+      @if (academyDetails?.logoUrl) {
+      <div class="remove-photo-row">
+        <button type="button" class="btn-remove-photo" [disabled]="isUploadingLogo" (click)="removeAcademyLogo()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle; margin-right: 6px;">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+          {{ 'ACADEMY_ADMIN.DASHBOARD.BTN_REMOVE_LOGO' | translate }}
+        </button>
+      </div>
+      }
     </div>
   </div>
   }

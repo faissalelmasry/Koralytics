@@ -322,6 +322,18 @@ namespace Koralytics.API.Controllers
             return NoContent();
         }
 
+        [HttpPatch("{playerId}/highlights/{highlightId}/unpin")]
+        [Authorize(Roles = "Player")]
+        public async Task<IActionResult> UnpinHighlight(int playerId, int highlightId)
+        {
+            var requesterId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            if (requesterId != playerId)
+                return Forbid();
+
+            await _storageService.UnpinHighlightAsync(highlightId, playerId);
+            return NoContent();
+        }
+
         [HttpGet("{playerId}/highlights")]
         [Authorize]
         public async Task<IActionResult> GetHighlights(int playerId)

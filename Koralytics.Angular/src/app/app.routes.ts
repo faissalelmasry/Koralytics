@@ -155,9 +155,8 @@ export const routes: Routes = [
       },
       {
         path: 'coach/training-split',
-        loadComponent: () => import('./features/coach/pages/training-split/training-split.component').then(m => m.TrainingSplitComponent),
-        canActivate: [roleGuard],
-        data: { roles: ['Coach'] }
+        redirectTo: 'drills/sessions',
+        pathMatch: 'full'
       },
       {
         path: 'coach/highlights',
@@ -167,8 +166,13 @@ export const routes: Routes = [
       {
         path: 'player/highlights',
         loadComponent: () => import('./features/player/player-highlights/player-highlights.component').then(m => m.PlayerHighlightsComponent),
-        canActivate: [roleGuard],
+        canActivate: [authGuard, roleGuard],
         data: { roles: ['Player'] }
+      },
+      {
+        path: 'player/highlights/:playerId',
+        loadComponent: () => import('./features/player/player-highlights/player-highlights.component').then(m => m.PlayerHighlightsComponent),
+        canActivate: [authGuard]
       },
       { path: 'tournament/list', loadComponent: () => import('./features/tournament/pages/tournament-list/tournament-list.component').then(m => m.TournamentListComponent) },
       { path: 'tournament/create', loadComponent: () => import('./features/tournament/pages/tournament-manage/tournament-manage.component').then(m => m.TournamentManageComponent) },

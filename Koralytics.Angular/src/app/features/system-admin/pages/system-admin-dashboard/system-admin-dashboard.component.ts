@@ -4,6 +4,7 @@ import { NavbarComponent } from '../../../../../shared/components/navbar/navbar'
 import { Footer } from '../../../../../shared/components/footer/footer';
 import { SystemAdminService } from '../../../../../core/services/system-admin/system-admin.service';
 import { AuthService } from '../../../../../core/services/auth/auth.service';
+import { ProfileService } from '../../../../../core/services/profile/profile.service';
 import { User } from '../../../../../core/interfaces/user.model';
 
 import { PendingRequestsSectionComponent } from '../../components/pending-requests-section/pending-requests-section';
@@ -37,8 +38,11 @@ export type AdminDashboardTab = 'all' | 'pending' | 'academies' | 'badges' | 'us
 export class SystemAdminDashboardComponent implements OnInit {
   private systemAdminService = inject(SystemAdminService);
   private authService = inject(AuthService);
+  private profileService = inject(ProfileService);
 
   currentUser: User | null = null;
+  profileImageUrl: string | null = null;
+  imageError = false;
   isLoading = false;
   
   pendingCount = signal<number>(0);
@@ -48,6 +52,13 @@ export class SystemAdminDashboardComponent implements OnInit {
 
   ngOnInit() {
     this.currentUser = this.authService.getCurrentUserValue();
+    this.profileService.getMyProfile().subscribe({
+      next: (res) => {
+        if (res.isSuccess && res.data?.profileImageUrl) {
+          this.profileImageUrl = res.data.profileImageUrl;
+        }
+      }
+    });
     this.refreshPendingCount();
     this.loadStats();
   }

@@ -18,8 +18,8 @@
     <div class="hero-banner" scrollReveal direction="bottom" [delay]="50">
       <div class="player-identity">
         <div class="avatar-circle">
-          @if (academy.logoUrl) {
-          <img [src]="academy.logoUrl" [alt]="academy.name" class="academy-logo-img" />
+          @if (academy.logoUrl && !logoImageError) {
+          <img [src]="academy.logoUrl" [alt]="academy.name" class="academy-logo-img" (error)="logoImageError = true" />
           } @else {
           <span>{{ initials }}</span>
           }

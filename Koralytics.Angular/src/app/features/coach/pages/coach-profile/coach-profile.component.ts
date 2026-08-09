@@ -47,6 +47,7 @@ export class CoachProfileComponent implements OnInit, OnDestroy {
 
   // ── State ──
   isLoading = true;
+  imageError = false;
   isOwnProfile = false;
   coachId: number | null = null;
   error: string | null = null;

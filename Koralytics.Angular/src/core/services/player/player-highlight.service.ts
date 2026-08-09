@@ -43,6 +43,14 @@ export class PlayerHighlightService {
     );
   }
 
+  /** PATCH /api/Player/{playerId}/highlights/{highlightId}/unpin */
+  unpinHighlight(playerId: number, highlightId: number): Observable<void> {
+    return this.http.patch<void>(
+      `${this.apiUrl}/${playerId}/highlights/${highlightId}/unpin`,
+      {}
+    );
+  }
+
   /** GET /api/Player/{playerId}/highlights */
   getHighlights(playerId: number): Observable<PlayerHighlightDto[]> {
     return this.http.get<PlayerHighlightDto[]>(

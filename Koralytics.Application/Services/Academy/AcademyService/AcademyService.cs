@@ -288,6 +288,40 @@ namespace Koralytics.Application.Services.Academy.AcademyService
         }
 
         // ──────────────────────────────────────────────────────────────────────
+        // RemoveAcademyLogoAsync
+        // ──────────────────────────────────────────────────────────────────────
+        public async Task RemoveAcademyLogoAsync(int academyId, int performedByUserId)
+        {
+            _logger.LogInformation("User {UserId} removing logo for academy {AcademyId}", performedByUserId, academyId);
+
+            var academy = await _unitOfWork.Repository<Domain.Entities.Academy.Academy>()
+                .FindAsync(a => a.Id == academyId);
+
+            if (academy is null)
+                throw new NotFoundException($"Academy with Id {academyId} not found.");
+
+            if (!string.IsNullOrEmpty(academy.LogoUrl))
+            {
+                try
+                {
+                    await _storageService.DeleteFileAsync(academy.LogoUrl);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to delete old academy logo {Url} for academy Id {AcademyId}", academy.LogoUrl, academyId);
+                }
+            }
+
+            academy.LogoUrl = null;
+            academy.UpdatedById = performedByUserId;
+            academy.UpdatedAt = DateTime.UtcNow;
+
+            await _unitOfWork.SaveChangesAsync();
+
+            _logger.LogInformation("Academy {AcademyId} logo removed successfully.", academyId);
+        }
+
+        // ──────────────────────────────────────────────────────────────────────
         // UpdateAcademyStatusAsync
         // ──────────────────────────────────────────────────────────────────────
         public async Task<AcademyResponseDto> UpdateAcademyStatusAsync(int academyId, UpdateAcademyStatusDto dto, int performedByUserId)

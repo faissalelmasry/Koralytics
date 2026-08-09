@@ -141,6 +141,13 @@ export class ScouterService {
       .pipe(map((res) => res.data));
   }
 
+  /** GET api/scouter/{scouterId}/is-shortlisted/{playerId} */
+  isShortlisted(scouterId: number, playerId: number): Observable<boolean> {
+    return this.http
+      .get<ApiEnvelope<boolean>>(`${this.baseUrl}/${scouterId}/is-shortlisted/${playerId}`)
+      .pipe(map((res) => res.data));
+  }
+
   // ── Reports / Verification (ScouterReportService) ──
 
   /**

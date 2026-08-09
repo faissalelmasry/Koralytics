@@ -20,7 +20,10 @@
       <div class="hero-banner profile-style-banner" (click)="goToProfile()" role="button" tabindex="0"
            (keydown.enter)="goToProfile()" [title]="'PLAYER.VIEW_PLAYER_PROFILE' | translate">
         <div class="player-identity">
-          <div class="avatar-circle">{{ playerInitials }}</div>
+          <div class="avatar-circle">
+            <img *ngIf="profileImageUrl && !imageError" [src]="profileImageUrl" [alt]="data.playerName" class="avatar-img" (error)="imageError = true" />
+            <span *ngIf="!profileImageUrl || imageError">{{ playerInitials }}</span>
+          </div>
           <div>
             <h1>{{ data.playerName }}</h1>
             <div class="meta-pills">

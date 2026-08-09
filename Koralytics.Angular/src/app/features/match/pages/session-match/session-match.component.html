@@ -51,6 +51,23 @@
         </app-select>
       </div>
 
+      <!-- Auto-Split Button -->
+      <app-button
+        variant="cyan"
+        [loading]="isAutoSplitting"
+        [disabled]="isAutoSplitting || isLoading"
+        (click)="autoSplitSquad()"
+        title="Automatically divide squad into balanced Home and Away lineups with GK allocation">
+        <svg class="btn-icon-svg" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 3h5v5"/>
+          <path d="M4 20L21 3"/>
+          <path d="M21 16v5h-5"/>
+          <path d="M15 15l6 6"/>
+          <path d="M4 4l5 5"/>
+        </svg>
+        Auto-Split Squad
+      </app-button>
+
       <!-- Submit Button -->
       <app-button
         variant="accent"

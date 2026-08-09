@@ -38,6 +38,13 @@ export interface DrillDto {
     notes?: string | null;
 }
 
+export interface PlayerAttendanceDto {
+    playerId: number;
+    playerFullName: string;
+    position?: string | null;
+    isPresent: boolean;
+}
+
 export interface DrillSessionDetailsDto {
     id: number;
     academyId: number;
@@ -49,6 +56,7 @@ export interface DrillSessionDetailsDto {
     notes?: string | null;
     sessionDrills: DrillDto[];
     location?: string | null;
+    attendance?: PlayerAttendanceDto[];
 }
 
 // ==========================================

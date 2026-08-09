@@ -176,6 +176,8 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
           awayAcademy: m.awayTeamAcademyName ?? m.AwayTeamAcademyName ?? '',
           homeAcademyId: m.homeTeamAcademyId ?? m.HomeTeamAcademyId ?? null,
           awayAcademyId: m.awayTeamAcademyId ?? m.AwayTeamAcademyId ?? null,
+          homeAcademyLogoUrl: m.homeTeamAcademyLogoUrl ?? m.HomeTeamAcademyLogoUrl ?? null,
+          awayAcademyLogoUrl: m.awayTeamAcademyLogoUrl ?? m.AwayTeamAcademyLogoUrl ?? null,
           homeScore: m.homeScore ?? m.HomeScore ?? 0,
           awayScore: m.awayScore ?? m.AwayScore ?? 0,
           homePenaltyScore: m.homePenaltyScore ?? m.HomePenaltyScore ?? null,

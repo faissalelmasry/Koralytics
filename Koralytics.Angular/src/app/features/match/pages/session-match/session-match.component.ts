@@ -141,6 +141,7 @@ export class SessionMatchComponent implements OnInit {
 
   isLoading = true;
   isSubmitting = false;
+  isAutoSplitting = false;
   error = '';
 
   // Active Team Side Slider
@@ -238,29 +239,37 @@ export class SessionMatchComponent implements OnInit {
   }
 
   loadSessionPresentSquad(): void {
-    const attendances: any[] = this.sessionData?.sessionAttendances ?? this.sessionData?.SessionAttendances ?? [];
+    const attendances: any[] =
+      this.sessionData?.attendance ??
+      this.sessionData?.Attendance ??
+      this.sessionData?.sessionAttendances ??
+      this.sessionData?.SessionAttendances ?? [];
+
+    if (attendances.length > 0) {
+      this.processAttendances(attendances);
+    } else {
+      this.drillSessionService.getSessionAttendance(this.sessionId).subscribe({
+        next: (res: any) => {
+          const list = res?.data ?? res ?? [];
+          this.processAttendances(Array.isArray(list) ? list : []);
+        },
+        error: () => {
+          this.unassignedSquad = [];
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        }
+      });
+    }
+  }
+
+  private processAttendances(attendances: any[]): void {
     const presentAttendance = attendances.filter((a: any) => a.isPresent || a.IsPresent);
 
     if (presentAttendance.length > 0) {
       const playerIds = presentAttendance.map((a: any) => a.playerId ?? a.PlayerId);
       this.fetchMiniCardsForSquad(playerIds, presentAttendance);
-    } else if (this.teamId > 0) {
-      this.coachSquadService.getSquad(this.teamId).subscribe({
-        next: (squadRes: any) => {
-          const squadData = squadRes?.data ?? squadRes;
-          const squadList: any[] = Array.isArray(squadData)
-            ? squadData
-            : (squadData?.players ?? squadData?.Players ?? []);
-
-          const playerIds = squadList.map((item: any) => item.playerId ?? item.PlayerId ?? item.id ?? item.Id);
-          this.fetchMiniCardsForSquad(playerIds, squadList);
-        },
-        error: () => {
-          this.isLoading = false;
-          this.cdr.detectChanges();
-        }
-      });
     } else {
+      this.unassignedSquad = [];
       this.isLoading = false;
       this.cdr.detectChanges();
     }
@@ -277,8 +286,14 @@ export class SessionMatchComponent implements OnInit {
     const buildFallbackCard = (item: any): MiniPlayerCardModel => {
       const pId = item.playerId ?? item.PlayerId ?? item.id ?? item.Id;
       const playerObj = item.player ?? item.Player ?? item;
-      const name = (playerObj.fullName ?? playerObj.FullName ?? `${playerObj.firstName ?? playerObj.FirstName ?? ''} ${playerObj.lastName ?? playerObj.LastName ?? ''}`.trim()) || 'Player #' + pId;
-      const pos = playerObj.primaryPosition ?? playerObj.PrimaryPosition ?? playerObj.position ?? playerObj.Position ?? 'CM';
+      const name = (
+        playerObj.playerFullName ??
+        playerObj.PlayerFullName ??
+        playerObj.fullName ??
+        playerObj.FullName ??
+        `${playerObj.firstName ?? playerObj.FirstName ?? ''} ${playerObj.lastName ?? playerObj.LastName ?? ''}`.trim()
+      ) || 'Player #' + pId;
+      const pos = playerObj.position ?? playerObj.Position ?? playerObj.primaryPosition ?? playerObj.PrimaryPosition ?? 'CM';
       const img = playerObj.profileImageUrl ?? playerObj.ProfileImageUrl ?? null;
       const rating = Math.round(playerObj.overallRating ?? playerObj.OverallRating ?? 0);
 
@@ -325,6 +340,163 @@ export class SessionMatchComponent implements OnInit {
     });
   }
 
+  autoSplitSquad(): void {
+    if (!this.sessionId) return;
+
+    this.isAutoSplitting = true;
+    this.coachSquadService.splitTrainingTeams(this.sessionId).subscribe({
+      next: (res: any) => {
+        const splitData = res?.data ?? res;
+        const teamAPlayers: any[] = splitData?.teamA ?? splitData?.TeamA ?? [];
+        const teamBPlayers: any[] = splitData?.teamB ?? splitData?.TeamB ?? [];
+
+        if (teamAPlayers.length === 0 && teamBPlayers.length === 0) {
+          this.toast.show('No players available to split.', 'error');
+          this.isAutoSplitting = false;
+          this.cdr.detectChanges();
+          return;
+        }
+
+        // Reset all current assignments first
+        this.resetAllAssignedPlayersToUnassigned();
+
+        const squadMap = new Map<number, MiniPlayerCardModel>();
+        this.unassignedSquad.forEach(p => squadMap.set(p.playerId, p));
+
+        const mapToMiniCard = (dto: any): MiniPlayerCardModel => {
+          const pId = dto.playerId ?? dto.PlayerId ?? dto.id;
+          const existing = squadMap.get(pId);
+          if (existing) return existing;
+          return {
+            playerId: pId,
+            fullName: dto.fullName ?? dto.FullName ?? ('Player #' + pId),
+            position: dto.primaryPosition ?? dto.PrimaryPosition ?? dto.position ?? 'CM',
+            profileImageUrl: dto.profileImageUrl ?? dto.ProfileImageUrl ?? null,
+            overallRating: Math.round(dto.overallRating ?? dto.OverallRating ?? 0)
+          };
+        };
+
+        const convertedTeamA = teamAPlayers.map(mapToMiniCard);
+        const convertedTeamB = teamBPlayers.map(mapToMiniCard);
+
+        // Populate Home Side (Team A)
+        this.populateTeamSide(this.homePitchRows, this.homeBenchSlots, convertedTeamA);
+
+        // Populate Away Side (Team B)
+        this.populateTeamSide(this.awayPitchRows, this.awayBenchSlots, convertedTeamB);
+
+        // Remove assigned players from unassignedSquad
+        const assignedIds = new Set<number>();
+        this.getAssignedPlayers(this.homePitchRows).forEach(p => assignedIds.add(p.playerId));
+        this.homeBenchSlots.forEach(p => p && assignedIds.add(p.playerId));
+        this.getAssignedPlayers(this.awayPitchRows).forEach(p => assignedIds.add(p.playerId));
+        this.awayBenchSlots.forEach(p => p && assignedIds.add(p.playerId));
+
+        this.unassignedSquad = this.unassignedSquad.filter(p => !assignedIds.has(p.playerId));
+
+        const avgA = this.calculateAverageRating(this.getAssignedPlayers(this.homePitchRows));
+        const avgB = this.calculateAverageRating(this.getAssignedPlayers(this.awayPitchRows));
+
+        this.toast.show(
+          `Squad auto-split successfully! Home AVG: ${avgA.toFixed(1)} | Away AVG: ${avgB.toFixed(1)}`,
+          'success'
+        );
+
+        this.isAutoSplitting = false;
+        this.cdr.detectChanges();
+      },
+      error: (err: any) => {
+        this.isAutoSplitting = false;
+        const msg = err?.error?.message || err?.error?.detail || 'Failed to auto-split squad.';
+        this.toast.show(msg, 'error');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  private populateTeamSide(
+    pitchRows: PositionSlot[][],
+    benchSlots: (MiniPlayerCardModel | null)[],
+    teamPlayers: MiniPlayerCardModel[]
+  ): void {
+    // 0. Reset all pitch and bench slots for this side first
+    for (const row of pitchRows) {
+      for (const slot of row) {
+        slot.player = null;
+      }
+    }
+    for (let i = 0; i < benchSlots.length; i++) {
+      benchSlots[i] = null;
+    }
+
+    if (teamPlayers.length === 0) return;
+
+    const available = [...teamPlayers];
+
+    const isGk = (p: MiniPlayerCardModel) =>
+      p.position && (p.position.toUpperCase() === 'GK' || p.position.toUpperCase().includes('GOAL'));
+
+    // 1. Identify Goalkeeper for GK pitch slot
+    let gkPlayerIndex = available.findIndex(isGk);
+    if (gkPlayerIndex === -1 && available.length > 0) {
+      gkPlayerIndex = 0;
+    }
+
+    let gkPlayer: MiniPlayerCardModel | null = null;
+    if (gkPlayerIndex !== -1) {
+      gkPlayer = available.splice(gkPlayerIndex, 1)[0];
+    }
+
+    // Place GK into pitch slot where role === 'GK'
+    if (gkPlayer) {
+      for (const row of pitchRows) {
+        for (const slot of row) {
+          if (slot.role === 'GK') {
+            slot.player = gkPlayer;
+            break;
+          }
+        }
+      }
+    }
+
+    // 2. Fill remaining pitch slots with position-matched players first
+    for (const row of pitchRows) {
+      for (const slot of row) {
+        if (slot.player) continue;
+
+        const matchIdx = available.findIndex(p =>
+          p.position && p.position.toUpperCase() === slot.role.toUpperCase()
+        );
+
+        if (matchIdx !== -1) {
+          slot.player = available.splice(matchIdx, 1)[0];
+        }
+      }
+    }
+
+    // 3. Fill any empty starting pitch slots with remaining available players
+    for (const row of pitchRows) {
+      for (const slot of row) {
+        if (slot.player) continue;
+
+        if (available.length > 0) {
+          slot.player = available.shift()!;
+        }
+      }
+    }
+
+    // 4. Fill bench slots with all remaining players
+    for (let b = 0; b < benchSlots.length && available.length > 0; b++) {
+      benchSlots[b] = available.shift()!;
+    }
+  }
+
+  private calculateAverageRating(players: MiniPlayerCardModel[]): number {
+    if (players.length === 0) return 0;
+    const sum = players.reduce((acc, p) => acc + (p.overallRating || 0), 0);
+    return sum / players.length;
+  }
+
   onFormatChange(): void {
     this.updateFormatAndFormations(this.selectedFormat);
   }
@@ -336,6 +508,7 @@ export class SessionMatchComponent implements OnInit {
       for (const slot of row) {
         if (slot.player) {
           assignedPlayers.push(slot.player);
+          slot.player = null;
         }
       }
     }
@@ -344,28 +517,28 @@ export class SessionMatchComponent implements OnInit {
       for (const slot of row) {
         if (slot.player) {
           assignedPlayers.push(slot.player);
+          slot.player = null;
         }
       }
     }
 
-    for (const player of this.homeBenchSlots) {
-      if (player) {
-        assignedPlayers.push(player);
+    for (let i = 0; i < this.homeBenchSlots.length; i++) {
+      if (this.homeBenchSlots[i]) {
+        assignedPlayers.push(this.homeBenchSlots[i]!);
+        this.homeBenchSlots[i] = null;
       }
     }
 
-    for (const player of this.awayBenchSlots) {
-      if (player) {
-        assignedPlayers.push(player);
+    for (let i = 0; i < this.awayBenchSlots.length; i++) {
+      if (this.awayBenchSlots[i]) {
+        assignedPlayers.push(this.awayBenchSlots[i]!);
+        this.awayBenchSlots[i] = null;
       }
     }
 
     if (assignedPlayers.length > 0) {
       this.unassignedSquad = [...this.unassignedSquad, ...assignedPlayers];
     }
-
-    this.homeBenchSlots = Array(7).fill(null);
-    this.awayBenchSlots = Array(7).fill(null);
 
     this.resetDragState();
     this.selectedPlayer = null;

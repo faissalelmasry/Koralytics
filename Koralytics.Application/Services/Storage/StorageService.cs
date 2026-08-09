@@ -228,6 +228,27 @@ namespace Koralytics.Application.Services.Storage
             return true;
         }
 
+        public async Task<bool> UnpinHighlightAsync(int highlightId, int playerId)
+        {
+            var highlight = await _unitOfWork.Repository<PlayerHighlight>()
+                .FindAsync(h => h.Id == highlightId && !h.IsDeleted);
+
+            if (highlight == null)
+            {
+                throw new NotFoundException($"Highlight with ID {highlightId} not found.");
+            }
+
+            if (highlight.PlayerId != playerId)
+            {
+                throw new ForbiddenException("You do not own this highlight.");
+            }
+
+            highlight.IsPinned = false;
+            await _unitOfWork.SaveChangesAsync();
+
+            return true;
+        }
+
         public async Task<IEnumerable<PlayerHighlightDto>> GetHighlightsAsync(int playerId)
         {
             // Verify player existence

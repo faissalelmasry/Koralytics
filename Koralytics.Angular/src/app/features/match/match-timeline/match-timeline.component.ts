@@ -20,11 +20,12 @@ import { LoadingSpinnerComponent } from '../../../../shared/components/loading-s
 import { NotificationService } from '@core/services/SignalR/notificationservice';
 
 import { RouterLink } from '@angular/router';
+import { MarqueeIfOverflowDirective } from './marquee-if-overflow.directive';
 
 @Component({
   selector: 'app-match-timeline',
   standalone: true,
-  imports: [CommonModule, RouterLink, MatchTimelineEventsComponent, MatchLineupsComponent, MatchRatingsComponent, MatchH2hComponent, MatchAnalysisComponent, EmptyStateComponent, CustomButtonComponent, ConfirmDialogComponent, LoadingSpinnerComponent],
+  imports: [CommonModule, RouterLink, MatchTimelineEventsComponent, MatchLineupsComponent, MatchRatingsComponent, MatchH2hComponent, MatchAnalysisComponent, EmptyStateComponent, CustomButtonComponent, ConfirmDialogComponent, LoadingSpinnerComponent, MarqueeIfOverflowDirective],
   templateUrl: './match-timeline.component.html',
   styleUrls: ['./match-timeline.component.css']
 })
@@ -46,6 +47,8 @@ export class MatchTimelineComponent implements OnInit, OnDestroy, OnChanges {
     awayAcademy?: string;
     homeAcademyId?: number | null;
     awayAcademyId?: number | null;
+    homeAcademyLogoUrl?: string | null;
+    awayAcademyLogoUrl?: string | null;
     homeScore: number;
     awayScore: number;
     homePenaltyScore?: number | null;
@@ -64,6 +67,18 @@ export class MatchTimelineComponent implements OnInit, OnDestroy, OnChanges {
   @Input() canSubmitRatings: boolean = false;
 
   @Output() eventLogged = new EventEmitter<void>();
+
+  homeLogoError = false;
+  awayLogoError = false;
+
+  getInitials(name?: string): string {
+    if (!name) return 'KA';
+    const parts = name.trim().split(' ');
+    if (parts.length >= 2 && parts[0] && parts[1]) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase();
+  }
 
   selectedTab: 'timeline' | 'lineups' | 'h2h' | 'ratings' | 'analysis' = 'timeline';
   hasUserSelectedTab = false;

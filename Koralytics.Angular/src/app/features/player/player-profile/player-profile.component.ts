@@ -48,10 +48,12 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
   private translate = inject(TranslateService);
   private parentService = inject(ParentService);
 
-  // ── Scouter Follow State ─────────────────────────────────────
+  // ── Scouter Follow / Shortlist State ─────────────────────────
   isScouter = false;
   isFollowing = false;
   isFollowLoading = false;
+  isShortlisted = false;
+  isShortlistLoading = false;
   currentScouterId: number | null = null;
 
   // ── View children ───────────────────────────────────────────
@@ -62,6 +64,7 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
   profile: PlayerProfileModel | null = null;
   isLoading = false;
   isFetchingCard = false;
+  imageError = false;
   error = '';
   playerId: number | null = null;
   loggedInUserId: number | null = null;
@@ -244,6 +247,14 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
     }
   }
 
+  goToHighlights() {
+    if (this.playerId) {
+      this.router.navigate(['/player/highlights', this.playerId]);
+    } else {
+      this.router.navigate(['/player/highlights']);
+    }
+  }
+
   ngOnDestroy() {
     this.observer?.disconnect();
     if (this.radarChart) {
@@ -371,9 +382,15 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
     return `${this.profile.firstName} ${this.profile.lastName}`;
   }
 
+  get profileImageUrl(): string | null {
+    return this.profile?.profileImageUrl || this.profile?.playerCard?.profileImageUrl || null;
+  }
+
   get initials(): string {
     if (!this.profile) return '';
-    return (this.profile.firstName[0] + this.profile.lastName[0]).toUpperCase();
+    const f = this.profile.firstName?.charAt(0) || '';
+    const l = this.profile.lastName?.charAt(0) || '';
+    return `${f}${l}`.toUpperCase() || 'P';
   }
 
   get primaryPosition(): string {
@@ -644,6 +661,7 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
         this.isLoading = false;
         if (this.isScouter && this.currentScouterId && this.playerId && !this.isOwnProfile) {
           this.checkFollowStatus();
+          this.checkShortlistStatus();
         }
         this.cdr.detectChanges();
         setTimeout(() => {
@@ -672,6 +690,57 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
         console.error('Failed to check follow status:', err);
       }
     });
+  }
+
+  private checkShortlistStatus() {
+    if (!this.currentScouterId || !this.playerId) return;
+    this.scouterService.isShortlisted(this.currentScouterId, this.playerId).subscribe({
+      next: (isShortlisted: boolean) => {
+        this.isShortlisted = !!isShortlisted;
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Failed to check shortlist status:', err);
+      }
+    });
+  }
+
+  toggleShortlist() {
+    if (!this.currentScouterId || !this.playerId || this.isShortlistLoading) return;
+
+    this.isShortlistLoading = true;
+    if (this.isShortlisted) {
+      this.scouterService.removeFromShortlist(this.currentScouterId, this.playerId).subscribe({
+        next: () => {
+          this.isShortlisted = false;
+          this.isShortlistLoading = false;
+          this.toastService.show('Removed from shortlist successfully.', 'info');
+          this.cdr.markForCheck();
+        },
+        error: (err) => {
+          this.isShortlistLoading = false;
+          console.error('Failed to remove from shortlist:', err);
+          this.toastService.show('Failed to remove from shortlist.', 'error');
+          this.cdr.markForCheck();
+        }
+      });
+    } else {
+      this.scouterService.addToShortlist(this.currentScouterId, this.playerId).subscribe({
+        next: () => {
+          this.isShortlisted = true;
+          this.isShortlistLoading = false;
+          this.toastService.show('Player added to shortlist successfully.', 'success');
+          this.cdr.markForCheck();
+        },
+        error: (err) => {
+          this.isShortlistLoading = false;
+          console.error('Failed to add to shortlist:', err);
+          this.toastService.show('Failed to add to shortlist.', 'error');
+          this.cdr.markForCheck();
+        }
+      });
+    }
   }
 
 

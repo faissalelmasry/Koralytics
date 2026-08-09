@@ -31,6 +31,8 @@ export class PlayerAcademyComparisonComponent implements OnInit, AfterViewInit {
   @ViewChild('radarCanvas') radarCanvas!: ElementRef<HTMLCanvasElement>;
 
   data: PlayerVsAcademyModel | null = null;
+  profileImageUrl: string | null = null;
+  imageError = false;
   isLoading = true;
   error = '';
 
@@ -52,8 +54,11 @@ export class PlayerAcademyComparisonComponent implements OnInit, AfterViewInit {
   // ── Computed getters for hero-banner ────────────────────────
   get playerInitials(): string {
     if (!this.data) return '?';
-    const parts = this.data.playerName.split(' ');
-    return (parts[0]?.[0] ?? '').toUpperCase() + (parts[1]?.[0] ?? '').toUpperCase();
+    const parts = this.data.playerName.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    return (parts[0]?.[0] ?? '?').toUpperCase();
   }
 
   ngOnInit(): void {
@@ -97,6 +102,15 @@ export class PlayerAcademyComparisonComponent implements OnInit, AfterViewInit {
   private handleData(res: PlayerVsAcademyModel): void {
     this.data = res;
     this.isLoading = false;
+    const targetId = this.playerId || this.loggedInUserId;
+    if (targetId) {
+      this.profileService.getPlayerProfile(targetId).subscribe({
+        next: (p) => {
+          this.profileImageUrl = p.profileImageUrl || p.playerCard?.profileImageUrl || null;
+          this.cdr.detectChanges();
+        }
+      });
+    }
     this.cdr.detectChanges();
     if (res.categories.length > 0) {
       this.initRadarChart();

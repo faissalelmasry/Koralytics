@@ -11,10 +11,12 @@ import { AuthService } from '../../../../../core/services/auth/auth.service';
 import { SquadOverviewDto, CoachTeamDto } from '../../../../../core/interfaces/coach.interfaces';
 import { PlayerReadinessDto } from '../../../../../core/interfaces/match-request.interfaces';
 
+import { LoadingSpinnerComponent } from '../../../../../shared/components/loading-spinner/loading-spinner';
+
 @Component({
   selector: 'app-player-readiness',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, LoadingSpinnerComponent],
   templateUrl: './player-readiness.component.html',
   styleUrls: ['./player-readiness.component.css']
 })

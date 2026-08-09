@@ -15,7 +15,7 @@
   <div class="match-center">
     <div class="team home" [class.winner]="isHomeWinner">
       <div class="team-info">
-        <span class="team-name">
+        <span class="team-name" appMarqueeIfOverflow [marqueeText]="match.homeTeamName">
           @if (isHomeWinner) { <span class="win-tag">WINNER</span> }
           {{ match.homeTeamName }}
           @if (isSessionMatch) { <span class="side-label">(Home)</span> }
@@ -43,7 +43,7 @@
 
     <div class="team away" [class.winner]="isAwayWinner">
       <div class="team-info">
-        <span class="team-name">
+        <span class="team-name" appMarqueeIfOverflow [marqueeText]="match.awayTeamName">
           {{ match.awayTeamName }}
           @if (isSessionMatch) { <span class="side-label">(Away)</span> }
           @if (isAwayWinner) { <span class="win-tag">WINNER</span> }
