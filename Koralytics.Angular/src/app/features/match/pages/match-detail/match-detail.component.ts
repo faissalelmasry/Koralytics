@@ -10,6 +10,7 @@ import { Footer } from '../../../../../shared/components/footer/footer';
 import { LoadingSpinnerComponent } from '../../../../../shared/components/loading-spinner/loading-spinner';
 import { MatchSignalrService } from '../../../../../core/services/match-signalr.service';
 import { Subscription } from 'rxjs';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-match-detail',
@@ -19,7 +20,8 @@ import { Subscription } from 'rxjs';
     MatchTimelineComponent,
     NavbarComponent,
     Footer,
-    LoadingSpinnerComponent
+    LoadingSpinnerComponent,
+    TranslatePipe
   ],
   templateUrl: './match-detail.component.html',
   styleUrls: ['./match-detail.component.css']
@@ -31,6 +33,7 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
   private coachSquadService = inject(CoachSquadService);
   private cdr = inject(ChangeDetectorRef);
   private signalrService = inject(MatchSignalrService);
+  private translate = inject(TranslateService);
 
   private routeSub?: Subscription;
   private signalrSub?: Subscription;
@@ -214,7 +217,7 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
       },
       error: () => {
         this.isLoading = false;
-        this.error = 'Failed to load match details.';
+        this.error = this.translate.instant('MATCH.DETAIL.ERROR_LOAD');
         this.cdr.detectChanges();
       }
     });

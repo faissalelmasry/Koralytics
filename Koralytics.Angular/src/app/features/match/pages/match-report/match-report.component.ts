@@ -5,6 +5,7 @@ import { MatchService } from '../../../../../core/services/match/match.service';
 import { NavbarComponent } from '../../../../../shared/components/navbar/navbar';
 import { Footer } from '../../../../../shared/components/footer/footer';
 import { LoadingSpinnerComponent } from '../../../../../shared/components/loading-spinner/loading-spinner';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 export interface ParsedReport {
   summary: string;
@@ -27,7 +28,8 @@ export interface PlayerEvaluation {
     RouterModule,
     NavbarComponent,
     Footer,
-    LoadingSpinnerComponent
+    LoadingSpinnerComponent,
+    TranslatePipe
   ],
   templateUrl: './match-report.component.html',
   styleUrls: ['./match-report.component.css']
@@ -37,6 +39,7 @@ export class MatchReportComponent implements OnInit {
   private router = inject(Router);
   private matchService = inject(MatchService);
   private cdr = inject(ChangeDetectorRef);
+  private translate = inject(TranslateService);
 
   matchId!: number;
   isLoading = true;
@@ -62,7 +65,7 @@ export class MatchReportComponent implements OnInit {
       this.matchId = Number(idParam);
       this.loadReport();
     } else {
-      this.error = 'معرّف المباراة غير صحيح';
+      this.error = this.translate.instant('MATCH.REPORT.ERROR_INVALID_ID', { Default: 'Invalid Match ID' });
       this.isLoading = false;
     }
   }
@@ -77,7 +80,7 @@ export class MatchReportComponent implements OnInit {
           this.reportData = res.data;
           this.processReportText(res.data.reportText || '');
         } else {
-          this.error = res.message || 'فشل في تحميل التقرير';
+          this.error = res.message || this.translate.instant('MATCH.REPORT.ERROR_LOAD', { Default: 'Failed to load report' });
         }
         this.isLoading = false;
         this.cdr.markForCheck();
@@ -85,7 +88,7 @@ export class MatchReportComponent implements OnInit {
       error: (err) => {
         console.error('Error fetching match report:', err);
         // If not found, show user friendly prompt with option to generate
-        this.error = 'لم يتم العثور على تقرير لهذه المباراة بعد.';
+        this.error = this.translate.instant('MATCH.REPORT.ERROR_NOT_FOUND', { Default: 'No report found for this match yet.' });
         this.isLoading = false;
         this.cdr.markForCheck();
       }
@@ -104,7 +107,7 @@ export class MatchReportComponent implements OnInit {
       error: (err) => {
         console.error('Error generating match report:', err);
         this.isGenerating = false;
-        this.error = 'فشل في إنشاء التقرير عبر الذكاء الاصطناعي. يُرجى المحاولة لاحقًا.';
+        this.error = this.translate.instant('MATCH.REPORT.ERROR_GENERATE', { Default: 'Failed to generate AI report. Please try again later.' });
         this.cdr.markForCheck();
       }
     });
@@ -194,7 +197,7 @@ export class MatchReportComponent implements OnInit {
       this.playersList = lines.map(line => {
         const clean = line.replace(/^[\-\*\•]\s*/, '').trim();
         const parts = clean.split(':');
-        const name = parts[0]?.replace(/\*\*/g, '').trim() || 'لاعب';
+        const name = parts[0]?.replace(/\*\*/g, '').trim() || this.translate.instant('MATCH.REPORT.PLAYER', { Default: 'Player' });
         const desc = this.cleanSectionText(parts.slice(1).join(':').trim());
         return {
           name: this.cleanMarkdownText(name),

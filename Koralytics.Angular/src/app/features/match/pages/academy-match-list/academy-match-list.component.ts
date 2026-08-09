@@ -17,6 +17,7 @@ import { CustomButtonComponent } from '../../../../../shared/components/custom-b
 import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
 import { MatchSignalrService } from '../../../../../core/services/match-signalr.service';
 import { Subscription } from 'rxjs';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-academy-match-list',
@@ -24,7 +25,7 @@ import { Subscription } from 'rxjs';
   imports: [
     CommonModule, MatchCardComponent, Pagination, LoadingSpinnerComponent,
     EmptyStateComponent, NavbarComponent, Footer, CustomSelect,
-    CustomDatePicker, CustomButtonComponent, ScrollRevealDirective
+    CustomDatePicker, CustomButtonComponent, ScrollRevealDirective, TranslatePipe
   ],
   templateUrl: './academy-match-list.component.html',
   styleUrls: ['./academy-match-list.component.css']
@@ -38,6 +39,7 @@ export class AcademyMatchListComponent implements OnInit, OnDestroy {
   private signalrService = inject(MatchSignalrService);
 
   private signalrSub?: Subscription;
+  private translate = inject(TranslateService);
 
   academyId: number = 0;
   matches: MatchCardModel[] = [];
@@ -72,19 +74,23 @@ export class AcademyMatchListComponent implements OnInit, OnDestroy {
   teamOptions: SelectOption[] = [];
   ageGroupOptions: SelectOption[] = [];
 
-  statusOptions: SelectOption[] = [
-    { value: '', label: 'All' },
-    { value: 'Scheduled', label: 'Scheduled' },
-    { value: 'Live', label: 'Live' },
-    { value: 'Completed', label: 'Completed' }
-  ];
+  get statusOptions(): SelectOption[] {
+    return [
+      { value: '', label: this.translate.instant('MATCH.REQUEST_STATUS.ALL') },
+      { value: 'Scheduled', label: this.translate.instant('MATCH.STATUS.SCHEDULED') },
+      { value: 'Live', label: this.translate.instant('MATCH.STATUS.LIVE') },
+      { value: 'Completed', label: this.translate.instant('MATCH.STATUS.COMPLETED') }
+    ];
+  }
 
-  matchTypeOptions: SelectOption[] = [
-    { value: '', label: 'All' },
-    { value: 'Friendly', label: 'Friendly' },
-    { value: 'Tournament', label: 'Tournament' },
-    { value: 'Session', label: 'Session' }
-  ];
+  get matchTypeOptions(): SelectOption[] {
+    return [
+      { value: '', label: this.translate.instant('MATCH.REQUEST_STATUS.ALL') },
+      { value: 'Friendly', label: this.translate.instant('MATCH.TYPE.FRIENDLY') },
+      { value: 'Tournament', label: this.translate.instant('MATCH.TYPE.TOURNAMENT') },
+      { value: 'Session', label: this.translate.instant('MATCH.TYPE.SESSION') }
+    ];
+  }
 
   ngOnInit(): void {
     const user = this.tokenStorage.getUser();
@@ -122,7 +128,7 @@ export class AcademyMatchListComponent implements OnInit, OnDestroy {
       next: (res) => {
         const teams = res.data ?? [];
         this.teamOptions = [
-          { value: '', label: 'All Teams' },
+          { value: '', label: this.translate.instant('MATCH.REQUEST_STATUS.ALL') },
           ...teams.map(t => ({ value: t.id, label: t.name }))
         ];
       }
@@ -132,7 +138,7 @@ export class AcademyMatchListComponent implements OnInit, OnDestroy {
       next: (res) => {
         const groups = res.data ?? [];
         this.ageGroupOptions = [
-          { value: '', label: 'All Age Groups' },
+          { value: '', label: this.translate.instant('MATCH.REQUEST_STATUS.ALL') },
           ...groups.map(g => ({ value: g.id, label: g.name }))
         ];
       }
@@ -199,7 +205,7 @@ export class AcademyMatchListComponent implements OnInit, OnDestroy {
       },
       error: () => {
         this.isLoading = false;
-        this.error = 'Failed to load matches.';
+        this.error = this.translate.instant('MATCH.ERRORS.GENERIC_LOAD');
         this.cdr.detectChanges();
       }
     });
@@ -209,7 +215,7 @@ export class AcademyMatchListComponent implements OnInit, OnDestroy {
     this.filterError = '';
 
     if (this.selectedDateFrom && this.selectedDateTo && this.selectedDateFrom > this.selectedDateTo) {
-      this.filterError = '"From" date must be earlier than "To" date.';
+      this.filterError = this.translate.instant('MATCH.ERRORS.DATE_FROM_BEFORE_TO');
       return;
     }
 

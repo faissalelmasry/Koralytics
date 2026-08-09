@@ -2,18 +2,18 @@
 
 <div class="page-wrapper">
 
-  <div class="tactical-tag" scrollReveal direction="bottom" [delay]="0">Matches</div>
+  <div class="tactical-tag" scrollReveal direction="bottom" [delay]="0">{{ 'MATCH.LIST.TITLE' | translate }}</div>
 
   <div class="header-row" scrollReveal direction="bottom" [delay]="50">
-    <h2 class="section-title">Academy Matches</h2>
-    <span class="badge-count">{{ totalItems }} Matches</span>
+    <h2 class="section-title">{{ 'MATCH.LIST.ACADEMY_TITLE' | translate }}</h2>
+    <span class="badge-count">{{ 'MATCH.LIST.COUNT' | translate:{count: totalItems} }}</span>
   </div>
 
   <div class="filter-panel-card" scrollReveal direction="bottom" [delay]="100">
     <div class="filter-grid">
       <div class="filter-item">
         <app-select
-          label="Team"
+          [label]="'MATCH.LIST.FILTERS.TEAM' | translate"
           [options]="teamOptions"
           [disabled]="isTeamLocked"
           [(value)]="selectedTeamId"
@@ -22,7 +22,7 @@
       </div>
       <div class="filter-item">
         <app-select
-          label="Age Group"
+          [label]="'MATCH.LIST.FILTERS.AGE_GROUP' | translate"
           [options]="ageGroupOptions"
           [disabled]="isAgeGroupLocked"
           [(value)]="selectedAgeGroupId"
@@ -31,7 +31,7 @@
       </div>
       <div class="filter-item">
         <app-select
-          label="Status"
+          [label]="'MATCH.LIST.FILTERS.STATUS' | translate"
           [options]="statusOptions"
           [(value)]="selectedStatus"
           (valueChange)="onStatusChange()">
@@ -39,14 +39,14 @@
       </div>
       <div class="filter-item">
         <app-select
-          label="Match Type"
+          [label]="'MATCH.LIST.FILTERS.MATCH_TYPE' | translate"
           [options]="matchTypeOptions"
           [(value)]="selectedMatchType">
         </app-select>
       </div>
       <div class="filter-item">
         <app-date-picker
-          label="From"
+          [label]="'MATCH.LIST.FILTERS.FROM_DATE' | translate"
           [(value)]="selectedDateFrom"
           [disabled]="isDateLocked"
           (valueChange)="onDateFromChange()">
@@ -54,15 +54,15 @@
       </div>
       <div class="filter-item">
         <app-date-picker
-          label="To"
+          [label]="'MATCH.LIST.FILTERS.TO_DATE' | translate"
           [(value)]="selectedDateTo"
           [disabled]="isDateLocked"
           (valueChange)="onDateToChange()">
         </app-date-picker>
       </div>
       <div class="filter-actions">
-        <app-button variant="accent" (click)="applyFilters()">Apply</app-button>
-        <app-button variant="slate" (click)="clearFilters()">Clear</app-button>
+        <app-button variant="accent" (click)="applyFilters()">{{ 'COMMON.SUBMIT' | translate }}</app-button>
+        <app-button variant="slate" (click)="clearFilters()">{{ 'COMMON.CANCEL' | translate }}</app-button>
       </div>
     </div>
   </div>
@@ -74,26 +74,26 @@
   @if (isLoading) {
     <div class="loading-state">
       <app-loading-spinner size="lg"></app-loading-spinner>
-      <p>Loading matches...</p>
+      <p>{{ 'MATCH.LIST.LOADING' | translate }}</p>
     </div>
   }
   @else if (error) {
     <div class="error-state">
       <div class="error-icon">!</div>
       <p>{{ error }}</p>
-      <app-button variant="accent" (click)="loadMatches()">Retry</app-button>
+      <app-button variant="accent" (click)="loadMatches()">{{ 'COMMON.SUBMIT' | translate }}</app-button>
     </div>
   }
   @else if (matches.length === 0) {
     <div class="empty-state-wrapper">
       <app-empty-state
-        title="No Matches Found"
-        description="No matches match the selected filters for your academy.">
+        [title]="'MATCH.LIST.NO_MATCHES' | translate"
+        [description]="'MATCH.LIST.NO_MATCHES_DESC' | translate">
       </app-empty-state>
     </div>
   }
   @else {
-    <div class="group-label" scrollReveal direction="bottom" [delay]="200">Match List</div>
+    <div class="group-label" scrollReveal direction="bottom" [delay]="200">{{ 'MATCH.LIST.ACADEMY_UPCOMING' | translate }}</div>
 
     <div class="koralytics-grid">
       @for (match of matches; track match.id; let i = $index) {

@@ -12,6 +12,7 @@ import { CustomDateTimePicker } from '../../../../../shared/components/custom-da
 import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
 
 import { formatToLocalISO } from '../../../../../core/utils/date.util';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-friendly-match-request',
@@ -24,7 +25,8 @@ import { formatToLocalISO } from '../../../../../core/utils/date.util';
     CustomInputComponent,
     CustomButtonComponent,
     CustomDateTimePicker,
-    ScrollRevealDirective
+    ScrollRevealDirective,
+    TranslatePipe
   ],
   templateUrl: './friendly-match-request.component.html',
   styleUrls: ['./friendly-match-request.component.css']
@@ -33,6 +35,7 @@ export class FriendlyMatchRequestComponent implements OnInit {
   private academyService = inject(AcademyService);
   private matchService = inject(MatchService);
   private coachSquadService = inject(CoachSquadService);
+  private translate = inject(TranslateService);
 
   isLoadingTeams = true;
   isSubmitting = false;
@@ -53,11 +56,13 @@ export class FriendlyMatchRequestComponent implements OnInit {
   isLoadingOpponentTeams = false;
 
   format = 'ElevenSide';
-  formatOptions: SelectOption[] = [
-    { value: 'ElevenSide', label: '11 vs 11 (Full Pitch)' },
-    { value: 'SevenSide', label: '7 vs 7' },
-    { value: 'FiveSide', label: '5 vs 5' }
-  ];
+  get formatOptions(): SelectOption[] {
+    return [
+      { value: 'ElevenSide', label: this.translate.instant('MATCH.FORMAT.ELEVEN_SIDE') },
+      { value: 'SevenSide', label: this.translate.instant('MATCH.FORMAT.SEVEN_SIDE') },
+      { value: 'FiveSide', label: this.translate.instant('MATCH.FORMAT.FIVE_SIDE') }
+    ];
+  }
 
   proposedDate = '';
   location = '';
@@ -80,7 +85,7 @@ export class FriendlyMatchRequestComponent implements OnInit {
         this.isLoadingTeams = false;
       },
       error: () => {
-        this.error = 'Failed to load your teams.';
+        this.error = this.translate.instant('MATCH.ERRORS.GENERIC_LOAD');
         this.isLoadingTeams = false;
       }
     });
@@ -147,7 +152,7 @@ export class FriendlyMatchRequestComponent implements OnInit {
         this.isLoadingOpponentTeams = false;
       },
       error: () => {
-        this.error = 'Failed to load opponent teams.';
+        this.error = this.translate.instant('MATCH.ERRORS.GENERIC_LOAD');
         this.isLoadingOpponentTeams = false;
       }
     });
@@ -178,23 +183,23 @@ export class FriendlyMatchRequestComponent implements OnInit {
     this.success = '';
 
     if (!this.requesterTeamId) {
-      this.error = 'Please select your team.';
+      this.error = this.translate.instant('MATCH.ERRORS.GENERIC_LOAD');
       return;
     }
     if (!this.targetTeamId) {
-      this.error = 'Please select an opponent team.';
+      this.error = this.translate.instant('MATCH.ERRORS.GENERIC_LOAD');
       return;
     }
     if (this.requesterTeamId === this.targetTeamId) {
-      this.error = 'Requester and target teams cannot be the same.';
+      this.error = this.translate.instant('MATCH.FRIENDLY_REQUEST.ERROR_SAME_TEAM');
       return;
     }
     if (!this.format) {
-      this.error = 'Please select a match format.';
+      this.error = this.translate.instant('MATCH.ERRORS.GENERIC_LOAD');
       return;
     }
     if (!this.proposedDate) {
-      this.error = 'Please select a proposed date.';
+      this.error = this.translate.instant('MATCH.ERRORS.GENERIC_LOAD');
       return;
     }
 
@@ -210,7 +215,7 @@ export class FriendlyMatchRequestComponent implements OnInit {
 
     this.matchService.requestFriendlyMatch(dto).subscribe({
       next: () => {
-        this.success = 'Challenge sent successfully!';
+        this.success = this.translate.instant('MATCH.FRIENDLY_REQUEST.SUCCESS');
         this.isSubmitting = false;
         this.resetForm();
       },

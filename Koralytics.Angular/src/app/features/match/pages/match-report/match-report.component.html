@@ -8,7 +8,7 @@
     <!-- LOADING STATE -->
     <div *ngIf="isLoading" class="loading-wrapper">
       <app-loading-spinner></app-loading-spinner>
-      <p class="loading-text">جاري تحضير وتجهيز تقرير المباراة التكتيكي...</p>
+      <p class="loading-text">{{ 'MATCH.REPORT.LOADING_TEXT' | translate }}</p>
     </div>
 
     <!-- ERROR STATE -->
@@ -32,7 +32,7 @@
         <div class="header-top">
           <div class="ai-badge">
             <span class="pulse-dot"></span>
-            AI Tactical Intelligence
+            {{ 'MATCH.REPORT.AI_BADGE' | translate }}
           </div>
           <span class="report-date">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
@@ -46,7 +46,7 @@
           </span>
         </div>
 
-        <h1 class="match-title">التقرير التحليلي الفني للمباراة</h1>
+        <h1 class="match-title">{{ 'MATCH.REPORT.TITLE' | translate }}</h1>
 
         <div class="match-meta-list">
           <span class="meta-item">
@@ -57,7 +57,7 @@
               <line x1="10" y1="3" x2="8" y2="21"></line>
               <line x1="16" y1="3" x2="14" y2="21"></line>
             </svg>
-            مرجع المباراة: <strong>#{{ reportData.referenceId }}</strong>
+            {{ 'MATCH.REPORT.MATCH_REF' | translate }} <strong>#{{ reportData.referenceId }}</strong>
           </span>
           <span class="meta-item">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
@@ -69,14 +69,14 @@
               <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path>
               <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
             </svg>
-            النوع: <strong>{{ reportData.reportType }}</strong>
+            {{ 'MATCH.REPORT.TYPE' | translate }} <strong>{{ reportData.reportType }}</strong>
           </span>
           <span class="meta-item">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
               stroke="var(--neon-yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
             </svg>
-            الحالة: <strong class="status-completed">مكتملة</strong>
+            {{ 'MATCH.REPORT.STATUS' | translate }} <strong class="status-completed">{{ 'MATCH.REPORT.COMPLETED' | translate }}</strong>
           </span>
         </div>
       </header>
@@ -99,10 +99,10 @@
                   <path d="M12 7v13"></path>
                 </svg>
               </div>
-              <h2 class="card-title">بطاقة الماتش والملخص العام</h2>
+              <h2 class="card-title">{{ 'MATCH.REPORT.OVERVIEW_TITLE' | translate }}</h2>
             </div>
             <div class="card-body">
-              <p>{{ parsedReport.summary || 'لا تتوفر تفاصيل ملخص لهذه المباراة.' }}</p>
+              <p>{{ parsedReport.summary || ('MATCH.REPORT.NO_OVERVIEW' | translate) }}</p>
             </div>
           </div>
 
@@ -123,10 +123,10 @@
                   <path d="m9.5 10.5-2.5 4.5"></path>
                 </svg>
               </div>
-              <h2 class="card-title">سير اللقاء والأهداف</h2>
+              <h2 class="card-title">{{ 'MATCH.REPORT.GOALS_TITLE' | translate }}</h2>
             </div>
             <div class="card-body">
-              <p>{{ parsedReport.goals || 'لا توجد أهداف مُسجلة أو تفاصيل أحداث خاصة في التقرير.' }}</p>
+              <p>{{ parsedReport.goals || ('MATCH.REPORT.NO_GOALS' | translate) }}</p>
             </div>
           </div>
 
@@ -143,7 +143,7 @@
                   <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                 </svg>
               </div>
-              <h2 class="card-title">التقييم الفردي وتفاصيل العناصر الفنية</h2>
+              <h2 class="card-title">{{ 'MATCH.REPORT.INDIVIDUAL_TITLE' | translate }}</h2>
             </div>
             <div class="card-body">
               <div *ngIf="playersList.length > 0" class="player-list">
@@ -156,7 +156,7 @@
                 </div>
               </div>
               <p *ngIf="playersList.length === 0" class="no-players-text">
-                {{ parsedReport.individual || 'لا تتوفر ملاحظات فردية مفصلة عن اللاعبين.' }}
+                {{ parsedReport.individual || ('MATCH.REPORT.NO_INDIVIDUAL' | translate) }}
               </p>
             </div>
           </div>
@@ -178,10 +178,10 @@
                   </polygon>
                 </svg>
               </div>
-              <h2 class="card-title">رجل المباراة (MOTM)</h2>
+              <h2 class="card-title">{{ 'MATCH.REPORT.MOTM_TITLE' | translate }}</h2>
             </div>
             <div class="card-body">
-              <p>{{ parsedReport.motm || 'تميز بتقديم مستوى استثنائي وحسم نتيجة المباراة لصالحه.' }}</p>
+              <p>{{ parsedReport.motm || ('MATCH.REPORT.NO_MOTM_DESC' | translate) }}</p>
             </div>
           </div>
 

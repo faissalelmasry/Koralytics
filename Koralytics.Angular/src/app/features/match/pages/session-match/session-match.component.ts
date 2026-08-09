@@ -15,6 +15,7 @@ import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-r
 import { NavbarComponent } from "../../../../../shared/components/navbar/navbar";
 import { Footer } from "../../../../../shared/components/footer/footer";
 import { formatToLocalISO } from '../../../../../core/utils/date.util';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 export interface PositionSlot {
   slotId: string;
@@ -120,7 +121,8 @@ const FORMAT_MAP_ENUM: Record<string, number> = {
     LoadingSpinnerComponent,
     ScrollRevealDirective,
     NavbarComponent,
-    Footer
+    Footer,
+    TranslatePipe
 ],
   templateUrl: './session-match.component.html',
   styleUrls: ['./session-match.component.css']
@@ -134,6 +136,7 @@ export class SessionMatchComponent implements OnInit {
   private playerCardService = inject(PlayerCardService);
   private toast = inject(ToastService);
   private cdr = inject(ChangeDetectorRef);
+  private translate = inject(TranslateService);
 
   sessionId = 0;
   sessionData: any = null;
@@ -208,7 +211,7 @@ export class SessionMatchComponent implements OnInit {
     if (this.sessionId > 0) {
       this.loadSessionData();
     } else {
-      this.error = 'Invalid Session ID';
+      this.error = this.translate.instant('MATCH.REPORT.ERROR_INVALID_ID', { Default: 'Invalid Session ID' });
       this.isLoading = false;
     }
   }
@@ -231,7 +234,7 @@ export class SessionMatchComponent implements OnInit {
         this.loadSessionPresentSquad();
       },
       error: () => {
-        this.error = 'Failed to load session details.';
+        this.error = this.translate.instant('MATCH.SESSION_MATCH.ERROR_LOAD', { Default: 'Failed to load session details.' });
         this.isLoading = false;
         this.cdr.detectChanges();
       }
@@ -351,7 +354,7 @@ export class SessionMatchComponent implements OnInit {
         const teamBPlayers: any[] = splitData?.teamB ?? splitData?.TeamB ?? [];
 
         if (teamAPlayers.length === 0 && teamBPlayers.length === 0) {
-          this.toast.show('No players available to split.', 'error');
+          this.toast.show(this.translate.instant('MATCH.SESSION_MATCH.ERROR_CREATE', { Default: 'No players available to split.' }), 'error');
           this.isAutoSplitting = false;
           this.cdr.detectChanges();
           return;
@@ -398,7 +401,7 @@ export class SessionMatchComponent implements OnInit {
         const avgB = this.calculateAverageRating(this.getAssignedPlayers(this.awayPitchRows));
 
         this.toast.show(
-          `Squad auto-split successfully! Home AVG: ${avgA.toFixed(1)} | Away AVG: ${avgB.toFixed(1)}`,
+          this.translate.instant('MATCH.SESSION_MATCH.AUTO_SPLIT_SUCCESS', { Default: 'Squad auto-split successfully!' }),
           'success'
         );
 
@@ -407,7 +410,7 @@ export class SessionMatchComponent implements OnInit {
       },
       error: (err: any) => {
         this.isAutoSplitting = false;
-        const msg = err?.error?.message || err?.error?.detail || 'Failed to auto-split squad.';
+        const msg = err?.error?.message || err?.error?.detail || this.translate.instant('MATCH.SESSION_MATCH.ERROR_CREATE', { Default: 'Failed to auto-split squad.' });
         this.toast.show(msg, 'error');
         this.cdr.detectChanges();
       }
@@ -843,7 +846,7 @@ export class SessionMatchComponent implements OnInit {
 
     if (homeStarters.length !== this.formatStartingCount) {
       this.toast.show(
-        `Home Side requires exactly ${this.formatStartingCount} starting players (${homeStarters.length} assigned).`,
+        this.translate.instant('MATCH.SESSION_MATCH.ERROR_CREATE', { Default: `Home Side requires exactly ${this.formatStartingCount} starting players (${homeStarters.length} assigned).` }),
         'error'
       );
       return;
@@ -851,7 +854,7 @@ export class SessionMatchComponent implements OnInit {
 
     if (awayStarters.length !== this.formatStartingCount) {
       this.toast.show(
-        `Away Side requires exactly ${this.formatStartingCount} starting players (${awayStarters.length} assigned).`,
+        this.translate.instant('MATCH.SESSION_MATCH.ERROR_CREATE', { Default: `Away Side requires exactly ${this.formatStartingCount} starting players (${awayStarters.length} assigned).` }),
         'error'
       );
       return;
@@ -922,7 +925,7 @@ export class SessionMatchComponent implements OnInit {
       next: (res: any) => {
         this.isSubmitting = false;
         const createdId = res?.data?.id ?? res?.id;
-        this.toast.show('Internal Session Match created successfully!', 'success');
+        this.toast.show(this.translate.instant('MATCH.SESSION_MATCH.SUCCESS', { Default: 'Internal Session Match created successfully!' }), 'success');
 
         if (createdId) {
           this.router.navigate(['/match', createdId]);
@@ -932,7 +935,7 @@ export class SessionMatchComponent implements OnInit {
       },
       error: (err: any) => {
         this.isSubmitting = false;
-        const msg = err?.error?.detail ?? err?.error?.message ?? 'Failed to create session match.';
+        const msg = err?.error?.detail ?? err?.error?.message ?? this.translate.instant('MATCH.SESSION_MATCH.ERROR_CREATE', { Default: 'Failed to create session match.' });
         this.toast.show(msg, 'error');
         this.cdr.detectChanges();
       }

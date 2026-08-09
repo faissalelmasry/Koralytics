@@ -2,7 +2,7 @@
   @if (isLoading) {
   <div class="loading-state">
     <app-loading-spinner size="lg"></app-loading-spinner>
-    <p>Loading ratings form...</p>
+    <p>{{ 'MATCH.RATINGS.LOADING_FORM' | translate }}</p>
   </div>
   } @else if (hasSubmitted) {
   <div class="ai-report-banner">
@@ -13,11 +13,11 @@
           <path
             d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z" />
         </svg>
-        <span>AI Match Tactical Report</span>
+        <span>{{ 'MATCH.RATINGS.AI_REPORT_TITLE' | translate }}</span>
       </div>
     </div>
     <a [routerLink]="['/match', matchId, 'report']" class="btn-view-report">
-      <span>Show Match AI Report</span>
+      <span>{{ 'MATCH.RATINGS.SHOW_AI_REPORT' | translate }}</span>
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -43,7 +43,7 @@
     @if (selectedTeam === 'home') {
     <div class="team-section fade-in-content">
       @if (submittedHomeRatings.length === 0) {
-      <app-empty-state title="No Ratings" description="No ratings found for this team."></app-empty-state>
+      <app-empty-state [title]="'MATCH.RATINGS.NO_RATINGS_TITLE' | translate" [description]="'MATCH.RATINGS.NO_RATINGS_DESC' | translate"></app-empty-state>
       } @else {
       <ng-container *ngTemplateOutlet="readonlyList; context: { $implicit: submittedHomeRatings }"></ng-container>
       }
@@ -52,7 +52,7 @@
     @if (selectedTeam === 'away') {
     <div class="team-section fade-in-content">
       @if (submittedAwayRatings.length === 0) {
-      <app-empty-state title="No Ratings" description="No ratings found for this team."></app-empty-state>
+      <app-empty-state [title]="'MATCH.RATINGS.NO_RATINGS_TITLE' | translate" [description]="'MATCH.RATINGS.NO_RATINGS_DESC' | translate"></app-empty-state>
       } @else {
       <ng-container *ngTemplateOutlet="readonlyList; context: { $implicit: submittedAwayRatings }"></ng-container>
       }
@@ -76,7 +76,7 @@
             <div class="player-details">
               <span class="full-name-label block clickable-player-name"
                 (click)="navigateToPlayerProfile(rating.playerId)">{{ rating.player.fullName }}</span>
-              <span class="mins-played-label">{{ rating.minutesPlayed }} mins played</span>
+              <span class="mins-played-label">{{ rating.minutesPlayed }} {{ 'MATCH.RATINGS.MINS_PLAYED' | translate }}</span>
               @if (rating.isMOTM) {
               <span class="motm-badge">MOTM</span>
               }
@@ -89,7 +89,7 @@
                 {{ rating.overallAverage | number:'1.0-1' }}
               </span>
             </div>
-            <span class="average-score-label">Avg</span>
+            <span class="average-score-label">{{ 'MATCH.RATINGS.AVG' | translate }}</span>
           </div>
         </div>
 
@@ -118,7 +118,7 @@
 
         @if (rating.coachNote) {
         <div class="coach-note-box">
-          <span class="coach-note-label">Coach Note</span>
+          <span class="coach-note-label">{{ 'MATCH.RATINGS.COACH_NOTE' | translate }}</span>
           <p class="coach-note-text">"{{ rating.coachNote }}"</p>
         </div>
         }
@@ -130,13 +130,12 @@
   } @else {
   <div class="ratings-header">
     <div class="header-content">
-      <h3>Submit Post-Match Ratings</h3>
-      <p>Rate players on a scale of 0-10. You must select one MOTM per team (or one overall depending on match type).
-      </p>
+      <h3>{{ 'MATCH.RATINGS.SUBMIT_TITLE' | translate }}</h3>
+      <p>{{ 'MATCH.RATINGS.SUBMIT_DESC' | translate }}</p>
     </div>
     <div class="header-action">
       <app-button variant="accent" [loading]="isSubmitting" [disabled]="isSubmitting" (click)="submitRatings()">
-        Submit All Ratings
+        {{ 'MATCH.RATINGS.SUBMIT_ALL' | translate }}
       </app-button>
     </div>
   </div>
@@ -176,7 +175,7 @@
                   <circle cx="12" cy="12" r="10"></circle>
                   <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
                 </svg>
-                No Rating
+                {{ 'MATCH.RATINGS.NO_RATING' | translate }}
               </button>
               <button type="button" class="motm-btn" [class.active]="playerForm.isMOTM"
                 [disabled]="playerForm.skipRating" (click)="toggleMOTM(playerForm)">
@@ -194,14 +193,14 @@
           <div class="rating-controls">
             <div class="minutes-note-row" [class.disabled-row]="playerForm.skipRating">
               <div class="input-group mins-group">
-                <label>Mins Played</label>
+                <label>{{ 'MATCH.RATINGS.MINS_PLAYED_LABEL' | translate }}</label>
                 <app-number-input [(ngModel)]="playerForm.minutesPlayed" [min]="0" [max]="defaultMinutes"
                   [disabled]="playerForm.skipRating" [step]="1"></app-number-input>
               </div>
               <div class="input-group note-group">
-                <label>Coach Note</label>
+                <label>{{ 'MATCH.RATINGS.COACH_NOTE' | translate }}</label>
                 <input type="text" class="form-input" [(ngModel)]="playerForm.coachNote"
-                  placeholder="Any thoughts on performance?..." [disabled]="playerForm.skipRating" />
+                  [placeholder]="'MATCH.RATINGS.COACH_NOTE_PLACEHOLDER' | translate" [disabled]="playerForm.skipRating" />
               </div>
             </div>
 
@@ -241,7 +240,7 @@
                   <circle cx="12" cy="12" r="10"></circle>
                   <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
                 </svg>
-                No Rating
+                {{ 'MATCH.RATINGS.NO_RATING' | translate }}
               </button>
               <button type="button" class="motm-btn" [class.active]="playerForm.isMOTM"
                 [disabled]="playerForm.skipRating" (click)="toggleMOTM(playerForm)">
@@ -259,14 +258,14 @@
           <div class="rating-controls">
             <div class="minutes-note-row" [class.disabled-row]="playerForm.skipRating">
               <div class="input-group mins-group">
-                <label>Mins Played</label>
+                <label>{{ 'MATCH.RATINGS.MINS_PLAYED_LABEL' | translate }}</label>
                 <app-number-input [(ngModel)]="playerForm.minutesPlayed" [min]="0" [max]="defaultMinutes"
                   [disabled]="playerForm.skipRating" [step]="1"></app-number-input>
               </div>
               <div class="input-group note-group">
-                <label>Coach Note</label>
+                <label>{{ 'MATCH.RATINGS.COACH_NOTE' | translate }}</label>
                 <input type="text" class="form-input" [(ngModel)]="playerForm.coachNote"
-                  placeholder="Any thoughts on performance?..." [disabled]="playerForm.skipRating" />
+                  [placeholder]="'MATCH.RATINGS.COACH_NOTE_PLACEHOLDER' | translate" [disabled]="playerForm.skipRating" />
               </div>
             </div>
 

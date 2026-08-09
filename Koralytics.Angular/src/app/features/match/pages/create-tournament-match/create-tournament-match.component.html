@@ -2,16 +2,17 @@
 
 <div class="page-wrapper">
 
-  <div class="tactical-tag">Tournament Fixture</div>
+  <div class="tactical-tag">{{ 'MATCH.CREATE_TOURNAMENT.TAG' | translate }}</div>
 
   <div class="header-row">
-    <h2 class="section-title">Schedule Tournament Match</h2>
-    <span class="badge-count">Official Match</span>
+    <h2 class="section-title">{{ 'MATCH.CREATE_TOURNAMENT.TITLE' | translate }}</h2>
+    <span class="badge-count">{{ 'MATCH.CREATE_TOURNAMENT.SUBTITLE' | translate }}</span>
   </div>
 
   @if (isLoadingFixture) {
     <div class="loading-state">
-      <app-loading-spinner text="Loading fixture details..."></app-loading-spinner>
+      <app-loading-spinner></app-loading-spinner>
+      <p style="margin-top: 1rem; color: var(--text-secondary);">{{ 'MATCH.LIST.LOADING' | translate }}</p>
     </div>
   } @else {
 
@@ -22,7 +23,7 @@
           {{ homeTeamName.charAt(0).toUpperCase() }}
         </div>
         <div class="team-info">
-          <span class="team-role">Home Team</span>
+          <span class="team-role">{{ 'MATCH.CREATE_TOURNAMENT.FIELD_HOME_TEAM' | translate }}</span>
           <h3 class="team-name">{{ homeTeamName }}</h3>
           @if (homeAcademyName) {
             <span class="academy-sub home-academy">{{ homeAcademyName }}</span>
@@ -39,7 +40,7 @@
 
       <div class="team-side away">
         <div class="team-info">
-          <span class="team-role">Away Team</span>
+          <span class="team-role">{{ 'MATCH.CREATE_TOURNAMENT.FIELD_AWAY_TEAM' | translate }}</span>
           <h3 class="team-name">{{ awayTeamName }}</h3>
           @if (awayAcademyName) {
             <span class="academy-sub away-academy">{{ awayAcademyName }}</span>
@@ -61,7 +62,7 @@
     }
 
     <!-- Section Divider -->
-    <div class="group-label">Match Details &amp; Location</div>
+    <div class="group-label">{{ 'MATCH.CREATE_TOURNAMENT.FIELD_LOCATION' | translate }}</div>
 
     <!-- Form Panel Card -->
     <div class="form-panel-card">
@@ -70,15 +71,14 @@
 
           <div class="form-item">
             <app-date-time-picker
-              label="Kickoff Date & Time *"
+              [label]="'MATCH.CREATE_TOURNAMENT.FIELD_DATE' | translate"
               [(value)]="matchDate">
             </app-date-time-picker>
           </div>
 
           <div class="form-item">
             <app-text-input
-              label="Stadium / Location *"
-              placeholder="e.g. Cairo International Stadium Field B"
+              [label]="'MATCH.CREATE_TOURNAMENT.FIELD_LOCATION' | translate"
               [value]="location"
               (valueChange)="location = $event">
             </app-text-input>
@@ -92,7 +92,7 @@
             variant="slate"
             [disabled]="isSubmitting"
             (click)="onCancel()">
-            Cancel
+            {{ 'COMMON.CANCEL' | translate }}
           </app-button>
 
           <app-button
@@ -100,7 +100,7 @@
             variant="accent"
             [loading]="isSubmitting"
             [disabled]="isSubmitting">
-            Schedule Match
+            {{ 'MATCH.CREATE_TOURNAMENT.BTN_CREATE' | translate }}
           </app-button>
         </div>
 

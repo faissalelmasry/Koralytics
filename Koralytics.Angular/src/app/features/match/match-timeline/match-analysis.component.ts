@@ -2,6 +2,7 @@ import { Component, Input, OnInit, OnChanges, SimpleChanges, inject, ChangeDetec
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatchService, PostMatchAnalysisResponseDto } from '../../../../core/services/match/match.service';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state';
 
@@ -11,7 +12,8 @@ import { EmptyStateComponent } from '../../../../shared/components/empty-state/e
   imports: [
     CommonModule,
     LoadingSpinnerComponent,
-    EmptyStateComponent
+    EmptyStateComponent,
+    TranslatePipe
   ],
   templateUrl: './match-analysis.component.html',
   styleUrls: ['./match-analysis.component.css']
@@ -20,6 +22,7 @@ export class MatchAnalysisComponent implements OnInit, OnChanges {
   private router = inject(Router);
   private matchService = inject(MatchService);
   private cdr = inject(ChangeDetectorRef);
+  private translate = inject(TranslateService);
 
   @Input() homeTeamId?: number;
   @Input() homeTeamName?: string;
@@ -102,8 +105,8 @@ export class MatchAnalysisComponent implements OnInit, OnChanges {
         this.cdr.detectChanges();
       },
       error: () => {
+        this.error = this.translate.instant('MATCH.ANALYSIS.ERROR_LOAD', { Default: 'Failed to load team post-match analysis.' });
         this.isLoading = false;
-        this.error = 'Failed to load team post-match analysis.';
         this.cdr.detectChanges();
       }
     });

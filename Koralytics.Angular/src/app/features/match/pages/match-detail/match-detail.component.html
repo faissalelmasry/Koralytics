@@ -5,7 +5,7 @@
   @if (isLoading) {
     <div class="loading-state">
       <app-loading-spinner size="lg"></app-loading-spinner>
-      <p>Loading match details...</p>
+      <p>{{ 'MATCH.DETAIL.LOADING' | translate }}</p>
     </div>
   } @else if (error) {
     <div class="error-state">

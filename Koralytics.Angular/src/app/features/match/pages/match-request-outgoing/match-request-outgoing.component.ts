@@ -14,6 +14,7 @@ import { CustomDatePicker } from '../../../../../shared/components/custom-date-p
 import { CustomButtonComponent } from '../../../../../shared/components/custom-button/custom-button';
 import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
 import { MarqueeIfOverflowDirective } from '../../match-timeline/marquee-if-overflow.directive';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-match-request-outgoing',
@@ -22,7 +23,7 @@ import { MarqueeIfOverflowDirective } from '../../match-timeline/marquee-if-over
     CommonModule, RouterLink, Pagination, LoadingSpinnerComponent,
     EmptyStateComponent, NavbarComponent, Footer, CustomSelect,
     CustomDatePicker, CustomButtonComponent, ScrollRevealDirective,
-    MarqueeIfOverflowDirective
+    MarqueeIfOverflowDirective, TranslatePipe
   ],
   templateUrl: './match-request-outgoing.component.html',
   styleUrls: ['./match-request-outgoing.component.css']
@@ -31,6 +32,7 @@ export class MatchRequestOutgoingComponent implements OnInit {
   private matchService = inject(MatchService);
   private coachSquadService = inject(CoachSquadService);
   private cdr = inject(ChangeDetectorRef);
+  private translate = inject(TranslateService);
 
   // Teams dropdown
   coachTeams: SelectOption[] = [];
@@ -53,12 +55,14 @@ export class MatchRequestOutgoingComponent implements OnInit {
   selectedDateFrom = '';
   selectedDateTo = '';
 
-  statusOptions: SelectOption[] = [
-    { value: 'All',      label: 'All Statuses' },
-    { value: 'Pending',  label: 'Pending' },
-    { value: 'Accepted', label: 'Accepted' },
-    { value: 'Declined', label: 'Declined' }
-  ];
+  get statusOptions(): SelectOption[] {
+    return [
+      { value: 'All',      label: this.translate.instant('MATCH.REQUEST_STATUS.ALL') },
+      { value: 'Pending',  label: this.translate.instant('MATCH.REQUEST_STATUS.PENDING') },
+      { value: 'Accepted', label: this.translate.instant('MATCH.REQUEST_STATUS.ACCEPTED') },
+      { value: 'Declined', label: this.translate.instant('MATCH.REQUEST_STATUS.DECLINED') }
+    ];
+  }
 
   ngOnInit(): void {
     this.loadCoachTeams();
@@ -80,7 +84,7 @@ export class MatchRequestOutgoingComponent implements OnInit {
         this.isLoadingTeams = false;
       },
       error: () => {
-        this.error = 'Failed to load your teams.';
+        this.error = this.translate.instant('MATCH.ERRORS.GENERIC_LOAD');
         this.isLoadingTeams = false;
         this.cdr.detectChanges();
       }
@@ -110,7 +114,7 @@ export class MatchRequestOutgoingComponent implements OnInit {
       },
       error: () => {
         this.isLoading = false;
-        this.error = 'Failed to load sent requests.';
+        this.error = this.translate.instant('MATCH.REQUESTS.ERROR_LOAD');
         this.cdr.detectChanges();
       }
     });
@@ -119,7 +123,7 @@ export class MatchRequestOutgoingComponent implements OnInit {
   applyFilters(): void {
     this.filterError = '';
     if (this.selectedDateFrom && this.selectedDateTo && this.selectedDateFrom > this.selectedDateTo) {
-      this.filterError = '"From" date must be earlier than "To" date.';
+      this.filterError = this.translate.instant('MATCH.ERRORS.DATE_FROM_BEFORE_TO');
       return;
     }
     this.currentPage = 1;
@@ -159,9 +163,9 @@ export class MatchRequestOutgoingComponent implements OnInit {
 
   formatLabel(format: string): string {
     const map: Record<string, string> = {
-      ElevenSide: '11v11',
-      SevenSide:  '7v7',
-      FiveSide:   '5v5'
+      ElevenSide: this.translate.instant('MATCH.FORMAT.ELEVEN_SIDE'),
+      SevenSide:  this.translate.instant('MATCH.FORMAT.SEVEN_SIDE'),
+      FiveSide:   this.translate.instant('MATCH.FORMAT.FIVE_SIDE')
     };
     return map[format] ?? format;
   }

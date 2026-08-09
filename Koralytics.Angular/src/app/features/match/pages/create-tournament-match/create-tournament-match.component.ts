@@ -12,6 +12,7 @@ import { CustomInputComponent } from '../../../../../shared/components/custom-in
 import { CustomDateTimePicker } from '../../../../../shared/components/custom-date-time-picker/custom-date-time-picker';
 import { CustomButtonComponent } from '../../../../../shared/components/custom-button/custom-button';
 import { formatToLocalISO } from '../../../../../core/utils/date.util';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-create-tournament-match',
@@ -24,7 +25,8 @@ import { formatToLocalISO } from '../../../../../core/utils/date.util';
     LoadingSpinnerComponent,
     CustomInputComponent,
     CustomDateTimePicker,
-    CustomButtonComponent
+    CustomButtonComponent,
+    TranslatePipe
   ],
   templateUrl: './create-tournament-match.component.html',
   styleUrls: ['./create-tournament-match.component.css']
@@ -35,6 +37,7 @@ export class CreateTournamentMatchComponent implements OnInit {
   private matchService = inject(MatchService);
   private tournamentService = inject(TournamentService);
   private toastService = inject(ToastService);
+  private translate = inject(TranslateService);
 
   fixtureId: number = 0;
   homeTeamId: number = 0;
@@ -129,7 +132,7 @@ export class CreateTournamentMatchComponent implements OnInit {
       error: (err) => {
         this.isLoadingFixture = false;
         console.error('Error fetching fixture details:', err);
-        const msg = err?.error?.message || 'Failed to load fixture details. Please verify the URL or restart the backend server.';
+        const msg = err?.error?.message || this.translate.instant('MATCH.CREATE_TOURNAMENT.ERROR_INVALID_FIXTURE');
         this.errorMessage = msg;
       }
     });
@@ -147,23 +150,23 @@ export class CreateTournamentMatchComponent implements OnInit {
 
   onSubmit(): void {
     if (!this.fixtureId || !this.homeTeamId || !this.awayTeamId) {
-      this.errorMessage = 'Invalid fixture or team identifiers. Please navigate from the tournament bracket.';
+      this.errorMessage = this.translate.instant('MATCH.CREATE_TOURNAMENT.ERROR_INVALID_FIXTURE');
       return;
     }
 
     if (!this.matchDate) {
-      this.errorMessage = 'Please select a valid scheduled match date and time.';
+      this.errorMessage = this.translate.instant('MATCH.CREATE_TOURNAMENT.ERROR_DATE_PAST');
       return;
     }
 
     const selectedDate = new Date(this.matchDate);
     if (selectedDate <= new Date()) {
-      this.errorMessage = 'Match date and time must be in the future.';
+      this.errorMessage = this.translate.instant('MATCH.CREATE_TOURNAMENT.ERROR_DATE_PAST');
       return;
     }
 
     if (!this.location || !this.location.trim()) {
-      this.errorMessage = 'Please specify the match location / stadium.';
+      this.errorMessage = this.translate.instant('MATCH.CREATE_TOURNAMENT.ERROR_LOCATION');
       return;
     }
 
@@ -181,7 +184,7 @@ export class CreateTournamentMatchComponent implements OnInit {
     this.matchService.createTournamentMatch(dto).subscribe({
       next: (res) => {
         this.isSubmitting = false;
-        this.toastService.show('Tournament match scheduled successfully!', 'success');
+        this.toastService.show(this.translate.instant('MATCH.CREATE_TOURNAMENT.SUCCESS'), 'success');
         
         const createdMatchId = res?.data?.id || res?.data?.Id;
         if (createdMatchId) {
@@ -194,7 +197,7 @@ export class CreateTournamentMatchComponent implements OnInit {
       },
       error: (err) => {
         this.isSubmitting = false;
-        const msg = err?.error?.message || 'Failed to create tournament match. Please try again.';
+        const msg = err?.error?.message || this.translate.instant('MATCH.CREATE_TOURNAMENT.ERROR_CREATE');
         this.errorMessage = msg;
         this.toastService.show(msg, 'error');
       }

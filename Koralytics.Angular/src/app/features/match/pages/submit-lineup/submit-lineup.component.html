@@ -2,12 +2,12 @@
 
 <div class="page-wrapper">
 
-  <div class="tactical-tag" scrollReveal direction="bottom" [delay]="0">Squad Builder</div>
+  <div class="tactical-tag" scrollReveal direction="bottom" [delay]="0">{{ 'MATCH.SUBMIT_LINEUP.TAG' | translate }}</div>
 
   <!-- Header Banner -->
   <div class="builder-header-card" scrollReveal direction="bottom" [delay]="50">
     <div class="header-info">
-      <h2 class="builder-title">Match Day Squad Builder</h2>
+      <h2 class="builder-title">{{ 'MATCH.SUBMIT_LINEUP.TITLE' | translate }}</h2>
       <p class="builder-subtitle">
         {{ coachTeamName }}
       </p>
@@ -15,7 +15,7 @@
 
     <div class="header-actions">
       <div class="formation-selector-box">
-        <app-select label="Formation" [options]="formationOptions" [(value)]="selectedFormation"
+        <app-select [label]="'MATCH.SUBMIT_LINEUP.FIELD_FORMATION' | translate" [options]="formationOptions" [(value)]="selectedFormation"
           (valueChange)="onFormationChange()">
         </app-select>
       </div>
@@ -27,7 +27,7 @@
           <line x1="22" y1="2" x2="11" y2="13" />
           <polygon points="22 2 15 22 11 13 2 9 22 2" />
         </svg>
-        Submit Lineup
+        {{ 'MATCH.SUBMIT_LINEUP.BTN_SUBMIT' | translate }}
       </app-button>
     </div>
   </div>
@@ -36,7 +36,7 @@
   @if (isLoading) {
   <div class="loading-state">
     <app-loading-spinner size="lg"></app-loading-spinner>
-    <p>Loading team squad and mini player cards...</p>
+    <p>{{ 'MATCH.SUBMIT_LINEUP.LOADING' | translate }}</p>
   </div>
   }
   @else if (error) {
@@ -62,7 +62,7 @@
       <path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"/>
       <path d="M18 8a2 2 0 0 1 2 2v4a10 10 0 0 1-10 10h-2A10 10 0 0 1 2 14V12a2 2 0 0 1 2-2h.43a2 2 0 0 1 1.94 1.5l.38 1.52"/>
     </svg>
-    <span>Tap a player in Available Squad, then tap a pitch or bench slot to assign</span>
+    <span>{{ 'MATCH.SESSION_MATCH.HINT' | translate }}</span>
   </div>
 
   <!-- Main Workspace Grid -->
@@ -72,8 +72,8 @@
     <div class="squad-sidebar-card" (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)"
       (drop)="onDropSidebar($event)">
       <div class="sidebar-header">
-        <span class="sidebar-title">Available Squad</span>
-        <span class="squad-count-badge">{{ availableSquad.length }} Players</span>
+        <span class="sidebar-title">{{ 'MATCH.SUBMIT_LINEUP.SIDEBAR_TITLE' | translate }}</span>
+        <span class="squad-count-badge">{{ 'MATCH.SUBMIT_LINEUP.PLAYERS_COUNT' | translate: { count: availableSquad.length } }}</span>
       </div>
 
       @if (availableSquad.length === 0) {
@@ -82,7 +82,7 @@
           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="20 6 9 17 4 12" />
         </svg>
-        <p>All squad members assigned to pitch or bench</p>
+        <p>{{ 'MATCH.SUBMIT_LINEUP.ALL_ASSIGNED' | translate }}</p>
       </div>
       }
 
@@ -149,9 +149,9 @@
       <!-- Substitutes Bench -->
       <div class="bench-section-card">
         <div class="bench-header">
-          <span class="bench-title">Substitutes Bench (7 Drop Slots)</span>
+          <span class="bench-title">{{ 'MATCH.LINEUPS.BENCH_TITLE_DROP' | translate }}</span>
           <span class="starters-status">
-            Starters: {{ getStartingCount() }} / {{ formatStartingCount }}
+            {{ 'MATCH.LINEUPS.STARTERS' | translate: { current: getStartingCount(), max: formatStartingCount } }}
           </span>
         </div>
 
