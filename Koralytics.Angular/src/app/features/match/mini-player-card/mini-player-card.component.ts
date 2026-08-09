@@ -2,6 +2,7 @@ import { Component, Input, Output, EventEmitter, HostBinding } from '@angular/co
 import { CommonModule } from '@angular/common';
 import { MiniPlayerCardModel } from '../../../../core/models/Player/mini-player-card-model';
 import { MarqueeIfOverflowDirective } from '../match-timeline/marquee-if-overflow.directive';
+import { TranslatePipe } from '@ngx-translate/core';
 
 const SIZE_MAP: Record<string, { w: number; h: number }> = {
   xxs: { w: 47, h: 65 },
@@ -13,7 +14,7 @@ const SIZE_MAP: Record<string, { w: number; h: number }> = {
 @Component({
   selector: 'app-mini-player-card',
   standalone: true,
-  imports: [CommonModule, MarqueeIfOverflowDirective],
+  imports: [CommonModule, MarqueeIfOverflowDirective, TranslatePipe],
   templateUrl: './mini-player-card.component.html',
   styleUrls: ['./mini-player-card.component.css']
 })

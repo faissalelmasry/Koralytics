@@ -12,6 +12,7 @@ import { CustomButtonComponent } from '../../../../../shared/components/custom-b
 import { LoadingSpinnerComponent } from '../../../../../shared/components/loading-spinner/loading-spinner';
 import { EmptyStateComponent } from '../../../../../shared/components/empty-state/empty-state';
 import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 import { NavbarComponent } from '../../../../../shared/components/navbar/navbar';
 import { Footer } from '../../../../../shared/components/footer/footer';
@@ -115,7 +116,8 @@ const FORMATIONS_5v5: Record<string, string[][]> = {
     CustomButtonComponent,
     LoadingSpinnerComponent,
     EmptyStateComponent,
-    ScrollRevealDirective
+    ScrollRevealDirective,
+    TranslatePipe
   ],
   templateUrl: './submit-lineup.component.html',
   styleUrls: ['./submit-lineup.component.css']
@@ -128,6 +130,7 @@ export class SubmitLineupComponent implements OnInit {
   private playerCardService = inject(PlayerCardService);
   private toast = inject(ToastService);
   private cdr = inject(ChangeDetectorRef);
+  private translate = inject(TranslateService);
 
   matchId = 0;
   matchDetails: any = null;
@@ -162,7 +165,7 @@ export class SubmitLineupComponent implements OnInit {
     if (this.matchId > 0) {
       this.loadMatchData();
     } else {
-      this.error = 'Invalid Match ID';
+      this.error = this.translate.instant('MATCH.REPORT.ERROR_INVALID_ID', { Default: 'Invalid Match ID' });
       this.isLoading = false;
     }
   }
@@ -187,7 +190,7 @@ export class SubmitLineupComponent implements OnInit {
             );
 
             if (!coachTeam) {
-              this.error = 'You are not assigned as coach for either team in this match.';
+              this.error = this.translate.instant('MATCH.SUBMIT_LINEUP.ERROR_LOAD', { Default: 'Failed to load match or squad data.' });
               this.isLoading = false;
               this.cdr.detectChanges();
               return;
@@ -199,14 +202,14 @@ export class SubmitLineupComponent implements OnInit {
             this.loadSquadAndExistingLineup();
           },
           error: () => {
-            this.error = 'Failed to fetch coach team information.';
+            this.error = this.translate.instant('MATCH.SUBMIT_LINEUP.ERROR_LOAD', { Default: 'Failed to fetch coach team information.' });
             this.isLoading = false;
             this.cdr.detectChanges();
           }
         });
       },
       error: () => {
-        this.error = 'Failed to load match details.';
+        this.error = this.translate.instant('MATCH.SUBMIT_LINEUP.ERROR_LOAD', { Default: 'Failed to load match details.' });
         this.isLoading = false;
         this.cdr.detectChanges();
       }
@@ -361,7 +364,7 @@ export class SubmitLineupComponent implements OnInit {
         });
       },
       error: () => {
-        this.error = 'Failed to fetch team squad roster.';
+        this.error = this.translate.instant('MATCH.SUBMIT_LINEUP.ERROR_LOAD', { Default: 'Failed to fetch team squad roster.' });
         this.isLoading = false;
         this.cdr.detectChanges();
       }
@@ -683,12 +686,12 @@ export class SubmitLineupComponent implements OnInit {
     this.matchService.submitLineup(this.matchId, dto).subscribe({
       next: () => {
         this.isSubmitting = false;
-        this.toast.show('Match day squad lineup submitted successfully!', 'success');
+        this.toast.show(this.translate.instant('MATCH.SUBMIT_LINEUP.SUCCESS', { Default: 'Match day squad lineup submitted successfully!' }), 'success');
         this.router.navigate(['/match', this.matchId]);
       },
       error: (err: any) => {
         this.isSubmitting = false;
-        const msg = err?.error?.detail ?? err?.error?.message ?? 'Failed to submit lineup.';
+        const msg = err?.error?.detail ?? err?.error?.message ?? this.translate.instant('MATCH.SUBMIT_LINEUP.ERROR_SUBMIT', { Default: 'Failed to submit lineup.' });
         this.toast.show(msg, 'error');
         this.cdr.detectChanges();
       }

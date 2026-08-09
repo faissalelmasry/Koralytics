@@ -2,17 +2,18 @@
 
   @if (isLoading) {
     <div class="loading-state">
-      <app-loading-spinner text="Loading Head to Head history..."></app-loading-spinner>
+      <app-loading-spinner></app-loading-spinner>
+      <p style="margin-top: 1rem; color: var(--text-secondary);">{{ 'MATCH.H2H.LOADING' | translate }}</p>
     </div>
   } @else if (error) {
     <app-empty-state
-      title="Error Loading H2H Data"
+      [title]="'MATCH.H2H.ERROR_TITLE' | translate"
       [description]="error"
     ></app-empty-state>
   } @else if (!h2hData || h2hData.totalMatches === 0) {
     <app-empty-state
-      title="No Head to Head History"
-      description="These teams have not played against each other in any recorded completed matches yet."
+      [title]="'MATCH.H2H.NO_HISTORY_TITLE' | translate"
+      [description]="'MATCH.H2H.NO_HISTORY_DESC' | translate"
     ></app-empty-state>
   } @else {
 
@@ -20,10 +21,10 @@
     <div class="h2h-header-section">
       <div class="header-tag">
         <span class="tag-dot"></span>
-        <span>Match Analytics</span>
+        <span>{{ 'MATCH.H2H.MATCH_ANALYTICS' | translate }}</span>
       </div>
-      <h2 class="h2h-title">Head To Head Comparison</h2>
-      <p class="h2h-subtitle">Historical performance &amp; past encounters between {{ h2hData.teamAName || teamAName }} and {{ h2hData.teamBName || teamBName }}</p>
+      <h2 class="h2h-title">{{ 'MATCH.H2H.TITLE' | translate }}</h2>
+      <p class="h2h-subtitle">{{ 'MATCH.H2H.SUBTITLE' | translate: { teamA: (h2hData.teamAName || teamAName), teamB: (h2hData.teamBName || teamBName) } }}</p>
     </div>
 
     <!-- MAIN H2H SUMMARY HERO CARD -->
@@ -34,7 +35,7 @@
         <div class="team-display team-a">
           <div class="team-badge team-a-badge">{{ getTeamInitials(h2hData.teamAName || teamAName) }}</div>
           <div class="team-info">
-            <span class="team-sub">{{ h2hData.teamAAcademyName || 'HOME TEAM' }}</span>
+            <span class="team-sub">{{ h2hData.teamAAcademyName || ('MATCH.H2H.HOME_TEAM' | translate) }}</span>
             <h3 class="team-name">{{ h2hData.teamAName || teamAName }}</h3>
           </div>
         </div>
@@ -47,7 +48,7 @@
         <!-- Team B -->
         <div class="team-display team-b">
           <div class="team-info">
-            <span class="team-sub">{{ h2hData.teamBAcademyName || 'AWAY TEAM' }}</span>
+            <span class="team-sub">{{ h2hData.teamBAcademyName || ('MATCH.H2H.AWAY_TEAM' | translate) }}</span>
             <h3 class="team-name">{{ h2hData.teamBName || teamBName }}</h3>
           </div>
           <div class="team-badge team-b-badge">{{ getTeamInitials(h2hData.teamBName || teamBName) }}</div>
@@ -59,19 +60,19 @@
       <div class="h2h-stats-grid">
         <div class="stat-card">
           <span class="val total-val">{{ h2hData.totalMatches }}</span>
-          <span class="lbl">Total Matches</span>
+          <span class="lbl">{{ 'MATCH.H2H.TOTAL_MATCHES' | translate }}</span>
         </div>
         <div class="stat-card team-a-card">
           <span class="val team-a-val">{{ h2hData.teamAWins }}</span>
-          <span class="lbl">{{ h2hData.teamAName || teamAName }} Wins</span>
+          <span class="lbl">{{ 'MATCH.H2H.TEAM_WINS' | translate: { team: (h2hData.teamAName || teamAName) } }}</span>
         </div>
         <div class="stat-card draws-card">
           <span class="val draws-val">{{ h2hData.draws }}</span>
-          <span class="lbl">Draws</span>
+          <span class="lbl">{{ 'MATCH.H2H.DRAWS' | translate }}</span>
         </div>
         <div class="stat-card team-b-card">
           <span class="val team-b-val">{{ h2hData.teamBWins }}</span>
-          <span class="lbl">{{ h2hData.teamBName || teamBName }} Wins</span>
+          <span class="lbl">{{ 'MATCH.H2H.TEAM_WINS' | translate: { team: (h2hData.teamBName || teamBName) } }}</span>
         </div>
       </div>
     </div>
@@ -79,8 +80,8 @@
     <!-- PREVIOUS ENCOUNTERS LIST -->
     <div class="history-section">
       <div class="section-header">
-        <h3 class="section-title">Match History</h3>
-        <span class="match-count-badge">{{ h2hData.matches.length }} Matches Recorded</span>
+        <h3 class="section-title">{{ 'MATCH.H2H.MATCH_HISTORY' | translate }}</h3>
+        <span class="match-count-badge">{{ 'MATCH.H2H.MATCHES_RECORDED' | translate: { count: h2hData.matches.length } }}</span>
       </div>
 
       <div class="match-history-list">

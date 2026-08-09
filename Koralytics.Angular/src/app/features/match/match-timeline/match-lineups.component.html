@@ -5,21 +5,21 @@
   <!-- Tactical Tag Header inspired by player-match-timeline -->
   <div class="logger-header-row">
     <div class="tactical-tag">
-      <span>{{ isShootoutMode ? 'PENALTY SHOOTOUT' : 'LIVE MATCH EVENT LOGGER' }}</span>
+      <span>{{ isShootoutMode ? ('MATCH.TIMELINE.PENALTY_SHOOTOUT' | translate) : ('MATCH.TIMELINE.LIVE_LOGGER' | translate) }}</span>
     </div>
     <div class="header-actions">
       @if (!isShootoutMode) {
       <app-button [variant]="isDraw ? 'cyan' : 'slate'" [disabled]="!isDraw && !hasShootoutEvents"
         (click)="enterShootoutMode()">
         <span class="btn-inner-content">
-          <span>Penalty Shootouts</span>
+          <span>{{ 'MATCH.TIMELINE.PENALTY_SHOOTOUTS' | translate }}</span>
         </span>
       </app-button>
       } @else {
       <app-button variant="slate" [disabled]="(homePenaltyScore > 0 || awayPenaltyScore > 0)"
         (click)="exitShootoutMode()">
         <span class="btn-inner-content">
-          <span>◀ Exit Shootout</span>
+          <span>◀ {{ 'MATCH.TIMELINE.EXIT_SHOOTOUT' | translate }}</span>
         </span>
       </app-button>
       }
@@ -28,7 +28,7 @@
 
   <!-- Action Tools Banner -->
   <div class="action-banner">
-    <span class="action-title">Action Mode:</span>
+    <span class="action-title">{{ 'MATCH.TIMELINE.ACTION_MODE' | translate }}</span>
     <span class="instruction-badge">
       @switch (activeTool) {
       @case ('goal_solo') {
@@ -156,7 +156,7 @@
           <path d="M10.24,13.43 L7,17.88" stroke="#0F172A" stroke-width="0.9" stroke-linecap="round" />
           <path d="M9.15,10.07 L3.92,8.37" stroke="#0F172A" stroke-width="0.9" stroke-linecap="round" />
         </svg>
-        <span>Solo Goal</span>
+        <span>{{ 'MATCH.TIMELINE.SOLO_GOAL' | translate }}</span>
       </span>
     </app-button>
 
@@ -178,7 +178,7 @@
             stroke-linecap="round" />
           <circle cx="18" cy="7.5" r="4" fill="#FFFFFF" stroke="#0F172A" stroke-width="0.7" />
         </svg>
-        <span>Goal+Assist</span>
+        <span>{{ 'MATCH.TIMELINE.GOAL_ASSIST' | translate }}</span>
       </span>
     </app-button>
 
@@ -191,7 +191,7 @@
             stroke-linecap="round" />
           <circle cx="10" cy="14" r="3" fill="#FFFFFF" stroke="#E11D48" stroke-width="0.6" />
         </svg>
-        <span>Own Goal</span>
+        <span>{{ 'MATCH.TIMELINE.OWN_GOAL' | translate }}</span>
       </span>
     </app-button>
 
@@ -207,7 +207,7 @@
             stroke-linecap="round" />
           <path d="M9 17.5H4.5V22" stroke="#EF4444" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
         </svg>
-        <span>Sub Out/In</span>
+        <span>{{ 'MATCH.TIMELINE.SUB_OUT_IN' | translate }}</span>
       </span>
     </app-button>
 
@@ -225,7 +225,7 @@
           <rect x="7" y="4" width="11" height="16" rx="2" transform="rotate(-6 12.5 12)" fill="url(#svg_yc_grad_tb)"
             stroke="#FEF08A" stroke-width="1" />
         </svg>
-        <span>Yellow Card</span>
+        <span>{{ 'MATCH.TIMELINE.YELLOW_CARD' | translate }}</span>
       </span>
     </app-button>
 
@@ -243,7 +243,7 @@
           <rect x="7" y="4" width="11" height="16" rx="2" transform="rotate(-6 12.5 12)" fill="url(#svg_rc_grad_tb)"
             stroke="#FCA5A5" stroke-width="1" />
         </svg>
-        <span>Red Card</span>
+        <span>{{ 'MATCH.TIMELINE.RED_CARD' | translate }}</span>
       </span>
     </app-button>
 
@@ -261,7 +261,7 @@
           <path d="M14.5 9L15.5 10L17.5 8" stroke="#042F2C" stroke-width="1.2" stroke-linecap="round"
             stroke-linejoin="round" />
         </svg>
-        <span>Pen Scored</span>
+        <span>{{ 'MATCH.TIMELINE.PEN_SCORED' | translate }}</span>
       </span>
     </app-button>
 
@@ -275,7 +275,7 @@
           <circle cx="16" cy="9" r="3.5" fill="#EF4444" stroke="#FFFFFF" stroke-width="1" />
           <path d="M14.3 7.3L17.7 10.7M17.7 7.3L14.3 10.7" stroke="#000000" stroke-width="1.3" stroke-linecap="round" />
         </svg>
-        <span>Pen Missed</span>
+        <span>{{ 'MATCH.TIMELINE.PEN_MISSED' | translate }}</span>
       </span>
     </app-button>
 
@@ -317,9 +317,9 @@
 
     <div class="bench-card" [class.bench-sub-active]="canLogEvents && activeTool === 'sub' && firstPickedPlayer">
       <div class="bench-title">
-        Substitutes Bench ({{ homeName }})
+        {{ 'MATCH.TIMELINE.SUB_BENCH' | translate }} ({{ homeName }})
         @if (canLogEvents && activeTool === 'sub' && firstPickedPlayer && selectedTeam === 'home') {
-        <span class="sub-prompt animate-pulse"> ➔ Tap Bench Player to Complete Sub</span>
+        <span class="sub-prompt animate-pulse"> ➔ {{ 'MATCH.TIMELINE.TAP_BENCH_SUB' | translate }}</span>
         }
       </div>
       <div class="bench-flex">
@@ -331,11 +331,11 @@
     </div>
     } @else {
     @if (isCurrentSelectedTeamCoachTeam) {
-    <app-empty-state title="No Lineup Submitted"
-      [description]="homeName + ' has no lineup submitted for this match yet. As the coach, you can submit the lineup now.'"
-      actionText="Submit Lineup" (actionClick)="goToSubmitLineup()" />
+    <app-empty-state [title]="'MATCH.TIMELINE.NO_LINEUP_SUBMITTED_TITLE' | translate"
+      [description]="homeName + ' ' + ('MATCH.TIMELINE.NO_LINEUP_SUBMITTED_DESC' | translate)"
+      [actionText]="'MATCH.TIMELINE.SUBMIT_LINEUP' | translate" (actionClick)="goToSubmitLineup()" />
     } @else {
-    <app-empty-state title="No Lineup" [description]="homeName + ' has no lineup submitted for this match.'" />
+    <app-empty-state [title]="'MATCH.TIMELINE.NO_LINEUP_TITLE' | translate" [description]="homeName + ' ' + ('MATCH.TIMELINE.NO_LINEUP_DESC' | translate)" />
     }
     }
   </div>
@@ -359,9 +359,9 @@
 
     <div class="bench-card" [class.bench-sub-active]="canLogEvents && activeTool === 'sub' && firstPickedPlayer">
       <div class="bench-title">
-        Substitutes Bench ({{ awayName }})
+        {{ 'MATCH.TIMELINE.SUB_BENCH' | translate }} ({{ awayName }})
         @if (canLogEvents && activeTool === 'sub' && firstPickedPlayer && selectedTeam === 'away') {
-        <span class="sub-prompt animate-pulse"> ➔ Tap Bench Player to Complete Sub</span>
+        <span class="sub-prompt animate-pulse"> ➔ {{ 'MATCH.TIMELINE.TAP_BENCH_SUB' | translate }}</span>
         }
       </div>
       <div class="bench-flex">
@@ -373,11 +373,11 @@
     </div>
     } @else {
     @if (isCurrentSelectedTeamCoachTeam) {
-    <app-empty-state title="No Lineup Submitted"
-      [description]="awayName + ' has no lineup submitted for this match yet. As the coach, you can submit the lineup now.'"
-      actionText="Submit Lineup" (actionClick)="goToSubmitLineup()" />
+    <app-empty-state [title]="'MATCH.TIMELINE.NO_LINEUP_SUBMITTED_TITLE' | translate"
+      [description]="awayName + ' ' + ('MATCH.TIMELINE.NO_LINEUP_SUBMITTED_DESC' | translate)"
+      [actionText]="'MATCH.TIMELINE.SUBMIT_LINEUP' | translate" (actionClick)="goToSubmitLineup()" />
     } @else {
-    <app-empty-state title="No Lineup" [description]="awayName + ' has no lineup submitted for this match.'" />
+    <app-empty-state [title]="'MATCH.TIMELINE.NO_LINEUP_TITLE' | translate" [description]="awayName + ' ' + ('MATCH.TIMELINE.NO_LINEUP_DESC' | translate)" />
     }
     }
   </div>

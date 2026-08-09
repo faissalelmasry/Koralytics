@@ -12,13 +12,14 @@ import { AuthService } from '../../../../core/services/auth/auth.service';
 
 import { CoachSquadService } from '../../../../core/services/coach/coach-squad.service';
 import { NotificationService } from '@core/services/SignalR/notificationservice';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 export type ActionTool = 'goal_solo' | 'goal_assist' | 'penalty_scored' | 'penalty_missed' | 'own_goal' | 'sub' | 'yellow' | 'red';
 
 @Component({
   selector: 'app-match-lineups',
   standalone: true,
-  imports: [CommonModule, MiniPlayerCardComponent, EmptyStateComponent, CustomButtonComponent, ConfirmDialogComponent],
+  imports: [CommonModule, MiniPlayerCardComponent, EmptyStateComponent, CustomButtonComponent, ConfirmDialogComponent, TranslatePipe],
   templateUrl: './match-lineups.component.html',
   styleUrls: ['./match-lineups.component.css']
 })
@@ -30,6 +31,7 @@ export class MatchLineupsComponent implements OnInit, OnChanges {
   private authService = inject(AuthService);
   private coachSquadService = inject(CoachSquadService);
   private notificationService = inject(NotificationService);
+  private translate = inject(TranslateService);
 
   get currentUser() {
     return this.authService.getCurrentUserValue();
@@ -162,33 +164,33 @@ export class MatchLineupsComponent implements OnInit, OnChanges {
   get instructionText(): string {
     if (this.isShootoutMode) {
       if (this.activeTool === 'penalty_scored') {
-        return `Tap Penalty Taker on Pitch to Log Scored Penalty`;
+        return this.translate.instant('MATCH.TIMELINE.INSTRUCT.PEN_SCORED');
       }
       if (this.activeTool === 'penalty_missed') {
-        return `Tap Penalty Taker on Pitch to Log Missed Penalty`;
+        return this.translate.instant('MATCH.TIMELINE.INSTRUCT.PEN_MISSED');
       }
-      return `Penalty Shootout  (${this.homeName} ${this.homePenaltyScore} - ${this.awayPenaltyScore} ${this.awayName})`;
+      return `${this.translate.instant('MATCH.TIMELINE.PENALTY_SHOOTOUT')} (${this.homeName} ${this.homePenaltyScore} - ${this.awayPenaltyScore} ${this.awayName})`;
     }
 
     switch (this.activeTool) {
       case 'goal_solo':
-        return `Tap Player on Pitch to Log Solo Goal`;
+        return this.translate.instant('MATCH.TIMELINE.INSTRUCT.GOAL_SOLO');
       case 'goal_assist':
         return this.firstPickedPlayer
-          ? `Scorer: ${this.firstPickedPlayer.fullName} ➔ Tap Assister`
-          : `Tap Goal Scorer on Pitch`;
+          ? `${this.translate.instant('MATCH.TIMELINE.INSTRUCT.SCORER')}: ${this.firstPickedPlayer.fullName} ➔ ${this.translate.instant('MATCH.TIMELINE.INSTRUCT.TAP_ASSISTER')}`
+          : this.translate.instant('MATCH.TIMELINE.INSTRUCT.TAP_SCORER');
       case 'own_goal':
-        return `Tap Player who Scored Own Goal`;
+        return this.translate.instant('MATCH.TIMELINE.INSTRUCT.OWN_GOAL');
       case 'sub':
         return this.firstPickedPlayer
-          ? `Sub Out: ${this.firstPickedPlayer.fullName} ➔ Tap Bench Player`
-          : `Tap Player on Pitch to Sub Out`;
+          ? `${this.translate.instant('MATCH.TIMELINE.INSTRUCT.SUB_OUT')}: ${this.firstPickedPlayer.fullName} ➔ ${this.translate.instant('MATCH.TIMELINE.INSTRUCT.TAP_BENCH')}`
+          : this.translate.instant('MATCH.TIMELINE.INSTRUCT.TAP_SUB_OUT');
       case 'yellow':
-        return `Tap Player for Yellow Card`;
+        return this.translate.instant('MATCH.TIMELINE.INSTRUCT.YELLOW');
       case 'red':
-        return `Tap Player for Red Card`;
+        return this.translate.instant('MATCH.TIMELINE.INSTRUCT.RED');
       default:
-        return 'Select Action';
+        return this.translate.instant('MATCH.TIMELINE.INSTRUCT.SELECT_ACTION');
     }
   }
 

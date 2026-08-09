@@ -8,7 +8,7 @@
   <div class="card-top-bar">
     <div class="stat-badge">
       <span class="overall-rating">{{ displayRating }}</span>
-      <span class="position-code">{{ displayPosition }}</span>
+      <span class="position-code">{{ displayPosition ? (('COMMON.POSITIONS.' + displayPosition) | translate) : '' }}</span>
     </div>
     <div class="mini-logo" [ngClass]="tierClass"></div>
   </div>

@@ -1,13 +1,13 @@
 <div class="page-wrapper">
 
-  <div class="tactical-tag" scrollReveal direction="bottom" [delay]="0">Match Requests</div>
+  <div class="tactical-tag" scrollReveal direction="bottom" [delay]="0">{{ 'MATCH.REQUESTS.OUTGOING_TAG' | translate }}</div>
 
   <div class="header-row" scrollReveal direction="bottom" [delay]="50">
-    <h2 class="section-title">Sent Requests</h2>
-    <span class="badge-count">{{ totalItems }} Request{{ totalItems !== 1 ? 's' : '' }}</span>
+    <h2 class="section-title">{{ 'MATCH.REQUESTS.OUTGOING_TITLE' | translate }}</h2>
+    <span class="badge-count">{{ totalItems }}</span>
     <app-button variant="accent" [routerLink]="['/match/friendly-request']">
       <svg class="btn-icon-svg" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      Request Friendly Match
+      {{ 'MATCH.LIST.SCHEDULE_FRIENDLY' | translate }}
     </app-button>
   </div>
 
@@ -17,7 +17,7 @@
     <div class="filter-grid">
       <div class="filter-item">
         <app-select
-          label="Your Team"
+          [label]="'MATCH.REQUESTS.YOUR_TEAM' | translate"
           [options]="coachTeams"
           [(value)]="selectedTeamId"
           (valueChange)="onTeamChange()"
@@ -26,28 +26,28 @@
       </div>
       <div class="filter-item">
         <app-select
-          label="Status"
+          [label]="'MATCH.LIST.FILTERS.STATUS' | translate"
           [options]="statusOptions"
           [(value)]="selectedStatus">
         </app-select>
       </div>
       <div class="filter-item">
         <app-date-picker
-          label="Proposed From"
+          [label]="'MATCH.LIST.FILTERS.FROM_DATE' | translate"
           [(value)]="selectedDateFrom"
           (valueChange)="onDateFromChange()">
         </app-date-picker>
       </div>
       <div class="filter-item">
         <app-date-picker
-          label="Proposed To"
+          [label]="'MATCH.LIST.FILTERS.TO_DATE' | translate"
           [(value)]="selectedDateTo"
           (valueChange)="onDateToChange()">
         </app-date-picker>
       </div>
       <div class="filter-actions">
-        <app-button variant="accent" (click)="applyFilters()">Apply</app-button>
-        <app-button variant="slate"  (click)="clearFilters()">Clear</app-button>
+        <app-button variant="accent" (click)="applyFilters()">{{ 'COMMON.SUBMIT' | translate }}</app-button>
+        <app-button variant="slate"  (click)="clearFilters()">{{ 'COMMON.CANCEL' | translate }}</app-button>
       </div>
     </div>
     @if (filterError) {
@@ -59,7 +59,7 @@
   @if (isLoading || isLoadingTeams) {
     <div class="loading-state">
       <app-loading-spinner size="lg"></app-loading-spinner>
-      <p>Loading requests...</p>
+      <p>{{ 'MATCH.LIST.LOADING' | translate }}</p>
     </div>
   }
   @else if (error) {
@@ -72,19 +72,19 @@
         </svg>
       </div>
       <p>{{ error }}</p>
-      <app-button variant="accent" (click)="loadRequests()">Retry</app-button>
+      <app-button variant="accent" (click)="loadRequests()">{{ 'COMMON.SUBMIT' | translate }}</app-button>
     </div>
   }
   @else if (requests.length === 0) {
     <div class="empty-state-wrapper">
       <app-empty-state
-        title="No Sent Requests"
-        description="No match requests found. Try clearing filters or selecting another team.">
+        [title]="'MATCH.REQUESTS.NO_REQUESTS' | translate"
+        [description]="'MATCH.REQUESTS.NO_REQUESTS_DESC' | translate">
       </app-empty-state>
     </div>
   }
   @else {
-    <div class="group-label" scrollReveal direction="bottom" [delay]="200">Sent Challenges</div>
+    <div class="group-label" scrollReveal direction="bottom" [delay]="200">{{ 'MATCH.REQUESTS.OUTGOING_TAG' | translate }}</div>
 
     <div class="koralytics-grid">
       @for (req of requests; track req.id; let i = $index) {
@@ -101,14 +101,14 @@
           <!-- Matchup Container -->
           <div class="matchup-container">
             <div class="team-card your-side">
-              <span class="team-role-label">Your Team</span>
+              <span class="team-role-label">{{ 'MATCH.REQUESTS.YOUR_TEAM' | translate }}</span>
               <span class="team-name" appMarqueeIfOverflow [marqueeText]="req.requesterTeamName" [title]="req.requesterTeamName">{{ req.requesterTeamName }}</span>
             </div>
 
             <div class="vs-badge">VS</div>
 
             <div class="team-card opponent-side">
-              <span class="team-role-label">Opponent</span>
+              <span class="team-role-label">{{ 'MATCH.FRIENDLY_REQUEST.STEPS.1' | translate }}</span>
               <span class="team-name" appMarqueeIfOverflow [marqueeText]="req.targetTeamName" [title]="req.targetTeamName">{{ req.targetTeamName }}</span>
             </div>
           </div>
@@ -116,7 +116,7 @@
           <!-- Info Grid -->
           <div class="card-info-grid">
             <div class="info-item">
-              <span class="info-label">Format</span>
+              <span class="info-label">{{ 'MATCH.REQUESTS.FORMAT' | translate }}</span>
               <div class="info-value format-val" [title]="formatLabel(req.format)">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="12" cy="12" r="10"/>
@@ -132,7 +132,7 @@
             </div>
 
             <div class="info-item">
-              <span class="info-label">Proposed Date</span>
+              <span class="info-label">{{ 'MATCH.REQUESTS.PROPOSED_DATE' | translate }}</span>
               <div class="info-value date-val" [title]="req.proposedDate | date: 'dd MMM yyyy, HH:mm'">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
@@ -146,7 +146,7 @@
 
             @if (req.location) {
               <div class="info-item">
-                <span class="info-label">Location</span>
+                <span class="info-label">{{ 'MATCH.REQUESTS.LOCATION' | translate }}</span>
                 <div class="info-value location-val" [title]="req.location">
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
@@ -158,7 +158,7 @@
             }
 
             <div class="info-item">
-              <span class="info-label">Sent By</span>
+              <span class="info-label">{{ 'MATCH.REQUESTS.SENT_BY' | translate }}</span>
               <div class="info-value coach-val" [title]="req.requesterCoachName">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
@@ -169,7 +169,7 @@
             </div>
 
             <div class="info-item">
-              <span class="info-label">Sent Date</span>
+              <span class="info-label">{{ 'MATCH.REQUESTS.SENT_DATE' | translate }}</span>
               <div class="info-value sent-val" [title]="req.createdAt | date: 'dd MMM yyyy'">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="12" cy="12" r="10"/>
@@ -181,7 +181,7 @@
 
             @if (req.resolvedByCoachName) {
               <div class="info-item">
-                <span class="info-label">Resolved By</span>
+                <span class="info-label">{{ 'MATCH.REQUESTS.RESOLVED_BY' | translate }}</span>
                 <div class="info-value resolved-val" [title]="req.resolvedByCoachName">
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
@@ -204,7 +204,7 @@
                   <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
                   <path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/>
                 </svg>
-                <span>Match Created</span>
+                <span>{{ 'MATCH.REQUESTS.MATCH_CREATED' | translate }}</span>
               </div>
             </div>
           }

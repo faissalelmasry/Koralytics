@@ -1,6 +1,7 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { MatchService, HeadToHeadResponseDto } from '../../../../core/services/match/match.service';
 import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state';
@@ -11,7 +12,8 @@ import { EmptyStateComponent } from '../../../../shared/components/empty-state/e
   imports: [
     CommonModule,
     LoadingSpinnerComponent,
-    EmptyStateComponent
+    EmptyStateComponent,
+    TranslatePipe
   ],
   templateUrl: './match-h2h.component.html',
   styleUrls: ['./match-h2h.component.css']
@@ -20,6 +22,7 @@ export class MatchH2hComponent implements OnInit, OnChanges {
   private router = inject(Router);
   private matchService = inject(MatchService);
   private cdr = inject(ChangeDetectorRef);
+  private translate = inject(TranslateService);
 
   @Input() teamAId!: number;
   @Input() teamBId!: number;
@@ -63,7 +66,7 @@ export class MatchH2hComponent implements OnInit, OnChanges {
       },
       error: () => {
         this.isLoading = false;
-        this.error = 'Failed to load Head to Head data.';
+        this.error = this.translate.instant('MATCH.H2H.ERROR_LOAD', { Default: 'Failed to load Head to Head data.' });
         this.cdr.detectChanges();
       }
     });

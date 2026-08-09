@@ -1,14 +1,14 @@
 <app-navbar></app-navbar>
 <div class="page-wrapper">
 
-  <div class="tactical-tag" scrollReveal direction="bottom" [delay]="0">Internal Match Generator</div>
+  <div class="tactical-tag" scrollReveal direction="bottom" [delay]="0">{{ 'MATCH.SESSION_MATCH.TAG' | translate }}</div>
 
   <!-- Header Banner Card (Identical to submit-lineup) -->
   <div class="builder-header-card" scrollReveal direction="bottom" [delay]="50">
     <div class="header-info">
-      <h2 class="builder-title">Create Session Match</h2>
+      <h2 class="builder-title">{{ 'MATCH.SESSION_MATCH.TITLE' | translate }}</h2>
       <p class="builder-subtitle">
-        Split present session squad into Home and Away tactical lineups
+        {{ 'MATCH.SESSION_MATCH.SUBTITLE' | translate }}
       </p>
     </div>
 
@@ -20,21 +20,21 @@
           class="toggle-btn"
           [class.active]="activeSide === 'home'"
           (click)="activeSide = 'home'">
-          Home Squad ({{ getHomeStartingCount() }}/{{ formatStartingCount }})
+          {{ 'MATCH.SESSION_MATCH.HOME_SQUAD' | translate: { current: getHomeStartingCount(), max: formatStartingCount } }}
         </button>
         <button
           type="button"
           class="toggle-btn"
           [class.active]="activeSide === 'away'"
           (click)="activeSide = 'away'">
-          Away Squad ({{ getAwayStartingCount() }}/{{ formatStartingCount }})
+          {{ 'MATCH.SESSION_MATCH.AWAY_SQUAD' | translate: { current: getAwayStartingCount(), max: formatStartingCount } }}
         </button>
       </div>
 
       <!-- Format Selector -->
       <div class="formation-selector-box">
         <app-select
-          label="Format"
+          [label]="'MATCH.SESSION_MATCH.FIELD_FORMAT' | translate"
           [options]="formatOptions"
           [(value)]="selectedFormat"
           (valueChange)="onFormatChange()">
@@ -44,7 +44,7 @@
       <!-- Formation Selector for Active Side -->
       <div class="formation-selector-box">
         <app-select
-          [label]="activeSide === 'home' ? 'Home Formation' : 'Away Formation'"
+          [label]="activeSide === 'home' ? ('MATCH.SESSION_MATCH.FIELD_HOME_FORMATION' | translate) : ('MATCH.SESSION_MATCH.FIELD_AWAY_FORMATION' | translate)"
           [options]="formationOptions"
           [(value)]="activeFormation"
           (valueChange)="onActiveFormationChange()">
@@ -57,7 +57,7 @@
         [loading]="isAutoSplitting"
         [disabled]="isAutoSplitting || isLoading"
         (click)="autoSplitSquad()"
-        title="Automatically divide squad into balanced Home and Away lineups with GK allocation">
+        [title]="'MATCH.SESSION_MATCH.AUTO_SPLIT_TITLE' | translate">
         <svg class="btn-icon-svg" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M16 3h5v5"/>
           <path d="M4 20L21 3"/>
@@ -65,7 +65,7 @@
           <path d="M15 15l6 6"/>
           <path d="M4 4l5 5"/>
         </svg>
-        Auto-Split Squad
+        {{ 'MATCH.SESSION_MATCH.BTN_AUTO_SPLIT' | translate }}
       </app-button>
 
       <!-- Submit Button -->
@@ -78,7 +78,7 @@
           <line x1="22" y1="2" x2="11" y2="13"/>
           <polygon points="22 2 15 22 11 13 2 9 22 2"/>
         </svg>
-        Create Session Match
+        {{ 'MATCH.SESSION_MATCH.BTN_CREATE' | translate }}
       </app-button>
     </div>
   </div>
@@ -87,7 +87,7 @@
   @if (isLoading) {
     <div class="loading-state">
       <app-loading-spinner size="lg"></app-loading-spinner>
-      <p>Loading present session squad...</p>
+      <p>{{ 'MATCH.SESSION_MATCH.LOADING' | translate }}</p>
     </div>
   }
   @else if (error) {
@@ -110,8 +110,8 @@
       <!-- Left Sidebar: Squad Roster -->
       <div class="squad-sidebar-card" (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDropUnassigned($event)">
         <div class="sidebar-header">
-          <span class="sidebar-title">Present Squad</span>
-          <span class="squad-count-badge">{{ unassignedSquad.length }} Unassigned</span>
+          <span class="sidebar-title">{{ 'MATCH.SESSION_MATCH.SIDEBAR_TITLE' | translate }}</span>
+          <span class="squad-count-badge">{{ 'MATCH.SESSION_MATCH.UNASSIGNED' | translate: { count: unassignedSquad.length } }}</span>
         </div>
 
         @if (unassignedSquad.length === 0) {
@@ -119,7 +119,7 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="20 6 9 17 4 12"/>
             </svg>
-            <p>All present players assigned to Home or Away team</p>
+            <p>{{ 'MATCH.SESSION_MATCH.ALL_ASSIGNED' | translate }}</p>
           </div>
         }
 
@@ -195,9 +195,9 @@
         <!-- Substitutes Bench -->
         <div class="bench-section-card">
           <div class="bench-header">
-            <span class="bench-title">{{ activeSide === 'home' ? 'Home' : 'Away' }} Substitutes Bench (7 Drop Slots)</span>
+            <span class="bench-title">{{ activeSide === 'home' ? ('MATCH.LINEUPS.BENCH_TITLE_HOME' | translate: { team: '' }) : ('MATCH.LINEUPS.BENCH_TITLE_AWAY' | translate: { team: '' }) }}</span>
             <span class="starters-status">
-              Starters: {{ activeSide === 'home' ? getHomeStartingCount() : getAwayStartingCount() }} / {{ formatStartingCount }}
+              {{ 'MATCH.LINEUPS.STARTERS' | translate: { current: (activeSide === 'home' ? getHomeStartingCount() : getAwayStartingCount()), max: formatStartingCount } }}
             </span>
           </div>
 

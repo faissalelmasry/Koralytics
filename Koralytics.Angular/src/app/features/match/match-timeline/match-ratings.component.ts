@@ -33,6 +33,7 @@ interface PlayerRatingForm {
 
 import { CustomNumberInputComponent } from '../../../../shared/components/custom-number-input/custom-number-input';
 import { NotificationService } from '@core/services/SignalR/notificationservice';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-match-ratings',
@@ -41,7 +42,7 @@ import { NotificationService } from '@core/services/SignalR/notificationservice'
     CommonModule,
     RouterModule,
     FormsModule,
-    CustomButtonComponent, LoadingSpinnerComponent, EmptyStateComponent, MiniPlayerCardComponent, CustomNumberInputComponent],
+    CustomButtonComponent, LoadingSpinnerComponent, EmptyStateComponent, MiniPlayerCardComponent, CustomNumberInputComponent, TranslatePipe],
   templateUrl: './match-ratings.component.html',
   styleUrls: ['./match-ratings.component.css']
 })
@@ -61,6 +62,7 @@ export class MatchRatingsComponent implements OnInit {
   private cdr = inject(ChangeDetectorRef);
   private sanitizer = inject(DomSanitizer);
   private notificationService = inject(NotificationService);
+  private translate = inject(TranslateService);
 
   isLoading = true;
   isSubmitting = false;
@@ -157,7 +159,7 @@ export class MatchRatingsComponent implements OnInit {
           this.checkExistingRatings();
         },
         error: () => {
-          this.toastService.show('Failed to load coach permissions.', 'error');
+          this.toastService.show(this.translate.instant('MATCH.RATINGS.ERROR_COACH_PERMISSIONS', { Default: 'Failed to load coach permissions.' }), 'error');
           this.isLoading = false;
           this.cdr.detectChanges();
         }
@@ -262,7 +264,7 @@ export class MatchRatingsComponent implements OnInit {
         this.cdr.detectChanges();
       },
       error: () => {
-        this.toastService.show('Failed to load categories.', 'error');
+        this.toastService.show(this.translate.instant('MATCH.RATINGS.ERROR_LOAD_CATEGORIES', { Default: 'Failed to load categories.' }), 'error');
         this.isLoading = false;
         this.cdr.detectChanges();
       }
@@ -384,7 +386,7 @@ export class MatchRatingsComponent implements OnInit {
     this.matchService.submitMatchRatings(this.matchId, payload).subscribe({
       next: () => {
         this.isSubmitting = false;
-        this.toastService.show('Match ratings submitted successfully!', 'success');
+        this.toastService.show(this.translate.instant('MATCH.RATINGS.SUCCESS_SUBMIT', { Default: 'Match ratings submitted successfully!' }), 'success');
         //  TRIGGER MOTM NOTIFICATIONS USING NotificationService
         allRatingsToSubmit.filter(r => !r.skipRating && r.isMOTM).forEach(motmPlayer => {
 
@@ -429,7 +431,7 @@ export class MatchRatingsComponent implements OnInit {
       },
       error: (err) => {
         this.isSubmitting = false;
-        const msg = err?.error?.detail ?? err?.error?.message ?? 'Failed to submit match ratings.';
+        const msg = err?.error?.detail ?? err?.error?.message ?? this.translate.instant('MATCH.RATINGS.ERROR_SUBMIT', { Default: 'Failed to submit match ratings.' });
         this.toastService.show(msg, 'error');
         this.cdr.detectChanges();
       }
