@@ -94,6 +94,10 @@ export class TournamentDetailsComponent implements OnInit, OnDestroy {
   allFixtures: any[] = [];
   fixtureStatusFilter: 'ALL' | 'Scheduled' | 'Completed' = 'ALL';
 
+  get acceptedTeams(): any[] {
+    return this.teams.filter(t => t.status === 'Accepted');
+  }
+
   get filteredFixtures(): any[] {
     if (this.fixtureStatusFilter === 'ALL') {
       return this.allFixtures;
@@ -261,7 +265,15 @@ export class TournamentDetailsComponent implements OnInit, OnDestroy {
         const academyPayload = responses.academies?.data || responses.academies;
         const academiesArray = academyPayload?.academies || academyPayload;
         this.availableAcademies = Array.isArray(academiesArray) ? academiesArray : [];
-        this.availableAcademies.forEach(a => a.inviteStatus = 'Idle');
+
+        // Cross-reference with teams to mark already-invited/accepted academies
+        const invitedAcademyIds = new Set(
+          this.teams.map((t: any) => t.academyId).filter((id: number) => !!id)
+        );
+        this.availableAcademies.forEach(a => {
+          a.inviteStatus = invitedAcademyIds.has(a.id) ? 'Invited' : 'Idle';
+          a.inviteError = '';
+        });
 
         if (!this.report && this.tournament?.status === TournamentStatus.Completed) {
           this.report = { reportText: '', isPending: true };
@@ -401,11 +413,13 @@ export class TournamentDetailsComponent implements OnInit, OnDestroy {
     if (academy.inviteStatus === 'Inviting' || academy.inviteStatus === 'Invited') return;
 
     academy.inviteStatus = 'Inviting';
+    academy.inviteError = '';
     this.cdr.markForCheck();
 
     this.tournamentService.inviteAcademy(this.tournamentId, academy.id).subscribe({
       next: () => {
         academy.inviteStatus = 'Invited';
+        academy.inviteError = '';
         //notification
         const tournamentName = this.tournament?.name || `Tournament #${this.tournamentId}`;
         const message = `Your academy has been invited to participate in ${tournamentName}.`;
@@ -416,11 +430,29 @@ export class TournamentDetailsComponent implements OnInit, OnDestroy {
         this.cdr.markForCheck();
       },
       error: (err) => {
-        console.error('Failed to invite academy', err);
-        academy.inviteStatus = 'Idle';
+        // 409 Conflict means already invited — treat as success
+        if (err.status === 409) {
+          academy.inviteStatus = 'Invited';
+          academy.inviteError = '';
+        } else {
+          academy.inviteStatus = 'Error';
+          academy.inviteError = this.extractInviteError(err);
+        }
         this.cdr.markForCheck();
       }
     });
+  }
+
+  private extractInviteError(err: any): string {
+    if (typeof err?.error === 'string') return err.error;
+    if (err?.error?.message) return err.error.message;
+    if (err?.error?.detail) return err.error.detail;
+    if (err?.error?.title) return err.error.title;
+    if (err?.status === 400) return 'Bad request — check tournament status.';
+    if (err?.status === 403) return 'You don\'t have permission.';
+    if (err?.status === 404) return 'Academy or tournament not found.';
+    if (err?.status === 500) return 'Server error — try again later.';
+    return 'Failed to invite. Please try again.';
   }
 
   openRegistration() {

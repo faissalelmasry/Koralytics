@@ -464,6 +464,24 @@
   color: var(--text);
 }
 
+.invited-btn {
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 8px;
+  font: 850 0.85rem 'Inter', sans-serif;
+  border: 1px solid rgba(104, 211, 145, 0.35);
+  background: rgba(104, 211, 145, 0.1);
+  color: #68d391;
+  cursor: default;
+  opacity: 0.85;
+}
+
+.invited-pill {
+  border-color: rgba(104, 211, 145, 0.3) !important;
+  background: rgba(104, 211, 145, 0.1) !important;
+  color: #68d391 !important;
+}
+
 .compact {
   width: 100%;
 }

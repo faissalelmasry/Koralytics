@@ -84,9 +84,9 @@ namespace Koralytics.API.Controllers
         [HttpPut("{tournamentId}/accept/{academyId}")]
         [Authorize(Roles = "SystemAdmin,SuperAdmin,AcademyAdmin")]
         public async Task<IActionResult> AcceptInvitation(
-            int tournamentId, int academyId)
+            int tournamentId, int academyId, [FromQuery] int? teamId = null)
         {
-            await _tournamentService.AcceptInvitationAsync(tournamentId, academyId);
+            await _tournamentService.AcceptInvitationAsync(tournamentId, academyId, teamId);
             return NoContentResponse("Invitation accepted successfully");
         }
 

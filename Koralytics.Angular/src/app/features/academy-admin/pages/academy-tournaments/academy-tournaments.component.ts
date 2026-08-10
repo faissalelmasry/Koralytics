@@ -2,7 +2,10 @@ import { Component, OnInit, inject, ChangeDetectionStrategy, ChangeDetectorRef }
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { TournamentService } from '../../../../../core/services/tournament/tournament.service';
+import { AcademyService } from '../../../../../core/services/academy/academy.service';
 import { TokenStorageService } from '../../../../../core/services/auth/token-storage.service';
 import { ToastService } from '../../../../../core/services/Toast/toast';
 import { SearchBarComponent } from '../../../../../shared/components/search-bar/search-bar';
@@ -32,6 +35,7 @@ import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-r
 })
 export class AcademyTournamentsComponent implements OnInit {
   private tournamentService = inject(TournamentService);
+  private academyService = inject(AcademyService);
   private tokenStorage = inject(TokenStorageService);
   private toast = inject(ToastService);
   private router = inject(Router);
@@ -43,6 +47,14 @@ export class AcademyTournamentsComponent implements OnInit {
   paginatedInvitations: any[] = [];
   isLoading = true;
   acceptingIds = new Set<number>(); // track which invitations are being accepted
+
+  // Modal State for Team Selection
+  showTeamModal = false;
+  selectedInvite: any = null;
+  modalTeams: any[] = [];
+  isLoadingModalTeams = false;
+  selectedTeamId: number | null = null;
+  modalError = '';
 
   // Search & Filter
   searchText = '';
@@ -136,25 +148,103 @@ export class AcademyTournamentsComponent implements OnInit {
   }
 
   acceptInvitation(invite: any, event: Event) {
+    this.openTeamSelectionModal(invite, event);
+  }
+
+  openTeamSelectionModal(invite: any, event: Event) {
     event.stopPropagation();
-    if (!this.academyId) return;
-    this.acceptingIds.add(invite.tournamentTeamId);
+    if (!this.academyId || invite.status === 'Accepted') return;
+
+    this.selectedInvite = invite;
+    this.showTeamModal = true;
+    this.isLoadingModalTeams = true;
+    this.modalError = '';
+    this.selectedTeamId = invite.teamId || null;
+    this.modalTeams = [];
     this.cdr.markForCheck();
 
-    this.tournamentService.acceptInvitation(invite.tournamentId, this.academyId).subscribe({
-      next: () => {
-        invite.status = 'Accepted';
-        this.acceptingIds.delete(invite.tournamentTeamId);
-        this.toast.show('Tournament invitation accepted!', 'success');
-        this.applyFilters();
+    forkJoin({
+      teamsRes: this.academyService.getTeams(this.academyId).pipe(catchError(() => of(null))),
+      tournamentRes: this.tournamentService.getTournamentById(invite.tournamentId).pipe(catchError(() => of(null)))
+    }).subscribe({
+      next: (res) => {
+        const teamsData = res.teamsRes?.data || res.teamsRes || [];
+        const allTeams = Array.isArray(teamsData) ? teamsData : [];
+        const tournament = res.tournamentRes?.data || res.tournamentRes || null;
+
+        const ageGroupId = tournament?.ageGroupId;
+        if (ageGroupId) {
+          this.modalTeams = allTeams.filter((t: any) => t.ageGroupId === ageGroupId);
+        }
+
+        // Fallback if no matching ageGroup teams or if filter returns empty
+        if (!this.modalTeams.length) {
+          this.modalTeams = allTeams;
+        }
+
+        if (this.modalTeams.length > 0) {
+          const exists = this.modalTeams.some((t: any) => t.id === this.selectedTeamId);
+          if (!exists) {
+            this.selectedTeamId = this.modalTeams[0].id;
+          }
+        }
+
+        this.isLoadingModalTeams = false;
         this.cdr.markForCheck();
       },
       error: () => {
-        this.acceptingIds.delete(invite.tournamentTeamId);
-        this.toast.show('Unable to accept invitation. Please try again.', 'error');
+        this.isLoadingModalTeams = false;
+        this.modalError = 'Unable to load academy teams. Please try again.';
         this.cdr.markForCheck();
       }
     });
+  }
+
+  selectModalTeam(teamId: number) {
+    this.selectedTeamId = teamId;
+    this.cdr.markForCheck();
+  }
+
+  confirmAcceptInvitation() {
+    if (!this.selectedInvite || !this.academyId || !this.selectedTeamId) return;
+
+    const invite = this.selectedInvite;
+    const teamIdToAssign = this.selectedTeamId;
+    const selectedTeamObj = this.modalTeams.find((t: any) => t.id === teamIdToAssign);
+    const newTeamName = selectedTeamObj?.name || invite.teamName;
+
+    this.acceptingIds.add(invite.tournamentTeamId);
+    this.cdr.markForCheck();
+
+    this.tournamentService.acceptInvitation(invite.tournamentId, this.academyId, teamIdToAssign).subscribe({
+      next: () => {
+        invite.status = 'Accepted';
+        invite.teamId = teamIdToAssign;
+        invite.teamName = newTeamName;
+
+        this.acceptingIds.delete(invite.tournamentTeamId);
+        this.toast.show(`Invitation accepted with ${newTeamName}!`, 'success');
+        this.closeTeamModal();
+        this.applyFilters();
+        this.cdr.markForCheck();
+      },
+      error: (err: any) => {
+        this.acceptingIds.delete(invite.tournamentTeamId);
+        const errMsg = err?.error?.message || err?.error || 'Unable to accept invitation. Please try again.';
+        this.modalError = typeof errMsg === 'string' ? errMsg : 'Unable to accept invitation.';
+        this.toast.show(this.modalError, 'error');
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  closeTeamModal() {
+    this.showTeamModal = false;
+    this.selectedInvite = null;
+    this.modalTeams = [];
+    this.selectedTeamId = null;
+    this.modalError = '';
+    this.cdr.markForCheck();
   }
 
   isAccepting(id: number): boolean {
