@@ -10,7 +10,7 @@ namespace Koralytics.Application.Interfaces.Tournament
         Task<TournamentDto?> GetByIdAsync(int id);
         Task<TournamentDto> CreateTournamentAsync(CreateTournamentDto dto, int requestingUserId);
         Task InviteAcademyAsync(int tournamentId, int academyId);
-        Task AcceptInvitationAsync(int tournamentId, int academyId);
+        Task AcceptInvitationAsync(int tournamentId, int academyId, int? teamId = null);
         Task RegisterSquadAsync(int tournamentId, int teamId, List<int> playerIds);
         Task UpdateStatusAsync(int tournamentId, TournamentStatus status);
         Task<List<TournamentTeamDto>> GetTeamsAsync(int tournamentId);

@@ -27,8 +27,11 @@ export class TournamentService {
     return this.http.post<any>(`${this.apiUrl}/${tournamentId}/invite/${academyId}`, {});
   }
 
-  acceptInvitation(tournamentId: number, academyId: number): Observable<any> {
-    return this.http.put<any>(`${this.apiUrl}/${tournamentId}/accept/${academyId}`, {});
+  acceptInvitation(tournamentId: number, academyId: number, teamId?: number): Observable<any> {
+    const url = teamId 
+      ? `${this.apiUrl}/${tournamentId}/accept/${academyId}?teamId=${teamId}`
+      : `${this.apiUrl}/${tournamentId}/accept/${academyId}`;
+    return this.http.put<any>(url, {});
   }
 
   registerSquad(tournamentId: number, teamId: number, playerIds: number[]): Observable<any> {

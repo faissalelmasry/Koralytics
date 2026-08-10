@@ -55,13 +55,9 @@
     <!-- System Admin Links (Desktop) -->
     <ng-container *ngIf="isSystemAdmin">
       <a routerLink="/admin/scouterverification" routerLinkActive="active">{{ 'NAVBAR.SCOUTER_VERIFICATION' | translate }}</a>
-      <ng-container *ngIf="!isAcademyAdmin">
-        <a routerLink="/academy/matches" routerLinkActive="active">{{ 'NAVBAR.ACADEMY_MATCHES' | translate }}</a>
-      </ng-container>
       <ng-container *ngIf="!isCoach && !isAcademyAdmin">
         <a routerLink="/drills" routerLinkActive="active">{{ 'NAVBAR.TEMPLATES' | translate }}</a>
-        <a routerLink="/drills/analytics/coach-bias" routerLinkActive="active">{{ 'NAVBAR.BIAS' | translate }}</a>
-        <a routerLink="/drills/analytics/weak-categories" routerLinkActive="active">{{ 'NAVBAR.WEAK_CATS' | translate }}</a>
+        <a routerLink="/academy-ai" routerLinkActive="active" *ngIf="isEliteTier">{{ 'NAVBAR.AI_BOT' | translate }}</a>
       </ng-container>
     </ng-container>
 
@@ -197,13 +193,9 @@
           {{ 'NAVBAR.SYSTEM_ADMIN_HUB' | translate }}</div>
         <a routerLink="/system-admin/dashboard" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.ADMIN_DASHBOARD' | translate }}</a>
         <a routerLink="/admin/scouterverification" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.SCOUTER_VERIFICATION' | translate }}</a>
-        <ng-container *ngIf="!isAcademyAdmin">
-          <a routerLink="/academy/matches" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.ACADEMY_MATCHES' | translate }}</a>
-        </ng-container>
         <ng-container *ngIf="!isCoach && !isAcademyAdmin">
           <a routerLink="/drills" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.DRILL_TEMPLATES' | translate }}</a>
-          <a routerLink="/drills/analytics/coach-bias" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.COACH_BIAS' | translate }}</a>
-          <a routerLink="/drills/analytics/weak-categories" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.WEAK_CATEGORIES' | translate }}</a>
+          <a routerLink="/academy-ai" routerLinkActive="active" (click)="toggleSidebar(false)" *ngIf="isEliteTier">{{ 'NAVBAR.AI_BOT' | translate }}</a>
         </ng-container>
       </ng-container>
 

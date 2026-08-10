@@ -298,15 +298,16 @@ namespace Koralytics.Application.Services.Tournaments
                 academyId, tournamentId);
         }
 
-        public async Task AcceptInvitationAsync(int tournamentId, int academyId)
+        public async Task AcceptInvitationAsync(int tournamentId, int academyId, int? teamId = null)
         {
             _logger.LogInformation(
-                "Academy {AcademyId} accepting invitation for tournament {TournamentId}",
-                academyId, tournamentId);
+                "Academy {AcademyId} accepting invitation for tournament {TournamentId} (selected TeamId: {TeamId})",
+                academyId, tournamentId, teamId);
 
             var tournamentTeam = await _unitOfWork.Repository<TournamentTeamEntity>()
                 .GetQueryable()
                 .Include(tt => tt.Team)
+                .ThenInclude(t => t.AgeGroup)
                 .FirstOrDefaultAsync(tt =>
                     tt.TournamentId == tournamentId &&
                     tt.Team.AcademyId == academyId);
@@ -319,12 +320,25 @@ namespace Koralytics.Application.Services.Tournaments
                 throw new BadRequestException(
                     "Academy has already responded to this invitation");
 
+            if (teamId.HasValue && teamId.Value != tournamentTeam.TeamId)
+            {
+                var selectedTeam = await _unitOfWork.Repository<Team>()
+                    .GetQueryable()
+                    .Include(t => t.AgeGroup)
+                    .FirstOrDefaultAsync(t => t.Id == teamId.Value && t.AcademyId == academyId);
+
+                if (selectedTeam is null)
+                    throw new BadRequestException("Selected team does not belong to your academy.");
+
+                tournamentTeam.TeamId = selectedTeam.Id;
+            }
+
             tournamentTeam.Status = TournamentTeamStatus.Accepted;
             await _unitOfWork.SaveChangesAsync();
 
             _logger.LogInformation(
-                "Academy {AcademyId} accepted invitation for tournament {TournamentId}",
-                academyId, tournamentId);
+                "Academy {AcademyId} accepted invitation for tournament {TournamentId} using team {TeamId}",
+                academyId, tournamentId, tournamentTeam.TeamId);
         }
 
         public async Task RegisterSquadAsync(

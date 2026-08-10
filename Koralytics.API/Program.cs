@@ -249,7 +249,7 @@ namespace Koralytics.API
             builder.Services.AddSingleton<IBackgroundTaskQueue>(_ => new BackgroundTaskQueue(capacity: 100));
             builder.Services.AddHostedService<QueuedHostedService>();
             builder.Services.AddScoped<IEmailService, SmtpEmailService>();
-
+            builder.Services.AddMemoryCache();
             builder.Services.AddSingleton<IAmazonS3>(sp =>
             {
                 var config = sp.GetRequiredService<IConfiguration>();

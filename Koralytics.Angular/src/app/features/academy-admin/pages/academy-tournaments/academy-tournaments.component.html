@@ -155,4 +155,78 @@
       </app-empty-state>
     </div>
   }
+
+  <!-- TEAM SELECTION MODAL -->
+  @if (showTeamModal) {
+    <div class="modal-backdrop" (click)="closeTeamModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div>
+            <span class="modal-eyebrow">Accept Invitation</span>
+            <h2>Select Participating Team</h2>
+            <p>Choose which squad from your academy will enter <strong>{{ selectedInvite?.tournamentName }}</strong>. Once accepted, the team assignment is locked.</p>
+          </div>
+          <button class="close-btn" type="button" (click)="closeTeamModal()" aria-label="Close">
+            &times;
+          </button>
+        </div>
+
+        <div class="modal-body">
+          @if (isLoadingModalTeams) {
+            <div class="modal-loading">
+              <span class="spinner"></span> Loading eligible teams...
+            </div>
+          } @else if (modalError) {
+            <div class="modal-error-banner">{{ modalError }}</div>
+          } @else {
+            @if (modalTeams.length === 0) {
+              <div class="no-teams-notice">
+                No eligible teams found for this tournament's age group in your academy.
+              </div>
+            } @else {
+              <div class="teams-radio-list">
+                @for (team of modalTeams; track team.id) {
+                  <label 
+                    class="team-option-card" 
+                    [class.selected]="selectedTeamId === team.id"
+                    (click)="selectModalTeam(team.id)">
+                    <input 
+                      type="radio" 
+                      name="selectedTeam" 
+                      [value]="team.id" 
+                      [checked]="selectedTeamId === team.id" 
+                      (change)="selectModalTeam(team.id)" />
+                    <div class="team-option-info">
+                      <strong>{{ team.name }}</strong>
+                      <span class="team-option-meta">
+                        {{ team.ageGroupName || 'Age Group' }} &bull; {{ team.locationName || 'Main Facility' }}
+                      </span>
+                    </div>
+                    @if (selectedTeamId === team.id) {
+                      <span class="selected-checkmark">&check;</span>
+                    }
+                  </label>
+                }
+              </div>
+            }
+          }
+        </div>
+
+        <div class="modal-footer">
+          <button class="modal-btn secondary" type="button" (click)="closeTeamModal()">Cancel</button>
+          <button 
+            class="modal-btn primary" 
+            type="button" 
+            (click)="confirmAcceptInvitation()"
+            [disabled]="isLoadingModalTeams || !selectedTeamId || isAccepting(selectedInvite?.tournamentTeamId)">
+            @if (isAccepting(selectedInvite?.tournamentTeamId)) {
+              <span class="spinner"></span> Accepting...
+            } @else {
+              Confirm & Accept Invitation
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
 </div>

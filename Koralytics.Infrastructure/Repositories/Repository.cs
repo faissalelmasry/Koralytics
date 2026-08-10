@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -55,6 +55,10 @@ namespace Koralytics.Infrastructure.Repositories
             => predicate == null
                 ? await _dbSet.CountAsync()
                 : await _dbSet.CountAsync(predicate);
+        public void Update(T entity)
+        {
+            _dbSet.Update(entity);
+        }
 
         public async Task<T?> FindAsync(Expression<Func<T, bool>> predicate)
             => await _dbSet.FirstOrDefaultAsync(predicate);

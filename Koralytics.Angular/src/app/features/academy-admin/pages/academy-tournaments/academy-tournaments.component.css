@@ -420,3 +420,234 @@
     gap: 8px;
   }
 }
+
+/* ── Team Selection Modal ── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(4, 7, 11, 0.78);
+  backdrop-filter: blur(8px);
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal-card {
+  width: min(540px, 100%);
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+  animation: scaleUp 0.22s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleUp {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 24px;
+  border-bottom: 1px solid var(--line);
+}
+
+.modal-eyebrow {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.modal-header h2 {
+  margin: 0;
+  color: var(--text);
+  font-size: 1.25rem;
+  font-weight: 850;
+}
+
+.modal-header p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+.close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface-muted);
+  color: var(--muted);
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.close-btn:hover {
+  color: var(--text);
+  border-color: var(--line-strong);
+}
+
+.modal-body {
+  padding: 20px 24px;
+  max-height: 340px;
+  overflow-y: auto;
+}
+
+.modal-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 32px 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.modal-error-banner {
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: rgba(255, 112, 102, 0.12);
+  border: 1px solid rgba(255, 112, 102, 0.3);
+  color: #ff7066;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.no-teams-notice {
+  padding: 24px;
+  text-align: center;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  color: var(--dim);
+  font-size: 0.88rem;
+}
+
+.teams-radio-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.team-option-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface-muted);
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.team-option-card:hover {
+  border-color: var(--line-strong);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.team-option-card.selected {
+  border-color: rgba(183, 243, 75, 0.4);
+  background: rgba(183, 243, 75, 0.08);
+}
+
+.team-option-card input[type="radio"] {
+  accent-color: var(--accent);
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.team-option-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.team-option-info strong {
+  color: var(--text);
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.team-option-meta {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.selected-checkmark {
+  color: var(--accent);
+  font-weight: 900;
+  font-size: 1.1rem;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--line);
+  background: var(--surface-muted);
+}
+
+.modal-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font: 800 0.85rem 'Inter', sans-serif;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.modal-btn.secondary {
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+}
+
+.modal-btn.secondary:hover {
+  color: var(--text);
+  border-color: var(--line-strong);
+}
+
+.modal-btn.primary {
+  border: 1px solid rgba(183, 243, 75, 0.35);
+  background: var(--accent);
+  color: #11170b;
+}
+
+.modal-btn.primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+}
+
+.modal-btn.primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}

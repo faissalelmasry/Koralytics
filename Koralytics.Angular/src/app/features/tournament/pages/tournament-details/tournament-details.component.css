@@ -949,6 +949,35 @@
   background: rgba(255,106,92,0.1);
 }
 
+.invite-btn:disabled {
+  opacity: 0.85;
+  cursor: default;
+  transform: none !important;
+}
+
+.academy-invite-card.academy-invited {
+  border-color: rgba(124,227,139,0.18);
+  background: rgba(124,227,139,0.04);
+}
+
+.academy-avatar.avatar-invited {
+  border-color: rgba(124,227,139,0.3);
+  background: rgba(124,227,139,0.12);
+  color: var(--green);
+}
+
+.invite-error-msg {
+  grid-column: 1 / -1;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: rgba(255,106,92,0.08);
+  border: 1px solid rgba(255,106,92,0.22);
+  color: var(--danger);
+  font-size: 0.76rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
 .status-action-btn {
   justify-content: center;
   gap: 8px;

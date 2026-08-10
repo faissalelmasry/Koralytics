@@ -87,12 +87,12 @@
             }
         </section>
 
-        <!-- RIGHT COLUMN: AUTOMATED SESSION PLANNER SUGGESTIONS -->
+        <!-- RIGHT COLUMN: PLAYER-SPECIFIC INSIGHTS -->
         <section class="panel suggestions-panel">
             <div class="panel-header flex-between">
                 <div>
-                    <h2>{{ 'DRILLS.WEAK_CATEGORIES.RECOMMENDED_REMEDIAL_DRILLS' | translate }}</h2>
-                    <p class="helper-text">{{ 'DRILLS.WEAK_CATEGORIES.SUGGESTED_DRILLS_DESC' | translate }}</p>
+                    <h2>Player Performance Insights</h2>
+                    <p class="helper-text">Lowest performing players requiring focus in each category.</p>
                 </div>
                 <button class="btn-accent-small" (click)="scheduleSuggestedSession()">+ {{ 'DRILLS.SESSION_CREATE.SCHEDULE_SESSION' | translate }}</button>
             </div>
@@ -111,14 +111,18 @@
                     <p class="sug-focus">{{ sug.recommendedFocus | translate }}</p>
 
                     <div class="suggested-drills-box mt-2">
-                        <span class="drills-label">{{ 'DRILLS.WEAK_CATEGORIES.SUGGESTED_DRILL_TEMPLATES' | translate }}</span>
+                        <span class="drills-label">Lowest Performers</span>
                         <ul class="drills-list">
-                            @for (drillName of sug.suggestedDrills; track $index) {
-                            <li>
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#00f0ff" stroke-width="2" style="margin-right: 6px;">
-                                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
-                                </svg>
-                                {{ drillName }}
+                            @for (player of sug.lowestPerformers; track $index) {
+                            <li style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding: 8px 0;">
+                                <div style="display: flex; align-items: center;">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffaa00" stroke-width="2" style="margin-right: 8px;">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                        <circle cx="12" cy="7" r="4" />
+                                    </svg>
+                                    {{ player.name }}
+                                </div>
+                                <span style="color: #ffaa00; font-weight: bold; font-size: 13px;">{{ player.score }} / 10</span>
                             </li>
                             }
                         </ul>

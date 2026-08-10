@@ -331,3 +331,61 @@ label {
     opacity: 0.5;
     cursor: not-allowed;
 }
+
+/* ─────────────────────────────────────────────────
+   RESPONSIVE (MOBILE / IPHONE SE)
+───────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    :host {
+        padding: 100px 16px 24px;
+    }
+
+    .header-title {
+        font-size: 28px;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .form-panel {
+        padding: 20px 16px;
+    }
+
+    .row-group {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .roster-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .roster-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .roster-list {
+        max-height: 250px;
+    }
+
+    .action-bar {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .action-bar app-button {
+        width: 100%;
+        display: block;
+    }
+}
+
+@media (max-width: 375px) {
+    .header-title {
+        font-size: 24px;
+    }
+}

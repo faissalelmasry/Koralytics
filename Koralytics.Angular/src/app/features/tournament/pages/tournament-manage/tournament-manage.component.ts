@@ -58,6 +58,7 @@ export class TournamentManageComponent implements OnInit {
   allowedAgeGroupNames = ['U17', 'U15', 'First Team'];
   selectedStatus: TournamentStatus = TournamentStatus.Draft;
   selectedAcademyId: number | null = null;
+  invitedAcademyIds = new Set<number>();
   isLoading = false;
   isSubmitting = false;
   activeAction: ManagementAction | null = null;
@@ -265,6 +266,11 @@ export class TournamentManageComponent implements OnInit {
         const teamsData = responses.teams?.data || responses.teams;
         this.teams = Array.isArray(teamsData) ? teamsData : [];
 
+        // Build the set of already-invited academy IDs from the teams list
+        this.invitedAcademyIds = new Set(
+          this.teams.map((t: any) => t.academyId).filter((id: number) => !!id)
+        );
+
         let academies: any[] = [];
         if (Array.isArray(responses.academies)) {
           academies = responses.academies;
@@ -278,11 +284,18 @@ export class TournamentManageComponent implements OnInit {
           academies = responses.academies.data.items;
         }
 
-        this.availableAcademies = academies.map((academy: any) => ({
-          value: academy.id,
-          label: academy.name ? (academy.city ? `${academy.name} - ${academy.city}` : academy.name) : `Academy #${academy.id}`
-        }));
-        this.selectedAcademyId = this.availableAcademies[0]?.value || null;
+        this.availableAcademies = academies.map((academy: any) => {
+          const baseName = academy.name ? (academy.city ? `${academy.name} - ${academy.city}` : academy.name) : `Academy #${academy.id}`;
+          const isInvited = this.invitedAcademyIds.has(academy.id);
+          return {
+            value: academy.id,
+            label: isInvited ? `✓ ${baseName}  (Invited)` : baseName
+          };
+        });
+
+        // Auto-select the first non-invited academy if possible
+        const firstNonInvited = this.availableAcademies.find(a => !this.invitedAcademyIds.has(a.value));
+        this.selectedAcademyId = firstNonInvited?.value || this.availableAcademies[0]?.value || null;
 
         this.isLoading = false;
         this.cdr.markForCheck();
@@ -402,6 +415,12 @@ export class TournamentManageComponent implements OnInit {
  inviteSelectedAcademy() {
   if (!this.tournamentId || !this.selectedAcademyId) return;
 
+  if (this.invitedAcademyIds.has(this.selectedAcademyId)) {
+    this.errorMessage = 'This academy has already been invited to this tournament.';
+    this.cdr.markForCheck();
+    return;
+  }
+
   const message = `Your academy has been invited to participate in the upcoming tournament.`;
   const academyIdToNotify = this.selectedAcademyId;
 
@@ -409,6 +428,10 @@ export class TournamentManageComponent implements OnInit {
     'invite', 
     () => this.tournamentService.inviteAcademy(this.tournamentId!, academyIdToNotify).pipe(
       tap(() => {
+        // Mark this academy as invited immediately in the UI
+        this.invitedAcademyIds.add(academyIdToNotify);
+        this.refreshAcademyLabels();
+
         this.notificationService.notifyAcademy(academyIdToNotify, message).subscribe({
           error: (e) => console.error('Failed to send invite notification', e)
         });
@@ -417,6 +440,29 @@ export class TournamentManageComponent implements OnInit {
     'Academy invited successfully.'
   );
 }
+
+  isAcademyInvited(academyId: number): boolean {
+    return this.invitedAcademyIds.has(academyId);
+  }
+
+  private refreshAcademyLabels() {
+    this.availableAcademies = this.availableAcademies.map(a => {
+      const isInvited = this.invitedAcademyIds.has(a.value);
+      // Strip any existing "✓ ... (Invited)" prefix/suffix before re-labelling
+      const cleanLabel = a.label.replace(/^✓\s*/, '').replace(/\s*\(Invited\)$/, '');
+      return {
+        ...a,
+        label: isInvited ? `✓ ${cleanLabel}  (Invited)` : cleanLabel
+      };
+    });
+
+    // Auto-select next non-invited academy
+    const firstNonInvited = this.availableAcademies.find(a => !this.invitedAcademyIds.has(a.value));
+    if (firstNonInvited) {
+      this.selectedAcademyId = firstNonInvited.value;
+    }
+    this.cdr.markForCheck();
+  }
 
   generateSeeding() {
     if (!this.tournamentId) return;
@@ -496,10 +542,38 @@ export class TournamentManageComponent implements OnInit {
   }
 
   private extractError(err: any, fallback: string): string {
-    if (!err?.error) return fallback;
+    if (!err) return fallback;
+
+    // Handle string error body
     if (typeof err.error === 'string') return err.error;
-    if (err.error.errors) return Object.values(err.error.errors).map((e: any) => e.join(', ')).join(' | ');
-    return err.error.message || err.error.detail || err.error.title || fallback;
+
+    // Handle error object with nested errors
+    if (err.error?.errors) {
+      const msgs = Object.values(err.error.errors).map((e: any) =>
+        Array.isArray(e) ? e.join(', ') : String(e)
+      );
+      return msgs.join(' | ');
+    }
+
+    // Handle various message fields
+    if (err.error?.message) return err.error.message;
+    if (err.error?.detail) return err.error.detail;
+    if (err.error?.title) return err.error.title;
+
+    // Handle raw status text
+    if (err.statusText && err.statusText !== 'OK') {
+      return `${err.statusText} (${err.status})`;
+    }
+
+    // Handle HTTP status codes with friendly messages
+    if (err.status === 400) return 'Bad request — please check your input and try again.';
+    if (err.status === 401) return 'Unauthorized — please log in again.';
+    if (err.status === 403) return 'Forbidden — you do not have permission for this action.';
+    if (err.status === 404) return 'Not found — the requested resource does not exist.';
+    if (err.status === 409) return 'Conflict — this action has already been performed.';
+    if (err.status === 500) return 'Server error — please try again later.';
+
+    return fallback;
   }
 private notifyParticipatingAcademies(message: string) {
   if (!this.teams || !this.teams.length) return;

@@ -1,7 +1,9 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { Subject, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import {
   ParentService,
   ParentChild,
@@ -17,10 +19,15 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
   selector: 'app-parent-dashboard',
   standalone: true,
   imports: [CommonModule, FormsModule, LoadingSpinnerComponent, EmptyStateComponent, TranslatePipe],
+  changeDetection: ChangeDetectionStrategy.OnPush, // 🟢 OPTIMIZATION: Halts redundant UI renders
   templateUrl: './parent-dashboard.component.html',
   styleUrls: ['./parent-dashboard.component.css']
 })
-export class ParentDashboardComponent implements OnInit {
+export class ParentDashboardComponent implements OnInit, OnDestroy {
+  // 🟢 OPTIMIZATION: Memory cleanup crew
+  private subscriptions = new Subscription();
+  private searchSubject = new Subject<string>();
+
   children: ParentChild[] = [];
   selectedChild: ParentChild | null = null;
   pendingRequests: ParentPlayerJoinRequest[] = [];
@@ -36,6 +43,44 @@ export class ParentDashboardComponent implements OnInit {
   isSendingRequest: { [key: number]: boolean } = {};
 
   failedImagePlayerIds: Set<number> = new Set();
+
+  constructor(
+    private parentService: ParentService,
+    private router: Router,
+    private cdr: ChangeDetectorRef,
+    private toast: ToastService,
+    private translate: TranslateService
+  ) { }
+
+  ngOnInit(): void {
+    this.setupSearchDebounce();
+    this.loadData();
+  }
+
+  ngOnDestroy(): void {
+    // 🟢 OPTIMIZATION: Nuke all pending memory tasks when leaving the page
+    this.subscriptions.unsubscribe();
+  }
+
+  // 🟢 OPTIMIZATION: Prevents backend DDOS by waiting 400ms after user stops typing
+  private setupSearchDebounce(): void {
+    this.subscriptions.add(
+      this.searchSubject.pipe(
+        debounceTime(400),
+        distinctUntilChanged()
+      ).subscribe(query => {
+        this.executeSearch(query);
+      })
+    );
+  }
+
+  // Bind this method to your HTML search input (e.g., (ngModelChange)="onSearchInput($event)")
+  onSearchInput(query: string): void {
+    this.isSearching = true;
+    this.searchQuery = query;
+    this.cdr.detectChanges();
+    this.searchSubject.next(query);
+  }
 
   onImageError(playerId: number): void {
     this.failedImagePlayerIds.add(playerId);
@@ -53,36 +98,27 @@ export class ParentDashboardComponent implements OnInit {
     return (parts[0][0] + parts[1][0]).toUpperCase();
   }
 
-  constructor(
-    private parentService: ParentService,
-    private router: Router,
-    private cdr: ChangeDetectorRef,
-    private toast: ToastService,
-    private translate: TranslateService
-  ) { }
 
   goToParentAi(): void {
     this.router.navigate(['/parent/chat']);
   }
 
-  ngOnInit(): void {
-    this.loadData();
-  }
-
   loadData(): void {
     this.isLoading = true;
     this.errorMessage = '';
+    this.cdr.detectChanges();
 
-    this.parentService.getMyChildren().subscribe({
-      next: (res: any) => {
-        const data = res.data || res;
-        this.children = Array.isArray(data) ? data : [];
+    this.subscriptions.add(
+      this.parentService.getMyChildren().subscribe({
+        next: (res: { data?: ParentChild[] } | ParentChild[]) => { // 🟢 OPTIMIZATION: Strict Typing
+          const data = (res as any).data || res;
+          this.children = Array.isArray(data) ? data : [];
 
-        if (this.children.length > 0 && (!this.selectedChild || !this.children.some(c => c.playerId === this.selectedChild?.playerId))) {
-          this.selectedChild = this.children[0];
-        } else if (this.children.length === 0) {
-          this.selectedChild = null;
-        }
+          if (this.children.length > 0 && (!this.selectedChild || !this.children.some(c => c.playerId === this.selectedChild?.playerId))) {
+            this.selectedChild = this.children[0];
+          } else if (this.children.length === 0) {
+            this.selectedChild = null;
+          }
 
         this.loadPendingRequests();
       },
@@ -92,23 +128,25 @@ export class ParentDashboardComponent implements OnInit {
         this.isLoading = false;
         this.cdr.detectChanges();
       }
-    });
+    }));
   }
 
   loadPendingRequests(): void {
-    this.parentService.getMyPendingRequests().subscribe({
-      next: (res: any) => {
-        const data = res.data || res;
-        this.pendingRequests = Array.isArray(data) ? data : [];
-        this.isLoading = false;
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error('Failed to load pending requests', err);
-        this.isLoading = false;
-        this.cdr.detectChanges();
-      }
-    });
+    this.subscriptions.add(
+      this.parentService.getMyPendingRequests().subscribe({
+        next: (res: { data?: ParentPlayerJoinRequest[] } | ParentPlayerJoinRequest[]) => { // 🟢 OPTIMIZATION: Strict Typing
+          const data = (res as any).data || res;
+          this.pendingRequests = Array.isArray(data) ? data : [];
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error('Failed to load pending requests', err);
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        }
+      })
+    );
   }
 
   onChildSelect(child: ParentChild): void {
@@ -120,28 +158,36 @@ export class ParentDashboardComponent implements OnInit {
     this.showSearchModal = true;
     this.searchQuery = '';
     this.searchResults = [];
-    this.onSearchPlayers();
+    this.cdr.detectChanges();
+    // Replaced manual call to hit the debouncer
+    this.onSearchInput('');
   }
 
   closeSearchModal(): void {
     this.showSearchModal = false;
+    this.cdr.detectChanges();
+  }
+
+  private executeSearch(query: string): void {
+    this.subscriptions.add(
+      this.parentService.searchPlayers(query).subscribe({
+        next: (res: { data?: ParentPlayerSearchResponse[] } | ParentPlayerSearchResponse[]) => { // 🟢 OPTIMIZATION: Strict Typing
+          const data = (res as any).data || res;
+          this.searchResults = Array.isArray(data) ? data : [];
+          this.isSearching = false;
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error('Error searching players:', err);
+          this.isSearching = false;
+          this.cdr.detectChanges();
+        }
+      })
+    );
   }
 
   onSearchPlayers(): void {
-    this.isSearching = true;
-    this.parentService.searchPlayers(this.searchQuery).subscribe({
-      next: (res: any) => {
-        const data = res.data || res;
-        this.searchResults = Array.isArray(data) ? data : [];
-        this.isSearching = false;
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error('Error searching players:', err);
-        this.isSearching = false;
-        this.cdr.detectChanges();
-      }
-    });
+    this.executeSearch(this.searchQuery);
   }
 
   sendLinkRequest(player: ParentPlayerSearchResponse): void {

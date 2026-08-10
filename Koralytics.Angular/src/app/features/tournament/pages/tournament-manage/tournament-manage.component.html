@@ -261,6 +261,9 @@
                 <h2>Academy Invitations</h2>
                 <p>Add eligible academies to the tournament registration pool.</p>
               </div>
+              @if (invitedAcademyIds.size > 0) {
+                <span class="count-pill invited-pill">{{ invitedAcademyIds.size }} invited</span>
+              }
             </div>
             <div class="status-control-row">
               <app-select
@@ -269,8 +272,18 @@
                 [value]="selectedAcademyId"
                 (valueChange)="setSelectedAcademy($event)">
               </app-select>
-              <button class="secondary-btn compact" type="button" (click)="inviteSelectedAcademy()" [disabled]="actionDisabled || !selectedAcademyId">
-                {{ activeAction === 'invite' ? 'Inviting...' : 'Invite' }}
+              <button
+                [class]="selectedAcademyId && isAcademyInvited(selectedAcademyId) ? 'invited-btn compact' : 'secondary-btn compact'"
+                type="button"
+                (click)="inviteSelectedAcademy()"
+                [disabled]="actionDisabled || !selectedAcademyId || (selectedAcademyId && isAcademyInvited(selectedAcademyId))">
+                @if (activeAction === 'invite') {
+                  Inviting...
+                } @else if (selectedAcademyId && isAcademyInvited(selectedAcademyId)) {
+                  ✓ Already Invited
+                } @else {
+                  Invite
+                }
               </button>
             </div>
           </section>

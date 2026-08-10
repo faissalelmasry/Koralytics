@@ -389,8 +389,8 @@
               </div>
               <div class="academy-invite-grid">
                 @for (academy of filteredAvailableAcademies; track academy.id) {
-                  <div class="academy-invite-card">
-                    <div class="academy-avatar">
+                  <div class="academy-invite-card" [class.academy-invited]="academy.inviteStatus === 'Invited'">
+                    <div class="academy-avatar" [class.avatar-invited]="academy.inviteStatus === 'Invited'">
                       {{ academy.name?.charAt(0) || 'A' }}
                     </div>
                     <div class="academy-info">
@@ -402,17 +402,21 @@
                       [class.inviting]="academy.inviteStatus === 'Inviting'"
                       [class.invited]="academy.inviteStatus === 'Invited'"
                       [class.error]="academy.inviteStatus === 'Error'"
+                      [disabled]="academy.inviteStatus === 'Invited' || academy.inviteStatus === 'Inviting'"
                       (click)="inviteAcademy(academy)">
                       @if (academy.inviteStatus === 'Idle') {
                         Invite
                       } @else if (academy.inviteStatus === 'Inviting') {
                         <div class="btn-spinner"></div> Inviting...
                       } @else if (academy.inviteStatus === 'Invited') {
-                        Invited
+                        ✓ Invited
                       } @else if (academy.inviteStatus === 'Error') {
-                        Failed
+                        Retry
                       }
                     </button>
+                    @if (academy.inviteError) {
+                      <div class="invite-error-msg">{{ academy.inviteError }}</div>
+                    }
                   </div>
                 }
               </div>
@@ -443,7 +447,7 @@
           </div>
 
           <div class="teams-grid">
-            @for (team of teams; track team.tournamentTeamId) {
+            @for (team of acceptedTeams; track team.tournamentTeamId) {
               <div class="team-card">
                 <div class="team-logo-placeholder">{{ team.academyName?.charAt(0) || team.teamName?.charAt(0) }}</div>
                 <div class="team-details">
@@ -454,7 +458,6 @@
                   @if (team.seedNumber) {
                     <div class="t-meta">Seed #{{ team.seedNumber }}</div>
                   }
-                  <div class="t-meta">Status: {{ team.status }}</div>
                   <div class="t-meta">Registered: {{ team.registeredAt | date:'mediumDate' }}</div>
                   <button class="mini-link-btn" type="button" (click)="goToSquadRegistration(team.teamId); $event.stopPropagation()">
                     Register squad
@@ -462,7 +465,7 @@
                 </div>
               </div>
             }
-            @if (teams.length === 0) {
+            @if (acceptedTeams.length === 0) {
               <div class="empty-tab">No teams have accepted their invitations yet.</div>
             }
           </div>

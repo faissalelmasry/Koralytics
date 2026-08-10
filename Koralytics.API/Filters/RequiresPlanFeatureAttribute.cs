@@ -1,5 +1,7 @@
+using System;
 using Koralytics.Domain.Enums;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.Extensions.DependencyInjection; // 🟢 Required for GetRequiredService
 
 namespace Koralytics.API.Filters
 {
@@ -11,6 +13,10 @@ namespace Koralytics.API.Filters
     public class RequiresPlanFeatureAttribute : Attribute, IFilterFactory
     {
         public TierFeature Feature { get; }
+
+        // 🟢 ARCHITECTURAL GUARDRAIL: Must remain 'false'.
+        // If true, the filter becomes a Singleton and creates a "Captive Dependency", 
+        // trapping the Scoped IUnitOfWork in memory and crashing the application.
         public bool IsReusable => false;
 
         public RequiresPlanFeatureAttribute(TierFeature feature)
@@ -22,6 +28,7 @@ namespace Koralytics.API.Filters
         {
             var filter = serviceProvider.GetRequiredService<PlanFeatureFilter>();
             filter.RequiredFeature = Feature;
+
             return filter;
         }
     }

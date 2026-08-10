@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import { SubscriptionService } from '@core/services/subscription/subscription.service';
 import { AuthService } from '@core/services/auth/auth.service';
 import { PlayerSubscriptionDto, CreateSubscriptionDto } from '@core/models/subscription/subscription.model';
@@ -22,6 +23,7 @@ import { LocalizedDatePipe } from '@shared/pipes/localized-date.pipe';
 @Component({
   selector: 'app-academy-subscriptions',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush, // 🟢 OPTIMIZATION: Halts redundant UI rendering
   imports: [
     CommonModule,
     FormsModule,
@@ -41,7 +43,12 @@ import { LocalizedDatePipe } from '@shared/pipes/localized-date.pipe';
   templateUrl: './academy-subscriptions.component.html',
   styleUrl: './academy-subscriptions.component.css',
 })
-export class AcademySubscriptions implements OnInit {
+export class AcademySubscriptions implements OnInit, OnDestroy {
+  // 🟢 OPTIMIZATION: Memory cleanup crew
+  private subscriptionsList = new Subscription();
+
+  activeAcademyId!: number;
+
   subscriptions: PlayerSubscriptionDto[] = [];
   filteredSubscriptions: PlayerSubscriptionDto[] = [];
   paginatedSubscriptions: PlayerSubscriptionDto[] = [];
@@ -66,14 +73,13 @@ export class AcademySubscriptions implements OnInit {
     startDate: new Date().toISOString().substring(0, 10)
   };
 
-  get durationOptions(): SelectOption[] {
-    return [
-      { value: SubscriptionDuration.OneMonth, label: 'ACADEMY_ADMIN.SUBSCRIPTIONS.DURATION_1M' },
-      { value: SubscriptionDuration.ThreeMonths, label: 'ACADEMY_ADMIN.SUBSCRIPTIONS.DURATION_3M' },
-      { value: SubscriptionDuration.SixMonths, label: 'ACADEMY_ADMIN.SUBSCRIPTIONS.DURATION_6M' },
-      { value: SubscriptionDuration.OneYear, label: 'ACADEMY_ADMIN.SUBSCRIPTIONS.DURATION_1Y' }
-    ];
-  }
+  // 🟢 OPTIMIZATION: Static array prevents GC churn
+  readonly durationOptions: SelectOption[] = [
+    { value: SubscriptionDuration.OneMonth, label: 'ACADEMY_ADMIN.SUBSCRIPTIONS.DURATION_1M' },
+    { value: SubscriptionDuration.ThreeMonths, label: 'ACADEMY_ADMIN.SUBSCRIPTIONS.DURATION_3M' },
+    { value: SubscriptionDuration.SixMonths, label: 'ACADEMY_ADMIN.SUBSCRIPTIONS.DURATION_6M' },
+    { value: SubscriptionDuration.OneYear, label: 'ACADEMY_ADMIN.SUBSCRIPTIONS.DURATION_1Y' }
+  ];
 
   // PLAYER HISTORY MODAL STATE
   selectedHistoryPlayer: { id: number; name: string } | null = null;
@@ -87,37 +93,47 @@ export class AcademySubscriptions implements OnInit {
     private subscriptionService: SubscriptionService,
     private authService: AuthService,
     private notificationService: NotificationService,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private cdr: ChangeDetectorRef // 🟢 OPTIMIZATION: Injected for precise UI updates
   ) { }
 
   ngOnInit(): void {
+    // 🟢 OPTIMIZATION: Evaluate Active Academy ID exactly once on load
+    const user = this.authService.getCurrentUserValue();
+    this.activeAcademyId = user?.academyId || 2;
+
     this.loadSubscriptions();
   }
 
-  get activeAcademyId(): number {
-    const user = this.authService.getCurrentUserValue();
-    return user?.academyId || 2;
+  ngOnDestroy(): void {
+    // 🟢 OPTIMIZATION: Nuke all pending requests when navigating away
+    this.subscriptionsList.unsubscribe();
   }
 
   loadSubscriptions(): void {
     this.isLoading = true;
     this.errorMessage = '';
+    
+const academyId = this.activeAcademyId;
 
-    const academyId = this.activeAcademyId;
-
-    this.subscriptionService.getAcademySubscriptions(academyId).subscribe({
-      next: (data: PlayerSubscriptionDto[]) => {
-        this.subscriptions = (data || []).filter(s => !this.isPaid(s.status));
-        this.applyFilters();
-        this.isLoading = false;
-      },
-      error: (err) => {
-        console.error('Failed to load academy subscriptions:', err);
-        this.errorMessage = err?.error?.message || this.translate.instant('ACADEMY_ADMIN.MESSAGES.LOAD_SUBS_FAILED');
-        this.isLoading = false;
-      }
-    });
-  }
+this.subscriptionsList.add(
+  this.subscriptionService.getAcademySubscriptions(academyId).subscribe({
+    next: (data: PlayerSubscriptionDto[]) => {
+      this.subscriptions = (data || []).filter(s => !this.isPaid(s.status));
+      this.applyFilters();
+      this.isLoading = false;
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      console.error('Failed to load academy subscriptions:', err);
+      this.errorMessage =
+        err?.error?.message ||
+        this.translate.instant('ACADEMY_ADMIN.MESSAGES.LOAD_SUBS_FAILED');
+      this.isLoading = false;
+      this.cdr.detectChanges();
+    }
+  })
+);
 
   applyFilters(): void {
     let result = [...this.subscriptions];
@@ -140,11 +156,13 @@ export class AcademySubscriptions implements OnInit {
   onPageChange(page: number): void {
     this.currentPage = page;
     this.updatePaginatedSubscriptions();
+    this.cdr.detectChanges();
   }
 
   onSearchChange(text: string): void {
     this.searchQuery = text;
     this.applyFilters();
+    this.cdr.detectChanges();
   }
 
   // EDIT MODAL HANDLERS
@@ -158,15 +176,17 @@ export class AcademySubscriptions implements OnInit {
       startDate: sub.startDate ? new Date(sub.startDate).toISOString().substring(0, 10) : new Date().toISOString().substring(0, 10)
     };
     this.isEditModalOpen = true;
+    this.cdr.detectChanges();
   }
 
   closeEditModal(): void {
     this.isEditModalOpen = false;
     this.selectedSubForEdit = null;
+    this.cdr.detectChanges();
   }
 
-  onEditDurationSelect(val: any): void {
-    this.editSub.duration = val;
+  onEditDurationSelect(val: string | number | null): void {
+    this.editSub.duration = val as SubscriptionDuration;
   }
 
   onEditStartDateChange(val: string): void {
@@ -180,26 +200,31 @@ export class AcademySubscriptions implements OnInit {
   onSaveEditedSubscription(): void {
     if (!this.editSub.amount || this.editSub.amount <= 0) {
       this.errorMessage = 'Please enter a valid amount.';
+      this.cdr.detectChanges();
       return;
     }
 
     this.isEditingSub = true;
     this.errorMessage = '';
     this.successMessage = '';
-
-    this.subscriptionService.createSubscription(this.editSub).subscribe({
-      next: () => {
-        this.successMessage = `Subscription plan updated successfully for ${this.selectedSubForEdit?.playerName}!`;
-        this.isEditingSub = false;
-        this.closeEditModal();
-        this.loadSubscriptions();
-      },
-      error: (err) => {
-        this.errorMessage = err?.error?.message || this.translate.instant('ACADEMY_ADMIN.MESSAGES.UPDATE_SUB_FAILED');
-        this.isEditingSub = false;
-      }
-    });
-  }
+    
+this.subscriptionsList.add(
+  this.subscriptionService.createSubscription(this.editSub).subscribe({
+    next: () => {
+      this.successMessage = `Subscription plan updated successfully for ${this.selectedSubForEdit?.playerName}!`;
+      this.isEditingSub = false;
+      this.closeEditModal();
+      this.loadSubscriptions();
+    },
+    error: (err) => {
+      this.errorMessage =
+        err?.error?.message ||
+        this.translate.instant('ACADEMY_ADMIN.MESSAGES.UPDATE_SUB_FAILED');
+      this.isEditingSub = false;
+      this.cdr.detectChanges();
+    }
+  })
+);
 
   // CONFIRM DIALOG STATE
   isConfirmDialogOpen = false;
@@ -216,11 +241,13 @@ export class AcademySubscriptions implements OnInit {
       playerName: sub.playerName
     });
     this.isConfirmDialogOpen = true;
+    this.cdr.detectChanges();
   }
 
   onConfirmDialogExecute(): void {
     if (!this.targetSubForCash) {
       this.isConfirmDialogOpen = false;
+      this.cdr.detectChanges();
       return;
     }
 
@@ -231,34 +258,43 @@ export class AcademySubscriptions implements OnInit {
     this.isProcessingCashId = sub.id;
     this.errorMessage = '';
     this.successMessage = '';
+this.subscriptionsList.add(
+  this.subscriptionService.markAsPaidByCash(sub.id).subscribe({
+    next: () => {
+      this.successMessage = `Cash payment confirmed for ${sub.playerName}! Status set to Paid.`;
 
-    this.subscriptionService.markAsPaidByCash(sub.id).subscribe({
-      next: () => {
-        this.successMessage = `Cash payment confirmed for ${sub.playerName}! Status set to Paid.`;
-        // notification
-        const playerMsg = `Your cash payment of ${sub.amount} EGP has been confirmed successfully.`;
-        const parentMsg = `Cash payment of ${sub.amount} EGP for your child's subscription has been confirmed.`;
-        
+      const playerMsg = `Your cash payment of ${sub.amount} EGP has been confirmed successfully.`;
+      const parentMsg = `Cash payment of ${sub.amount} EGP for your child's subscription has been confirmed.`;
+
+      this.subscriptionsList.add(
         this.notificationService.notifyPlayerMilestone(sub.playerId, playerMsg).subscribe({
           error: (e) => console.error('Failed to notify player', e)
-        });
-        
+        })
+      );
+
+      this.subscriptionsList.add(
         this.notificationService.notifyPlayerParents(sub.playerId, parentMsg).subscribe({
           error: (e) => console.error('Failed to notify parent', e)
-        });
-        this.isProcessingCashId = null;
-        this.loadSubscriptions();
-      },
-      error: (err) => {
-        console.error('Failed to mark cash payment:', err);
-        this.errorMessage = err?.error?.message || this.translate.instant('ACADEMY_ADMIN.MESSAGES.MARK_CASH_FAILED');
-        this.isProcessingCashId = null;
-      }
-    });
+        })
+      );
+
+      this.isProcessingCashId = null;
+      this.loadSubscriptions();
+    },
+    error: (err) => {
+      console.error('Failed to mark cash payment:', err);
+      this.errorMessage =
+        err?.error?.message ||
+        this.translate.instant('ACADEMY_ADMIN.MESSAGES.MARK_CASH_FAILED');
+      this.isProcessingCashId = null;
+      this.cdr.detectChanges();
+    }
+  })
+);
   }
 
   // PLAYER HISTORY MODAL HANDLERS
-  mapStatusToBadge(status: any): string {
+  mapStatusToBadge(status: number | string): string {
     if (status === 1 || status === 'Paid') return 'ACADEMY_ADMIN.SUBSCRIPTIONS.PAID';
     if (status === 2 || status === 'Unpaid') return 'ACADEMY_ADMIN.SUBSCRIPTIONS.UNPAID';
     if (status === 3 || status === 'Grace') return 'ACADEMY_ADMIN.SUBSCRIPTIONS.GRACE';
@@ -269,23 +305,29 @@ export class AcademySubscriptions implements OnInit {
     this.selectedHistoryPlayer = { id: playerId, name: playerName };
     this.isLoadingHistory = true;
     this.historySubscriptions = [];
+    this.cdr.detectChanges();
 
-    this.subscriptionService.getPlayerSubscriptionHistory(playerId).subscribe({
-      next: (data) => {
-        this.historySubscriptions = data || [];
-        this.isLoadingHistory = false;
-      },
-      error: (err) => {
-        console.error('Failed to load player history:', err);
-        this.errorMessage = 'Failed to load player subscription history.';
-        this.isLoadingHistory = false;
-      }
-    });
-  }
+    this.subscriptionsList.add(
+      this.subscriptionService.getPlayerSubscriptionHistory(playerId).subscribe({
+        next: (data) => {
+          this.historySubscriptions = data || [];
+          this.isLoadingHistory = false;
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error('Failed to load player history:', err);
+          this.errorMessage = 'Failed to load player subscription history.';
+          this.isLoadingHistory = false;
+          this.cdr.detectChanges();
+        }
+      })
+    );
+  
 
   closeHistoryModal(): void {
     this.selectedHistoryPlayer = null;
     this.historySubscriptions = [];
+    this.cdr.detectChanges();
   }
 
   getStatusChipType(status: SubscriptionStatus | string | number): 'success' | 'danger' | 'warning' | 'info' {

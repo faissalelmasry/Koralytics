@@ -1,16 +1,18 @@
 using Koralytics.Application.DTOs.Subscription;
 using Koralytics.Application.Interfaces.Subscription;
 using Koralytics.Domain.Enums;
+using Koralytics.Domain.ValueObjects; // Required for SubscriptionTierPolicy
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace Koralytics.API.Filters
 {
     /// <summary>
     /// Action filter that resolves the user's AcademyId, looks up their subscription tier limits,
-    /// and blocks the request with a 403 Forbidden (PlanLimitExceededDto) if the required
-    /// boolean feature flag is disabled for their tier.
+    /// and blocks the request with a 403 Forbidden if the required feature flag is disabled.
     /// </summary>
     public class PlanFeatureFilter : IAsyncActionFilter
     {
@@ -30,25 +32,27 @@ namespace Koralytics.API.Filters
             if (!int.TryParse(academyIdStr, out var academyId))
             {
                 // Unauthenticated or not tied to an academy. Let the endpoint handle standard logic or 401s.
-                // Or we can safely block if we assume these endpoints ONLY apply to academy users.
-                // We'll let it pass here and assume standard auth catches it if they shouldn't be here.
                 await next();
                 return;
             }
 
-            var limits = await _tenantSubscriptionService.GetLimitsAsync(academyId);
-            var tier = await _tenantSubscriptionService.GetTierAsync(academyId);
+            // 🟢 OPTIMIZATION: Grab the request's cancellation token
+            var ct = context.HttpContext.RequestAborted;
+
+            // 🟢 OPTIMIZATION: Await once (which hits our fast MemoryCache), resolve limits synchronously.
+            var tier = await _tenantSubscriptionService.GetTierAsync(academyId, ct);
+            var limits = SubscriptionTierPolicy.GetLimits(tier);
 
             bool isAllowed = RequiredFeature switch
             {
                 TierFeature.ProgressionAnalytics => limits.AllowProgressionAnalytics,
-                TierFeature.SquadWeakness        => limits.AllowSquadWeakness,
-                TierFeature.TransferRate         => limits.AllowTransferRate,
-                TierFeature.FullAnalyticsSuite   => limits.AllowFullAnalyticsSuite,
-                TierFeature.AIInsights           => limits.AllowAIInsights,
-                TierFeature.StripePayments       => limits.AllowStripe,
-                TierFeature.AcademyComparison    => limits.AllowAcademyComparison,
-                TierFeature.ArchetypeReveal      => limits.AllowArchetypeReveal,
+                TierFeature.SquadWeakness => limits.AllowSquadWeakness,
+                TierFeature.TransferRate => limits.AllowTransferRate,
+                TierFeature.FullAnalyticsSuite => limits.AllowFullAnalyticsSuite,
+                TierFeature.AIInsights => limits.AllowAIInsights,
+                TierFeature.StripePayments => limits.AllowStripe,
+                TierFeature.AcademyComparison => limits.AllowAcademyComparison,
+                TierFeature.ArchetypeReveal => limits.AllowArchetypeReveal,
                 _ => false
             };
 
