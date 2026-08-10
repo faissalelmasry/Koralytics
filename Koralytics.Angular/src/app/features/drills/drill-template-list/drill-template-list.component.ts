@@ -111,6 +111,8 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
 
   // --- Auth State ---
   currentUserId: number | null = null;
+  currentUserRoles: string[] = [];
+  canManageGlobalDrills: boolean = false;
 
   // --- Select Options for shared components ---
   categoryOptions: SelectOption[] = [];        // for filter bar (includes "All Categories")
@@ -165,6 +167,8 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
     this.subscriptions.add(
       this.authService.currentUser$.subscribe(user => {
         this.currentUserId = user?.userId || null;
+        this.currentUserRoles = user?.roles || [];
+        this.canManageGlobalDrills = this.currentUserRoles.includes('SystemAdmin');
         this.cdr.detectChanges(); // Tell OnPush to update
       })
     );

@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { loadStripe, Stripe, StripeElements, StripeCardElement } from '@stripe/stripe-js';
+import { Subscription } from 'rxjs';
 import { SubscriptionService } from '@core/services/subscription/subscription.service';
 import { PlayerSubscriptionDto } from '@core/models/subscription/subscription.model';
 import { SubscriptionStatus, SubscriptionDuration } from '@core/enums/koralytics.enums';
@@ -15,6 +16,7 @@ import { NotificationService } from '@core/services/SignalR/notificationservice'
 @Component({
   selector: 'app-parent-subscriptions',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush, // 🟢 OPTIMIZATION: Halts redundant UI renders
   imports: [
     CommonModule,
     FormsModule,
@@ -27,7 +29,10 @@ import { NotificationService } from '@core/services/SignalR/notificationservice'
   templateUrl: './parent-subscriptions.component.html',
   styleUrls: ['./parent-subscriptions.component.css']
 })
-export class ParentSubscriptionsComponent implements OnInit {
+export class ParentSubscriptionsComponent implements OnInit, OnDestroy {
+  // 🟢 OPTIMIZATION: Memory cleanup crew
+  private subscriptionsList = new Subscription();
+
   subscriptions: PlayerSubscriptionDto[] = [];
   paginatedSubscriptions: PlayerSubscriptionDto[] = [];
   currentPage = 1;
@@ -36,6 +41,12 @@ export class ParentSubscriptionsComponent implements OnInit {
   isProcessingId: number | null = null;
   errorMessage = '';
   successMessage = '';
+
+  // 🟢 OPTIMIZATION: Static counters to prevent Getter GC churn
+  totalCount = 0;
+  paidCount = 0;
+  unpaidCount = 0;
+  graceCount = 0;
 
   // 💳 Payment Modal State
   selectedSubForPayment: PlayerSubscriptionDto | null = null;
@@ -55,29 +66,55 @@ export class ParentSubscriptionsComponent implements OnInit {
   readonly Status = SubscriptionStatus;
   readonly Duration = SubscriptionDuration;
 
-  constructor(private subscriptionService: SubscriptionService, private notificationService: NotificationService) { }
+  constructor(
+    private subscriptionService: SubscriptionService,
+    private notificationService: NotificationService,
+    private cdr: ChangeDetectorRef
+  ) { }
 
   ngOnInit(): void {
     this.loadSubscriptions();
   }
 
+  ngOnDestroy(): void {
+    // 🟢 OPTIMIZATION: Nuke all pending memory tasks and Stripe iframes when leaving the page
+    this.subscriptionsList.unsubscribe();
+    if (this.cardElement) {
+      this.cardElement.destroy();
+    }
+  }
+
   loadSubscriptions(): void {
     this.isLoading = true;
     this.errorMessage = '';
+    this.cdr.detectChanges();
 
-    this.subscriptionService.getMyChildrenSubscriptions().subscribe({
-      next: (data: PlayerSubscriptionDto[]) => {
-        this.subscriptions = data || [];
-        this.currentPage = 1;
-        this.updatePaginatedSubscriptions();
-        this.isLoading = false;
-      },
-      error: (err) => {
-        console.error('Failed to load subscriptions:', err);
-        this.errorMessage = err?.error?.message || 'Failed to load subscription details. Please try again.';
-        this.isLoading = false;
-      }
-    });
+    this.subscriptionsList.add(
+      this.subscriptionService.getMyChildrenSubscriptions().subscribe({
+        next: (data: PlayerSubscriptionDto[]) => {
+          this.subscriptions = data || [];
+          this.currentPage = 1;
+          this.calculateStats(); // 🟢 Calculated exactly once
+          this.updatePaginatedSubscriptions();
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error('Failed to load subscriptions:', err);
+          this.errorMessage = err?.error?.message || 'Failed to load subscription details. Please try again.';
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        }
+      })
+    );
+  }
+
+  // 🟢 OPTIMIZATION: Calculates stats once instead of on every render cycle
+  private calculateStats(): void {
+    this.totalCount = this.subscriptions.length;
+    this.paidCount = this.subscriptions.filter(s => this.isPaid(s.status)).length;
+    this.unpaidCount = this.subscriptions.filter(s => String(s.status).toUpperCase() === 'UNPAID' || String(s.status) === '2').length;
+    this.graceCount = this.subscriptions.filter(s => String(s.status).toUpperCase() === 'GRACE' || String(s.status) === '3').length;
   }
 
   updatePaginatedSubscriptions(): void {
@@ -88,23 +125,7 @@ export class ParentSubscriptionsComponent implements OnInit {
   onPageChange(page: number): void {
     this.currentPage = page;
     this.updatePaginatedSubscriptions();
-  }
-
-  // Stats Counters
-  get totalCount(): number {
-    return this.subscriptions.length;
-  }
-
-  get paidCount(): number {
-    return this.subscriptions.filter(s => this.isPaid(s.status)).length;
-  }
-
-  get unpaidCount(): number {
-    return this.subscriptions.filter(s => String(s.status).toUpperCase() === 'UNPAID' || String(s.status) === '2').length;
-  }
-
-  get graceCount(): number {
-    return this.subscriptions.filter(s => String(s.status).toUpperCase() === 'GRACE' || String(s.status) === '3').length;
+    this.cdr.detectChanges();
   }
 
   // 📜 Step 2: Open History Modal & Load History
@@ -112,85 +133,102 @@ export class ParentSubscriptionsComponent implements OnInit {
     this.selectedHistoryPlayer = { id: playerId, name: playerName };
     this.isLoadingHistory = true;
     this.historySubscriptions = [];
+    this.cdr.detectChanges();
 
-    this.subscriptionService.getPlayerSubscriptionHistory(playerId).subscribe({
-      next: (data) => {
-        this.historySubscriptions = data || [];
-        this.isLoadingHistory = false;
-      },
-      error: (err) => {
-        console.error('Failed to load history:', err);
-        this.errorMessage = 'Failed to load subscription history.';
-        this.isLoadingHistory = false;
-      }
-    });
+    this.subscriptionsList.add(
+      this.subscriptionService.getPlayerSubscriptionHistory(playerId).subscribe({
+        next: (data) => {
+          this.historySubscriptions = data || [];
+          this.isLoadingHistory = false;
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error('Failed to load history:', err);
+          this.errorMessage = 'Failed to load subscription history.';
+          this.isLoadingHistory = false;
+          this.cdr.detectChanges();
+        }
+      })
+    );
   }
 
   closeHistoryModal(): void {
     this.selectedHistoryPlayer = null;
     this.historySubscriptions = [];
+    this.cdr.detectChanges();
   }
 
   // 🟢 Step A: Open Payment Modal & Fetch Payment Intent
   openPaymentModal(sub: PlayerSubscriptionDto): void {
     this.selectedSubForPayment = sub;
     this.errorMessage = '';
+    this.cdr.detectChanges();
 
     this.initStripePayment(sub.id);
   }
 
   // 🟢 Step B: Clean up and Close Payment Modal
   closePaymentModal(): void {
-    if (this.cardElement) {
-      this.cardElement.destroy();
+    try {
+      if (this.cardElement) {
+        // Unmount first just in case, then destroy
+        this.cardElement.unmount();
+        this.cardElement.destroy();
+      }
+    } catch (e) {
+      console.warn('Stripe cleanup warning:', e);
+    } finally {
       this.cardElement = null;
+      this.selectedSubForPayment = null;
+      this.cdr.detectChanges();
     }
-    this.selectedSubForPayment = null;
   }
 
   // 🟢 Step C: Contact .NET and Mount Stripe Input
   async initStripePayment(subscriptionId: number): Promise<void> {
     this.isStripeLoading = true;
+    this.cdr.detectChanges();
 
-    this.subscriptionService.createPaymentIntent(subscriptionId).subscribe({
-      next: async (res) => {
-        this.clientSecret = res.clientSecret;
+    this.subscriptionsList.add(
+      this.subscriptionService.createPaymentIntent(subscriptionId).subscribe({
+        next: async (res) => {
+          this.clientSecret = res.clientSecret;
 
-        // Load Stripe SDK with Publishable Key returned by .NET
-        this.stripe = await loadStripe(res.publishableKey);
+          this.stripe = await loadStripe(res.publishableKey);
 
-        if (this.stripe) {
-          this.elements = this.stripe.elements();
+          if (this.stripe) {
+            this.elements = this.stripe.elements();
 
-          // Style Stripe Card Input to match Koralytics Dark Theme
-          this.cardElement = this.elements.create('card', {
-            style: {
-              base: {
-                color: '#f8fafc',
-                fontFamily: 'Inter, sans-serif',
-                fontSmoothing: 'antialiased',
-                fontSize: '16px',
-                '::placeholder': { color: '#94a3b8' }
-              },
-              invalid: {
-                color: '#ef4444',
-                iconColor: '#ef4444'
+            this.cardElement = this.elements.create('card', {
+              style: {
+                base: {
+                  color: '#f8fafc',
+                  fontFamily: 'Inter, sans-serif',
+                  fontSmoothing: 'antialiased',
+                  fontSize: '16px',
+                  '::placeholder': { color: '#94a3b8' }
+                },
+                invalid: {
+                  color: '#ef4444',
+                  iconColor: '#ef4444'
+                }
               }
-            }
-          });
+            });
 
-          // Mount into <div id="card-element">
-          setTimeout(() => {
-            this.cardElement?.mount('#card-element');
-            this.isStripeLoading = false;
-          }, 100);
+            setTimeout(() => {
+              this.cardElement?.mount('#card-element');
+              this.isStripeLoading = false;
+              this.cdr.detectChanges();
+            }, 100);
+          }
+        },
+        error: (err) => {
+          this.errorMessage = err?.error?.message || 'Failed to initialize Stripe checkout.';
+          this.isStripeLoading = false;
+          this.cdr.detectChanges();
         }
-      },
-      error: (err) => {
-        this.errorMessage = err?.error?.message || 'Failed to initialize Stripe checkout.';
-        this.isStripeLoading = false;
-      }
-    });
+      })
+    );
   }
 
   // 🟢 Step D: Authorize Visa Payment via Stripe
@@ -201,10 +239,12 @@ export class ParentSubscriptionsComponent implements OnInit {
     this.isProcessingId = sub.id;
     this.errorMessage = '';
     this.successMessage = '';
+    this.cdr.detectChanges();
 
     if (!this.stripe || !this.cardElement || !this.clientSecret) {
       this.errorMessage = 'Stripe payment processor is not ready.';
       this.isProcessingId = null;
+      this.cdr.detectChanges();
       return;
     }
 
@@ -215,28 +255,43 @@ export class ParentSubscriptionsComponent implements OnInit {
     if (result.error) {
       this.errorMessage = result.error.message || 'Payment authorization failed.';
       this.isProcessingId = null;
+      this.cdr.detectChanges();
     } else if (result.paymentIntent && result.paymentIntent.status === 'succeeded') {
-      this.subscriptionService.paySubscription(sub.id).subscribe({
-        next: () => {
-          this.successMessage = `Visa Payment Successful! ${sub.amount} EGP paid for ${sub.playerName}.`;
-          // notification
-          this.notificationService.notifyAcademySubscriptionPaid(sub.academyId, sub.id).subscribe({
-            error: (e) => console.error('Failed to notify academy of payment', e)
-          });
 
-          const parentMsg = `Your online payment of ${sub.amount} EGP for ${sub.playerName} was successful.`;
-          this.notificationService.notifyPlayerParents(sub.playerId, parentMsg).subscribe({
-            error: (e) => console.error('Failed to notify parent of payment success', e)
-          });
-          this.isProcessingId = null;
-          this.closePaymentModal();
-          this.loadSubscriptions();
-        },
-        error: (err) => {
-          this.errorMessage = err?.error?.message || 'Payment authorized, but backend update failed.';
-          this.isProcessingId = null;
-        }
-      });
+      this.subscriptionsList.add(
+        this.subscriptionService.paySubscription(sub.id).subscribe({
+          next: () => {
+            this.successMessage = `Visa Payment Successful! ${sub.amount} EGP paid for ${sub.playerName}.`;
+
+            // Background notifications (No need to await or block the UI for these)
+            this.subscriptionsList.add(
+              this.notificationService.notifyAcademySubscriptionPaid(sub.academyId, sub.id).subscribe({
+                error: (e) => console.error('Failed to notify academy of payment', e)
+              })
+            );
+
+            const parentMsg = `Your online payment of ${sub.amount} EGP for ${sub.playerName} was successful.`;
+            this.subscriptionsList.add(
+              this.notificationService.notifyPlayerParents(sub.playerId, parentMsg).subscribe({
+                error: (e) => console.error('Failed to notify parent of payment success', e)
+              })
+            );
+
+            this.isProcessingId = null;
+            this.closePaymentModal();
+            this.loadSubscriptions();
+          },
+          error: (err) => {
+            this.errorMessage = err?.error?.message || 'Payment authorized, but backend update failed.';
+            this.isProcessingId = null;
+            this.cdr.detectChanges();
+          }
+        })
+      );
+    } else {
+      this.errorMessage = `Payment is pending or requires further action. Status: ${result.paymentIntent?.status}`;
+      this.isProcessingId = null;
+      this.cdr.detectChanges();
     }
   }
 
@@ -263,7 +318,7 @@ export class ParentSubscriptionsComponent implements OnInit {
   }
 
   isStripeEnabled(tier: string | number | undefined): boolean {
-    if (tier === undefined || tier === null) return true; // Default to true if not provided yet
+    if (tier === undefined || tier === null) return true;
     const t = String(tier).toLowerCase();
     return t !== 'starter' && t !== '0';
   }

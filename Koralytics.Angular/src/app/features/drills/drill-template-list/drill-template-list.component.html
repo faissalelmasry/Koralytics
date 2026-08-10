@@ -128,10 +128,12 @@
       </div>
       }
 
+      @if ((drill.academyId !== null && drill.createdById === currentUserId) || (drill.academyId === null && canManageGlobalDrills)) {
       <div class="card-actions">
         <app-button variant="slate" (click)="openEditForm(drill)">{{ 'DRILLS.TEMPLATE_LIST.EDIT' | translate }}</app-button>
         <app-button variant="coral" (click)="onDeleteTemplate(drill)">{{ 'DRILLS.TEMPLATE_LIST.DELETE' | translate }}</app-button>
       </div>
+      }
     </div>
     }
   </div>

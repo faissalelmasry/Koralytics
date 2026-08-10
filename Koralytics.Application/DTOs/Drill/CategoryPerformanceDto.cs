@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,5 +10,6 @@ namespace Koralytics.Application.DTOs.Drill
     {
         public string CategoryName { get; set; } = string.Empty;
         public decimal AverageScore { get; set; }
+        public List<PlayerPerformanceInsightDto> LowestPerformers { get; set; } = new();
     }
 }

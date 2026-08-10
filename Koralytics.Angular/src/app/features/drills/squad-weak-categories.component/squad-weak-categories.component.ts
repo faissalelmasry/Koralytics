@@ -11,6 +11,7 @@ import { Subscription } from 'rxjs';
 interface CategoryPerformance {
   categoryName: string;
   averageScore: number;
+  lowestPerformers?: { name: string; score: number }[];
 }
 
 interface TrainingSuggestion {
@@ -18,7 +19,7 @@ interface TrainingSuggestion {
   score: number;
   priority: 'CRITICAL' | 'MODERATE' | 'GOOD';
   recommendedFocus: string;
-  suggestedDrills: string[];
+  lowestPerformers: { name: string; score: number }[];
 }
 
 import { CustomSelect, SelectOption } from '../../../../shared/components/custom-select/custom-select';
@@ -163,68 +164,16 @@ export class SquadWeakCategoriesComponent implements OnInit, OnDestroy {
         recommendedFocus = this.translate.instant('DRILLS.WEAK_CATEGORIES.FOCUS_MODERATE') || 'Secondary focus area. Incorporate tactical warm-up blocks to boost efficiency.';
       }
 
-      // Dynamic drill lookup based on priority and category name
-      const suggestedDrills = this.getRecommendedDrills(cat.categoryName, priority);
+      // Dynamic player lookup based on category name
+      const lowestPerformers = cat.lowestPerformers || [];
 
       return {
         categoryName: this.translate.instant('DRILLS.DYNAMIC.CAT_' + cat.categoryName.toUpperCase()) !== ('DRILLS.DYNAMIC.CAT_' + cat.categoryName.toUpperCase()) ? this.translate.instant('DRILLS.DYNAMIC.CAT_' + cat.categoryName.toUpperCase()) : cat.categoryName,
         score: cat.averageScore,
         priority,
         recommendedFocus,
-        suggestedDrills
+        lowestPerformers
       };
-    });
-  }
-
-  private getRecommendedDrills(category: string, priority: 'CRITICAL' | 'MODERATE' | 'GOOD'): string[] {
-    const catLower = category.toLowerCase();
-    let drills: string[] = [];
-
-    // 1. SHOOTING / FINISHING
-    if (catLower.includes('shoot') || catLower.includes('finish')) {
-      if (priority === 'CRITICAL') drills = ['1v1 Finishing Under Pressure', 'First-Touch Box Striking'];
-      else if (priority === 'MODERATE') drills = ['Volley Technique Drill', 'Long Distance Power Shots'];
-      else drills = ['Advanced Counter-Attack Finishing', 'Free Kick & Dead Ball Practice'];
-    }
-    // 2. PASSING / VISION
-    else if (catLower.includes('pass') || catLower.includes('vision')) {
-      if (priority === 'CRITICAL') drills = ['Rondo 4v2 Quick Touch', 'Short Wall-Pass Combinations'];
-      else if (priority === 'MODERATE') drills = ['Long Diagonal Switch Drill', 'Through-Ball Timing Exercises'];
-      else drills = ['One-Touch Possession Grid', 'Over-the-Top Lofted Passes'];
-    }
-    // 3. PHYSICAL / SPEED / STAMINA / AGILITY
-    else if (catLower.includes('physic') || catLower.includes('agil') || catLower.includes('speed') || catLower.includes('stamina')) {
-      if (priority === 'CRITICAL') drills = ['Agility Ladder Sprint Reps', 'High-Intensity Shuttle Runs'];
-      else if (priority === 'MODERATE') drills = ['Plyometric Box Jumps', 'Interval Resistance Runs'];
-      else drills = ['Match-Pace Recovery Runs', 'Explosive Acceleration Reps'];
-    }
-    // 4. DEFENDING
-    else if (catLower.includes('defend')) {
-      if (priority === 'CRITICAL') drills = ['1v1 Jockeying & Tackling', 'Defensive Line Back-Pedal'];
-      else if (priority === 'MODERATE') drills = ['2v2 High-Press Recovery', 'Blocking Crosses in Box'];
-      else drills = ['Offside Trap Coordination', 'Zonal Marking Drills'];
-    }
-    // 5. GOALKEEPING
-    else if (catLower.includes('keep') || catLower.includes('goal')) {
-      if (priority === 'CRITICAL') drills = ['Shot Stopping & Reaction Saves', 'Handling High Crosses'];
-      else if (priority === 'MODERATE') drills = ['Distribution & Long Kicks', '1v1 Smothering Angles'];
-      else drills = ['Sweeper Keeper Sweeping', 'Penalty Reaction Training'];
-    }
-    // 6. DRIBBLING
-    else if (catLower.includes('dribbl')) {
-      if (priority === 'CRITICAL') drills = ['Tight-Space Cone Weaving', 'Close Control Touches'];
-      else if (priority === 'MODERATE') drills = ['1v1 Isolation Takes', 'Change of Pace Dribbling'];
-      else drills = ['High-Speed Wing Skill Moves', 'Shielding Under Pressure'];
-    }
-    // Default Maintenance Fallbacks
-    else {
-      drills = ['Advanced Technical Routine', 'Positional Maintenance Scrimmage'];
-    }
-
-    return drills.map(d => {
-      const key = 'DRILLS.DYNAMIC.' + d.toUpperCase().replace(/[^A-Z0-9]/g, '_').replace(/_+/g, '_');
-      const translated = this.translate.instant(key);
-      return translated !== key ? translated : d;
     });
   }
 

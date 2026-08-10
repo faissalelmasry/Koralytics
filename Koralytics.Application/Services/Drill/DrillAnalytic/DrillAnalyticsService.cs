@@ -19,17 +19,36 @@ namespace Koralytics.Application.Services.Drill.DrillAnalytic
 
         public async Task<IEnumerable<CategoryPerformanceDto>> GetSquadWeakCategoriesAsync(int teamId)
         {
-            var squadPerformance = await _unitOfWork.Repository<Domain.Entities.Drill.DrillResult>()
+            var rawResults = await _unitOfWork.Repository<Domain.Entities.Drill.DrillResult>()
                 .GetQueryableAsNoTracking()
                 .Where(r => r.Drill.DrillSession.TeamId == teamId)
-                .GroupBy(r => r.Drill.DrillTemplate.DrillCategory.Name)
+                .Select(r => new
+                {
+                    CategoryName = r.Drill.DrillTemplate.DrillCategory.Name ?? "Uncategorized",
+                    PlayerId = r.PlayerId,
+                    PlayerName = r.Player.FirstName + " " + r.Player.LastName,
+                    Score = r.FinalScore
+                })
+                .ToListAsync();
+
+            var squadPerformance = rawResults
+                .GroupBy(r => r.CategoryName)
                 .Select(g => new CategoryPerformanceDto
                 {
-                    CategoryName = g.Key ?? "Uncategorized",
-                    AverageScore = Math.Round(g.Average(r => r.FinalScore), 2)
+                    CategoryName = g.Key,
+                    AverageScore = Math.Round(g.Average(r => r.Score), 2),
+                    LowestPerformers = g.GroupBy(p => new { p.PlayerId, p.PlayerName })
+                                        .Select(pg => new PlayerPerformanceInsightDto
+                                        {
+                                            Name = string.IsNullOrWhiteSpace(pg.Key.PlayerName) ? $"Player #{pg.Key.PlayerId}" : pg.Key.PlayerName.Trim(),
+                                            Score = Math.Round(pg.Average(p => p.Score), 2)
+                                        })
+                                        .OrderBy(p => p.Score)
+                                        .Take(3)
+                                        .ToList()
                 })
                 .OrderBy(c => c.AverageScore)
-                .ToListAsync();
+                .ToList();
 
             return squadPerformance;
         }
@@ -43,7 +62,7 @@ namespace Koralytics.Application.Services.Drill.DrillAnalytic
 
             var coachUser = await _unitOfWork.Repository<Domain.Entities.Coach.Coach>()
                 .GetQueryableAsNoTracking()
-                .Select(u => new { u.Id, u.FirstName, u.LastName, u.UserName }) // Lightweight projection
+                .Select(u => new { u.Id, u.FirstName, u.LastName, u.UserName })
                 .FirstOrDefaultAsync(u => u.Id == targetCoachId);
 
             string coachName = coachUser != null
@@ -58,10 +77,10 @@ namespace Koralytics.Application.Services.Drill.DrillAnalytic
             var cutoffDate = DateTime.UtcNow.AddDays(-30);
 
             // ====================================================================
-            // 1. FETCH PRACTICE SCORES 
+            // 1. FETCH PRACTICE SCORES CONCURRENTLY (🟢 OPTIMIZATION)
             // ====================================================================
 
-            var drillScoresList = await _unitOfWork.Repository<Domain.Entities.Drill.DrillResult>()
+            var drillScoresTask = _unitOfWork.Repository<Domain.Entities.Drill.DrillResult>()
                 .GetQueryableAsNoTracking()
                 .Where(dr => (dr.CreatedById == targetCoachId || dr.Drill.DrillSession.CoachId == targetCoachId)
                           && (dr.Drill.Mode == Koralytics.Domain.Enums.DrillMode.Manual || dr.Drill.DrillTemplate.DrillMode == Koralytics.Domain.Enums.DrillMode.Manual)
@@ -75,7 +94,7 @@ namespace Koralytics.Application.Services.Drill.DrillAnalytic
                 })
                 .ToListAsync();
 
-            var practiceMatchScoresList = await _unitOfWork.Repository<Domain.Entities.Match.MatchPlayerCategoryRating>()
+            var practiceMatchScoresTask = _unitOfWork.Repository<Domain.Entities.Match.MatchPlayerCategoryRating>()
                 .GetQueryableAsNoTracking()
                 .Where(cr => (cr.MatchPlayerRating.Match.Type == Koralytics.Domain.Enums.MatchType.Friendly
                            || cr.MatchPlayerRating.Match.Type == Koralytics.Domain.Enums.MatchType.Session)
@@ -90,6 +109,12 @@ namespace Koralytics.Application.Services.Drill.DrillAnalytic
                 })
                 .ToListAsync();
 
+            // Fire both database round-trips simultaneously
+            await Task.WhenAll(drillScoresTask, practiceMatchScoresTask);
+
+            var drillScoresList = drillScoresTask.Result;
+            var practiceMatchScoresList = practiceMatchScoresTask.Result;
+
             var allPracticePlayerIds = drillScoresList.Select(d => d.PlayerId)
                 .Union(practiceMatchScoresList.Select(p => p.PlayerId))
                 .Distinct()
@@ -101,7 +126,6 @@ namespace Koralytics.Application.Services.Drill.DrillAnalytic
                 .Select(p => new { p.Id, p.FirstName, p.LastName })
                 .ToListAsync();
 
-            // 🟢 OPTIMIZATION: Convert lists to Dictionaries for O(1) instant memory lookups
             var drillScores = drillScoresList.ToDictionary(d => d.PlayerId);
             var practiceMatchScores = practiceMatchScoresList.ToDictionary(m => m.PlayerId);
             var playerNames = playerNamesList.ToDictionary(p => p.Id);
@@ -165,7 +189,6 @@ namespace Koralytics.Application.Services.Drill.DrillAnalytic
                 })
                 .ToListAsync();
 
-            // 🟢 OPTIMIZATION: Dictionary for instant tournament matching
             var matchScores = matchScoresList.ToDictionary(m => m.PlayerId);
 
             // ====================================================================
@@ -177,7 +200,6 @@ namespace Koralytics.Application.Services.Drill.DrillAnalytic
 
             foreach (var practice in practiceScores)
             {
-                // 🟢 OPTIMIZATION: O(1) Instant Lookup
                 if (matchScores.TryGetValue(practice.PlayerId, out var match))
                 {
                     var practiceAvg = Math.Round(practice.AvgPracticeScore, 2);
@@ -222,9 +244,6 @@ namespace Koralytics.Application.Services.Drill.DrillAnalytic
             // ====================================================================
             // 4. SAVE THE AUDIT TO THE DATABASE
             // ====================================================================
-
-            // 🟢 OPTIMIZATION: Bulk Update via ExecuteUpdateAsync (Requires EF Core 7+)
-            // If your generic repository blocks this, you can safely revert to the FirstOrDefault/SaveChanges method.
             await _unitOfWork.Repository<Domain.Entities.Coach.CoachAcademy>()
                 .GetQueryable()
                 .Where(ca => ca.CoachUserId == targetCoachId && (academyId == 0 || ca.AcademyId == academyId) && ca.LeftAt == null)

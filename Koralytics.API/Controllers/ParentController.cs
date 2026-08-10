@@ -19,9 +19,6 @@ namespace Koralytics.API.Controllers
             _parentService = parentService;
         }
 
-        /// <summary>
-        /// Retrieves the list of children (players) linked to the logged-in parent.
-        /// </summary>
         [HttpGet("my-children")]
         [Authorize(Roles = "Parent,SystemAdmin")]
         public async Task<IActionResult> GetMyChildren()
@@ -31,9 +28,6 @@ namespace Koralytics.API.Controllers
             return OkResponse(children, "Children retrieved successfully.");
         }
 
-        /// <summary>
-        /// Searches available players by name to link to the logged-in parent.
-        /// </summary>
         [HttpGet("search-players")]
         [Authorize(Roles = "Parent,SystemAdmin")]
         public async Task<IActionResult> SearchPlayers([FromQuery] string? name)
@@ -43,21 +37,16 @@ namespace Koralytics.API.Controllers
             return OkResponse(results, "Available players retrieved successfully.");
         }
 
-        /// <summary>
-        /// Sends a join request from the logged-in parent to a child player.
-        /// </summary>
-        [HttpPost("child-requests")]
+        // 🟢 OPTIMIZED: RESTful routing. Moved identifier to the path.
+        [HttpPost("children/{playerId}/requests")]
         [Authorize(Roles = "Parent,SystemAdmin")]
-        public async Task<IActionResult> SendChildRequest([FromQuery] int playerId)
+        public async Task<IActionResult> SendChildRequest(int playerId)
         {
             var parentUserId = GetCurrentUserId();
             await _parentService.SendChildJoinRequestAsync(parentUserId, playerId);
             return OkResponse(new { }, "Join request sent successfully.");
         }
 
-        /// <summary>
-        /// Retrieves pending join requests sent by the logged-in parent.
-        /// </summary>
         [HttpGet("my-pending-requests")]
         [Authorize(Roles = "Parent,SystemAdmin")]
         public async Task<IActionResult> GetMyPendingRequests()
@@ -67,9 +56,6 @@ namespace Koralytics.API.Controllers
             return OkResponse(requests, "Pending requests retrieved successfully.");
         }
 
-        /// <summary>
-        /// Cancels a pending join request sent by the logged-in parent.
-        /// </summary>
         [HttpPatch("child-requests/{requestId}/cancel")]
         [Authorize(Roles = "Parent,SystemAdmin")]
         public async Task<IActionResult> CancelChildRequest(int requestId)
@@ -79,9 +65,6 @@ namespace Koralytics.API.Controllers
             return OkResponse(new { }, "Join request cancelled successfully.");
         }
 
-        /// <summary>
-        /// Unlinks a child player from the logged-in parent's account.
-        /// </summary>
         [HttpDelete("children/{playerId}")]
         [Authorize(Roles = "Parent,SystemAdmin")]
         public async Task<IActionResult> UnlinkChild(int playerId)
@@ -91,9 +74,6 @@ namespace Koralytics.API.Controllers
             return OkResponse(new { }, "Child unlinked successfully.");
         }
 
-        /// <summary>
-        /// Retrieves pending parent join requests received by the logged-in player.
-        /// </summary>
         [HttpGet("player-pending-requests")]
         [Authorize(Roles = "Player,SystemAdmin")]
         public async Task<IActionResult> GetPlayerPendingRequests()
@@ -103,9 +83,6 @@ namespace Koralytics.API.Controllers
             return OkResponse(requests, "Player pending requests retrieved successfully.");
         }
 
-        /// <summary>
-        /// Allows a player to respond (Accept/Reject) to a parent join request.
-        /// </summary>
         [HttpPut("child-requests/{requestId}/respond")]
         [Authorize(Roles = "Player,SystemAdmin")]
         public async Task<IActionResult> RespondToChildRequest(int requestId, [FromBody] RespondParentJoinRequestDto dto)
@@ -115,9 +92,6 @@ namespace Koralytics.API.Controllers
             return OkResponse(new { }, "Responded to join request successfully.");
         }
 
-        /// <summary>
-        /// Retrieves linked parents/guardians for the logged-in player.
-        /// </summary>
         [HttpGet("my-parents")]
         [Authorize(Roles = "Player,SystemAdmin")]
         public async Task<IActionResult> GetMyParents()
@@ -127,9 +101,6 @@ namespace Koralytics.API.Controllers
             return OkResponse(parents, "Linked parents retrieved successfully.");
         }
 
-        /// <summary>
-        /// Allows a player to unlink a parent/guardian from their account.
-        /// </summary>
         [HttpDelete("parents/{parentId}")]
         [Authorize(Roles = "Player,SystemAdmin")]
         public async Task<IActionResult> UnlinkParent(int parentId)
