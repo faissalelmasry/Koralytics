@@ -1,5 +1,6 @@
 import { Injectable, signal, effect } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -9,15 +10,23 @@ export class LocalizationService {
   public currentLang = signal<string>('en');
 
   constructor(private translate: TranslateService) {
-    this.initLang();
   }
 
-  private initLang(): void {
+  public async initLang(): Promise<void> {
     const savedLang = localStorage.getItem(this.LANG_KEY);
     const defaultLang = savedLang || 'en';
     
     this.translate.setFallbackLang('en');
-    this.setLanguage(defaultLang);
+    
+    try {
+      await firstValueFrom(this.translate.use(defaultLang));
+    } catch (e) {
+      console.warn('Failed to load translations during init');
+    }
+
+    this.currentLang.set(defaultLang);
+    localStorage.setItem(this.LANG_KEY, defaultLang);
+    this.updateDirection(defaultLang);
   }
 
   public setLanguage(lang: string): void {

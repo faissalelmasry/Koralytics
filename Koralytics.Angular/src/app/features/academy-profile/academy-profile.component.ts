@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, inject, ElementRef, ViewChild, ChangeDete
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { NavbarComponent } from '../../../shared/components/navbar/navbar';
 import { Footer } from '../../../shared/components/footer/footer';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner';
@@ -50,6 +50,7 @@ export class AcademyProfileComponent implements OnInit, OnDestroy {
   private academyService = inject(AcademyService);
   private toast = inject(ToastService);
   private cdr = inject(ChangeDetectorRef);
+  private translate = inject(TranslateService);
 
   @ViewChild('countersSection') countersSection?: ElementRef<HTMLElement>;
 
@@ -89,7 +90,7 @@ export class AcademyProfileComponent implements OnInit, OnDestroy {
         this.academyId = Number(idParam);
         this.loadAcademyData();
       } else {
-        this.error = 'No Academy ID specified.';
+        this.error = this.translate.instant('ACADEMY_PROFILE.MESSAGES.NO_ID');
         this.isLoading = false;
       }
     });
@@ -132,13 +133,13 @@ export class AcademyProfileComponent implements OnInit, OnDestroy {
           this.academy = res.data;
           this.animateCounterField('locations', res.data.locationCount || 0);
         } else {
-          this.error = res.message || 'Failed to load academy profile.';
+          this.error = res.message || this.translate.instant('ACADEMY_PROFILE.MESSAGES.LOAD_FAILED');
         }
         this.isLoading = false;
         this.cdr.detectChanges();
       },
       error: (err) => {
-        this.error = 'Unable to fetch academy profile. Please try again.';
+        this.error = this.translate.instant('ACADEMY_PROFILE.MESSAGES.FETCH_FAILED');
         this.isLoading = false;
         this.cdr.detectChanges();
       }
@@ -234,10 +235,10 @@ export class AcademyProfileComponent implements OnInit, OnDestroy {
     const url = window.location.href;
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(url).then(() => {
-        this.toast.show('Public profile link copied to clipboard.', 'success');
+        this.toast.show(this.translate.instant('ACADEMY_PROFILE.MESSAGES.LINK_COPIED'), 'success');
       });
     } else {
-      this.toast.show('Share URL: ' + url, 'info');
+      this.toast.show(this.translate.instant('ACADEMY_PROFILE.MESSAGES.SHARE_URL') + url, 'info');
     }
   }
 

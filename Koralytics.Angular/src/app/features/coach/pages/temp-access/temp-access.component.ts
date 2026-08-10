@@ -83,7 +83,7 @@ export class TempAccessComponent implements OnInit {
           this.newGrant.accessLevel = 'ReadOnly';
           this.newGrant.expiresAt = this.defaultExpiry;
           
-          this.successMsg.set('COACH.TEMP_ACCESS.GRANT_SUCCESS');
+          this.successMsg.set(this.translate.instant('COACH.TEMP_ACCESS.GRANT_SUCCESS'));
           this.submitting.set(false);
           setTimeout(() => this.successMsg.set(''), 3000);
         },

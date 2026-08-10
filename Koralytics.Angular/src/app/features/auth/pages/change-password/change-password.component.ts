@@ -8,7 +8,7 @@ import { CustomInputComponent } from '../../../../../shared/components/custom-in
 import { CustomButtonComponent } from '../../../../../shared/components/custom-button/custom-button';
 import { PasswordStrengthComponent } from '../../../../../shared/components/password-strength/password-strength.component';
 import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-change-password',
@@ -22,6 +22,7 @@ export class ChangePasswordComponent {
   private authService = inject(AuthService);
   private router = inject(Router);
   private toast = inject(ToastService);
+  private translate = inject(TranslateService);
 
   isLoading = false;
 
@@ -52,18 +53,18 @@ export class ChangePasswordComponent {
     }).subscribe({
       next: () => {
         this.isLoading = false;
-        this.toast.show('Password changed successfully. Please log in again.', 'success');
+        this.toast.show(this.translate.instant('AUTH.MESSAGES.PASSWORD_CHANGE_SUCCESS'), 'success');
         this.router.navigate(['/auth/login']);
       },
       error: (err) => {
         this.isLoading = false;
         if (err.status === 0) {
-          this.toast.show('Cannot reach the server. Please check your connection.', 'error');
+          this.toast.show(this.translate.instant('AUTH.MESSAGES.NETWORK_ERROR'), 'error');
         } else if (err.error?.errors) {
           const errorMessages = Object.values(err.error.errors).flat().join(' | ');
           this.toast.show(errorMessages, 'error');
         } else {
-          const errorMsg = err.error?.detail || err.error?.message || err.error?.title || 'Failed to change password.';
+          const errorMsg = err.error?.detail || err.error?.message || err.error?.title || this.translate.instant('AUTH.MESSAGES.PASSWORD_CHANGE_FAILED');
           this.toast.show(errorMsg, 'error');
         }
       }

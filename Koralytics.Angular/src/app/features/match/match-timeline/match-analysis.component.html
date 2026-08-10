@@ -7,13 +7,13 @@
     </div>
   } @else if (error) {
     <app-empty-state
-      [title]="'MATCH.ANALYSIS.ERROR_TITLE' | translate"
+      [title]="'MATCH.ANALYSIS.ERROR_LOAD' | translate"
       [description]="error"
     ></app-empty-state>
   } @else if (!analysisData) {
     <app-empty-state
-      [title]="'MATCH.ANALYSIS.NO_DATA_TITLE' | translate"
-      [description]="'MATCH.ANALYSIS.NO_DATA_DESC' | translate"
+      [title]="'MATCH.ANALYSIS.NO_ANALYSIS_TITLE' | translate"
+      [description]="'MATCH.ANALYSIS.NO_ANALYSIS_DESC' | translate"
     ></app-empty-state>
   } @else {
 
@@ -22,7 +22,7 @@
       <div class="header-top-row">
         <div class="header-tag">
           <span class="tag-dot"></span>
-          <span>{{ 'MATCH.ANALYSIS.MATCH_ANALYTICS' | translate }}</span>
+          <span>{{ 'MATCH.ANALYSIS.TAG' | translate }}</span>
         </div>
 
         @if (hasTeamToggle) {
@@ -118,9 +118,9 @@
       <!-- Form Proportion Bar -->
       <div class="proportion-section">
         <div class="proportion-bar">
-          <div class="bar-segment win-segment" [style.width.%]="winRate" [attr.title]="'Wins: ' + analysisData.wins"></div>
-          <div class="bar-segment draw-segment" [style.width.%]="drawRate" [attr.title]="'Draws: ' + analysisData.draws"></div>
-          <div class="bar-segment loss-segment" [style.width.%]="lossRate" [attr.title]="'Losses: ' + analysisData.losses"></div>
+          <div class="bar-segment win-segment" [style.width.%]="winRate" [attr.title]="('MATCH.ANALYSIS.WINS' | translate) + ': ' + analysisData.wins"></div>
+          <div class="bar-segment draw-segment" [style.width.%]="drawRate" [attr.title]="('MATCH.ANALYSIS.DRAWS' | translate) + ': ' + analysisData.draws"></div>
+          <div class="bar-segment loss-segment" [style.width.%]="lossRate" [attr.title]="('MATCH.ANALYSIS.LOSSES' | translate) + ': ' + analysisData.losses"></div>
         </div>
         <div class="proportion-legend">
           <span class="leg-item win-leg"><span class="dot"></span>{{ 'MATCH.ANALYSIS.WINS' | translate }}: {{ analysisData.wins }} ({{ winRate | number:'1.0-0' }}%)</span>
@@ -140,8 +140,8 @@
 
       @if (analysisData.recentMatches.length === 0) {
         <app-empty-state
-          [title]="'MATCH.ANALYSIS.NO_RECENT_MATCHES_TITLE' | translate"
-          [description]="'MATCH.ANALYSIS.NO_RECENT_MATCHES_DESC' | translate"
+          [title]="'MATCH.ANALYSIS.NO_RECENT_TITLE' | translate"
+          [description]="'MATCH.ANALYSIS.NO_RECENT_DESC' | translate"
         ></app-empty-state>
       } @else {
         <div class="match-history-list">

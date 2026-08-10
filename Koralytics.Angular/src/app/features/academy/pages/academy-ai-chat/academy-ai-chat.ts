@@ -15,7 +15,7 @@ import { Footer } from '../../../../../shared/components/footer/footer';
 import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
 import { LoadingSpinnerComponent } from '../../../../../shared/components/loading-spinner/loading-spinner';
 import { FeatureLockComponent } from '../../../../shared/components/feature-lock/feature-lock';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 export interface ChatMessage {
   id: string;
@@ -49,6 +49,7 @@ export class AcademyAiChatComponent implements OnInit {
   private readonly toastService = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly sanitizer = inject(DomSanitizer);
+  private readonly translate = inject(TranslateService);
 
   public currentAcademyId = signal<number>(0);
   public currentSessionId = signal<string>('');
@@ -102,7 +103,7 @@ export class AcademyAiChatComponent implements OnInit {
           const botMsg: ChatMessage = {
             id: (Date.now() + 1).toString(),
             sender: 'assistant',
-            text: cleanedText || 'No response returned from Academy AI Assistant.',
+            text: cleanedText || this.translate.instant('ACADEMY.MESSAGES.NO_AI_RESPONSE'),
             timestamp: new Date()
           };
           this.chatMessages.update(msgs => [...msgs, botMsg]);
@@ -111,7 +112,7 @@ export class AcademyAiChatComponent implements OnInit {
         },
         error: (err: HttpErrorResponse) => {
           console.error('Academy AI ChatBot query failed', err);
-          const fallbackMsg = 'عذراً، حدث خطأ أثناء التواصل مع المساعد الذكي. يرجى المحاولة مرة أخرى لاحقاً.';
+          const fallbackMsg = this.translate.instant('ACADEMY.MESSAGES.AI_ERROR');
           const botMsg: ChatMessage = {
             id: (Date.now() + 1).toString(),
             sender: 'assistant',

@@ -2,7 +2,7 @@
   @if (isLoading) {
   <div class="loading-state">
     <app-loading-spinner size="lg"></app-loading-spinner>
-    <p>{{ 'MATCH.RATINGS.LOADING_FORM' | translate }}</p>
+    <p>{{ 'MATCH.RATINGS.LOADING' | translate }}</p>
   </div>
   } @else if (hasSubmitted) {
   <div class="ai-report-banner">
@@ -13,11 +13,11 @@
           <path
             d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z" />
         </svg>
-        <span>{{ 'MATCH.RATINGS.AI_REPORT_TITLE' | translate }}</span>
+        <span>{{ 'MATCH.RATINGS.AI_REPORT' | translate }}</span>
       </div>
     </div>
     <a [routerLink]="['/match', matchId, 'report']" class="btn-view-report">
-      <span>{{ 'MATCH.RATINGS.SHOW_AI_REPORT' | translate }}</span>
+      <span>{{ 'MATCH.RATINGS.BTN_VIEW_REPORT' | translate }}</span>
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -76,7 +76,7 @@
             <div class="player-details">
               <span class="full-name-label block clickable-player-name"
                 (click)="navigateToPlayerProfile(rating.playerId)">{{ rating.player.fullName }}</span>
-              <span class="mins-played-label">{{ rating.minutesPlayed }} {{ 'MATCH.RATINGS.MINS_PLAYED' | translate }}</span>
+              <span class="mins-played-label">{{ rating.minutesPlayed }} {{ 'MATCH.RATINGS.MINS_PLAYED_LOWER' | translate }}</span>
               @if (rating.isMOTM) {
               <span class="motm-badge">MOTM</span>
               }
@@ -98,11 +98,11 @@
           <div class="category-bar-group">
             <div class="category-bar-header">
               <div class="category-bar-title">
-                <span class="category-name">{{ cat.name }}</span>
+                <span class="category-name">{{ 'MATCH.CATEGORIES.' + (cat.name | uppercase) | translate }}</span>
               </div>
               <div class="category-score-wrap">
                 <span class="category-score-val">{{ cat.score | number:'1.0-1' }}</span>
-                <span class="category-score-max">/ 10</span>
+                <span class="category-score-max">{{ 'MATCH.RATINGS.OUT_OF_10' | translate }}</span>
               </div>
             </div>
 
@@ -130,12 +130,12 @@
   } @else {
   <div class="ratings-header">
     <div class="header-content">
-      <h3>{{ 'MATCH.RATINGS.SUBMIT_TITLE' | translate }}</h3>
-      <p>{{ 'MATCH.RATINGS.SUBMIT_DESC' | translate }}</p>
+      <h3>{{ 'MATCH.RATINGS.HEADER_TITLE' | translate }}</h3>
+      <p>{{ 'MATCH.RATINGS.HEADER_DESC' | translate }}</p>
     </div>
     <div class="header-action">
       <app-button variant="accent" [loading]="isSubmitting" [disabled]="isSubmitting" (click)="submitRatings()">
-        {{ 'MATCH.RATINGS.SUBMIT_ALL' | translate }}
+        {{ 'MATCH.RATINGS.BTN_SUBMIT_ALL' | translate }}
       </app-button>
     </div>
   </div>
@@ -185,7 +185,7 @@
                     points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
                   </polygon>
                 </svg>
-                MOTM
+                {{ 'MATCH.RATINGS.MOTM' | translate }}
               </button>
             </div>
           </div>
@@ -193,7 +193,7 @@
           <div class="rating-controls">
             <div class="minutes-note-row" [class.disabled-row]="playerForm.skipRating">
               <div class="input-group mins-group">
-                <label>{{ 'MATCH.RATINGS.MINS_PLAYED_LABEL' | translate }}</label>
+                <label>{{ 'MATCH.RATINGS.MINS_PLAYED' | translate }}</label>
                 <app-number-input [(ngModel)]="playerForm.minutesPlayed" [min]="0" [max]="defaultMinutes"
                   [disabled]="playerForm.skipRating" [step]="1"></app-number-input>
               </div>
@@ -207,7 +207,7 @@
             <div class="categories-grid" [class.disabled-grid]="playerForm.skipRating">
               @for (cat of playerForm.categories; track cat.drillCategoryId) {
               <div class="category-counter-box">
-                <span class="cat-label">{{ cat.name }}</span>
+                <span class="cat-label">{{ 'MATCH.CATEGORIES.' + (cat.name | uppercase) | translate }}</span>
                 <app-number-input [(ngModel)]="cat.rating" [min]="0" [max]="10" [disabled]="playerForm.skipRating"
                   [step]="1"></app-number-input>
               </div>
@@ -250,7 +250,7 @@
                     points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
                   </polygon>
                 </svg>
-                MOTM
+                {{ 'MATCH.RATINGS.MOTM' | translate }}
               </button>
             </div>
           </div>
@@ -258,7 +258,7 @@
           <div class="rating-controls">
             <div class="minutes-note-row" [class.disabled-row]="playerForm.skipRating">
               <div class="input-group mins-group">
-                <label>{{ 'MATCH.RATINGS.MINS_PLAYED_LABEL' | translate }}</label>
+                <label>{{ 'MATCH.RATINGS.MINS_PLAYED' | translate }}</label>
                 <app-number-input [(ngModel)]="playerForm.minutesPlayed" [min]="0" [max]="defaultMinutes"
                   [disabled]="playerForm.skipRating" [step]="1"></app-number-input>
               </div>
@@ -272,7 +272,7 @@
             <div class="categories-grid" [class.disabled-grid]="playerForm.skipRating">
               @for (cat of playerForm.categories; track cat.drillCategoryId) {
               <div class="category-counter-box">
-                <span class="cat-label">{{ cat.name }}</span>
+                <span class="cat-label">{{ 'MATCH.CATEGORIES.' + (cat.name | uppercase) | translate }}</span>
                 <app-number-input [(ngModel)]="cat.rating" [min]="0" [max]="10" [disabled]="playerForm.skipRating"
                   [step]="1"></app-number-input>
               </div>

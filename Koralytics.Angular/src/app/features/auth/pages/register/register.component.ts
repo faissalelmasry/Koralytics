@@ -12,7 +12,7 @@ import { PasswordStrengthComponent } from '../../../../../shared/components/pass
 import { StepperComponent } from '../../../../../shared/components/stepper/stepper.component';
 import { PhoneInputComponent } from '../../../../../shared/components/phone-input/phone-input.component';
 import { RegisterPlayerRequest, RegisterCoachRequest, RegisterParentRequest, RegisterAcademyAdminRequest, RegisterScouterRequest, RegisterCoachAndAdminRequest } from '../../../../../core/interfaces/auth.models';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-register',
@@ -38,6 +38,7 @@ export class RegisterComponent {
   private authService = inject(AuthService);
   private router = inject(Router);
   private toast = inject(ToastService);
+  private translate = inject(TranslateService);
 
   isLoading = false;
   steps = ['AUTH.REGISTER.ROLE_STEP', 'AUTH.REGISTER.BASE_DETAILS_STEP', 'AUTH.REGISTER.ROLE_SPECIFIC_STEP'];
@@ -103,7 +104,7 @@ export class RegisterComponent {
 
   nextStep() {
     if (this.currentStep === 0 && !this.selectedRole) {
-      this.toast.show('Please select a role to continue.', 'warning');
+      this.toast.show(this.translate.instant('AUTH.MESSAGES.ROLE_REQUIRED'), 'warning');
       return;
     }
     if (this.currentStep === 1) {
@@ -202,22 +203,22 @@ export class RegisterComponent {
         next: (res) => {
           this.isLoading = false;
           if (res.isSuccess && res.data) {
-            this.toast.show('Registration successful! Please confirm your email.', 'success');
+            this.toast.show(this.translate.instant('AUTH.MESSAGES.REGISTRATION_SUCCESS'), 'success');
             // Navigate to confirm email and pass userId
             this.router.navigate(['/auth/confirm-email'], { state: { userId: res.data.userId } });
           } else {
-            this.toast.show(res.message || 'Registration failed', 'error');
+            this.toast.show(res.message || this.translate.instant('AUTH.MESSAGES.REGISTRATION_FAILED'), 'error');
           }
         },
         error: (err) => {
           this.isLoading = false;
           if (err.status === 0) {
-            this.toast.show('Cannot reach the server. Please check your connection.', 'error');
+            this.toast.show(this.translate.instant('AUTH.MESSAGES.NETWORK_ERROR'), 'error');
           } else if (err.error?.errors) {
             const errorMessages = Object.values(err.error.errors).flat().join(' | ');
             this.toast.show(errorMessages, 'error');
           } else {
-            const errorMsg = err.error?.detail || err.error?.message || err.error?.title || 'Registration failed. Please check your inputs.';
+            const errorMsg = err.error?.detail || err.error?.message || err.error?.title || this.translate.instant('AUTH.MESSAGES.REGISTRATION_ERROR');
             this.toast.show(errorMsg, 'error');
           }
         }

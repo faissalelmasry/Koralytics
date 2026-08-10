@@ -15,13 +15,11 @@ import { ToastService } from '../../../../core/services/Toast/toast';
 import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 import { MatchSignalrService } from '../../../../core/services/match-signalr.service';
 import { Subscription } from 'rxjs';
-
 import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner';
-import { NotificationService } from '@core/services/SignalR/notificationservice';
-
+import { NotificationService } from '../../../../core/services/SignalR/notificationservice';
 import { RouterLink } from '@angular/router';
 import { MarqueeIfOverflowDirective } from './marquee-if-overflow.directive';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService, LangChangeEvent } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-match-timeline',
@@ -108,6 +106,7 @@ export class MatchTimelineComponent implements OnInit, OnDestroy, OnChanges {
   private signalrEventSub?: Subscription;
   private signalrScoreSub?: Subscription;
   private signalrDeletedSub?: Subscription;
+  private langChangeSub?: Subscription;
 
   ngOnInit(): void {
     const status = (this.matchInfo?.status || '').toString().toLowerCase();
@@ -121,6 +120,12 @@ export class MatchTimelineComponent implements OnInit, OnDestroy, OnChanges {
     }
 
     this.subscribeToLiveEvents();
+
+    this.langChangeSub = this.translate.onLangChange.subscribe((event: LangChangeEvent) => {
+      if (this.timelineEvents && this.timelineEvents.length > 0) {
+        this.retranslateEvents();
+      }
+    });
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -148,6 +153,9 @@ export class MatchTimelineComponent implements OnInit, OnDestroy, OnChanges {
     }
     if (this.signalrDeletedSub) {
       this.signalrDeletedSub.unsubscribe();
+    }
+    if (this.langChangeSub) {
+      this.langChangeSub.unsubscribe();
     }
   }
 
@@ -236,6 +244,39 @@ export class MatchTimelineComponent implements OnInit, OnDestroy, OnChanges {
     };
   }
 
+  private retranslateEvents(): void {
+    const allPlayers = [...this.allHomePlayers, ...this.allAwayPlayers];
+    this.timelineEvents = this.timelineEvents.map(e => {
+      let subtext = '';
+      if (e.assistPlayerId) {
+        const assistPlayer = allPlayers.find(p => p.playerId === e.assistPlayerId);
+        const assistName = assistPlayer ? assistPlayer.fullName : '';
+        if (assistName) {
+          subtext = (e.rawType === 'Substitution')
+            ? `${this.translate.instant('COMMON.IN', { Default: 'In' })}: ${assistName}`
+            : `${this.translate.instant('MATCH.EVENT.ASSIST')}: ${assistName}`;
+        }
+      } else if (e.eventSubtext) {
+        // Fallback if there was subtext but no assistPlayerId (e.g. from raw event mapped before)
+        // This is safe since we only expect substitutions and assists to have subtext
+        const isSub = e.rawType === 'Substitution';
+        const parts = e.eventSubtext.split(': ');
+        if (parts.length === 2) {
+           subtext = isSub
+             ? `${this.translate.instant('COMMON.IN', { Default: 'In' })}: ${parts[1]}`
+             : `${this.translate.instant('MATCH.EVENT.ASSIST')}: ${parts[1]}`;
+        }
+      }
+
+      return {
+        ...e,
+        eventType: this.formatEventType(e.rawType),
+        eventSubtext: subtext
+      };
+    });
+    this.cdr.detectChanges();
+  }
+
   get areBothLineupsSubmitted(): boolean {
     return this.homeStarters.length > 0 && this.awayStarters.length > 0;
   }
@@ -273,16 +314,20 @@ export class MatchTimelineComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   get trackTransform(): string {
+    // If language is Arabic, the layout is RTL. We need positive translations to slide right.
+    const isRtl = this.translate.currentLang() === 'ar';
+    const sign = isRtl ? 1 : -1;
+
     if (this.isSessionMatch) {
       if (this.selectedTab === 'timeline') return 'translateX(0%)';
-      if (this.selectedTab === 'lineups') return 'translateX(-33.3333%)';
-      return 'translateX(-66.6666%)';
+      if (this.selectedTab === 'lineups') return `translateX(${sign * 33.3333}%)`;
+      return `translateX(${sign * 66.6666}%)`;
     }
     if (this.selectedTab === 'timeline') return 'translateX(0%)';
-    if (this.selectedTab === 'lineups') return 'translateX(-20%)';
-    if (this.selectedTab === 'h2h') return 'translateX(-40%)';
-    if (this.selectedTab === 'analysis') return 'translateX(-60%)';
-    return 'translateX(-80%)';
+    if (this.selectedTab === 'lineups') return `translateX(${sign * 20}%)`;
+    if (this.selectedTab === 'h2h') return `translateX(${sign * 40}%)`;
+    if (this.selectedTab === 'analysis') return `translateX(${sign * 60}%)`;
+    return `translateX(${sign * 80}%)`;
   }
 
   onStartMatchClick(): void {
@@ -301,7 +346,7 @@ export class MatchTimelineComponent implements OnInit, OnDestroy, OnChanges {
         }
         this.canLogEvents = true;
         this.canStartMatch = false;
-        this.toastService.show('Match started successfully! The match is now Live.', 'success');
+        this.toastService.show(this.translate.instant('MATCH.TIMELINE.TOAST_MATCH_STARTED'), 'success');
         //  TRIGGER START MATCH NOTIFICATION
         const homeTeamName = this.matchInfo?.homeTeam || 'Home Team';
         const awayTeamName = this.matchInfo?.awayTeam || 'Away Team';
@@ -314,7 +359,7 @@ export class MatchTimelineComponent implements OnInit, OnDestroy, OnChanges {
           error: (e) => {
             console.error('Failed to dispatch start match notification', e);
             const detail = e?.error?.detail || e?.error?.message || e?.message || 'Unknown error';
-            this.toastService.show(`Match started, but the notification failed to send: ${detail}`, 'warning');
+            this.toastService.show(this.translate.instant('MATCH.TIMELINE.TOAST_START_NOTIF_FAIL', {detail}), 'warning');
           }
         });
 
@@ -324,7 +369,7 @@ export class MatchTimelineComponent implements OnInit, OnDestroy, OnChanges {
       },
       error: (err) => {
         this.isStartingMatch = false;
-        const msg = err?.error?.detail || err?.error?.message || 'Failed to start match.';
+        const msg = err?.error?.detail || err?.error?.message || this.translate.instant('MATCH.TIMELINE.TOAST_START_FAIL');
         this.toastService.show(msg, 'error');
         this.cdr.detectChanges();
       }
@@ -345,7 +390,7 @@ export class MatchTimelineComponent implements OnInit, OnDestroy, OnChanges {
           this.matchInfo.status = 'Completed';
         }
         this.canLogEvents = false;
-        this.toastService.show('Match ended successfully!', 'success');
+        this.toastService.show(this.translate.instant('MATCH.TIMELINE.TOAST_MATCH_ENDED'), 'success');
         //TRIGGER END MATCH NOTIFICATION
         const homeTeamName = this.matchInfo?.homeTeam || 'Home Team';
         const awayTeamName = this.matchInfo?.awayTeam || 'Away Team';
@@ -358,7 +403,7 @@ export class MatchTimelineComponent implements OnInit, OnDestroy, OnChanges {
           error: (e) => {
             console.error('Failed to dispatch end match notification', e);
             const detail = e?.error?.detail || e?.error?.message || e?.message || 'Unknown error';
-            this.toastService.show(`Match ended, but the notification failed to send: ${detail}`, 'warning');
+            this.toastService.show(this.translate.instant('MATCH.TIMELINE.TOAST_END_NOTIF_FAIL', {detail}), 'warning');
           }
         });
         this.eventLogged.emit();
@@ -367,7 +412,7 @@ export class MatchTimelineComponent implements OnInit, OnDestroy, OnChanges {
       },
       error: (err) => {
         this.isEndingMatch = false;
-        const msg = err?.error?.detail || err?.error?.message || 'Failed to end match.';
+        const msg = err?.error?.detail || err?.error?.message || this.translate.instant('MATCH.TIMELINE.TOAST_END_FAIL');
         this.toastService.show(msg, 'error');
         this.cdr.detectChanges();
       }

@@ -18,6 +18,15 @@
       "FAILED_LOAD": "Failed to load matches.",
       "FILTER_DATE_ERROR": "\"From\" date must be earlier than \"To\" date."
     },
+    "CATEGORIES": {
+      "SPEED": "Speed",
+      "SHOOTING": "Shooting",
+      "PASSING": "Passing",
+      "DRIBBLING": "Dribbling",
+      "DEFENDING": "Defending",
+      "PHYSICAL": "Physical",
+      "GOALKEEPING": "Goalkeeping"
+    },
     "REQUEST_INCOMING": {
       "TAG": "Match Requests",
       "TITLE": "Incoming Requests",
@@ -168,9 +177,19 @@
       "START_MATCH_DIALOG_TITLE": "Start Match",
       "START_MATCH_DIALOG_MSG": "Are you sure you want to start this match? This will change the match status to Live.",
       "END_MATCH_DIALOG_TITLE": "End Match",
-      "END_MATCH_DIALOG_MSG": "Are you sure you want to end this match? This action will finalize the match and cannot be undone."
+      "END_MATCH_DIALOG_MSG": "Are you sure you want to end this match? This action will finalize the match and cannot be undone.",
+      "ERROR_MISSING_ID": "Cannot disallow event: missing event ID",
+      "EVENT_DISALLOWED_SUCCESS": "Event disallowed successfully",
+      "EVENT_DISALLOW_FAIL": "Failed to disallow event",
+      "TOAST_MATCH_STARTED": "Match started successfully! The match is now Live.",
+      "TOAST_MATCH_ENDED": "Match ended successfully!",
+      "TOAST_START_FAIL": "Failed to start match.",
+      "TOAST_END_FAIL": "Failed to end match.",
+      "TOAST_START_NOTIF_FAIL": "Match started, but the notification failed to send: {{detail}}",
+      "TOAST_END_NOTIF_FAIL": "Match ended, but the notification failed to send: {{detail}}"
     },
     "LINEUPS": {
+      "PEN_TEXT": "Pen",
       "LIVE_LOGGER": "LIVE MATCH EVENT LOGGER",
       "PENALTY_SHOOTOUT": "PENALTY SHOOTOUT",
       "BTN_PEN_SHOOTOUTS": "Penalty Shootouts",
@@ -196,7 +215,12 @@
         "YELLOW_CARD": "➔ Tap player to book",
         "RED_CARD": "➔ Tap player to send off",
         "PEN_SCORED": "➔ Tap penalty scorer",
-        "PEN_MISSED": "➔ Tap penalty taker"
+        "PEN_MISSED": "➔ Tap penalty taker",
+        "SCORER": "Scorer",
+        "TAP_ASSISTER": "Tap Assisting Player",
+        "SUB_OUT": "Substitution Out",
+        "TAP_BENCH": "Tap Bench Player",
+        "SELECT_ACTION": "Select an action"
       },
       "SUB_PROMPT": "➔ Tap Bench Player to Complete Sub",
       "BENCH_TITLE_HOME": "Substitutes Bench ({{team}})",
@@ -207,7 +231,19 @@
       "NO_LINEUP_SUBMITTED_TITLE": "No Lineup Submitted",
       "NO_LINEUP_SUBMITTED_DESC": "{{team}} has no lineup submitted for this match yet. As the coach, you can submit the lineup now.",
       "BTN_SUBMIT_LINEUP": "Submit Lineup",
-      "STARTERS": "Starters: {{current}} / {{max}}"
+      "STARTERS": "Starters: {{current}} / {{max}}",
+      "TOAST_SHOOTOUT_DRAW_ONLY": "Shootout Mode is only available when the match score is a Draw!",
+      "TOAST_SHOOTOUT_RECORDED": "Penalty shootout events have been recorded for this match.",
+      "TOAST_REGULAR_DISABLED": "Regular match events are disabled after penalty shootout has started.",
+      "TOAST_PEN_SCORED": "Penalty Scored by {{name}}! ({{homeName}} {{home}} - {{away}} {{awayName}})",
+      "TOAST_PEN_GOAL": "Penalty Goal by {{name}}!",
+      "TOAST_PEN_MISSED": "Penalty Missed by {{name}}",
+      "TOAST_GOAL": "GOAL by {{name}}!",
+      "TOAST_OWN_GOAL": "Own Goal by {{name}}!",
+      "TOAST_YELLOW_CARD": "Yellow Card: {{name}}",
+      "TOAST_RED_CARD": "Red Card: {{name}}",
+      "TOAST_SUB": "Sub: OUT {{out}} ➔ IN {{in}}",
+      "TOAST_LOG_FAIL": "Failed to log match event."
     },
     "RATINGS": {
       "HEADER_TITLE": "Submit Post-Match Ratings",
@@ -227,7 +263,11 @@
       "NO_RATINGS_TITLE": "No Ratings",
       "NO_RATINGS_DESC": "No ratings found for this team.",
       "NO_LINEUPS_TITLE": "No Lineups Available",
-      "NO_LINEUPS_DESC": "Lineups have not been submitted for this match, so ratings cannot be submitted."
+      "NO_LINEUPS_DESC": "Lineups have not been submitted for this match, so ratings cannot be submitted.",
+      "ERROR_COACH_PERMISSIONS": "Failed to load coach permissions.",
+      "ERROR_LOAD_CATEGORIES": "Failed to load rating categories.",
+      "SUCCESS_SUBMIT": "Match ratings submitted successfully!",
+      "ERROR_SUBMIT": "Failed to submit match ratings."
     },
     "H2H": {
       "TAG": "Match Analytics",

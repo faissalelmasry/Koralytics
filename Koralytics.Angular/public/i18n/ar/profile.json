@@ -93,6 +93,28 @@
         "UNLINK_PARENT_TITLE": "إلغاء ربط ولي الأمر/الوصي",
         "UNLINK_PARENT_MSG": "هل أنت متأكد من رغبتك في إلغاء ربط ولي الأمر/الوصي هذا من حسابك؟",
         "NO_PARENTS_LINKED": "لا يوجد أولياء أمور أو أوصياء مرتبطين.",
-        "PARENT_LINK_REQUEST_INFO": "أولياء الأمور/الأوصياء الذين لديهم صلاحية يمكنهم إدارة وعرض ملفك الشخصي."
+        "PARENT_LINK_REQUEST_INFO": "يمكن لأولياء الأمور الذين لديهم الإذن إدارة وعرض ملفك الشخصي.",
+        "MESSAGES": {
+            "PROFILE_LOAD_FAILED": "فشل في تحميل الملف الشخصي",
+            "SERVER_ERROR": "خطأ في الاتصال بالخادم أثناء تحميل الملف الشخصي.",
+            "ACADEMY_RESPOND_FAILED": "فشل في الاستجابة لطلب الانضمام للأكاديمية.",
+            "PARENT_RESPOND_FAILED": "فشل في الاستجابة لطلب ولي الأمر.",
+            "PARENT_UNLINKED_SUCCESS": "تم إلغاء ربط ولي الأمر بنجاح.",
+            "PARENT_UNLINK_FAILED": "فشل في إلغاء ربط ولي الأمر.",
+            "MAX_POSITIONS": "يمكن للاعب اختيار 5 مراكز كحد أقصى.",
+            "INVALID_PHONE": "يرجى إدخال رقم هاتف صحيح.",
+            "INVALID_FORM": "يرجى تعبئة جميع الحقول المطلوبة بشكل صحيح.",
+            "MIN_POSITIONS": "يرجى اختيار مركز واحد على الأقل.",
+            "EXACTLY_ONE_PRIMARY_POSITION": "يجب تحديد مركز واحد فقط كمركز أساسي.",
+            "PROFILE_UPDATE_SUCCESS": "تم تحديث الملف الشخصي بنجاح.",
+            "PROFILE_UPDATE_FAILED": "فشل في تحديث الملف الشخصي.",
+            "PROFILE_SAVE_ERROR": "حدث خطأ أثناء حفظ الملف الشخصي.",
+            "PROFILE_IMAGE_UPDATE_SUCCESS": "تم تحديث صورة الملف الشخصي بنجاح.",
+            "PROFILE_IMAGE_UPLOAD_FAILED": "فشل في تحميل الصورة.",
+            "PROFILE_IMAGE_UPLOAD_ERROR": "فشل في رفع صورة الملف الشخصي.",
+            "PROFILE_PHOTO_REMOVED_SUCCESS": "تم إزالة صورة الملف الشخصي بنجاح.",
+            "PROFILE_PHOTO_REMOVE_FAILED": "فشل في إزالة صورة الملف الشخصي.",
+            "PROFILE_PHOTO_REMOVE_ERROR": "فشل في إزالة صورة الملف الشخصي."
+        }
     }
 }

@@ -25,7 +25,7 @@ import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-r
 import { AcademyLocationsSectionComponent } from '../../components/academy-locations-section/academy-locations-section';
 import { PhoneInputComponent } from '../../../../../shared/components/phone-input/phone-input.component';
 import { ImageUpload } from '../../../../../shared/components/image-upload/image-upload';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LocalizedDatePipe } from '../../../../../shared/pipes/localized-date.pipe';
 
 @Component({
@@ -64,6 +64,7 @@ export class AcademyAdminDashboardComponent implements OnInit {
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
   private tournamentService = inject(TournamentService);
+  private translate = inject(TranslateService);
 
   currentUser = this.authService.getCurrentUserValue();
 
@@ -145,7 +146,7 @@ export class AcademyAdminDashboardComponent implements OnInit {
             const request = res.data[0];
             const status = request.requestStatus || request.status;
             if (status === 'Approved' || status === 2 || status === '2') { // Approved
-              this.toast.show('Your academy request was approved! Please log in again to sync your account.', 'success');
+              this.toast.show(this.translate.instant('ACADEMY_ADMIN.MESSAGES.REQUEST_APPROVED'), 'success');
               this.authService.logoutAll().subscribe();
             } else if (status === 'Pending' || status === 1 || status === '1') {
               this.pendingRequest = request;
@@ -229,11 +230,11 @@ export class AcademyAdminDashboardComponent implements OnInit {
 
     this.tournamentService.acceptInvitation(invite.tournamentId, this.currentUser.academyId).subscribe({
       next: () => {
-        this.toast.show('Tournament invitation accepted successfully.', 'success');
+        this.toast.show(this.translate.instant('ACADEMY_ADMIN.MESSAGES.INVITATION_ACCEPTED'), 'success');
         this.pendingTournamentInvitations = this.pendingTournamentInvitations.filter(i => i.tournamentTeamId !== invite.tournamentTeamId);
       },
       error: () => {
-        this.toast.show('Unable to accept tournament invitation. Please try again.', 'error');
+        this.toast.show(this.translate.instant('ACADEMY_ADMIN.MESSAGES.ACCEPT_INVITATION_ERROR'), 'error');
       }
     });
   }
@@ -269,16 +270,16 @@ export class AcademyAdminDashboardComponent implements OnInit {
       next: (res) => {
         this.isLoading = false;
         if (res.isSuccess) {
-          this.toast.show('Academy request submitted successfully', 'success');
+          this.toast.show(this.translate.instant('ACADEMY_ADMIN.MESSAGES.REQUEST_SUBMITTED'), 'success');
           this.pendingRequest = res.data;
           this.rejectedRequest = null;
         } else {
-          this.toast.show(res.message || 'Error submitting request', 'error');
+          this.toast.show(res.message || this.translate.instant('ACADEMY_ADMIN.MESSAGES.SUBMIT_REQUEST_ERROR'), 'error');
         }
       },
       error: () => {
         this.isLoading = false;
-        this.toast.show('Error submitting request', 'error');
+        this.toast.show(this.translate.instant('ACADEMY_ADMIN.MESSAGES.SUBMIT_REQUEST_ERROR'), 'error');
       }
     });
   }
@@ -287,7 +288,7 @@ export class AcademyAdminDashboardComponent implements OnInit {
     this.academyService.respondToAdminJoinRequest(requestId, { status: accept ? 2 : 3 }).subscribe({
       next: (res) => {
         if (res.isSuccess) {
-          this.toast.show(accept ? 'Request accepted! Please log in again to sync.' : 'Request rejected', 'success');
+          this.toast.show(accept ? this.translate.instant('ACADEMY_ADMIN.MESSAGES.REQUEST_ACCEPTED') : this.translate.instant('ACADEMY_ADMIN.MESSAGES.REQUEST_REJECTED'), 'success');
           if (accept) {
             this.authService.logoutAll().subscribe(() => {
               this.router.navigate(['/login']);
@@ -296,11 +297,11 @@ export class AcademyAdminDashboardComponent implements OnInit {
             this.myPendingAdminRequests = this.myPendingAdminRequests.filter(r => r.id !== requestId);
           }
         } else {
-          this.toast.show(res.message || 'Error responding to request', 'error');
+          this.toast.show(res.message || this.translate.instant('ACADEMY_ADMIN.MESSAGES.RESPOND_REQUEST_ERROR'), 'error');
         }
       },
       error: () => {
-        this.toast.show('Error responding to request', 'error');
+        this.toast.show(this.translate.instant('ACADEMY_ADMIN.MESSAGES.RESPOND_REQUEST_ERROR'), 'error');
       }
     });
   }
@@ -324,7 +325,7 @@ export class AcademyAdminDashboardComponent implements OnInit {
 
   onLogoSelected(file: File): void {
     if (!this.academyDetails?.id) {
-      this.toast.show('Academy ID not found.', 'error');
+      this.toast.show(this.translate.instant('ACADEMY_ADMIN.MESSAGES.ACADEMY_NOT_FOUND'), 'error');
       return;
     }
     this.isUploadingLogo = true;
@@ -336,14 +337,14 @@ export class AcademyAdminDashboardComponent implements OnInit {
           this.academyDetails.logoUrl = newUrl;
           this.logoImageError = false;
           this.showLogoUploadModal = false;
-          this.toast.show('Academy logo updated successfully.', 'success');
+          this.toast.show(this.translate.instant('ACADEMY_ADMIN.MESSAGES.LOGO_UPDATED'), 'success');
         } else {
-          this.toast.show(res.message || 'Failed to update logo.', 'error');
+          this.toast.show(res.message || this.translate.instant('ACADEMY_ADMIN.MESSAGES.UPDATE_LOGO_FAILED'), 'error');
         }
       },
-      error: (err) => {
+      error: (err: any) => {
         this.isUploadingLogo = false;
-        const msg = err.error?.message || 'Failed to update academy logo.';
+        const msg = err.error?.message || this.translate.instant('ACADEMY_ADMIN.MESSAGES.UPDATE_LOGO_FAILED');
         this.toast.show(msg, 'error');
       }
     });
@@ -363,14 +364,14 @@ export class AcademyAdminDashboardComponent implements OnInit {
           }
           this.logoImageError = false;
           this.showLogoUploadModal = false;
-          this.toast.show(res.message || 'Academy logo removed successfully.', 'success');
+          this.toast.show(res.message || this.translate.instant('ACADEMY_ADMIN.MESSAGES.LOGO_REMOVED'), 'success');
         } else {
-          this.toast.show(res.message || 'Failed to remove logo.', 'error');
+          this.toast.show(res.message || this.translate.instant('ACADEMY_ADMIN.MESSAGES.REMOVE_LOGO_FAILED'), 'error');
         }
       },
-      error: (err) => {
+      error: (err: any) => {
         this.isUploadingLogo = false;
-        const msg = err.error?.message || 'Failed to remove academy logo.';
+        const msg = err.error?.message || this.translate.instant('ACADEMY_ADMIN.MESSAGES.REMOVE_LOGO_FAILED');
         this.toast.show(msg, 'error');
       }
     });

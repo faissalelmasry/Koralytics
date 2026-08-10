@@ -81,7 +81,9 @@
             "LW": "LW",
             "RW": "RW",
             "ST": "ST",
-            "CF": "CF"
+            "CF": "CF",
+            "SUB": "SUB",
+            "SUBS": "SUB"
         }
     },
     "ROLES": {

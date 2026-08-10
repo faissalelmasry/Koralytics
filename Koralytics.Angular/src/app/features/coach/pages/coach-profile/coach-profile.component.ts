@@ -20,7 +20,7 @@ import {
 } from '../../../../../core/models/profile/profile.models';
 import { MiniPlayerCardComponent } from '../../../match/mini-player-card/mini-player-card.component';
 import { MiniPlayerCardModel } from '../../../../../core/models/Player/mini-player-card-model';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-coach-profile',
@@ -44,6 +44,7 @@ export class CoachProfileComponent implements OnInit, OnDestroy {
   private matchService = inject(MatchService);
   private profileService = inject(ProfileService);
   private destroyRef = inject(DestroyRef);
+  private translate = inject(TranslateService);
 
   @ViewChild('countersSection') countersSection!: ElementRef<HTMLElement>;
 
@@ -131,7 +132,7 @@ export class CoachProfileComponent implements OnInit, OnDestroy {
       if (this.coachId) {
         this.loadCoachData();
       } else {
-        this.error = 'Unable to determine coach ID.';
+        this.error = this.translate.instant('COACH.MESSAGES.NO_ID_FOUND');
         this.isLoading = false;
       }
     });
@@ -171,7 +172,7 @@ export class CoachProfileComponent implements OnInit, OnDestroy {
           this.setupCounterAnimation();
         },
         error: () => {
-          this.error = 'Failed to load coach profile data.';
+          this.error = this.translate.instant('COACH.MESSAGES.LOAD_PROFILE_FAILED');
           this.isLoading = false;
         }
       });

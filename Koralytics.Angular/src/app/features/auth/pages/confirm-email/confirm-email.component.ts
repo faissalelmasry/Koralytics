@@ -5,7 +5,7 @@ import { AuthService } from '../../../../../core/services/auth/auth.service';
 import { ToastService } from '../../../../../core/services/Toast/toast';
 import { CustomButtonComponent } from '../../../../../shared/components/custom-button/custom-button';
 
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-confirm-email',
@@ -19,6 +19,7 @@ export class ConfirmEmailComponent implements OnInit {
   private router = inject(Router);
   private authService = inject(AuthService);
   private toast = inject(ToastService);
+  private translate = inject(TranslateService);
 
   mode: 'awaiting' | 'confirming' | 'success' | 'error' = 'awaiting';
   userId: number = 0;
@@ -57,18 +58,18 @@ export class ConfirmEmailComponent implements OnInit {
           }, 3000);
         } else {
           this.mode = 'error';
-          this.toast.show(res.message || 'Email confirmation failed', 'error');
+          this.toast.show(res.message || this.translate.instant('AUTH.MESSAGES.EMAIL_CONFIRM_FAILED'), 'error');
         }
       },
       error: (err) => {
         this.mode = 'error';
         if (err.status === 0) {
-          this.toast.show('Cannot reach the server. Please check your connection.', 'error');
+          this.toast.show(this.translate.instant('AUTH.MESSAGES.NETWORK_ERROR'), 'error');
         } else if (err.error?.errors) {
           const errorMessages = Object.values(err.error.errors).flat().join(' | ');
           this.toast.show(errorMessages, 'error');
         } else {
-          const errorMsg = err.error?.detail || err.error?.message || err.error?.title || 'Email confirmation failed.';
+          const errorMsg = err.error?.detail || err.error?.message || err.error?.title || this.translate.instant('AUTH.MESSAGES.EMAIL_CONFIRM_FAILED');
           this.toast.show(errorMsg, 'error');
         }
       }
@@ -83,20 +84,20 @@ export class ConfirmEmailComponent implements OnInit {
       next: (res) => {
         this.isResending = false;
         if (res.isSuccess) {
-          this.toast.show('Confirmation email sent successfully', 'success');
+          this.toast.show(this.translate.instant('AUTH.MESSAGES.EMAIL_CONFIRM_SUCCESS'), 'success');
         } else {
-          this.toast.show(res.message || 'Failed to resend email', 'error');
+          this.toast.show(res.message || this.translate.instant('AUTH.MESSAGES.EMAIL_RESEND_FAILED'), 'error');
         }
       },
       error: (err) => {
         this.isResending = false;
         if (err.status === 0) {
-          this.toast.show('Cannot reach the server. Please check your connection.', 'error');
+          this.toast.show(this.translate.instant('AUTH.MESSAGES.NETWORK_ERROR'), 'error');
         } else if (err.error?.errors) {
           const errorMessages = Object.values(err.error.errors).flat().join(' | ');
           this.toast.show(errorMessages, 'error');
         } else {
-          const errorMsg = err.error?.detail || err.error?.message || err.error?.title || 'Failed to resend email.';
+          const errorMsg = err.error?.detail || err.error?.message || err.error?.title || this.translate.instant('AUTH.MESSAGES.EMAIL_RESEND_FAILED');
           this.toast.show(errorMsg, 'error');
         }
       }

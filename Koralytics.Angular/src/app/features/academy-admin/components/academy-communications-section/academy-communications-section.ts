@@ -177,12 +177,12 @@ export class AcademyCommunicationsSectionComponent implements OnInit, OnChanges 
           this.announcementForm.reset({ targetType: 1, targetId: 0 });
           this.loadAnnouncements();
         } else {
-          this.toast.show(res.message || 'Failed to send announcement', 'error');
+          this.toast.show(res.message || this.translate.instant('ACADEMY_ADMIN.MESSAGES.SEND_ANNOUNCEMENT_ERROR'), 'error');
         }
         this.isSending = false;
       },
       error: (err: any) => {
-        this.toast.show('Error sending announcement', 'error');
+        this.toast.show(this.translate.instant('ACADEMY_ADMIN.MESSAGES.SEND_ANNOUNCEMENT_ERROR'), 'error');
         this.isSending = false;
       }
     });

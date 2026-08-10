@@ -1,4 +1,4 @@
-import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { ApplicationConfig, provideZoneChangeDetection, APP_INITIALIZER } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, withFetch, withInterceptors, HttpClient } from '@angular/common/http';
 import { provideTranslateService, TranslateLoader } from '@ngx-translate/core';
@@ -8,11 +8,16 @@ import { routes } from './app.routes';
 import { CustomTranslateLoader } from '../core/i18n/custom-translate-loader';
 import { registerLocaleData } from '@angular/common';
 import localeAr from '@angular/common/locales/ar-EG';
+import { LocalizationService } from '../core/services/localization.service';
 
 registerLocaleData(localeAr, 'ar-EG');
 
 export function HttpLoaderFactory(http: HttpClient) {
   return new CustomTranslateLoader(http);
+}
+
+export function initializeLang(localizationService: LocalizationService) {
+  return () => localizationService.initLang();
 }
 
 export const appConfig: ApplicationConfig = {
@@ -27,6 +32,12 @@ export const appConfig: ApplicationConfig = {
         useFactory: HttpLoaderFactory,
         deps: [HttpClient]
       }
-    })
+    }),
+    {
+      provide: APP_INITIALIZER,
+      useFactory: initializeLang,
+      deps: [LocalizationService],
+      multi: true
+    }
   ]
 };

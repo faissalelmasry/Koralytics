@@ -79,7 +79,7 @@ export class PlayerAcademyComparisonComponent implements OnInit, AfterViewInit, 
         .subscribe({
           next: (res) => this.handleData(res),
           error: (err) => {
-            this.error = err?.error?.message || 'Failed to load comparison data';
+            this.error = err?.error?.message || this.translate.instant('PLAYER.MESSAGES.COMPARISON_LOAD_FAILED');
             this.isLoading = false;
             this.cdr.markForCheck();
           }
@@ -91,7 +91,7 @@ export class PlayerAcademyComparisonComponent implements OnInit, AfterViewInit, 
         .subscribe({
           next: (res) => this.handleData(res),
           error: (err) => {
-            this.error = err?.error?.message || 'Failed to load comparison data';
+            this.error = err?.error?.message || this.translate.instant('PLAYER.MESSAGES.COMPARISON_LOAD_FAILED');
             this.isLoading = false;
             this.cdr.markForCheck();
           }

@@ -23,7 +23,7 @@ import { ToastService } from '../../../../core/services/Toast/toast';
 import { NotificationService } from '@core/services/SignalR/notificationservice';
 import { PlayerHighlightDto } from '../../../../core/interfaces/highlight.interfaces';
 import { PlayerProfileModel } from '../../../../core/models/Player/player-profile-model';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-player-highlights',
@@ -54,6 +54,7 @@ export class PlayerHighlightsComponent implements OnInit {
   private tokenStorage = inject(TokenStorageService);
   private modalService = inject(ModalService);
   private toastService = inject(ToastService);
+  private translateService = inject(TranslateService);
   private destroyRef = inject(DestroyRef);
   private notificationService = inject(NotificationService);
   private cdr = inject(ChangeDetectorRef);
@@ -137,7 +138,7 @@ export class PlayerHighlightsComponent implements OnInit {
           this.computeProfileDerivedState();
           this.cdr.markForCheck();
         },
-        error: (err) => {
+        error: (err: any) => {
           console.warn('Could not load full profile header metadata:', err);
         }
       });
@@ -198,8 +199,8 @@ export class PlayerHighlightsComponent implements OnInit {
           this.loading.set(false);
           this.cdr.markForCheck();
         },
-        error: (err) => {
-          this.error.set(err?.error?.message || 'Failed to load highlights.');
+        error: (err: any) => {
+          this.error.set(err?.error?.message || this.translateService.instant('PLAYER.MESSAGES.HIGHLIGHTS_LOAD_FAILED'));
           this.loading.set(false);
           this.cdr.markForCheck();
         }
@@ -232,7 +233,7 @@ export class PlayerHighlightsComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
-          this.toastService.show('Highlight uploaded successfully!', 'success');
+          this.toastService.show(this.translateService.instant('PLAYER.MESSAGES.HIGHLIGHT_UPLOAD_SUCCESS'), 'success');
           this.selectedFile = null;
           this.highlightTitle = '';
           this.uploading.set(false);
@@ -248,10 +249,10 @@ export class PlayerHighlightsComponent implements OnInit {
               });
           }
         },
-        error: (err) => {
-          this.uploadError.set(err?.error?.message || 'Failed to upload highlight.');
+        error: (err: any) => {
+          this.uploadError.set(err?.error?.message || this.translateService.instant('PLAYER.MESSAGES.HIGHLIGHT_UPLOAD_FAILED'));
           this.uploading.set(false);
-          this.toastService.show('Failed to upload highlight.', 'error');
+          this.toastService.show(this.translateService.instant('PLAYER.MESSAGES.HIGHLIGHT_UPLOAD_FAILED'), 'error');
           this.cdr.markForCheck();
         }
       });
@@ -276,15 +277,15 @@ export class PlayerHighlightsComponent implements OnInit {
       .subscribe({
         next: () => {
           this.highlights.update(list => list.filter(h => h.id !== highlightId));
-          this.toastService.show('Highlight deleted successfully.', 'success');
+          this.toastService.show(this.translateService.instant('PLAYER.MESSAGES.HIGHLIGHT_DELETE_SUCCESS'), 'success');
 
           if (this.paginatedHighlights().length === 0 && this.currentPageSignal() > 1) {
             this.currentPageSignal.update(p => p - 1);
           }
           this.cdr.markForCheck();
         },
-        error: (err) => {
-          this.toastService.show(err?.error?.message || 'Failed to delete highlight.', 'error');
+        error: (err: any) => {
+          this.toastService.show(err?.error?.message || this.translateService.instant('PLAYER.MESSAGES.HIGHLIGHT_DELETE_FAILED'), 'error');
           this.cdr.markForCheck();
         }
       });
@@ -297,11 +298,11 @@ export class PlayerHighlightsComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
-          this.toastService.show('Highlight pinned to top.', 'success');
+          this.toastService.show(this.translateService.instant('PLAYER.MESSAGES.HIGHLIGHT_PIN_SUCCESS'), 'success');
           this.loadHighlights();
         },
-        error: (err) => {
-          this.toastService.show(err?.error?.message || 'Failed to pin highlight.', 'error');
+        error: (err: any) => {
+          this.toastService.show(err?.error?.message || this.translateService.instant('PLAYER.MESSAGES.HIGHLIGHT_PIN_FAILED'), 'error');
           this.cdr.markForCheck();
         }
       });
@@ -322,7 +323,7 @@ export class PlayerHighlightsComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
-          this.toastService.show('Highlight unpinned.', 'success');
+          this.toastService.show(this.translateService.instant('PLAYER.MESSAGES.HIGHLIGHT_UNPIN_SUCCESS'), 'success');
           this.loadHighlights();
         },
         error: () => {
@@ -330,11 +331,11 @@ export class PlayerHighlightsComponent implements OnInit {
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
               next: () => {
-                this.toastService.show('Highlight unpinned.', 'success');
+                this.toastService.show(this.translateService.instant('PLAYER.MESSAGES.HIGHLIGHT_UNPIN_SUCCESS'), 'success');
                 this.loadHighlights();
               },
-              error: (err) => {
-                this.toastService.show(err?.error?.message || 'Failed to unpin highlight.', 'error');
+              error: (err: any) => {
+                this.toastService.show(err?.error?.message || this.translateService.instant('PLAYER.MESSAGES.HIGHLIGHT_UNPIN_FAILED'), 'error');
                 this.cdr.markForCheck();
               }
             });
@@ -346,7 +347,7 @@ export class PlayerHighlightsComponent implements OnInit {
     if (!videoUrl) return;
     if (navigator.clipboard && window.isSecureContext) {
       navigator.clipboard.writeText(videoUrl).then(() => {
-        this.toastService.show('Highlight video link copied to clipboard!', 'info');
+        this.toastService.show(this.translateService.instant('PLAYER.MESSAGES.HIGHLIGHT_LINK_COPIED'), 'info');
       }).catch(() => {
         this.fallbackCopyTextToClipboard(videoUrl);
       });
@@ -364,9 +365,9 @@ export class PlayerHighlightsComponent implements OnInit {
     textArea.select();
     try {
       document.execCommand('copy');
-      this.toastService.show('Highlight video link copied to clipboard!', 'info');
+      this.toastService.show(this.translateService.instant('PLAYER.MESSAGES.HIGHLIGHT_LINK_COPIED'), 'info');
     } catch (err) {
-      this.toastService.show('Failed to copy video link.', 'error');
+      this.toastService.show(this.translateService.instant('PLAYER.MESSAGES.HIGHLIGHT_LINK_COPY_FAILED'), 'error');
     }
     document.body.removeChild(textArea);
   }

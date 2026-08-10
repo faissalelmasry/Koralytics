@@ -117,9 +117,9 @@ export class PlayerMatchTimelineComponent implements OnInit {
 
   private updateMatchTypeOptions() {
     this.matchTypeOptions = [
-      { value: 'Session', label: this.translate.instant('PLAYER.MATCH_SESSION') },
-      { value: 'Friendly', label: this.translate.instant('PLAYER.MATCH_FRIENDLY') },
-      { value: 'Tournament', label: this.translate.instant('PLAYER.MATCH_TOURNAMENT') }
+      { value: 'Session', label: 'PLAYER.MATCH_SESSION' },
+      { value: 'Friendly', label: 'PLAYER.MATCH_FRIENDLY' },
+      { value: 'Tournament', label: 'PLAYER.MATCH_TOURNAMENT' }
     ];
   }
 

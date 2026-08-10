@@ -118,8 +118,8 @@ export class PlayerTeamEventsComponent implements OnInit {
 
   private updateEventTypeOptions() {
     this.eventTypeOptions = [
-      { value: 'Match', label: this.translate.instant('PLAYER.MATCH_UPPER') },
-      { value: 'Drill', label: this.translate.instant('PLAYER.DRILL_UPPER') }
+      { value: 'Match', label: 'PLAYER.MATCH_UPPER' },
+      { value: 'Drill', label: 'PLAYER.DRILL_UPPER' }
     ];
   }
 

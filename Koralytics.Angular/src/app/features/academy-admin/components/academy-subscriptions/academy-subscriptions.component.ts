@@ -113,25 +113,27 @@ export class AcademySubscriptions implements OnInit, OnDestroy {
   loadSubscriptions(): void {
     this.isLoading = true;
     this.errorMessage = '';
-    this.cdr.detectChanges();
+    
+const academyId = this.activeAcademyId;
 
-    this.subscriptionsList.add(
-      this.subscriptionService.getAcademySubscriptions(this.activeAcademyId).subscribe({
-        next: (data: PlayerSubscriptionDto[]) => {
-          this.subscriptions = (data || []).filter(s => !this.isPaid(s.status));
-          this.applyFilters();
-          this.isLoading = false;
-          this.cdr.detectChanges();
-        },
-        error: (err) => {
-          console.error('Failed to load academy subscriptions:', err);
-          this.errorMessage = err?.error?.message || 'Failed to load academy subscriptions.';
-          this.isLoading = false;
-          this.cdr.detectChanges();
-        }
-      })
-    );
-  }
+this.subscriptionsList.add(
+  this.subscriptionService.getAcademySubscriptions(academyId).subscribe({
+    next: (data: PlayerSubscriptionDto[]) => {
+      this.subscriptions = (data || []).filter(s => !this.isPaid(s.status));
+      this.applyFilters();
+      this.isLoading = false;
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      console.error('Failed to load academy subscriptions:', err);
+      this.errorMessage =
+        err?.error?.message ||
+        this.translate.instant('ACADEMY_ADMIN.MESSAGES.LOAD_SUBS_FAILED');
+      this.isLoading = false;
+      this.cdr.detectChanges();
+    }
+  })
+);
 
   applyFilters(): void {
     let result = [...this.subscriptions];
@@ -205,24 +207,24 @@ export class AcademySubscriptions implements OnInit, OnDestroy {
     this.isEditingSub = true;
     this.errorMessage = '';
     this.successMessage = '';
-    this.cdr.detectChanges();
-
-    this.subscriptionsList.add(
-      this.subscriptionService.createSubscription(this.editSub).subscribe({
-        next: () => {
-          this.successMessage = `Subscription plan updated successfully for ${this.selectedSubForEdit?.playerName}!`;
-          this.isEditingSub = false;
-          this.closeEditModal();
-          this.loadSubscriptions();
-        },
-        error: (err) => {
-          this.errorMessage = err?.error?.message || 'Failed to update subscription. Please try again.';
-          this.isEditingSub = false;
-          this.cdr.detectChanges();
-        }
-      })
-    );
-  }
+    
+this.subscriptionsList.add(
+  this.subscriptionService.createSubscription(this.editSub).subscribe({
+    next: () => {
+      this.successMessage = `Subscription plan updated successfully for ${this.selectedSubForEdit?.playerName}!`;
+      this.isEditingSub = false;
+      this.closeEditModal();
+      this.loadSubscriptions();
+    },
+    error: (err) => {
+      this.errorMessage =
+        err?.error?.message ||
+        this.translate.instant('ACADEMY_ADMIN.MESSAGES.UPDATE_SUB_FAILED');
+      this.isEditingSub = false;
+      this.cdr.detectChanges();
+    }
+  })
+);
 
   // CONFIRM DIALOG STATE
   isConfirmDialogOpen = false;
@@ -256,39 +258,39 @@ export class AcademySubscriptions implements OnInit, OnDestroy {
     this.isProcessingCashId = sub.id;
     this.errorMessage = '';
     this.successMessage = '';
-    this.cdr.detectChanges();
+this.subscriptionsList.add(
+  this.subscriptionService.markAsPaidByCash(sub.id).subscribe({
+    next: () => {
+      this.successMessage = `Cash payment confirmed for ${sub.playerName}! Status set to Paid.`;
 
-    this.subscriptionsList.add(
-      this.subscriptionService.markAsPaidByCash(sub.id).subscribe({
-        next: () => {
-          this.successMessage = `Cash payment confirmed for ${sub.playerName}! Status set to Paid.`;
+      const playerMsg = `Your cash payment of ${sub.amount} EGP has been confirmed successfully.`;
+      const parentMsg = `Cash payment of ${sub.amount} EGP for your child's subscription has been confirmed.`;
 
-          const playerMsg = `Your cash payment of ${sub.amount} EGP has been confirmed successfully.`;
-          const parentMsg = `Cash payment of ${sub.amount} EGP for your child's subscription has been confirmed.`;
+      this.subscriptionsList.add(
+        this.notificationService.notifyPlayerMilestone(sub.playerId, playerMsg).subscribe({
+          error: (e) => console.error('Failed to notify player', e)
+        })
+      );
 
-          this.subscriptionsList.add(
-            this.notificationService.notifyPlayerMilestone(sub.playerId, playerMsg).subscribe({
-              error: (e) => console.error('Failed to notify player', e)
-            })
-          );
+      this.subscriptionsList.add(
+        this.notificationService.notifyPlayerParents(sub.playerId, parentMsg).subscribe({
+          error: (e) => console.error('Failed to notify parent', e)
+        })
+      );
 
-          this.subscriptionsList.add(
-            this.notificationService.notifyPlayerParents(sub.playerId, parentMsg).subscribe({
-              error: (e) => console.error('Failed to notify parent', e)
-            })
-          );
-
-          this.isProcessingCashId = null;
-          this.loadSubscriptions();
-        },
-        error: (err) => {
-          console.error('Failed to mark cash payment:', err);
-          this.errorMessage = err?.error?.message || 'Failed to mark payment as cash. Please try again.';
-          this.isProcessingCashId = null;
-          this.cdr.detectChanges();
-        }
-      })
-    );
+      this.isProcessingCashId = null;
+      this.loadSubscriptions();
+    },
+    error: (err) => {
+      console.error('Failed to mark cash payment:', err);
+      this.errorMessage =
+        err?.error?.message ||
+        this.translate.instant('ACADEMY_ADMIN.MESSAGES.MARK_CASH_FAILED');
+      this.isProcessingCashId = null;
+      this.cdr.detectChanges();
+    }
+  })
+);
   }
 
   // PLAYER HISTORY MODAL HANDLERS
@@ -320,7 +322,7 @@ export class AcademySubscriptions implements OnInit, OnDestroy {
         }
       })
     );
-  }
+  
 
   closeHistoryModal(): void {
     this.selectedHistoryPlayer = null;

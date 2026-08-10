@@ -93,6 +93,28 @@
         "UNLINK_PARENT_TITLE": "Unlink Parent/Guardian",
         "UNLINK_PARENT_MSG": "Are you sure you want to unlink this parent/guardian from your account?",
         "NO_PARENTS_LINKED": "No Parents or Guardians linked.",
-        "PARENT_LINK_REQUEST_INFO": "Parents/Guardians who have permission can manage and view your profile."
+        "PARENT_LINK_REQUEST_INFO": "Parents/Guardians who have permission can manage and view your profile.",
+        "MESSAGES": {
+            "PROFILE_LOAD_FAILED": "Failed to load profile",
+            "SERVER_ERROR": "Error connecting to server while loading profile.",
+            "ACADEMY_RESPOND_FAILED": "Failed to respond to academy join request.",
+            "PARENT_RESPOND_FAILED": "Failed to respond to parent request.",
+            "PARENT_UNLINKED_SUCCESS": "Parent/Guardian unlinked successfully.",
+            "PARENT_UNLINK_FAILED": "Failed to unlink parent/guardian.",
+            "MAX_POSITIONS": "A player can have at most 5 positions.",
+            "INVALID_PHONE": "Please enter a valid phone number.",
+            "INVALID_FORM": "Please fill in all required fields properly.",
+            "MIN_POSITIONS": "Please select at least 1 position.",
+            "EXACTLY_ONE_PRIMARY_POSITION": "Exactly 1 position must be marked as primary.",
+            "PROFILE_UPDATE_SUCCESS": "Profile updated successfully.",
+            "PROFILE_UPDATE_FAILED": "Failed to update profile.",
+            "PROFILE_SAVE_ERROR": "Error occurred while saving profile.",
+            "PROFILE_IMAGE_UPDATE_SUCCESS": "Profile image updated successfully.",
+            "PROFILE_IMAGE_UPLOAD_FAILED": "Failed to upload image.",
+            "PROFILE_IMAGE_UPLOAD_ERROR": "Failed to upload profile image.",
+            "PROFILE_PHOTO_REMOVED_SUCCESS": "Profile photo removed successfully.",
+            "PROFILE_PHOTO_REMOVE_FAILED": "Failed to remove profile photo.",
+            "PROFILE_PHOTO_REMOVE_ERROR": "Failed to remove profile photo."
+        }
     }
 }

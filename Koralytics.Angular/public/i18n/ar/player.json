@@ -1,5 +1,6 @@
 {
   "PLAYER": {
+    "LOADING_PROFILE": "جاري تحميل الملف الشخصي...",
     "LOADING_ANALYTICS": "جاري تحميل التحليلات...",
     "RETRY": "إعادة المحاولة",
     "PROFILE_VIEWS_ANALYTICS_TITLE": "تحليلات مشاهدات الملف الشخصي",
@@ -155,6 +156,8 @@
     "FRIENDLY": "ودية",
     "DRILL_BULLET": "تدريب •",
     "SESSION": "جلسة",
+    "CAT_SESSIONMATCH": "مباراة تدريبية",
+    "MATCH_SESSIONMATCH": "مباراة تدريبية",
     "VS_UPPER": "ضد",
     "TRAINING_SESSION": "جلسة تدريبية",
     "LOCATION_LABEL": "الموقع:",
@@ -164,6 +167,11 @@
     "MATCH_UPPER": "مباراة",
     "DRILL_UPPER": "تدريب",
     "STATUS_UPPER": "الحالة",
+    "STATUS_AVAILABLE": "متاح",
+    "STATUS_INJURED": "مصاب",
+    "STATUS_RESTING": "في راحة",
+    "STATUS_SUSPENDED": "موقوف",
+    "STATUS_TRANSFERRED": "منتقل",
     "CANCELLED_UPPER": "ملغاة",
     "TRAINING_VS_MATCH": "معدل النقل بين التدريب والمباراة",
     "LIVE": "مباشر",
@@ -208,6 +216,30 @@
     "PRE_SEASON": "قبل الموسم",
     "REGULAR": "عادي",
     "OFF_SEASON": "خارج الموسم",
-    "MATCH": "مباراة"
+    "MATCH": "مباراة",
+    "MESSAGES": {
+      "COMPARISON_LOAD_FAILED": "فشل في تحميل بيانات المقارنة",
+      "REVEAL_ARCHETYPE_FAILED": "فشل في الكشف عن النموذج الأصلي. يرجى المحاولة مرة أخرى.",
+      "REFRESH_SUCCESS": "تم تحديث بطاقة اللاعب بنجاح.",
+      "SHORTLIST_REMOVE_SUCCESS": "تمت الإزالة من القائمة المختصرة بنجاح.",
+      "SHORTLIST_REMOVE_FAILED": "فشل في الإزالة من القائمة المختصرة.",
+      "SHORTLIST_ADD_SUCCESS": "تمت إضافة اللاعب إلى القائمة المختصرة بنجاح.",
+      "SHORTLIST_ADD_FAILED": "فشل في الإضافة إلى القائمة المختصرة.",
+      "UNFOLLOW_SUCCESS": "تم إلغاء متابعة اللاعب بنجاح.",
+      "UNFOLLOW_FAILED": "فشل في إلغاء متابعة اللاعب.",
+      "FOLLOW_SUCCESS": "أنت الآن تتابع هذا اللاعب.",
+      "FOLLOW_FAILED": "فشل في متابعة اللاعب.",
+      "HIGHLIGHTS_LOAD_FAILED": "فشل في تحميل المقاطع البارزة.",
+      "HIGHLIGHT_UPLOAD_SUCCESS": "تم رفع المقطع البارز بنجاح!",
+      "HIGHLIGHT_UPLOAD_FAILED": "فشل في رفع المقطع البارز.",
+      "HIGHLIGHT_DELETE_SUCCESS": "تم حذف المقطع البارز بنجاح.",
+      "HIGHLIGHT_DELETE_FAILED": "فشل في حذف المقطع البارز.",
+      "HIGHLIGHT_PIN_SUCCESS": "تم تثبيت المقطع البارز في الأعلى.",
+      "HIGHLIGHT_PIN_FAILED": "فشل في تثبيت المقطع البارز.",
+      "HIGHLIGHT_UNPIN_SUCCESS": "تم إلغاء تثبيت المقطع البارز.",
+      "HIGHLIGHT_UNPIN_FAILED": "فشل في إلغاء تثبيت المقطع البارز.",
+      "HIGHLIGHT_LINK_COPIED": "تم نسخ رابط فيديو المقطع البارز إلى الحافظة!",
+      "HIGHLIGHT_LINK_COPY_FAILED": "فشل في نسخ رابط الفيديو."
+    }
   }
 }

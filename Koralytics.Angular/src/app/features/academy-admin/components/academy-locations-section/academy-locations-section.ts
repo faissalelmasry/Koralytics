@@ -82,7 +82,7 @@ export class AcademyLocationsSectionComponent implements OnInit {
       },
       error: () => {
         this.isLoading = false;
-        this.toast.show('Failed to load locations', 'error');
+        this.toast.show(this.translate.instant('ACADEMY_ADMIN.MESSAGES.LOAD_LOCATIONS_FAILED'), 'error');
       }
     });
   }
@@ -119,12 +119,12 @@ export class AcademyLocationsSectionComponent implements OnInit {
           this.locationForm.reset();
           this.loadLocations();
         } else {
-          this.toast.show(res.message || 'Error adding location', 'error');
+          this.toast.show(res.message || this.translate.instant('ACADEMY_ADMIN.MESSAGES.ADD_LOCATION_ERROR'), 'error');
         }
       },
       error: (err) => {
         this.isAddingLocation = false;
-        this.toast.show(err.error?.message || 'Server error', 'error');
+        this.toast.show(err.error?.message || this.translate.instant('ACADEMY_ADMIN.MESSAGES.SERVER_ERROR'), 'error');
       }
     });
   }
@@ -165,11 +165,11 @@ export class AcademyLocationsSectionComponent implements OnInit {
           this.toast.show(this.translate.instant('ACADEMY_ADMIN.LOCATIONS_SECTION.DELETE_SUCCESS') || 'Location deleted successfully', 'success');
           this.loadLocations();
         } else {
-          this.toast.show(res.message || 'Error deleting location', 'error');
+          this.toast.show(res.message || this.translate.instant('ACADEMY_ADMIN.MESSAGES.DELETE_LOCATION_ERROR'), 'error');
         }
       },
       error: (err) => {
-        this.toast.show(err.error?.message || 'Server error', 'error');
+        this.toast.show(err.error?.message || this.translate.instant('ACADEMY_ADMIN.MESSAGES.SERVER_ERROR'), 'error');
       }
     });
   }
@@ -181,11 +181,11 @@ export class AcademyLocationsSectionComponent implements OnInit {
           this.toast.show(this.translate.instant('ACADEMY_ADMIN.LOCATIONS_SECTION.UPDATE_MAIN_SUCCESS') || 'Main location updated', 'success');
           this.loadLocations();
         } else {
-          this.toast.show(res.message || 'Error setting main location', 'error');
+          this.toast.show(res.message || this.translate.instant('ACADEMY_ADMIN.MESSAGES.SET_MAIN_LOCATION_ERROR'), 'error');
         }
       },
       error: (err) => {
-        this.toast.show(err.error?.message || 'Server error', 'error');
+        this.toast.show(err.error?.message || this.translate.instant('ACADEMY_ADMIN.MESSAGES.SERVER_ERROR'), 'error');
       }
     });
   }

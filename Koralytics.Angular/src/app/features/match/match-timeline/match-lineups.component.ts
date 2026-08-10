@@ -164,39 +164,39 @@ export class MatchLineupsComponent implements OnInit, OnChanges {
   get instructionText(): string {
     if (this.isShootoutMode) {
       if (this.activeTool === 'penalty_scored') {
-        return this.translate.instant('MATCH.TIMELINE.INSTRUCT.PEN_SCORED');
+        return this.translate.instant('MATCH.LINEUPS.INSTRUCTIONS.PEN_SCORED');
       }
       if (this.activeTool === 'penalty_missed') {
-        return this.translate.instant('MATCH.TIMELINE.INSTRUCT.PEN_MISSED');
+        return this.translate.instant('MATCH.LINEUPS.INSTRUCTIONS.PEN_MISSED');
       }
-      return `${this.translate.instant('MATCH.TIMELINE.PENALTY_SHOOTOUT')} (${this.homeName} ${this.homePenaltyScore} - ${this.awayPenaltyScore} ${this.awayName})`;
+      return `${this.translate.instant('MATCH.LINEUPS.PENALTY_SHOOTOUT')} (${this.homeName} ${this.homePenaltyScore} - ${this.awayPenaltyScore} ${this.awayName})`;
     }
 
     switch (this.activeTool) {
       case 'goal_solo':
-        return this.translate.instant('MATCH.TIMELINE.INSTRUCT.GOAL_SOLO');
+        return this.translate.instant('MATCH.LINEUPS.INSTRUCTIONS.SOLO_GOAL');
       case 'goal_assist':
         return this.firstPickedPlayer
-          ? `${this.translate.instant('MATCH.TIMELINE.INSTRUCT.SCORER')}: ${this.firstPickedPlayer.fullName} ➔ ${this.translate.instant('MATCH.TIMELINE.INSTRUCT.TAP_ASSISTER')}`
-          : this.translate.instant('MATCH.TIMELINE.INSTRUCT.TAP_SCORER');
+          ? `${this.translate.instant('MATCH.LINEUPS.INSTRUCTIONS.SCORER')}: ${this.firstPickedPlayer.fullName} ➔ ${this.translate.instant('MATCH.LINEUPS.INSTRUCTIONS.GOAL_ASSIST_2')}`
+          : this.translate.instant('MATCH.LINEUPS.INSTRUCTIONS.GOAL_ASSIST_1');
       case 'own_goal':
-        return this.translate.instant('MATCH.TIMELINE.INSTRUCT.OWN_GOAL');
+        return this.translate.instant('MATCH.LINEUPS.INSTRUCTIONS.OWN_GOAL');
       case 'sub':
         return this.firstPickedPlayer
-          ? `${this.translate.instant('MATCH.TIMELINE.INSTRUCT.SUB_OUT')}: ${this.firstPickedPlayer.fullName} ➔ ${this.translate.instant('MATCH.TIMELINE.INSTRUCT.TAP_BENCH')}`
-          : this.translate.instant('MATCH.TIMELINE.INSTRUCT.TAP_SUB_OUT');
+          ? `${this.translate.instant('MATCH.LINEUPS.INSTRUCTIONS.SUB_OUT')}: ${this.firstPickedPlayer.fullName} ➔ ${this.translate.instant('MATCH.LINEUPS.INSTRUCTIONS.TAP_BENCH')}`
+          : this.translate.instant('MATCH.LINEUPS.INSTRUCTIONS.SUB_1');
       case 'yellow':
-        return this.translate.instant('MATCH.TIMELINE.INSTRUCT.YELLOW');
+        return this.translate.instant('MATCH.LINEUPS.INSTRUCTIONS.YELLOW_CARD');
       case 'red':
-        return this.translate.instant('MATCH.TIMELINE.INSTRUCT.RED');
+        return this.translate.instant('MATCH.LINEUPS.INSTRUCTIONS.RED_CARD');
       default:
-        return this.translate.instant('MATCH.TIMELINE.INSTRUCT.SELECT_ACTION');
+        return this.translate.instant('MATCH.LINEUPS.INSTRUCTIONS.SELECT_ACTION');
     }
   }
 
   enterShootoutMode(): void {
     if (!this.isDraw && !this.hasShootoutEvents) {
-      this.toastService.show('Shootout Mode is only available when the match score is a Draw!', 'info');
+      this.toastService.show(this.translate.instant('MATCH.LINEUPS.TOAST_SHOOTOUT_DRAW_ONLY'), 'info');
       return;
     }
     this.isShootoutMode = true;
@@ -206,7 +206,7 @@ export class MatchLineupsComponent implements OnInit, OnChanges {
 
   exitShootoutMode(): void {
     if (Number(this.homePenaltyScore) > 0 || Number(this.awayPenaltyScore) > 0 || this.hasShootoutStarted) {
-      this.toastService.show('Penalty shootout events have been recorded for this match.', 'info');
+      this.toastService.show(this.translate.instant('MATCH.LINEUPS.TOAST_SHOOTOUT_RECORDED'), 'info');
       return;
     }
     this.isShootoutMode = false;
@@ -229,13 +229,13 @@ export class MatchLineupsComponent implements OnInit, OnChanges {
           this.matchInfo.status = 'Completed';
         }
         this.canLogEvents = false;
-        this.toastService.show('Match ended successfully!', 'success');
+        this.toastService.show(this.translate.instant('MATCH.TIMELINE.TOAST_MATCH_ENDED'), 'success');
         this.eventLogged.emit();
         this.cdr.detectChanges();
       },
       error: (err) => {
         this.isEndingMatch = false;
-        const msg = err?.error?.detail || err?.error?.message || 'Failed to end match.';
+        const msg = err?.error?.detail || err?.error?.message || this.translate.instant('MATCH.TIMELINE.TOAST_END_FAIL');
         this.toastService.show(msg, 'error');
         this.cdr.detectChanges();
       }
@@ -244,7 +244,7 @@ export class MatchLineupsComponent implements OnInit, OnChanges {
 
   setTool(tool: ActionTool): void {
     if (this.hasShootoutEvents && tool !== 'penalty_scored' && tool !== 'penalty_missed') {
-      this.toastService.show('Regular match events are disabled after penalty shootout has started.', 'info');
+      this.toastService.show(this.translate.instant('MATCH.LINEUPS.TOAST_REGULAR_DISABLED'), 'info');
       return;
     }
     this.activeTool = tool;
@@ -358,9 +358,9 @@ export class MatchLineupsComponent implements OnInit, OnChanges {
               this.awayPenaltyScore++;
               if (this.matchInfo) this.matchInfo.awayPenaltyScore = this.awayPenaltyScore;
             }
-            this.toastService.show(`Penalty Scored by ${player.fullName}! (${this.homeName} ${this.homePenaltyScore} - ${this.awayPenaltyScore} ${this.awayName})`, 'success');
+            this.toastService.show(this.translate.instant('MATCH.LINEUPS.TOAST_PEN_SCORED', {name: player.fullName, home: this.homePenaltyScore, away: this.awayPenaltyScore, homeName: this.homeName, awayName: this.awayName}), 'success');
           } else {
-            this.toastService.show(`Penalty Goal by ${player.fullName}!`, 'success');
+            this.toastService.show(this.translate.instant('MATCH.LINEUPS.TOAST_PEN_GOAL', {name: player.fullName}), 'success');
           }
         } else if (eventType === 'PenaltyMissed') {
           eventTitle = "Penalty Missed ❌";
@@ -370,7 +370,7 @@ export class MatchLineupsComponent implements OnInit, OnChanges {
           if (this.isShootoutMode) {
             this.hasShootoutStarted = true;
           }
-          this.toastService.show(`Penalty Missed by ${player.fullName}`, 'info');
+          this.toastService.show(this.translate.instant('MATCH.LINEUPS.TOAST_PEN_MISSED', {name: player.fullName}), 'info');
         } else if (eventType === 'Goal') {
           eventTitle = "GOAAAL! ⚽";
           eventMessage = secondaryPlayer 
@@ -378,23 +378,23 @@ export class MatchLineupsComponent implements OnInit, OnChanges {
             : `${player.fullName} scored a solo goal!`;
           eventCategory = "GoalScored";
 
-          this.toastService.show(`GOAL by ${player.fullName}!`, 'success');
+          this.toastService.show(this.translate.instant('MATCH.LINEUPS.TOAST_GOAL', {name: player.fullName}), 'success');
         } else if (eventType === 'OwnGoal') {
           eventTitle = "Own Goal 🥅";
           eventMessage = `${player.fullName} scored an own goal.`;
           eventCategory = "OwnGoal";
 
-          this.toastService.show(`Own Goal by ${player.fullName}!`, 'info');
+          this.toastService.show(this.translate.instant('MATCH.LINEUPS.TOAST_OWN_GOAL', {name: player.fullName}), 'info');
         } else if (eventType === 'YellowCard') {
           eventTitle = "Yellow Card 🟨";
           eventMessage = `${player.fullName} received a yellow card.`;
           eventCategory = "YellowCard";
-          this.toastService.show(`Yellow Card: ${player.fullName}`, 'info');
+          this.toastService.show(this.translate.instant('MATCH.LINEUPS.TOAST_YELLOW_CARD', {name: player.fullName}), 'info');
         } else if (eventType === 'RedCard') {
           eventTitle = "Red Card 🟥";
           eventMessage = `${player.fullName} was sent off with a red card.`;
           eventCategory = "PlayerSentOff";
-          this.toastService.show(`Red Card: ${player.fullName}`, 'error');
+          this.toastService.show(this.translate.instant('MATCH.LINEUPS.TOAST_RED_CARD', {name: player.fullName}), 'error');
         } else if (eventType === 'Substitution' && secondaryPlayer) {
           eventTitle = "Substitution 🔄";
           eventMessage = `Substitution: ${player.fullName} off, ${secondaryPlayer.fullName} on.`;
@@ -426,7 +426,7 @@ export class MatchLineupsComponent implements OnInit, OnChanges {
             benchList[benchIdx] = outP;
           }
 
-          this.toastService.show(`Sub: OUT ${player.fullName} ➔ IN ${secondaryPlayer.fullName}`, 'success');
+          this.toastService.show(this.translate.instant('MATCH.LINEUPS.TOAST_SUB', {out: player.fullName, in: secondaryPlayer.fullName}), 'success');
         }
        this.notificationService.triggerMatchEventNotification(
           this.matchId,
@@ -439,7 +439,7 @@ export class MatchLineupsComponent implements OnInit, OnChanges {
         this.cdr.detectChanges();
       },
       error: (err) => {
-        const msg = err?.error?.detail || err?.error?.message || 'Failed to log match event.';
+        const msg = err?.error?.detail || err?.error?.message || this.translate.instant('MATCH.LINEUPS.TOAST_LOG_FAIL');
         this.toastService.show(msg, 'error');
         this.cdr.detectChanges();
       }

@@ -253,7 +253,7 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
           this.calculatePagination();
         },
         error: (err) => {
-          this.errorMessage = err.error?.message || 'Failed to load templates.';
+          this.errorMessage = err.error?.message || this.translate.instant('DRILLS.TEMPLATES.FAILED_LOAD');
         }
       })
     );
@@ -368,13 +368,13 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
       ).subscribe({
         next: () => {
           this.closeForm();
-          this.showToast(this.isEditing ? this.translate.instant('DRILLS.TEMPLATES.UPDATE_SUCCESS') || 'Template updated successfully.' : this.translate.instant('DRILLS.TEMPLATES.CREATE_SUCCESS') || 'Template created successfully.', 'success');
+          this.showToast(this.isEditing ? this.translate.instant('DRILLS.TEMPLATES.TOAST_UPDATED') : this.translate.instant('DRILLS.TEMPLATES.TOAST_CREATED'), 'success');
           this.fetchTemplates();
         },
         error: (err) => {
-          const errorMsg = this.extractErrorMessage(err, 'Failed to save template.');
+          const errorMsg = this.extractErrorMessage(err, this.translate.instant('DRILLS.TEMPLATES.FAILED_SAVE'));
           this.formError = errorMsg;
-          this.showErrorDialog('Save Failed', errorMsg);
+          this.showErrorDialog(this.translate.instant('DRILLS.TEMPLATES.DIALOG_SAVE_FAILED'), errorMsg);
         }
       })
     );
@@ -509,16 +509,6 @@ export class DrillTemplateListComponent implements OnInit, OnDestroy {
   // ==========================================
 
   getCategoryLabel(drill: DrillTemplateDto): string {
-    if ((drill as any).categoryName) {
-      return (drill as any).categoryName.toLowerCase();
-    }
-
-    const cat = this.categories.find(c => c.id === drill.categoryId);
-    if (cat) {
-      return cat.name.toLowerCase();
-    }
-
-    // 🟢 OPTIMIZATION: Removed hardcoded dictionary. Fallback to generic ID if category isn't loaded yet.
     const name = (drill as any).categoryName || this.categories.find(c => c.id === drill.categoryId)?.name || '';
     return name ? this.translateCategory(name) : `category #${drill.categoryId}`;
   }

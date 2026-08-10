@@ -96,7 +96,8 @@
       "VIEW_PROFILE": "← عرض الملف الشخصي",
       "ATTRIBUTE_BREAKDOWN": "تحليل السمات",
       "FOOT_WEAK": "القدم / الضعيفة",
-      "STYLE": "الأسلوب"
+      "STYLE": "الأسلوب",
+      "COMPARE_FAILED": "فشل في مقارنة اللاعبين."
     },
     "NOTES": {
       "TITLE": "ملاحظات",
@@ -227,7 +228,13 @@
       "PLAYERS": "لاعبون",
       "AVG_RATING": "متوسط التقييم",
       "IDEAL_BALANCE": "التوازن المثالي",
-      "VS": "ضد"
+      "VS": "ضد",
+      "LOAD_SESSIONS_FAILED": "فشل في تحميل جلسات التدريب.",
+      "SPLIT_FAILED": "فشل في تقسيم الفرق."
+    },
+    "MESSAGES": {
+      "NO_ID_FOUND": "غير قادر على تحديد معرف المدرب.",
+      "LOAD_PROFILE_FAILED": "فشل في تحميل بيانات الملف الشخصي للمدرب."
     }
   }
 }

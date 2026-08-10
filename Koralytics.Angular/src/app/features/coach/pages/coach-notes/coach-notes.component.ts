@@ -68,7 +68,7 @@ export class CoachNotesComponent implements OnInit {
           }
         },
         error: () => {
-          this.error.set('COACH.NOTES.FAILED_LOAD_TEAMS');
+          this.error.set(this.translate.instant('COACH.NOTES.FAILED_LOAD_TEAMS'));
         }
       });
   }
@@ -92,7 +92,7 @@ export class CoachNotesComponent implements OnInit {
           }
         },
         error: (err) => {
-          this.error.set('COACH.NOTES.FAILED_LOAD_SQUAD');
+          this.error.set(this.translate.instant('COACH.NOTES.FAILED_LOAD_SQUAD'));
         }
       });
   }
@@ -123,7 +123,7 @@ export class CoachNotesComponent implements OnInit {
         },
         error: (err) => {
           this.loadingNotes.set(false);
-          this.error.set('COACH.NOTES.FAILED_LOAD_NOTES');
+          this.error.set(this.translate.instant('COACH.NOTES.FAILED_LOAD_NOTES'));
         }
       });
   }
@@ -169,13 +169,13 @@ export class CoachNotesComponent implements OnInit {
           this.newNote.sessionId = undefined;
           this.newNote.matchId = undefined;
 
-          this.successMsg.set('COACH.NOTES.NOTE_SAVED');
+          this.successMsg.set(this.translate.instant('COACH.NOTES.NOTE_SAVED'));
           this.submittingNote.set(false);
 
           setTimeout(() => this.successMsg.set(''), 3000);
         },
         error: (err) => {
-          this.error.set(err?.error?.message || 'COACH.NOTES.FAILED_SAVE_NOTE');
+          this.error.set(err?.error?.message || this.translate.instant('COACH.NOTES.FAILED_SAVE_NOTE'));
           this.submittingNote.set(false);
         }
       });

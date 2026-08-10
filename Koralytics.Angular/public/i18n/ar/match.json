@@ -18,6 +18,15 @@
       "FAILED_LOAD": "فشل تحميل المباريات.",
       "FILTER_DATE_ERROR": "تاريخ \"من\" يجب أن يكون قبل تاريخ \"إلى\"."
     },
+    "CATEGORIES": {
+      "SPEED": "السرعة",
+      "SHOOTING": "التسديد",
+      "PASSING": "التمرير",
+      "DRIBBLING": "المراوغة",
+      "DEFENDING": "الدفاع",
+      "PHYSICAL": "اللياقة البدنية",
+      "GOALKEEPING": "حراسة المرمى"
+    },
     "REQUEST_INCOMING": {
       "TAG": "طلبات المباريات",
       "TITLE": "الطلبات الواردة",
@@ -168,9 +177,19 @@
       "START_MATCH_DIALOG_TITLE": "بدء المباراة",
       "START_MATCH_DIALOG_MSG": "هل أنت متأكد من بدء المباراة؟ سيؤدي ذلك إلى تغيير حالتها إلى 'مباشر'.",
       "END_MATCH_DIALOG_TITLE": "إنهاء المباراة",
-      "END_MATCH_DIALOG_MSG": "هل أنت متأكد من إنهاء المباراة؟ هذا الإجراء لا يمكن التراجع عنه."
+      "END_MATCH_DIALOG_MSG": "هل أنت متأكد من إنهاء المباراة؟ هذا الإجراء لا يمكن التراجع عنه.",
+      "ERROR_MISSING_ID": "لا يمكن إلغاء الحدث: معرف الحدث مفقود",
+      "EVENT_DISALLOWED_SUCCESS": "تم إلغاء الحدث بنجاح",
+      "EVENT_DISALLOW_FAIL": "فشل في إلغاء الحدث",
+      "TOAST_MATCH_STARTED": "بدأت المباراة بنجاح! المباراة الآن مباشرة.",
+      "TOAST_MATCH_ENDED": "انتهت المباراة بنجاح!",
+      "TOAST_START_FAIL": "فشل في بدء المباراة.",
+      "TOAST_END_FAIL": "فشل في إنهاء المباراة.",
+      "TOAST_START_NOTIF_FAIL": "بدأت المباراة، لكن فشل إرسال الإشعار: {{detail}}",
+      "TOAST_END_NOTIF_FAIL": "انتهت المباراة، لكن فشل إرسال الإشعار: {{detail}}"
     },
     "LINEUPS": {
+      "PEN_TEXT": "ترجيح",
       "LIVE_LOGGER": "مسجل أحداث المباراة المباشر",
       "PENALTY_SHOOTOUT": "ركلات الترجيح",
       "BTN_PEN_SHOOTOUTS": "ركلات الترجيح",
@@ -196,7 +215,12 @@
         "YELLOW_CARD": "➔ اضغط على اللاعب لإنذاره",
         "RED_CARD": "➔ اضغط على اللاعب لطرده",
         "PEN_SCORED": "➔ اضغط على مسجل الركلة",
-        "PEN_MISSED": "➔ اضغط على منفذ الركلة"
+        "PEN_MISSED": "➔ اضغط على منفذ الركلة",
+        "SCORER": "مسجل الهدف",
+        "TAP_ASSISTER": "اضغط على صانع الهدف",
+        "SUB_OUT": "اللاعب المغادر",
+        "TAP_BENCH": "اضغط على لاعب البدلاء",
+        "SELECT_ACTION": "اختر إجراءً"
       },
       "SUB_PROMPT": "➔ اضغط على لاعب بديل لإتمام التبديل",
       "BENCH_TITLE_HOME": "دكة البدلاء ({{team}})",
@@ -207,7 +231,19 @@
       "NO_LINEUP_SUBMITTED_TITLE": "لم يتم إرسال التشكيلة",
       "NO_LINEUP_SUBMITTED_DESC": "فريق {{team}} لم يرسل تشكيلة بعد. بصفتك المدرب، يمكنك إرسال التشكيلة الآن.",
       "BTN_SUBMIT_LINEUP": "إرسال التشكيلة",
-      "STARTERS": "الأساسيون: {{current}} / {{max}}"
+      "STARTERS": "الأساسيون: {{current}} / {{max}}",
+      "TOAST_SHOOTOUT_DRAW_ONLY": "وضع ركلات الترجيح متاح فقط عندما تكون نتيجة المباراة تعادل!",
+      "TOAST_SHOOTOUT_RECORDED": "تم تسجيل أحداث ركلات الترجيح لهذه المباراة.",
+      "TOAST_REGULAR_DISABLED": "تم تعطيل أحداث المباراة العادية بعد بدء ركلات الترجيح.",
+      "TOAST_PEN_SCORED": "سجل {{name}} ركلة جزاء! ({{homeName}} {{home}} - {{away}} {{awayName}})",
+      "TOAST_PEN_GOAL": "هدف من ركلة جزاء بواسطة {{name}}!",
+      "TOAST_PEN_MISSED": "أضاع {{name}} ركلة جزاء",
+      "TOAST_GOAL": "هدف بواسطة {{name}}!",
+      "TOAST_OWN_GOAL": "هدف عكسي بواسطة {{name}}!",
+      "TOAST_YELLOW_CARD": "بطاقة صفراء: {{name}}",
+      "TOAST_RED_CARD": "بطاقة حمراء: {{name}}",
+      "TOAST_SUB": "تبديل: خروج {{out}} ➔ دخول {{in}}",
+      "TOAST_LOG_FAIL": "فشل في تسجيل حدث المباراة."
     },
     "RATINGS": {
       "HEADER_TITLE": "إرسال تقييمات ما بعد المباراة",
@@ -227,7 +263,11 @@
       "NO_RATINGS_TITLE": "لا توجد تقييمات",
       "NO_RATINGS_DESC": "لم يتم العثور على تقييمات لهذا الفريق.",
       "NO_LINEUPS_TITLE": "التشكيلات غير متوفرة",
-      "NO_LINEUPS_DESC": "لم يتم إرسال التشكيلات لهذه المباراة، لذلك لا يمكن إرسال التقييمات."
+      "NO_LINEUPS_DESC": "لم يتم إرسال التشكيلات لهذه المباراة، لذلك لا يمكن إرسال التقييمات.",
+      "ERROR_COACH_PERMISSIONS": "فشل في تحميل صلاحيات المدرب.",
+      "ERROR_LOAD_CATEGORIES": "فشل في تحميل فئات التقييم.",
+      "SUCCESS_SUBMIT": "تم إرسال التقييمات بنجاح!",
+      "ERROR_SUBMIT": "فشل في إرسال التقييمات."
     },
     "H2H": {
       "TAG": "تحليلات المباراة",

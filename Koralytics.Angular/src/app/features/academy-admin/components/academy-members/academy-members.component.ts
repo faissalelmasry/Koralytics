@@ -136,17 +136,17 @@ export class AcademyMembersComponent implements OnInit, OnChanges {
       next: (res) => {
         this.isSending = false;
         if (res.isSuccess) {
-          this.toast.show('Player join request sent!', 'success');
+          this.toast.show(this.translate.instant('ACADEMY_ADMIN.MESSAGES.PLAYER_REQUEST_SENT'), 'success');
           this.loadData();
           this.searchResults = [];
           this.searchForm.reset();
         } else {
-          this.toast.show(res.message || 'Error sending request', 'error');
+          this.toast.show(res.message || this.translate.instant('ACADEMY_ADMIN.MESSAGES.SEND_REQUEST_ERROR'), 'error');
         }
       },
       error: (err) => {
         this.isSending = false;
-        this.toast.show(err.error?.detail || err.error?.message || 'Error sending request', 'error');
+        this.toast.show(err.error?.detail || err.error?.message || this.translate.instant('ACADEMY_ADMIN.MESSAGES.SEND_REQUEST_ERROR'), 'error');
       }
     });
   }
@@ -200,7 +200,7 @@ export class AcademyMembersComponent implements OnInit, OnChanges {
             this.toast.show(this.translate.instant('ACADEMY_ADMIN.MEMBERS.TOAST_CANCEL_SUCCESS') || 'Request cancelled', 'success');
             this.loadData();
           } else {
-            this.toast.show(res.message || 'Error cancelling request', 'error');
+            this.toast.show(res.message || this.translate.instant('ACADEMY_ADMIN.MESSAGES.CANCEL_REQUEST_ERROR'), 'error');
           }
         }
       });
@@ -211,7 +211,7 @@ export class AcademyMembersComponent implements OnInit, OnChanges {
             this.toast.show(this.translate.instant('ACADEMY_ADMIN.MEMBERS.TOAST_REMOVE_SUCCESS') || 'Player removed successfully', 'success');
             this.loadData();
           } else {
-            this.toast.show(res.message || 'Error removing member', 'error');
+            this.toast.show(res.message || this.translate.instant('ACADEMY_ADMIN.MESSAGES.REMOVE_MEMBER_ERROR'), 'error');
           }
         }
       });

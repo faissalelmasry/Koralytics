@@ -164,12 +164,12 @@ export class MyProfileComponent implements OnInit {
             this.loadPendingAcademyRequests();
           }
         } else {
-          this.toast.show(res.message || 'Failed to load profile', 'error');
+          this.toast.show(res.message || this.translateService.instant('PROFILE.MESSAGES.PROFILE_LOAD_FAILED'), 'error');
         }
       },
       error: (err) => {
         this.isLoading = false;
-        this.toast.show('Error connecting to server while loading profile.', 'error');
+        this.toast.show(this.translateService.instant('PROFILE.MESSAGES.SERVER_ERROR'), 'error');
       }
     });
   }
@@ -236,7 +236,7 @@ export class MyProfileComponent implements OnInit {
       error: (err) => {
         this.isRespondingToAcademyRequest = false;
         console.error('Failed to respond to academy request', err);
-        this.toast.show('Failed to respond to academy join request.', 'error');
+        this.toast.show(this.translateService.instant('PROFILE.MESSAGES.ACADEMY_RESPOND_FAILED'), 'error');
       }
     });
   }
@@ -253,7 +253,7 @@ export class MyProfileComponent implements OnInit {
       },
       error: (err) => {
         console.error('Failed to respond to parent request', err);
-        this.toast.show('Failed to respond to parent request.', 'error');
+        this.toast.show(this.translateService.instant('PROFILE.MESSAGES.PARENT_RESPOND_FAILED'), 'error');
       }
     });
   }
@@ -274,12 +274,12 @@ export class MyProfileComponent implements OnInit {
       next: () => {
         this.isUnlinkingParent = false;
         this.linkedParents = this.linkedParents.filter(p => p.parentId !== parentId);
-        this.toast.show('Parent/Guardian unlinked successfully.', 'success');
+        this.toast.show(this.translateService.instant('PROFILE.MESSAGES.PARENT_UNLINKED_SUCCESS'), 'success');
       },
       error: (err) => {
         this.isUnlinkingParent = false;
         console.error('Failed to unlink parent', err);
-        this.toast.show('Failed to unlink parent/guardian.', 'error');
+        this.toast.show(this.translateService.instant('PROFILE.MESSAGES.PARENT_UNLINK_FAILED'), 'error');
       }
     });
   }
@@ -391,7 +391,7 @@ export class MyProfileComponent implements OnInit {
       }
     } else {
       if (this.editPositions.length >= 5) {
-        this.toast.show('A player can have at most 5 positions.', 'warning');
+        this.toast.show(this.translateService.instant('PROFILE.MESSAGES.MAX_POSITIONS'), 'warning');
         return;
       }
       this.editPositions.push({
@@ -413,21 +413,21 @@ export class MyProfileComponent implements OnInit {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       if (this.form.controls.phoneNumber.invalid) {
-        this.toast.show(this.phoneError() || 'Please enter a valid phone number.', 'warning');
+        this.toast.show(this.phoneError() || this.translateService.instant('PROFILE.MESSAGES.INVALID_PHONE'), 'warning');
       } else {
-        this.toast.show('Please fill in all required fields properly.', 'warning');
+        this.toast.show(this.translateService.instant('PROFILE.MESSAGES.INVALID_FORM'), 'warning');
       }
       return;
     }
 
     if (this.profile?.role === 'Player') {
       if (this.editPositions.length === 0) {
-        this.toast.show('Please select at least 1 position.', 'warning');
+        this.toast.show(this.translateService.instant('PROFILE.MESSAGES.MIN_POSITIONS'), 'warning');
         return;
       }
       const primaryCount = this.editPositions.filter(p => p.isPrimary).length;
       if (primaryCount !== 1) {
-        this.toast.show('Exactly 1 position must be marked as primary.', 'warning');
+        this.toast.show(this.translateService.instant('PROFILE.MESSAGES.EXACTLY_ONE_PRIMARY_POSITION'), 'warning');
         return;
       }
     }
@@ -457,14 +457,14 @@ export class MyProfileComponent implements OnInit {
         if (res.isSuccess && res.data) {
           this.profile = res.data;
           this.isEditing = false;
-          this.toast.show(res.message || 'Profile updated successfully.', 'success');
+          this.toast.show(res.message || this.translateService.instant('PROFILE.MESSAGES.PROFILE_UPDATE_SUCCESS'), 'success');
         } else {
-          this.toast.show(res.message || 'Failed to update profile.', 'error');
+          this.toast.show(res.message || this.translateService.instant('PROFILE.MESSAGES.PROFILE_UPDATE_FAILED'), 'error');
         }
       },
       error: (err) => {
         this.isSaving = false;
-        const msg = err.error?.message || 'Error occurred while saving profile.';
+        const msg = err.error?.message || this.translateService.instant('PROFILE.MESSAGES.PROFILE_SAVE_ERROR');
         this.toast.show(msg, 'error');
       }
     });
@@ -489,15 +489,15 @@ export class MyProfileComponent implements OnInit {
             this.profile.profileImageUrl = newUrl;
           }
           this.showImageUploadModal = false;
-          this.toast.show('Profile image updated successfully.', 'success');
+          this.toast.show(this.translateService.instant('PROFILE.MESSAGES.PROFILE_IMAGE_UPDATE_SUCCESS'), 'success');
           this.loadProfile();
         } else {
-          this.toast.show(res.message || 'Failed to upload image.', 'error');
+          this.toast.show(res.message || this.translateService.instant('PROFILE.MESSAGES.PROFILE_IMAGE_UPLOAD_FAILED'), 'error');
         }
       },
       error: (err) => {
         this.isUploadingImage = false;
-        const msg = err.error?.message || 'Failed to upload profile image.';
+        const msg = err.error?.message || this.translateService.instant('PROFILE.MESSAGES.PROFILE_IMAGE_UPLOAD_ERROR');
         this.toast.show(msg, 'error');
       }
     });
@@ -515,15 +515,15 @@ export class MyProfileComponent implements OnInit {
             this.profile.profileImageUrl = null;
           }
           this.showImageUploadModal = false;
-          this.toast.show(res.message || 'Profile photo removed successfully.', 'success');
+          this.toast.show(res.message || this.translateService.instant('PROFILE.MESSAGES.PROFILE_PHOTO_REMOVED_SUCCESS'), 'success');
           this.loadProfile();
         } else {
-          this.toast.show(res.message || 'Failed to remove profile photo.', 'error');
+          this.toast.show(res.message || this.translateService.instant('PROFILE.MESSAGES.PROFILE_PHOTO_REMOVE_FAILED'), 'error');
         }
       },
       error: (err) => {
         this.isUploadingImage = false;
-        const msg = err.error?.message || 'Failed to remove profile photo.';
+        const msg = err.error?.message || this.translateService.instant('PROFILE.MESSAGES.PROFILE_PHOTO_REMOVE_ERROR');
         this.toast.show(msg, 'error');
       }
     });
