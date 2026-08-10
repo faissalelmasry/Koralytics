@@ -41,8 +41,8 @@ export interface TeamData {
 })
 export class DrillSessionCreateComponent implements OnInit, OnDestroy {
   // 🟢 OPTIMIZATION: Memory management
-    private subscriptions = new Subscription();
-    private translate = inject(TranslateService);
+  private subscriptions = new Subscription();
+  private translate = inject(TranslateService);
 
   sessionForm!: FormGroup;
   isSubmitting = false;
@@ -226,23 +226,21 @@ export class DrillSessionCreateComponent implements OnInit, OnDestroy {
         next: (response) => {
           this.isSubmitting = false;
           //notification
-          // 🟢 TODO: Aly needs to build a bulk .NET endpoint for this to prevent DDOSing the backend!
-          selectedPlayerIds.forEach(playerId => {
+
+          if (selectedPlayerIds && selectedPlayerIds.length > 0) {
             const playerMsg = "A new training session has been scheduled for your team.";
             const parentMsg = "A new training session has been scheduled for your child's team.";
-  
-            this.subscriptions.add(
-              this.notificationService.notifyPlayerMilestone(playerId, playerMsg).subscribe({
-                error: (e) => console.error(`Failed to notify player ${playerId} for new session`, e)
-              })
-            );
-  
-            this.subscriptions.add(
-              this.notificationService.notifyPlayerParents(playerId, parentMsg).subscribe({
-                error: (e) => console.error(`Failed to notify parent for player ${playerId} new session`, e)
-              })
-            );
-          });
+
+            this.notificationService.notifyMultiplePlayersMilestone(selectedPlayerIds, playerMsg).subscribe({
+              next: () => console.log('Successfully notified all players about the new session.'),
+              error: (e) => console.error('Failed to notify players for the new session', e)
+            });
+
+            this.notificationService.notifyParentsOfPlayers(selectedPlayerIds, parentMsg).subscribe({
+              next: () => console.log('Successfully notified all parents about the new session.'),
+              error: (e) => console.error('Failed to notify parents for the new session', e)
+            });
+          }
           this.router.navigate(['/drills/sessions']);
         },
         error: (err) => {

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning';
@@ -17,19 +17,28 @@ export class ToastService {
   toasts$ = this.toastsSubject.asObservable();
   private counter = 0;
 
-  show(message: string, type: ToastType = 'info', duration: number = 4000) {
-    const id = this.counter++;
-    const currentToasts = this.toastsSubject.value;
-    
-    this.toastsSubject.next([...currentToasts, { id, type, message }]);
+  
+  constructor(private ngZone: NgZone) {} 
 
-    setTimeout(() => {
-      this.clear(id);
-    }, duration);
+  show(message: string, type: ToastType = 'info', duration: number = 4000) {
+   
+    this.ngZone.run(() => {
+      const id = this.counter++;
+      const currentToasts = this.toastsSubject.value;
+      
+      this.toastsSubject.next([...currentToasts, { id, type, message }]);
+
+     
+      setTimeout(() => {
+        this.clear(id);
+      }, duration);
+    });
   }
 
   clear(id: number) {
-    const currentToasts = this.toastsSubject.value;
-    this.toastsSubject.next(currentToasts.filter(t => t.id !== id));
+    this.ngZone.run(() => {
+      const currentToasts = this.toastsSubject.value;
+      this.toastsSubject.next(currentToasts.filter(t => t.id !== id));
+    });
   }
 }

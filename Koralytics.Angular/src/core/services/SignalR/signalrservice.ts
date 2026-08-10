@@ -1,10 +1,9 @@
-import { DestroyRef, inject, Injectable, signal } from '@angular/core';
+import { DestroyRef, inject, Injectable, signal, NgZone } from '@angular/core';
 import * as signalR from '@microsoft/signalr';
 import { Subject } from 'rxjs';
 import { CachedNotification } from '../../interfaces/CachedNotification';
 import { ToastService, ToastType } from '../Toast/toast';
 import { environment } from '../../../environments/environment';
-
 
 @Injectable({
   providedIn: 'root',
@@ -13,15 +12,12 @@ export class SignalRService {
   private hubConnection!: signalR.HubConnection;
   private toastService = inject(ToastService);
   private destroyRef = inject(DestroyRef);
+  private ngZone = inject(NgZone); 
+  
   public notification$ = new Subject<CachedNotification>();
-
-  
   public announcement$ = new Subject<CachedNotification>();
-
-  
   public connectionState = signal<signalR.HubConnectionState>(signalR.HubConnectionState.Disconnected);
 
-  
   private retryAttempts = 0;
   private readonly maxRetryAttempts = 6;
   private readonly maxRetryDelayMs = 30000;
@@ -32,6 +28,7 @@ export class SignalRService {
   constructor() {
     this.destroyRef.onDestroy(() => this.stopConnection());
   }
+
   public startConnection(tokenProvider: string | (() => string)): void {
     this.manuallyStopped = false;
     this.retryAttempts = 0;
@@ -67,7 +64,6 @@ export class SignalRService {
       }
     });
     
-
     this.registerServerEvents();
   }
 
@@ -112,35 +108,48 @@ export class SignalRService {
   }
 
   private registerServerEvents(): void {
-
+    // 👈 تغليف جميع الأحداث بـ ngZone.run
     this.hubConnection.on('ReceiveAnnouncement', (data: CachedNotification) => {
-      this.triggerToastNotification(data);
-      this.announcement$.next(data);
-      this.notification$.next(data);
+      this.ngZone.run(() => {
+        this.triggerToastNotification(data);
+        this.announcement$.next(data);
+        this.notification$.next(data);
+      });
     });
 
     this.hubConnection.on('ReceiveMilestoneNotification', (data: CachedNotification) => {
-      this.triggerToastNotification(data);
-      this.notification$.next(data);
+      this.ngZone.run(() => {
+        this.triggerToastNotification(data);
+        this.notification$.next(data);
+      });
     });
 
     this.hubConnection.on('ReceiveParentNotification', (data: CachedNotification) => {
-      this.triggerToastNotification(data);
-      this.notification$.next(data);
+      this.ngZone.run(() => {
+        this.triggerToastNotification(data);
+        this.notification$.next(data);
+      });
     });
 
     this.hubConnection.on('ReceiveSubscriptionGraceNotification', (data: CachedNotification) => {
-      this.triggerToastNotification(data);
-      this.notification$.next(data);
+      this.ngZone.run(() => {
+        this.triggerToastNotification(data);
+        this.notification$.next(data);
+      });
     });
 
     this.hubConnection.on('ReceiveScouterNotification', (data: CachedNotification) => {
-      this.triggerToastNotification(data);
-      this.notification$.next(data);
+      this.ngZone.run(() => {
+        this.triggerToastNotification(data);
+        this.notification$.next(data);
+      });
     });
+    
     this.hubConnection.on('ReceiveMatchEventNotification', (data: CachedNotification) => {
-      this.triggerToastNotification(data);
-      this.notification$.next(data);
+      this.ngZone.run(() => {
+        this.triggerToastNotification(data);
+        this.notification$.next(data);
+      });
     });
   }
 
@@ -149,7 +158,7 @@ export class SignalRService {
     this.toastService.show(fullMessage, this.resolveToastType(notification.type));
   }
 
- private resolveToastType(type: string): ToastType {
+  private resolveToastType(type: string): ToastType {
     switch (type) {
       case 'AcademyAnnouncement':
         return 'info';
@@ -170,6 +179,7 @@ export class SignalRService {
         return 'info';
     }
   }
+
   public stopConnection(): void {
     this.manuallyStopped = true;
 

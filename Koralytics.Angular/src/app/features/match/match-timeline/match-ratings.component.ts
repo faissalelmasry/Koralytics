@@ -388,19 +388,20 @@ export class MatchRatingsComponent implements OnInit {
         this.isSubmitting = false;
         this.toastService.show(this.translate.instant('MATCH.RATINGS.SUCCESS_SUBMIT', { Default: 'Match ratings submitted successfully!' }), 'success');
         //  TRIGGER MOTM NOTIFICATIONS USING NotificationService
-        allRatingsToSubmit.filter(r => !r.skipRating && r.isMOTM).forEach(motmPlayer => {
+        const motmPlayer = allRatingsToSubmit.find(r => !r.skipRating && r.isMOTM);
+        if (motmPlayer) {
+          const playerId = motmPlayer.player.playerId;
 
           this.notificationService.notifyPlayerMilestone(
-            motmPlayer.player.playerId,
+            playerId,
             "Man of the Match"
-          ).subscribe({ error: (e) => console.error('Failed to notify player', e) });
+          ).subscribe({ error: (e) => console.error(`Failed to notify MOTM player ${playerId}`, e) });
 
           this.notificationService.notifyScouterFollowers(
-            motmPlayer.player.playerId,
+            playerId,
             "Awarded MOTM"
-          ).subscribe({ error: (e) => console.error('Failed to notify scouters', e) });
-
-        });
+          ).subscribe({ error: (e) => console.error(`Failed to notify scouters for MOTM ${playerId}`, e) });
+        }
         // Build the read-only view from the forms that were just submitted
         const buildSubmitted = (forms: PlayerRatingForm[]) =>
           forms

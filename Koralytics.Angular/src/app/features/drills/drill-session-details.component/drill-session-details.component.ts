@@ -63,7 +63,7 @@ export interface ExtendedDrillSessionDetails extends DrillSessionDetailsDto {
     LoadingSpinnerComponent,
     CustomInputComponent,
     CustomNumberInputComponent
-  , TranslatePipe, LocalizedDatePipe],
+    , TranslatePipe, LocalizedDatePipe],
   templateUrl: './drill-session-details.component.html',
   styleUrls: ['./drill-session-details.component.css']
 })
@@ -76,12 +76,12 @@ export class DrillSessionDetailsComponent implements OnInit {
     return translated !== key ? translated : name;
   }
 
-    get templateOptions(): SelectOption[] {
-        return this.availableTemplates.map(t => ({
-            value: t.id,
-            label: `${t.name} (${t.categoryName || 'General'})`
-        }));
-    }  // 🟢 OPTIMIZATION: Memory management
+  get templateOptions(): SelectOption[] {
+    return this.availableTemplates.map(t => ({
+      value: t.id,
+      label: `${t.name} (${t.categoryName || 'General'})`
+    }));
+  }  // 🟢 OPTIMIZATION: Memory management
   private subscriptions = new Subscription();
 
   onTemplateSelect(val: string | number | null): void {
@@ -234,22 +234,29 @@ export class DrillSessionDetailsComponent implements OnInit {
       this.sessionService.updateAttendance(this.sessionId, payload).pipe(
         switchMap(() => {
           if (!isPresent) {
-            const playerMsg = "You were marked absent from today's drill session.";
-            const parentMsg = `Your child has been marked absent from today's drill session.`;
 
+            const playerMsg = `Hi ${player.playerFullName}, a training session is currently ongoing and you are marked as absent.`;
+            const parentMsg = `Your child, ${player.playerFullName}, is currently marked as absent from the ongoing training session.`;
             return forkJoin([
-              this.notificationService.notifyPlayerMilestone(player.playerId, playerMsg).pipe(catchError(e => { console.error(`Failed to notify player ${player.playerId} for absence`, e); return of(null); })),
-              this.notificationService.notifyPlayerParents(player.playerId, parentMsg).pipe(catchError(e => { console.error(`Failed to notify parent for player ${player.playerId} absence`, e); return of(null); }))
+              this.notificationService.notifyPlayerMilestone(player.playerId, playerMsg).pipe(
+                catchError(e => { console.error(`Failed to notify player ${player.playerId} for ongoing absence`, e); return of(null); })
+              ),
+              this.notificationService.notifyPlayerParents(player.playerId, parentMsg).pipe(
+                catchError(e => { console.error(`Failed to notify parent for player ${player.playerId} ongoing absence`, e); return of(null); })
+              )
             ]);
           }
           return of(null);
         })
       ).subscribe({
-        error: (err) => console.error('Failed to auto-save attendance', err)
+        error: (err) => {
+          console.error('Failed to auto-save attendance', err);
+          // Optional: Revert UI state if API fails
+          player.isPresent = !isPresent;
+        }
       })
     );
   }
-
   getPresentCount(): number {
     if (!this.sessionData?.attendance) return 0;
     return this.sessionData.attendance.filter((p: PlayerAttendance) => p.isPresent).length;
@@ -452,19 +459,20 @@ export class DrillSessionDetailsComponent implements OnInit {
       this.sessionService.submitDrillResults(this.sessionId, this.activeDrillForResults.id, payload).pipe(
         switchMap(() => {
           this.isSubmittingResults = false;
-          // 🟢 TODO: Refactor to use bulk endpoint (e.g., notifyBulkPlayers) to prevent DDOSing backend!
-          const notificationCalls: Observable<any>[] = [];
-          this.playerScoreEntries.forEach(entry => {
+          if (this.playerScoreEntries && this.playerScoreEntries.length > 0) {
+            const playerIds = this.playerScoreEntries.map(entry => entry.playerId);
             const playerMsg = "A new drill result has been recorded.";
             const parentMsg = "A new drill result has been recorded for your child.";
-            notificationCalls.push(
-              this.notificationService.notifyPlayerMilestone(entry.playerId, playerMsg).pipe(catchError(e => { console.error(`Failed to notify player ${entry.playerId}`, e); return of(null); }))
-            );
-            notificationCalls.push(
-              this.notificationService.notifyPlayerParents(entry.playerId, parentMsg).pipe(catchError(e => { console.error(`Failed to notify parent for player ${entry.playerId}`, e); return of(null); }))
-            );
-          });
-          return notificationCalls.length > 0 ? forkJoin(notificationCalls) : of(null);
+            return forkJoin([
+              this.notificationService.notifyMultiplePlayersMilestone(playerIds, playerMsg).pipe(
+                catchError(e => { console.error('Failed to notify players for the drill result', e); return of(null); })
+              ),
+              this.notificationService.notifyParentsOfPlayers(playerIds, parentMsg).pipe(
+                catchError(e => { console.error('Failed to notify parents for the drill result', e); return of(null); })
+              )
+            ]);
+          }
+          return of(null);
         })
       ).subscribe({
         next: () => {
@@ -489,8 +497,29 @@ export class DrillSessionDetailsComponent implements OnInit {
       messageParams: {},
       confirmText: 'DRILLS.SESSION_DETAILS.COMPLETE_BTN',
       action: () => {
+        const absentPlayerIds = this.sessionData?.attendance
+          ?.filter(p => !p.isPresent)
+          .map(p => p.playerId) || [];
+        let notifications$: Observable<any> = of(null);
+
+        if (absentPlayerIds.length > 0) {
+
+          const playerMsg = "Final Confirmation: The drill session has concluded, and your absence has been officially recorded.";
+          const parentMsg = "Final Confirmation: The drill session has concluded, and your child's absence has been officially recorded.";
+
+          notifications$ = forkJoin([
+            this.notificationService.notifyMultiplePlayersMilestone(absentPlayerIds, playerMsg).pipe(
+              catchError(e => { console.error('Failed to notify absent players', e); return of(null); })
+            ),
+            this.notificationService.notifyParentsOfPlayers(absentPlayerIds, parentMsg).pipe(
+              catchError(e => { console.error('Failed to notify parents of absent players', e); return of(null); })
+            )
+          ]);
+        }
         this.subscriptions.add(
-          this.sessionService.completeSession(this.sessionId).subscribe({
+          notifications$.pipe(
+            switchMap(() => this.sessionService.completeSession(this.sessionId))
+          ).subscribe({
             next: (res: any) => {
               this.showToast('Session completed successfully.', 'success');
               this.closeConfirm();

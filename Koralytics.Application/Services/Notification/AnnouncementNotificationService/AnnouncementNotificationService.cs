@@ -76,8 +76,6 @@ namespace Koralytics.Application.Services.Notification.AnnouncementNotificationS
                         .Select(pa => pa.PlayerId)
                         .ToListAsync(cancellationToken);
 
-                    // "All academy users" also means the coaching staff, and the parents
-                    // of those players -- not just the players themselves.
                     targetNonPlayerUserIds = await _unitOfWork.Repository<CoachAcademy>()
                         .GetQueryableAsNoTracking()
                         .Where(ca => ca.AcademyId == academyId && ca.LeftAt == null)
@@ -139,21 +137,45 @@ namespace Koralytics.Application.Services.Notification.AnnouncementNotificationS
                     }
                     else if (body.Role.Equals("Player", StringComparison.OrdinalIgnoreCase))
                     {
-                        targetPlayerIds = await _unitOfWork.Repository<PlayerAcademy>()
-                            .GetQueryableAsNoTracking()
-                            .Where(pa => pa.AcademyId == academyId && pa.Status == PlayerAcademyStatus.Active)
-                            .Select(pa => pa.PlayerId)
-                            .ToListAsync(cancellationToken);
+                        if (isSystemAdmin || isAcademyAdmin)
+                        {
+                            targetPlayerIds = await _unitOfWork.Repository<PlayerAcademy>()
+                                .GetQueryableAsNoTracking()
+                                .Where(pa => pa.AcademyId == academyId && pa.Status == PlayerAcademyStatus.Active)
+                                .Select(pa => pa.PlayerId)
+                                .ToListAsync(cancellationToken);
+                        }
+                        else
+                        {
+                            targetPlayerIds = await _unitOfWork.Repository<PlayerTeam>()
+                                .GetQueryableAsNoTracking()
+                                .Where(pt => pt.Team.AcademyId == academyId && pt.Team.CoachId == userId)
+                                .Select(pt => pt.PlayerId)
+                                .Distinct()
+                                .ToListAsync(cancellationToken);
+                        }
                     }
                     else if (body.Role.Equals("Parent", StringComparison.OrdinalIgnoreCase))
                     {
-                        // Parents aren't directly linked to an academy -- resolve them
-                        // through the academy's active players via ParentPlayer.
-                        var activePlayerIdsForParents = await _unitOfWork.Repository<PlayerAcademy>()
-                            .GetQueryableAsNoTracking()
-                            .Where(pa => pa.AcademyId == academyId && pa.Status == PlayerAcademyStatus.Active)
-                            .Select(pa => pa.PlayerId)
-                            .ToListAsync(cancellationToken);
+                        List<int> activePlayerIdsForParents;
+
+                        if (isSystemAdmin || isAcademyAdmin)
+                        {
+                            activePlayerIdsForParents = await _unitOfWork.Repository<PlayerAcademy>()
+                                .GetQueryableAsNoTracking()
+                                .Where(pa => pa.AcademyId == academyId && pa.Status == PlayerAcademyStatus.Active)
+                                .Select(pa => pa.PlayerId)
+                                .ToListAsync(cancellationToken);
+                        }
+                        else
+                        {
+                            activePlayerIdsForParents = await _unitOfWork.Repository<PlayerTeam>()
+                                .GetQueryableAsNoTracking()
+                                .Where(pt => pt.Team.AcademyId == academyId && pt.Team.CoachId == userId)
+                                .Select(pt => pt.PlayerId)
+                                .Distinct()
+                                .ToListAsync(cancellationToken);
+                        }
 
                         targetNonPlayerUserIds = await _unitOfWork.Repository<ParentPlayer>()
                             .GetQueryableAsNoTracking()

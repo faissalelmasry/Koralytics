@@ -10,6 +10,7 @@ namespace Koralytics.Application.Interfaces.Notification
     {
         Task NotifyMatchEventAsync(int matchId, string eventTitle, string eventMessage, string eventType, CancellationToken cancellationToken = default);
         Task NotifyAcademyAsync(int academyId, string message, CancellationToken cancellationToken = default);
+        Task NotifyAcademiesAsync(List<int> academyIds, string message, CancellationToken cancellationToken = default);
     }
 }
 

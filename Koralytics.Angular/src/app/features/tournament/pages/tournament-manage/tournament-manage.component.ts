@@ -2,7 +2,7 @@ import { Component, OnInit, inject, ChangeDetectionStrategy, ChangeDetectorRef }
 import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { forkJoin, of, take } from 'rxjs';
+import { forkJoin, of, take,tap } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { TournamentService } from '../../../../../core/services/tournament/tournament.service';
 import { AcademyService } from '../../../../../core/services/academy/academy.service';
@@ -372,29 +372,71 @@ export class TournamentManageComponent implements OnInit {
     });
   }
 
-  updateStatus() {
+ updateStatus() {
     if (!this.tournamentId) return;
-    this.runAction('status', () => this.tournamentService.updateStatus(this.tournamentId!, this.selectedStatus), 'Tournament status updated successfully.');
+
+    const tournamentName = this.tournament?.name || 'The tournament';
+
+    this.runAction(
+      'status', 
+
+      () => this.tournamentService.updateStatus(this.tournamentId!, this.selectedStatus).pipe(
+        tap(() => {
+          if (this.selectedStatus === TournamentStatus.Cancelled) {
+            this.notifyParticipatingAcademies(`⚠️ ${tournamentName} has been cancelled.`);
+          } else if (this.selectedStatus === TournamentStatus.InProgress) {
+            this.notifyParticipatingAcademies(`⚽ ${tournamentName} is now officially in progress. Good luck to all teams!`);
+          }
+          else if (this.selectedStatus === TournamentStatus.Registration) {
+            this.notifyParticipatingAcademies(`📢 ${tournamentName} is now open for registration. Teams can now sign up!`);
+          }
+          else if (this.selectedStatus === TournamentStatus.Completed) {
+            this.notifyParticipatingAcademies(`🏆 ${tournamentName} has been completed. Check the AI Wrap-Up Report for insights and results.`);
+          }
+        })
+      ), 
+      'Tournament status updated successfully.'
+    );
   }
 
-  inviteSelectedAcademy() {
-    if (!this.tournamentId || !this.selectedAcademyId) return;
-    this.runAction('invite', () => this.tournamentService.inviteAcademy(this.tournamentId!, this.selectedAcademyId!), 'Academy invited successfully.');
-    //notification
-     const message = `Your academy has been invited to participate in the upcoming tournament.`;
-    this.notificationService.notifyAcademy(this.selectedAcademyId, message).subscribe({
-      error: (e) => console.error('Failed to send invite notification', e)
-    });
-  }
+ inviteSelectedAcademy() {
+  if (!this.tournamentId || !this.selectedAcademyId) return;
+
+  const message = `Your academy has been invited to participate in the upcoming tournament.`;
+  const academyIdToNotify = this.selectedAcademyId;
+
+  this.runAction(
+    'invite', 
+    () => this.tournamentService.inviteAcademy(this.tournamentId!, academyIdToNotify).pipe(
+      tap(() => {
+        this.notificationService.notifyAcademy(academyIdToNotify, message).subscribe({
+          error: (e) => console.error('Failed to send invite notification', e)
+        });
+      })
+    ), 
+    'Academy invited successfully.'
+  );
+}
 
   generateSeeding() {
     if (!this.tournamentId) return;
     this.runAction('seeding', () => this.tournamentService.generateSeeding(this.tournamentId!), 'Seeding generated successfully.');
   }
 
-  generateDraw() {
+ generateDraw() {
     if (!this.tournamentId) return;
-    this.runAction('draw', () => this.tournamentService.generateDraw(this.tournamentId!), 'Draw generated successfully.');
+
+    const tournamentName = this.tournament?.name || 'The tournament';
+
+    this.runAction(
+      'draw', 
+      () => this.tournamentService.generateDraw(this.tournamentId!).pipe(
+        tap(() => {
+          this.notifyParticipatingAcademies(`📅 The draw for ${tournamentName} has been published. Check your groups and fixtures!`);
+        })
+      ), 
+      'Draw generated successfully.'
+    );
   }
 
   advanceKnockout() {
@@ -417,6 +459,9 @@ export class TournamentManageComponent implements OnInit {
           'you will receive a notification and it will appear in the AI Insights tab automatically within moments.';
         this.activeAction = null;
         this.loadManagementData(true, false);
+        // Notify all participating academies about the tournament completion
+        const completionMessage = `The tournament "${this.tournament?.name}" has been completed. Check the AI Wrap-Up Report for insights and results.`;
+        this.notifyParticipatingAcademies(completionMessage);
       },
       error: (err) => {
         this.errorMessage = this.extractError(err, 'Unable to complete tournament. Make sure all fixtures are completed first.');
@@ -456,4 +501,16 @@ export class TournamentManageComponent implements OnInit {
     if (err.error.errors) return Object.values(err.error.errors).map((e: any) => e.join(', ')).join(' | ');
     return err.error.message || err.error.detail || err.error.title || fallback;
   }
+private notifyParticipatingAcademies(message: string) {
+  if (!this.teams || !this.teams.length) return;
+  
+  
+  const uniqueAcademyIds = [...new Set(this.teams.map(t => t.academyId).filter(id => !!id))];
+
+  if (uniqueAcademyIds.length === 0) return;
+  this.notificationService.notifyMultipleAcademies(uniqueAcademyIds, message).subscribe({
+    next: () => console.log('Successfully broadcasted notification to all participating academies.'),
+    error: (e) => console.error('Failed to broadcast academy notifications', e)
+  });
+}
 }

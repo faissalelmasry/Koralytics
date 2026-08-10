@@ -103,6 +103,7 @@ namespace Koralytics.Application.Services.Notification
         }
         public async Task NotifyAcademyAsync(int academyId, string message, CancellationToken cancellationToken = default)
         {
+           
             var academyExists = await _unitOfWork.Repository<Domain.Entities.Academy.Academy>()
                 .ExistsAsync(a => a.Id == academyId);
 
@@ -111,23 +112,61 @@ namespace Koralytics.Application.Services.Notification
                 throw new NotFoundException($"Academy with ID {academyId} does not exist.");
             }
 
+           
             var academyAdmins = await _unitOfWork.Repository<AcademyAdmin>()
                 .FindAllAsync(u => u.AcademyId == academyId);
+
+            if (academyAdmins == null || !academyAdmins.Any())
+            {
+                return; 
+            }
+
+           
+            var adminIds = academyAdmins.Select(a => a.Id).ToList();
+
+           
+            var notification = new CachedNotification
+            {
+                Id = Guid.NewGuid().ToString(),
+                Title = "Academy Selection", 
+                Content = message,
+                Type = "AcademyNotification",
+                Payload = new { AcademyId = academyId, Message = message },
+                IsRead = false,
+                SentAt = DateTime.UtcNow
+            };
+
+          
+            await _realTimeBridge.SendAndCacheToUsersAsync(
+                adminIds,
+                "ReceiveAcademyNotification",
+                notification,
+                cancellationToken
+            );
+        }
+        public async Task NotifyAcademiesAsync(List<int> academyIds, string message, CancellationToken cancellationToken = default)
+        {
+            if (academyIds == null || !academyIds.Any()) return;
+
+            var academyIdSet = new HashSet<int>(academyIds);
+
+            var academyAdmins = await _unitOfWork.Repository<AcademyAdmin>()
+      .FindAllAsync(u => u.AcademyId.HasValue && academyIdSet.Contains(u.AcademyId.Value));
 
             if (academyAdmins == null || !academyAdmins.Any())
             {
                 return;
             }
 
-            var adminIds = academyAdmins.Select(a => a.Id).ToList();
+            var adminIds = academyAdmins.Select(a => a.Id).Distinct().ToList();
 
             var notification = new CachedNotification
             {
                 Id = Guid.NewGuid().ToString(),
-                Title = "Academy Update",
+                Title = "Tournament Update",
                 Content = message,
                 Type = "AcademyNotification",
-                Payload = new { AcademyId = academyId, Message = message },
+                Payload = new { AcademyIds = academyIds, Message = message },
                 IsRead = false,
                 SentAt = DateTime.UtcNow
             };

@@ -33,7 +33,7 @@ export class SquadRegistrationComponent implements OnInit {
   private coachSquadService = inject(CoachSquadService);
   private tokenStorage = inject(TokenStorageService);
   private cdr = inject(ChangeDetectorRef);
- private notificationService = inject(NotificationService); 
+  private notificationService = inject(NotificationService);
   tournamentId!: number;
   tournament: Tournament | null = null;
   tournamentTeams: any[] = [];
@@ -299,19 +299,22 @@ export class SquadRegistrationComponent implements OnInit {
         playerIds.forEach(id => this.registeredPlayerIds.add(id));
         this.selectedPlayerIds.clear();
         this.successMessage = 'Squad registered successfully.';
-        playerIds.forEach(playerId => {
-            const tournamentName = this.tournament?.name || `Tournament #${this.tournamentId}`;
-            const playerMsg = `Congratulations! You have been selected for the squad in ${tournamentName}.`;
-            const parentMsg = `Your child has been selected for the squad in ${tournamentName}.`;
+        if (playerIds && playerIds.length > 0) {
+          const tournamentName = this.tournament?.name || `Tournament #${this.tournamentId}`;
+          const playerMsg = `Congratulations! You have been selected for the squad in ${tournamentName}.`;
+          const parentMsg = `Your child has been selected for the squad in ${tournamentName}.`;
 
-            this.notificationService.notifyPlayerMilestone(playerId, playerMsg).subscribe({
-                error: (e) => console.error(`Failed to notify player ${playerId}`, e)
-            });
-            
-            this.notificationService.notifyPlayerParents(playerId, parentMsg).subscribe({
-                error: (e) => console.error(`Failed to notify parents for player ${playerId}`, e)
-            });
-        });
+
+          this.notificationService.notifyMultiplePlayersMilestone(playerIds, playerMsg).subscribe({
+            next: () => console.log('Successfully notified all squad players.'),
+            error: (e) => console.error('Failed to notify squad players', e)
+          });
+
+          this.notificationService.notifyParentsOfPlayers(playerIds, parentMsg).subscribe({
+            next: () => console.log('Successfully notified all parents of squad players.'),
+            error: (e) => console.error('Failed to notify parents', e)
+          });
+        }
         this.isSubmitting = false;
         this.cdr.markForCheck();
       },
