@@ -1,0 +1,158 @@
+<div class="academy-tournaments-page">
+  <header class="workspace-header" scrollReveal direction="bottom">
+    <div>
+      <span class="eyebrow">Academy Hub</span>
+      <h1>My Tournaments</h1>
+      <p>View and manage your academy's tournament invitations, accept new ones, and register squads.</p>
+    </div>
+  </header>
+
+  <section class="kpi-strip" scrollReveal direction="bottom" [delay]="80">
+    <div class="kpi-card">
+      <span>Tournaments</span>
+      <strong>{{ uniqueTournamentCount }}</strong>
+    </div>
+    <div class="kpi-card">
+      <span>Total Teams</span>
+      <strong>{{ totalCount }}</strong>
+    </div>
+    <div class="kpi-card">
+      <span>Pending</span>
+      <strong>{{ invitedCount }}</strong>
+    </div>
+    <div class="kpi-card">
+      <span>Accepted</span>
+      <strong>{{ acceptedCount }}</strong>
+    </div>
+  </section>
+
+  <section class="toolbar" scrollReveal direction="bottom" [delay]="120">
+    <div class="search-box">
+      <app-search-bar
+        placeholderText="Search tournaments or teams"
+        (searchChange)="onSearchChange($event)">
+      </app-search-bar>
+    </div>
+
+    <div class="status-filters">
+      @for (opt of statusOptions; track opt.value) {
+        <button
+          class="filter-chip"
+          [class.active]="selectedStatus === opt.value"
+          (click)="onStatusChange(opt.value)">
+          {{ opt.label }}
+        </button>
+      }
+    </div>
+  </section>
+
+  <div class="results-line" scrollReveal direction="bottom" [delay]="140">
+    <span><strong>{{ filteredInvitations.length }}</strong> entries found</span>
+    @if (hasActiveFilters()) {
+      <button class="clear-filters-btn" type="button" (click)="clearFilters()">
+        Clear filters
+      </button>
+    }
+  </div>
+
+  @if (isLoading) {
+    <div class="table-surface">
+      @for (i of [1, 2, 3, 4]; track i) {
+        <div class="skeleton-row"></div>
+      }
+    </div>
+  }
+
+  @if (!isLoading && paginatedInvitations.length > 0) {
+    <section class="table-surface" scrollReveal direction="bottom" [delay]="160">
+      <div class="table-header">
+        <span>Tournament</span>
+        <span>Team</span>
+        <span>Status</span>
+        <span>Actions</span>
+      </div>
+
+      @for (item of paginatedInvitations; track item.tournamentTeamId) {
+        <button class="table-row" type="button" (click)="goToDetails(item.tournamentId)">
+          <span class="name-cell">
+            <strong>{{ item.tournamentName }}</strong>
+          </span>
+
+          <span class="team-cell">
+            <span class="team-badge">{{ item.teamName }}</span>
+          </span>
+
+          <span>
+            <app-status-chip [label]="item.status" [type]="getChipType(item.status)"></app-status-chip>
+          </span>
+
+          <span class="actions-cell" (click)="$event.stopPropagation()">
+            @if (item.status === 'Invited') {
+              <button
+                class="action-btn accept-btn"
+                (click)="acceptInvitation(item, $event)"
+                [disabled]="isAccepting(item.tournamentTeamId)">
+                @if (isAccepting(item.tournamentTeamId)) {
+                  <span class="spinner"></span>
+                } @else {
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  Accept
+                }
+              </button>
+            }
+            @if (item.status === 'Accepted') {
+              <button
+                class="action-btn register-btn"
+                (click)="goToSquadRegistration(item.tournamentId, item.teamId, $event)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <line x1="19" y1="8" x2="19" y2="14"></line>
+                  <line x1="22" y1="11" x2="16" y2="11"></line>
+                </svg>
+                Register Squad
+              </button>
+            }
+          </span>
+
+          <span class="open-cell">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </span>
+        </button>
+      }
+    </section>
+
+    <div class="pagination-container" scrollReveal direction="bottom" [delay]="100">
+      <app-pagination
+        [totalItems]="filteredInvitations.length"
+        [pageSize]="pageSize"
+        [currentPage]="currentPage"
+        (pageChange)="onPageChange($event)">
+      </app-pagination>
+    </div>
+  }
+
+  @if (!isLoading && !academyId) {
+    <div class="empty-state-wrap" scrollReveal direction="bottom" [delay]="150">
+      <app-empty-state
+        title="No Academy Found"
+        description="You don't have an academy associated with your account yet.">
+      </app-empty-state>
+    </div>
+  }
+
+  @if (!isLoading && academyId && paginatedInvitations.length === 0) {
+    <div class="empty-state-wrap" scrollReveal direction="bottom" [delay]="150">
+      <app-empty-state
+        title="No tournaments found"
+        [description]="hasActiveFilters() ? 'No tournaments match your current filters.' : 'Your academy has not been invited to any tournaments yet.'"
+        [actionText]="hasActiveFilters() ? 'Reset filters' : ''"
+        (actionClick)="clearFilters(); loadInvitations()">
+      </app-empty-state>
+    </div>
+  }
+</div>

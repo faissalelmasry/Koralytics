@@ -239,6 +239,12 @@ export const routes: Routes = [
     data: { roles: ['AcademyAdmin'] }
   },
   {
+    path: 'academy-admin/tournaments',
+    loadComponent: () => import('./features/academy-admin/pages/academy-tournaments/academy-tournaments.component').then(m => m.AcademyTournamentsComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['AcademyAdmin'] }
+  },
+  {
     path: 'academy/profile/:id',
     loadComponent: () => import('./features/academy-profile/academy-profile.component').then(m => m.AcademyProfileComponent)
   },
