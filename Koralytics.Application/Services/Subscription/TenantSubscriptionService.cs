@@ -99,21 +99,17 @@ namespace Koralytics.Application.Services.Subscription
         /// <inheritdoc />
         public async Task<int> CountSeatsAsync(int academyId, CancellationToken ct = default)
         {
-            // 🟢 OPTIMIZATION: Concurrent Task Execution. 
-            // Fires both queries to the database simultaneously instead of waiting sequentially.
-            var coachCountTask = _uow
+            var coachCount = await _uow
                 .Repository<CoachAcademy>()
                 .GetQueryableAsNoTracking()
                 .CountAsync(ca => ca.AcademyId == academyId && ca.LeftAt == null, ct);
 
-            var adminCountTask = _uow
+            var adminCount = await _uow
                 .Repository<AcademyAdmin>()
                 .GetQueryableAsNoTracking()
                 .CountAsync(a => a.AcademyId == academyId, ct);
 
-            await Task.WhenAll(coachCountTask, adminCountTask);
-
-            return coachCountTask.Result + adminCountTask.Result;
+            return coachCount + adminCount;
         }
 
         // ── Drill counters (Phase 3) ──────────────────────────────────────────────

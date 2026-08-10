@@ -20,7 +20,6 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
   standalone: true,
   imports: [CommonModule, FormsModule, LoadingSpinnerComponent, EmptyStateComponent, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush, // 🟢 OPTIMIZATION: Halts redundant UI renders
-  imports: [CommonModule, FormsModule, LoadingSpinnerComponent, EmptyStateComponent],
   templateUrl: './parent-dashboard.component.html',
   styleUrls: ['./parent-dashboard.component.css']
 })
@@ -49,7 +48,8 @@ export class ParentDashboardComponent implements OnInit, OnDestroy {
     private parentService: ParentService,
     private router: Router,
     private cdr: ChangeDetectorRef,
-    private toast: ToastService
+    private toast: ToastService,
+    private translate: TranslateService
   ) { }
 
   ngOnInit(): void {
@@ -98,13 +98,6 @@ export class ParentDashboardComponent implements OnInit, OnDestroy {
     return (parts[0][0] + parts[1][0]).toUpperCase();
   }
 
-  constructor(
-    private parentService: ParentService,
-    private router: Router,
-    private cdr: ChangeDetectorRef,
-    private toast: ToastService,
-    private translate: TranslateService
-  ) { }
 
   goToParentAi(): void {
     this.router.navigate(['/parent/chat']);
@@ -135,7 +128,7 @@ export class ParentDashboardComponent implements OnInit, OnDestroy {
         this.isLoading = false;
         this.cdr.detectChanges();
       }
-    });
+    }));
   }
 
   loadPendingRequests(): void {

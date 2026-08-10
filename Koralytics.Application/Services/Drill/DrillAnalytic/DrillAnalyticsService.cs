@@ -80,7 +80,7 @@ namespace Koralytics.Application.Services.Drill.DrillAnalytic
             // 1. FETCH PRACTICE SCORES CONCURRENTLY (🟢 OPTIMIZATION)
             // ====================================================================
 
-            var drillScoresTask = _unitOfWork.Repository<Domain.Entities.Drill.DrillResult>()
+            var drillScoresList = await _unitOfWork.Repository<Domain.Entities.Drill.DrillResult>()
                 .GetQueryableAsNoTracking()
                 .Where(dr => (dr.CreatedById == targetCoachId || dr.Drill.DrillSession.CoachId == targetCoachId)
                           && (dr.Drill.Mode == Koralytics.Domain.Enums.DrillMode.Manual || dr.Drill.DrillTemplate.DrillMode == Koralytics.Domain.Enums.DrillMode.Manual)
@@ -94,7 +94,7 @@ namespace Koralytics.Application.Services.Drill.DrillAnalytic
                 })
                 .ToListAsync();
 
-            var practiceMatchScoresTask = _unitOfWork.Repository<Domain.Entities.Match.MatchPlayerCategoryRating>()
+            var practiceMatchScoresList = await _unitOfWork.Repository<Domain.Entities.Match.MatchPlayerCategoryRating>()
                 .GetQueryableAsNoTracking()
                 .Where(cr => (cr.MatchPlayerRating.Match.Type == Koralytics.Domain.Enums.MatchType.Friendly
                            || cr.MatchPlayerRating.Match.Type == Koralytics.Domain.Enums.MatchType.Session)
@@ -108,12 +108,6 @@ namespace Koralytics.Application.Services.Drill.DrillAnalytic
                     RatingCount = g.Count()
                 })
                 .ToListAsync();
-
-            // Fire both database round-trips simultaneously
-            await Task.WhenAll(drillScoresTask, practiceMatchScoresTask);
-
-            var drillScoresList = drillScoresTask.Result;
-            var practiceMatchScoresList = practiceMatchScoresTask.Result;
 
             var allPracticePlayerIds = drillScoresList.Select(d => d.PlayerId)
                 .Union(practiceMatchScoresList.Select(p => p.PlayerId))

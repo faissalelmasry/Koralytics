@@ -71,8 +71,8 @@ export class ParentSubscriptionsComponent implements OnInit, OnDestroy {
   constructor(
     private subscriptionService: SubscriptionService,
     private notificationService: NotificationService,
-      private cdr: ChangeDetectorRef
-     private translate: TranslateService
+    private cdr: ChangeDetectorRef,
+    private translate: TranslateService
   ) { }
 
   ngOnInit(): void {
@@ -250,8 +250,8 @@ export class ParentSubscriptionsComponent implements OnInit, OnDestroy {
           }
         },
         error: (err) => {
-            this.errorMessage = err?.error?.message || this.translate.instant('PARENT.ERRORS.INIT_STRIPE_FAILED');
-            this.isStripeLoading = false;
+          this.errorMessage = err?.error?.message || this.translate.instant('PARENT.ERRORS.INIT_STRIPE_FAILED');
+          this.isStripeLoading = false;
           this.cdr.detectChanges();
         }
       })
@@ -288,7 +288,7 @@ export class ParentSubscriptionsComponent implements OnInit, OnDestroy {
       this.subscriptionsList.add(
         this.subscriptionService.paySubscription(sub.id).subscribe({
           next: () => {
-            this.successMessage = `Visa Payment Successful! ${sub.amount} EGP paid for ${sub.playerName}.`;
+            this.successMessage = this.translate.instant('PARENT.TOAST.PAYMENT_SUCCESS', { amount: sub.amount, name: sub.playerName });
 
             // Background notifications (No need to await or block the UI for these)
             this.subscriptionsList.add(
@@ -296,27 +296,7 @@ export class ParentSubscriptionsComponent implements OnInit, OnDestroy {
                 error: (e) => console.error('Failed to notify academy of payment', e)
               })
             );
-      this.subscriptionService.paySubscription(sub.id).subscribe({
-        next: () => {
-          this.successMessage = this.translate.instant('PARENT.TOAST.PAYMENT_SUCCESS', { amount: sub.amount, name: sub.playerName });
-          // notification
-          this.notificationService.notifyAcademySubscriptionPaid(sub.academyId, sub.id).subscribe({
-            error: (e) => console.error('Failed to notify academy of payment', e)
-          });
 
-          const parentMsg = `Your online payment of ${sub.amount} EGP for ${sub.playerName} was successful.`;
-          this.notificationService.notifyPlayerParents(sub.playerId, parentMsg).subscribe({
-            error: (e) => console.error('Failed to notify parent of payment success', e)
-          });
-          this.isProcessingId = null;
-          this.closePaymentModal();
-          this.loadSubscriptions();
-        },
-        error: (err) => {
-          this.errorMessage = err?.error?.message || this.translate.instant('PARENT.ERRORS.BACKEND_UPDATE_FAILED');
-          this.isProcessingId = null;
-        }
-      });
             const parentMsg = `Your online payment of ${sub.amount} EGP for ${sub.playerName} was successful.`;
             this.subscriptionsList.add(
               this.notificationService.notifyPlayerParents(sub.playerId, parentMsg).subscribe({
@@ -329,7 +309,7 @@ export class ParentSubscriptionsComponent implements OnInit, OnDestroy {
             this.loadSubscriptions();
           },
           error: (err) => {
-            this.errorMessage = err?.error?.message || 'Payment authorized, but backend update failed.';
+            this.errorMessage = err?.error?.message || this.translate.instant('PARENT.ERRORS.BACKEND_UPDATE_FAILED');
             this.isProcessingId = null;
             this.cdr.detectChanges();
           }

@@ -56,6 +56,11 @@ export class TokenStorageService {
     if (!token) return 'Starter';
     try {
       const decoded = jwtDecode<any>(token);
+      
+      const roles = decoded.role || decoded.roles || [];
+      if (Array.isArray(roles) && roles.includes('SystemAdmin')) return 'Elite';
+      if (typeof roles === 'string' && roles === 'SystemAdmin') return 'Elite';
+
       return decoded.tier || 'Starter';
     } catch (e) {
       return 'Starter';
