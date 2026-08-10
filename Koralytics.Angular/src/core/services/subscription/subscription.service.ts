@@ -18,7 +18,9 @@ export class SubscriptionService {
      * Fetches subscriptions for the logged-in parent's children.
      */
     getMyChildrenSubscriptions(): Observable<PlayerSubscriptionDto[]> {
-        return this.http.get<any>(`${this.apiUrl}/my-children`).pipe(
+        return this.http.get<any>(`${this.apiUrl}/my-children`, {
+            params: { t: new Date().getTime().toString() }
+        }).pipe(
             map(res => (res?.data !== undefined ? res.data : res) || [])
         );
     }

@@ -7,24 +7,26 @@ using Koralytics.Domain.Entities.Player;
 using Koralytics.Domain.Enums;
 using Koralytics.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Koralytics.Application.Services.Subscription
 {
     /// <summary>
     /// Reads the active <see cref="TenantSubscription"/> for an academy and exposes
     /// tier limits via <see cref="SubscriptionTierPolicy"/>.
-    ///
-    /// All Phase 2–6 action filters inject this service to gate feature access.
-    /// Falls back to <see cref="SubscriptionTier.Starter"/> when no subscription row exists,
-    /// so a misconfigured academy is always in the most restrictive state.
     /// </summary>
     public class TenantSubscriptionService : ITenantSubscriptionService
     {
         private readonly IUnitOfWork _uow;
+        private readonly IMemoryCache _cache; // 🟢 OPTIMIZATION: Injected memory cache
 
-        public TenantSubscriptionService(IUnitOfWork uow)
+        public TenantSubscriptionService(IUnitOfWork uow, IMemoryCache cache)
         {
             _uow = uow;
+            _cache = cache;
         }
 
         // ── Tier resolution ───────────────────────────────────────────────────────
@@ -51,13 +53,26 @@ namespace Koralytics.Application.Services.Subscription
         public async Task<SubscriptionTier> GetTierAsync(
             int academyId, CancellationToken ct = default)
         {
+            // 🟢 OPTIMIZATION: Check RAM first. Prevents spamming the SQL database 
+            // on every single API request that passes through the Action Filters.
+            string cacheKey = $"AcademyTier_{academyId}";
+
+            if (_cache.TryGetValue(cacheKey, out SubscriptionTier cachedTier))
+            {
+                return cachedTier;
+            }
+
             var subscription = await GetActiveSubscriptionAsync(academyId, ct);
 
             // Graceful fallback — treat missing or expired subscriptions as Starter
-            if (subscription is null || !subscription.IsActive)
-                return SubscriptionTier.Starter;
+            SubscriptionTier resolvedTier = (subscription is null || !subscription.IsActive)
+                ? SubscriptionTier.Starter
+                : subscription.Tier;
 
-            return subscription.Tier;
+            // Save to cache for 10 minutes
+            _cache.Set(cacheKey, resolvedTier, TimeSpan.FromMinutes(10));
+
+            return resolvedTier;
         }
 
         // ── Capacity counters (Phase 2) ───────────────────────────────────────────
@@ -84,19 +99,21 @@ namespace Koralytics.Application.Services.Subscription
         /// <inheritdoc />
         public async Task<int> CountSeatsAsync(int academyId, CancellationToken ct = default)
         {
-            // Seats = active coaches + extra admins (AcademyAdmin junction rows)
-            // The founding AcademyAdmin (AdminUserId on Academy) is NOT counted against the seat limit.
-            var coachCount = await _uow
+            // 🟢 OPTIMIZATION: Concurrent Task Execution. 
+            // Fires both queries to the database simultaneously instead of waiting sequentially.
+            var coachCountTask = _uow
                 .Repository<CoachAcademy>()
                 .GetQueryableAsNoTracking()
                 .CountAsync(ca => ca.AcademyId == academyId && ca.LeftAt == null, ct);
 
-            var adminCount = await _uow
+            var adminCountTask = _uow
                 .Repository<AcademyAdmin>()
                 .GetQueryableAsNoTracking()
                 .CountAsync(a => a.AcademyId == academyId, ct);
 
-            return coachCount + adminCount;
+            await Task.WhenAll(coachCountTask, adminCountTask);
+
+            return coachCountTask.Result + adminCountTask.Result;
         }
 
         // ── Drill counters (Phase 3) ──────────────────────────────────────────────

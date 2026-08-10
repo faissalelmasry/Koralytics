@@ -4,6 +4,10 @@ using Koralytics.Application.Services.Parent;
 using Koralytics.Domain.Entities.Academy;
 using Koralytics.Domain.Entities.Parents;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Koralytics.Infrastructure.Services.Parents
 {
@@ -21,13 +25,13 @@ namespace Koralytics.Infrastructure.Services.Parents
             var parentPlayerRepo = _unitOfWork.Repository<ParentPlayer>();
             var subRepo = _unitOfWork.Repository<TenantSubscription>();
 
-            var rawChildren = await parentPlayerRepo.GetQueryable()
+            var rawChildren = await parentPlayerRepo.GetQueryableAsNoTracking()
                 .Where(pp => pp.ParentId == parentUserId)
                 .Select(pp => new
                 {
                     PlayerId = pp.Player.Id,
                     FullName = (pp.Player.FirstName + " " + pp.Player.LastName).Trim(),
-                    PhotoUrl = pp.Player.ProfileImageUrl ?? pp.Player.ProfileImageUrl,
+                    PhotoUrl = pp.Player.ProfileImageUrl, // 🟢 OPTIMIZATION: Removed redundant fallback
                     Position = pp.Player.PlayerPositions
                         .Where(pos => pos.IsPrimary)
                         .Select(pos => pos.Position.ToString())
@@ -76,21 +80,30 @@ namespace Koralytics.Infrastructure.Services.Parents
 
         public async Task<IEnumerable<ParentPlayerSearchResponseDto>> SearchAvailablePlayersAsync(string? name, int parentUserId)
         {
-            var playersQuery = _unitOfWork.Repository<Domain.Entities.Player.Player>().GetQueryable();
+            var playersQuery = _unitOfWork.Repository<Domain.Entities.Player.Player>().GetQueryableAsNoTracking();
 
             if (!string.IsNullOrWhiteSpace(name))
             {
                 var lowerName = name.ToLower();
-                playersQuery = playersQuery.Where(p => (p.FirstName + " " + p.LastName).ToLower().Contains(lowerName));
+                // 🟢 OPTIMIZATION: Protects SQL Indexes by avoiding string concatenation
+                playersQuery = playersQuery.Where(p => p.FirstName.ToLower().Contains(lowerName) || p.LastName.ToLower().Contains(lowerName));
             }
 
             var parentPlayers = await _unitOfWork.Repository<ParentPlayer>()
-                .FindAllAsync(pp => pp.ParentId == parentUserId);
-            var linkedPlayerIds = new HashSet<int>(parentPlayers.Select(pp => pp.PlayerId));
+                .GetQueryableAsNoTracking()
+                .Where(pp => pp.ParentId == parentUserId)
+                .Select(pp => pp.PlayerId)
+                .ToListAsync();
+
+            var linkedPlayerIds = new HashSet<int>(parentPlayers);
 
             var pendingRequests = await _unitOfWork.Repository<ParentPlayerJoinRequest>()
-                .FindAllAsync(r => r.ParentId == parentUserId && r.Status == Koralytics.Domain.Enums.JoinRequestStatus.Pending);
-            var pendingPlayerIds = new HashSet<int>(pendingRequests.Select(r => r.PlayerId));
+                .GetQueryableAsNoTracking()
+                .Where(r => r.ParentId == parentUserId && r.Status == Koralytics.Domain.Enums.JoinRequestStatus.Pending)
+                .Select(r => r.PlayerId)
+                .ToListAsync();
+
+            var pendingPlayerIds = new HashSet<int>(pendingRequests);
 
             var results = await playersQuery
                 .Take(30)
@@ -126,18 +139,26 @@ namespace Koralytics.Infrastructure.Services.Parents
 
         public async Task SendChildJoinRequestAsync(int parentUserId, int playerId)
         {
-            var player = await _unitOfWork.Repository<Domain.Entities.Player.Player>().GetByIdAsync(playerId);
-            if (player is null)
+            // 🟢 OPTIMIZATION: Used AnyAsync() for instantaneous IF EXISTS checks instead of pulling full rows
+            var playerExists = await _unitOfWork.Repository<Domain.Entities.Player.Player>()
+                .GetQueryableAsNoTracking()
+                .AnyAsync(p => p.Id == playerId);
+
+            if (!playerExists)
                 throw new Koralytics.Domain.Exceptions.NotFoundException($"Player with ID {playerId} not found.");
 
-            var existingLink = await _unitOfWork.Repository<ParentPlayer>()
-                .FindAsync(pp => pp.ParentId == parentUserId && pp.PlayerId == playerId);
-            if (existingLink != null)
+            var isAlreadyLinked = await _unitOfWork.Repository<ParentPlayer>()
+                .GetQueryableAsNoTracking()
+                .AnyAsync(pp => pp.ParentId == parentUserId && pp.PlayerId == playerId);
+
+            if (isAlreadyLinked)
                 throw new Koralytics.Domain.Exceptions.BadRequestException("Player is already linked to your account.");
 
-            var existingPending = await _unitOfWork.Repository<ParentPlayerJoinRequest>()
-                .FindAsync(r => r.ParentId == parentUserId && r.PlayerId == playerId && r.Status == Koralytics.Domain.Enums.JoinRequestStatus.Pending);
-            if (existingPending != null)
+            var isPending = await _unitOfWork.Repository<ParentPlayerJoinRequest>()
+                .GetQueryableAsNoTracking()
+                .AnyAsync(r => r.ParentId == parentUserId && r.PlayerId == playerId && r.Status == Koralytics.Domain.Enums.JoinRequestStatus.Pending);
+
+            if (isPending)
                 throw new Koralytics.Domain.Exceptions.BadRequestException("A join request is already pending for this player.");
 
             var request = new ParentPlayerJoinRequest
@@ -155,31 +176,31 @@ namespace Koralytics.Infrastructure.Services.Parents
 
         public async Task<IEnumerable<ParentPlayerJoinRequestResponseDto>> GetPendingRequestsForParentAsync(int parentUserId)
         {
-            var requests = await _unitOfWork.Repository<ParentPlayerJoinRequest>().GetQueryable()
-                .Include(r => r.Player)
-                .Include(r => r.Parent)
+            // 🟢 OPTIMIZATION: Eliminated Includes and Fat Fetch. EF Core automatically joins strictly needed columns.
+            return await _unitOfWork.Repository<ParentPlayerJoinRequest>()
+                .GetQueryableAsNoTracking()
                 .Where(r => r.ParentId == parentUserId && r.Status == Koralytics.Domain.Enums.JoinRequestStatus.Pending)
                 .OrderByDescending(r => r.RequestedAt)
+                .Select(r => new ParentPlayerJoinRequestResponseDto
+                {
+                    Id = r.Id,
+                    ParentId = r.ParentId,
+                    PlayerId = r.PlayerId,
+                    PlayerName = (r.Player.FirstName + " " + r.Player.LastName).Trim(),
+                    PlayerPhotoUrl = r.Player.ProfileImageUrl,
+                    ParentName = (r.Parent.FirstName + " " + r.Parent.LastName).Trim(),
+                    ParentEmail = r.Parent.Email ?? string.Empty,
+                    Status = r.Status,
+                    RequestedAt = r.RequestedAt,
+                    RespondedAt = r.RespondedAt
+                })
                 .ToListAsync();
-
-            return requests.Select(r => new ParentPlayerJoinRequestResponseDto
-            {
-                Id = r.Id,
-                ParentId = r.ParentId,
-                PlayerId = r.PlayerId,
-                PlayerName = (r.Player.FirstName + " " + r.Player.LastName).Trim(),
-                PlayerPhotoUrl = r.Player.ProfileImageUrl,
-                ParentName = (r.Parent.FirstName + " " + r.Parent.LastName).Trim(),
-                ParentEmail = r.Parent.Email ?? string.Empty,
-                Status = r.Status,
-                RequestedAt = r.RequestedAt,
-                RespondedAt = r.RespondedAt
-            });
         }
 
         public async Task CancelChildJoinRequestAsync(int requestId, int parentUserId)
         {
             var request = await _unitOfWork.Repository<ParentPlayerJoinRequest>().FindAsync(r => r.Id == requestId);
+
             if (request is null)
                 throw new Koralytics.Domain.Exceptions.NotFoundException($"Join request {requestId} not found.");
 
@@ -198,31 +219,31 @@ namespace Koralytics.Infrastructure.Services.Parents
 
         public async Task<IEnumerable<ParentPlayerJoinRequestResponseDto>> GetPendingRequestsForPlayerAsync(int playerUserId)
         {
-            var requests = await _unitOfWork.Repository<ParentPlayerJoinRequest>().GetQueryable()
-                .Include(r => r.Player)
-                .Include(r => r.Parent)
+            // 🟢 OPTIMIZATION: Eliminated Includes and Fat Fetch. 
+            return await _unitOfWork.Repository<ParentPlayerJoinRequest>()
+                .GetQueryableAsNoTracking()
                 .Where(r => r.PlayerId == playerUserId && r.Status == Koralytics.Domain.Enums.JoinRequestStatus.Pending)
                 .OrderByDescending(r => r.RequestedAt)
+                .Select(r => new ParentPlayerJoinRequestResponseDto
+                {
+                    Id = r.Id,
+                    ParentId = r.ParentId,
+                    PlayerId = r.PlayerId,
+                    PlayerName = (r.Player.FirstName + " " + r.Player.LastName).Trim(),
+                    PlayerPhotoUrl = r.Player.ProfileImageUrl,
+                    ParentName = (r.Parent.FirstName + " " + r.Parent.LastName).Trim(),
+                    ParentEmail = r.Parent.Email ?? string.Empty,
+                    Status = r.Status,
+                    RequestedAt = r.RequestedAt,
+                    RespondedAt = r.RespondedAt
+                })
                 .ToListAsync();
-
-            return requests.Select(r => new ParentPlayerJoinRequestResponseDto
-            {
-                Id = r.Id,
-                ParentId = r.ParentId,
-                PlayerId = r.PlayerId,
-                PlayerName = (r.Player.FirstName + " " + r.Player.LastName).Trim(),
-                PlayerPhotoUrl = r.Player.ProfileImageUrl,
-                ParentName = (r.Parent.FirstName + " " + r.Parent.LastName).Trim(),
-                ParentEmail = r.Parent.Email ?? string.Empty,
-                Status = r.Status,
-                RequestedAt = r.RequestedAt,
-                RespondedAt = r.RespondedAt
-            });
         }
 
         public async Task RespondToChildJoinRequestAsync(int requestId, Koralytics.Domain.Enums.JoinRequestStatus status, int playerUserId)
         {
             var request = await _unitOfWork.Repository<ParentPlayerJoinRequest>().FindAsync(r => r.Id == requestId);
+
             if (request is null)
                 throw new Koralytics.Domain.Exceptions.NotFoundException($"Join request {requestId} not found.");
 
@@ -280,9 +301,8 @@ namespace Koralytics.Infrastructure.Services.Parents
 
         public async Task<IEnumerable<PlayerParentDto>> GetMyParentsAsync(int playerUserId)
         {
-            var parentPlayerRepo = _unitOfWork.Repository<ParentPlayer>();
-
-            return await parentPlayerRepo.GetQueryable()
+            return await _unitOfWork.Repository<ParentPlayer>()
+                .GetQueryableAsNoTracking()
                 .Where(pp => pp.PlayerId == playerUserId)
                 .Select(pp => new PlayerParentDto
                 {

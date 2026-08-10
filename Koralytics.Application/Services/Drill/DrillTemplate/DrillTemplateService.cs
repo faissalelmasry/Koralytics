@@ -194,17 +194,14 @@ namespace Koralytics.Application.Services.Drill.DrillTemplate
             }
 
             // Security Bouncer: Who is allowed to edit this?
-            if (currentUserRole == "SystemAdmin" && template.AcademyId != null)
+            if (currentUserRole == "SystemAdmin")
             {
-                throw new UnauthorizedAccessException("SystemAdmins can only edit system-wide templates.");
+                if (template.AcademyId != null) throw new UnauthorizedAccessException("SystemAdmins can only edit system-wide templates.");
             }
-            else if (currentUserRole == "AcademyAdmin" && template.AcademyId != currentUserAcademyId)
+            else
             {
-                throw new UnauthorizedAccessException("You can only edit templates belonging to your academy.");
-            }
-            else if (currentUserRole == "Coach" && template.CreatedById != currentUserId)
-            {
-                throw new UnauthorizedAccessException("Coaches can only edit their own private templates.");
+                if (template.AcademyId != currentUserAcademyId) throw new UnauthorizedAccessException("You can only edit templates belonging to your academy.");
+                if (template.CreatedById != currentUserId) throw new UnauthorizedAccessException("You can only edit templates that you created.");
             }
 
             // Verify if the new category exists
@@ -233,17 +230,14 @@ namespace Koralytics.Application.Services.Drill.DrillTemplate
                 throw new KeyNotFoundException($"Drill Template with ID {id} was not found.");
             }
 
-            if (currentUserRole == "SystemAdmin" && template.AcademyId != null)
+            if (currentUserRole == "SystemAdmin")
             {
-                throw new UnauthorizedAccessException("SystemAdmins can only delete system-wide templates.");
+                if (template.AcademyId != null) throw new UnauthorizedAccessException("SystemAdmins can only delete system-wide templates.");
             }
-            else if (currentUserRole == "AcademyAdmin" && template.AcademyId != currentUserAcademyId)
+            else
             {
-                throw new UnauthorizedAccessException("You can only delete templates belonging to your academy.");
-            }
-            else if (currentUserRole == "Coach" && template.CreatedById != currentUserId)
-            {
-                throw new UnauthorizedAccessException("Coaches can only delete their own private templates.");
+                if (template.AcademyId != currentUserAcademyId) throw new UnauthorizedAccessException("You can only delete templates belonging to your academy.");
+                if (template.CreatedById != currentUserId) throw new UnauthorizedAccessException("You can only delete templates that you created.");
             }
 
             var isTemplateInUse = await _unitOfWork.Repository<Domain.Entities.Drill.Drill>()

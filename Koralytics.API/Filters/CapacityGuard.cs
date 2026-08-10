@@ -1,28 +1,23 @@
 using Koralytics.Application.DTOs.Subscription;
 using Koralytics.Application.Interfaces.Subscription;
+using Koralytics.Domain.Enums;
 using Koralytics.Domain.ValueObjects;
-
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
-
 using System.Security.Claims;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Koralytics.API.Filters
 {
     /// <summary>
     /// Reusable action filter for Phase 2 capacity checks.
-    /// Inject via constructor — caller sets the check delegate via <see cref="CapacityCheck"/>.
-    /// Usage in a controller action:
-    /// <code>
-    ///   var guard = new CapacityGuard(_tenantSvc, context.HttpContext, academyId);
-    ///   if (await guard.CheckLocationLimitAsync()) return guard.Result!;
-    /// </code>
-    /// Alternatively, use the static helper methods directly from controllers.
+    /// Acts as the SaaS Bouncer to enforce subscription tier limits.
     /// </summary>
     public static class CapacityGuard
     {
         // ─────────────────────────────────────────────────────────────────────────
-        // Helper: resolve AcademyId from JWT (same as DrillsController pattern)
+        // Helper: resolve AcademyId from JWT
         // ─────────────────────────────────────────────────────────────────────────
         public static int? ResolveAcademyId(ClaimsPrincipal user)
         {
@@ -54,102 +49,74 @@ namespace Koralytics.API.Filters
         }
 
         // ─────────────────────────────────────────────────────────────────────────
-        // Capacity: Locations
+        // 🟢 OPTIMIZATION: Centralized Limit Evaluator
+        // Eliminates code duplication and calculates upgrade strings exactly once.
         // ─────────────────────────────────────────────────────────────────────────
+        private static ObjectResult? EvaluateLimit(
+            int currentCount,
+            int maxLimit,
+            string featureName,
+            SubscriptionTier currentTier)
+        {
+            // If unlimited, or under the limit, let them pass
+            if (maxLimit == int.MaxValue || currentCount < maxLimit)
+                return null;
+
+            string currentPlanName = currentTier.ToString();
+            string nextPlanName = currentTier == SubscriptionTier.Starter ? "Pro" : "Elite";
+
+            // Adjust the verb for better grammar in the UI message
+            string actionVerb = featureName == "Staff Seats" ? "invite" : featureName == "Custom Drill Templates" ? "create" : "add";
+
+            return Forbidden(
+                feature: featureName,
+                limit: maxLimit,
+                current: currentCount,
+                currentPlan: currentPlanName,
+                requiredPlan: nextPlanName,
+                upgradeMessage: $"Upgrade to {nextPlanName} to {actionVerb} more {featureName.ToLower()}."
+            );
+        }
+
+        // ─────────────────────────────────────────────────────────────────────────
+        // Capacity Checks
+        // ─────────────────────────────────────────────────────────────────────────
+
         public static async Task<ObjectResult?> CheckLocationLimitAsync(
-            ITenantSubscriptionService svc,
-            int academyId,
-            int currentCount,
-            CancellationToken ct = default)
+            ITenantSubscriptionService svc, int academyId, int currentCount, CancellationToken ct = default)
         {
-            var limits    = await svc.GetLimitsAsync(academyId, ct);
-            var tier      = await svc.GetTierAsync(academyId, ct);
+            // 🟢 OPTIMIZATION: Await the tier once, get the limits synchronously.
+            var tier = await svc.GetTierAsync(academyId, ct);
+            var limits = SubscriptionTierPolicy.GetLimits(tier);
 
-            if (limits.MaxLocations == int.MaxValue || currentCount < limits.MaxLocations)
-                return null; // allowed
-
-            return Forbidden(
-                feature       : "Locations",
-                limit         : limits.MaxLocations,
-                current       : currentCount,
-                currentPlan   : tier.ToString(),
-                requiredPlan  : tier == Domain.Enums.SubscriptionTier.Starter ? "Pro" : "Elite",
-                upgradeMessage: $"Upgrade to {(tier == Domain.Enums.SubscriptionTier.Starter ? "Pro" : "Elite")} to add more locations."
-            );
+            return EvaluateLimit(currentCount, limits.MaxLocations, "Locations", tier);
         }
 
-        // ─────────────────────────────────────────────────────────────────────────
-        // Capacity: Players
-        // ─────────────────────────────────────────────────────────────────────────
         public static async Task<ObjectResult?> CheckPlayerLimitAsync(
-            ITenantSubscriptionService svc,
-            int academyId,
-            int currentCount,
-            CancellationToken ct = default)
+            ITenantSubscriptionService svc, int academyId, int currentCount, CancellationToken ct = default)
         {
-            var limits = await svc.GetLimitsAsync(academyId, ct);
-            var tier   = await svc.GetTierAsync(academyId, ct);
+            var tier = await svc.GetTierAsync(academyId, ct);
+            var limits = SubscriptionTierPolicy.GetLimits(tier);
 
-            if (limits.MaxPlayers == int.MaxValue || currentCount < limits.MaxPlayers)
-                return null;
-
-            return Forbidden(
-                feature       : "Players",
-                limit         : limits.MaxPlayers,
-                current       : currentCount,
-                currentPlan   : tier.ToString(),
-                requiredPlan  : tier == Domain.Enums.SubscriptionTier.Starter ? "Pro" : "Elite",
-                upgradeMessage: $"Upgrade to {(tier == Domain.Enums.SubscriptionTier.Starter ? "Pro" : "Elite")} to add more players."
-            );
+            return EvaluateLimit(currentCount, limits.MaxPlayers, "Players", tier);
         }
 
-        // ─────────────────────────────────────────────────────────────────────────
-        // Capacity: Seats (Coaches + Admins combined)
-        // ─────────────────────────────────────────────────────────────────────────
         public static async Task<ObjectResult?> CheckSeatLimitAsync(
-            ITenantSubscriptionService svc,
-            int academyId,
-            int currentCount,
-            CancellationToken ct = default)
+            ITenantSubscriptionService svc, int academyId, int currentCount, CancellationToken ct = default)
         {
-            var limits = await svc.GetLimitsAsync(academyId, ct);
-            var tier   = await svc.GetTierAsync(academyId, ct);
+            var tier = await svc.GetTierAsync(academyId, ct);
+            var limits = SubscriptionTierPolicy.GetLimits(tier);
 
-            if (limits.MaxSeats == int.MaxValue || currentCount < limits.MaxSeats)
-                return null;
-
-            return Forbidden(
-                feature       : "Staff Seats",
-                limit         : limits.MaxSeats,
-                current       : currentCount,
-                currentPlan   : tier.ToString(),
-                requiredPlan  : tier == Domain.Enums.SubscriptionTier.Starter ? "Pro" : "Elite",
-                upgradeMessage: $"Upgrade to {(tier == Domain.Enums.SubscriptionTier.Starter ? "Pro" : "Elite")} to invite more coaches and admins."
-            );
+            return EvaluateLimit(currentCount, limits.MaxSeats, "Staff Seats", tier);
         }
-        // ─────────────────────────────────────────────────────────────────────────
-        // Capacity: Custom Drill Templates
-        // ─────────────────────────────────────────────────────────────────────────
+
         public static async Task<ObjectResult?> CheckCustomDrillTemplateLimitAsync(
-            ITenantSubscriptionService svc,
-            int academyId,
-            int currentCount,
-            CancellationToken ct = default)
+            ITenantSubscriptionService svc, int academyId, int currentCount, CancellationToken ct = default)
         {
-            var limits = await svc.GetLimitsAsync(academyId, ct);
-            var tier   = await svc.GetTierAsync(academyId, ct);
+            var tier = await svc.GetTierAsync(academyId, ct);
+            var limits = SubscriptionTierPolicy.GetLimits(tier);
 
-            if (limits.MaxCustomDrillTemplates == int.MaxValue || currentCount < limits.MaxCustomDrillTemplates)
-                return null;
-
-            return Forbidden(
-                feature       : "Custom Drill Templates",
-                limit         : limits.MaxCustomDrillTemplates,
-                current       : currentCount,
-                currentPlan   : tier.ToString(),
-                requiredPlan  : tier == Domain.Enums.SubscriptionTier.Starter ? "Pro" : "Elite",
-                upgradeMessage: $"Upgrade to {(tier == Domain.Enums.SubscriptionTier.Starter ? "Pro" : "Elite")} to create more custom drill templates."
-            );
+            return EvaluateLimit(currentCount, limits.MaxCustomDrillTemplates, "Custom Drill Templates", tier);
         }
     }
 }
