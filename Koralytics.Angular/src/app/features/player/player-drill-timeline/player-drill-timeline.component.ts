@@ -1,6 +1,7 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavbarComponent } from '../../../../shared/components/navbar/navbar';
 import { Footer } from '../../../../shared/components/footer/footer';
 import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner';
@@ -15,6 +16,17 @@ import { TokenStorageService } from '../../../../core/services/auth/token-storag
 import { DrillTimelineEvent } from '../../../../core/models/Player/drill-timeline-model';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LocalizedDatePipe } from '../../../../shared/pipes/localized-date.pipe';
+
+export interface DisplayDrillTimelineEvent extends DrillTimelineEvent {
+  formattedDate: string;
+  translatedCategory: string;
+  translatedTitle: string;
+  translatedSessionType: string;
+  scoreColorClass: 'score-green' | 'score-yellow' | 'score-red';
+  scoreColorClassForCard: 'card-green' | 'card-yellow' | 'card-red';
+  circleColorClass: 'circle-green' | 'circle-yellow' | 'circle-red';
+  targetOffset: number;
+}
 
 @Component({
   selector: 'app-player-drill-timeline',
@@ -34,38 +46,17 @@ import { LocalizedDatePipe } from '../../../../shared/pipes/localized-date.pipe'
     LocalizedDatePipe
   ],
   templateUrl: './player-drill-timeline.component.html',
-  styleUrls: ['./player-drill-timeline.component.css']
+  styleUrls: ['./player-drill-timeline.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PlayerDrillTimelineComponent implements OnInit {
-  translateCategory(name: string | null | undefined): string {
-    if (!name) return '';
-    const key = 'PLAYER.CAT_' + name.toUpperCase();
-    const translated = this.translate.instant(key);
-    return translated !== key ? translated : name;
-  }
-
-  translateSessionType(name: string | null | undefined): string {
-    if (!name) return '';
-    // Drill timelines can have 'Regular', or potentially other types. 
-    // Try CAT_ prefix first (for Regular), then MATCH_ prefix (for Session, Friendly, etc)
-    let key = 'PLAYER.CAT_' + name.toUpperCase();
-    let translated = this.translate.instant(key);
-    if (translated !== key) return translated;
-    
-    key = 'PLAYER.MATCH_' + name.toUpperCase();
-    translated = this.translate.instant(key);
-    if (translated !== key) return translated;
-    
-    return name;
-  }
-
-
   private route = inject(ActivatedRoute);
   private translate = inject(TranslateService);
   private router = inject(Router);
   private profileService = inject(PlayerProfileService);
   private tokenStorage = inject(TokenStorageService);
   private cdr = inject(ChangeDetectorRef);
+  private destroyRef = inject(DestroyRef);
 
   playerId: number | null = null;
   playerName = '';
@@ -77,9 +68,10 @@ export class PlayerDrillTimelineComponent implements OnInit {
   pageSize = 10;
   totalItems = 0;
 
-  allEvents: DrillTimelineEvent[] = [];
-  events: DrillTimelineEvent[] = [];
+  allEvents: DisplayDrillTimelineEvent[] = [];
+  events: DisplayDrillTimelineEvent[] = [];
   categories: string[] = [];
+  private rawEvents: any[] = [];
 
   selectedCategory = '';
   selectedDateFrom = '';
@@ -89,7 +81,8 @@ export class PlayerDrillTimelineComponent implements OnInit {
   categoryOptions: { value: string; label: string }[] = [];
 
   ngOnInit() {
-    this.categoryOptions = this.CORE_CATEGORIES.map(c => ({ value: c, label: this.translate.instant('PLAYER.CAT_' + c.toUpperCase()) !== 'PLAYER.CAT_' + c.toUpperCase() ? this.translate.instant('PLAYER.CAT_' + c.toUpperCase()) : c }));
+    this.updateCategoryOptions();
+
     const paramId = this.route.snapshot.paramMap.get('playerId');
 
     if (paramId) {
@@ -99,25 +92,81 @@ export class PlayerDrillTimelineComponent implements OnInit {
       const user = this.tokenStorage.getUser();
       if (!user?.userId) {
         this.error = 'Invalid session';
+        this.cdr.markForCheck();
         return;
       }
       this.playerId = user.userId;
       this.fetchPlayerDetailsAndTimeline();
     }
+
+    this.translate.onLangChange
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.updateCategoryOptions();
+        if (this.rawEvents.length > 0) {
+          this.allEvents = this.mapEvents(this.rawEvents);
+          this.applyCategoryFilter();
+        }
+        this.cdr.markForCheck();
+      });
+
+    this.translate.onTranslationChange
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.updateCategoryOptions();
+        if (this.rawEvents.length > 0) {
+          this.allEvents = this.mapEvents(this.rawEvents);
+          this.applyCategoryFilter();
+        }
+        this.cdr.markForCheck();
+      });
+  }
+
+  private updateCategoryOptions() {
+    const fromData = [...new Set(this.allEvents.map(e => e.drillCategoryName).filter(Boolean))] as string[];
+    const merged = [...new Set([...this.CORE_CATEGORIES, ...fromData])].sort();
+    this.categoryOptions = merged.map(c => {
+      const key = 'PLAYER.CAT_' + c.toUpperCase();
+      const translated = this.translate.instant(key);
+      return { value: c, label: translated !== key ? translated : c };
+    });
+  }
+
+  translateCategory(name: string | null | undefined): string {
+    if (!name) return '';
+    const key = 'PLAYER.CAT_' + name.toUpperCase();
+    const translated = this.translate.instant(key);
+    return translated !== key ? translated : name;
+  }
+
+  translateSessionType(name: string | null | undefined): string {
+    if (!name) return '';
+    let key = 'PLAYER.CAT_' + name.toUpperCase();
+    let translated = this.translate.instant(key);
+    if (translated !== key) return translated;
+
+    key = 'PLAYER.MATCH_' + name.toUpperCase();
+    translated = this.translate.instant(key);
+    if (translated !== key) return translated;
+
+    return name;
   }
 
   fetchPlayerDetailsAndTimeline() {
     if (!this.playerId) return;
 
-    this.profileService.getPlayerProfile(this.playerId).subscribe({
-      next: (profile) => {
-        this.playerName = `${profile.firstName} ${profile.lastName}`;
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.playerName = 'Player';
-      }
-    });
+    this.profileService.getPlayerProfile(this.playerId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (profile) => {
+          this.playerName = `${profile.firstName} ${profile.lastName}`;
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.playerName = 'Player';
+          this.cdr.markForCheck();
+        }
+      });
 
     this.loadTimeline();
   }
@@ -127,6 +176,7 @@ export class PlayerDrillTimelineComponent implements OnInit {
 
     this.isLoading = true;
     this.error = '';
+    this.cdr.markForCheck();
 
     this.profileService.getDrillTimeline(
       this.playerId,
@@ -134,27 +184,28 @@ export class PlayerDrillTimelineComponent implements OnInit {
       this.pageSize,
       this.selectedDateFrom || undefined,
       this.selectedDateTo || undefined
-    ).subscribe({
-      next: (res: any) => {
-        this.allEvents = this.mapEvents(res.events ?? res.Events ?? []);
-        this.totalItems = res.totalCount ?? res.TotalCount ?? 0;
-        this.extractCategories();
-        this.applyCategoryFilter();
-        this.isLoading = false;
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.isLoading = false;
-        this.error = 'Failed to load drill timeline events.';
-        this.cdr.detectChanges();
-      }
-    });
+    )
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res: any) => {
+          this.rawEvents = res.events ?? res.Events ?? [];
+          this.allEvents = this.mapEvents(this.rawEvents);
+          this.totalItems = res.totalCount ?? res.TotalCount ?? 0;
+          this.extractCategories();
+          this.applyCategoryFilter();
+          this.isLoading = false;
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.isLoading = false;
+          this.error = 'Failed to load drill timeline events.';
+          this.cdr.markForCheck();
+        }
+      });
   }
 
   private extractCategories() {
-    const fromData = [...new Set(this.allEvents.map(e => e.drillCategoryName).filter(Boolean))] as string[];
-    const merged = [...new Set([...this.CORE_CATEGORIES, ...fromData])].sort();
-    this.categoryOptions = merged.map(c => ({ value: c, label: this.translate.instant('PLAYER.CAT_' + c.toUpperCase()) !== 'PLAYER.CAT_' + c.toUpperCase() ? this.translate.instant('PLAYER.CAT_' + c.toUpperCase()) : c }));
+    this.updateCategoryOptions();
   }
 
   private applyCategoryFilter() {
@@ -170,6 +221,7 @@ export class PlayerDrillTimelineComponent implements OnInit {
 
     if (this.selectedDateFrom && this.selectedDateTo && this.selectedDateFrom > this.selectedDateTo) {
       this.filterError = '"From" date must be earlier than "To" date.';
+      this.cdr.markForCheck();
       return;
     }
 
@@ -189,12 +241,14 @@ export class PlayerDrillTimelineComponent implements OnInit {
   onDateFromChange() {
     if (this.selectedDateFrom && this.selectedDateTo && this.selectedDateFrom > this.selectedDateTo) {
       this.selectedDateTo = this.selectedDateFrom;
+      this.cdr.markForCheck();
     }
   }
 
   onDateToChange() {
     if (this.selectedDateFrom && this.selectedDateTo && this.selectedDateFrom > this.selectedDateTo) {
       this.selectedDateFrom = this.selectedDateTo;
+      this.cdr.markForCheck();
     }
   }
 
@@ -210,14 +264,14 @@ export class PlayerDrillTimelineComponent implements OnInit {
     return 'score-red';
   }
 
-  getScoreColorClassForCard(event: DrillTimelineEvent): string {
+  getScoreColorClassForCard(event: DrillTimelineEvent): 'card-green' | 'card-yellow' | 'card-red' {
     if (!event.finalScore) return 'card-yellow';
     if (event.finalScore >= 8.0) return 'card-green';
     if (event.finalScore >= 6.5) return 'card-yellow';
     return 'card-red';
   }
 
-  getCircleColorClass(event: DrillTimelineEvent): string {
+  getCircleColorClass(event: DrillTimelineEvent): 'circle-green' | 'circle-yellow' | 'circle-red' {
     if (!event.finalScore) return 'circle-yellow';
     if (event.finalScore >= 8.0) return 'circle-green';
     if (event.finalScore >= 6.5) return 'circle-yellow';
@@ -240,17 +294,37 @@ export class PlayerDrillTimelineComponent implements OnInit {
     });
   }
 
-  private mapEvents(raw: any[]): DrillTimelineEvent[] {
-    return raw.map((e: any) => ({
-      date: e.date ?? e.Date ?? '',
-      title: e.title ?? e.Title ?? '',
-      description: e.description ?? e.Description ?? null,
-      sessionId: e.sessionId ?? e.SessionId ?? 0,
-      sessionType: e.sessionType ?? e.SessionType ?? '',
-      drillCategoryName: e.drillCategoryName ?? e.DrillCategoryName ?? null,
-      finalScore: e.finalScore ?? e.FinalScore ?? null,
-      drillNotes: e.drillNotes ?? e.DrillNotes ?? null,
-      drillTemplateName: e.drillTemplateName ?? e.DrillTemplateName ?? null
-    }));
+  private mapEvents(raw: any[]): DisplayDrillTimelineEvent[] {
+    return raw.map((e: any) => {
+      const date = e.date ?? e.Date ?? '';
+      const title = e.title ?? e.Title ?? '';
+      const sessionType = e.sessionType ?? e.SessionType ?? '';
+      const drillCategoryName = e.drillCategoryName ?? e.DrillCategoryName ?? null;
+      const finalScore = e.finalScore ?? e.FinalScore ?? null;
+
+      const baseEvent: DrillTimelineEvent = {
+        date,
+        title,
+        description: e.description ?? e.Description ?? null,
+        sessionId: e.sessionId ?? e.SessionId ?? 0,
+        sessionType,
+        drillCategoryName,
+        finalScore,
+        drillNotes: e.drillNotes ?? e.DrillNotes ?? null,
+        drillTemplateName: e.drillTemplateName ?? e.DrillTemplateName ?? null
+      };
+
+      return {
+        ...baseEvent,
+        formattedDate: this.formatDate(date),
+        translatedCategory: this.translateCategory(drillCategoryName),
+        translatedTitle: this.translateCategory(title),
+        translatedSessionType: this.translateSessionType(sessionType),
+        scoreColorClass: this.getScoreColorClass(baseEvent),
+        scoreColorClassForCard: this.getScoreColorClassForCard(baseEvent),
+        circleColorClass: this.getCircleColorClass(baseEvent),
+        targetOffset: this.getTargetOffset(baseEvent),
+      };
+    });
   }
 }

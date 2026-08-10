@@ -60,20 +60,20 @@
   <div class="events-grid">
     @for (event of events; track $index; let i = $index) {
     <div class="koralytics-card" scrollReveal direction="bottom" [delay]="250 + i * 70"
-      [class.card-match]="isMatchEvent(event)" [class.card-drill]="!isMatchEvent(event)"
+      [class.card-match]="event.isMatch" [class.card-drill]="!event.isMatch"
       [class.card-cancelled]="event.isCancelled"
-      [class.clickable]="isMatchEvent(event) && event.matchId"
-      [routerLink]="isMatchEvent(event) && event.matchId ? ['/match', event.matchId] : null">
+      [class.clickable]="event.isMatch && event.matchId"
+      [routerLink]="event.isMatch && event.matchId ? ['/match', event.matchId] : null">
 
       <div class="card-left-info">
         <div class="meta-header">
-          @if (isMatchEvent(event)) {
+          @if (event.isMatch) {
           <span class="badge badge-match">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
               <circle cx="12" cy="12" r="10" />
               <path d="M12 2a14.5 14.5 0 0 0 0 20M2 12h20" />
             </svg>
-            {{ 'PLAYER.MATCH_BULLET' | translate }} {{ translateMatchType(event.matchType) || ('PLAYER.FRIENDLY' | translate) }}
+            {{ 'PLAYER.MATCH_BULLET' | translate }} {{ event.translatedMatchType || ('PLAYER.FRIENDLY' | translate) }}
           </span>
           } @else {
           <span class="badge badge-drill">
@@ -82,28 +82,28 @@
               <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
               <line x1="4" y1="22" x2="4" y2="15" />
             </svg>
-            {{ 'PLAYER.DRILL_BULLET' | translate }} {{ translateSessionType(event.sessionType) || ('PLAYER.SESSION' | translate) }}
+            {{ 'PLAYER.DRILL_BULLET' | translate }} {{ event.translatedSessionType || ('PLAYER.SESSION' | translate) }}
           </span>
           }
-          <span class="meta-date">{{ formatDate(event.date) }} &bull; {{ formatTime(event.date) }}</span>
+          <span class="meta-date">{{ event.formattedDate }} &bull; {{ event.formattedTime }}</span>
         </div>
 
-        @if (isMatchEvent(event)) {
+        @if (event.isMatch) {
         <div class="card-title">{{ event.homeTeamName || ('PLAYER.HOME' | translate) }} <span class="vs-text">{{ 'PLAYER.VS_UPPER' | translate }}</span> {{ event.awayTeamName
           || ('PLAYER.AWAY' | translate) }}</div>
         } @else {
-        <div class="card-title">{{ translateSessionType(event.sessionType) || ('PLAYER.TRAINING_SESSION' | translate) }}</div>
+        <div class="card-title">{{ event.translatedSessionType || ('PLAYER.TRAINING_SESSION' | translate) }}</div>
         }
 
         <div class="card-subtitle">{{ event.teamName }}</div>
 
-        @if (!isMatchEvent(event) && event.location) {
+        @if (!event.isMatch && event.location) {
         <div class="session-notes-box" [class.box-cancelled]="event.isCancelled">
           <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
           <span class="notes-label">{{ 'PLAYER.LOCATION_LABEL' | translate }}</span> {{ event.location }}
         </div>
         }
-        @if (!isMatchEvent(event) && event.coachName) {
+        @if (!event.isMatch && event.coachName) {
         <div class="session-notes-box" [class.box-cancelled]="event.isCancelled">
           <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           <span class="notes-label">{{ 'PLAYER.COACH_LABEL' | translate }}</span> {{ event.coachName }}
@@ -120,7 +120,7 @@
       <div class="stats-block">
         <div class="stat-pill">
           <span class="lbl">{{ 'PLAYER.TYPE' | translate }}</span>
-          @if (isMatchEvent(event)) {
+          @if (event.isMatch) {
           <span class="val color-yellow">{{ 'PLAYER.MATCH_UPPER' | translate }}</span>
           } @else {
           <span class="val color-green">{{ 'PLAYER.DRILL_UPPER' | translate }}</span>

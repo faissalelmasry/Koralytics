@@ -1,6 +1,7 @@
-import { Component, OnInit, AfterViewInit, inject, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, AfterViewInit, inject, ViewChild, ElementRef, ChangeDetectorRef, ChangeDetectionStrategy, DestroyRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Chart, registerables } from 'chart.js';
 import { NavbarComponent } from '../../../../shared/components/navbar/navbar';
 import { Footer } from '../../../../shared/components/footer/footer';
@@ -12,60 +13,55 @@ import { PlayerVsAcademyModel, CategoryComparisonModel } from '../../../../core/
 
 Chart.register(...registerables);
 
+export interface DisplayCategoryComparisonModel extends CategoryComparisonModel {
+  isAbove: boolean;
+  diffLabel: string;
+  playerPercent: number;
+  academyPercent: number;
+  translatedCategoryName: string;
+}
+
 @Component({
   selector: 'app-player-academy-comparison',
   standalone: true,
   imports: [CommonModule, RouterLink, NavbarComponent, Footer, LoadingSpinnerComponent, TranslatePipe],
   templateUrl: './player-academy-comparison.component.html',
-  styleUrls: ['./player-academy-comparison.component.css']
+  styleUrls: ['./player-academy-comparison.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class PlayerAcademyComparisonComponent implements OnInit, AfterViewInit {
-
+export class PlayerAcademyComparisonComponent implements OnInit, AfterViewInit, OnDestroy {
   private profileService = inject(PlayerProfileService);
   private tokenStorage = inject(TokenStorageService);
   private cdr = inject(ChangeDetectorRef);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private translate = inject(TranslateService);
+  private destroyRef = inject(DestroyRef);
 
   @ViewChild('radarCanvas') radarCanvas!: ElementRef<HTMLCanvasElement>;
 
   data: PlayerVsAcademyModel | null = null;
+  displayCategories: DisplayCategoryComparisonModel[] = [];
   profileImageUrl: string | null = null;
   imageError = false;
   isLoading = true;
   error = '';
 
-  /** The player whose data we're viewing. Read from route param or token. */
   playerId: number | null = null;
   loggedInUserId: number | null = null;
 
+  aboveAvgCount = 0;
+  avgRating = '0.0';
+  playerInitials = '?';
+
   private radarChart?: Chart<'radar'>;
-
-  get aboveAvgCount(): number {
-    return this.data?.categories.filter(c => c.difference > 0).length ?? 0;
-  }
-
-  get avgRating(): string {
-    if (!this.data?.categories.length) return '0.0';
-    return (this.data.categories.reduce((s, c) => s + c.playerAverage, 0) / this.data.categories.length).toFixed(1);
-  }
-
-  // ── Computed getters for hero-banner ────────────────────────
-  get playerInitials(): string {
-    if (!this.data) return '?';
-    const parts = this.data.playerName.trim().split(/\s+/);
-    if (parts.length >= 2) {
-      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-    }
-    return (parts[0]?.[0] ?? '?').toUpperCase();
-  }
 
   ngOnInit(): void {
     const token = this.tokenStorage.getAccessToken();
     if (!token) {
       this.error = 'Not authenticated';
       this.isLoading = false;
+      this.cdr.markForCheck();
       return;
     }
 
@@ -74,49 +70,134 @@ export class PlayerAcademyComparisonComponent implements OnInit, AfterViewInit {
       this.loggedInUserId = claims.userId;
     }
 
-    // If a :playerId is in the route, fetch that specific player's comparison via the open endpoint.
-    // Otherwise fall back to the player-self endpoint (uses JWT token).
     const paramId = this.route.snapshot.paramMap.get('playerId');
 
     if (paramId) {
       this.playerId = Number(paramId);
-      this.profileService.getPlayerAcademyComparisonById(this.playerId).subscribe({
-        next: (res) => this.handleData(res),
-        error: (err) => {
-          this.error = err?.error?.message || 'Failed to load comparison data';
-          this.isLoading = false;
-        }
-      });
+      this.profileService.getPlayerAcademyComparisonById(this.playerId)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (res) => this.handleData(res),
+          error: (err) => {
+            this.error = err?.error?.message || 'Failed to load comparison data';
+            this.isLoading = false;
+            this.cdr.markForCheck();
+          }
+        });
     } else {
       this.playerId = this.loggedInUserId;
-      this.profileService.getPlayerVsAcademyAverage().subscribe({
-        next: (res) => this.handleData(res),
-        error: (err) => {
-          this.error = err?.error?.message || 'Failed to load comparison data';
-          this.isLoading = false;
+      this.profileService.getPlayerVsAcademyAverage()
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (res) => this.handleData(res),
+          error: (err) => {
+            this.error = err?.error?.message || 'Failed to load comparison data';
+            this.isLoading = false;
+            this.cdr.markForCheck();
+          }
+        });
+    }
+
+    this.translate.onLangChange
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        if (this.data) {
+          this.computeDisplayCategories();
+          this.initRadarChart();
+          this.cdr.markForCheck();
         }
       });
+  }
+
+  ngAfterViewInit(): void {
+    if (this.data?.categories.length && !this.radarChart) {
+      this.initRadarChart();
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.radarChart) {
+      this.radarChart.destroy();
+      this.radarChart = undefined;
     }
   }
 
   private handleData(res: PlayerVsAcademyModel): void {
     this.data = res;
     this.isLoading = false;
+
+    this.computeHeaderSummary();
+    this.computeDisplayCategories();
+
     const targetId = this.playerId || this.loggedInUserId;
     if (targetId) {
-      this.profileService.getPlayerProfile(targetId).subscribe({
-        next: (p) => {
-          this.profileImageUrl = p.profileImageUrl || p.playerCard?.profileImageUrl || null;
-          this.cdr.detectChanges();
-        }
-      });
+      this.profileService.getPlayerProfile(targetId)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (p) => {
+            this.profileImageUrl = p.profileImageUrl || p.playerCard?.profileImageUrl || null;
+            this.cdr.markForCheck();
+          }
+        });
     }
-    this.cdr.detectChanges();
+
+    this.cdr.markForCheck();
+
     if (res.categories.length > 0) {
-      this.initRadarChart();
+      setTimeout(() => this.initRadarChart(), 0);
     }
   }
 
+  private computeHeaderSummary(): void {
+    if (!this.data) {
+      this.aboveAvgCount = 0;
+      this.avgRating = '0.0';
+      this.playerInitials = '?';
+      return;
+    }
+
+    this.aboveAvgCount = this.data.categories.filter(c => c.difference > 0).length;
+
+    if (this.data.categories.length > 0) {
+      const sum = this.data.categories.reduce((s, c) => s + c.playerAverage, 0);
+      this.avgRating = (sum / this.data.categories.length).toFixed(1);
+    } else {
+      this.avgRating = '0.0';
+    }
+
+    const parts = this.data.playerName.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      this.playerInitials = (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    } else {
+      this.playerInitials = (parts[0]?.[0] ?? '?').toUpperCase();
+    }
+  }
+
+  private computeDisplayCategories(): void {
+    if (!this.data) {
+      this.displayCategories = [];
+      return;
+    }
+
+    this.displayCategories = this.data.categories.map(c => {
+      const isAbove = c.difference >= 0;
+      let diffLabel = `= ${c.difference.toFixed(1)}`;
+      if (c.difference > 0) diffLabel = `▲ +${c.difference.toFixed(1)}`;
+      else if (c.difference < 0) diffLabel = `▼ ${c.difference.toFixed(1)}`;
+
+      const key = 'PLAYER.CAT_' + c.categoryName.toUpperCase();
+      const translated = this.translate.instant(key);
+
+      return {
+        ...c,
+        isAbove,
+        diffLabel,
+        playerPercent: this.clampPercent(c.playerAverage),
+        academyPercent: this.clampPercent(c.academyAverage),
+        translatedCategoryName: translated !== key ? translated : c.categoryName,
+      };
+    });
+  }
 
   goToProfile(): void {
     if (this.playerId) {
@@ -126,25 +207,28 @@ export class PlayerAcademyComparisonComponent implements OnInit, AfterViewInit {
     }
   }
 
-  ngAfterViewInit(): void {
-    if (this.data?.categories.length) {
-      this.initRadarChart();
-    }
-  }
-
   private initRadarChart(): void {
-    if (!this.data || !this.radarCanvas) return;
+    if (!this.data || !this.radarCanvas?.nativeElement) return;
     if (this.data.categories.length <= 1) return;
 
     if (this.radarChart) {
       this.radarChart.destroy();
+      this.radarChart = undefined;
     }
 
-    const labels = this.data.categories.map(c => this.translate.instant('PLAYER.CAT_' + c.categoryName.toUpperCase()));
+    const labels = this.data.categories.map(c => {
+      const key = 'PLAYER.CAT_' + c.categoryName.toUpperCase();
+      const translated = this.translate.instant(key);
+      return translated !== key ? translated : c.categoryName;
+    });
+
     const playerData = this.data.categories.map(c => c.playerAverage);
     const academyData = this.data.categories.map(c => c.academyAverage);
 
-    this.radarChart = new Chart(this.radarCanvas.nativeElement, {
+    const ctx = this.radarCanvas.nativeElement.getContext('2d');
+    if (!ctx) return;
+
+    this.radarChart = new Chart(ctx, {
       type: 'radar',
       data: {
         labels,
@@ -226,4 +310,3 @@ export class PlayerAcademyComparisonComponent implements OnInit, AfterViewInit {
     }
   }
 }
-

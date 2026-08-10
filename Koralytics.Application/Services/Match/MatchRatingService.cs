@@ -125,8 +125,7 @@ namespace Koralytics.Application.Services.Match
             {
                 match.AwayFormation = dto.Formation;
             }
-
-            await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync();
 
             _logger.LogInformation("Lineup submitted for match {MatchId} by coach {CoachId}: {Count} players",
                 matchId, coachId, startingCount);
@@ -134,17 +133,20 @@ namespace Koralytics.Application.Services.Match
 
         public async Task<List<LineupResponseDto>> GetLineupAsync(int matchId)
         {
-            var matchExists = await _unitOfWork.Repository<MatchEntity>()
-                .ExistsAsync(m => m.Id == matchId);
-
-            if (!matchExists)
-                throw new NotFoundException($"Match with Id {matchId} not found");
-
             var lineup = await _unitOfWork.Repository<MatchLineup>()
                 .GetQueryableAsNoTracking()
                 .Include(ml => ml.Player)
                 .Where(ml => ml.MatchId == matchId)
                 .ToListAsync();
+
+            if (lineup.Count == 0)
+            {
+                var matchExists = await _unitOfWork.Repository<MatchEntity>()
+                    .ExistsAsync(m => m.Id == matchId);
+
+                if (!matchExists)
+                    throw new NotFoundException($"Match with Id {matchId} not found");
+            }
 
             return _mapper.Map<List<LineupResponseDto>>(lineup);
         }
@@ -334,12 +336,6 @@ namespace Koralytics.Application.Services.Match
         {
             _logger.LogInformation("Fetching ratings for match {MatchId}", matchId);
 
-            var matchExists = await _unitOfWork.Repository<MatchEntity>()
-                .ExistsAsync(m => m.Id == matchId);
-
-            if (!matchExists)
-                throw new NotFoundException($"Match with Id {matchId} not found");
-
             var ratings = await _unitOfWork.Repository<MatchPlayerRating>()
                 .GetQueryableAsNoTracking()
                 .Include(r => r.CategoryRatings)
@@ -348,6 +344,15 @@ namespace Koralytics.Application.Services.Match
                 .Include(r => r.Coach)
                 .Where(r => r.MatchId == matchId)
                 .ToListAsync();
+
+            if (ratings.Count == 0)
+            {
+                var matchExists = await _unitOfWork.Repository<MatchEntity>()
+                    .ExistsAsync(m => m.Id == matchId);
+
+                if (!matchExists)
+                    throw new NotFoundException($"Match with Id {matchId} not found");
+            }
 
             var ratingDtos = ratings.Select(r =>
             {

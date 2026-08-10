@@ -1,6 +1,7 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavbarComponent } from '../../../../shared/components/navbar/navbar';
 import { Footer } from '../../../../shared/components/footer/footer';
 import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner';
@@ -16,6 +17,13 @@ import { TokenStorageService } from '../../../../core/services/auth/token-storag
 import { MatchTimelineEventModel } from '../../../../core/models/Player/match-timeline-model';
 import { TranslatePipe } from '@ngx-translate/core';
 import { LocalizedDatePipe } from '../../../../shared/pipes/localized-date.pipe';
+
+export interface DisplayMatchTimelineEvent extends MatchTimelineEventModel {
+  outcomeClass: 'win' | 'draw' | 'loss';
+  outcomeTranslationKey: string;
+  ratingColorClass: 'score-green' | 'score-yellow' | 'score-red';
+  formattedDate: string;
+}
 
 @Component({
   selector: 'app-player-match-timeline',
@@ -36,7 +44,8 @@ import { LocalizedDatePipe } from '../../../../shared/pipes/localized-date.pipe'
     LocalizedDatePipe
   ],
   templateUrl: './player-match-timeline.component.html',
-  styleUrls: ['./player-match-timeline.component.css']
+  styleUrls: ['./player-match-timeline.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PlayerMatchTimelineComponent implements OnInit {
   private route = inject(ActivatedRoute);
@@ -45,6 +54,7 @@ export class PlayerMatchTimelineComponent implements OnInit {
   private profileService = inject(PlayerProfileService);
   private tokenStorage = inject(TokenStorageService);
   private cdr = inject(ChangeDetectorRef);
+  private destroyRef = inject(DestroyRef);
 
   playerId: number | null = null;
   playerName = '';
@@ -56,21 +66,18 @@ export class PlayerMatchTimelineComponent implements OnInit {
   pageSize = 10;
   totalItems = 0;
 
-  events: MatchTimelineEventModel[] = [];
+  events: DisplayMatchTimelineEvent[] = [];
+  private rawEvents: any[] = [];
 
   selectedMatchType = '';
   selectedDateFrom = '';
   selectedDateTo = '';
 
-  get matchTypeOptions() {
-    return [
-      { value: 'Session', label: this.translate.instant('PLAYER.MATCH_SESSION') },
-      { value: 'Friendly', label: this.translate.instant('PLAYER.MATCH_FRIENDLY') },
-      { value: 'Tournament', label: this.translate.instant('PLAYER.MATCH_TOURNAMENT') }
-    ];
-  }
+  matchTypeOptions: { value: string; label: string }[] = [];
 
   ngOnInit() {
+    this.updateMatchTypeOptions();
+
     const paramId = this.route.snapshot.paramMap.get('playerId');
 
     if (paramId) {
@@ -80,25 +87,57 @@ export class PlayerMatchTimelineComponent implements OnInit {
       const user = this.tokenStorage.getUser();
       if (!user?.userId) {
         this.error = 'Invalid session';
+        this.cdr.markForCheck();
         return;
       }
       this.playerId = user.userId;
       this.fetchPlayerDetailsAndTimeline();
     }
+
+    this.translate.onLangChange
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.updateMatchTypeOptions();
+        if (this.rawEvents.length > 0) {
+          this.events = this.mapEvents(this.rawEvents);
+        }
+        this.cdr.markForCheck();
+      });
+
+    this.translate.onTranslationChange
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.updateMatchTypeOptions();
+        if (this.rawEvents.length > 0) {
+          this.events = this.mapEvents(this.rawEvents);
+        }
+        this.cdr.markForCheck();
+      });
+  }
+
+  private updateMatchTypeOptions() {
+    this.matchTypeOptions = [
+      { value: 'Session', label: this.translate.instant('PLAYER.MATCH_SESSION') },
+      { value: 'Friendly', label: this.translate.instant('PLAYER.MATCH_FRIENDLY') },
+      { value: 'Tournament', label: this.translate.instant('PLAYER.MATCH_TOURNAMENT') }
+    ];
   }
 
   fetchPlayerDetailsAndTimeline() {
     if (!this.playerId) return;
 
-    this.profileService.getPlayerProfile(this.playerId).subscribe({
-      next: (profile) => {
-        this.playerName = `${profile.firstName} ${profile.lastName}`;
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.playerName = 'Player';
-      }
-    });
+    this.profileService.getPlayerProfile(this.playerId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (profile) => {
+          this.playerName = `${profile.firstName} ${profile.lastName}`;
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.playerName = 'Player';
+          this.cdr.markForCheck();
+        }
+      });
 
     this.loadTimeline();
   }
@@ -108,6 +147,7 @@ export class PlayerMatchTimelineComponent implements OnInit {
 
     this.isLoading = true;
     this.error = '';
+    this.cdr.markForCheck();
 
     this.profileService.getMatchTimeline(
       this.playerId,
@@ -116,19 +156,22 @@ export class PlayerMatchTimelineComponent implements OnInit {
       this.selectedMatchType || undefined,
       this.selectedDateFrom || undefined,
       this.selectedDateTo || undefined
-    ).subscribe({
-      next: (res: any) => {
-        this.events = this.mapEvents(res.events ?? res.Events ?? []);
-        this.totalItems = res.totalCount ?? res.TotalCount ?? 0;
-        this.isLoading = false;
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.isLoading = false;
-        this.error = 'Failed to load match timeline events.';
-        this.cdr.detectChanges();
-      }
-    });
+    )
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res: any) => {
+          this.rawEvents = res.events ?? res.Events ?? [];
+          this.events = this.mapEvents(this.rawEvents);
+          this.totalItems = res.totalCount ?? res.TotalCount ?? 0;
+          this.isLoading = false;
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.isLoading = false;
+          this.error = 'Failed to load match timeline events.';
+          this.cdr.markForCheck();
+        }
+      });
   }
 
   applyFilters() {
@@ -136,6 +179,7 @@ export class PlayerMatchTimelineComponent implements OnInit {
 
     if (this.selectedDateFrom && this.selectedDateTo && this.selectedDateFrom > this.selectedDateTo) {
       this.filterError = '"From" date must be earlier than "To" date.';
+      this.cdr.markForCheck();
       return;
     }
 
@@ -155,12 +199,14 @@ export class PlayerMatchTimelineComponent implements OnInit {
   onDateFromChange() {
     if (this.selectedDateFrom && this.selectedDateTo && this.selectedDateFrom > this.selectedDateTo) {
       this.selectedDateTo = this.selectedDateFrom;
+      this.cdr.markForCheck();
     }
   }
 
   onDateToChange() {
     if (this.selectedDateFrom && this.selectedDateTo && this.selectedDateFrom > this.selectedDateTo) {
       this.selectedDateFrom = this.selectedDateTo;
+      this.cdr.markForCheck();
     }
   }
 
@@ -171,9 +217,7 @@ export class PlayerMatchTimelineComponent implements OnInit {
 
   getOutcomeClass(event: MatchTimelineEventModel): 'win' | 'draw' | 'loss' {
     if (event.homeScore === event.awayScore) return 'draw';
-
     if (event.homeScore > event.awayScore) return 'win';
-
     return 'loss';
   }
 
@@ -194,25 +238,42 @@ export class PlayerMatchTimelineComponent implements OnInit {
     });
   }
 
-  private mapEvents(raw: any[]): MatchTimelineEventModel[] {
-    return raw.map((e: any) => ({
-      date: e.date ?? e.Date ?? '',
-      title: e.title ?? e.Title ?? '',
-      matchId: e.matchId ?? e.MatchId ?? 0,
-      matchType: e.matchType ?? e.MatchType ?? '',
-      homeTeamName: e.homeTeamName ?? e.HomeTeamName ?? null,
-      awayTeamName: e.awayTeamName ?? e.AwayTeamName ?? null,
-      homeScore: e.homeScore ?? e.HomeScore ?? 0,
-      awayScore: e.awayScore ?? e.AwayScore ?? 0,
-      homePenaltyScore: e.homePenaltyScore ?? e.HomePenaltyScore ?? null,
-      awayPenaltyScore: e.awayPenaltyScore ?? e.AwayPenaltyScore ?? null,
-      goals: e.goals ?? e.Goals ?? 0,
-      assists: e.assists ?? e.Assists ?? 0,
-      minutesPlayed: e.minutesPlayed ?? e.MinutesPlayed ?? 0,
-      isMOTM: e.isMOTM ?? e.IsMOTM ?? false,
-      rating: e.rating ?? e.Rating ?? null,
-      coachNote: e.coachNote ?? e.CoachNote ?? null,
-      description: e.description ?? e.Description ?? null
-    }));
+  private mapEvents(raw: any[]): DisplayMatchTimelineEvent[] {
+    return raw.map((e: any) => {
+      const date = e.date ?? e.Date ?? '';
+      const homeScore = e.homeScore ?? e.HomeScore ?? 0;
+      const awayScore = e.awayScore ?? e.AwayScore ?? 0;
+      const rating = e.rating ?? e.Rating ?? null;
+
+      const baseEvent: MatchTimelineEventModel = {
+        date,
+        title: e.title ?? e.Title ?? '',
+        matchId: e.matchId ?? e.MatchId ?? 0,
+        matchType: e.matchType ?? e.MatchType ?? '',
+        homeTeamName: e.homeTeamName ?? e.HomeTeamName ?? null,
+        awayTeamName: e.awayTeamName ?? e.AwayTeamName ?? null,
+        homeScore,
+        awayScore,
+        homePenaltyScore: e.homePenaltyScore ?? e.HomePenaltyScore ?? null,
+        awayPenaltyScore: e.awayPenaltyScore ?? e.AwayPenaltyScore ?? null,
+        goals: e.goals ?? e.Goals ?? 0,
+        assists: e.assists ?? e.Assists ?? 0,
+        minutesPlayed: e.minutesPlayed ?? e.MinutesPlayed ?? 0,
+        isMOTM: e.isMOTM ?? e.IsMOTM ?? false,
+        rating,
+        coachNote: e.coachNote ?? e.CoachNote ?? null,
+        description: e.description ?? e.Description ?? null
+      };
+
+      const outcomeClass = this.getOutcomeClass(baseEvent);
+
+      return {
+        ...baseEvent,
+        outcomeClass,
+        outcomeTranslationKey: 'PLAYER.OUTCOME_' + outcomeClass.toUpperCase(),
+        ratingColorClass: this.getRatingColorClass(baseEvent),
+        formattedDate: this.formatDate(date),
+      };
+    });
   }
 }
