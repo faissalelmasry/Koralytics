@@ -7,7 +7,7 @@ import { CoachSquadService } from '../../../../../core/services/coach/coach-squa
 import { DrillSessionService } from '../../../../../core/services/drill/drill-session.service';
 import { TrainingTeamSplitDto, SquadPlayerDto } from '../../../../../core/interfaces/coach.interfaces';
 import { DrillSessionDto, SessionFilterDto } from '../../../../../core/interfaces/drill-session.model';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-training-split',
@@ -20,6 +20,7 @@ export class TrainingSplitComponent implements OnInit {
   private squadService = inject(CoachSquadService);
   private sessionService = inject(DrillSessionService);
   private destroyRef = inject(DestroyRef);
+  private translate = inject(TranslateService);
 
   // Sessions loaded from API
   availableSessions = signal<DrillSessionDto[]>([]);
@@ -70,7 +71,7 @@ export class TrainingSplitComponent implements OnInit {
           this.loadingSessions.set(false);
         },
         error: () => {
-          this.error.set('Failed to load training sessions.');
+          this.error.set(this.translate.instant('COACH.TRAINING_SPLIT.LOAD_SESSIONS_FAILED'));
           this.loadingSessions.set(false);
         }
       });
@@ -91,7 +92,7 @@ export class TrainingSplitComponent implements OnInit {
           this.loading.set(false);
         },
         error: (err) => {
-          this.error.set(err?.error?.message || 'Failed to split teams.');
+          this.error.set(err?.error?.message || this.translate.instant('COACH.TRAINING_SPLIT.SPLIT_FAILED'));
           this.loading.set(false);
         }
       });

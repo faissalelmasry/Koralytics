@@ -86,7 +86,7 @@ export class ParentDashboardComponent implements OnInit {
 
         this.loadPendingRequests();
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Failed to load children', err);
         this.errorMessage = err.error?.message || this.translate.instant('PARENT.ERRORS.FETCH_ERROR') || 'Could not fetch your linked players.';
         this.isLoading = false;

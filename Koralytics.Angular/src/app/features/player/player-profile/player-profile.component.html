@@ -4,7 +4,7 @@
   @if (isLoading) {
   <div class="loading-state">
     <app-loading-spinner size="lg"></app-loading-spinner>
-    <p>{{ 'COMMON.LOADING_PROFILE' | translate }}</p>
+    <p>{{ 'PLAYER.LOADING_PROFILE' | translate }}</p>
   </div>
   }
   @else if (error) {
@@ -21,7 +21,8 @@
     <div class="hero-banner" scrollReveal direction="bottom" [delay]="0">
       <div class="player-identity">
         <div class="avatar-circle">
-          <img *ngIf="profileImageUrl && !imageError" [src]="profileImageUrl" [alt]="fullName" class="avatar-img" (error)="imageError = true" />
+          <img *ngIf="profileImageUrl && !imageError" [src]="profileImageUrl" [alt]="fullName" class="avatar-img"
+            (error)="imageError = true" />
           <span *ngIf="!profileImageUrl || imageError">{{ initials }}</span>
         </div>
         <div>
@@ -63,8 +64,8 @@
             }
           </button>
 
-          <button type="button" class="btn-shortlist" [class.shortlisted]="isShortlisted" [disabled]="isShortlistLoading"
-            (click)="toggleShortlist()">
+          <button type="button" class="btn-shortlist" [class.shortlisted]="isShortlisted"
+            [disabled]="isShortlistLoading" (click)="toggleShortlist()">
             @if (isShortlistLoading) {
             <span class="btn-spinner"></span>
             } @else if (isShortlisted) {
@@ -85,19 +86,19 @@
         }
 
         <app-button [variant]="tierButtonVariant" size="sm" (click)="goToHighlights()">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-            stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polygon points="23 7 16 12 23 17 23 7"></polygon>
             <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
           </svg>
-          Highlights
+          {{ 'PLAYER.HIGHLIGHTS' | translate }}
         </app-button>
       </div>
 
       <div class="bio-quick-list">
         <div class="bio-item">
           <span class="bio-lbl">{{ 'PLAYER.STATUS' | translate }}</span>
-          <span class="bio-val" [class]="statusClass">{{ statusLabel }}</span>
+          <span class="bio-val" [class]="statusClass">{{ 'PLAYER.STATUS_' + (statusLabel | uppercase) | translate }}</span>
         </div>
         <div class="bio-item">
           <span class="bio-lbl">{{ 'PLAYER.AGE' | translate }}</span>
@@ -105,11 +106,13 @@
         </div>
         <div class="bio-item">
           <span class="bio-lbl">{{ 'PLAYER.HEIGHT' | translate }}</span>
-          <span class="bio-val">{{ profile.heightCm ? profile.heightCm + ' ' + ('PLAYER.CM' | translate) : 'N/A' }}</span>
+          <span class="bio-val">{{ profile.heightCm ? profile.heightCm + ' ' + ('PLAYER.CM' | translate) : 'N/A'
+            }}</span>
         </div>
         <div class="bio-item">
           <span class="bio-lbl">{{ 'PLAYER.WEIGHT' | translate }}</span>
-          <span class="bio-val">{{ profile.weightKg ? profile.weightKg + ' ' + ('PLAYER.KG' | translate) : 'N/A' }}</span>
+          <span class="bio-val">{{ profile.weightKg ? profile.weightKg + ' ' + ('PLAYER.KG' | translate) : 'N/A'
+            }}</span>
         </div>
         <div class="bio-item">
           <span class="bio-lbl">{{ 'PLAYER.NATIONALITY' | translate }}</span>
@@ -335,7 +338,8 @@
         style="margin-bottom:20px; display: flex; justify-content: space-between; align-items: center;">
 
         <span>{{ 'PLAYER.MATCH_PERFORMANCE_BREAKDOWN' | translate }}</span>
-        <app-button [variant]="tierButtonVariant" (click)="goToTimeline()">{{ 'PLAYER.VIEW_FULL_TIMELINE' | translate }}</app-button>
+        <app-button [variant]="tierButtonVariant" (click)="goToTimeline()">{{ 'PLAYER.VIEW_FULL_TIMELINE' | translate
+          }}</app-button>
 
       </div>
 
@@ -347,10 +351,14 @@
             <span class="comp-icon" [style.background]="comp.iconColor"></span>
             {{ comp.label }}
           </div>
-          <div class="comp-stats-row"><span>{{ 'PLAYER.MATCHES' | translate }}</span><strong>{{ comp.stats.matches }}</strong></div>
-          <div class="comp-stats-row"><span>{{ 'PLAYER.GOALS' | translate }}</span><strong>{{ comp.stats.goals }}</strong></div>
-          <div class="comp-stats-row"><span>{{ 'PLAYER.ASSISTS' | translate }}</span><strong>{{ comp.stats.assists }}</strong></div>
-          <div class="comp-stats-row"><span>{{ 'PLAYER.MOTM' | translate }}</span><strong>{{ comp.stats.motMs }}</strong></div>
+          <div class="comp-stats-row"><span>{{ 'PLAYER.MATCHES' | translate }}</span><strong>{{ comp.stats.matches
+              }}</strong></div>
+          <div class="comp-stats-row"><span>{{ 'PLAYER.GOALS' | translate }}</span><strong>{{ comp.stats.goals
+              }}</strong></div>
+          <div class="comp-stats-row"><span>{{ 'PLAYER.ASSISTS' | translate }}</span><strong>{{ comp.stats.assists
+              }}</strong></div>
+          <div class="comp-stats-row"><span>{{ 'PLAYER.MOTM' | translate }}</span><strong>{{ comp.stats.motMs
+              }}</strong></div>
         </div>
         }
       </div>
@@ -370,12 +378,14 @@
     <div class="modal-backdrop" (click)="closePositionModal()">
       <div class="position-modal" (click)="$event.stopPropagation()">
         <div class="modal-header">
-          <h3>{{ modalMode === 'ADD' ? ('PLAYER.ADD_NEW_POSITION' | translate) : modalMode === 'UPDATE_PRIMARY' ? ('PLAYER.UPDATE_PRIMARY_POSITION' | translate) : ('PLAYER.REMOVE_POSITION' | translate) }}</h3>
+          <h3>{{ modalMode === 'ADD' ? ('PLAYER.ADD_NEW_POSITION' | translate) : modalMode === 'UPDATE_PRIMARY' ?
+            ('PLAYER.UPDATE_PRIMARY_POSITION' | translate) : ('PLAYER.REMOVE_POSITION' | translate) }}</h3>
           <button class="close-btn" (click)="closePositionModal()">✕</button>
         </div>
 
         <p class="modal-subtitle">
-          {{ modalMode === 'ADD' ? ('PLAYER.ADD_POS_DESC' | translate) : modalMode === 'UPDATE_PRIMARY' ? ('PLAYER.UPDATE_PRIMARY_DESC' | translate) : ('PLAYER.REMOVE_POS_DESC' | translate) }}
+          {{ modalMode === 'ADD' ? ('PLAYER.ADD_POS_DESC' | translate) : modalMode === 'UPDATE_PRIMARY' ?
+          ('PLAYER.UPDATE_PRIMARY_DESC' | translate) : ('PLAYER.REMOVE_POS_DESC' | translate) }}
         </p>
 
         <div class="modal-pitch">
@@ -408,7 +418,7 @@
           <span></span>
           }
           <div class="modal-footer-btns">
-            <app-button variant="slate" (click)="closePositionModal()">Cancel</app-button>
+            <app-button variant="slate" (click)="closePositionModal()">{{ 'COMMON.CANCEL' | translate }}</app-button>
             <app-button [variant]="modalMode === 'REMOVE' ? 'coral' : tierButtonVariant" [loading]="isSavingPosition"
               (click)="confirmPositionSelection()">{{ 'PLAYER.CONFIRM_SELECTION' | translate }}</app-button>
           </div>
@@ -419,7 +429,8 @@
 
     <!-- =============== CONFIRM DIALOG =============== -->
     <app-confirm-dialog [isOpen]="showConfirmDialog" [title]="confirmTitle" [message]="confirmMessage" level="info"
-      [confirmText]="confirmActionText" [cancelText]="'COMMON.CANCEL' | translate" (confirm)="onConfirmAction()" (cancel)="onCancelAction()">
+      [confirmText]="confirmActionText" [cancelText]="'COMMON.CANCEL' | translate" (confirm)="onConfirmAction()"
+      (cancel)="onCancelAction()">
     </app-confirm-dialog>
 
   </div>

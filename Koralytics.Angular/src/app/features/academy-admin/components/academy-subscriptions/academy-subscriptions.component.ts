@@ -113,7 +113,7 @@ export class AcademySubscriptions implements OnInit {
       },
       error: (err) => {
         console.error('Failed to load academy subscriptions:', err);
-        this.errorMessage = err?.error?.message || 'Failed to load academy subscriptions.';
+        this.errorMessage = err?.error?.message || this.translate.instant('ACADEMY_ADMIN.MESSAGES.LOAD_SUBS_FAILED');
         this.isLoading = false;
       }
     });
@@ -195,7 +195,7 @@ export class AcademySubscriptions implements OnInit {
         this.loadSubscriptions();
       },
       error: (err) => {
-        this.errorMessage = err?.error?.message || 'Failed to update subscription. Please try again.';
+        this.errorMessage = err?.error?.message || this.translate.instant('ACADEMY_ADMIN.MESSAGES.UPDATE_SUB_FAILED');
         this.isEditingSub = false;
       }
     });
@@ -251,7 +251,7 @@ export class AcademySubscriptions implements OnInit {
       },
       error: (err) => {
         console.error('Failed to mark cash payment:', err);
-        this.errorMessage = err?.error?.message || 'Failed to mark payment as cash. Please try again.';
+        this.errorMessage = err?.error?.message || this.translate.instant('ACADEMY_ADMIN.MESSAGES.MARK_CASH_FAILED');
         this.isProcessingCashId = null;
       }
     });

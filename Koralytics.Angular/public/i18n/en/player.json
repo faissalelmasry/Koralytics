@@ -1,5 +1,6 @@
 {
   "PLAYER": {
+    "LOADING_PROFILE": "Loading profile...",
     "LOADING_ANALYTICS": "Loading analytics...",
     "RETRY": "Retry",
     "PROFILE_VIEWS_ANALYTICS_TITLE": "Profile Views Analytics",
@@ -155,6 +156,8 @@
     "FRIENDLY": "FRIENDLY",
     "DRILL_BULLET": "DRILL •",
     "SESSION": "SESSION",
+    "CAT_SESSIONMATCH": "Session Match",
+    "MATCH_SESSIONMATCH": "Session Match",
     "VS_UPPER": "VS",
     "TRAINING_SESSION": "Training Session",
     "LOCATION_LABEL": "Location:",
@@ -164,6 +167,11 @@
     "MATCH_UPPER": "MATCH",
     "DRILL_UPPER": "DRILL",
     "STATUS_UPPER": "STATUS",
+    "STATUS_AVAILABLE": "Available",
+    "STATUS_INJURED": "Injured",
+    "STATUS_RESTING": "Resting",
+    "STATUS_SUSPENDED": "Suspended",
+    "STATUS_TRANSFERRED": "Transferred",
     "CANCELLED_UPPER": "CANCELLED",
     "TRAINING_VS_MATCH": "Training vs Match Transfer Rate",
     "LIVE": "Live",
@@ -208,6 +216,30 @@
     "PRE_SEASON": "Pre-Season",
     "REGULAR": "Regular",
     "OFF_SEASON": "Off-Season",
-    "MATCH": "Match"
+    "MATCH": "Match",
+    "MESSAGES": {
+      "COMPARISON_LOAD_FAILED": "Failed to load comparison data",
+      "REVEAL_ARCHETYPE_FAILED": "Failed to reveal archetype. Please try again.",
+      "REFRESH_SUCCESS": "Player card refreshed successfully.",
+      "SHORTLIST_REMOVE_SUCCESS": "Removed from shortlist successfully.",
+      "SHORTLIST_REMOVE_FAILED": "Failed to remove from shortlist.",
+      "SHORTLIST_ADD_SUCCESS": "Player added to shortlist successfully.",
+      "SHORTLIST_ADD_FAILED": "Failed to add to shortlist.",
+      "UNFOLLOW_SUCCESS": "Unfollowed player successfully.",
+      "UNFOLLOW_FAILED": "Failed to unfollow player.",
+      "FOLLOW_SUCCESS": "You are now following this player.",
+      "FOLLOW_FAILED": "Failed to follow player.",
+      "HIGHLIGHTS_LOAD_FAILED": "Failed to load highlights.",
+      "HIGHLIGHT_UPLOAD_SUCCESS": "Highlight uploaded successfully!",
+      "HIGHLIGHT_UPLOAD_FAILED": "Failed to upload highlight.",
+      "HIGHLIGHT_DELETE_SUCCESS": "Highlight deleted successfully.",
+      "HIGHLIGHT_DELETE_FAILED": "Failed to delete highlight.",
+      "HIGHLIGHT_PIN_SUCCESS": "Highlight pinned to top.",
+      "HIGHLIGHT_PIN_FAILED": "Failed to pin highlight.",
+      "HIGHLIGHT_UNPIN_SUCCESS": "Highlight unpinned.",
+      "HIGHLIGHT_UNPIN_FAILED": "Failed to unpin highlight.",
+      "HIGHLIGHT_LINK_COPIED": "Highlight video link copied to clipboard!",
+      "HIGHLIGHT_LINK_COPY_FAILED": "Failed to copy video link."
+    }
   }
 }

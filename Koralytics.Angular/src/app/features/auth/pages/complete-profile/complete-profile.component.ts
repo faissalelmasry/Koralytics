@@ -12,7 +12,7 @@ import { CustomDatePicker } from '../../../../../shared/components/custom-date-p
 import { StepperComponent } from '../../../../../shared/components/stepper/stepper.component';
 import { PhoneInputComponent } from '../../../../../shared/components/phone-input/phone-input.component';
 import { CompleteProfileAsPlayer, CompleteProfileAsParent, CompleteProfileBase, CompleteProfileAsCoach, CompleteProfileAsScouter } from '../../../../../core/interfaces/auth.models';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-complete-profile',
@@ -38,6 +38,7 @@ export class CompleteProfileComponent implements OnInit {
   private tokenStorage = inject(TokenStorageService);
   private router = inject(Router);
   private toast = inject(ToastService);
+  private translate = inject(TranslateService);
 
   isLoading = false;
   steps = ['AUTH.REGISTER.ROLE_STEP', 'AUTH.COMPLETE_PROFILE.DETAILS_STEP'];
@@ -113,7 +114,7 @@ export class CompleteProfileComponent implements OnInit {
 
   nextStep() {
     if (this.currentStep === 0 && !this.selectedRole) {
-      this.toast.show('Please select a role to continue.', 'warning');
+      this.toast.show(this.translate.instant('AUTH.MESSAGES.ROLE_REQUIRED'), 'warning');
       return;
     }
     // Coach, Scouter, Parent, and Admin don't have step 2 (Profile details)
@@ -212,21 +213,21 @@ export class CompleteProfileComponent implements OnInit {
         next: (res) => {
           this.isLoading = false;
           if (res.isSuccess) {
-            this.toast.show('Profile completed successfully!', 'success');
+            this.toast.show(this.translate.instant('AUTH.MESSAGES.PROFILE_COMPLETION_SUCCESS'), 'success');
             this.router.navigate([this.authService.getRoleDashboardRoute()]);
           } else {
-            this.toast.show(res.message || 'Profile completion failed', 'error');
+            this.toast.show(res.message || this.translate.instant('AUTH.MESSAGES.PROFILE_COMPLETION_FAILED'), 'error');
           }
         },
         error: (err) => {
           this.isLoading = false;
           if (err.status === 0) {
-            this.toast.show('Cannot reach the server. Please check your connection.', 'error');
+            this.toast.show(this.translate.instant('AUTH.MESSAGES.NETWORK_ERROR'), 'error');
           } else if (err.error?.errors) {
             const errorMessages = Object.values(err.error.errors).flat().join(' | ');
             this.toast.show(errorMessages, 'error');
           } else {
-            const errorMsg = err.error?.detail || err.error?.message || err.error?.title || 'Profile completion failed';
+            const errorMsg = err.error?.detail || err.error?.message || err.error?.title || this.translate.instant('AUTH.MESSAGES.PROFILE_COMPLETION_FAILED');
             this.toast.show(errorMsg, 'error');
           }
         }

@@ -10,7 +10,6 @@
     "BIO_ROSTER": "Roster",
     "BIO_ROSTER_VAL": "{{count}} Members",
     "BTN_SHARE_PROFILE": "Share Profile",
-
     "KPI_MEMBERS": "Total Members",
     "KPI_MEMBERS_SUB": "Coaches & Players in Roster",
     "KPI_TEAMS": "Active Teams",
@@ -19,23 +18,19 @@
     "KPI_LOCATIONS_SUB": "Active Training Facilities",
     "KPI_BADGES": "Earned Honors",
     "KPI_BADGES_SUB": "Verified Awards & Badges",
-
     "TAB_OVERVIEW": "Overview",
     "TAB_BADGES": "Badges",
     "TAB_LOCATIONS": "Locations",
     "TAB_TEAMS": "Teams",
     "TAB_ROSTER": "Roster",
-
     "FEATURED_BADGES": "Featured Academy Badges",
     "VIEW_ALL_BADGES": "View All ({{count}})",
     "AWARDED_PREFIX": "Awarded",
     "NO_BADGES_YET": "No badges earned yet.",
-    
     "BADGE_VERIFIED": "Verified",
     "BADGE_TOPPERFORMER": "Top Performer",
     "BADGE_PREMIUM": "Premium",
     "BADGE_DEFAULT": "Standard Badge",
-
     "MAIN_FACILITY_SUMMARY": "Main Facility & Squad Summary",
     "ALL_FACILITIES": "All Facilities",
     "MAIN_BRANCH_TAG": "MAIN BRANCH",
@@ -44,54 +39,51 @@
     "ACTIVE_TEAMS_STAT": "Active Teams",
     "REGISTERED_MEMBERS_STAT": "Registered Members",
     "TOTAL_FACILITIES_STAT": "Total Facilities",
-
     "FEATURED_BRANCHES": "Featured Branches",
     "VIEW_ALL_BRANCHES": "View All Locations ({{count}})",
     "MAIN_LOCATION_BADGE": "Main Location",
     "CONTACT_PHONE": "Contact Phone",
     "NO_LOCATIONS_YET": "No locations added yet.",
-
     "TITLE_ALL_BADGES": "Academy Badges & Honors",
     "SUBTITLE_ALL_BADGES": "Official recognition and verified achievements.",
-    
     "TITLE_LOCATIONS": "Training Locations",
     "SUBTITLE_LOCATIONS": "All active facilities and branches.",
     "LBL_ADDRESS": "Address",
-
     "TITLE_TEAMS": "Academy Teams",
     "SUBTITLE_TEAMS": "Registered squads across all age groups.",
     "NO_TEAMS_FOUND": "No teams found.",
     "NO_TEAMS_DESC": "This academy hasn't registered any teams yet.",
-    
     "TITLE_MEMBERS": "Academy Roster",
     "SUBTITLE_MEMBERS": "All registered players and coaches.",
     "NO_MEMBERS_FOUND": "No members found.",
     "NO_MEMBERS_DESC": "No one matches the current filters.",
-    
     "COL_SQUAD_NAME": "Squad Name",
     "COL_AGE_GROUP": "Age Group",
     "COL_LOCATION": "Location",
     "COL_MEMBERS": "Members",
     "COL_ESTABLISHED": "Established",
     "COL_COACH": "Head Coach",
-
     "PH_SEARCH_MEMBER": "Search by name or position...",
     "LBL_ROLE_FILTER": "Role Filter",
     "ROLE_ALL": "All Roles",
     "ROLE_PLAYER": "Players",
     "ROLE_COACH": "Coaches",
-
     "COL_MEMBER_NAME": "Member Name",
     "COL_ROLE": "Role",
     "COL_POSITION": "Position",
     "COL_JOINED": "Joined",
-    
     "BTN_VIEW_PROFILE": "View Profile",
     "ROLE_PLAYER_LBL": "Player",
     "ROLE_COACH_LBL": "Coach",
     "NOT_ASSIGNED": "Not Assigned",
-    
     "LOADING": "Loading academy profile...",
-    "ERROR_NO_ID": "No Academy ID specified."
+    "ERROR_NO_ID": "No Academy ID specified.",
+    "MESSAGES": {
+      "NO_ID": "No Academy ID specified.",
+      "LOAD_FAILED": "Failed to load academy profile.",
+      "FETCH_FAILED": "Unable to fetch academy profile. Please try again.",
+      "LINK_COPIED": "Public profile link copied to clipboard.",
+      "SHARE_URL": "Share URL: "
+    }
   }
 }

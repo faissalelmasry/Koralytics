@@ -14,6 +14,10 @@
       "STATUS_ANALYZING": "Analyzing Data",
       "LOADING_TEXT": "Analyzing academy metrics & performance database…",
       "INPUT_PLACEHOLDER": "Ask Academy AI (e.g. what about his passing performance?)…"
+    },
+    "MESSAGES": {
+      "NO_AI_RESPONSE": "No response returned from Academy AI Assistant.",
+      "AI_ERROR": "Sorry, an error occurred while communicating with the AI Assistant. Please try again later."
     }
   }
 }

@@ -115,7 +115,7 @@ export class ManageBadgesSectionComponent implements OnInit {
       },
       error: () => {
         this.isLoadingAcademies = false;
-        this.toast.show('Failed to load academies', 'error');
+        this.toast.show(this.translate.instant('SYSTEM_ADMIN.MESSAGES.LOAD_ACADEMIES_FAILED'), 'error');
       }
     });
   }
@@ -168,16 +168,16 @@ export class ManageBadgesSectionComponent implements OnInit {
       next: (res) => {
         this.isAwarding = false;
         if (res.isSuccess || res.statusCode === 200 || res.statusCode === 201) {
-          this.toast.show('Badge awarded successfully', 'success');
+          this.toast.show(this.translate.instant('SYSTEM_ADMIN.MESSAGES.AWARD_BADGE_SUCCESS'), 'success');
           this.closeAwardModal();
           this.loadBadges();
         } else {
-          this.toast.show(res.message || 'Error awarding badge', 'error');
+          this.toast.show(res.message || this.translate.instant('SYSTEM_ADMIN.MESSAGES.AWARD_BADGE_FAILED'), 'error');
         }
       },
       error: (err) => {
         this.isAwarding = false;
-        this.toast.show(err.error?.message || 'Error awarding badge', 'error');
+        this.toast.show(err.error?.message || this.translate.instant('SYSTEM_ADMIN.MESSAGES.AWARD_BADGE_FAILED'), 'error');
       }
     });
   }
@@ -203,14 +203,14 @@ export class ManageBadgesSectionComponent implements OnInit {
     this.systemAdminService.deleteBadge(this.selectedAcademyId, badge.id).subscribe({
       next: (res) => {
         if (res.isSuccess || res.statusCode === 200) {
-          this.toast.show('Badge revoked', 'success');
+          this.toast.show(this.translate.instant('SYSTEM_ADMIN.MESSAGES.REVOKE_BADGE_SUCCESS'), 'success');
           this.loadBadges();
         } else {
-          this.toast.show(res.message || 'Error revoking badge', 'error');
+          this.toast.show(res.message || this.translate.instant('SYSTEM_ADMIN.MESSAGES.REVOKE_BADGE_FAILED'), 'error');
         }
       },
       error: () => {
-        this.toast.show('Error revoking badge', 'error');
+        this.toast.show(this.translate.instant('SYSTEM_ADMIN.MESSAGES.REVOKE_BADGE_FAILED'), 'error');
       }
     });
   }

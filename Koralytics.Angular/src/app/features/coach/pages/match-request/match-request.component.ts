@@ -66,7 +66,7 @@ export class MatchRequestComponent implements OnInit {
           this.loading.set(false);
         },
         error: (err) => {
-          this.error.set('COACH.MATCH_REQUEST.FAILED_LOAD_INCOMING');
+          this.error.set(this.translate.instant('COACH.MATCH_REQUEST.FAILED_LOAD_INCOMING'));
           this.loading.set(false);
         }
       });
@@ -82,7 +82,7 @@ export class MatchRequestComponent implements OnInit {
           this.loading.set(false);
         },
         error: (err) => {
-          this.error.set('COACH.MATCH_REQUEST.FAILED_LOAD_OUTGOING');
+          this.error.set(this.translate.instant('COACH.MATCH_REQUEST.FAILED_LOAD_OUTGOING'));
           this.loading.set(false);
         }
       });
@@ -102,7 +102,7 @@ export class MatchRequestComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
-          this.successMsg.set('COACH.MATCH_REQUEST.REQUEST_SENT');
+          this.successMsg.set(this.translate.instant('COACH.MATCH_REQUEST.REQUEST_SENT'));
           this.submitting.set(false);
           this.newRequest.targetTeamId = 0;
           this.newRequest.location = '';

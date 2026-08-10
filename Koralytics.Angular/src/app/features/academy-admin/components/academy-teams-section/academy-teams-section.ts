@@ -186,16 +186,16 @@ export class AcademyTeamsSectionComponent implements OnInit, OnChanges {
       next: (res) => {
         this.isAddingAgeGroup = false;
         if (res.isSuccess) {
-          this.toast.show('Age group created successfully', 'success');
+          this.toast.show(this.translate.instant('ACADEMY_ADMIN.MESSAGES.AGE_GROUP_CREATED'), 'success');
           this.ageGroupForm.reset({ name: '', minAge: 3, maxAge: 18 });
           this.loadData();
         } else {
-          this.toast.show(res.message || 'Error creating age group', 'error');
+          this.toast.show(res.message || this.translate.instant('ACADEMY_ADMIN.MESSAGES.CREATE_AGE_GROUP_ERROR'), 'error');
         }
       },
       error: () => {
         this.isAddingAgeGroup = false;
-        this.toast.show('Error creating age group', 'error');
+        this.toast.show(this.translate.instant('ACADEMY_ADMIN.MESSAGES.CREATE_AGE_GROUP_ERROR'), 'error');
       }
     });
   }
@@ -225,7 +225,7 @@ export class AcademyTeamsSectionComponent implements OnInit, OnChanges {
 
     const { name, ageGroupId, locationId } = this.teamForm.getRawValue();
     if (!ageGroupId || !locationId) {
-      this.toast.show('Age Group and Location are required', 'error');
+      this.toast.show(this.translate.instant('ACADEMY_ADMIN.MESSAGES.AGE_GROUP_LOCATION_REQUIRED'), 'error');
       return;
     }
 
@@ -241,16 +241,16 @@ export class AcademyTeamsSectionComponent implements OnInit, OnChanges {
       next: (res) => {
         this.isAddingTeam = false;
         if (res.isSuccess) {
-          this.toast.show('Team created successfully', 'success');
+          this.toast.show(this.translate.instant('ACADEMY_ADMIN.MESSAGES.TEAM_CREATED'), 'success');
           this.teamForm.reset({ name: '', ageGroupId: this.ageGroups[0]?.id || null, locationId: this.locations[0]?.id || null });
           this.loadData();
         } else {
-          this.toast.show(res.message || 'Error creating team', 'error');
+          this.toast.show(res.message || this.translate.instant('ACADEMY_ADMIN.MESSAGES.CREATE_TEAM_ERROR'), 'error');
         }
       },
       error: () => {
         this.isAddingTeam = false;
-        this.toast.show('Error creating team', 'error');
+        this.toast.show(this.translate.instant('ACADEMY_ADMIN.MESSAGES.CREATE_TEAM_ERROR'), 'error');
       }
     });
   }
@@ -285,13 +285,13 @@ export class AcademyTeamsSectionComponent implements OnInit, OnChanges {
     this.academyService.assignCoachToTeam(teamId, coachId).subscribe({
       next: (res) => {
         if (res.isSuccess || res === null) {
-          this.toast.show('Coach assigned successfully', 'success');
+          this.toast.show(this.translate.instant('ACADEMY_ADMIN.MESSAGES.COACH_ASSIGNED'), 'success');
           this.loadData(false);
         } else {
-          this.toast.show(res.message || 'Error assigning coach', 'error');
+          this.toast.show(res.message || this.translate.instant('ACADEMY_ADMIN.MESSAGES.ASSIGN_COACH_ERROR'), 'error');
         }
       },
-      error: () => this.toast.show('Error assigning coach', 'error')
+      error: () => this.toast.show(this.translate.instant('ACADEMY_ADMIN.MESSAGES.ASSIGN_COACH_ERROR'), 'error')
     });
   }
 
@@ -300,33 +300,33 @@ export class AcademyTeamsSectionComponent implements OnInit, OnChanges {
     this.academyService.assignPlayerToTeam(teamId, playerId).subscribe({
       next: (res) => {
         if (res.isSuccess || res === null) {
-          this.toast.show('Player assigned successfully', 'success');
+          this.toast.show(this.translate.instant('ACADEMY_ADMIN.MESSAGES.PLAYER_ASSIGNED'), 'success');
           this.loadData(false);
         } else {
-          this.toast.show(res.message || 'Error assigning player', 'error');
+          this.toast.show(res.message || this.translate.instant('ACADEMY_ADMIN.MESSAGES.ASSIGN_PLAYER_ERROR'), 'error');
         }
       },
-      error: () => this.toast.show('Error assigning player', 'error')
+      error: () => this.toast.show(this.translate.instant('ACADEMY_ADMIN.MESSAGES.ASSIGN_PLAYER_ERROR'), 'error')
     });
   }
 
   onRemoveCoach(teamId: number, coachId: number) {
     this.academyService.removeCoachFromTeam(teamId, coachId).subscribe({
       next: () => {
-        this.toast.show('Coach removed successfully', 'success');
+        this.toast.show(this.translate.instant('ACADEMY_ADMIN.MESSAGES.COACH_REMOVED'), 'success');
         this.loadData(false);
       },
-      error: () => this.toast.show('Error removing coach', 'error')
+      error: () => this.toast.show(this.translate.instant('ACADEMY_ADMIN.MESSAGES.REMOVE_COACH_ERROR'), 'error')
     });
   }
 
   onRemovePlayer(teamId: number, playerId: number) {
     this.academyService.removePlayerFromTeam(teamId, playerId).subscribe({
       next: () => {
-        this.toast.show('Player removed successfully', 'success');
+        this.toast.show(this.translate.instant('ACADEMY_ADMIN.MESSAGES.PLAYER_REMOVED'), 'success');
         this.loadData(false);
       },
-      error: () => this.toast.show('Error removing player', 'error')
+      error: () => this.toast.show(this.translate.instant('ACADEMY_ADMIN.MESSAGES.REMOVE_PLAYER_ERROR'), 'error')
     });
   }
 }

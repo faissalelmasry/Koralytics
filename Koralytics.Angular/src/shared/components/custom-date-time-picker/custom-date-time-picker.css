@@ -64,7 +64,7 @@
 
 .floating-label {
   position: absolute;
-  left: 16px;
+  inset-inline-start: 16px;
   top: 50%;
   transform: translateY(-50%);
   color: var(--text-dim);
@@ -76,6 +76,10 @@
   transform-origin: left top;
   transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.2s ease;
   z-index: 2;
+}
+
+:host-context([dir="rtl"]) .floating-label {
+  transform-origin: right top;
 }
 
 .floating-label.raised {
@@ -117,9 +121,9 @@
 }
 
 .calendar-panel {
-  position: fixed;
+  position: absolute;
   top: 62px;
-  left: 0;
+  inset-inline-start: 0;
   width: 100%;
   min-width: 310px;
   background: var(--bg-calendar);

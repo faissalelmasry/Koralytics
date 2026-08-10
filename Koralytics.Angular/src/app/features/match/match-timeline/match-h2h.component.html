@@ -7,7 +7,7 @@
     </div>
   } @else if (error) {
     <app-empty-state
-      [title]="'MATCH.H2H.ERROR_TITLE' | translate"
+      [title]="'MATCH.H2H.ERROR_LOAD' | translate"
       [description]="error"
     ></app-empty-state>
   } @else if (!h2hData || h2hData.totalMatches === 0) {
@@ -21,7 +21,7 @@
     <div class="h2h-header-section">
       <div class="header-tag">
         <span class="tag-dot"></span>
-        <span>{{ 'MATCH.H2H.MATCH_ANALYTICS' | translate }}</span>
+        <span>{{ 'MATCH.H2H.TAG' | translate }}</span>
       </div>
       <h2 class="h2h-title">{{ 'MATCH.H2H.TITLE' | translate }}</h2>
       <p class="h2h-subtitle">{{ 'MATCH.H2H.SUBTITLE' | translate: { teamA: (h2hData.teamAName || teamAName), teamB: (h2hData.teamBName || teamBName) } }}</p>
@@ -42,7 +42,7 @@
 
         <!-- VS Tag -->
         <div class="vs-badge-container">
-          <span class="vs-badge">VS</span>
+          <span class="vs-badge">{{ 'MATCH.CARD.VS' | translate }}</span>
         </div>
 
         <!-- Team B -->
@@ -64,7 +64,7 @@
         </div>
         <div class="stat-card team-a-card">
           <span class="val team-a-val">{{ h2hData.teamAWins }}</span>
-          <span class="lbl">{{ 'MATCH.H2H.TEAM_WINS' | translate: { team: (h2hData.teamAName || teamAName) } }}</span>
+          <span class="lbl">{{ 'MATCH.H2H.WINS' | translate: { team: (h2hData.teamAName || teamAName) } }}</span>
         </div>
         <div class="stat-card draws-card">
           <span class="val draws-val">{{ h2hData.draws }}</span>
@@ -72,7 +72,7 @@
         </div>
         <div class="stat-card team-b-card">
           <span class="val team-b-val">{{ h2hData.teamBWins }}</span>
-          <span class="lbl">{{ 'MATCH.H2H.TEAM_WINS' | translate: { team: (h2hData.teamBName || teamBName) } }}</span>
+          <span class="lbl">{{ 'MATCH.H2H.WINS' | translate: { team: (h2hData.teamBName || teamBName) } }}</span>
         </div>
       </div>
     </div>

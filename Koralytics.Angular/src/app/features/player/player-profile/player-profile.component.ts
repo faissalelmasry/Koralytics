@@ -505,7 +505,7 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
       },
       error: (err) => {
         this.isRevealingArchetype = false;
-        this.revealError = err?.error?.message || 'Failed to reveal archetype. Please try again.';
+        this.revealError = err?.error?.message || this.translate.instant('PLAYER.MESSAGES.REVEAL_ARCHETYPE_FAILED');
         this.cdr.markForCheck();
       }
     });
@@ -538,7 +538,7 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
         }
         this.chartInitialized = false;
 
-        this.toastService.show('Player card refreshed successfully.', 'success');
+        this.toastService.show(this.translate.instant('PLAYER.MESSAGES.REFRESH_SUCCESS'), 'success');
         this.cdr.markForCheck();
 
         setTimeout(() => {
@@ -775,13 +775,13 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
         next: () => {
           this.isShortlisted = false;
           this.isShortlistLoading = false;
-          this.toastService.show('Removed from shortlist successfully.', 'info');
+          this.toastService.show(this.translate.instant('PLAYER.MESSAGES.SHORTLIST_REMOVE_SUCCESS'), 'info');
           this.cdr.markForCheck();
         },
         error: (err) => {
           this.isShortlistLoading = false;
           console.error('Failed to remove from shortlist:', err);
-          this.toastService.show('Failed to remove from shortlist.', 'error');
+          this.toastService.show(this.translate.instant('PLAYER.MESSAGES.SHORTLIST_REMOVE_FAILED'), 'error');
           this.cdr.markForCheck();
         }
       });
@@ -790,13 +790,13 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
         next: () => {
           this.isShortlisted = true;
           this.isShortlistLoading = false;
-          this.toastService.show('Player added to shortlist successfully.', 'success');
+          this.toastService.show(this.translate.instant('PLAYER.MESSAGES.SHORTLIST_ADD_SUCCESS'), 'success');
           this.cdr.markForCheck();
         },
         error: (err) => {
           this.isShortlistLoading = false;
           console.error('Failed to add to shortlist:', err);
-          this.toastService.show('Failed to add to shortlist.', 'error');
+          this.toastService.show(this.translate.instant('PLAYER.MESSAGES.SHORTLIST_ADD_FAILED'), 'error');
           this.cdr.markForCheck();
         }
       });
@@ -814,13 +814,13 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
         next: () => {
           this.isFollowing = false;
           this.isFollowLoading = false;
-          this.toastService.show('Unfollowed player successfully.', 'info');
+          this.toastService.show(this.translate.instant('PLAYER.MESSAGES.UNFOLLOW_SUCCESS'), 'info');
           this.cdr.markForCheck();
         },
         error: (err) => {
           this.isFollowLoading = false;
           console.error('Failed to unfollow player:', err);
-          this.toastService.show('Failed to unfollow player.', 'error');
+          this.toastService.show(this.translate.instant('PLAYER.MESSAGES.UNFOLLOW_FAILED'), 'error');
           this.cdr.markForCheck();
         }
       });
@@ -829,13 +829,13 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
         next: () => {
           this.isFollowing = true;
           this.isFollowLoading = false;
-          this.toastService.show('You are now following this player.', 'success');
+          this.toastService.show(this.translate.instant('PLAYER.MESSAGES.FOLLOW_SUCCESS'), 'success');
           this.cdr.markForCheck();
         },
         error: (err) => {
           this.isFollowLoading = false;
           console.error('Failed to follow player:', err);
-          this.toastService.show('Failed to follow player.', 'error');
+          this.toastService.show(this.translate.instant('PLAYER.MESSAGES.FOLLOW_FAILED'), 'error');
           this.cdr.markForCheck();
         }
       });

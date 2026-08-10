@@ -7,7 +7,7 @@ import { ToastService } from '../../../../../core/services/Toast/toast';
 import { CustomInputComponent } from '../../../../../shared/components/custom-input-component/custom-input-component';
 import { CustomButtonComponent } from '../../../../../shared/components/custom-button/custom-button';
 import { PasswordStrengthComponent } from '../../../../../shared/components/password-strength/password-strength.component';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-reset-password',
@@ -22,6 +22,7 @@ export class ResetPasswordComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private toast = inject(ToastService);
+  private translate = inject(TranslateService);
 
   isLoading = false;
   email = '';
@@ -38,7 +39,7 @@ export class ResetPasswordComponent implements OnInit {
       this.token = params['token'] || '';
 
       if (!this.email || !this.token) {
-        this.toast.show('Invalid password reset link', 'error');
+        this.toast.show(this.translate.instant('AUTH.MESSAGES.RESET_LINK_INVALID'), 'error');
         this.router.navigate(['/auth/login']);
       }
     });
@@ -67,21 +68,21 @@ export class ResetPasswordComponent implements OnInit {
       next: (res) => {
         this.isLoading = false;
         if (res.isSuccess) {
-          this.toast.show('Password reset successful', 'success');
+          this.toast.show(this.translate.instant('AUTH.MESSAGES.RESET_SUCCESS'), 'success');
           this.router.navigate(['/auth/login']);
         } else {
-          this.toast.show(res.message || 'Failed to reset password', 'error');
+          this.toast.show(res.message || this.translate.instant('AUTH.MESSAGES.RESET_FAILED'), 'error');
         }
       },
       error: (err) => {
         this.isLoading = false;
         if (err.status === 0) {
-          this.toast.show('Cannot reach the server. Please check your connection.', 'error');
+          this.toast.show(this.translate.instant('AUTH.MESSAGES.NETWORK_ERROR'), 'error');
         } else if (err.error?.errors) {
           const errorMessages = Object.values(err.error.errors).flat().join(' | ');
           this.toast.show(errorMessages, 'error');
         } else {
-          const errorMsg = err.error?.detail || err.error?.message || err.error?.title || 'Failed to reset password.';
+          const errorMsg = err.error?.detail || err.error?.message || err.error?.title || this.translate.instant('AUTH.MESSAGES.RESET_FAILED');
           this.toast.show(errorMsg, 'error');
         }
       }

@@ -6,7 +6,7 @@ import { ToastService } from '../../../../../core/services/Toast/toast';
 import { CustomInputComponent } from '../../../../../shared/components/custom-input-component/custom-input-component';
 import { CustomButtonComponent } from '../../../../../shared/components/custom-button/custom-button';
 import { LoadingSpinnerComponent } from '../../../../../shared/components/loading-spinner/loading-spinner';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LocalizedDatePipe } from '../../../../../shared/pipes/localized-date.pipe';
 import { CustomDatePicker } from '../../../../../shared/components/custom-date-picker/custom-date-picker';
 import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
@@ -32,6 +32,7 @@ export class PendingRequestsSectionComponent implements OnInit {
   private systemAdminService = inject(SystemAdminService);
   private toast = inject(ToastService);
   private fb = inject(FormBuilder);
+  private translate = inject(TranslateService);
 
   @Output() requestsChanged = new EventEmitter<void>();
 
@@ -86,7 +87,7 @@ export class PendingRequestsSectionComponent implements OnInit {
       },
       error: () => {
         this.isLoading = false;
-        this.toast.show('Failed to load pending requests', 'error');
+        this.toast.show(this.translate.instant('SYSTEM_ADMIN.MESSAGES.LOAD_PENDING_FAILED'), 'error');
       }
     });
   }
@@ -136,17 +137,17 @@ export class PendingRequestsSectionComponent implements OnInit {
       next: (res) => {
         this.isApproving = false;
         if (res.isSuccess) {
-          this.toast.show('Academy creation request approved!', 'success');
+          this.toast.show(this.translate.instant('SYSTEM_ADMIN.MESSAGES.APPROVE_SUCCESS'), 'success');
           this.closeApproveModal();
           this.loadPendingRequests();
           this.requestsChanged.emit();
         } else {
-          this.toast.show(res.message || 'Error approving request', 'error');
+          this.toast.show(res.message || this.translate.instant('SYSTEM_ADMIN.MESSAGES.APPROVE_FAILED'), 'error');
         }
       },
-      error: (err) => {
+      error: (err: any) => {
         this.isApproving = false;
-        this.toast.show(err.error?.message || 'Error approving request', 'error');
+        this.toast.show(err.error?.message || this.translate.instant('SYSTEM_ADMIN.MESSAGES.APPROVE_FAILED'), 'error');
       }
     });
   }
@@ -162,17 +163,17 @@ export class PendingRequestsSectionComponent implements OnInit {
       next: (res) => {
         this.isRejecting = false;
         if (res.isSuccess || res.statusCode === 200) {
-          this.toast.show('Academy creation request rejected', 'success');
+          this.toast.show(this.translate.instant('SYSTEM_ADMIN.MESSAGES.REJECT_SUCCESS'), 'success');
           this.closeRejectModal();
           this.loadPendingRequests();
           this.requestsChanged.emit();
         } else {
-          this.toast.show(res.message || 'Error rejecting request', 'error');
+          this.toast.show(res.message || this.translate.instant('SYSTEM_ADMIN.MESSAGES.REJECT_FAILED'), 'error');
         }
       },
-      error: (err) => {
+      error: (err: any) => {
         this.isRejecting = false;
-        this.toast.show(err.error?.message || 'Error rejecting request', 'error');
+        this.toast.show(err.error?.message || this.translate.instant('SYSTEM_ADMIN.MESSAGES.REJECT_FAILED'), 'error');
       }
     });
   }

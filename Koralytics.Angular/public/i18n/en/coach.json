@@ -96,7 +96,8 @@
       "VIEW_PROFILE": "View Profile →",
       "ATTRIBUTE_BREAKDOWN": "Attribute Breakdown",
       "FOOT_WEAK": "FOOT / WEAK",
-      "STYLE": "STYLE"
+      "STYLE": "STYLE",
+      "COMPARE_FAILED": "Failed to compare players."
     },
     "NOTES": {
       "TITLE": "Player",
@@ -227,7 +228,13 @@
       "PLAYERS": "Players",
       "AVG_RATING": "AVG Rating",
       "IDEAL_BALANCE": "Ideal Balance",
-      "VS": "VS"
+      "VS": "VS",
+      "LOAD_SESSIONS_FAILED": "Failed to load training sessions.",
+      "SPLIT_FAILED": "Failed to split teams."
+    },
+    "MESSAGES": {
+      "NO_ID_FOUND": "Unable to determine coach ID.",
+      "LOAD_PROFILE_FAILED": "Failed to load coach profile data."
     }
   }
 }

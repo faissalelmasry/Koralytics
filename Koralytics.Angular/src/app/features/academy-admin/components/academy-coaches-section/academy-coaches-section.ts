@@ -129,12 +129,12 @@ export class AcademyCoachesSectionComponent implements OnInit, OnChanges {
           this.searchResults = [];
           this.searchForm.reset();
         } else {
-          this.toast.show(res.message || 'Error sending request', 'error');
+          this.toast.show(res.message || this.translate.instant('ACADEMY_ADMIN.MESSAGES.SEND_REQUEST_ERROR'), 'error');
         }
       },
       error: (err) => {
         this.isSending = false;
-        this.toast.show(err.error?.detail || err.error?.message || 'Error sending request', 'error');
+        this.toast.show(err.error?.detail || err.error?.message || this.translate.instant('ACADEMY_ADMIN.MESSAGES.SEND_REQUEST_ERROR'), 'error');
       }
     });
   }
@@ -163,7 +163,7 @@ export class AcademyCoachesSectionComponent implements OnInit, OnChanges {
 
   onRemoveCoach(coachId: number) {
     if (coachId === this.authService.getCurrentUserSync()?.userId) {
-      this.toast.show('You cannot remove yourself from the academy.', 'error');
+      this.toast.show(this.translate.instant('ACADEMY_ADMIN.MESSAGES.CANNOT_REMOVE_SELF'), 'error');
       return;
     }
     this.confirmActionType = 'removeCoach';
@@ -192,7 +192,7 @@ export class AcademyCoachesSectionComponent implements OnInit, OnChanges {
             this.toast.show(this.translate.instant('ACADEMY_ADMIN.COACHES_SECTION.CANCEL_SUCCESS') || 'Request cancelled', 'success');
             this.loadData();
           } else {
-            this.toast.show(res.message || 'Error cancelling request', 'error');
+            this.toast.show(res.message || this.translate.instant('ACADEMY_ADMIN.MESSAGES.CANCEL_REQUEST_ERROR'), 'error');
           }
         }
       });
@@ -203,7 +203,7 @@ export class AcademyCoachesSectionComponent implements OnInit, OnChanges {
             this.toast.show(this.translate.instant('ACADEMY_ADMIN.COACHES_SECTION.REMOVE_SUCCESS') || 'Coach removed successfully', 'success');
             this.loadData();
           } else {
-            this.toast.show(res.message || 'Error removing coach', 'error');
+            this.toast.show(res.message || this.translate.instant('ACADEMY_ADMIN.MESSAGES.REMOVE_COACH_ERROR'), 'error');
           }
         }
       });
@@ -237,7 +237,7 @@ export class AcademyCoachesSectionComponent implements OnInit, OnChanges {
       },
       error: (err) => {
         this.isLoadingAnalytics = false;
-        this.toast.show(err.error?.message || 'Failed to load coaches analytics.', 'error');
+        this.toast.show(err.error?.message || this.translate.instant('ACADEMY_ADMIN.MESSAGES.LOAD_COACH_ANALYTICS_FAILED'), 'error');
       }
     });
   }

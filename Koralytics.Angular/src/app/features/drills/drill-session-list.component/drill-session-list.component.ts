@@ -474,7 +474,9 @@ export class DrillSessionListComponent implements OnInit, OnDestroy {
   getSessionTypeLabel(type: SessionType): string {
     const enumName = SessionType[type];
     if (!enumName) return 'Unknown';
-    return enumName.replace(/([A-Z])/g, ' $1').trim();
+    const key = 'DRILLS.SESSION_DETAILS.SESSION_TYPE_' + enumName.toUpperCase();
+    const translated = this.translate.instant(key);
+    return translated !== key ? translated : enumName.replace(/([A-Z])/g, ' $1').trim();
   }
   goToWeakCategories(): void {
     this.router.navigate(['/drills/analytics/weak-categories']);

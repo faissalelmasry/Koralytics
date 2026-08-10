@@ -14,7 +14,7 @@ import {
 } from '../../../../../core/interfaces/coach.interfaces';
 import { MiniPlayerCardComponent } from '../../../match/mini-player-card/mini-player-card.component';
 import { MiniPlayerCardModel } from '../../../../../core/models/Player/mini-player-card-model';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LoadingSpinnerComponent } from '../../../../../shared/components/loading-spinner/loading-spinner';
 
 @Component({
@@ -29,6 +29,7 @@ export class CoachSquadComponent implements OnInit {
   private authService = inject(AuthService);
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
+  private translate = inject(TranslateService);
 
   squad = signal<SquadOverviewDto | null>(null);
   comparison = signal<SquadComparisonDto | null>(null);
@@ -62,7 +63,7 @@ export class CoachSquadComponent implements OnInit {
           }
         },
         error: () => {
-          this.error.set('Failed to load your assigned teams.');
+          this.error.set(this.translate.instant('COACH.NOTES.FAILED_LOAD_TEAMS'));
         }
       });
   }
@@ -84,7 +85,7 @@ export class CoachSquadComponent implements OnInit {
           this.loading.set(false);
         },
         error: (err) => {
-          this.error.set(err?.error?.message || 'Failed to load squad');
+          this.error.set(err?.error?.message || this.translate.instant('COACH.NOTES.FAILED_LOAD_SQUAD'));
           this.loading.set(false);
         },
       });
@@ -136,7 +137,7 @@ export class CoachSquadComponent implements OnInit {
           this.showCompareModal = true;
         },
         error: (err) => {
-          this.error.set(err?.error?.message || 'Failed to compare players');
+          this.error.set(err?.error?.message || this.translate.instant('COACH.SQUAD.COMPARE_FAILED'));
         },
       });
   }

@@ -71,7 +71,7 @@ export class DrillSessionDetailsComponent implements OnInit {
   private translate = inject(TranslateService);
   translateCategory(name: string | null | undefined): string {
     if (!name) return '';
-    const key = 'DRILLS.CAT_' + name.toUpperCase();
+    const key = 'DRILLS.DYNAMIC.CAT_' + name.toUpperCase();
     const translated = this.translate.instant(key);
     return translated !== key ? translated : name;
   }
@@ -79,7 +79,7 @@ export class DrillSessionDetailsComponent implements OnInit {
   get templateOptions(): SelectOption[] {
     return this.availableTemplates.map(t => ({
       value: t.id,
-      label: `${t.name} (${t.categoryName || 'General'})`
+      label: `${t.name} (${this.translateCategory(t.categoryName) || this.translate.instant('DRILLS.TEMPLATES.FILTER_CATEGORY') || 'General'})`
     }));
   }  // 🟢 OPTIMIZATION: Memory management
   private subscriptions = new Subscription();

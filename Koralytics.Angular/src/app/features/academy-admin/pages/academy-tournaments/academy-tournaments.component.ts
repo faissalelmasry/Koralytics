@@ -11,6 +11,7 @@ import { EmptyStateComponent } from '../../../../../shared/components/empty-stat
 import { Pagination } from '../../../../../shared/components/pagination/pagination';
 import { CustomButtonComponent } from '../../../../../shared/components/custom-button/custom-button';
 import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-academy-tournaments',
@@ -24,7 +25,8 @@ import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-r
     EmptyStateComponent,
     Pagination,
     CustomButtonComponent,
-    ScrollRevealDirective
+    ScrollRevealDirective,
+    TranslatePipe
   ],
   templateUrl: './academy-tournaments.component.html',
   styleUrls: ['./academy-tournaments.component.css'],
@@ -36,6 +38,7 @@ export class AcademyTournamentsComponent implements OnInit {
   private toast = inject(ToastService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
+  private translate = inject(TranslateService);
 
   academyId: number | null = null;
   invitations: any[] = [];
@@ -145,13 +148,13 @@ export class AcademyTournamentsComponent implements OnInit {
       next: () => {
         invite.status = 'Accepted';
         this.acceptingIds.delete(invite.tournamentTeamId);
-        this.toast.show('Tournament invitation accepted!', 'success');
+        this.toast.show(this.translate.instant('ACADEMY_ADMIN.MESSAGES.TOURNAMENT_ACCEPTED'), 'success');
         this.applyFilters();
         this.cdr.markForCheck();
       },
       error: () => {
         this.acceptingIds.delete(invite.tournamentTeamId);
-        this.toast.show('Unable to accept invitation. Please try again.', 'error');
+        this.toast.show(this.translate.instant('ACADEMY_ADMIN.MESSAGES.ACCEPT_TOURNAMENT_ERROR'), 'error');
         this.cdr.markForCheck();
       }
     });

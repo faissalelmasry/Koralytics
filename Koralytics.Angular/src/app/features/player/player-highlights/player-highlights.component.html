@@ -8,7 +8,7 @@
   @if (loading() && highlights().length === 0) {
   <div class="loading-state">
     <app-loading-spinner size="lg"></app-loading-spinner>
-    <p>Loading player highlights...</p>
+    <p>{{ 'PLAYER.LOADING_HIGHLIGHTS' | translate }}</p>
   </div>
   }
   @else if (error() && highlights().length === 0) {
@@ -63,8 +63,8 @@
 
       <div class="bio-quick-list">
         <div class="bio-item">
-          <span class="bio-lbl">Status</span>
-          <span class="bio-val" [class]="statusClass">{{ statusLabel }}</span>
+          <span class="bio-lbl">{{ 'PLAYER.STATUS' | translate }}</span>
+          <span class="bio-val" [class]="statusClass">{{ 'PLAYER.STATUS_' + (statusLabel | uppercase) | translate }}</span>
         </div>
         @if (profile?.age) {
         <div class="bio-item">

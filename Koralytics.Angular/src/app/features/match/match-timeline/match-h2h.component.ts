@@ -128,7 +128,7 @@ export class MatchH2hComponent implements OnInit, OnChanges {
   getPenaltyText(m: any): string {
     const homePen = m.homePenaltyScore ?? m.HomePenaltyScore;
     const awayPen = m.awayPenaltyScore ?? m.AwayPenaltyScore;
-    return `${homePen} - ${awayPen} Pen`;
+    return `${homePen} - ${awayPen} ${this.translate.instant('MATCH.LINEUPS.PEN_TEXT', { Default: 'Pen' })}`;
   }
 
   getTeamWinnerClass(m: any, isHome: boolean): string {

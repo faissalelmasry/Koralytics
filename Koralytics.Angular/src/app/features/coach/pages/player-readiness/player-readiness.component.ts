@@ -10,7 +10,7 @@ import { MatchAnalyticsService } from '../../../../../core/services/match/match-
 import { AuthService } from '../../../../../core/services/auth/auth.service';
 import { SquadOverviewDto, CoachTeamDto } from '../../../../../core/interfaces/coach.interfaces';
 import { PlayerReadinessDto } from '../../../../../core/interfaces/match-request.interfaces';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 import { LoadingSpinnerComponent } from '../../../../../shared/components/loading-spinner/loading-spinner';
 
@@ -26,6 +26,7 @@ export class PlayerReadinessComponent implements OnInit {
   private analyticsService = inject(MatchAnalyticsService);
   private authService = inject(AuthService);
   private destroyRef = inject(DestroyRef);
+  private translate = inject(TranslateService);
 
   // Team selection — fetched from API
   teams = signal<CoachTeamDto[]>([]);
@@ -84,7 +85,7 @@ export class PlayerReadinessComponent implements OnInit {
           }
         },
         error: () => {
-          this.error.set('Failed to load your assigned teams.');
+          this.error.set(this.translate.instant('COACH.NOTES.FAILED_LOAD_TEAMS'));
         }
       });
   }
@@ -107,7 +108,7 @@ export class PlayerReadinessComponent implements OnInit {
           this.fetchReadinessForSquad(squadData);
         },
         error: (err) => {
-          this.error.set(err?.error?.message || 'Failed to load squad.');
+          this.error.set(err?.error?.message || this.translate.instant('COACH.NOTES.FAILED_LOAD_SQUAD'));
           this.loading.set(false);
         }
       });

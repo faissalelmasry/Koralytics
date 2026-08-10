@@ -6,7 +6,7 @@ import { AuthService } from '../../../../../core/services/auth/auth.service';
 import { ToastService } from '../../../../../core/services/Toast/toast';
 import { CustomInputComponent } from '../../../../../shared/components/custom-input-component/custom-input-component';
 import { CustomButtonComponent } from '../../../../../shared/components/custom-button/custom-button';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-forgot-password',
@@ -19,6 +19,7 @@ export class ForgotPasswordComponent {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private toast = inject(ToastService);
+  private translate = inject(TranslateService);
 
   isLoading = false;
   isSuccess = false;
@@ -42,18 +43,18 @@ export class ForgotPasswordComponent {
         if (res.isSuccess) {
           this.isSuccess = true;
         } else {
-          this.toast.show(res.message || 'Failed to send reset link', 'error');
+          this.toast.show(res.message || this.translate.instant('AUTH.MESSAGES.SEND_RESET_FAILED'), 'error');
         }
       },
       error: (err) => {
         this.isLoading = false;
         if (err.status === 0) {
-          this.toast.show('Cannot reach the server. Please check your connection.', 'error');
+          this.toast.show(this.translate.instant('AUTH.MESSAGES.NETWORK_ERROR'), 'error');
         } else if (err.error?.errors) {
           const errorMessages = Object.values(err.error.errors).flat().join(' | ');
           this.toast.show(errorMessages, 'error');
         } else {
-          const errorMsg = err.error?.detail || err.error?.message || err.error?.title || 'Failed to send reset link.';
+          const errorMsg = err.error?.detail || err.error?.message || err.error?.title || this.translate.instant('AUTH.MESSAGES.SEND_RESET_FAILED');
           this.toast.show(errorMsg, 'error');
         }
       }

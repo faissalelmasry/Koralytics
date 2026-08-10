@@ -8,7 +8,7 @@ import { AcademyDetailPanelComponent } from '../academy-detail-panel/academy-det
 import { LoadingSpinnerComponent } from '../../../../../shared/components/loading-spinner/loading-spinner';
 import { CustomButtonComponent } from '../../../../../shared/components/custom-button/custom-button';
 import { Pagination } from '../../../../../shared/components/pagination/pagination';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LocalizedDatePipe } from '../../../../../shared/pipes/localized-date.pipe';
 import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
 
@@ -23,6 +23,7 @@ export class ActiveAcademiesSectionComponent implements OnInit {
   private systemAdminService = inject(SystemAdminService);
   private toast = inject(ToastService);
   private router = inject(Router);
+  private translate = inject(TranslateService);
 
   viewAcademyProfile(academyId: number) {
     this.router.navigate(['/academy/profile', academyId]);
@@ -69,7 +70,7 @@ export class ActiveAcademiesSectionComponent implements OnInit {
       },
       error: () => {
         this.isLoading = false;
-        this.toast.show('Failed to load active academies', 'error');
+        this.toast.show(this.translate.instant('SYSTEM_ADMIN.MESSAGES.LOAD_ACTIVE_ACADEMIES_FAILED'), 'error');
       }
     });
   }
@@ -144,16 +145,16 @@ export class ActiveAcademiesSectionComponent implements OnInit {
       next: (res) => {
         this.isUpdatingStatus = false;
         if (res.isSuccess || res.statusCode === 200 || res.statusCode === 204) {
-          this.toast.show(`Academy #${acadId} status updated to ${this.selectedStatus}!`, 'success');
+          this.toast.show(this.translate.instant('SYSTEM_ADMIN.MESSAGES.STATUS_UPDATED', { id: acadId, status: this.selectedStatus }), 'success');
           this.selectedAcademyForStatus.status = this.selectedStatus;
           this.closeStatusModal();
         } else {
-          this.toast.show(res.message || 'Failed to update status', 'error');
+          this.toast.show(res.message || this.translate.instant('SYSTEM_ADMIN.MESSAGES.UPDATE_STATUS_FAILED'), 'error');
         }
       },
       error: (err) => {
         this.isUpdatingStatus = false;
-        this.toast.show(err.error?.message || 'Error updating status', 'error');
+        this.toast.show(err.error?.message || this.translate.instant('SYSTEM_ADMIN.MESSAGES.UPDATE_STATUS_FAILED'), 'error');
       }
     });
   }
@@ -218,18 +219,18 @@ export class ActiveAcademiesSectionComponent implements OnInit {
         this.isUpdatingTier = false;
         if (res.isSuccess || res.statusCode === 200 || res.statusCode === 204) {
           const msg = isCancel 
-            ? `Academy #${acadId} subscription has been cancelled!`
-            : `Academy #${acadId} tier updated to ${this.selectedTier}!`;
+            ? this.translate.instant('SYSTEM_ADMIN.MESSAGES.SUBSCRIPTION_CANCELLED', { id: acadId })
+            : this.translate.instant('SYSTEM_ADMIN.MESSAGES.TIER_UPDATED', { id: acadId, tier: this.selectedTier });
           this.toast.show(msg, 'success');
           this.closeTierModal();
           this.loadAcademies();
         } else {
-          this.toast.show(res.message || 'Failed to update tier', 'error');
+          this.toast.show(res.message || this.translate.instant('SYSTEM_ADMIN.MESSAGES.UPDATE_TIER_FAILED'), 'error');
         }
       },
       error: (err) => {
         this.isUpdatingTier = false;
-        this.toast.show(err.error?.message || 'Error updating tier', 'error');
+        this.toast.show(err.error?.message || this.translate.instant('SYSTEM_ADMIN.MESSAGES.UPDATE_TIER_FAILED'), 'error');
       }
     });
   }

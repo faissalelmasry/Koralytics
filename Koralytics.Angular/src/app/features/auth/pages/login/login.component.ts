@@ -8,7 +8,7 @@ import { ToastService } from '../../../../../core/services/Toast/toast';
 import { CustomInputComponent } from '../../../../../shared/components/custom-input-component/custom-input-component';
 import { CustomButtonComponent } from '../../../../../shared/components/custom-button/custom-button';
 import { CustomCheckboxComponent } from '../../../../../shared/components/custom-checkbox/custom-checkbox.component';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-login',
@@ -32,6 +32,7 @@ export class LoginComponent implements AfterViewInit {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private toast = inject(ToastService);
+  private translate = inject(TranslateService);
 
   isLoading = false;
   isGoogleLoading = false;
@@ -60,7 +61,7 @@ export class LoginComponent implements AfterViewInit {
         if (res.isSuccess) {
           this.checkEmailConfirmationAndRedirect(res.data?.userId || 0);
         } else {
-          this.toast.show(res.message || 'Login failed', 'error');
+          this.toast.show(res.message || this.translate.instant('AUTH.MESSAGES.LOGIN_FAILED'), 'error');
         }
       },
       error: (err) => {
@@ -70,12 +71,12 @@ export class LoginComponent implements AfterViewInit {
             const errorMessages = Object.values(err.error.errors).flat().join(' | ');
             this.toast.show(errorMessages, 'error');
           } else {
-            this.toast.show(err.error?.message || err.error?.detail || err.error?.title || 'Invalid email or password', 'error');
+            this.toast.show(err.error?.message || err.error?.detail || err.error?.title || this.translate.instant('AUTH.MESSAGES.LOGIN_INVALID'), 'error');
           }
         } else if (err.status === 0) {
-          this.toast.show('Cannot reach the server. Please check your connection.', 'error');
+          this.toast.show(this.translate.instant('AUTH.MESSAGES.NETWORK_ERROR'), 'error');
         } else {
-          this.toast.show(err.error?.message || err.error?.detail || err.error?.title || 'A server error occurred. Please try again later.', 'error');
+          this.toast.show(err.error?.message || err.error?.detail || err.error?.title || this.translate.instant('AUTH.MESSAGES.SERVER_ERROR'), 'error');
         }
       }
     });
@@ -108,18 +109,18 @@ export class LoginComponent implements AfterViewInit {
             this.router.navigate([this.authService.getRoleDashboardRoute()]);
           }
         } else {
-          this.toast.show(res.message || 'Google login failed', 'error');
+          this.toast.show(res.message || this.translate.instant('AUTH.MESSAGES.GOOGLE_LOGIN_FAILED'), 'error');
         }
       },
       error: (err) => {
         this.isGoogleLoading = false;
         if (err.status === 0) {
-          this.toast.show('Cannot reach the server. Please check your connection.', 'error');
+          this.toast.show(this.translate.instant('AUTH.MESSAGES.NETWORK_ERROR'), 'error');
         } else if (err.error?.errors) {
           const errorMessages = Object.values(err.error.errors).flat().join(' | ');
           this.toast.show(errorMessages, 'error');
         } else {
-          this.toast.show(err.error?.message || err.error?.detail || err.error?.title || 'Google login failed', 'error');
+          this.toast.show(err.error?.message || err.error?.detail || err.error?.title || this.translate.instant('AUTH.MESSAGES.GOOGLE_LOGIN_FAILED'), 'error');
         }
       }
     });
@@ -134,7 +135,7 @@ export class LoginComponent implements AfterViewInit {
           const returnUrl = this.route.snapshot.queryParams['returnUrl'] || defaultReturnUrl;
           this.router.navigateByUrl(returnUrl);
         } else {
-          this.toast.show('Please confirm your email address', 'warning');
+          this.toast.show(this.translate.instant('AUTH.MESSAGES.CONFIRM_EMAIL_WARNING'), 'warning');
           this.router.navigate(['/auth/confirm-email'], { state: { userId } });
         }
       },

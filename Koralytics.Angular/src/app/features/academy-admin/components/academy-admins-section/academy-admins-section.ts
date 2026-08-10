@@ -134,12 +134,12 @@ export class AcademyAdminsSectionComponent implements OnInit, OnChanges {
           this.searchResults = [];
           this.searchForm.reset();
         } else {
-          this.toast.show(res.message || 'Error sending request', 'error');
+          this.toast.show(res.message || this.translate.instant('ACADEMY_ADMIN.MESSAGES.SEND_REQUEST_ERROR'), 'error');
         }
       },
       error: (err) => {
         this.isSending = false;
-        this.toast.show(err.error?.detail || err.error?.message || 'Error sending request', 'error');
+        this.toast.show(err.error?.detail || err.error?.message || this.translate.instant('ACADEMY_ADMIN.MESSAGES.SEND_REQUEST_ERROR'), 'error');
       }
     });
   }
@@ -195,7 +195,7 @@ export class AcademyAdminsSectionComponent implements OnInit, OnChanges {
             this.toast.show(this.translate.instant('ACADEMY_ADMIN.ADMINS_SECTION.CANCEL_SUCCESS') || 'Request cancelled', 'success');
             this.loadData();
           } else {
-            this.toast.show(res.message || 'Error cancelling request', 'error');
+            this.toast.show(res.message || this.translate.instant('ACADEMY_ADMIN.MESSAGES.CANCEL_REQUEST_ERROR'), 'error');
           }
         }
       });
@@ -206,11 +206,11 @@ export class AcademyAdminsSectionComponent implements OnInit, OnChanges {
             this.toast.show(this.translate.instant('ACADEMY_ADMIN.ADMINS_SECTION.REMOVE_SUCCESS') || 'Admin removed successfully', 'success');
             this.loadData();
           } else {
-            this.toast.show(res.message || 'Error removing admin', 'error');
+            this.toast.show(res.message || this.translate.instant('ACADEMY_ADMIN.MESSAGES.REMOVE_ADMIN_ERROR'), 'error');
           }
         },
         error: () => {
-          this.toast.show('Error removing admin', 'error');
+          this.toast.show(this.translate.instant('ACADEMY_ADMIN.MESSAGES.REMOVE_ADMIN_ERROR'), 'error');
         }
       });
     }

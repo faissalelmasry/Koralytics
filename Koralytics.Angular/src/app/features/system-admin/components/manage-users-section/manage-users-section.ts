@@ -120,7 +120,7 @@ export class ManageUsersSectionComponent implements OnInit {
       },
       error: () => {
         this.isLoading = false;
-        this.toast.show('Failed to load users', 'error');
+        this.toast.show(this.translate.instant('SYSTEM_ADMIN.MESSAGES.LOAD_USERS_FAILED'), 'error');
       }
     });
   }
@@ -157,16 +157,16 @@ export class ManageUsersSectionComponent implements OnInit {
       next: (res) => {
         this.isUpdatingRoles = false;
         if (res.isSuccess && res.data) {
-          this.toast.show('User roles updated successfully', 'success');
+          this.toast.show(this.translate.instant('SYSTEM_ADMIN.MESSAGES.UPDATE_ROLES_SUCCESS'), 'success');
           this.closeEditRolesModal();
           this.loadUsers();
         } else {
-          this.toast.show(res.message || 'Failed to update roles', 'error');
+          this.toast.show(res.message || this.translate.instant('SYSTEM_ADMIN.MESSAGES.UPDATE_ROLES_FAILED'), 'error');
         }
       },
       error: (err) => {
         this.isUpdatingRoles = false;
-        this.toast.show(err.error?.message || 'Failed to update roles', 'error');
+        this.toast.show(err.error?.message || this.translate.instant('SYSTEM_ADMIN.MESSAGES.UPDATE_ROLES_FAILED'), 'error');
       }
     });
   }

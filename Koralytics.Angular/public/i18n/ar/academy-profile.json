@@ -10,7 +10,6 @@
     "BIO_ROSTER": "القائمة",
     "BIO_ROSTER_VAL": "{{count}} أعضاء",
     "BTN_SHARE_PROFILE": "مشاركة الملف",
-
     "KPI_MEMBERS": "إجمالي الأعضاء",
     "KPI_MEMBERS_SUB": "المدربين واللاعبين",
     "KPI_TEAMS": "الفرق النشطة",
@@ -19,23 +18,19 @@
     "KPI_LOCATIONS_SUB": "مرافق التدريب النشطة",
     "KPI_BADGES": "الأوسمة المكتسبة",
     "KPI_BADGES_SUB": "الجوائز والأوسمة الموثقة",
-
     "TAB_OVERVIEW": "نظرة عامة",
     "TAB_BADGES": "الأوسمة",
     "TAB_LOCATIONS": "الفروع",
     "TAB_TEAMS": "الفرق",
     "TAB_ROSTER": "الأعضاء",
-
     "FEATURED_BADGES": "أوسمة الأكاديمية المميزة",
     "VIEW_ALL_BADGES": "عرض الكل ({{count}})",
     "AWARDED_PREFIX": "مُنحت في",
     "NO_BADGES_YET": "لم يتم الحصول على أي أوسمة بعد.",
-    
     "BADGE_VERIFIED": "موثق",
     "BADGE_TOPPERFORMER": "أفضل أداء",
     "BADGE_PREMIUM": "ممتاز",
     "BADGE_DEFAULT": "وسام قياسي",
-
     "MAIN_FACILITY_SUMMARY": "ملخص المرفق الرئيسي والفرق",
     "ALL_FACILITIES": "جميع المرافق",
     "MAIN_BRANCH_TAG": "فرع رئيسي",
@@ -44,54 +39,51 @@
     "ACTIVE_TEAMS_STAT": "الفرق النشطة",
     "REGISTERED_MEMBERS_STAT": "الأعضاء المسجلون",
     "TOTAL_FACILITIES_STAT": "إجمالي المرافق",
-
     "FEATURED_BRANCHES": "الفروع المميزة",
     "VIEW_ALL_BRANCHES": "عرض جميع الفروع ({{count}})",
     "MAIN_LOCATION_BADGE": "الفرع الرئيسي",
     "CONTACT_PHONE": "رقم التواصل",
     "NO_LOCATIONS_YET": "لم يتم إضافة أي فروع بعد.",
-
     "TITLE_ALL_BADGES": "أوسمة وجوائز الأكاديمية",
     "SUBTITLE_ALL_BADGES": "تقدير رسمي وإنجازات موثقة.",
-    
     "TITLE_LOCATIONS": "مواقع التدريب",
     "SUBTITLE_LOCATIONS": "جميع المرافق والفروع النشطة.",
     "LBL_ADDRESS": "العنوان",
-
     "TITLE_TEAMS": "فرق الأكاديمية",
     "SUBTITLE_TEAMS": "الفرق المسجلة في جميع الفئات العمرية.",
     "NO_TEAMS_FOUND": "لم يتم العثور على فرق.",
     "NO_TEAMS_DESC": "هذه الأكاديمية لم تسجل أي فرق بعد.",
-    
     "TITLE_MEMBERS": "قائمة الأكاديمية",
     "SUBTITLE_MEMBERS": "جميع اللاعبين والمدربين المسجلين.",
     "NO_MEMBERS_FOUND": "لم يتم العثور على أعضاء.",
     "NO_MEMBERS_DESC": "لا يوجد شخص يطابق عوامل التصفية الحالية.",
-    
     "COL_SQUAD_NAME": "اسم الفريق",
     "COL_AGE_GROUP": "الفئة العمرية",
     "COL_LOCATION": "الموقع",
     "COL_MEMBERS": "الأعضاء",
     "COL_ESTABLISHED": "تأسس في",
     "COL_COACH": "المدرب الرئيسي",
-
     "PH_SEARCH_MEMBER": "البحث بالاسم أو المركز...",
     "LBL_ROLE_FILTER": "تصفية الدور",
     "ROLE_ALL": "جميع الأدوار",
     "ROLE_PLAYER": "لاعبون",
     "ROLE_COACH": "مدربون",
-
     "COL_MEMBER_NAME": "اسم العضو",
     "COL_ROLE": "الدور",
     "COL_POSITION": "المركز",
     "COL_JOINED": "انضم في",
-    
     "BTN_VIEW_PROFILE": "عرض الملف",
     "ROLE_PLAYER_LBL": "لاعب",
     "ROLE_COACH_LBL": "مدرب",
     "NOT_ASSIGNED": "غير معين",
-    
     "LOADING": "جاري تحميل ملف الأكاديمية...",
-    "ERROR_NO_ID": "لم يتم تحديد معرف الأكاديمية."
+    "ERROR_NO_ID": "لم يتم تحديد معرف الأكاديمية.",
+    "MESSAGES": {
+      "NO_ID": "لم يتم تحديد معرف الأكاديمية.",
+      "LOAD_FAILED": "فشل في تحميل الملف الشخصي للأكاديمية.",
+      "FETCH_FAILED": "تعذر جلب الملف الشخصي للأكاديمية. يرجى المحاولة مرة أخرى.",
+      "LINK_COPIED": "تم نسخ رابط الملف الشخصي العام إلى الحافظة.",
+      "SHARE_URL": "رابط المشاركة: "
+    }
   }
 }
