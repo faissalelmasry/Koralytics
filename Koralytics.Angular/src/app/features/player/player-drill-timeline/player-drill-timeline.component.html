@@ -60,19 +60,19 @@
   <div class="drills-grid">
     @for (event of events; track event.sessionId; let i = $index) {
     <div class="koralytics-card" scrollReveal direction="bottom" [delay]="250 + i * 70"
-      [class.card-green]="getScoreColorClassForCard(event) === 'card-green'"
-      [class.card-yellow]="getScoreColorClassForCard(event) === 'card-yellow'"
-      [class.card-red]="getScoreColorClassForCard(event) === 'card-red'">
+      [class.card-green]="event.scoreColorClassForCard === 'card-green'"
+      [class.card-yellow]="event.scoreColorClassForCard === 'card-yellow'"
+      [class.card-red]="event.scoreColorClassForCard === 'card-red'">
 
       <div class="card-left-info">
         <div class="meta-header">
           @if (event.drillCategoryName) {
-          <span class="category-badge" [ngClass]="getScoreColorClass(event)">{{ translateCategory(event.drillCategoryName) }}</span>
+          <span class="category-badge" [ngClass]="event.scoreColorClass">{{ event.translatedCategory }}</span>
           }
-          <span class="meta-date">{{ formatDate(event.date) }}</span>
+          <span class="meta-date">{{ event.formattedDate }}</span>
         </div>
-        <div class="card-title">{{ translateCategory(event.title) }}</div>
-        <div class="card-subtitle">{{ translateSessionType(event.sessionType) }}</div>
+        <div class="card-title">{{ event.translatedTitle }}</div>
+        <div class="card-subtitle">{{ event.translatedSessionType }}</div>
 
         @if (event.drillNotes) {
         <div class="coach-note">&ldquo;{{ event.drillNotes }}&rdquo;</div>
@@ -80,19 +80,19 @@
       </div>
 
       <div class="stats-block">
-        <div class="circle-progress-container" [class.circle-green]="getCircleColorClass(event) === 'circle-green'"
-          [class.circle-yellow]="getCircleColorClass(event) === 'circle-yellow'"
-          [class.circle-red]="getCircleColorClass(event) === 'circle-red'">
+        <div class="circle-progress-container" [class.circle-green]="event.circleColorClass === 'circle-green'"
+          [class.circle-yellow]="event.circleColorClass === 'circle-yellow'"
+          [class.circle-red]="event.circleColorClass === 'circle-red'">
           <svg viewBox="0 0 40 40">
             <circle class="circle-bg" cx="20" cy="20" r="17.5" />
             <circle class="circle-bar" cx="20" cy="20" r="17.5"
-              [ngStyle]="{'--target-offset': getTargetOffset(event)}" />
+              [ngStyle]="{'--target-offset': event.targetOffset}" />
           </svg>
         </div>
 
         <div class="score-display-box">
           <span class="lbl">{{ 'PLAYER.RESULT' | translate }}</span>
-          <div class="score-display-val" [ngClass]="getScoreColorClass(event)">
+          <div class="score-display-val" [ngClass]="event.scoreColorClass">
             <span>{{ event.finalScore ? event.finalScore.toFixed(1) : ('PLAYER.NA' | translate) }}</span>
             <span class="max-mark">/10</span>
           </div>

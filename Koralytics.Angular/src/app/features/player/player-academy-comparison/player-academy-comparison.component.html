@@ -64,17 +64,17 @@
       <!-- MAIN CONTENT -->
       @if (data.isGoalkeeper) {
         <!-- ── GOALKEEPER: always single Goalkeeping bar ── -->
-        @for (cat of data.categories; track cat.categoryId) {
+        @for (cat of displayCategories; track cat.categoryId) {
           <div class="gk-full-card">
             <div class="gk-full-card-header">
               <span class="card-title">{{ 'PLAYER.PLAYER_GK_VS_ACADEMY_GK_AVG' | translate }}</span>
-              <span class="diff-badge" [class.gold]="isAboveAvg(cat)" [class.green]="!isAboveAvg(cat)">
-                {{ categoryDiffLabel(cat) }}
+              <span class="diff-badge" [class.gold]="cat.isAbove" [class.green]="!cat.isAbove">
+                {{ cat.diffLabel }}
               </span>
             </div>
 
             <div class="gk-full-scores">
-              <div class="gk-full-player" [class.gold]="isAboveAvg(cat)" [class.green]="!isAboveAvg(cat)">
+              <div class="gk-full-player" [class.gold]="cat.isAbove" [class.green]="!cat.isAbove">
                 <span class="gk-full-lbl">{{ 'PLAYER.PLAYER' | translate }}</span>
                 <span class="gk-full-val">{{ cat.playerAverage.toFixed(1) }}</span>
               </div>
@@ -86,9 +86,9 @@
             </div>
 
             <div class="gk-full-track">
-              <div class="gk-full-fill" [class.gold]="isAboveAvg(cat)" [class.green]="!isAboveAvg(cat)"
-                [style.width.%]="clampPercent(cat.playerAverage)"></div>
-              <div class="gk-full-pin" [style.left.%]="clampPercent(cat.academyAverage)"></div>
+              <div class="gk-full-fill" [class.gold]="cat.isAbove" [class.green]="!cat.isAbove"
+                [style.width.%]="cat.playerPercent"></div>
+              <div class="gk-full-pin" [style.left.%]="cat.academyPercent"></div>
             </div>
 
             <div class="gk-full-legend">
@@ -97,7 +97,7 @@
             </div>
           </div>
         }
-      } @else if (data.categories.length > 1) {
+      } @else if (displayCategories.length > 1) {
         <!-- ── FIELD PLAYER: radar + metric cards ── -->
         <div class="dashboard-grid">
           <div class="radar-card">
@@ -114,18 +114,18 @@
           </div>
 
           <div class="cards-grid">
-            @for (cat of data.categories; track cat.categoryId) {
-              <div class="metric-card" [class.above-avg]="isAboveAvg(cat)" [class.below-avg]="!isAboveAvg(cat)">
+            @for (cat of displayCategories; track cat.categoryId) {
+              <div class="metric-card" [class.above-avg]="cat.isAbove" [class.below-avg]="!cat.isAbove">
                 <div class="metric-header">
-                  <span class="metric-name">{{ ('PLAYER.CAT_' + cat.categoryName.toUpperCase()) | translate }}</span>
-                  <span class="diff-badge" [class.gold]="isAboveAvg(cat)" [class.green]="!isAboveAvg(cat)">
-                    {{ categoryDiffLabel(cat) }}
+                  <span class="metric-name">{{ cat.translatedCategoryName }}</span>
+                  <span class="diff-badge" [class.gold]="cat.isAbove" [class.green]="!cat.isAbove">
+                    {{ cat.diffLabel }}
                   </span>
                 </div>
                 <div class="metric-body">
                   <div class="p-score-box">
                     <div class="lbl">{{ 'PLAYER.PLAYER_SCORE' | translate }}</div>
-                    <div class="p-score" [class.gold]="isAboveAvg(cat)" [class.green]="!isAboveAvg(cat)">
+                    <div class="p-score" [class.gold]="cat.isAbove" [class.green]="!cat.isAbove">
                       {{ cat.playerAverage.toFixed(1) }}
                     </div>
                   </div>
@@ -135,9 +135,9 @@
                   </div>
                 </div>
                 <div class="track-container">
-                  <div class="player-track-fill" [class.gold]="isAboveAvg(cat)" [class.green]="!isAboveAvg(cat)"
-                    [style.width.%]="clampPercent(cat.playerAverage)"></div>
-                  <div class="acad-pin" [style.left.%]="clampPercent(cat.academyAverage)"></div>
+                  <div class="player-track-fill" [class.gold]="cat.isAbove" [class.green]="!cat.isAbove"
+                    [style.width.%]="cat.playerPercent"></div>
+                  <div class="acad-pin" [style.left.%]="cat.academyPercent"></div>
                 </div>
               </div>
             }
@@ -145,17 +145,17 @@
         </div>
       } @else {
         <!-- ── FIELD PLAYER with only 1 category: single bar ── -->
-        @for (cat of data.categories; track cat.categoryId) {
+        @for (cat of displayCategories; track cat.categoryId) {
           <div class="gk-full-card">
             <div class="gk-full-card-header">
-              <span class="card-title">{{ 'PLAYER.PLAYER_VS_ACADEMY_AVG' | translate:{category: ('PLAYER.CAT_' + cat.categoryName.toUpperCase() | translate)} }}</span>
-              <span class="diff-badge" [class.gold]="isAboveAvg(cat)" [class.green]="!isAboveAvg(cat)">
-                {{ categoryDiffLabel(cat) }}
+              <span class="card-title">{{ 'PLAYER.PLAYER_VS_ACADEMY_AVG' | translate:{category: cat.translatedCategoryName} }}</span>
+              <span class="diff-badge" [class.gold]="cat.isAbove" [class.green]="!cat.isAbove">
+                {{ cat.diffLabel }}
               </span>
             </div>
 
             <div class="gk-full-scores">
-              <div class="gk-full-player" [class.gold]="isAboveAvg(cat)" [class.green]="!isAboveAvg(cat)">
+              <div class="gk-full-player" [class.gold]="cat.isAbove" [class.green]="!cat.isAbove">
                 <span class="gk-full-lbl">{{ 'PLAYER.PLAYER' | translate }}</span>
                 <span class="gk-full-val">{{ cat.playerAverage.toFixed(1) }}</span>
               </div>
@@ -167,9 +167,9 @@
             </div>
 
             <div class="gk-full-track">
-              <div class="gk-full-fill" [class.gold]="isAboveAvg(cat)" [class.green]="!isAboveAvg(cat)"
-                [style.width.%]="clampPercent(cat.playerAverage)"></div>
-              <div class="gk-full-pin" [style.left.%]="clampPercent(cat.academyAverage)"></div>
+              <div class="gk-full-fill" [class.gold]="cat.isAbove" [class.green]="!cat.isAbove"
+                [style.width.%]="cat.playerPercent"></div>
+              <div class="gk-full-pin" [style.left.%]="cat.academyPercent"></div>
             </div>
 
             <div class="gk-full-legend">

@@ -1,4 +1,4 @@
-﻿<div class="profile-page">
+<div class="profile-page">
   <!-- =============== PAGE HEADER (scouter-views style) =============== -->
   <div class="tactical-tag" scrollReveal direction="bottom" [delay]="0">Talent Showcase Radar</div>
   <div class="header-row" scrollReveal direction="bottom" [delay]="50">
@@ -44,9 +44,9 @@
                 <polygon points="23 7 16 12 23 17 23 7"></polygon>
                 <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
               </svg>
-              {{ totalItems }} Highlight{{ totalItems !== 1 ? 's' : '' }}
+              {{ totalItems() }} Highlight{{ totalItems() !== 1 ? 's' : '' }}
             </span>
-            @if (pinnedCount > 0) {
+            @if (pinnedCount() > 0) {
             <span class="pill pinned-badge-pill">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none"
                 style="vertical-align: -1px; margin-right: 4px;">
@@ -54,7 +54,7 @@
                   points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
                 </polygon>
               </svg>
-              {{ pinnedCount }} Pinned
+              {{ pinnedCount() }} Pinned
             </span>
             }
           </div>
@@ -141,7 +141,7 @@
         style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
         <div class="hud-title">
           Highlight Feed
-          <span class="hud-status status-matches">{{ totalItems }} Total</span>
+          <span class="hud-status status-matches">{{ totalItems() }} Total</span>
         </div>
       </div>
 
@@ -151,7 +151,7 @@
       </app-empty-state>
       } @else {
       <div class="video-grid">
-        @for (h of paginatedHighlights; track h.id) {
+        @for (h of paginatedHighlights(); track h.id) {
         <div class="video-card" [class.pinned]="h.isPinned">
           <div class="video-wrapper">
             <video [src]="h.videoUrl" controls preload="metadata"></video>
@@ -222,9 +222,9 @@
       </div>
 
       <!-- =============== PAGINATION =============== -->
-      @if (totalItems > pageSize) {
+      @if (totalItems() > pageSize) {
       <div class="pagination-wrapper" style="margin-top: 32px; display: flex; justify-content: center;">
-        <app-pagination [totalItems]="totalItems" [pageSize]="pageSize" [currentPage]="currentPage"
+        <app-pagination [totalItems]="totalItems()" [pageSize]="pageSize" [currentPage]="currentPage"
           (pageChange)="onPageChange($event)">
         </app-pagination>
       </div>

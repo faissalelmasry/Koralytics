@@ -75,48 +75,52 @@ namespace Koralytics.Application.Services.Player.PlayerProfileServices
                 player.PlayerTeams.Where(pt => pt.LeftAt == null));
             profile.PlayerCard = playerCard;
 
-            var matchQuery = _unitOfWork.Repository<MatchPlayerRating>()
+            // Single DB round-trip: fetch all match-participation rows for this player,
+            // then compute TotalMatches, per-type match counts, goals, assists and MOTMs
+            // entirely in memory. Replaces 3 sequential queries that hit the same table.
+            var rawMatchRows = await _unitOfWork.Repository<MatchPlayerRating>()
                 .GetQueryableAsNoTracking()
-                .Where(mpr => mpr.PlayerId == playerId && mpr.Match != null);
-
-            profile.TotalMatches = await matchQuery.Select(mpr => mpr.MatchId).Distinct().CountAsync();
-
-            var matchStats = await matchQuery
-                .GroupBy(mpr => mpr.Match!.Type)
-                .Select(g => new
+                .Where(mpr => mpr.PlayerId == playerId && mpr.Match != null)
+                .Select(mpr => new
                 {
-                    MatchType = g.Key,
-                    Goals = g.Sum(mpr => mpr.Goals),
-                    Assists = g.Sum(mpr => mpr.Assists),
-                    MOTMs = g.Count(mpr => mpr.IsMOTM),
+                    mpr.MatchId,
+                    mpr.Match!.Type,
+                    mpr.Goals,
+                    mpr.Assists,
+                    mpr.IsMOTM
                 })
                 .ToListAsync();
 
-            var typeMatches = await matchQuery
-                .Select(mpr => new { mpr.MatchId, mpr.Match!.Type })
-                .Distinct()
-                .GroupBy(x => x.Type)
-                .Select(g => new { MatchType = g.Key, Matches = g.Count() })
-                .ToListAsync();
+            profile.TotalMatches = rawMatchRows.Select(r => r.MatchId).Distinct().Count();
 
-            var typeMatchDict = typeMatches.ToDictionary(x => x.MatchType, x => x.Matches);
+            var matchStatsByType = rawMatchRows
+                .GroupBy(r => r.Type)
+                .Select(g => new
+                {
+                    MatchType  = g.Key,
+                    MatchCount = g.Select(r => r.MatchId).Distinct().Count(),
+                    Goals      = g.Sum(r => r.Goals),
+                    Assists    = g.Sum(r => r.Assists),
+                    MOTMs      = g.Count(r => r.IsMOTM),
+                })
+                .ToList();
 
-            var sessionStats = new MatchTypeStats();
-            var friendlyStats = new MatchTypeStats();
+            var sessionStats    = new MatchTypeStats();
+            var friendlyStats   = new MatchTypeStats();
             var tournamentStats = new MatchTypeStats();
 
-            foreach (var stat in matchStats)
+            foreach (var stat in matchStatsByType)
             {
-                profile.TotalGoals += stat.Goals;
+                profile.TotalGoals   += stat.Goals;
                 profile.TotalAssists += stat.Assists;
-                profile.TotalMOTMs += stat.MOTMs;
+                profile.TotalMOTMs   += stat.MOTMs;
 
                 var typeStat = new MatchTypeStats
                 {
-                    Matches = typeMatchDict.TryGetValue(stat.MatchType, out var m) ? m : 0,
-                    Goals = stat.Goals,
+                    Matches = stat.MatchCount,
+                    Goals   = stat.Goals,
                     Assists = stat.Assists,
-                    MOTMs = stat.MOTMs,
+                    MOTMs   = stat.MOTMs,
                 };
 
                 if (stat.MatchType == Domain.Enums.MatchType.Session)
@@ -184,12 +188,6 @@ namespace Koralytics.Application.Services.Player.PlayerProfileServices
         {
             _logger.LogInformation("Fetching drill timeline for player {PlayerId}", playerId);
 
-            var playerExists = await _unitOfWork.Repository<PlayerEntity>()
-                .ExistsAsync(p => p.Id == playerId);
-
-            if (!playerExists)
-                throw new NotFoundException($"Player with id {playerId} was not found");
-
             var baseQuery = _unitOfWork.Repository<DrillResult>()
                 .GetQueryableAsNoTracking()
                 .Where(dr => dr.PlayerId == playerId && dr.Drill != null);
@@ -204,6 +202,16 @@ namespace Koralytics.Application.Services.Player.PlayerProfileServices
             }
 
             var totalCount = await baseQuery.CountAsync();
+
+            // Deferred existence check: only hit the Player table when the result is empty.
+            // Saves a round-trip on every request that returns data (the common path).
+            if (totalCount == 0)
+            {
+                var playerExists = await _unitOfWork.Repository<PlayerEntity>()
+                    .ExistsAsync(p => p.Id == playerId);
+                if (!playerExists)
+                    throw new NotFoundException($"Player with id {playerId} was not found");
+            }
 
             var events = await baseQuery
                 .OrderByDescending(dr => dr.Drill!.DrillSession!.SessionDate)
@@ -240,12 +248,6 @@ namespace Koralytics.Application.Services.Player.PlayerProfileServices
         {
             _logger.LogInformation("Fetching match timeline for player {PlayerId}", playerId);
 
-            var playerExists = await _unitOfWork.Repository<PlayerEntity>()
-                .ExistsAsync(p => p.Id == playerId);
-
-            if (!playerExists)
-                throw new NotFoundException($"Player with id {playerId} was not found");
-
             var baseQuery = _unitOfWork.Repository<MatchPlayerRating>()
                 .GetQueryableAsNoTracking()
                 .Where(mpr => mpr.PlayerId == playerId && mpr.Match != null);
@@ -263,6 +265,16 @@ namespace Koralytics.Application.Services.Player.PlayerProfileServices
             }
 
             var totalCount = await baseQuery.CountAsync();
+
+            // Deferred existence check: only hit the Player table when the result is empty.
+            // Saves a round-trip on every request that returns data (the common path).
+            if (totalCount == 0)
+            {
+                var playerExists = await _unitOfWork.Repository<PlayerEntity>()
+                    .ExistsAsync(p => p.Id == playerId);
+                if (!playerExists)
+                    throw new NotFoundException($"Player with id {playerId} was not found");
+            }
 
             var events = await baseQuery
                 .OrderByDescending(mpr => mpr.Match!.MatchDate)
@@ -323,17 +335,21 @@ namespace Koralytics.Application.Services.Player.PlayerProfileServices
         {
             _logger.LogInformation("Fetching achievement timeline for player {PlayerId}", playerId);
 
-            var playerExists = await _unitOfWork.Repository<PlayerEntity>()
-                .ExistsAsync(p => p.Id == playerId);
-
-            if (!playerExists)
-                throw new NotFoundException($"Player with id {playerId} was not found");
-
             var baseQuery = _unitOfWork.Repository<PlayerAchievementEntity>()
                 .GetQueryableAsNoTracking()
                 .Where(pa => pa.PlayerId == playerId);
 
             var totalCount = await baseQuery.CountAsync();
+
+            // Deferred existence check: only hit the Player table when the result is empty.
+            // Saves a round-trip on every request that returns data (the common path).
+            if (totalCount == 0)
+            {
+                var playerExists = await _unitOfWork.Repository<PlayerEntity>()
+                    .ExistsAsync(p => p.Id == playerId);
+                if (!playerExists)
+                    throw new NotFoundException($"Player with id {playerId} was not found");
+            }
 
             var events = await baseQuery
                 .OrderByDescending(pa => pa.AwardedAt)
@@ -411,40 +427,42 @@ namespace Koralytics.Application.Services.Player.PlayerProfileServices
 
             if (ageGroupIds.Count > 0)
             {
-                var teamIds = await _unitOfWork.Repository<Team>()
+                // Collapsed from 3 sequential queries:
+                //   1. Team  → get teamIds for this academy + age-group
+                //   2. PlayerTeam → get all peer playerIds in those teams
+                //   3. PlayerPosition → get GK playerIds among those peers
+                // Into ONE query that navigates Team (age-group/academy filter) and
+                // Player.PlayerPositions (primary position) via EF navigation properties.
+                // The GK vs. field split is then done in memory.
+                var peerPlayerData = await _unitOfWork.Repository<PlayerTeam>()
                     .GetQueryableAsNoTracking()
-                    .Where(t => t.AcademyId == academyId && ageGroupIds.Contains(t.AgeGroupId))
-                    .Select(t => t.Id)
-                    .ToListAsync();
-
-                // All active players in the same age-group teams
-                var allAcademyPlayerIds = await _unitOfWork.Repository<PlayerTeam>()
-                    .GetQueryableAsNoTracking()
-                    .Where(pt => pt.LeftAt == null && teamIds.Contains(pt.TeamId))
-                    .Select(pt => pt.PlayerId)
+                    .Where(pt =>
+                        pt.LeftAt == null &&
+                        pt.Team.AcademyId == academyId &&
+                        ageGroupIds.Contains(pt.Team.AgeGroupId))
+                    .Select(pt => new
+                    {
+                        pt.PlayerId,
+                        PrimaryPosition = pt.Player.PlayerPositions
+                            .Where(pp => pp.IsPrimary)
+                            .Select(pp => pp.Position)
+                            .FirstOrDefault()
+                    })
                     .Distinct()
                     .ToListAsync();
 
-                // Split the academy peers into GKs and field players so that
-                // a GK's Goalkeeping score is benchmarked against other GKs,
-                // and a field player's scores are benchmarked against other field players.
-                var gkAcademyPlayerIds = await _unitOfWork.Repository<PlayerPosition>()
-                    .GetQueryableAsNoTracking()
-                    .Where(pp =>
-                        pp.IsPrimary &&
-                        allAcademyPlayerIds.Contains(pp.PlayerId) &&
-                        pp.Position.ToLower() == "gk")
-                    .Select(pp => pp.PlayerId)
-                    .Distinct()
-                    .ToListAsync();
-
-                // Field players = everyone in the academy cohort who is NOT a GK
-                var fieldAcademyPlayerIds = allAcademyPlayerIds
-                    .Except(gkAcademyPlayerIds)
-                    .ToList();
-
-                // Choose peer group based on whether the current player is a GK
-                var peerPlayerIds = isGoalkeeper ? gkAcademyPlayerIds : fieldAcademyPlayerIds;
+                // GK vs. field split happens in memory — primary positions are already fetched.
+                var peerPlayerIds = isGoalkeeper
+                    ? peerPlayerData
+                        .Where(x => x.PrimaryPosition != null &&
+                                    x.PrimaryPosition.Equals("gk", StringComparison.OrdinalIgnoreCase))
+                        .Select(x => x.PlayerId)
+                        .ToList()
+                    : peerPlayerData
+                        .Where(x => x.PrimaryPosition == null ||
+                                    !x.PrimaryPosition.Equals("gk", StringComparison.OrdinalIgnoreCase))
+                        .Select(x => x.PlayerId)
+                        .ToList();
 
                 academyAverages = await _unitOfWork.Repository<PlayerCategoryRating>()
                     .GetQueryableAsNoTracking()
@@ -599,80 +617,95 @@ namespace Koralytics.Application.Services.Player.PlayerProfileServices
 
             var now = DateTime.UtcNow;
 
-            var scheduledMatchesRaw = await _unitOfWork.Repository<MatchEntity>()
-                .GetQueryableAsNoTracking()
-                .Where(m => m.Status == MatchStatus.Scheduled
-                    && m.MatchDate > now
-                    && m.Type != Domain.Enums.MatchType.Session
-                    && (teamIds.Contains(m.HomeTeamId) || teamIds.Contains(m.AwayTeamId)))
-                .Select(m => new
-                {
-                    m.Id,
-                    m.MatchDate,
-                    m.Type,
-                    m.HomeTeamId,
-                    m.AwayTeamId,
-                    HomeTeamName = m.HomeTeam.Name,
-                    AwayTeamName = m.AwayTeam.Name,
-                })
-                .ToListAsync();
+            // Determine which sources to query based on eventType.
+            // Skipping an irrelevant source entirely avoids a wasted DB round-trip.
+            var fetchMatches = string.IsNullOrWhiteSpace(eventType) ||
+                               eventType.Equals("Match", StringComparison.OrdinalIgnoreCase);
+            var fetchDrills  = string.IsNullOrWhiteSpace(eventType) ||
+                               eventType.Equals("Drill", StringComparison.OrdinalIgnoreCase);
 
-            var scheduledMatches = scheduledMatchesRaw
-                .Select(m => new TeamScheduledEventDto
-                {
-                    EventType = "Match",
-                    Date = m.MatchDate,
-                    MatchId = m.Id,
-                    MatchType = m.Type.ToString(),
-                    HomeTeamName = m.HomeTeamName,
-                    AwayTeamName = m.AwayTeamName,
-                    TeamId = teamIds.Contains(m.HomeTeamId) ? m.HomeTeamId : m.AwayTeamId,
-                    TeamName = teamIds.Contains(m.HomeTeamId) ? m.HomeTeamName : m.AwayTeamName,
-                })
-                .ToList();
+            // ── Matches ──────────────────────────────────────────────────────────
+            // dateFrom / dateTo are pushed directly into the WHERE clause so the DB
+            // only returns rows that survive all filters (no in-memory post-filtering).
+            List<TeamScheduledEventDto> scheduledMatches = [];
 
-            var scheduledDrills = await _unitOfWork.Repository<DrillSession>()
-                .GetQueryableAsNoTracking()
-                .Include(ds => ds.DrillSessionTeam)
-                .Include(ds => ds.DrillSessionCoach)
-                .Where(ds => (ds.Status == SessionStatus.Scheduled || ds.Status == SessionStatus.Cancelled)
-                    && ds.SessionDate > now
-                    && teamIds.Contains(ds.TeamId))
-                .Select(ds => new TeamScheduledEventDto
-                {
-                    EventType = "Drill",
-                    Date = ds.SessionDate,
-                    SessionId = ds.Id,
-                    SessionType = ds.Type.ToString(),
-                    TeamId = ds.TeamId,
-                    TeamName = ds.DrillSessionTeam!.Name,
-                    Notes = ds.Notes,
-                    Location = ds.Location,
-                    CoachName = ds.DrillSessionCoach != null ? ds.DrillSessionCoach.FirstName + " " + ds.DrillSessionCoach.LastName : null,
-                    IsCancelled = ds.Status == SessionStatus.Cancelled,
-                })
-                .ToListAsync();
+            if (fetchMatches)
+            {
+                var scheduledMatchesRaw = await _unitOfWork.Repository<MatchEntity>()
+                    .GetQueryableAsNoTracking()
+                    .Where(m =>
+                        m.Status == MatchStatus.Scheduled &&
+                        m.MatchDate > now &&
+                        m.Type != Domain.Enums.MatchType.Session &&
+                        (teamIds.Contains(m.HomeTeamId) || teamIds.Contains(m.AwayTeamId)) &&
+                        (!dateFrom.HasValue || m.MatchDate >= dateFrom.Value) &&
+                        (!dateTo.HasValue   || m.MatchDate <= dateTo.Value))
+                    .Select(m => new
+                    {
+                        m.Id,
+                        m.MatchDate,
+                        m.Type,
+                        m.HomeTeamId,
+                        m.AwayTeamId,
+                        HomeTeamName = m.HomeTeam.Name,
+                        AwayTeamName = m.AwayTeam.Name,
+                    })
+                    .ToListAsync();
 
+                scheduledMatches = scheduledMatchesRaw
+                    .Select(m => new TeamScheduledEventDto
+                    {
+                        EventType     = "Match",
+                        Date          = m.MatchDate,
+                        MatchId       = m.Id,
+                        MatchType     = m.Type.ToString(),
+                        HomeTeamName  = m.HomeTeamName,
+                        AwayTeamName  = m.AwayTeamName,
+                        TeamId        = teamIds.Contains(m.HomeTeamId) ? m.HomeTeamId : m.AwayTeamId,
+                        TeamName      = teamIds.Contains(m.HomeTeamId) ? m.HomeTeamName : m.AwayTeamName,
+                    })
+                    .ToList();
+            }
+
+            // ── Drill sessions ────────────────────────────────────────────────────
+            List<TeamScheduledEventDto> scheduledDrills = [];
+
+            if (fetchDrills)
+            {
+                scheduledDrills = await _unitOfWork.Repository<DrillSession>()
+                    .GetQueryableAsNoTracking()
+                    .Where(ds =>
+                        (ds.Status == SessionStatus.Scheduled || ds.Status == SessionStatus.Cancelled) &&
+                        ds.SessionDate > now &&
+                        teamIds.Contains(ds.TeamId) &&
+                        (!dateFrom.HasValue || ds.SessionDate >= dateFrom.Value) &&
+                        (!dateTo.HasValue   || ds.SessionDate <= dateTo.Value))
+                    .Select(ds => new TeamScheduledEventDto
+                    {
+                        EventType   = "Drill",
+                        Date        = ds.SessionDate,
+                        SessionId   = ds.Id,
+                        SessionType = ds.Type.ToString(),
+                        TeamId      = ds.TeamId,
+                        TeamName    = ds.DrillSessionTeam!.Name,
+                        Notes       = ds.Notes,
+                        Location    = ds.Location,
+                        CoachName   = ds.DrillSessionCoach != null
+                            ? ds.DrillSessionCoach.FirstName + " " + ds.DrillSessionCoach.LastName
+                            : null,
+                        IsCancelled = ds.Status == SessionStatus.Cancelled,
+                    })
+                    .ToListAsync();
+            }
+
+            // ── Combine, sort and paginate ────────────────────────────────────────
+            // Cross-table pagination still happens in memory (unavoidable for a UNION
+            // of two heterogeneous sources), but the combined set is now pre-filtered
+            // by the DB so only surviving rows are transferred and sorted.
             var combined = scheduledMatches
                 .Concat(scheduledDrills)
                 .OrderBy(e => e.Date)
                 .ToList();
-
-            if (!string.IsNullOrWhiteSpace(eventType))
-            {
-                combined = combined.Where(e =>
-                    string.Equals(e.EventType, eventType, StringComparison.OrdinalIgnoreCase)).ToList();
-            }
-
-            if (dateFrom.HasValue)
-            {
-                combined = combined.Where(e => e.Date >= dateFrom.Value).ToList();
-            }
-
-            if (dateTo.HasValue)
-            {
-                combined = combined.Where(e => e.Date <= dateTo.Value).ToList();
-            }
 
             var totalCount = combined.Count;
             var pagedEvents = combined
@@ -682,10 +715,10 @@ namespace Koralytics.Application.Services.Player.PlayerProfileServices
 
             return new TeamScheduledEventsResponseDto
             {
-                Events = pagedEvents,
+                Events     = pagedEvents,
                 TotalCount = totalCount,
-                Page = page,
-                PageSize = pageSize,
+                Page       = page,
+                PageSize   = pageSize,
             };
         }
 

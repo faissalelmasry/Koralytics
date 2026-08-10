@@ -1,6 +1,7 @@
-import { Component, OnInit, AfterViewInit, OnDestroy, inject, ElementRef, ViewChild, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, inject, ElementRef, ViewChild, ChangeDetectorRef, ChangeDetectionStrategy, NgZone, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Chart, registerables } from 'chart.js';
 import { NavbarComponent } from '../../../../shared/components/navbar/navbar';
 import { Footer } from '../../../../shared/components/footer/footer';
@@ -16,7 +17,6 @@ import { PlayerProfileService } from '../../../../core/services/player/player-pr
 import { PlayerCardService } from '../../../../core/services/player/player-card.service';
 import { TokenStorageService } from '../../../../core/services/auth/token-storage.service';
 import { PlayerProfileModel } from '../../../../core/models/Player/player-profile-model';
-import { switchMap } from 'rxjs';
 import { ScouterService } from '@core/services/Scouter/scouter.service';
 import { NotificationService } from '@core/services/SignalR/notificationservice';
 import { ToastService } from '../../../../core/services/Toast/toast';
@@ -29,9 +29,25 @@ Chart.register(...registerables);
 @Component({
   selector: 'app-player-profile',
   standalone: true,
-  imports: [CommonModule, RouterLink, NavbarComponent, Footer, PlayerCardComponent, TransferCanvasComponent, LoadingSpinnerComponent, ScrollRevealDirective, FeatureLockComponent, CustomButtonComponent, ConfirmDialogComponent, CustomToggle, PlayerDrillProgressionComponent, TranslatePipe],
+  imports: [
+    CommonModule,
+    RouterLink,
+    NavbarComponent,
+    Footer,
+    PlayerCardComponent,
+    TransferCanvasComponent,
+    LoadingSpinnerComponent,
+    ScrollRevealDirective,
+    FeatureLockComponent,
+    CustomButtonComponent,
+    ConfirmDialogComponent,
+    CustomToggle,
+    PlayerDrillProgressionComponent,
+    TranslatePipe
+  ],
   templateUrl: './player-profile.component.html',
-  styleUrls: ['./player-profile.component.css']
+  styleUrls: ['./player-profile.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy {
 
@@ -47,6 +63,8 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
   private toastService = inject(ToastService);
   private translate = inject(TranslateService);
   private parentService = inject(ParentService);
+  private ngZone = inject(NgZone);
+  private destroyRef = inject(DestroyRef);
 
   // ── Scouter Follow / Shortlist State ─────────────────────────
   isScouter = false;
@@ -154,8 +172,43 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
     'Forward': { top: '50%', left: '84%' },
   };
 
+  // ── Cached / Memoized Derived Properties ────────────────────
+  tierClass = 'tier-base';
+  isOwnProfile = false;
+  tierNeon = '#c8ff4d';
+  tierLogoUrl = 'images/logo/app-icon/logo-icon-dark.png';
+  tierButtonVariant: 'accent' | 'amber' | 'gold' = 'accent';
+  fullName = '';
+  profileImageUrl: string | null = null;
+  initials = 'P';
+  primaryPosition = '';
+  isGK = false;
+  secondaryPositions: string[] = [];
+  academyName = 'No Academy';
+  preferredFoot = 'N/A';
+  statusLabel = 'Available';
+  statusClass = 'status-available';
+  goalsPerMatch = '0.00';
+  assistsPerMatch = '0.00';
+  motmPercentage = '0';
+  competitionBreakdown: { label: string; iconColor: string; stats: any }[] = [];
+  archetypeTitle = 'AI ARCHETYPE';
+  archetypeTextDescription = 'Under Evaluation...';
+  daysUntilNextReveal = 0;
+  nextRevealNotice = 'AI-powered playing style analysis';
+  ownedPositionIds: string[] = [];
+  primaryPositionId = '';
+  secondaryPositionIds: string[] = [];
+
   // ── Lifecycle ───────────────────────────────────────────────
   ngOnInit() {
+    this.translate.onLangChange
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.computeCompetitionBreakdown();
+        this.cdr.markForCheck();
+      });
+
     let userRoles: string[] = [];
     const user = this.tokenStorage.getUser();
     if (user) {
@@ -181,19 +234,21 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
 
     const isParent = userRoles.some(r => r.toLowerCase() === 'parent');
     if (isParent) {
-      this.parentService.getMyChildren().subscribe({
-        next: (res: any) => {
-          const children = res?.data || res || [];
-          const hasElite = children.some((c: any) => c.isEliteTier || c.academyTier === 'Elite');
-          const hasPro = children.some((c: any) => c.academyTier === 'Pro');
-          if (hasElite) {
-            this.tokenStorage.saveEffectiveTier('Elite');
-          } else if (hasPro) {
-            this.tokenStorage.saveEffectiveTier('Pro');
+      this.parentService.getMyChildren()
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (res: any) => {
+            const children = res?.data || res || [];
+            const hasElite = children.some((c: any) => c.isEliteTier || c.academyTier === 'Elite');
+            const hasPro = children.some((c: any) => c.academyTier === 'Pro');
+            if (hasElite) {
+              this.tokenStorage.saveEffectiveTier('Elite');
+            } else if (hasPro) {
+              this.tokenStorage.saveEffectiveTier('Pro');
+            }
+            this.cdr.markForCheck();
           }
-          this.cdr.detectChanges();
-        }
-      });
+        });
     }
 
     if (paramId) {
@@ -205,7 +260,170 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
       this.loadProfile(this.playerId);
     } else {
       this.error = 'Authentication required';
+      this.cdr.markForCheck();
     }
+  }
+
+  ngAfterViewInit() { }
+
+  ngOnDestroy() {
+    this.observer?.disconnect();
+    if (this.radarChart) {
+      this.radarChart.destroy();
+      this.radarChart = undefined;
+    }
+  }
+
+  private computeDerivedState() {
+    if (!this.profile) {
+      this.tierClass = 'tier-base';
+      this.isOwnProfile = false;
+      this.tierNeon = '#c8ff4d';
+      this.tierLogoUrl = 'images/logo/app-icon/logo-icon-dark.png';
+      this.tierButtonVariant = 'accent';
+      this.fullName = '';
+      this.profileImageUrl = null;
+      this.initials = 'P';
+      this.primaryPosition = '';
+      this.isGK = false;
+      this.secondaryPositions = [];
+      this.academyName = 'No Academy';
+      this.preferredFoot = 'N/A';
+      this.statusLabel = 'Available';
+      this.statusClass = 'status-available';
+      this.goalsPerMatch = '0.00';
+      this.assistsPerMatch = '0.00';
+      this.motmPercentage = '0';
+      this.competitionBreakdown = [];
+      this.archetypeTitle = 'AI ARCHETYPE';
+      this.archetypeTextDescription = 'Under Evaluation...';
+      this.daysUntilNextReveal = 0;
+      this.nextRevealNotice = 'AI-powered playing style analysis';
+      this.ownedPositionIds = [];
+      this.primaryPositionId = '';
+      this.secondaryPositionIds = [];
+      return;
+    }
+
+    const rating = this.profile.playerCard?.overallRating ?? 0;
+    if (rating >= 80) {
+      this.tierClass = 'tier-elite';
+      this.tierNeon = '#ff6a00';
+      this.tierLogoUrl = 'images/logo/app-icon/logo-icon-orange.png';
+      this.tierButtonVariant = 'amber';
+    } else if (rating >= 70) {
+      this.tierClass = 'tier-gold';
+      this.tierNeon = '#ffd700';
+      this.tierLogoUrl = 'images/logo/app-icon/logo-icon-yellow.png';
+      this.tierButtonVariant = 'gold';
+    } else {
+      this.tierClass = 'tier-base';
+      this.tierNeon = '#c8ff4d';
+      this.tierLogoUrl = 'images/logo/app-icon/logo-icon-dark.png';
+      this.tierButtonVariant = 'accent';
+    }
+
+    this.isOwnProfile = this.loggedInUserId !== null && this.loggedInUserId === this.playerId;
+    this.fullName = `${this.profile.firstName} ${this.profile.lastName}`;
+    this.profileImageUrl = this.profile.profileImageUrl || this.profile.playerCard?.profileImageUrl || null;
+
+    const f = this.profile.firstName?.charAt(0) || '';
+    const l = this.profile.lastName?.charAt(0) || '';
+    this.initials = `${f}${l}`.toUpperCase() || 'P';
+
+    const primaryObj = this.profile.positions.find(p => p.isPrimary);
+    this.primaryPosition = primaryObj?.position ?? '';
+    this.isGK = this.primaryPosition.toUpperCase() === 'GK';
+
+    this.secondaryPositions = this.profile.positions.filter(p => !p.isPrimary).map(p => p.position);
+    this.ownedPositionIds = this.profile.positions.map(p => p.position.toUpperCase());
+    this.primaryPositionId = this.primaryPosition.toUpperCase();
+    this.secondaryPositionIds = this.secondaryPositions.map(p => p.toUpperCase());
+
+    this.academyName = this.profile.currentAcademy?.academyName ?? 'No Academy';
+    this.preferredFoot = this.profile.playerCard?.preferredFoot ?? 'N/A';
+
+    // Status Label & Class
+    const status = this.profile.availabilityStatus;
+    if (status === undefined || status === null) {
+      this.statusLabel = 'Available';
+    } else if (typeof status === 'number') {
+      switch (status) {
+        case 1: this.statusLabel = 'Available'; break;
+        case 2: this.statusLabel = 'Injured'; break;
+        case 3: this.statusLabel = 'Resting'; break;
+        case 4: this.statusLabel = 'Suspended'; break;
+        default: this.statusLabel = 'Available'; break;
+      }
+    } else {
+      const strStatus = String(status).trim();
+      const lower = strStatus.toLowerCase();
+      if (lower === 'available' || lower === 'active' || lower === '1' || lower === '0') this.statusLabel = 'Available';
+      else if (lower === 'injured' || lower === '2') this.statusLabel = 'Injured';
+      else if (lower === 'resting' || lower === '3') this.statusLabel = 'Resting';
+      else if (lower === 'suspended' || lower === '4') this.statusLabel = 'Suspended';
+      else if (lower === 'transferred') this.statusLabel = 'Transferred';
+      else this.statusLabel = strStatus.charAt(0).toUpperCase() + strStatus.slice(1);
+    }
+
+    const lowerLabel = this.statusLabel.toLowerCase();
+    if (lowerLabel === 'available' || lowerLabel === 'active') this.statusClass = 'status-available';
+    else if (lowerLabel === 'injured') this.statusClass = 'status-injured';
+    else if (lowerLabel === 'resting') this.statusClass = 'status-resting';
+    else if (lowerLabel === 'suspended') this.statusClass = 'status-suspended';
+    else if (lowerLabel === 'transferred') this.statusClass = 'status-transferred';
+    else this.statusClass = 'status-available';
+
+    // Per match stats
+    if (this.profile.totalMatches === 0) {
+      this.goalsPerMatch = '0.00';
+      this.assistsPerMatch = '0.00';
+      this.motmPercentage = '0';
+    } else {
+      this.goalsPerMatch = (this.profile.totalGoals / this.profile.totalMatches).toFixed(2);
+      this.assistsPerMatch = (this.profile.totalAssists / this.profile.totalMatches).toFixed(2);
+      this.motmPercentage = Math.round((this.profile.totalMOTMs / this.profile.totalMatches) * 100).toString();
+    }
+
+    this.computeCompetitionBreakdown();
+
+    // Archetype
+    this.archetypeTitle = this.profile.playerCard?.archetypePlayerName || 'AI ARCHETYPE';
+    this.archetypeTextDescription = this.profile.archetypeText || 'Under Evaluation...';
+
+    // Days until next reveal
+    const lastRevealed = this.profile.playerCard?.archetypeLastRevealedAt;
+    if (lastRevealed) {
+      const date = new Date(lastRevealed);
+      if (!isNaN(date.getTime())) {
+        const diffMs = Date.now() - date.getTime();
+        const diffDays = diffMs / (1000 * 60 * 60 * 24);
+        const remaining = 7 - diffDays;
+        this.daysUntilNextReveal = remaining > 0 ? Math.ceil(remaining) : 0;
+      } else {
+        this.daysUntilNextReveal = 0;
+      }
+    } else {
+      this.daysUntilNextReveal = 0;
+    }
+
+    if (this.daysUntilNextReveal > 0) {
+      this.nextRevealNotice = `Next AI re-evaluation in ${this.daysUntilNextReveal} day${this.daysUntilNextReveal > 1 ? 's' : ''}`;
+    } else {
+      this.nextRevealNotice = 'AI-powered playing style analysis';
+    }
+  }
+
+  private computeCompetitionBreakdown() {
+    if (!this.profile) {
+      this.competitionBreakdown = [];
+      return;
+    }
+    this.competitionBreakdown = [
+      { label: this.translate.instant('PLAYER.TRAINING_SESSIONS'), iconColor: '#c8ff4d', stats: this.profile.sessionStats },
+      { label: this.translate.instant('PLAYER.FRIENDLY_MATCHES'), iconColor: '#ffd700', stats: this.profile.friendlyStats },
+      { label: this.translate.instant('PLAYER.TOURNAMENTS'), iconColor: '#ff6a00', stats: this.profile.tournamentStats },
+    ];
   }
 
   private logAndNotifyIfScouter(roles: string[]) {
@@ -216,12 +434,13 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
     const isScouter = roles.some(r => r.toLowerCase() === 'scouter');
 
     if (isScouter) {
-      this.scouterService.logProfileView(this.loggedInUserId, this.playerId).subscribe({
-        error: (err) => console.error('Failed to log scouter profile view in backend:', err)
-      });
+      this.scouterService.logProfileView(this.loggedInUserId, this.playerId)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          error: (err) => console.error('Failed to log scouter profile view in backend:', err)
+        });
     }
   }
-  ngAfterViewInit() { }
 
   goToTimeline() {
     if (this.playerId) {
@@ -255,19 +474,12 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
     }
   }
 
-  ngOnDestroy() {
-    this.observer?.disconnect();
-    if (this.radarChart) {
-      this.radarChart.destroy();
-      this.radarChart = undefined;
-    }
-  }
-
   // ── Archetype overlay actions ───────────────────────────────
   openArchetypeOverlay() {
     this.isCardFlipped = false;
     this.revealError = '';
     this.showArchetypeOverlay = true;
+    this.cdr.markForCheck();
   }
 
   flipArchetypeCard() {
@@ -275,6 +487,7 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
 
     this.isRevealingArchetype = true;
     this.revealError = '';
+    this.cdr.markForCheck();
 
     this.playerCardService.revealArchetype(this.playerId).subscribe({
       next: (res) => {
@@ -286,13 +499,14 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
             this.profile.playerCard.archetypeLastRevealedAt = res.archetypeLastRevealedAt;
           }
         }
+        this.computeDerivedState();
         this.isCardFlipped = true;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: (err) => {
         this.isRevealingArchetype = false;
         this.revealError = err?.error?.message || 'Failed to reveal archetype. Please try again.';
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
     });
   }
@@ -302,17 +516,20 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
     this.isCardFlipped = false;
     this.isRevealingArchetype = false;
     this.revealError = '';
+    this.cdr.markForCheck();
   }
 
   fetchPlayerCard() {
     if (!this.playerId || this.isFetchingCard) return;
     this.isFetchingCard = true;
+    this.cdr.markForCheck();
 
     this.playerCardService.getPlayerCard(this.playerId).subscribe({
       next: (card) => {
         if (this.profile) {
           this.profile.playerCard = { ...card };
         }
+        this.computeDerivedState();
         this.isFetchingCard = false;
 
         if (this.radarChart) {
@@ -322,7 +539,7 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
         this.chartInitialized = false;
 
         this.toastService.show('Player card refreshed successfully.', 'success');
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
 
         setTimeout(() => {
           this.initRadarChart();
@@ -334,7 +551,7 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
           err?.status === 404 ? 'Unable to generate player card' : 'Failed to fetch player card',
           'error'
         );
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
     });
   }
@@ -342,176 +559,6 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
   // ── Position pin helper ─────────────────────────────────────
   getPosPinStyle(pos: string): { top: string; left: string } {
     return this.posPinMap[pos] ?? this.posPinMap[pos.toUpperCase()] ?? { top: '50%', left: '54%' };
-  }
-
-  // ── Computed getters ────────────────────────────────────────
-  get tierClass(): string {
-    const rating = this.profile?.playerCard?.overallRating ?? 0;
-    if (rating >= 80) return 'tier-elite';
-    if (rating >= 70) return 'tier-gold';
-    return 'tier-base';
-  }
-
-  get isOwnProfile(): boolean {
-    return this.loggedInUserId !== null && this.loggedInUserId === this.playerId;
-  }
-
-  get tierNeon(): string {
-    const rating = this.profile?.playerCard?.overallRating ?? 0;
-    if (rating >= 80) return '#ff6a00';
-    if (rating >= 70) return '#ffd700';
-    return '#c8ff4d';
-  }
-
-  get tierLogoUrl(): string {
-    const rating = this.profile?.playerCard?.overallRating ?? 0;
-    if (rating >= 80) return 'images/logo/app-icon/logo-icon-orange.png';
-    if (rating >= 70) return 'images/logo/app-icon/logo-icon-yellow.png';
-    return 'images/logo/app-icon/logo-icon-dark.png';
-  }
-
-  get tierButtonVariant(): 'accent' | 'amber' | 'gold' {
-    const rating = this.profile?.playerCard?.overallRating ?? 0;
-    if (rating >= 80) return 'amber';
-    if (rating >= 70) return 'gold';
-    return 'accent';
-  }
-
-  get fullName(): string {
-    if (!this.profile) return '';
-    return `${this.profile.firstName} ${this.profile.lastName}`;
-  }
-
-  get profileImageUrl(): string | null {
-    return this.profile?.profileImageUrl || this.profile?.playerCard?.profileImageUrl || null;
-  }
-
-  get initials(): string {
-    if (!this.profile) return '';
-    const f = this.profile.firstName?.charAt(0) || '';
-    const l = this.profile.lastName?.charAt(0) || '';
-    return `${f}${l}`.toUpperCase() || 'P';
-  }
-
-  get primaryPosition(): string {
-    return this.profile?.positions.find(p => p.isPrimary)?.position ?? '';
-  }
-
-  get isGK(): boolean {
-    return this.primaryPosition?.toUpperCase() === 'GK';
-  }
-
-  get secondaryPositions(): string[] {
-    return this.profile?.positions.filter(p => !p.isPrimary).map(p => p.position) ?? [];
-  }
-
-  get academyName(): string {
-    return this.profile?.currentAcademy?.academyName ?? 'No Academy';
-  }
-
-  get preferredFoot(): string {
-    return this.profile?.playerCard?.preferredFoot ?? 'N/A';
-  }
-
-  get statusLabel(): string {
-    const status = this.profile?.availabilityStatus;
-    if (status === undefined || status === null) return 'Available';
-
-    if (typeof status === 'number') {
-      switch (status) {
-        case 1: return 'Available';
-        case 2: return 'Injured';
-        case 3: return 'Resting';
-        case 4: return 'Suspended';
-        case 0: return 'Available';
-        default: return 'Available';
-      }
-    }
-
-    const strStatus = String(status).trim();
-    if (!strStatus) return 'Available';
-
-    const lower = strStatus.toLowerCase();
-    if (lower === 'available' || lower === 'active' || lower === '1' || lower === '0') return 'Available';
-    if (lower === 'injured' || lower === '2') return 'Injured';
-    if (lower === 'resting' || lower === '3') return 'Resting';
-    if (lower === 'suspended' || lower === '4') return 'Suspended';
-    if (lower === 'transferred') return 'Transferred';
-
-    return strStatus.charAt(0).toUpperCase() + strStatus.slice(1);
-  }
-
-  get statusClass(): string {
-    const label = this.statusLabel.toLowerCase();
-    if (label === 'available' || label === 'active') return 'status-available';
-    if (label === 'injured') return 'status-injured';
-    if (label === 'resting') return 'status-resting';
-    if (label === 'suspended') return 'status-suspended';
-    if (label === 'transferred') return 'status-transferred';
-    return 'status-available';
-  }
-
-  get goalsPerMatch(): string {
-    if (!this.profile || this.profile.totalMatches === 0) return '0.00';
-    return (this.profile.totalGoals / this.profile.totalMatches).toFixed(2);
-  }
-
-  get assistsPerMatch(): string {
-    if (!this.profile || this.profile.totalMatches === 0) return '0.00';
-    return (this.profile.totalAssists / this.profile.totalMatches).toFixed(2);
-  }
-
-  get motmPercentage(): string {
-    if (!this.profile || this.profile.totalMatches === 0) return '0';
-    return Math.round((this.profile.totalMOTMs / this.profile.totalMatches) * 100).toString();
-  }
-
-  get competitionBreakdown() {
-    if (!this.profile) return [];
-    return [
-      { label: this.translate.instant('PLAYER.TRAINING_SESSIONS'), iconColor: '#c8ff4d', stats: this.profile.sessionStats },
-      { label: this.translate.instant('PLAYER.FRIENDLY_MATCHES'), iconColor: '#ffd700', stats: this.profile.friendlyStats },
-      { label: this.translate.instant('PLAYER.TOURNAMENTS'), iconColor: '#ff6a00', stats: this.profile.tournamentStats },
-    ];
-  }
-
-  get archetypeTitle(): string {
-    return this.profile?.playerCard?.archetypePlayerName || 'AI ARCHETYPE';
-  }
-
-  get archetypeTextDescription(): string {
-    return this.profile?.archetypeText || 'Under Evaluation...';
-  }
-
-  get daysUntilNextReveal(): number {
-    const lastRevealed = this.profile?.playerCard?.archetypeLastRevealedAt;
-    if (!lastRevealed) return 0;
-    const date = new Date(lastRevealed);
-    if (isNaN(date.getTime())) return 0;
-    const diffMs = Date.now() - date.getTime();
-    const diffDays = diffMs / (1000 * 60 * 60 * 24);
-    const remaining = 7 - diffDays;
-    return remaining > 0 ? Math.ceil(remaining) : 0;
-  }
-
-  get nextRevealNotice(): string {
-    const days = this.daysUntilNextReveal;
-    if (days > 0) {
-      return `Next AI re-evaluation in ${days} day${days > 1 ? 's' : ''}`;
-    }
-    return 'AI-powered playing style analysis';
-  }
-
-  get ownedPositionIds(): string[] {
-    return this.profile?.positions.map(p => p.position.toUpperCase()) ?? [];
-  }
-
-  get primaryPositionId(): string {
-    return this.primaryPosition.toUpperCase();
-  }
-
-  get secondaryPositionIds(): string[] {
-    return this.profile?.positions.filter(p => !p.isPrimary).map(p => p.position.toUpperCase()) ?? [];
   }
 
   isPositionSelectable(posId: string): boolean {
@@ -532,6 +579,7 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
     this.setAsPrimaryCheck = false;
     this.modalMode = 'ADD';
     this.showPositionModal = true;
+    this.cdr.markForCheck();
   }
 
   openUpdatePrimaryModal() {
@@ -539,6 +587,7 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
     this.selectedPosition = null;
     this.modalMode = 'UPDATE_PRIMARY';
     this.showPositionModal = true;
+    this.cdr.markForCheck();
   }
 
   openRemovePositionModal() {
@@ -546,22 +595,26 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
     this.selectedPosition = null;
     this.modalMode = 'REMOVE';
     this.showPositionModal = true;
+    this.cdr.markForCheck();
   }
 
   closePositionModal() {
     this.showPositionModal = false;
     this.selectedPosition = null;
     this.positionError = '';
+    this.cdr.markForCheck();
   }
 
   selectPositionNode(posId: string) {
     if (!this.isPositionSelectable(posId)) return;
     this.selectedPosition = posId;
+    this.cdr.markForCheck();
   }
 
   confirmPositionSelection() {
     if (!this.selectedPosition || !this.playerId) {
       this.positionError = 'Please select a position first.';
+      this.cdr.markForCheck();
       return;
     }
 
@@ -583,6 +636,7 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
 
     this.pendingConfirmMode = this.modalMode;
     this.showConfirmDialog = true;
+    this.cdr.markForCheck();
   }
 
   onConfirmAction() {
@@ -592,6 +646,7 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
 
     this.isSavingPosition = true;
     this.positionError = '';
+    this.cdr.markForCheck();
 
     if (this.pendingConfirmMode === 'ADD') {
       this.profileService.addPlayerPosition(this.playerId, {
@@ -629,11 +684,13 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
     this.isSavingPosition = false;
     this.pendingConfirmMode = null;
     this.positionError = err?.error?.message ?? fallback;
+    this.cdr.markForCheck();
   }
 
   onCancelAction() {
     this.showConfirmDialog = false;
     this.pendingConfirmMode = null;
+    this.cdr.markForCheck();
   }
 
   private reloadProfile() {
@@ -647,6 +704,7 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
     this.isLoading = true;
     this.error = '';
     this.profile = null;
+    this.cdr.markForCheck();
 
     if (this.radarChart) {
       this.radarChart.destroy();
@@ -658,12 +716,13 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
     this.profileService.getPlayerProfile(id).subscribe({
       next: (profile) => {
         this.profile = profile;
+        this.computeDerivedState();
         this.isLoading = false;
         if (this.isScouter && this.currentScouterId && this.playerId && !this.isOwnProfile) {
           this.checkFollowStatus();
           this.checkShortlistStatus();
         }
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
         setTimeout(() => {
           this.setupCountersObserver();
           this.initRadarChart();
@@ -674,6 +733,7 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
         this.error = err?.status === 404
           ? 'Player not found'
           : 'Failed to load player profile';
+        this.cdr.markForCheck();
       }
     });
   }
@@ -684,7 +744,6 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
       next: (isFollowing: boolean) => {
         this.isFollowing = !!isFollowing;
         this.cdr.markForCheck();
-        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Failed to check follow status:', err);
@@ -698,7 +757,6 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
       next: (isShortlisted: boolean) => {
         this.isShortlisted = !!isShortlisted;
         this.cdr.markForCheck();
-        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Failed to check shortlist status:', err);
@@ -710,6 +768,8 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
     if (!this.currentScouterId || !this.playerId || this.isShortlistLoading) return;
 
     this.isShortlistLoading = true;
+    this.cdr.markForCheck();
+
     if (this.isShortlisted) {
       this.scouterService.removeFromShortlist(this.currentScouterId, this.playerId).subscribe({
         next: () => {
@@ -743,11 +803,12 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
     }
   }
 
-
   toggleFollow() {
     if (!this.currentScouterId || !this.playerId || this.isFollowLoading) return;
 
     this.isFollowLoading = true;
+    this.cdr.markForCheck();
+
     if (this.isFollowing) {
       this.scouterService.unfollowPlayer(this.currentScouterId, this.playerId).subscribe({
         next: () => {
@@ -780,7 +841,6 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
       });
     }
   }
-
 
   private decodeTokenPayload(token: string): { userId: number; roles: string[] } | null {
     try {
@@ -903,7 +963,7 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
         assists: this.profile.totalAssists,
         motms: this.profile.totalMOTMs,
       };
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
       return;
     }
 
@@ -914,16 +974,19 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   private animateValue(start: number, end: number, duration: number, callback: (v: number) => void) {
-    const startTime = performance.now();
-    const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
+    this.ngZone.runOutsideAngular(() => {
+      const startTime = performance.now();
+      const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
 
-    const tick = (now: number) => {
-      const p = Math.min((now - startTime) / duration, 1);
-      const eased = easeOutCubic(p);
-      callback(Math.round(start + eased * (end - start)));
-      this.cdr.detectChanges();
-      if (p < 1) requestAnimationFrame(tick);
-    };
-    requestAnimationFrame(tick);
+      const tick = (now: number) => {
+        const p = Math.min((now - startTime) / duration, 1);
+        const eased = easeOutCubic(p);
+        const val = Math.round(start + eased * (end - start));
+        callback(val);
+        this.cdr.markForCheck();
+        if (p < 1) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    });
   }
 }

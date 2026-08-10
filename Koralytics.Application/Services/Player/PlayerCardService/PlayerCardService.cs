@@ -57,16 +57,40 @@ namespace Koralytics.Application.Services.Player.PlayerCardService
         {
             _logger.LogInformation("Fetching player card for player {PlayerId}", playerId);
 
-            var playerCard = await _unitOfWork.Repository<PlayerCard>()
-            .GetQueryableAsNoTracking()
-            .Include(pc => pc.Player)
-            .ThenInclude(p => p.PlayerPositions)
-            .Include(pc => pc.CategoryRatings)
-            .ThenInclude(cr => cr.DrillCategory)
-            .FirstOrDefaultAsync(pc => pc.PlayerId == playerId);
-
-            if (playerCard is null || _invalidationList.TryConsume(playerId))
+            // Check the invalidation list BEFORE running any DB query.
+            // If the card is stale we skip the expensive eager-load entirely and go
+            // straight to recalculate → project, saving one heavy round-trip.
+            if (_invalidationList.TryConsume(playerId))
             {
+                _logger.LogInformation(
+                    "Player card for player {PlayerId} is invalidated — recalculating before serving",
+                    playerId);
+
+                await RecalculatePlayerCardAsync(playerId);
+
+                var dto = await ProjectPlayerCardDtoAsync(playerId);
+                if (dto is null)
+                    throw new NotFoundException($"Player card for player {playerId} was not found");
+
+                return dto;
+            }
+
+            // Happy path: card exists and is fresh — one query with all needed includes.
+            var playerCard = await _unitOfWork.Repository<PlayerCard>()
+                .GetQueryableAsNoTracking()
+                .Include(pc => pc.Player)
+                    .ThenInclude(p => p.PlayerPositions)
+                .Include(pc => pc.CategoryRatings)
+                    .ThenInclude(cr => cr.DrillCategory)
+                .FirstOrDefaultAsync(pc => pc.PlayerId == playerId);
+
+            // First-time calculation: no card exists yet for this player.
+            if (playerCard is null)
+            {
+                _logger.LogInformation(
+                    "No player card found for player {PlayerId} — calculating for the first time",
+                    playerId);
+
                 await RecalculatePlayerCardAsync(playerId);
 
                 var dto = await ProjectPlayerCardDtoAsync(playerId);
@@ -92,15 +116,10 @@ namespace Koralytics.Application.Services.Player.PlayerCardService
                 playerId,
                 targetCategories);
 
-            var trainingMatchCategoryAvgs =
-                await GetTrainingMatchAggregatesAsync(
-                    playerId,
-                    targetCategories);
-
-            var tournamentMatchCategoryAvgs =
-                await GetTournamentMatchAggregatesAsync(
-                    playerId,
-                    targetCategories);
+            // Single round-trip for both training and tournament ratings.
+            // Splitting happens in memory after the fetch (data set is small per player).
+            var (trainingMatchCategoryAvgs, tournamentMatchCategoryAvgs) =
+                await GetMatchAggregatesAsync(playerId, targetCategories);
 
             var ratingLookups = BuildRatingLookups(
                 categoryDrillAvgs,
@@ -204,12 +223,45 @@ namespace Koralytics.Application.Services.Player.PlayerCardService
         {
             _logger.LogInformation("Revealing archetype name for player {PlayerId}", playerId);
 
-            var player = await _unitOfWork.Repository<PlayerEntity>()
-                .GetQueryable()
-                .FirstOrDefaultAsync(p => p.Id == playerId);
+            // Load PlayerCard with its Player (tracked, for saving archetype fields later)
+            // in a single round-trip. Previously: loaded player entity alone, then called
+            // GetPlayerCardAsync which loaded Player + Card + Positions + CategoryRatings again
+            // internally — two DB queries returning the same data.
+            var playerCard = await _unitOfWork.Repository<PlayerCard>()
+                .GetQueryable()                          // tracked — Player.Archetype* fields are modified below
+                .Include(pc => pc.Player)
+                    .ThenInclude(p => p.PlayerPositions)
+                .Include(pc => pc.CategoryRatings)
+                    .ThenInclude(cr => cr.DrillCategory)
+                .FirstOrDefaultAsync(pc => pc.PlayerId == playerId);
 
-            if (player is null)
-                throw new NotFoundException($"Player with id {playerId} was not found");
+            if (playerCard is null)
+            {
+                // No card exists yet: verify the player exists, run first-time
+                // calculation, then re-read with all required navigations.
+                var playerEntity = await _unitOfWork.Repository<PlayerEntity>()
+                    .GetQueryable()
+                    .FirstOrDefaultAsync(p => p.Id == playerId);
+
+                if (playerEntity is null)
+                    throw new NotFoundException($"Player with id {playerId} was not found");
+
+                await RecalculatePlayerCardAsync(playerId);
+
+                playerCard = await _unitOfWork.Repository<PlayerCard>()
+                    .GetQueryable()
+                    .Include(pc => pc.Player)
+                        .ThenInclude(p => p.PlayerPositions)
+                    .Include(pc => pc.CategoryRatings)
+                        .ThenInclude(cr => cr.DrillCategory)
+                    .FirstOrDefaultAsync(pc => pc.PlayerId == playerId)
+                    ?? throw new NotFoundException($"Player card for player {playerId} was not found");
+            }
+
+            // Extract the tracked player and build the DTO from the already-loaded card —
+            // no extra GetPlayerCardAsync call or duplicate DB round-trip.
+            var player  = playerCard.Player;
+            var cardDto = MapToDto(playerCard);
 
             if (player.ArchetypeLastRevealedAt.HasValue &&
                 (DateTime.UtcNow - player.ArchetypeLastRevealedAt.Value) < TimeSpan.FromDays(7) &&
@@ -222,14 +274,12 @@ namespace Koralytics.Application.Services.Player.PlayerCardService
 
                 return new PlayerArchetypeDto
                 {
-                    PlayerId = playerId,
+                    PlayerId            = playerId,
                     ArchetypePlayerName = player.ArchetypePlayerName,
-                    ArchetypeText = player.ArchetypeText ?? string.Empty,
+                    ArchetypeText       = player.ArchetypeText ?? string.Empty,
                     ArchetypeLastRevealedAt = player.ArchetypeLastRevealedAt
                 };
             }
-
-            var cardDto = await GetPlayerCardAsync(playerId);
 
             var isGoalkeeper = string.Equals(cardDto.Position, "GK", StringComparison.OrdinalIgnoreCase);
 
@@ -517,50 +567,60 @@ MANDATORY EA SPORTS FC 26 (FC 26) RULES:
                 })
                 .ToListAsync();
         }
-        private async Task<List<PlayerCardCalculator.CategoryAggregate>> GetTrainingMatchAggregatesAsync(int playerId,string[] targetCategories)
+        /// <summary>
+        /// Fetches training (Friendly + Session) and tournament match category ratings
+        /// in a single DB round-trip, then splits and aggregates in memory.
+        /// Reduces RecalculatePlayerCardAsync from 3 sequential queries to 2.
+        /// </summary>
+        private async Task<(List<PlayerCardCalculator.CategoryAggregate> Training,
+                             List<PlayerCardCalculator.CategoryAggregate> Tournament)>
+            GetMatchAggregatesAsync(int playerId, string[] targetCategories)
         {
-            return await _unitOfWork.Repository<MatchPlayerCategoryRating>()
+            // One query covering all relevant match types.
+            var raw = await _unitOfWork.Repository<MatchPlayerCategoryRating>()
                 .GetQueryableAsNoTracking()
                 .Where(cr =>
                     cr.MatchPlayerRating.PlayerId == playerId &&
-                    (cr.MatchPlayerRating.Match.Type == Domain.Enums.MatchType.Friendly ||
-                     cr.MatchPlayerRating.Match.Type == Domain.Enums.MatchType.Session) &&
+                    (cr.MatchPlayerRating.Match.Type == Domain.Enums.MatchType.Friendly  ||
+                     cr.MatchPlayerRating.Match.Type == Domain.Enums.MatchType.Session   ||
+                     cr.MatchPlayerRating.Match.Type == Domain.Enums.MatchType.Tournament) &&
                     targetCategories.Contains(cr.DrillCategory.Name))
-                .GroupBy(cr => new
+                .Select(cr => new
                 {
                     cr.DrillCategoryId,
-                    cr.DrillCategory.Name
+                    cr.DrillCategory.Name,
+                    IsTraining =
+                        cr.MatchPlayerRating.Match.Type == Domain.Enums.MatchType.Friendly ||
+                        cr.MatchPlayerRating.Match.Type == Domain.Enums.MatchType.Session,
+                    cr.Rating
                 })
+                .ToListAsync();
+
+            var training = raw
+                .Where(x => x.IsTraining)
+                .GroupBy(x => new { x.DrillCategoryId, x.Name })
                 .Select(g => new PlayerCardCalculator.CategoryAggregate
                 {
                     CategoryId = g.Key.DrillCategoryId,
-                    Name = g.Key.Name,
-                    Avg = g.Average(x => x.Rating) * 10m,
-                    Count = g.Count()
+                    Name       = g.Key.Name,
+                    Avg        = g.Average(x => x.Rating) * 10m,
+                    Count      = g.Count()
                 })
-                .ToListAsync();
-        }
-        private async Task<List<PlayerCardCalculator.CategoryAggregate>> GetTournamentMatchAggregatesAsync(int playerId,string[] targetCategories)
-        {
-            return await _unitOfWork.Repository<MatchPlayerCategoryRating>()
-                .GetQueryableAsNoTracking()
-                .Where(cr =>
-                    cr.MatchPlayerRating.PlayerId == playerId &&
-                    cr.MatchPlayerRating.Match.Type == Domain.Enums.MatchType.Tournament &&
-                    targetCategories.Contains(cr.DrillCategory.Name))
-                .GroupBy(cr => new
-                {
-                    cr.DrillCategoryId,
-                    cr.DrillCategory.Name
-                })
+                .ToList();
+
+            var tournament = raw
+                .Where(x => !x.IsTraining)
+                .GroupBy(x => new { x.DrillCategoryId, x.Name })
                 .Select(g => new PlayerCardCalculator.CategoryAggregate
                 {
                     CategoryId = g.Key.DrillCategoryId,
-                    Name = g.Key.Name,
-                    Avg = g.Average(x => x.Rating) * 10m,
-                    Count = g.Count()
+                    Name       = g.Key.Name,
+                    Avg        = g.Average(x => x.Rating) * 10m,
+                    Count      = g.Count()
                 })
-                .ToListAsync();
+                .ToList();
+
+            return (training, tournament);
         }
         private static PlayerCardCalculator.RatingLookups BuildRatingLookups(List<PlayerCardCalculator.CategoryAggregate> drillAggregates,
             List<PlayerCardCalculator.CategoryAggregate> trainingAggregates,

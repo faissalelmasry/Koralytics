@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, ChangeDetectorRef, DestroyRef } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, ChangeDetectorRef, DestroyRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -42,7 +42,8 @@ import { TranslatePipe } from '@ngx-translate/core';
     TranslatePipe
   ],
   templateUrl: './player-highlights.component.html',
-  styleUrls: ['./player-highlights.component.css']
+  styleUrls: ['./player-highlights.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PlayerHighlightsComponent implements OnInit {
   private route = inject(ActivatedRoute);
@@ -69,14 +70,39 @@ export class PlayerHighlightsComponent implements OnInit {
   error = signal('');
 
   // Pagination State
-  currentPage = 1;
+  currentPageSignal = signal(1);
   pageSize = 6;
+
+  // Computed Signal Values
+  totalItems = computed(() => this.highlights().length);
+  pinnedCount = computed(() => this.highlights().filter(h => h.isPinned).length);
+  paginatedHighlights = computed(() => {
+    const startIndex = (this.currentPageSignal() - 1) * this.pageSize;
+    return this.highlights().slice(startIndex, startIndex + this.pageSize);
+  });
+
+  get currentPage(): number {
+    return this.currentPageSignal();
+  }
+
+  set currentPage(page: number) {
+    this.currentPageSignal.set(page);
+  }
 
   // Upload State
   selectedFile: File | null = null;
   highlightTitle = '';
   uploading = signal(false);
   uploadError = signal('');
+  imageError = false;
+
+  // Memoized Header Fields
+  fullName = 'Player Highlights';
+  initials = 'PH';
+  academyName = 'Koralytics';
+  statusLabel = 'Available';
+  statusClass = 'status-available';
+  profileImageUrl: string | null = null;
 
   ngOnInit(): void {
     const user = this.tokenStorage.getUser() || this.authService.getCurrentUserSync();
@@ -98,6 +124,7 @@ export class PlayerHighlightsComponent implements OnInit {
       this.loadHighlights();
     } else {
       this.error.set('Authentication or Player ID required.');
+      this.cdr.markForCheck();
     }
   }
 
@@ -107,7 +134,8 @@ export class PlayerHighlightsComponent implements OnInit {
       .subscribe({
         next: (prof) => {
           this.profile = prof;
-          this.cdr.detectChanges();
+          this.computeProfileDerivedState();
+          this.cdr.markForCheck();
         },
         error: (err) => {
           console.warn('Could not load full profile header metadata:', err);
@@ -115,11 +143,52 @@ export class PlayerHighlightsComponent implements OnInit {
       });
   }
 
+  private computeProfileDerivedState() {
+    if (!this.profile) {
+      this.fullName = 'Player Highlights';
+      this.initials = 'PH';
+      this.academyName = 'Koralytics';
+      this.statusLabel = 'Available';
+      this.statusClass = 'status-available';
+      this.profileImageUrl = null;
+      return;
+    }
+
+    this.fullName = `${this.profile.firstName} ${this.profile.lastName}`;
+    const f = this.profile.firstName?.charAt(0) || '';
+    const l = this.profile.lastName?.charAt(0) || '';
+    this.initials = `${f}${l}`.toUpperCase() || 'PH';
+    this.academyName = this.profile.currentAcademy?.academyName ?? 'Koralytics';
+    this.profileImageUrl = this.profile.profileImageUrl || this.profile.playerCard?.profileImageUrl || null;
+
+    const status = this.profile.availabilityStatus;
+    if (status === undefined || status === null) {
+      this.statusLabel = 'Available';
+    } else if (typeof status === 'number') {
+      switch (status) {
+        case 1: this.statusLabel = 'Available'; break;
+        case 2: this.statusLabel = 'Injured'; break;
+        case 3: this.statusLabel = 'Resting'; break;
+        case 4: this.statusLabel = 'Suspended'; break;
+        default: this.statusLabel = 'Available'; break;
+      }
+    } else {
+      this.statusLabel = String(status);
+    }
+
+    const lowerLabel = this.statusLabel.toLowerCase();
+    if (lowerLabel === 'injured') this.statusClass = 'status-injured';
+    else if (lowerLabel === 'resting') this.statusClass = 'status-resting';
+    else if (lowerLabel === 'suspended') this.statusClass = 'status-suspended';
+    else this.statusClass = 'status-available';
+  }
+
   loadHighlights(): void {
     if (!this.playerId) return;
 
     this.loading.set(true);
     this.error.set('');
+    this.cdr.markForCheck();
 
     this.highlightService.getHighlights(this.playerId)
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -127,28 +196,20 @@ export class PlayerHighlightsComponent implements OnInit {
         next: (data) => {
           this.highlights.set(data);
           this.loading.set(false);
-          this.cdr.detectChanges();
+          this.cdr.markForCheck();
         },
         error: (err) => {
           this.error.set(err?.error?.message || 'Failed to load highlights.');
           this.loading.set(false);
-          this.cdr.detectChanges();
+          this.cdr.markForCheck();
         }
       });
   }
 
-  // ── Pagination Getters & Handlers ──
-  get totalItems(): number {
-    return this.highlights().length;
-  }
-
-  get paginatedHighlights(): PlayerHighlightDto[] {
-    const startIndex = (this.currentPage - 1) * this.pageSize;
-    return this.highlights().slice(startIndex, startIndex + this.pageSize);
-  }
-
+  // ── Pagination Handlers ──
   onPageChange(page: number): void {
-    this.currentPage = page;
+    this.currentPageSignal.set(page);
+    this.cdr.markForCheck();
     window.scrollTo({ top: 300, behavior: 'smooth' });
   }
 
@@ -156,6 +217,7 @@ export class PlayerHighlightsComponent implements OnInit {
   onFileSelected(file: File): void {
     this.selectedFile = file;
     this.uploadError.set('');
+    this.cdr.markForCheck();
   }
 
   uploadHighlight(): void {
@@ -163,6 +225,7 @@ export class PlayerHighlightsComponent implements OnInit {
 
     this.uploading.set(true);
     this.uploadError.set('');
+    this.cdr.markForCheck();
     const targetPlayerId = this.playerId;
 
     this.highlightService.uploadHighlight(this.playerId, this.selectedFile, this.highlightTitle)
@@ -173,12 +236,13 @@ export class PlayerHighlightsComponent implements OnInit {
           this.selectedFile = null;
           this.highlightTitle = '';
           this.uploading.set(false);
-          this.currentPage = 1;
+          this.currentPageSignal.set(1);
           this.loadHighlights();
 
           if (targetPlayerId) {
             const scouterMessage = `Player #${targetPlayerId} has posted a new highlight video.`;
             this.notificationService.notifyScouterFollowers(targetPlayerId, scouterMessage)
+              .pipe(takeUntilDestroyed(this.destroyRef))
               .subscribe({
                 error: (e) => console.error('Failed to notify scouter followers about new highlight', e)
               });
@@ -188,6 +252,7 @@ export class PlayerHighlightsComponent implements OnInit {
           this.uploadError.set(err?.error?.message || 'Failed to upload highlight.');
           this.uploading.set(false);
           this.toastService.show('Failed to upload highlight.', 'error');
+          this.cdr.markForCheck();
         }
       });
   }
@@ -213,13 +278,14 @@ export class PlayerHighlightsComponent implements OnInit {
           this.highlights.update(list => list.filter(h => h.id !== highlightId));
           this.toastService.show('Highlight deleted successfully.', 'success');
 
-          // Adjust page if current page becomes empty
-          if (this.paginatedHighlights.length === 0 && this.currentPage > 1) {
-            this.currentPage--;
+          if (this.paginatedHighlights().length === 0 && this.currentPageSignal() > 1) {
+            this.currentPageSignal.update(p => p - 1);
           }
+          this.cdr.markForCheck();
         },
         error: (err) => {
           this.toastService.show(err?.error?.message || 'Failed to delete highlight.', 'error');
+          this.cdr.markForCheck();
         }
       });
   }
@@ -236,6 +302,7 @@ export class PlayerHighlightsComponent implements OnInit {
         },
         error: (err) => {
           this.toastService.show(err?.error?.message || 'Failed to pin highlight.', 'error');
+          this.cdr.markForCheck();
         }
       });
   }
@@ -268,6 +335,7 @@ export class PlayerHighlightsComponent implements OnInit {
               },
               error: (err) => {
                 this.toastService.show(err?.error?.message || 'Failed to unpin highlight.', 'error');
+                this.cdr.markForCheck();
               }
             });
         }
@@ -301,55 +369,5 @@ export class PlayerHighlightsComponent implements OnInit {
       this.toastService.show('Failed to copy video link.', 'error');
     }
     document.body.removeChild(textArea);
-  }
-
-  imageError = false;
-
-  get profileImageUrl(): string | null {
-    return this.profile?.profileImageUrl || this.profile?.playerCard?.profileImageUrl || null;
-  }
-
-  // ── Computed Display Getters ──
-  get fullName(): string {
-    if (!this.profile) return 'Player Highlights';
-    return `${this.profile.firstName} ${this.profile.lastName}`;
-  }
-
-  get initials(): string {
-    if (!this.profile) return 'PH';
-    const f = this.profile.firstName?.charAt(0) || '';
-    const l = this.profile.lastName?.charAt(0) || '';
-    return `${f}${l}`.toUpperCase() || 'PH';
-  }
-
-  get academyName(): string {
-    return this.profile?.currentAcademy?.academyName ?? 'Koralytics';
-  }
-
-  get statusLabel(): string {
-    const status = this.profile?.availabilityStatus;
-    if (status === undefined || status === null) return 'Available';
-    if (typeof status === 'number') {
-      switch (status) {
-        case 1: return 'Available';
-        case 2: return 'Injured';
-        case 3: return 'Resting';
-        case 4: return 'Suspended';
-        default: return 'Available';
-      }
-    }
-    return String(status);
-  }
-
-  get statusClass(): string {
-    const label = this.statusLabel.toLowerCase();
-    if (label === 'injured') return 'status-injured';
-    if (label === 'resting') return 'status-resting';
-    if (label === 'suspended') return 'status-suspended';
-    return 'status-available';
-  }
-
-  get pinnedCount(): number {
-    return this.highlights().filter(h => h.isPinned).length;
   }
 }

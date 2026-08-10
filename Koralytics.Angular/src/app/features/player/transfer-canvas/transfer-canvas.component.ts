@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslatePipe } from '@ngx-translate/core';
 
@@ -7,9 +7,10 @@ import { TranslatePipe } from '@ngx-translate/core';
   standalone: true,
   imports: [CommonModule, TranslatePipe],
   templateUrl: './transfer-canvas.component.html',
-  styleUrls: ['./transfer-canvas.component.css']
+  styleUrls: ['./transfer-canvas.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TransferCanvasComponent {
+export class TransferCanvasComponent implements OnInit, OnChanges {
 
   @Input() overallTrainingAvg: number = 0;
   @Input() overallTournamentAvg: number = 0;
@@ -24,76 +25,82 @@ export class TransferCanvasComponent {
     Developing:   { left: 25, top: 75 },
   };
 
-  get displayClassification(): string {
-    if (!this.transferClassification) return '';
-    if (this.transferClassification === 'Natural') return 'Expert';
-    return this.transferClassification;
+  displayClassification = '';
+  displayClassificationKey = 'PLAYER.PLAYER';
+  nodeLeft = '50%';
+  nodeTop = '50%';
+  nodeColor = '#6b7280';
+  classificationGlow = 'rgba(107,114,128,0.3)';
+  drillIndex = 0;
+  matchIndex = 0;
+  transferGap = 0;
+  transferEfficiency = '0%';
+  efficiencyColor = '#6b7280';
+
+  ngOnInit() {
+    this.computeState();
   }
 
-  get displayClassificationKey(): string {
-    const cls = this.displayClassification;
-    if (!cls) return 'PLAYER.PLAYER';
-    if (cls === 'NeedsWork') return 'PLAYER.NEEDS_WORK';
-    return 'PLAYER.' + cls.toUpperCase();
+  ngOnChanges(changes: SimpleChanges) {
+    this.computeState();
   }
 
-  get nodeLeft(): string {
-    const pos = this.positionMap[this.transferClassification] || this.positionMap[this.displayClassification];
-    return pos ? `${pos.left}%` : '50%';
-  }
-
-  get nodeTop(): string {
-    const pos = this.positionMap[this.transferClassification] || this.positionMap[this.displayClassification];
-    return pos ? `${pos.top}%` : '50%';
-  }
-
-  get nodeColor(): string {
-    switch (this.transferClassification) {
-      case 'Elite': return '#38bdf8';
-      case 'Natural':
-      case 'Expert': return '#a3e635';
-      case 'Trainable': return '#facc15';
-      case 'NeedsWork':
-      case 'Developing': return '#f87171';
-      default: return '#6b7280';
+  private computeState() {
+    if (!this.transferClassification) {
+      this.displayClassification = '';
+      this.displayClassificationKey = 'PLAYER.PLAYER';
+    } else if (this.transferClassification === 'Natural') {
+      this.displayClassification = 'Expert';
+      this.displayClassificationKey = 'PLAYER.EXPERT';
+    } else {
+      this.displayClassification = this.transferClassification;
+      if (this.transferClassification === 'NeedsWork') {
+        this.displayClassificationKey = 'PLAYER.NEEDS_WORK';
+      } else {
+        this.displayClassificationKey = 'PLAYER.' + this.transferClassification.toUpperCase();
+      }
     }
-  }
 
-  get classificationGlow(): string {
+    const pos = this.positionMap[this.transferClassification] || this.positionMap[this.displayClassification];
+    this.nodeLeft = pos ? `${pos.left}%` : '50%';
+    this.nodeTop = pos ? `${pos.top}%` : '50%';
+
     switch (this.transferClassification) {
-      case 'Elite': return 'rgba(56,189,248,0.5)';
+      case 'Elite':
+        this.nodeColor = '#38bdf8';
+        this.classificationGlow = 'rgba(56,189,248,0.5)';
+        break;
       case 'Natural':
-      case 'Expert': return 'rgba(163,230,53,0.5)';
-      case 'Trainable': return 'rgba(250,204,21,0.5)';
+      case 'Expert':
+        this.nodeColor = '#a3e635';
+        this.classificationGlow = 'rgba(163,230,53,0.5)';
+        break;
+      case 'Trainable':
+        this.nodeColor = '#facc15';
+        this.classificationGlow = 'rgba(250,204,21,0.5)';
+        break;
       case 'NeedsWork':
-      case 'Developing': return 'rgba(248,113,113,0.4)';
-      default: return 'rgba(107,114,128,0.3)';
+      case 'Developing':
+        this.nodeColor = '#f87171';
+        this.classificationGlow = 'rgba(248,113,113,0.4)';
+        break;
+      default:
+        this.nodeColor = '#6b7280';
+        this.classificationGlow = 'rgba(107,114,128,0.3)';
+        break;
     }
-  }
 
-  get drillIndex(): number {
-    return Math.round(this.overallTrainingAvg);
-  }
+    this.drillIndex = Math.round(this.overallTrainingAvg);
+    this.matchIndex = Math.round(this.overallTournamentAvg);
+    this.transferGap = Math.round(this.overallTournamentAvg - this.overallTrainingAvg);
 
-  get matchIndex(): number {
-    return Math.round(this.overallTournamentAvg);
-  }
-
-  get transferGap(): number {
-    return Math.round(this.overallTournamentAvg - this.overallTrainingAvg);
-  }
-
-  get transferEfficiency(): string {
     const gap = this.transferGap;
-    if (gap > 0) return `+${gap}%`;
-    return `${gap}%`;
-  }
+    if (gap > 0) this.transferEfficiency = `+${gap}%`;
+    else this.transferEfficiency = `${gap}%`;
 
-  get efficiencyColor(): string {
-    const gap = this.transferGap;
-    if (gap > 10) return '#a3e635';
-    if (gap > 0) return '#38bdf8';
-    if (gap >= -10) return '#facc15';
-    return '#f87171';
+    if (gap > 10) this.efficiencyColor = '#a3e635';
+    else if (gap > 0) this.efficiencyColor = '#38bdf8';
+    else if (gap >= -10) this.efficiencyColor = '#facc15';
+    else this.efficiencyColor = '#f87171';
   }
 }

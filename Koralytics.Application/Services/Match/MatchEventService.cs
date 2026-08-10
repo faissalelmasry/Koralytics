@@ -51,13 +51,49 @@ namespace Koralytics.Application.Services.Match
             if (dto.TeamId != match.HomeTeamId && dto.TeamId != match.AwayTeamId)
                 throw new BadRequestException("TeamId must be either the home team or the away team.");
 
-            var isInLineup = await _unitOfWork.Repository<MatchLineupEntity>()
-                .ExistsAsync(ml => ml.MatchId == matchId
-                    && ml.PlayerId == dto.PlayerId
-                    && ml.TeamId == dto.TeamId);
+            // Red Card Check: Check if player has already received a Red Card or 2 Yellow Cards in this match
+            var playerCards = await _unitOfWork.Repository<MatchEventEntity>()
+                .GetQueryableAsNoTracking()
+                .Where(e => e.MatchId == matchId && e.PlayerId == dto.PlayerId
+                    && (e.EventType == DomainEnums.MatchEventType.RedCard || e.EventType == DomainEnums.MatchEventType.YellowCard))
+                .Select(e => e.EventType)
+                .ToListAsync();
 
-            if (!isInLineup)
+            var hasRedCard = playerCards.Contains(DomainEnums.MatchEventType.RedCard) || playerCards.Count(c => c == DomainEnums.MatchEventType.YellowCard) >= 2;
+            if (hasRedCard)
+                throw new BadRequestException($"Player {dto.PlayerId} has received a Red Card and cannot participate further in match {matchId}.");
+
+            // Query lineups for player and assist player in one query
+            var targetPlayerIds = dto.AssistPlayerId.HasValue
+                ? new[] { dto.PlayerId, dto.AssistPlayerId.Value }
+                : new[] { dto.PlayerId };
+
+            var lineups = await _unitOfWork.Repository<MatchLineupEntity>()
+                .GetQueryableAsNoTracking()
+                .Include(ml => ml.Player)
+                .Include(ml => ml.Team)
+                .Where(ml => ml.MatchId == matchId && targetPlayerIds.Contains(ml.PlayerId))
+                .ToListAsync();
+
+            var playerLineup = lineups.FirstOrDefault(ml => ml.PlayerId == dto.PlayerId && ml.TeamId == dto.TeamId);
+            if (playerLineup is null)
                 throw new BadRequestException($"Player {dto.PlayerId} is not in the lineup for team {dto.TeamId}.");
+
+            string? assistPlayerName = null;
+            if (dto.AssistPlayerId.HasValue)
+            {
+                var assistLineup = lineups.FirstOrDefault(ml => ml.PlayerId == dto.AssistPlayerId.Value);
+                if (assistLineup != null)
+                {
+                    assistPlayerName = $"{assistLineup.Player.FirstName} {assistLineup.Player.LastName}".Trim();
+                }
+                else
+                {
+                    var assistPlayer = await _unitOfWork.Repository<Koralytics.Domain.Entities.Player.Player>()
+                        .FindAsNoTrackingAsync(p => p.Id == dto.AssistPlayerId.Value);
+                    assistPlayerName = assistPlayer != null ? $"{assistPlayer.FirstName} {assistPlayer.LastName}".Trim() : null;
+                }
+            }
 
             var matchEvent = _mapper.Map<MatchEventEntity>(dto);
             matchEvent.MatchId = matchId;
@@ -91,45 +127,27 @@ namespace Koralytics.Application.Services.Match
                     match.AwayPenaltyScore++;
             }
 
-            if (dto.EventType == DomainEnums.MatchEventType.Substitution)
-            {
-                if (!dto.AssistPlayerId.HasValue)
-                    throw new BadRequestException("Substitution event requires an AssistPlayerId representing the incoming player.");
-
-                var subOutLineup = await _unitOfWork.Repository<MatchLineupEntity>()
-                    .GetQueryable()
-                    .FirstOrDefaultAsync(ml => ml.MatchId == matchId && ml.PlayerId == dto.PlayerId && ml.TeamId == dto.TeamId);
-
-                var subInLineup = await _unitOfWork.Repository<MatchLineupEntity>()
-                    .GetQueryable()
-                    .FirstOrDefaultAsync(ml => ml.MatchId == matchId && ml.PlayerId == dto.AssistPlayerId.Value && ml.TeamId == dto.TeamId);
-
-                if (subOutLineup != null && subInLineup != null)
-                {
-                    var outPosition = subOutLineup.PositionInMatch;
-                    subOutLineup.IsStarting = false;
-                    subOutLineup.PositionInMatch = "SUB";
-
-                    subInLineup.IsStarting = true;
-                    if (!string.IsNullOrEmpty(outPosition))
-                        subInLineup.PositionInMatch = outPosition;
-                }
-            }
-
             await _unitOfWork.SaveChangesAsync();
-
-            var created = await _unitOfWork.Repository<MatchEventEntity>()
-                .GetQueryableAsNoTracking()
-                .Include(e => e.Team)
-                .Include(e => e.Player)
-                .Include(e => e.AssistPlayer)
-                .FirstOrDefaultAsync(e => e.Id == matchEvent.Id);
 
             _logger.LogInformation(
                 "Match event logged: {EventType} at minute {Minute} for match {MatchId}",
                 dto.EventType, dto.Minute, matchId);
 
-            var responseDto = _mapper.Map<MatchEventResponseDto>(created!);
+            // Construct response DTO directly without extra post-insert DB re-query
+            var responseDto = new MatchEventResponseDto
+            {
+                Id = matchEvent.Id,
+                MatchId = matchId,
+                TeamId = dto.TeamId,
+                TeamName = playerLineup.Team?.Name ?? string.Empty,
+                PlayerId = dto.PlayerId,
+                PlayerName = $"{playerLineup.Player.FirstName} {playerLineup.Player.LastName}".Trim(),
+                AssistPlayerId = dto.AssistPlayerId,
+                AssistPlayerName = assistPlayerName,
+                EventType = dto.EventType.ToString(),
+                Minute = dto.Minute,
+                IsHomeSide = dto.TeamId == match.HomeTeamId
+            };
 
             await _liveUpdateService.BroadcastMatchEventAsync(new LiveMatchEventUpdateDto
             {
@@ -169,14 +187,50 @@ namespace Koralytics.Application.Services.Match
             if (match.Status != DomainEnums.MatchStatus.Live)
                 throw new BadRequestException("Match events can only be logged while the match is live.");
 
-            var isInLineup = await _unitOfWork.Repository<MatchLineupEntity>()
-                .ExistsAsync(ml => ml.MatchId == matchId
-                    && ml.PlayerId == dto.PlayerId
-                    && ml.IsHomeSide == dto.IsHomeSide);
+            // Red Card Check: Check if player has already received a Red Card or 2 Yellow Cards in this match
+            var playerCards = await _unitOfWork.Repository<MatchEventEntity>()
+                .GetQueryableAsNoTracking()
+                .Where(e => e.MatchId == matchId && e.PlayerId == dto.PlayerId
+                    && (e.EventType == DomainEnums.MatchEventType.RedCard || e.EventType == DomainEnums.MatchEventType.YellowCard))
+                .Select(e => e.EventType)
+                .ToListAsync();
 
-            if (!isInLineup)
+            var hasRedCard = playerCards.Contains(DomainEnums.MatchEventType.RedCard) || playerCards.Count(c => c == DomainEnums.MatchEventType.YellowCard) >= 2;
+            if (hasRedCard)
+                throw new BadRequestException($"Player {dto.PlayerId} has received a Red Card and cannot participate further in match {matchId}.");
+
+            // Query lineups for player and assist player in one query
+            var targetPlayerIds = dto.AssistPlayerId.HasValue
+                ? new[] { dto.PlayerId, dto.AssistPlayerId.Value }
+                : new[] { dto.PlayerId };
+
+            var lineups = await _unitOfWork.Repository<MatchLineupEntity>()
+                .GetQueryableAsNoTracking()
+                .Include(ml => ml.Player)
+                .Include(ml => ml.Team)
+                .Where(ml => ml.MatchId == matchId && targetPlayerIds.Contains(ml.PlayerId))
+                .ToListAsync();
+
+            var playerLineup = lineups.FirstOrDefault(ml => ml.PlayerId == dto.PlayerId && ml.IsHomeSide == dto.IsHomeSide);
+            if (playerLineup is null)
                 throw new BadRequestException(
                     $"Player {dto.PlayerId} is not in the {(dto.IsHomeSide ? "home" : "away")} side lineup.");
+
+            string? assistPlayerName = null;
+            if (dto.AssistPlayerId.HasValue)
+            {
+                var assistLineup = lineups.FirstOrDefault(ml => ml.PlayerId == dto.AssistPlayerId.Value);
+                if (assistLineup != null)
+                {
+                    assistPlayerName = $"{assistLineup.Player.FirstName} {assistLineup.Player.LastName}".Trim();
+                }
+                else
+                {
+                    var assistPlayer = await _unitOfWork.Repository<Koralytics.Domain.Entities.Player.Player>()
+                        .FindAsNoTrackingAsync(p => p.Id == dto.AssistPlayerId.Value);
+                    assistPlayerName = assistPlayer != null ? $"{assistPlayer.FirstName} {assistPlayer.LastName}".Trim() : null;
+                }
+            }
 
             var matchEvent = new MatchEventEntity
             {
@@ -218,45 +272,27 @@ namespace Koralytics.Application.Services.Match
                     match.AwayPenaltyScore++;
             }
 
-            if (dto.EventType == DomainEnums.MatchEventType.Substitution)
-            {
-                if (!dto.AssistPlayerId.HasValue)
-                    throw new BadRequestException("Substitution event requires an AssistPlayerId representing the incoming player.");
-
-                var subOutLineup = await _unitOfWork.Repository<MatchLineupEntity>()
-                    .GetQueryable()
-                    .FirstOrDefaultAsync(ml => ml.MatchId == matchId && ml.PlayerId == dto.PlayerId && ml.IsHomeSide == dto.IsHomeSide);
-
-                var subInLineup = await _unitOfWork.Repository<MatchLineupEntity>()
-                    .GetQueryable()
-                    .FirstOrDefaultAsync(ml => ml.MatchId == matchId && ml.PlayerId == dto.AssistPlayerId.Value && ml.IsHomeSide == dto.IsHomeSide);
-
-                if (subOutLineup != null && subInLineup != null)
-                {
-                    var outPosition = subOutLineup.PositionInMatch;
-                    subOutLineup.IsStarting = false;
-                    subOutLineup.PositionInMatch = "SUB";
-
-                    subInLineup.IsStarting = true;
-                    if (!string.IsNullOrEmpty(outPosition))
-                        subInLineup.PositionInMatch = outPosition;
-                }
-            }
-
             await _unitOfWork.SaveChangesAsync();
-
-            var created = await _unitOfWork.Repository<MatchEventEntity>()
-                .GetQueryableAsNoTracking()
-                .Include(e => e.Team)
-                .Include(e => e.Player)
-                .Include(e => e.AssistPlayer)
-                .FirstOrDefaultAsync(e => e.Id == matchEvent.Id);
 
             _logger.LogInformation(
                 "Session match event logged: {EventType} at minute {Minute} for match {MatchId}",
                 dto.EventType, dto.Minute, matchId);
 
-            var responseDto = _mapper.Map<MatchEventResponseDto>(created!);
+            // Construct response DTO directly without extra post-insert DB re-query
+            var responseDto = new MatchEventResponseDto
+            {
+                Id = matchEvent.Id,
+                MatchId = matchId,
+                TeamId = match.HomeTeamId,
+                TeamName = playerLineup.Team?.Name ?? string.Empty,
+                PlayerId = dto.PlayerId,
+                PlayerName = $"{playerLineup.Player.FirstName} {playerLineup.Player.LastName}".Trim(),
+                AssistPlayerId = dto.AssistPlayerId,
+                AssistPlayerName = assistPlayerName,
+                EventType = dto.EventType.ToString(),
+                Minute = dto.Minute,
+                IsHomeSide = dto.IsHomeSide
+            };
 
             await _liveUpdateService.BroadcastMatchEventAsync(new LiveMatchEventUpdateDto
             {
@@ -279,12 +315,6 @@ namespace Koralytics.Application.Services.Match
 
         public async Task<MatchTimelineResponseDto> GetMatchTimelineAsync(int matchId)
         {
-            var matchExists = await _unitOfWork.Repository<MatchEntity>()
-                .ExistsAsync(m => m.Id == matchId);
-
-            if (!matchExists)
-                throw new NotFoundException($"Match with Id {matchId} not found");
-
             var events = await _unitOfWork.Repository<MatchEventEntity>()
                 .GetQueryableAsNoTracking()
                 .Include(e => e.Team)
@@ -293,6 +323,15 @@ namespace Koralytics.Application.Services.Match
                 .Where(e => e.MatchId == matchId)
                 .OrderBy(e => e.Minute)
                 .ToListAsync();
+
+            if (events.Count == 0)
+            {
+                var matchExists = await _unitOfWork.Repository<MatchEntity>()
+                    .ExistsAsync(m => m.Id == matchId);
+
+                if (!matchExists)
+                    throw new NotFoundException($"Match with Id {matchId} not found");
+            }
 
             return new MatchTimelineResponseDto
             {

@@ -224,12 +224,6 @@ namespace Koralytics.Application.Services.Match
                 "Fetching incoming match requests for team {TeamId} (page={Page}, pageSize={PageSize}, status={Status})",
                 teamId, page, pageSize, status);
 
-            var teamExists = await _unitOfWork.Repository<Team>()
-                .ExistsAsync(t => t.Id == teamId);
-
-            if (!teamExists)
-                throw new NotFoundException($"Team with Id {teamId} not found");
-
             var query = _unitOfWork.Repository<MatchRequest>()
                 .GetQueryableAsNoTracking()
                 .Include(r => r.RequesterTeam)
@@ -254,6 +248,15 @@ namespace Koralytics.Application.Services.Match
                 query = query.Where(r => r.ProposedDate <= dateTo.Value);
 
             var totalCount = await query.CountAsync();
+
+            if (totalCount == 0)
+            {
+                var teamExists = await _unitOfWork.Repository<Team>()
+                    .ExistsAsync(t => t.Id == teamId);
+
+                if (!teamExists)
+                    throw new NotFoundException($"Team with Id {teamId} not found");
+            }
 
             var requests = await query
                 .OrderByDescending(r => r.CreatedAt)
@@ -282,12 +285,6 @@ namespace Koralytics.Application.Services.Match
                 "Fetching sent match requests from team {TeamId} (page={Page}, pageSize={PageSize}, status={Status})",
                 teamId, page, pageSize, status);
 
-            var teamExists = await _unitOfWork.Repository<Team>()
-                .ExistsAsync(t => t.Id == teamId);
-
-            if (!teamExists)
-                throw new NotFoundException($"Team with Id {teamId} not found");
-
             var query = _unitOfWork.Repository<MatchRequest>()
                 .GetQueryableAsNoTracking()
                 .Include(r => r.RequesterTeam)
@@ -309,6 +306,15 @@ namespace Koralytics.Application.Services.Match
                 query = query.Where(r => r.ProposedDate <= dateTo.Value);
 
             var totalCount = await query.CountAsync();
+
+            if (totalCount == 0)
+            {
+                var teamExists = await _unitOfWork.Repository<Team>()
+                    .ExistsAsync(t => t.Id == teamId);
+
+                if (!teamExists)
+                    throw new NotFoundException($"Team with Id {teamId} not found");
+            }
 
             var requests = await query
                 .OrderByDescending(r => r.CreatedAt)

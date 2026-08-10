@@ -75,9 +75,9 @@
           scrollReveal
           direction="bottom"
           [delay]="250 + i * 70"
-          [class.card-green]="getRatingColorClass(event) === 'score-green'"
-          [class.card-yellow]="getRatingColorClass(event) === 'score-yellow'"
-          [class.card-red]="getRatingColorClass(event) === 'score-red'"
+          [class.card-green]="event.ratingColorClass === 'score-green'"
+          [class.card-yellow]="event.ratingColorClass === 'score-yellow'"
+          [class.card-red]="event.ratingColorClass === 'score-red'"
           [class.motm-card]="event.isMOTM">
 
           @if (event.isMOTM) {
@@ -89,19 +89,19 @@
           <div class="card-left-info">
             <div class="meta-header">
               <span class="badge"
-                [class.win]="getOutcomeClass(event) === 'win'"
-                [class.draw]="getOutcomeClass(event) === 'draw'"
-                [class.loss]="getOutcomeClass(event) === 'loss'">
-                {{ ('PLAYER.OUTCOME_' + getOutcomeClass(event) | uppercase) | translate }}
+                [class.win]="event.outcomeClass === 'win'"
+                [class.draw]="event.outcomeClass === 'draw'"
+                [class.loss]="event.outcomeClass === 'loss'">
+                {{ event.outcomeTranslationKey | translate }}
               </span>
-              <span class="meta-date">{{ formatDate(event.date) }}</span>
+              <span class="meta-date">{{ event.formattedDate }}</span>
             </div>
             <div class="card-title">
               <span>{{ event.homeTeamName || ('PLAYER.HOME' | translate) }} {{ 'PLAYER.VS_LOWER' | translate }} {{ event.awayTeamName || ('PLAYER.AWAY' | translate) }}</span>
               <span
-                [class.score-green]="getOutcomeClass(event) === 'win'"
-                [class.score-yellow]="getOutcomeClass(event) === 'draw'"
-                [class.score-red]="getOutcomeClass(event) === 'loss'"
+                [class.score-green]="event.outcomeClass === 'win'"
+                [class.score-yellow]="event.outcomeClass === 'draw'"
+                [class.score-red]="event.outcomeClass === 'loss'"
                 style="margin-left: 8px;">
                 {{ event.homeScore }} - {{ event.awayScore }}
               </span>
@@ -129,7 +129,7 @@
 
             <div class="rating-box">
               <span class="stat-pill"><span class="lbl">{{ 'PLAYER.RATING' | translate }}</span></span>
-              <span class="rating-num" [ngClass]="getRatingColorClass(event)">
+              <span class="rating-num" [ngClass]="event.ratingColorClass">
                 {{ event.rating ? event.rating.toFixed(1) : ('PLAYER.NA' | translate) }}
               </span>
             </div>
