@@ -8,7 +8,7 @@ export class ScrollRevealDirective implements AfterViewInit, OnDestroy {
   @Input() direction: 'bottom' | 'left' | 'right' = 'bottom';
   @Input() delay: number = 0;
   @Input() threshold: number = 0.08;
-  @Input() once: boolean = false;
+  @Input() once: boolean = true;
 
   private observer?: IntersectionObserver;
   private host: HTMLElement;
@@ -26,7 +26,7 @@ export class ScrollRevealDirective implements AfterViewInit, OnDestroy {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             this.reveal();
-          } else {
+          } else if (!this.once) {
             this.host.classList.remove('revealed');
           }
         });

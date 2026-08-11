@@ -5,7 +5,8 @@ html, body {
   padding: 0;
   width: 100%;
   background-color: #06080a; 
-  overflow-x: hidden; 
+  overflow-x: clip;
+  touch-action: manipulation;
 }
 
 *, *::before, *::after {
