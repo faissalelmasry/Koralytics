@@ -390,20 +390,24 @@ namespace Koralytics.Application.Services.Match
 
             if (fixture != null)
             {
-                fixture.HomeScore = match.HomeScore;
-                fixture.AwayScore = match.AwayScore;
-                if (match.HomeScore > match.AwayScore)
-                    fixture.WinnerTeamId = fixture.HomeTeamId;
-                else if (match.AwayScore > match.HomeScore)
-                    fixture.WinnerTeamId = fixture.AwayTeamId;
-                else
-                    fixture.WinnerTeamId = null;
-                fixture.Status = MatchStatus.Completed;
-
-                await _unitOfWork.SaveChangesAsync();
-
                 if (fixture.GroupId.HasValue)
+                {
                     await _tournamentFixtureService.UpdateStandingsAsync(fixture.GroupId.Value, matchId);
+                }
+                else
+                {
+                    fixture.HomeScore = match.HomeScore;
+                    fixture.AwayScore = match.AwayScore;
+                    if (match.HomeScore > match.AwayScore)
+                        fixture.WinnerTeamId = fixture.HomeTeamId;
+                    else if (match.AwayScore > match.HomeScore)
+                        fixture.WinnerTeamId = fixture.AwayTeamId;
+                    else
+                        fixture.WinnerTeamId = null;
+                    fixture.Status = MatchStatus.Completed;
+
+                    await _unitOfWork.SaveChangesAsync();
+                }
             }
 
             _logger.LogInformation("Match {MatchId} ended. Score: {Home}-{Away}. Winner: {Winner}",

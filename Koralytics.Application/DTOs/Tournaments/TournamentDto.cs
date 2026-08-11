@@ -8,6 +8,7 @@ using Koralytics.Domain.Enums;
             public string Name { get; set; } = string.Empty;
             public MatchFormat Format { get; set; }
             public TournamentStructure Structure { get; set; }
+            public int AgeGroupId { get; set; }
             public string AgeGroupName { get; set; } = string.Empty;
             public bool HasTwoLegs { get; set; }
             public DateTime StartDate { get; set; }

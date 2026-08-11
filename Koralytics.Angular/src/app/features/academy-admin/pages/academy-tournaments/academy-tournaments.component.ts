@@ -7,6 +7,7 @@ import { catchError } from 'rxjs/operators';
 import { TournamentService } from '../../../../../core/services/tournament/tournament.service';
 import { AcademyService } from '../../../../../core/services/academy/academy.service';
 import { TokenStorageService } from '../../../../../core/services/auth/token-storage.service';
+import { ProfileService } from '../../../../../core/services/profile/profile.service';
 import { ToastService } from '../../../../../core/services/Toast/toast';
 import { SearchBarComponent } from '../../../../../shared/components/search-bar/search-bar';
 import { StatusChipComponent } from '../../../../../shared/components/status-chip/status-chip';
@@ -47,6 +48,7 @@ export class AcademyTournamentsComponent implements OnInit {
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
   private translate = inject(TranslateService);
+  private profileService = inject(ProfileService);
 
   academyId: number | null = null;
   invitations: any[] = [];
@@ -84,8 +86,26 @@ export class AcademyTournamentsComponent implements OnInit {
     if (this.academyId) {
       this.loadInvitations();
     } else {
-      this.isLoading = false;
-      this.cdr.markForCheck();
+      this.profileService.getMyProfile().subscribe({
+        next: (res: any) => {
+          const profAcadId = res?.data?.academyId || res?.data?.AcademyId;
+          if (profAcadId) {
+            this.academyId = profAcadId;
+            if (user) {
+              user.academyId = profAcadId;
+              this.tokenStorage.saveUser(user, false);
+            }
+            this.loadInvitations();
+          } else {
+            this.isLoading = false;
+            this.cdr.markForCheck();
+          }
+        },
+        error: () => {
+          this.isLoading = false;
+          this.cdr.markForCheck();
+        }
+      });
     }
   }
 
@@ -180,14 +200,19 @@ export class AcademyTournamentsComponent implements OnInit {
         const tournament = res.tournamentRes?.data || res.tournamentRes || null;
 
         const ageGroupId = tournament?.ageGroupId;
-        if (ageGroupId) {
-          this.modalTeams = allTeams.filter((t: any) => t.ageGroupId === ageGroupId);
+        const ageGroupName = (tournament?.ageGroupName || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+
+        let matchingTeams = allTeams;
+        if (ageGroupId || ageGroupName) {
+          matchingTeams = allTeams.filter((t: any) => {
+            if (ageGroupId && t.ageGroupId === ageGroupId) return true;
+            const tGroup = (t.ageGroupName || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+            if (!tGroup || !ageGroupName) return false;
+            return tGroup === ageGroupName || tGroup.includes(ageGroupName) || ageGroupName.includes(tGroup);
+          });
         }
 
-        // Fallback if no matching ageGroup teams or if filter returns empty
-        if (!this.modalTeams.length) {
-          this.modalTeams = allTeams;
-        }
+        this.modalTeams = matchingTeams.length > 0 ? matchingTeams : allTeams;
 
         if (this.modalTeams.length > 0) {
           const exists = this.modalTeams.some((t: any) => t.id === this.selectedTeamId);

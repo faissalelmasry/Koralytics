@@ -346,6 +346,10 @@ namespace Koralytics.Application.Services.Auth.Login
                 var admin = await _unitOfWork.Repository<AcademyAdmin>()
                     .FindAsNoTrackingAsync(x => x.Id == user.Id);
                 if (admin?.AcademyId != null) return admin.AcademyId;
+
+                var academyByAdmin = await _unitOfWork.Repository<Koralytics.Domain.Entities.Academy.Academy>()
+                    .FindAsNoTrackingAsync(x => x.AdminUserId == user.Id);
+                if (academyByAdmin != null) return academyByAdmin.Id;
             }
 
             if (roles.Contains(AuthConstants.Roles.Coach))
@@ -353,6 +357,12 @@ namespace Koralytics.Application.Services.Auth.Login
                 var coachAcademy = await _unitOfWork.Repository<CoachAcademy>()
                     .FindAsNoTrackingAsync(x => x.CoachUserId == user.Id && x.LeftAt == null);
                 if (coachAcademy?.AcademyId != null) return coachAcademy.AcademyId;
+
+                var coachTeam = await _unitOfWork.Repository<CoachTeam>()
+                    .GetQueryableAsNoTracking()
+                    .Include(ct => ct.Team)
+                    .FirstOrDefaultAsync(ct => ct.CoachUserId == user.Id);
+                if (coachTeam?.Team?.AcademyId != null) return coachTeam.Team.AcademyId;
             }
             
             if (roles.Contains(AuthConstants.Roles.Player))

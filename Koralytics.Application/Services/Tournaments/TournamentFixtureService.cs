@@ -210,7 +210,7 @@ namespace Koralytics.Application.Services.Tournaments
 
             int oldHomeScore = fixture.HomeScore ?? 0;
             int oldAwayScore = fixture.AwayScore ?? 0;
-            bool isPreviouslyCompleted = fixture.Status == MatchStatus.Completed;
+            bool isPreviouslyCompleted = fixture.Status == MatchStatus.Completed && fixture.HomeScore.HasValue && fixture.AwayScore.HasValue;
 
             if (!isPreviouslyCompleted)
             {

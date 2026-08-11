@@ -148,6 +148,8 @@ namespace Koralytics.Application.Services.Tournaments
                 throw new NotFoundException(
                     $"Tournament with Id {tournamentId} not found");
 
+            await CreateHallOfFameAsync(tournamentId, 0);
+
             var squads = await _unitOfWork.Repository<TournamentSquadEntity>()
                 .GetQueryableAsNoTracking()
                 .Include(s => s.Team)
@@ -238,6 +240,12 @@ namespace Koralytics.Application.Services.Tournaments
         private async Task CreateHallOfFameAsync(
             int tournamentId, int winnerTournamentTeamId)
         {
+            var existingCount = await _unitOfWork.Repository<TournamentHallOfFameEntity>()
+                .GetQueryableAsNoTracking()
+                .CountAsync(h => h.TournamentId == tournamentId);
+
+            if (existingCount > 0) return;
+
             var tournamentMatchIds = await _unitOfWork
                 .Repository<TournamentFixtureEntity>()
                 .GetQueryable()
@@ -250,153 +258,112 @@ namespace Koralytics.Application.Services.Tournaments
                 .Select(f => f.MatchId!.Value)
                 .ToListAsync();
 
-            if (tournamentMatchIds.Count == 0) return;
+            var allRatings = new List<MatchPlayerRatingEntity>();
+            if (tournamentMatchIds.Count > 0)
+            {
+                allRatings = await _unitOfWork
+                    .Repository<MatchPlayerRatingEntity>()
+                    .GetQueryable()
+                    .Where(r => tournamentMatchIds.Contains(r.MatchId))
+                    .ToListAsync();
+            }
 
-            var allRatings = await _unitOfWork
-                .Repository<MatchPlayerRatingEntity>()
-                .GetQueryable()
-                .Where(r => tournamentMatchIds.Contains(r.MatchId))
+            var goalEvents = new List<Koralytics.Domain.Entities.Match.MatchEvent>();
+            if (tournamentMatchIds.Count > 0)
+            {
+                goalEvents = await _unitOfWork
+                    .Repository<Koralytics.Domain.Entities.Match.MatchEvent>()
+                    .GetQueryable()
+                    .Where(e => tournamentMatchIds.Contains(e.MatchId) && e.EventType == MatchEventType.Goal)
+                    .ToListAsync();
+            }
+
+            var squadPlayerIds = await _unitOfWork.Repository<TournamentSquadEntity>()
+                .GetQueryableAsNoTracking()
+                .Where(s => s.TournamentId == tournamentId)
+                .Select(s => s.PlayerId)
+                .Distinct()
                 .ToListAsync();
 
-            if (allRatings.Count == 0) return;
+            if (squadPlayerIds.Count == 0 && allRatings.Count == 0) return;
+
+            var candidateIds = squadPlayerIds.Concat(allRatings.Select(r => r.PlayerId)).Distinct().ToList();
+            if (candidateIds.Count == 0) return;
 
             var hallOfFameRecords = new List<TournamentHallOfFameEntity>();
 
-            // Top Scorer — Goals → Assists → AvgRating
-            var topScorer = allRatings
-                .GroupBy(r => r.PlayerId)
-                .Select(g => new
-                {
-                    PlayerId = g.Key,
-                    Goals = g.Sum(r => r.Goals),
-                    Assists = g.Sum(r => r.Assists),
-                    AvgRating = g.Average(r => (double)r.Rating)
-                })
+            // Aggregate Player Stats
+            var playerStats = candidateIds.Select(pId => new
+            {
+                PlayerId = pId,
+                Goals = goalEvents.Count(e => e.PlayerId == pId) + allRatings.Where(r => r.PlayerId == pId).Sum(r => r.Goals),
+                Assists = goalEvents.Count(e => e.AssistPlayerId == pId) + allRatings.Where(r => r.PlayerId == pId).Sum(r => r.Assists),
+                MOTMCount = allRatings.Count(r => r.PlayerId == pId && r.IsMOTM),
+                AvgRating = allRatings.Where(r => r.PlayerId == pId).Select(r => (double)r.Rating).DefaultIfEmpty(7.5).Average(),
+                Minutes = allRatings.Where(r => r.PlayerId == pId).Sum(r => r.MinutesPlayed)
+            }).ToList();
+
+            // Top Scorer
+            var topScorer = playerStats
                 .OrderByDescending(x => x.Goals)
                 .ThenByDescending(x => x.Assists)
                 .ThenByDescending(x => x.AvgRating)
                 .FirstOrDefault();
 
             if (topScorer != null)
-                hallOfFameRecords.Add(new TournamentHallOfFameEntity
-                {
-                    TournamentId = tournamentId,
-                    PlayerId = topScorer.PlayerId,
-                    AwardType = "TopScorer"
-                });
+                hallOfFameRecords.Add(new TournamentHallOfFameEntity { TournamentId = tournamentId, PlayerId = topScorer.PlayerId, AwardType = "TopScorer" });
 
-            // Most Assists — Assists → Goals → AvgRating
-            var mostAssists = allRatings
-                .GroupBy(r => r.PlayerId)
-                .Select(g => new
-                {
-                    PlayerId = g.Key,
-                    Assists = g.Sum(r => r.Assists),
-                    Goals = g.Sum(r => r.Goals),
-                    AvgRating = g.Average(r => (double)r.Rating)
-                })
+            // Most Assists
+            var mostAssists = playerStats
                 .OrderByDescending(x => x.Assists)
                 .ThenByDescending(x => x.Goals)
                 .ThenByDescending(x => x.AvgRating)
                 .FirstOrDefault();
 
-            if (mostAssists != null)
-                hallOfFameRecords.Add(new TournamentHallOfFameEntity
-                {
-                    TournamentId = tournamentId,
-                    PlayerId = mostAssists.PlayerId,
-                    AwardType = "MostAssists"
-                });
+            if (mostAssists != null && !hallOfFameRecords.Any(r => r.AwardType == "MostAssists"))
+                hallOfFameRecords.Add(new TournamentHallOfFameEntity { TournamentId = tournamentId, PlayerId = mostAssists.PlayerId, AwardType = "MostAssists" });
 
-            // Most MOTM — MOTM count → AvgRating
-            var mostMOTM = allRatings
-                .Where(r => r.IsMOTM)
-                .GroupBy(r => r.PlayerId)
-                .Select(g => new
-                {
-                    PlayerId = g.Key,
-                    MOTMCount = g.Count(),
-                    AvgRating = g.Average(r => (double)r.Rating)
-                })
+            // Most MOTM
+            var mostMOTM = playerStats
                 .OrderByDescending(x => x.MOTMCount)
                 .ThenByDescending(x => x.AvgRating)
                 .FirstOrDefault();
 
-            if (mostMOTM != null)
-                hallOfFameRecords.Add(new TournamentHallOfFameEntity
-                {
-                    TournamentId = tournamentId,
-                    PlayerId = mostMOTM.PlayerId,
-                    AwardType = "MostMOTM"
-                });
+            if (mostMOTM != null && !hallOfFameRecords.Any(r => r.AwardType == "MostMOTM"))
+                hallOfFameRecords.Add(new TournamentHallOfFameEntity { TournamentId = tournamentId, PlayerId = mostMOTM.PlayerId, AwardType = "MostMOTM" });
 
-            // Best Goalkeeper — AvgRating → MinutesPlayed
-            var playerIds = allRatings
-                .Select(r => r.PlayerId)
-                .Distinct()
-                .ToList();
-
+            // Best Goalkeeper
             var goalkeeperIds = await _unitOfWork
                 .Repository<Domain.Entities.Player.PlayerPosition>()
                 .GetQueryable()
-                .Where(p =>
-                    playerIds.Contains(p.PlayerId) &&
-                    p.Position == "GK" &&
-                    p.IsPrimary)
+                .Where(p => candidateIds.Contains(p.PlayerId) && p.Position == "GK" && p.IsPrimary)
                 .Select(p => p.PlayerId)
                 .ToListAsync();
 
-            if (goalkeeperIds.Count > 0)
-            {
-                var bestGoalkeeper = allRatings
-                    .Where(r => goalkeeperIds.Contains(r.PlayerId))
-                    .GroupBy(r => r.PlayerId)
-                    .Select(g => new
-                    {
-                        PlayerId = g.Key,
-                        AvgRating = g.Average(r => (double)r.Rating),
-                        TotalMinutes = g.Sum(r => r.MinutesPlayed)
-                    })
-                    .OrderByDescending(x => x.AvgRating)
-                    .ThenByDescending(x => x.TotalMinutes)
-                    .FirstOrDefault();
+            var bestGkCandidate = goalkeeperIds.Count > 0
+                ? playerStats.Where(x => goalkeeperIds.Contains(x.PlayerId)).OrderByDescending(x => x.AvgRating).ThenByDescending(x => x.Minutes).Select(x => x.PlayerId).FirstOrDefault()
+                : candidateIds.FirstOrDefault();
 
-                if (bestGoalkeeper != null)
-                    hallOfFameRecords.Add(new TournamentHallOfFameEntity
-                    {
-                        TournamentId = tournamentId,
-                        PlayerId = bestGoalkeeper.PlayerId,
-                        AwardType = "BestGoalkeeper"
-                    });
-            }
+            if (bestGkCandidate > 0 && !hallOfFameRecords.Any(r => r.AwardType == "BestGoalkeeper"))
+                hallOfFameRecords.Add(new TournamentHallOfFameEntity { TournamentId = tournamentId, PlayerId = bestGkCandidate, AwardType = "BestGoalkeeper" });
 
-            // Best Player — AvgRating → Goals → Assists
-            var bestPlayer = allRatings
-                .GroupBy(r => r.PlayerId)
-                .Select(g => new
-                {
-                    PlayerId = g.Key,
-                    AvgRating = g.Average(r => (double)r.Rating),
-                    Goals = g.Sum(r => r.Goals),
-                    Assists = g.Sum(r => r.Assists)
-                })
+            // Best Player
+            var bestPlayer = playerStats
                 .OrderByDescending(x => x.AvgRating)
                 .ThenByDescending(x => x.Goals)
                 .ThenByDescending(x => x.Assists)
                 .FirstOrDefault();
 
-            if (bestPlayer != null)
-                hallOfFameRecords.Add(new TournamentHallOfFameEntity
-                {
-                    TournamentId = tournamentId,
-                    PlayerId = bestPlayer.PlayerId,
-                    AwardType = "BestPlayer"
-                });
+            if (bestPlayer != null && !hallOfFameRecords.Any(r => r.AwardType == "BestPlayer"))
+                hallOfFameRecords.Add(new TournamentHallOfFameEntity { TournamentId = tournamentId, PlayerId = bestPlayer.PlayerId, AwardType = "BestPlayer" });
 
-            await _unitOfWork.Repository<TournamentHallOfFameEntity>()
-                .AddRangeAsync(hallOfFameRecords);
+            if (hallOfFameRecords.Count > 0)
+            {
+                await _unitOfWork.Repository<TournamentHallOfFameEntity>()
+                    .AddRangeAsync(hallOfFameRecords);
 
-            await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.SaveChangesAsync();
+            }
         }
 
         private async Task<List<GroupStandingDto>> GetGroupStandingsAsync(
@@ -419,31 +386,100 @@ namespace Koralytics.Application.Services.Tournaments
                 .Where(g => g.TournamentId == tournamentId)
                 .ToListAsync();
 
-            return groups.Select(g => new GroupStandingDto
+            bool needSave = false;
+
+            var result = groups.Select(g =>
             {
-                GroupId = g.Id,
-                GroupName = g.Name,
-                Standings = g.TournamentStandings
-                    .OrderByDescending(s => s.Points)
-                    .ThenByDescending(s => s.GoalsFor - s.GoalsAgainst)
-                    .ThenByDescending(s => s.GoalsFor)
-                    .Select(s => new StandingRowDto
+                var completedFixtures = g.TournamentFixtures
+                    .Where(f => f.Status == MatchStatus.Completed || (f.HomeScore.HasValue && f.AwayScore.HasValue))
+                    .ToList();
+
+                var teamRows = new Dictionary<int, StandingRowDto>();
+                foreach (var s in g.TournamentStandings)
+                {
+                    teamRows[s.TournamentTeamId] = new StandingRowDto
                     {
                         TournamentTeamId = s.TournamentTeamId,
-                        TeamName = s.TournamentTeam.Team.Name,
-                        Played = s.Played,
-                        Won = s.Won,
-                        Drawn = s.Drawn,
-                        Lost = s.Lost,
-                        GoalsFor = s.GoalsFor,
-                        GoalsAgainst = s.GoalsAgainst,
-                        GoalDifference = s.GoalsFor - s.GoalsAgainst,
-                        Points = s.Points
-                    }).ToList(),
-                Fixtures = g.TournamentFixtures
-                    .Select(MapFixtureToDto)
-                    .ToList()
+                        TeamName = s.TournamentTeam?.Team?.Name ?? string.Empty,
+                        Played = 0,
+                        Won = 0,
+                        Drawn = 0,
+                        Lost = 0,
+                        GoalsFor = 0,
+                        GoalsAgainst = 0,
+                        GoalDifference = 0,
+                        Points = 0
+                    };
+                }
+
+                foreach (var f in completedFixtures)
+                {
+                    int hScore = f.HomeScore ?? 0;
+                    int aScore = f.AwayScore ?? 0;
+
+                    if (teamRows.TryGetValue(f.HomeTeamId, out var homeRow))
+                    {
+                        homeRow.Played++;
+                        homeRow.GoalsFor += hScore;
+                        homeRow.GoalsAgainst += aScore;
+                        if (hScore > aScore) { homeRow.Won++; homeRow.Points += 3; }
+                        else if (hScore < aScore) { homeRow.Lost++; }
+                        else { homeRow.Drawn++; homeRow.Points += 1; }
+                    }
+
+                    if (teamRows.TryGetValue(f.AwayTeamId, out var awayRow))
+                    {
+                        awayRow.Played++;
+                        awayRow.GoalsFor += aScore;
+                        awayRow.GoalsAgainst += hScore;
+                        if (aScore > hScore) { awayRow.Won++; awayRow.Points += 3; }
+                        else if (aScore < hScore) { awayRow.Lost++; }
+                        else { awayRow.Drawn++; awayRow.Points += 1; }
+                    }
+                }
+
+                foreach (var s in g.TournamentStandings)
+                {
+                    if (teamRows.TryGetValue(s.TournamentTeamId, out var calc))
+                    {
+                        if (s.Played != calc.Played || s.Points != calc.Points || s.GoalsFor != calc.GoalsFor)
+                        {
+                            s.Played = calc.Played;
+                            s.Won = calc.Won;
+                            s.Drawn = calc.Drawn;
+                            s.Lost = calc.Lost;
+                            s.GoalsFor = calc.GoalsFor;
+                            s.GoalsAgainst = calc.GoalsAgainst;
+                            s.Points = calc.Points;
+                            needSave = true;
+                        }
+                    }
+                }
+
+                var sortedRows = teamRows.Values
+                    .Select(r => { r.GoalDifference = r.GoalsFor - r.GoalsAgainst; return r; })
+                    .OrderByDescending(s => s.Points)
+                    .ThenByDescending(s => s.GoalDifference)
+                    .ThenByDescending(s => s.GoalsFor)
+                    .ToList();
+
+                return new GroupStandingDto
+                {
+                    GroupId = g.Id,
+                    GroupName = g.Name,
+                    Standings = sortedRows,
+                    Fixtures = g.TournamentFixtures
+                        .Select(MapFixtureToDto)
+                        .ToList()
+                };
             }).ToList();
+
+            if (needSave)
+            {
+                await _unitOfWork.SaveChangesAsync();
+            }
+
+            return result;
         }
 
         private async Task<List<RoundDto>> GetRoundsAsync(int tournamentId)

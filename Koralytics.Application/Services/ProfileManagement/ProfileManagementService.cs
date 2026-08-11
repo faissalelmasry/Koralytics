@@ -3,6 +3,7 @@ using Koralytics.Application.DTOs.ProfileManagement;
 using Koralytics.Application.Interfaces;
 using Koralytics.Application.Services.Storage;
 using Koralytics.Domain.Entities.Academy;
+using Koralytics.Domain.Entities.Coach;
 using CoachEntity = Koralytics.Domain.Entities.Coach.Coach;
 using Koralytics.Domain.Entities.Identity;
 using ParentEntity = Koralytics.Domain.Entities.Parents.Parent;
@@ -82,7 +83,19 @@ namespace Koralytics.Application.Services.ProfileManagement
                     .GetQueryableAsNoTracking()
                     .Include(a => a.Academy)
                     .FirstOrDefaultAsync(a => a.Id == userId);
-                dto = _mapper.Map<AcademyAdminProfileResponseDto>(admin ?? (object)user);
+                var adminDto = _mapper.Map<AcademyAdminProfileResponseDto>(admin ?? (object)user);
+                if (adminDto.AcademyId == null)
+                {
+                    var academyByAdmin = await _unitOfWork.Repository<Koralytics.Domain.Entities.Academy.Academy>()
+                        .GetQueryableAsNoTracking()
+                        .FirstOrDefaultAsync(a => a.AdminUserId == userId);
+                    if (academyByAdmin != null)
+                    {
+                        adminDto.AcademyId = academyByAdmin.Id;
+                        adminDto.AcademyName = academyByAdmin.Name;
+                    }
+                }
+                dto = adminDto;
             }
             else if (user is ScouterEntity || primaryRole == "Scouter")
             {
@@ -98,7 +111,20 @@ namespace Koralytics.Application.Services.ProfileManagement
                     .Include(c => c.CoachAcademies)
                         .ThenInclude(ca => ca.Academy)
                     .FirstOrDefaultAsync(c => c.Id == userId);
-                dto = _mapper.Map<CoachProfileResponseDto>(coach ?? (object)user);
+                var coachDto = _mapper.Map<CoachProfileResponseDto>(coach ?? (object)user);
+                if (coachDto.AcademyId == null)
+                {
+                    var coachAcademy = await _unitOfWork.Repository<CoachAcademy>()
+                        .GetQueryableAsNoTracking()
+                        .Include(ca => ca.Academy)
+                        .FirstOrDefaultAsync(ca => ca.CoachUserId == userId && ca.LeftAt == null);
+                    if (coachAcademy != null)
+                    {
+                        coachDto.AcademyId = coachAcademy.AcademyId;
+                        coachDto.AcademyName = coachAcademy.Academy?.Name;
+                    }
+                }
+                dto = coachDto;
             }
             else if (user is Koralytics.Domain.Entities.Parents.Parent || primaryRole == "Parent")
             {

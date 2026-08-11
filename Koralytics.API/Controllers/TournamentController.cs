@@ -216,8 +216,8 @@ namespace Koralytics.API.Controllers
         }
 
         [HttpPost("{tournamentId}/regenerate-report")]
-        [Authorize(Roles = "AcademyAdmin,SystemAdmin,SuperAdmin")]
-        [RequiresPlanFeature(TierFeature.AIInsights)]
+        //[Authorize(Roles = "AcademyAdmin,SystemAdmin,SuperAdmin")]
+        //[RequiresPlanFeature(TierFeature.AIInsights)]
         public async Task<IActionResult> RegenerateTournamentReport(int tournamentId)
         {
             await _aiReportService.GenerateTournamentReportAsync(tournamentId);

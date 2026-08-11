@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { MatchService } from '../../../../../core/services/match/match.service';
 import { AcademyService } from '../../../../../core/services/academy/academy.service';
 import { TokenStorageService } from '../../../../../core/services/auth/token-storage.service';
+import { ProfileService } from '../../../../../core/services/profile/profile.service';
 import { MatchCardModel } from '../../../../../core/models/Match/match-card.model';
 import { MatchCardComponent } from '../../match-card/match-card.component';
 import { Pagination } from '../../../../../shared/components/pagination/pagination';
@@ -35,6 +36,7 @@ export class AcademyMatchListComponent implements OnInit, OnDestroy {
   private matchService = inject(MatchService);
   private academyService = inject(AcademyService);
   private tokenStorage = inject(TokenStorageService);
+  private profileService = inject(ProfileService);
   private cdr = inject(ChangeDetectorRef);
   private signalrService = inject(MatchSignalrService);
 
@@ -100,6 +102,29 @@ export class AcademyMatchListComponent implements OnInit, OnDestroy {
       this.loadDropdowns();
       this.loadMatches();
       this.subscribeToLiveUpdates();
+    } else {
+      this.profileService.getMyProfile().subscribe({
+        next: (res: any) => {
+          const profAcadId = res?.data?.academyId || res?.data?.AcademyId;
+          if (profAcadId) {
+            this.academyId = profAcadId;
+            if (user) {
+              user.academyId = profAcadId;
+              this.tokenStorage.saveUser(user, false);
+            }
+            this.loadDropdowns();
+            this.loadMatches();
+            this.subscribeToLiveUpdates();
+          } else {
+            this.isLoading = false;
+            this.cdr.markForCheck();
+          }
+        },
+        error: () => {
+          this.isLoading = false;
+          this.cdr.markForCheck();
+        }
+      });
     }
   }
 

@@ -29,6 +29,7 @@ export interface Tournament {
   name: string;
   format: MatchFormat;
   structure: TournamentStructure;
+  ageGroupId?: number;
   ageGroupName: string;
   hasTwoLegs: boolean;
   startDate: string;
