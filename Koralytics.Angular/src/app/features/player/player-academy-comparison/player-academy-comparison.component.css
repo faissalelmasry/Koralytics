@@ -203,18 +203,31 @@
 /* MAIN GRID */
 .dashboard-grid {
   display: grid;
-  grid-template-columns: 420px 1fr;
+  grid-template-columns: 380px 1fr;
   gap: 20px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  align-items: start;
 }
 
 /* RADAR PANEL */
 .radar-card {
-  background: #131722;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
+  background: #11141a;
+  border: 1px solid #1e232d;
+  border-radius: 20px;
   padding: 24px;
   display: flex;
   flex-direction: column;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  transition: border-color 0.3s ease;
+}
+
+.radar-card:hover {
+  border-color: #383e4a;
 }
 
 .card-title {
@@ -226,6 +239,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-family: 'Inter', sans-serif;
 }
 
 .legend-keys {
@@ -244,32 +260,52 @@
 
 .radar-wrapper {
   width: 100%;
-  height: 360px;
+  max-width: 100%;
+  height: 340px;
   position: relative;
-  margin: 15px 0;
+  margin: 15px 0 5px;
+  box-sizing: border-box;
+  touch-action: pan-y;
 }
 
+.radar-wrapper canvas {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100%;
+  max-height: 100%;
+  touch-action: pan-y;
+  pointer-events: none;
+}
+
+/* GOALKEEPER FULL CARD */
 .gk-full-card {
-  background: #131722;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  padding: 32px;
+  background: #11141a;
+  border: 1px solid #1e232d;
+  border-radius: 20px;
+  padding: 28px 24px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .gk-full-card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .gk-full-scores {
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  gap: 48px;
+  gap: clamp(16px, 4vw, 48px);
+  width: 100%;
 }
 
 .gk-full-player,
@@ -277,32 +313,34 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
 }
 
 .gk-full-lbl {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 800;
   color: #808a9d;
   text-transform: uppercase;
   letter-spacing: 1px;
+  font-family: 'Inter', sans-serif;
+  white-space: nowrap;
 }
 
 .gk-full-val {
   font-family: 'Oswald', 'Inter', sans-serif;
-  font-size: 96px;
+  font-size: clamp(44px, 10vw, 84px);
   font-weight: 700;
-  line-height: 0.9;
+  line-height: 0.95;
 }
 
 .gk-full-player.gold .gk-full-val {
   color: var(--status-gold);
-  text-shadow: 0 0 20px var(--glow-gold);
+  text-shadow: 0 0 20px var(--tier-glow);
 }
 
 .gk-full-player.green .gk-full-val {
   color: var(--status-green);
-  text-shadow: 0 0 20px var(--glow-green);
+  text-shadow: 0 0 20px rgba(163, 230, 53, 0.2);
 }
 
 .gk-full-acad .gk-full-val {
@@ -311,18 +349,19 @@
 
 .gk-full-vs {
   font-family: 'Oswald', 'Inter', sans-serif;
-  font-size: 28px;
+  font-size: clamp(18px, 4vw, 24px);
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.12);
-  padding-bottom: 12px;
+  color: rgba(255, 255, 255, 0.15);
+  padding-bottom: 8px;
 }
 
 .gk-full-track {
-  height: 10px;
+  height: 8px;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 10px;
   position: relative;
   overflow: hidden;
+  width: 100%;
 }
 
 .gk-full-fill {
@@ -350,10 +389,11 @@
 .gk-full-legend {
   display: flex;
   justify-content: center;
-  gap: 24px;
+  gap: 20px;
   font-size: 11px;
   font-weight: 600;
   color: #808a9d;
+  font-family: 'Inter', sans-serif;
 }
 
 /* CATEGORIES GRID */
@@ -361,22 +401,29 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 16px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .metric-card {
-  background: #131722;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #11141a;
+  border: 1px solid #1e232d;
   border-radius: 16px;
-  padding: 20px;
+  padding: 16px 18px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   transition: all 0.25s ease;
   position: relative;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .metric-card.above-avg {
-  border-color: rgba(255, 215, 0, 0.4);
+  border-color: rgba(255, 215, 0, 0.35);
 }
 
 .metric-card.above-avg:hover {
@@ -385,7 +432,7 @@
 }
 
 .metric-card.below-avg {
-  border-color: rgba(163, 230, 53, 0.3);
+  border-color: rgba(163, 230, 53, 0.25);
 }
 
 .metric-card.below-avg:hover {
@@ -397,22 +444,30 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  width: 100%;
+  gap: 8px;
 }
 
 .metric-name {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: #e2e8f0;
+  font-family: 'Inter', sans-serif;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .diff-badge {
   font-family: 'Oswald', 'Inter', sans-serif;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
-  padding: 3px 10px;
+  padding: 2px 8px;
   border-radius: 6px;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .diff-badge.gold {
@@ -431,7 +486,16 @@
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  margin: 16px 0 12px 0;
+  margin: 14px 0 10px 0;
+  width: 100%;
+  gap: 8px;
+}
+
+.p-score-box {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
 .p-score-box .lbl {
@@ -439,26 +503,34 @@
   font-weight: 800;
   color: #808a9d;
   text-transform: uppercase;
+  font-family: 'Inter', sans-serif;
+  white-space: nowrap;
 }
 
 .p-score {
   font-family: 'Oswald', 'Inter', sans-serif;
-  font-size: 42px;
-  line-height: 0.9;
+  font-size: clamp(30px, 6vw, 38px);
+  line-height: 0.95;
 }
 
 .p-score.gold {
   color: var(--status-gold);
-  text-shadow: 0 0 12px var(--glow-gold);
+  text-shadow: 0 0 10px var(--tier-glow);
 }
 
 .p-score.green {
   color: var(--status-green);
-  text-shadow: 0 0 12px var(--glow-green);
+  text-shadow: 0 0 10px rgba(163, 230, 53, 0.2);
 }
 
 .acad-score-box {
   text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  min-width: 0;
+  flex-shrink: 0;
 }
 
 .acad-score-box .lbl {
@@ -466,11 +538,13 @@
   font-weight: 800;
   color: #808a9d;
   text-transform: uppercase;
+  font-family: 'Inter', sans-serif;
+  white-space: nowrap;
 }
 
 .acad-score {
   font-family: 'Oswald', 'Inter', sans-serif;
-  font-size: 24px;
+  font-size: clamp(20px, 4vw, 24px);
   line-height: 1;
   color: var(--electric-cyan);
 }
@@ -481,6 +555,7 @@
   border-radius: 10px;
   position: relative;
   overflow: hidden;
+  width: 100%;
 }
 
 .player-track-fill {
@@ -505,18 +580,99 @@
   z-index: 2;
 }
 
+/* MEDIA QUERIES */
 @media (max-width: 900px) {
+  .comparison-page {
+    padding: 90px 16px 20px;
+  }
+
   .dashboard-grid {
     grid-template-columns: 1fr;
+    gap: 16px;
   }
 
   .hero-banner {
     flex-direction: column;
     gap: 16px;
     align-items: flex-start;
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+}
+
+@media (max-width: 600px) {
+  .comparison-page {
+    padding: 85px 12px 16px;
+  }
+
+  .hero-banner {
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .player-identity h1 {
+    font-size: 20px;
+  }
+
+  .avatar-circle {
+    width: 48px;
+    height: 48px;
+    font-size: 16px;
+  }
+
+  .bio-quick-list {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    padding: 8px 10px;
+    box-sizing: border-box;
+  }
+
+  .bio-lbl {
+    font-size: 8.5px;
+  }
+
+  .bio-val {
+    font-size: 11.5px;
   }
 
   .cards-grid {
     grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .radar-card {
+    padding: 16px 12px;
+    border-radius: 16px;
+  }
+
+  .radar-wrapper {
+    height: 270px;
+    margin: 10px 0 0;
+  }
+
+  .metric-card {
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .metric-name {
+    font-size: 11.5px;
+  }
+
+  .diff-badge {
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+
+  .gk-full-card {
+    padding: 20px 14px;
+    border-radius: 16px;
   }
 }

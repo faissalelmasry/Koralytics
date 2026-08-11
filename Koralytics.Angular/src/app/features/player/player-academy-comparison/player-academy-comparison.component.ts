@@ -228,6 +228,8 @@ export class PlayerAcademyComparisonComponent implements OnInit, AfterViewInit, 
     const ctx = this.radarCanvas.nativeElement.getContext('2d');
     if (!ctx) return;
 
+    const isMobile = window.innerWidth <= 600;
+
     this.radarChart = new Chart(ctx, {
       type: 'radar',
       data: {
@@ -238,19 +240,19 @@ export class PlayerAcademyComparisonComponent implements OnInit, AfterViewInit, 
             data: playerData,
             backgroundColor: 'rgba(255, 215, 0, 0.15)',
             borderColor: '#ffd700',
-            borderWidth: 2.5,
+            borderWidth: isMobile ? 2 : 2.5,
             pointBackgroundColor: '#ffd700',
-            pointRadius: 4
+            pointRadius: isMobile ? 3 : 4
           },
           {
             label: this.translate.instant('PLAYER.ACADEMY_AVG'),
             data: academyData,
             backgroundColor: 'rgba(0, 229, 255, 0.1)',
             borderColor: '#00e5ff',
-            borderWidth: 2,
+            borderWidth: isMobile ? 1.5 : 2,
             borderDash: [4, 4],
             pointBackgroundColor: '#00e5ff',
-            pointRadius: 3
+            pointRadius: isMobile ? 2.5 : 3
           }
         ]
       },
@@ -264,7 +266,8 @@ export class PlayerAcademyComparisonComponent implements OnInit, AfterViewInit, 
             grid: { color: 'rgba(255, 255, 255, 0.08)' },
             pointLabels: {
               color: '#808a9d',
-              font: { size: 10, weight: 'bold', family: 'Inter' }
+              font: { size: isMobile ? 9 : 11, weight: 'bold', family: 'Inter' },
+              padding: isMobile ? 3 : 8
             },
             ticks: { display: false },
             suggestedMin: 40,
