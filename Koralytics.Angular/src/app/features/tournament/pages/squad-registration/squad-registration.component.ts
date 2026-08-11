@@ -11,6 +11,7 @@ import { AuthService } from '../../../../../core/services/auth/auth.service';
 import { MatchFormat, Tournament, TournamentStatus, TournamentStructure } from '../../../../../core/interfaces/tournament.models';
 import { CustomSelect } from '../../../../../shared/components/custom-select/custom-select';
 import { StatusChipComponent } from '../../../../../shared/components/status-chip/status-chip';
+import { LoadingSpinnerComponent } from '../../../../../shared/components/loading-spinner/loading-spinner';
 import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
 import { NotificationService } from '@core/services/SignalR/notificationservice';
 
@@ -22,6 +23,7 @@ import { NotificationService } from '@core/services/SignalR/notificationservice'
     RouterModule,
     CustomSelect,
     StatusChipComponent,
+    LoadingSpinnerComponent,
     ScrollRevealDirective
   ],
   templateUrl: './squad-registration.component.html',

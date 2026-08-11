@@ -14,6 +14,7 @@ import { CustomInputComponent } from '../../../../../shared/components/custom-in
 import { CustomSelect } from '../../../../../shared/components/custom-select/custom-select';
 import { CustomToggle } from '../../../../../shared/components/custom-toggle/custom-toggle';
 import { StatusChipComponent } from '../../../../../shared/components/status-chip/status-chip';
+import { LoadingSpinnerComponent } from '../../../../../shared/components/loading-spinner/loading-spinner';
 import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
 import { NotificationService } from '@core/services/SignalR/notificationservice';
 
@@ -29,6 +30,7 @@ type ManagementAction = 'status' | 'invite' | 'seeding' | 'draw' | 'advance' | '
     CustomSelect,
     CustomToggle,
     StatusChipComponent,
+    LoadingSpinnerComponent,
     ScrollRevealDirective
   ],
   templateUrl: './tournament-manage.component.html',
@@ -396,15 +398,15 @@ export class TournamentManageComponent implements OnInit {
       () => this.tournamentService.updateStatus(this.tournamentId!, this.selectedStatus).pipe(
         tap(() => {
           if (this.selectedStatus === TournamentStatus.Cancelled) {
-            this.notifyParticipatingAcademies(`⚠️ ${tournamentName} has been cancelled.`);
+            this.notifyParticipatingAcademies(`${tournamentName} has been cancelled.`);
           } else if (this.selectedStatus === TournamentStatus.InProgress) {
-            this.notifyParticipatingAcademies(`⚽ ${tournamentName} is now officially in progress. Good luck to all teams!`);
+            this.notifyParticipatingAcademies(`${tournamentName} is now officially in progress. Good luck to all teams!`);
           }
           else if (this.selectedStatus === TournamentStatus.Registration) {
-            this.notifyParticipatingAcademies(`📢 ${tournamentName} is now open for registration. Teams can now sign up!`);
+            this.notifyParticipatingAcademies(`${tournamentName} is now open for registration. Teams can now sign up!`);
           }
           else if (this.selectedStatus === TournamentStatus.Completed) {
-            this.notifyParticipatingAcademies(`🏆 ${tournamentName} has been completed. Check the AI Wrap-Up Report for insights and results.`);
+            this.notifyParticipatingAcademies(`${tournamentName} has been completed. Check the AI Wrap-Up Report for insights and results.`);
           }
         })
       ), 
@@ -448,11 +450,10 @@ export class TournamentManageComponent implements OnInit {
   private refreshAcademyLabels() {
     this.availableAcademies = this.availableAcademies.map(a => {
       const isInvited = this.invitedAcademyIds.has(a.value);
-      // Strip any existing "✓ ... (Invited)" prefix/suffix before re-labelling
       const cleanLabel = a.label.replace(/^✓\s*/, '').replace(/\s*\(Invited\)$/, '');
       return {
         ...a,
-        label: isInvited ? `✓ ${cleanLabel}  (Invited)` : cleanLabel
+        label: isInvited ? `${cleanLabel}  (Invited)` : cleanLabel
       };
     });
 
@@ -478,7 +479,7 @@ export class TournamentManageComponent implements OnInit {
       'draw', 
       () => this.tournamentService.generateDraw(this.tournamentId!).pipe(
         tap(() => {
-          this.notifyParticipatingAcademies(`📅 The draw for ${tournamentName} has been published. Check your groups and fixtures!`);
+          this.notifyParticipatingAcademies(`The draw for ${tournamentName} has been published. Check your groups and fixtures!`);
         })
       ), 
       'Draw generated successfully.'
@@ -501,7 +502,7 @@ export class TournamentManageComponent implements OnInit {
     this.tournamentService.completeTournament(this.tournamentId).subscribe({
       next: () => {
         this.successMessage =
-          '🏆 Tournament finalized! The AI Wrap-Up Report is being generated in the background — ' +
+          'Tournament finalized! The AI Wrap-Up Report is being generated in the background — ' +
           'you will receive a notification and it will appear in the AI Insights tab automatically within moments.';
         this.activeAction = null;
         this.loadManagementData(true, false);

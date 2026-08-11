@@ -79,11 +79,7 @@
   </div>
 
   @if (isLoading) {
-    <div class="table-surface">
-      @for (i of [1, 2, 3, 4]; track i) {
-        <div class="skeleton-row"></div>
-      }
-    </div>
+    <app-loading-spinner size="lg"></app-loading-spinner>
   }
 
   @if (!isLoading && paginatedTournaments.length > 0) {

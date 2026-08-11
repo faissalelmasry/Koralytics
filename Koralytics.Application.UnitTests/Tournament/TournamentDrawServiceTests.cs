@@ -1,4 +1,4 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 using Koralytics.Application.Interfaces;
 using Koralytics.Application.Services.Player.PlayerCardService;
 using Koralytics.Domain.Enums;
@@ -21,24 +21,24 @@ namespace Koralytics.Application.UnitTests.Tournament
     {
         private readonly Mock<IUnitOfWork> _unitOfWorkMock;
         private readonly Mock<ILogger<TournamentDrawService>> _loggerMock;
-        private readonly Mock<IPlayerCardService> _playerCardServiceMock;
         private readonly Mock<IRepository<TournamentEntity>> _tournamentRepoMock;
         private readonly Mock<IRepository<TournamentTeamEntity>> _tournamentTeamRepoMock;
         private readonly Mock<IRepository<TournamentRoundEntity>> _roundRepoMock;
         private readonly Mock<IRepository<TournamentGroupEntity>> _groupRepoMock;
         private readonly Mock<IRepository<TournamentFixtureEntity>> _fixtureRepoMock;
+        private readonly Mock<IRepository<Koralytics.Domain.Entities.Player.PlayerCard>> _playerCardRepoMock;
         private readonly TournamentDrawService _service;
 
         public TournamentDrawServiceTests()
         {
             _unitOfWorkMock = new Mock<IUnitOfWork>();
             _loggerMock = new Mock<ILogger<TournamentDrawService>>();
-            _playerCardServiceMock = new Mock<IPlayerCardService>();
             _tournamentRepoMock = new Mock<IRepository<TournamentEntity>>();
             _tournamentTeamRepoMock = new Mock<IRepository<TournamentTeamEntity>>();
             _roundRepoMock = new Mock<IRepository<TournamentRoundEntity>>();
             _groupRepoMock = new Mock<IRepository<TournamentGroupEntity>>();
             _fixtureRepoMock = new Mock<IRepository<TournamentFixtureEntity>>();
+            _playerCardRepoMock = new Mock<IRepository<Koralytics.Domain.Entities.Player.PlayerCard>>();
 
             _unitOfWorkMock
                 .Setup(u => u.Repository<TournamentEntity>())
@@ -55,11 +55,13 @@ namespace Koralytics.Application.UnitTests.Tournament
             _unitOfWorkMock
                 .Setup(u => u.Repository<TournamentFixtureEntity>())
                 .Returns(_fixtureRepoMock.Object);
+            _unitOfWorkMock
+                .Setup(u => u.Repository<Koralytics.Domain.Entities.Player.PlayerCard>())
+                .Returns(_playerCardRepoMock.Object);
 
             _service = new TournamentDrawService(
                 _unitOfWorkMock.Object,
-                _loggerMock.Object,
-                _playerCardServiceMock.Object);
+                _loggerMock.Object);
         }
 
         // ─── GenerateSeedingAsync ────────────────────────────────────

@@ -9,6 +9,7 @@ import { Tournament, TournamentStatus, MatchFormat, TournamentStructure, GoalEve
 import { CustomButtonComponent } from '../../../../../shared/components/custom-button/custom-button';
 import { StatusChipComponent } from '../../../../../shared/components/status-chip/status-chip';
 import { SearchBarComponent } from '../../../../../shared/components/search-bar/search-bar';
+import { LoadingSpinnerComponent } from '../../../../../shared/components/loading-spinner/loading-spinner';
 import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
 import { forkJoin, of, Subscription } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -27,6 +28,7 @@ import { AuthService } from '../../../../../core/services/auth/auth.service';
     CustomButtonComponent,
     StatusChipComponent,
     SearchBarComponent,
+    LoadingSpinnerComponent,
     ScrollRevealDirective
   ],
   templateUrl: './tournament-details.component.html',
@@ -604,37 +606,47 @@ export class TournamentDetailsComponent implements OnInit, OnDestroy {
     window.print();
   }
 
-  onFixtureClick(fixture: any) {
-    if (!fixture || !this.isSystemAdmin) return;
+  isFixtureClickable(fixture: any): boolean {
+    if (!fixture) return false;
+    if (this.isSystemAdmin) return true;
+    return !!fixture.matchId;
+  }
 
+  onFixtureClick(fixture: any) {
+    if (!fixture || !this.isFixtureClickable(fixture)) return;
+
+    // If match entity exists (has matchId), navigate to Match Detail page
     if (fixture.matchId) {
       this.router.navigate(['/match', fixture.matchId]);
       return;
     }
 
-    const fixtureId = fixture.fixtureId || fixture.id;
-    if (!fixtureId) return;
+    // If SystemAdmin and match not created yet, navigate to Create Match page
+    if (this.isSystemAdmin) {
+      const fixtureId = fixture.fixtureId || fixture.id;
+      if (!fixtureId) return;
 
-    this.router.navigate(['/tournament/fixture', fixtureId, 'create-match'], {
-      state: {
-        fixtureId: fixtureId,
-        homeTeamId: fixture.homeTeamId,
-        awayTeamId: fixture.awayTeamId,
-        homeTeamName: fixture.homeTeamName,
-        awayTeamName: fixture.awayTeamName,
-        homeAcademyName: fixture.homeAcademyName || '',
-        awayAcademyName: fixture.awayAcademyName || '',
-        tournamentId: this.tournamentId,
-        tournamentName: this.tournament?.name,
-        groupOrRoundName: fixture.groupName
-      },
-      queryParams: {
-        homeTeamId: fixture.homeTeamId,
-        awayTeamId: fixture.awayTeamId,
-        homeTeamName: fixture.homeTeamName,
-        awayTeamName: fixture.awayTeamName
-      }
-    });
+      this.router.navigate(['/tournament/fixture', fixtureId, 'create-match'], {
+        state: {
+          fixtureId: fixtureId,
+          homeTeamId: fixture.homeTeamId,
+          awayTeamId: fixture.awayTeamId,
+          homeTeamName: fixture.homeTeamName,
+          awayTeamName: fixture.awayTeamName,
+          homeAcademyName: fixture.homeAcademyName || '',
+          awayAcademyName: fixture.awayAcademyName || '',
+          tournamentId: this.tournamentId,
+          tournamentName: this.tournament?.name,
+          groupOrRoundName: fixture.groupName
+        },
+        queryParams: {
+          homeTeamId: fixture.homeTeamId,
+          awayTeamId: fixture.awayTeamId,
+          homeTeamName: fixture.homeTeamName,
+          awayTeamName: fixture.awayTeamName
+        }
+      });
+    }
   }
 
   // Fixture score editing
@@ -688,7 +700,7 @@ export class TournamentDetailsComponent implements OnInit, OnDestroy {
     this.tournamentService.generateKnockoutFromGroups(this.tournamentId).subscribe({
       next: () => {
         this.isGeneratingKnockout = false;
-        this.knockoutGenerateSuccess = '🏆 Knockout stage generated! Check the Knockout Stage tab.';
+        this.knockoutGenerateSuccess = 'Knockout stage generated! Check the Knockout Stage tab.';
         this.loadTournamentData();
       },
       error: (err) => {

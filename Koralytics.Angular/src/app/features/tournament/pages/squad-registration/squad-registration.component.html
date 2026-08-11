@@ -1,14 +1,4 @@
 <div class="squad-registration-page">
-  <div class="back-nav" scrollReveal direction="bottom">
-    <button class="back-btn" (click)="goBack()">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="19" y1="12" x2="5" y2="12"></line>
-        <polyline points="12 19 5 12 12 5"></polyline>
-      </svg>
-      Back to Tournament
-    </button>
-  </div>
-
   <header class="page-hero" scrollReveal direction="bottom" [delay]="80">
     <div>
       <div class="hero-badge">
@@ -31,10 +21,7 @@
   </header>
 
   @if (isLoading) {
-    <div class="loading-grid">
-      <div class="skeleton-panel"></div>
-      <div class="skeleton-panel tall"></div>
-    </div>
+    <app-loading-spinner size="lg"></app-loading-spinner>
   } @else {
     @if (errorMessage) {
       <div class="message-banner error-banner">

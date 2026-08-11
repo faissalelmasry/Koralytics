@@ -1,12 +1,5 @@
 <div class="tournament-manage-page">
   <div class="top-bar" scrollReveal direction="bottom">
-    <button class="back-btn" type="button" (click)="goBack()" aria-label="Go back">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="19" y1="12" x2="5" y2="12"></line>
-        <polyline points="12 19 5 12 12 5"></polyline>
-      </svg>
-    </button>
-
     <div class="title-block">
       <span class="eyebrow">{{ isEditMode ? 'Tournament management' : 'Tournament setup' }}</span>
       <h1>{{ pageTitle }}</h1>
@@ -14,7 +7,9 @@
     </div>
   </div>
 
-  @if (!isEditMode) {
+  @if (isLoading) {
+    <app-loading-spinner size="lg"></app-loading-spinner>
+  } @else if (!isEditMode) {
     <form [formGroup]="tournamentForm" (ngSubmit)="onSubmit()" class="create-workspace">
       <aside class="setup-rail" scrollReveal direction="bottom" [delay]="100">
         <div class="rail-card">
@@ -280,7 +275,8 @@
                 @if (activeAction === 'invite') {
                   Inviting...
                 } @else if (selectedAcademyId && isAcademyInvited(selectedAcademyId)) {
-                  ✓ Already Invited
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  Already Invited
                 } @else {
                   Invite
                 }

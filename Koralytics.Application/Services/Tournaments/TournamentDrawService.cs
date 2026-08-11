@@ -1,13 +1,13 @@
-﻿using TournamentEntity = Koralytics.Domain.Entities.Tournamet.Tournament;
+using TournamentEntity = Koralytics.Domain.Entities.Tournamet.Tournament;
 using TournamentTeamEntity = Koralytics.Domain.Entities.Tournamet.TournamentTeam;
 using TournamentGroupEntity = Koralytics.Domain.Entities.Tournamet.TournamentGroup;
 using TournamentRoundEntity = Koralytics.Domain.Entities.Tournamet.TournamentRound;
 using TournamentFixtureEntity = Koralytics.Domain.Entities.Tournamet.TournamentFixture;
 using TournamentGroupTeamEntity = Koralytics.Domain.Entities.Tournamet.TournamentGroupTeam;
 using TournamentStandingEntity = Koralytics.Domain.Entities.Tournamet.TournamentStanding;
+using PlayerCardEntity = Koralytics.Domain.Entities.Player.PlayerCard;
 using Koralytics.Application.Interfaces;
 using Koralytics.Application.Interfaces.Tournament;
-using Koralytics.Application.Services.Player.PlayerCardService;
 using Koralytics.Domain.Enums;
 using Koralytics.Domain.Exceptions;
 using Microsoft.EntityFrameworkCore;
@@ -19,17 +19,14 @@ namespace Koralytics.Application.Services.Tournaments
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<TournamentDrawService> _logger;
-        private readonly IPlayerCardService _playerCardService;
         private readonly Random _random = new();
 
         public TournamentDrawService(
             IUnitOfWork unitOfWork,
-            ILogger<TournamentDrawService> logger,
-            IPlayerCardService playerCardService)
+            ILogger<TournamentDrawService> logger)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
-            _playerCardService = playerCardService;
         }
 
         // ─────────────────────────────────────────────────────────────
@@ -107,31 +104,20 @@ namespace Koralytics.Application.Services.Tournaments
             var winCountLookup = previousWinCounts
                 .ToDictionary(x => x.TeamId, x => x.Wins);
 
-            // ── FIX: Fetch all player cards upfront ──
-            // Before: N calls inside foreach per team
-            // After:  one call per unique player across all teams
+            // ── Bulk fetch existing PlayerCard ratings from database in a single query ──
+            // Avoids calling GetPlayerCardAsync per player (no recalculation overhead & no N+1 DB queries)
             var uniquePlayerIds = allTeamPlayers
                 .Select(p => p.PlayerId)
                 .Distinct()
                 .ToList();
 
-            var playerRatings = new Dictionary<int, double>();
-            foreach (var playerId in uniquePlayerIds)
-            {
-                try
-                {
-                    var card = await _playerCardService
-                        .GetPlayerCardAsync(playerId);
-                    if (card != null)
-                        playerRatings[playerId] = (double)card.OverallRating;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(
-                        "Could not get card for player {PlayerId}: {Message}",
-                        playerId, ex.Message);
-                }
-            }
+            var playerRatings = await _unitOfWork
+                .Repository<PlayerCardEntity>()
+                .GetQueryableAsNoTracking()
+                .Where(pc => uniquePlayerIds.Contains(pc.PlayerId))
+                .ToDictionaryAsync(
+                    pc => pc.PlayerId,
+                    pc => (double)pc.OverallRating);
 
             // ── Calculate all scores in memory — zero additional DB queries ──
             var seedScores = new List<(TournamentTeamEntity Team, double Score)>();

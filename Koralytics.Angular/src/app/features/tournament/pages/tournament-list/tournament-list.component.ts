@@ -11,6 +11,7 @@ import { CustomSelect } from '../../../../../shared/components/custom-select/cus
 import { EmptyStateComponent } from '../../../../../shared/components/empty-state/empty-state';
 import { StatusChipComponent } from '../../../../../shared/components/status-chip/status-chip';
 import { Pagination } from '../../../../../shared/components/pagination/pagination';
+import { LoadingSpinnerComponent } from '../../../../../shared/components/loading-spinner/loading-spinner';
 import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
 
 import { AuthService } from '../../../../../core/services/auth/auth.service';
@@ -28,6 +29,7 @@ import { AuthService } from '../../../../../core/services/auth/auth.service';
     EmptyStateComponent,
     StatusChipComponent,
     Pagination,
+    LoadingSpinnerComponent,
     ScrollRevealDirective
   ],
   templateUrl: './tournament-list.component.html',
