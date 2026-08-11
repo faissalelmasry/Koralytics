@@ -532,13 +532,13 @@ namespace Koralytics.API
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Koralytics API v1");
             });
+            app.UseCors();
 
             if (!app.Environment.IsDevelopment())
             {
                 app.UseHttpsRedirection();
             }
 
-            app.UseCors();
             app.UseAuthentication();
             app.UseAuthorization();
 
