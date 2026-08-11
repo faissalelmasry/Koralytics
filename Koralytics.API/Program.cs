@@ -144,11 +144,9 @@ namespace Koralytics.API
             {
                 options.AddDefaultPolicy(policy =>
                 {
-                    var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
-                    policy.WithOrigins(allowedOrigins)
+                    policy.AllowAnyOrigin()
                           .AllowAnyHeader()
-                          .AllowAnyMethod()
-                          .AllowCredentials();
+                          .AllowAnyMethod();
                 });
             });
 
