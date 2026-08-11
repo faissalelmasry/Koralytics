@@ -5,10 +5,10 @@
 /* Base styles matching the previous app.css wrapper structure */
 .bfa-cyber-pitch-wrapper {
   position: relative;
-  min-height: calc(100vh - 64px);
+  min-height: calc(100vh - 110px);
   background-color: var(--bfa-bg-dark);
   overflow: hidden;
-  padding-top: 64px;
+  padding-top: 110px;
 }
 
 .bfa-blob {

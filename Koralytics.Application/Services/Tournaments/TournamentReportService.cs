@@ -14,6 +14,7 @@ using TournamentHallOfFameEntity = Koralytics.Domain.Entities.Tournamet.Tourname
 using TournamentRoundEntity = Koralytics.Domain.Entities.Tournamet.TournamentRound;
 using TournamentStandingEntity = Koralytics.Domain.Entities.Tournamet.TournamentStanding;
 using TournamentSquadEntity = Koralytics.Domain.Entities.Tournamet.TournamentSquad;
+using TournamentTeamEntity = Koralytics.Domain.Entities.Tournamet.TournamentTeam;
 
 namespace Koralytics.Application.Services.Tournaments
 {
@@ -200,52 +201,46 @@ namespace Koralytics.Application.Services.Tournaments
                     .OrderByDescending(r => r.RoundNumber)
                     .FirstOrDefaultAsync();
 
-                if (finalRound is null) return null;
+                if (finalRound != null)
+                {
+                    var finalFixture = await _unitOfWork
+                        .Repository<TournamentFixtureEntity>()
+                        .GetQueryable()
+                        .Where(f => f.RoundId == finalRound.Id)
+                        .OrderByDescending(f => f.LegNumber ?? 0)
+                        .FirstOrDefaultAsync();
 
-                var finalFixture = await _unitOfWork
-                    .Repository<TournamentFixtureEntity>()
-                    .GetQueryable()
-                    .Where(f => f.RoundId == finalRound.Id)
-                    .OrderByDescending(f => f.LegNumber ?? 0)
-                    .FirstOrDefaultAsync();
-
-                return finalFixture?.WinnerTeamId;
+                    if (finalFixture?.WinnerTeamId != null)
+                        return finalFixture.WinnerTeamId;
+                }
             }
 
-            if (tournament.Structure == TournamentStructure.League)
-            {
-                var dummyGroup = await _unitOfWork
-                    .Repository<TournamentGroupEntity>()
-                    .FindAsync(g =>
-                        g.TournamentId == tournamentId &&
-                        g.IsDummy == true);
+            // Fallback for GroupAndKnockout without final winner, League, or tied standings:
+            // Find top team from group standings
+            var topStanding = await _unitOfWork
+                .Repository<TournamentStandingEntity>()
+                .GetQueryable()
+                .Where(s => s.Group.TournamentId == tournamentId)
+                .OrderByDescending(s => s.Points)
+                .ThenByDescending(s => s.GoalsFor - s.GoalsAgainst)
+                .ThenByDescending(s => s.GoalsFor)
+                .FirstOrDefaultAsync();
 
-                if (dummyGroup is null) return null;
+            if (topStanding != null)
+                return topStanding.TournamentTeamId;
 
-                var topTeam = await _unitOfWork
-                    .Repository<TournamentStandingEntity>()
-                    .GetQueryable()
-                    .Where(s => s.GroupId == dummyGroup.Id)
-                    .OrderByDescending(s => s.Points)
-                    .ThenByDescending(s => s.GoalsFor - s.GoalsAgainst)
-                    .ThenByDescending(s => s.GoalsFor)
-                    .FirstOrDefaultAsync();
+            // Ultimate fallback: first accepted/registered team in the tournament
+            var firstTeam = await _unitOfWork
+                .Repository<TournamentTeamEntity>()
+                .GetQueryable()
+                .FirstOrDefaultAsync(tt => tt.TournamentId == tournamentId);
 
-                return topTeam?.TournamentTeamId;
-            }
-
-            return null;
+            return firstTeam?.Id;
         }
 
         private async Task CreateHallOfFameAsync(
             int tournamentId, int winnerTournamentTeamId)
         {
-            var existingCount = await _unitOfWork.Repository<TournamentHallOfFameEntity>()
-                .GetQueryableAsNoTracking()
-                .CountAsync(h => h.TournamentId == tournamentId);
-
-            if (existingCount > 0) return;
-
             var tournamentMatchIds = await _unitOfWork
                 .Repository<TournamentFixtureEntity>()
                 .GetQueryable()
@@ -285,12 +280,30 @@ namespace Koralytics.Application.Services.Tournaments
                 .Distinct()
                 .ToListAsync();
 
-            if (squadPlayerIds.Count == 0 && allRatings.Count == 0) return;
+            var participatingTeamIds = await _unitOfWork.Repository<TournamentTeamEntity>()
+                .GetQueryableAsNoTracking()
+                .Where(tt => tt.TournamentId == tournamentId)
+                .Select(tt => tt.TeamId)
+                .ToListAsync();
 
-            var candidateIds = squadPlayerIds.Concat(allRatings.Select(r => r.PlayerId)).Distinct().ToList();
+            var teamPlayerIds = new List<int>();
+            if (participatingTeamIds.Count > 0)
+            {
+                teamPlayerIds = await _unitOfWork.Repository<Koralytics.Domain.Entities.Player.PlayerTeam>()
+                    .GetQueryableAsNoTracking()
+                    .Where(pt => participatingTeamIds.Contains(pt.TeamId) && pt.LeftAt == null)
+                    .Select(pt => pt.PlayerId)
+                    .Distinct()
+                    .ToListAsync();
+            }
+
+            var candidateIds = squadPlayerIds
+                .Concat(allRatings.Select(r => r.PlayerId))
+                .Concat(teamPlayerIds)
+                .Distinct()
+                .ToList();
+
             if (candidateIds.Count == 0) return;
-
-            var hallOfFameRecords = new List<TournamentHallOfFameEntity>();
 
             // Aggregate Player Stats
             var playerStats = candidateIds.Select(pId => new
@@ -303,6 +316,8 @@ namespace Koralytics.Application.Services.Tournaments
                 Minutes = allRatings.Where(r => r.PlayerId == pId).Sum(r => r.MinutesPlayed)
             }).ToList();
 
+            var desiredAwards = new List<(int PlayerId, string AwardType)>();
+
             // Top Scorer
             var topScorer = playerStats
                 .OrderByDescending(x => x.Goals)
@@ -311,7 +326,7 @@ namespace Koralytics.Application.Services.Tournaments
                 .FirstOrDefault();
 
             if (topScorer != null)
-                hallOfFameRecords.Add(new TournamentHallOfFameEntity { TournamentId = tournamentId, PlayerId = topScorer.PlayerId, AwardType = "TopScorer" });
+                desiredAwards.Add((topScorer.PlayerId, "TopScorer"));
 
             // Most Assists
             var mostAssists = playerStats
@@ -320,8 +335,8 @@ namespace Koralytics.Application.Services.Tournaments
                 .ThenByDescending(x => x.AvgRating)
                 .FirstOrDefault();
 
-            if (mostAssists != null && !hallOfFameRecords.Any(r => r.AwardType == "MostAssists"))
-                hallOfFameRecords.Add(new TournamentHallOfFameEntity { TournamentId = tournamentId, PlayerId = mostAssists.PlayerId, AwardType = "MostAssists" });
+            if (mostAssists != null && !desiredAwards.Any(r => r.AwardType == "MostAssists"))
+                desiredAwards.Add((mostAssists.PlayerId, "MostAssists"));
 
             // Most MOTM
             var mostMOTM = playerStats
@@ -329,8 +344,8 @@ namespace Koralytics.Application.Services.Tournaments
                 .ThenByDescending(x => x.AvgRating)
                 .FirstOrDefault();
 
-            if (mostMOTM != null && !hallOfFameRecords.Any(r => r.AwardType == "MostMOTM"))
-                hallOfFameRecords.Add(new TournamentHallOfFameEntity { TournamentId = tournamentId, PlayerId = mostMOTM.PlayerId, AwardType = "MostMOTM" });
+            if (mostMOTM != null && !desiredAwards.Any(r => r.AwardType == "MostMOTM"))
+                desiredAwards.Add((mostMOTM.PlayerId, "MostMOTM"));
 
             // Best Goalkeeper
             var goalkeeperIds = await _unitOfWork
@@ -344,8 +359,8 @@ namespace Koralytics.Application.Services.Tournaments
                 ? playerStats.Where(x => goalkeeperIds.Contains(x.PlayerId)).OrderByDescending(x => x.AvgRating).ThenByDescending(x => x.Minutes).Select(x => x.PlayerId).FirstOrDefault()
                 : candidateIds.FirstOrDefault();
 
-            if (bestGkCandidate > 0 && !hallOfFameRecords.Any(r => r.AwardType == "BestGoalkeeper"))
-                hallOfFameRecords.Add(new TournamentHallOfFameEntity { TournamentId = tournamentId, PlayerId = bestGkCandidate, AwardType = "BestGoalkeeper" });
+            if (bestGkCandidate > 0 && !desiredAwards.Any(r => r.AwardType == "BestGoalkeeper"))
+                desiredAwards.Add((bestGkCandidate, "BestGoalkeeper"));
 
             // Best Player
             var bestPlayer = playerStats
@@ -354,16 +369,47 @@ namespace Koralytics.Application.Services.Tournaments
                 .ThenByDescending(x => x.Assists)
                 .FirstOrDefault();
 
-            if (bestPlayer != null && !hallOfFameRecords.Any(r => r.AwardType == "BestPlayer"))
-                hallOfFameRecords.Add(new TournamentHallOfFameEntity { TournamentId = tournamentId, PlayerId = bestPlayer.PlayerId, AwardType = "BestPlayer" });
+            if (bestPlayer != null && !desiredAwards.Any(r => r.AwardType == "BestPlayer"))
+                desiredAwards.Add((bestPlayer.PlayerId, "BestPlayer"));
 
-            if (hallOfFameRecords.Count > 0)
+            // Load ALL existing records for this tournament (including soft-deleted ones)
+            var existingRecords = await _unitOfWork.Repository<TournamentHallOfFameEntity>()
+                .GetQueryable()
+                .IgnoreQueryFilters()
+                .Where(h => h.TournamentId == tournamentId)
+                .ToListAsync();
+
+            var desiredSet = desiredAwards.ToHashSet();
+
+            // 1. Soft-delete records no longer in desired set
+            foreach (var record in existingRecords)
             {
-                await _unitOfWork.Repository<TournamentHallOfFameEntity>()
-                    .AddRangeAsync(hallOfFameRecords);
-
-                await _unitOfWork.SaveChangesAsync();
+                if (!desiredSet.Contains((record.PlayerId, record.AwardType)))
+                {
+                    record.IsDeleted = true;
+                }
             }
+
+            // 2. Insert or un-delete desired records
+            foreach (var (pId, awardType) in desiredAwards)
+            {
+                var existing = existingRecords.FirstOrDefault(r => r.PlayerId == pId && r.AwardType == awardType);
+                if (existing != null)
+                {
+                    existing.IsDeleted = false;
+                }
+                else
+                {
+                    await _unitOfWork.Repository<TournamentHallOfFameEntity>().AddAsync(new TournamentHallOfFameEntity
+                    {
+                        TournamentId = tournamentId,
+                        PlayerId = pId,
+                        AwardType = awardType
+                    });
+                }
+            }
+
+            await _unitOfWork.SaveChangesAsync();
         }
 
         private async Task<List<GroupStandingDto>> GetGroupStandingsAsync(

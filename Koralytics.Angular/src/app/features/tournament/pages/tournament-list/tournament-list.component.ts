@@ -110,9 +110,11 @@ export class TournamentListComponent implements OnInit {
   }
 
   applyFilters() {
+    const query = (this.searchText || '').toLowerCase().trim();
     this.filteredTournaments = this.tournaments.filter(t => {
-      const matchesSearch = t.name.toLowerCase().includes(this.searchText.toLowerCase()) ||
-        t.ageGroupName.toLowerCase().includes(this.searchText.toLowerCase());
+      const name = (t.name || '').toLowerCase();
+      const ageGroup = (t.ageGroupName || '').toLowerCase();
+      const matchesSearch = !query || name.includes(query) || ageGroup.includes(query);
       const matchesFormat = !this.selectedFormat || t.format === this.selectedFormat;
       const matchesStructure = !this.selectedStructure || t.structure === this.selectedStructure;
       const matchesStatus = !this.selectedStatus || t.status === this.selectedStatus;

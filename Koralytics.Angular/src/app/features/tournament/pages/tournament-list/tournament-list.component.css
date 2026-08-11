@@ -39,8 +39,8 @@
   color: var(--text);
   font-size: clamp(1.8rem, 3vw, 2.55rem);
   font-weight: 850;
-  line-height: 1.05;
-  letter-spacing: 0;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
 }
 
 .workspace-header p {

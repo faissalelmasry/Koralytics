@@ -1,6 +1,8 @@
 using Koralytics.Application.DTOs.AI;
 using Koralytics.Application.DTOs.Notification;
 using Koralytics.Application.Interfaces.AI;
+using Koralytics.Application.Interfaces.Tournament;
+using Koralytics.Application.Interfaces.Tournaments;
 using Koralytics.Application.Options;
 using Koralytics.Domain.Entities.AI;
 using Koralytics.Domain.Entities.Tournamet;
@@ -26,17 +28,20 @@ namespace Koralytics.Application.Services.AI
         private readonly IAIProvider _aiProvider;
         private readonly IRealTimeBridge _realTimeBridge;
         private readonly ILogger<AIReportService> _logger;
+        private readonly ITournamentReportService _tournamentReportService;
 
         public AIReportService(
             IUnitOfWork unitOfWork,
             IAIProvider aiProvider,
             IRealTimeBridge realTimeBridge,
-            ILogger<AIReportService> logger)
+            ILogger<AIReportService> logger,
+            ITournamentReportService tournamentReportService)
         {
             _unitOfWork = unitOfWork;
             _aiProvider = aiProvider;
             _realTimeBridge = realTimeBridge;
             _logger = logger;
+            _tournamentReportService = tournamentReportService;
         }
 
         public async Task<AIReportDto?> GetTournamentReportAsync(int tournamentId)
@@ -92,12 +97,34 @@ namespace Koralytics.Application.Services.AI
                     .ThenInclude(r => r.TournamentFixtures)
                         .ThenInclude(f => f.WinnerTeam)
                             .ThenInclude(tt => tt.Team)
+                .Include(t => t.TournamentGroups)
+                    .ThenInclude(g => g.TournamentFixtures)
+                        .ThenInclude(f => f.HomeTeam)
+                            .ThenInclude(tt => tt.Team)
+                .Include(t => t.TournamentGroups)
+                    .ThenInclude(g => g.TournamentFixtures)
+                        .ThenInclude(f => f.AwayTeam)
+                            .ThenInclude(tt => tt.Team)
+                .Include(t => t.TournamentGroups)
+                    .ThenInclude(g => g.TournamentStandings)
+                        .ThenInclude(s => s.TournamentTeam)
+                            .ThenInclude(tt => tt.Team)
                 .FirstOrDefaultAsync(t => t.Id == tournamentId, cancellationToken);
 
             if (tournament is null)
             {
                 _logger.LogWarning("Tournament {TournamentId} not found while generating AI report.", tournamentId);
                 return;
+            }
+
+            // Refresh Hall of Fame from latest match data before building the prompt
+            try
+            {
+                await _tournamentReportService.GetHallOfFameAsync(tournamentId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not refresh Hall of Fame before generating AI report for tournament {TournamentId}", tournamentId);
             }
 
             var hallOfFame = await _unitOfWork.Repository<TournamentHallOfFame>()
@@ -361,12 +388,33 @@ namespace Koralytics.Application.Services.AI
 
             var teamsListStr = teams.Count > 0 ? string.Join("، ", teams) : "الفرق المشاركة بالبطولة";
 
+            // Determine winner: prefer final knockout round, fallback to group leader
             var finalRound = tournament.TournamentRounds
                 .OrderByDescending(r => r.RoundNumber)
                 .FirstOrDefault();
 
-            var finalMatch = finalRound?.TournamentFixtures.FirstOrDefault(f => f.WinnerTeamId != null);
-            var winnerName = finalMatch?.WinnerTeam?.Team?.Name ?? (teams.FirstOrDefault() ?? "الفريق الفائز بالبطولة");
+            var finalMatch = finalRound?.TournamentFixtures
+                .OrderByDescending(f => f.LegNumber ?? 0)
+                .FirstOrDefault(f => f.WinnerTeamId != null);
+
+            string winnerName;
+            if (finalMatch?.WinnerTeam?.Team != null)
+            {
+                winnerName = finalMatch.WinnerTeam.Team.Name;
+            }
+            else
+            {
+                // Fallback: top of group standings
+                var topStandingTeam = tournament.TournamentGroups
+                    .Where(g => !g.IsDummy)
+                    .SelectMany(g => g.TournamentStandings)
+                    .OrderByDescending(s => s.Points)
+                    .ThenByDescending(s => s.GoalsFor - s.GoalsAgainst)
+                    .ThenByDescending(s => s.GoalsFor)
+                    .FirstOrDefault()?.TournamentTeam?.Team?.Name;
+
+                winnerName = topStandingTeam ?? (teams.FirstOrDefault() ?? "الفريق الفائز بالبطولة");
+            }
 
             var bestPlayer = hallOfFame.FirstOrDefault(h => h.AwardType == "BestPlayer")?.Player;
             var topScorer = hallOfFame.FirstOrDefault(h => h.AwardType == "TopScorer")?.Player;
@@ -380,7 +428,7 @@ namespace Koralytics.Application.Services.AI
             var mostAssistsStr = mostAssists != null ? $"{mostAssists.FirstName} {mostAssists.LastName}" : "غير محدد";
             var mostMotmStr = mostMotm != null ? $"{mostMotm.FirstName} {mostMotm.LastName}" : "غير محدد";
 
-            // Calculate extra stats for AI Context
+            // Extra stats from DB
             int topScorerGoals = 0;
             int topAssisterAssists = 0;
             string mostScoredClub = "غير محدد";
@@ -389,13 +437,16 @@ namespace Koralytics.Application.Services.AI
             int mostConcededGoals = 0;
             string leastScoredClub = "غير محدد";
             int leastScoredGoals = 0;
+            var groupResultLines = new List<string>();
+            var knockoutResultLines = new List<string>();
 
             try
             {
                 var tournamentMatchIds = await _unitOfWork.Repository<TournamentFixture>()
                     .GetQueryableAsNoTracking()
                     .Where(f => f.MatchId != null &&
-                                (f.Round != null ? f.Round.TournamentId == tournament.Id : f.Group != null && f.Group.TournamentId == tournament.Id))
+                                (f.Round != null ? f.Round.TournamentId == tournament.Id
+                                                 : f.Group != null && f.Group.TournamentId == tournament.Id))
                     .Select(f => f.MatchId!.Value)
                     .ToListAsync();
 
@@ -413,25 +464,63 @@ namespace Koralytics.Application.Services.AI
                         topAssisterAssists = allRatings.Where(r => r.PlayerId == mostAssists.Id).Sum(r => r.Assists);
                 }
 
-                var standings = await _unitOfWork.Repository<TournamentStanding>()
-                    .GetQueryableAsNoTracking()
-                    .Include(s => s.TournamentTeam).ThenInclude(tt => tt.Team)
-                    .Where(s => s.Group.TournamentId == tournament.Id)
-                    .ToListAsync();
+                // Group standings - use already-loaded navigation properties first
+                var loadedStandings = tournament.TournamentGroups
+                    .SelectMany(g => g.TournamentStandings
+                        .Select(s => new { GroupName = g.Name, Standing = s }))
+                    .ToList();
 
-                if (standings.Count > 0)
+                if (loadedStandings.Count > 0)
                 {
-                    var ms = standings.OrderByDescending(s => s.GoalsFor).First();
-                    mostScoredClub = ms.TournamentTeam.Team.Name;
+                    var allStandings = loadedStandings.Select(x => x.Standing).ToList();
+
+                    var ms = allStandings.OrderByDescending(s => s.GoalsFor).First();
+                    mostScoredClub = ms.TournamentTeam?.Team?.Name ?? "غير محدد";
                     mostScoredGoals = ms.GoalsFor;
 
-                    var mc = standings.OrderByDescending(s => s.GoalsAgainst).First();
-                    mostConcededClub = mc.TournamentTeam.Team.Name;
+                    var mc = allStandings.OrderByDescending(s => s.GoalsAgainst).First();
+                    mostConcededClub = mc.TournamentTeam?.Team?.Name ?? "غير محدد";
                     mostConcededGoals = mc.GoalsAgainst;
 
-                    var ls = standings.OrderBy(s => s.GoalsFor).First();
-                    leastScoredClub = ls.TournamentTeam.Team.Name;
+                    var ls = allStandings.OrderBy(s => s.GoalsFor).First();
+                    leastScoredClub = ls.TournamentTeam?.Team?.Name ?? "غير محدد";
                     leastScoredGoals = ls.GoalsFor;
+
+                    // Build group-stage summary text
+                    foreach (var grp in tournament.TournamentGroups.Where(g => !g.IsDummy))
+                    {
+                        var rows = grp.TournamentStandings
+                            .OrderByDescending(s => s.Points)
+                            .ThenByDescending(s => s.GoalsFor - s.GoalsAgainst)
+                            .ToList();
+
+                        groupResultLines.Add($"  [{grp.Name}]: " + string.Join(" | ",
+                            rows.Select((s, i) => $"{i + 1}. {s.TournamentTeam?.Team?.Name ?? "?"}" +
+                                                  $" (م:{s.Played} ف:{s.Won} ت:{s.Drawn} خ:{s.Lost} أهداف:{s.GoalsFor}-{s.GoalsAgainst} نقاط:{s.Points})")))
+                        ;
+                    }
+
+                    // Group fixtures with scores
+                    foreach (var grp in tournament.TournamentGroups.Where(g => !g.IsDummy))
+                    {
+                        foreach (var f in grp.TournamentFixtures.Where(f => f.HomeScore.HasValue))
+                        {
+                            groupResultLines.Add($"    - {f.HomeTeam?.Team?.Name ?? "?"} {f.HomeScore}-{f.AwayScore} {f.AwayTeam?.Team?.Name ?? "?"}");
+                        }
+                    }
+                }
+
+                // Knockout rounds summary
+                foreach (var round in tournament.TournamentRounds.OrderBy(r => r.RoundNumber))
+                {
+                    knockoutResultLines.Add($"  [{round.Name}]:");
+                    foreach (var f in round.TournamentFixtures.Where(f => f.HomeScore.HasValue))
+                    {
+                        var winner = f.WinnerTeam?.Team?.Name;
+                        knockoutResultLines.Add(
+                            $"    - {f.HomeTeam?.Team?.Name ?? "?"} {f.HomeScore}-{f.AwayScore} {f.AwayTeam?.Team?.Name ?? "?"}" +
+                            (winner != null ? $" (الفائز: {winner})" : string.Empty));
+                    }
                 }
             }
             catch (Exception ex)
@@ -445,31 +534,57 @@ namespace Koralytics.Application.Services.AI
             builder.AppendLine("نريد أن يكون التقرير طويلاً ومفصلاً وموثقاً بالكامل، مقسماً إلى العناوين التالية بوضوح:");
             builder.AppendLine();
             builder.AppendLine("### 1. الخلاصة التنفيذية للبطولة (Executive Summary)");
-            builder.AppendLine("(اكتب ملخصاً طويلاً ومفصلاً عن سير البطولة ونظامها ونجاحها وتتويج البطل).");
+            builder.AppendLine("(اكتب ملخصاً طويلاً ومفصلاً عن سير البطولة ونظامها ونجاحها وتتويج البطل، مستنداً إلى النتائج الفعلية المذكورة أدناه).");
             builder.AppendLine();
             builder.AppendLine("### 2. لوحة الشرف وتحليل الأداء الفردي (Hall of Fame)");
             builder.AppendLine("(حلل أداء اللاعبين الفائزين بالجوائز الفردية بالتفصيل واشرح دور كل منهم التكتيكي والبدني وكيف ساعد فريقه).");
             builder.AppendLine();
             builder.AppendLine("### 3. التحليل التكتيكي والأداء الجماعي");
-            builder.AppendLine("(حلل التكتيك وأساليب اللعب والضغط العالي والارتداد والتحولات الهجومية والدفاعية للفرق المشاركة بالتفصيل).");
+            builder.AppendLine("(حلل التكتيك وأساليب اللعب للفرق المشاركة بناءً على نتائج المباريات الفعلية).");
             builder.AppendLine();
             builder.AppendLine("### 4. توصيات الذكاء الاصطناعي الاستراتيجية للأكاديمية");
-            builder.AppendLine("(ضع خطة وتوصيات عملية تفصيلية للأجهزة الفنية لتطوير اللاعبين، علاج الأخطاء، البناء من الخلف، واستغلال الفرص).");
+            builder.AppendLine("(ضع خطة وتوصيات عملية تفصيلية للأجهزة الفنية لتطوير اللاعبين، علاج الأخطاء، واستغلال الفرص).");
             builder.AppendLine();
-            builder.AppendLine("بيانات البطولة المتاحة:");
+            builder.AppendLine("=== بيانات البطولة الفعلية الموثقة ===");
             builder.AppendLine($"- اسم البطولة: {tournament.Name}");
-            builder.AppendLine($"- بطل البطولة (أفضل نادي): {winnerName}");
+            builder.AppendLine($"- هيكل البطولة: {tournament.Structure}");
+            builder.AppendLine($"- عدد الفرق المشاركة: {teams.Count}");
             builder.AppendLine($"- الفرق المشاركة: {teamsListStr}");
+            builder.AppendLine($"- بطل البطولة: {winnerName}");
+            builder.AppendLine();
+            builder.AppendLine("=== الجوائز الفردية ===");
             builder.AppendLine($"- أفضل لاعب في البطولة: {bestPlayerStr}");
             builder.AppendLine($"- هداف البطولة: {topScorerStr} (سجل {topScorerGoals} أهداف)");
             builder.AppendLine($"- أفضل حارس مرمى: {bestGkStr}");
-            builder.AppendLine($"- الأكثر صناعة للأهداف (أفضل صانع ألعاب): {mostAssistsStr} (صنع {topAssisterAssists} أهداف)");
+            builder.AppendLine($"- أفضل صانع ألعاب: {mostAssistsStr} (صنع {topAssisterAssists} أهداف)");
             builder.AppendLine($"- رجل المباراة الأكثر تكراراً: {mostMotmStr}");
-            builder.AppendLine($"- النادي الأكثر تسجيلاً للأهداف: {mostScoredClub} (سجل {mostScoredGoals} أهداف)");
-            builder.AppendLine($"- النادي الأكثر استقبالاً للأهداف: {mostConcededClub} (استقبل {mostConcededGoals} أهداف)");
-            builder.AppendLine($"- النادي الأقل تسجيلاً للأهداف: {leastScoredClub} (سجل {leastScoredGoals} أهداف)");
             builder.AppendLine();
-            builder.AppendLine("تعليمات هامة جداً: لا تختصر أبداً! اكتب تقريراً كاملاً ومفصلاً وبأسلوب احترافي رفيع ليكون منتج SaaS حقيقي ومقنع للعملاء.");
+            builder.AppendLine("=== إحصائيات الفرق ===");
+            builder.AppendLine($"- أكثر نادٍ تسجيلاً: {mostScoredClub} (سجل {mostScoredGoals} أهداف)");
+            builder.AppendLine($"- أكثر نادٍ استقبالاً للأهداف: {mostConcededClub} ({mostConcededGoals} هدف)");
+            builder.AppendLine($"- أقل نادٍ تسجيلاً: {leastScoredClub} (سجل {leastScoredGoals} أهداف)");
+
+            if (groupResultLines.Count > 0)
+            {
+                builder.AppendLine();
+                builder.AppendLine("=== نتائج دور المجموعات ===");
+                foreach (var line in groupResultLines)
+                    builder.AppendLine(line);
+            }
+
+            if (knockoutResultLines.Count > 0)
+            {
+                builder.AppendLine();
+                builder.AppendLine("=== نتائج الأدوار الإقصائية ===");
+                foreach (var line in knockoutResultLines)
+                    builder.AppendLine(line);
+            }
+
+            builder.AppendLine();
+            builder.AppendLine("قواعد وتعليمات إجبارية صارمة جداً للذكاء الاصطناعي عند صياغة التقرير:");
+            builder.AppendLine("1. يمنع منعاً باتاً تحت أي ظرف كتابة عبارات تشكيك أو اعتذار عن البيانات مثل: 'على الرغم من عدم وجود معلومات محددة'، 'من غير المعروف من هو الهداف'، 'عدم توفر البيانات'، 'من غير المعروف من هو أفضل لاعب'.");
+            builder.AppendLine("2. يجب عليك دائماً وبشكل قاطع اعتبار النجوم واللاعبين والفرق المذكورة في التقرير هم الأبطال الحقيقيون وإبراز تفوقهم الفردي والجماعي.");
+            builder.AppendLine("3. قدم تحليلاً استثنائياً، حماسياً، واحترافياً رفيع المستوى مع الإشادة بأداء نجوم الأكاديمية وفريق " + winnerName + " وتفوقهم التكتيكي والبدني والتهديفي.");
 
             return builder.ToString();
         }

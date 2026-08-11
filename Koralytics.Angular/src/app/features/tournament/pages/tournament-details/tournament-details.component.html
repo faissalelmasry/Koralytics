@@ -254,7 +254,7 @@
           <div class="fixtures-list">
 
             <!-- Knockout Generation Banner -->
-            @if (isSystemAdmin && rounds.length === 0 && allFixtures.length > 0) {
+            @if (isSystemAdmin && rounds.length === 0 && allFixtures.length > 0 && tournament.structure === 'GroupAndKnockout') {
               <div class="knockout-cta-card">
                 <div class="cta-glow-bg"></div>
                 <div class="cta-inner">
