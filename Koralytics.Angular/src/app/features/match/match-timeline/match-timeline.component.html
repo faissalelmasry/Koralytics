@@ -31,6 +31,19 @@
       }
     </div>
     <div class="score-center">
+      @if (matchInfo.tournamentId) {
+        <a [routerLink]="['/tournament/details', matchInfo.tournamentId]" class="tournament-badge-link" [title]="matchInfo.tournamentName || 'Tournament Details'">
+          <svg class="trophy-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 9H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <path d="M18 9h2a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-4"></path>
+            <path d="M4 22h16"></path>
+            <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path>
+            <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path>
+            <path d="M18 2H6v7a6 6 0 0 0 12 0V2z"></path>
+          </svg>
+          <span class="tournament-name-text">{{ matchInfo.tournamentName || 'Tournament Details' }}</span>
+        </a>
+      }
       <div class="score-digits">{{ matchInfo.homeScore }} - {{ matchInfo.awayScore }}</div>
       @if (matchInfo.homePenaltyScore != null && matchInfo.awayPenaltyScore != null) {
       <span class="penalties-score-badge">{{ 'MATCH.TIMELINE.PEN_SCORE' | translate:{home: matchInfo.homePenaltyScore, away: matchInfo.awayPenaltyScore} }}</span>

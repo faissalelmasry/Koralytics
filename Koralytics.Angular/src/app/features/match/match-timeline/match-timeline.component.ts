@@ -59,7 +59,9 @@ export class MatchTimelineComponent implements OnInit, OnDestroy, OnChanges {
     awayTeamId: number;
     formation?: string;
     awayFormation?: string;
-    type?: string
+    type?: string;
+    tournamentId?: number | null;
+    tournamentName?: string | null;
   };
   @Input() mockTimelineEvents?: TimelineEvent[];
   @Input() canLogEvents: boolean = false;

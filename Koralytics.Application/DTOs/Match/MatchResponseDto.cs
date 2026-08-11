@@ -14,6 +14,7 @@ namespace Koralytics.Application.DTOs.Match
         public string? HomeTeamAcademyLogoUrl { get; set; }
         public string? AwayTeamAcademyLogoUrl { get; set; }
         public int? TournamentId { get; set; }
+        public string? TournamentName { get; set; }
         public int? SessionId { get; set; }
         public string Type { get; set; } = string.Empty;
         public string Format { get; set; } = string.Empty;

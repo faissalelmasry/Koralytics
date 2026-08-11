@@ -297,6 +297,7 @@ namespace Koralytics.Application.Services.Match
                 .Include(m => m.HomeTeam).ThenInclude(t => t.AgeGroup).ThenInclude(ag => ag.Academy)
                 .Include(m => m.AwayTeam).ThenInclude(t => t.AgeGroup).ThenInclude(ag => ag.Academy)
                 .Include(m => m.WinningTeam)
+                .Include(m => m.Tournament)
                 .FirstOrDefaultAsync(m => m.Id == matchId);
 
             if (match is null)

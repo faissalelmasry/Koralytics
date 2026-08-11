@@ -130,7 +130,7 @@ export class TournamentDetailsComponent implements OnInit, OnDestroy {
   }
 
   get participatingTeamCount(): number {
-    return this.teams.length;
+    return this.acceptedTeams.length;
   }
 
   get primaryAward(): any | null {

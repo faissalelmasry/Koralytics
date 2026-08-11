@@ -459,9 +459,11 @@
                     <div class="t-meta">Seed #{{ team.seedNumber }}</div>
                   }
                   <div class="t-meta">Registered: {{ team.registeredAt | date:'mediumDate' }}</div>
-                  <button class="mini-link-btn" type="button" (click)="goToSquadRegistration(team.teamId); $event.stopPropagation()">
-                    Register squad
-                  </button>
+                  @if (isSystemAdmin) {
+                    <button class="mini-link-btn" type="button" (click)="goToSquadRegistration(team.teamId); $event.stopPropagation()">
+                      Register squad
+                    </button>
+                  }
                 </div>
               </div>
             }
@@ -547,7 +549,7 @@
         <div class="tab-pane fade-in">
 
           <!-- Simulation Sandbox banner for non-completed tournaments -->
-          <div class="simulation-banner glass" *ngIf="tournament.status !== 'Completed'">
+          <div class="simulation-banner glass" *ngIf="isSystemAdmin && tournament.status !== 'Completed'">
             <div class="banner-content">
               <div class="banner-icon">🎮</div>
               <div class="banner-text">

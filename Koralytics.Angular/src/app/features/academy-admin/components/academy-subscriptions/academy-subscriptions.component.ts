@@ -134,6 +134,7 @@ this.subscriptionsList.add(
     }
   })
 );
+  }
 
   applyFilters(): void {
     let result = [...this.subscriptions];
@@ -225,6 +226,7 @@ this.subscriptionsList.add(
     }
   })
 );
+  }
 
   // CONFIRM DIALOG STATE
   isConfirmDialogOpen = false;
@@ -322,8 +324,7 @@ this.subscriptionsList.add(
         }
       })
     );
-  
-
+  }
   closeHistoryModal(): void {
     this.selectedHistoryPlayer = null;
     this.historySubscriptions = [];

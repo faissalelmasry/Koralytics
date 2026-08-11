@@ -55,6 +55,7 @@
     <!-- System Admin Links (Desktop) -->
     <ng-container *ngIf="isSystemAdmin">
       <a routerLink="/admin/scouterverification" routerLinkActive="active">{{ 'NAVBAR.SCOUTER_VERIFICATION' | translate }}</a>
+      <a routerLink="/tournament/list" routerLinkActive="active">{{ 'NAVBAR.TOURNAMENTS' | translate }}</a>
       <ng-container *ngIf="!isCoach && !isAcademyAdmin">
         <a routerLink="/drills" routerLinkActive="active">{{ 'NAVBAR.TEMPLATES' | translate }}</a>
         <a routerLink="/academy-ai" routerLinkActive="active" *ngIf="isEliteTier">{{ 'NAVBAR.AI_BOT' | translate }}</a>
@@ -193,6 +194,7 @@
           {{ 'NAVBAR.SYSTEM_ADMIN_HUB' | translate }}</div>
         <a routerLink="/system-admin/dashboard" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.ADMIN_DASHBOARD' | translate }}</a>
         <a routerLink="/admin/scouterverification" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.SCOUTER_VERIFICATION' | translate }}</a>
+        <a routerLink="/tournament/list" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.TOURNAMENTS' | translate }}</a>
         <ng-container *ngIf="!isCoach && !isAcademyAdmin">
           <a routerLink="/drills" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.DRILL_TEMPLATES' | translate }}</a>
           <a routerLink="/academy-ai" routerLinkActive="active" (click)="toggleSidebar(false)" *ngIf="isEliteTier">{{ 'NAVBAR.AI_BOT' | translate }}</a>

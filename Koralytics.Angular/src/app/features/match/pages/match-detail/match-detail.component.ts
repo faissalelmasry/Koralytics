@@ -188,6 +188,8 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
           matchDate: m.matchDate ?? m.MatchDate ?? null,
           status: m.status ?? m.Status ?? '',
           type: m.type ?? m.Type ?? '',
+          tournamentId: m.tournamentId ?? m.TournamentId ?? null,
+          tournamentName: m.tournamentName ?? m.TournamentName ?? null,
           homeTeamId: m.homeTeamId ?? m.HomeTeamId ?? 0,
           awayTeamId: m.awayTeamId ?? m.AwayTeamId ?? 0,
           formation: m.formation ?? m.Formation ?? '4-3-3',

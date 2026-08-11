@@ -15,6 +15,8 @@ import { Pagination } from '../../../../../shared/components/pagination/paginati
 import { CustomButtonComponent } from '../../../../../shared/components/custom-button/custom-button';
 import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { NavbarComponent } from '../../../../../shared/components/navbar/navbar';
+import { Footer } from '../../../../../shared/components/footer/footer';
 
 @Component({
   selector: 'app-academy-tournaments',
@@ -29,7 +31,9 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
     Pagination,
     CustomButtonComponent,
     ScrollRevealDirective,
-    TranslatePipe
+    TranslatePipe,
+    NavbarComponent,
+    Footer
   ],
   templateUrl: './academy-tournaments.component.html',
   styleUrls: ['./academy-tournaments.component.css'],
