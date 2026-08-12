@@ -58,13 +58,34 @@ namespace Koralytics.Application.Services.Academy.AcademyTeamService
                 throw new ConflictException(
                     $"The age range {dto.MinAge}-{dto.MaxAge} overlaps with an existing age group in this academy.");
 
-            // Name uniqueness within academy
-            var nameExists = await _unitOfWork.Repository<AgeGroup>()
-                .ExistsAsync(ag => ag.AcademyId == academyId && ag.Name == dto.Name );
+            // Name uniqueness within academy (check including soft-deleted)
+            var existingAgeGroup = await _unitOfWork.Repository<AgeGroup>()
+                .GetQueryable()
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(ag => ag.AcademyId == academyId && ag.Name == dto.Name);
 
-            if (nameExists)
-                throw new ConflictException(
-                    $"An age group named '{dto.Name}' already exists in this academy.");
+            if (existingAgeGroup != null)
+            {
+                if (!existingAgeGroup.IsDeleted)
+                {
+                    throw new ConflictException(
+                        $"An age group named '{dto.Name}' already exists in this academy.");
+                }
+
+                // Restore soft-deleted age group
+                existingAgeGroup.IsDeleted = false;
+                existingAgeGroup.MinAge = dto.MinAge;
+                existingAgeGroup.MaxAge = dto.MaxAge;
+                
+                _unitOfWork.Repository<AgeGroup>().Update(existingAgeGroup);
+                await _unitOfWork.SaveChangesAsync();
+
+                _logger.LogInformation(
+                    "Restored previously deleted AgeGroup '{Name}' (Id={Id}) for academy {AcademyId}.",
+                    existingAgeGroup.Name, existingAgeGroup.Id, academyId);
+
+                return _mapper.Map<AgeGroupResponseDto>(existingAgeGroup);
+            }
 
             var ageGroup = _mapper.Map<AgeGroup>(dto);
             ageGroup.AcademyId = academyId;
@@ -78,6 +99,33 @@ namespace Koralytics.Application.Services.Academy.AcademyTeamService
                 ageGroup.Name, ageGroup.Id, academyId);
 
             return _mapper.Map<AgeGroupResponseDto>(ageGroup);
+        }
+
+        // ──────────────────────────────────────────────────────────────────────
+        // DeleteAgeGroupAsync
+        // ──────────────────────────────────────────────────────────────────────
+        public async Task DeleteAgeGroupAsync(int academyId, int ageGroupId, int performedByUserId)
+        {
+            _logger.LogInformation(
+                "User {UserId} deleting age group {AgeGroupId} for academy {AcademyId}", performedByUserId, ageGroupId, academyId);
+
+            var ageGroup = await _unitOfWork.Repository<AgeGroup>()
+                .FindAsync(ag => ag.Id == ageGroupId && ag.AcademyId == academyId)
+                ?? throw new NotFoundException($"Age group with Id {ageGroupId} not found in this academy.");
+
+            var hasTeams = await _unitOfWork.Repository<Team>()
+                .ExistsAsync(t => t.AgeGroupId == ageGroupId && !t.IsDeleted);
+
+            if (hasTeams)
+            {
+                throw new ConflictException("Cannot delete this age group because it has teams assigned to it.");
+            }
+
+            ageGroup.IsDeleted = true;
+            _unitOfWork.Repository<AgeGroup>().Update(ageGroup);
+            await _unitOfWork.SaveChangesAsync();
+
+            _logger.LogInformation("Age group {AgeGroupId} deleted successfully.", ageGroupId);
         }
 
         // ──────────────────────────────────────────────────────────────────────

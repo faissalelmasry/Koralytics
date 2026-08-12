@@ -145,18 +145,12 @@
       <form [formGroup]="ageGroupForm" (ngSubmit)="onCreateAgeGroup()" class="search-form"
         style="display: flex; flex-direction: column; gap: 14px; margin-top: 16px; width: 100%; box-sizing: border-box;">
         <div style="width: 100%;">
-          <app-text-input formControlName="name" placeholder="{{ 'ACADEMY_ADMIN.TEAMS_SECTION.PH_GROUP_NAME' | translate }}" type="text" label="{{ 'ACADEMY_ADMIN.TEAMS_SECTION.LBL_GROUP_NAME' | translate }}">
-          </app-text-input>
-        </div>
-
-        <div style="width: 100%;">
-          <app-text-input formControlName="minAge" type="number" label="{{ 'ACADEMY_ADMIN.TEAMS_SECTION.LBL_MIN_AGE' | translate }}">
-          </app-text-input>
-        </div>
-
-        <div style="width: 100%;">
-          <app-text-input formControlName="maxAge" type="number" label="{{ 'ACADEMY_ADMIN.TEAMS_SECTION.LBL_MAX_AGE' | translate }}">
-          </app-text-input>
+          <app-select label="{{ 'ACADEMY_ADMIN.TEAMS_SECTION.LBL_GROUP_NAME' | translate }}" 
+                      placeholder="{{ 'ACADEMY_ADMIN.TEAMS_SECTION.PH_GROUP_NAME' | translate }}" 
+                      [options]="predefinedAgeGroupOptions"
+                      [value]="ageGroupForm.value.name" 
+                      (valueChange)="onPredefinedAgeGroupChange($event)">
+          </app-select>
         </div>
 
         <div class="form-actions" style="margin-top: 4px;">
@@ -182,3 +176,9 @@
     </div>
   </div>
 </div>
+
+<!-- Shared Cyber Confirm Dialog -->
+<app-confirm-dialog [isOpen]="isConfirmDialogOpen" [title]="confirmDialogTitle" [message]="confirmDialogMessage | translate:confirmDialogMessageParams"
+  level="danger" confirmText="{{ 'COMMON.CONFIRM' | translate }}" cancelText="{{ 'COMMON.CANCEL' | translate }}" [requiresConfirmation]="false"
+  (confirm)="onConfirmDialogExecute()" (cancel)="isConfirmDialogOpen = false; targetIdForConfirm = null">
+</app-confirm-dialog>

@@ -4,6 +4,7 @@ import { NavbarComponent } from '../../../../../shared/components/navbar/navbar'
 import { Footer } from '../../../../../shared/components/footer/footer';
 import { SystemAdminService } from '../../../../../core/services/system-admin/system-admin.service';
 import { AuthService } from '../../../../../core/services/auth/auth.service';
+import { Router, ActivatedRoute } from '@angular/router';
 import { ProfileService } from '../../../../../core/services/profile/profile.service';
 import { User } from '../../../../../core/interfaces/user.model';
 
@@ -39,6 +40,8 @@ export class SystemAdminDashboardComponent implements OnInit {
   private systemAdminService = inject(SystemAdminService);
   private authService = inject(AuthService);
   private profileService = inject(ProfileService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   currentUser: User | null = null;
   profileImageUrl: string | null = null;
@@ -51,6 +54,12 @@ export class SystemAdminDashboardComponent implements OnInit {
   activeTab = signal<AdminDashboardTab>('all');
 
   ngOnInit() {
+    this.route.queryParams.subscribe(params => {
+      if (params['tab']) {
+        this.activeTab.set(params['tab'] as AdminDashboardTab);
+      }
+    });
+
     this.currentUser = this.authService.getCurrentUserValue();
     this.profileService.getMyProfile().subscribe({
       next: (res) => {
@@ -65,6 +74,11 @@ export class SystemAdminDashboardComponent implements OnInit {
 
   setTab(tab: AdminDashboardTab) {
     this.activeTab.set(tab);
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { tab },
+      queryParamsHandling: 'merge',
+    });
   }
 
   get initials(): string {

@@ -9,6 +9,11 @@ namespace Koralytics.Application.Services.Academy.AcademyTeamService
         /// Validates that the min/max age range does not overlap with any existing group in the same academy.
         /// </summary>
         Task<AgeGroupResponseDto> CreateAgeGroupAsync(int academyId, CreateAgeGroupDto dto, int performedByUserId);
+        
+        /// <summary>
+        /// Deletes an AgeGroup if it has no associated teams.
+        /// </summary>
+        Task DeleteAgeGroupAsync(int academyId, int ageGroupId, int performedByUserId);
 
         /// <summary>
         /// Creates a Team under the given academy.
