@@ -61,7 +61,12 @@
       [style.left]="nodeLeft"
       [style.top]="nodeTop">
       <div class="radar-pulse-node" [style.background]="nodeColor" [style.box-shadow]="'0 0 20px ' + classificationGlow"></div>
-      <div class="player-card-popup" [style.border-color]="nodeColor">
+      <div class="player-card-popup"
+        [class.popup-below]="isTopQuadrant"
+        [class.popup-above]="!isTopQuadrant"
+        [class.popup-right-quad]="nodeLeft === '75%'"
+        [class.popup-left-quad]="nodeLeft === '25%'"
+        [style.border-color]="nodeColor">
         <div class="p-name" [style.color]="nodeColor">{{ displayClassificationKey | translate }}</div>
         <div class="p-metrics">{{ 'PLAYER.DRILL_LABEL' | translate }} <span [style.color]="nodeColor">{{ drillIndex }}</span> &bull; {{ 'PLAYER.MATCH_LABEL' | translate }} <span [style.color]="nodeColor">{{ matchIndex }}</span></div>
       </div>

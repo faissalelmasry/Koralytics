@@ -156,6 +156,14 @@
   border-radius: 20px;
   padding: 32px;
   backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  position: relative;
+  z-index: 10;
+}
+
+.form-card:has(.is-open) {
+  z-index: 999999 !important;
+  position: relative !important;
 }
 
 .form-grid {
@@ -167,6 +175,12 @@
 .form-group {
   display: flex;
   flex-direction: column;
+  position: relative;
+}
+
+.form-group:has(app-date-time-picker.is-open) {
+  z-index: 999999 !important;
+  position: relative !important;
 }
 
 .form-group.full-width {
@@ -283,7 +297,7 @@
 /* ─── Responsive Media Queries ───────────────────────────────── */
 @media (max-width: 768px) {
   .page-wrapper {
-    padding: 75px 14px 40px 14px;
+    padding: 110px 14px 40px 14px;
   }
 
   .header-row {
@@ -346,7 +360,7 @@
 
 @media (max-width: 480px) {
   .page-wrapper {
-    padding: 65px 10px 30px 10px;
+    padding: 100px 10px 30px 10px;
   }
 
   .section-title {

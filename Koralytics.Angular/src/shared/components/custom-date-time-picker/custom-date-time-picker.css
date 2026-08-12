@@ -1,5 +1,6 @@
 :host {
   display: block;
+  position: relative;
   width: 100%;
   max-width: 100%;
   --bg-input: rgba(20, 23, 28, 0.6); 
@@ -11,6 +12,12 @@
   --bg-calendar: #14171c;
 }
 
+:host(.is-open) {
+  z-index: 999999 !important;
+  position: relative !important;
+  isolation: isolate;
+}
+
 .date-field-group {
   position: relative;
   width: 100%;
@@ -20,7 +27,7 @@
 }
 
 .date-field-group.is-open {
-  z-index: 9999;
+  z-index: 999999 !important;
 }
 
 .date-control-wrapper {
@@ -51,7 +58,8 @@
   font-family: 'Inter', sans-serif;
   font-size: 14px;
   font-weight: 500;
-  padding-top: 14px;
+  padding-top: 18px;
+  padding-bottom: 2px;
   width: 100%;
 }
 .selected-date-input::placeholder {
@@ -72,10 +80,13 @@
   font-size: 14px;
   font-weight: 500;
   pointer-events: none;
-  text-transform: lowercase;
   transform-origin: left top;
   transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.2s ease;
   z-index: 2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: calc(100% - 48px);
 }
 
 :host-context([dir="rtl"]) .floating-label {
@@ -126,11 +137,11 @@
   inset-inline-start: 0;
   width: 100%;
   min-width: 310px;
-  background: var(--bg-calendar);
+  background: #14171c !important;
   border: 1px solid var(--border-color);
   border-radius: 12px;
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
-  z-index: 9999;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85);
+  z-index: 999999 !important;
   padding: 16px;
   box-sizing: border-box;
   user-select: none;

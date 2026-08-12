@@ -97,7 +97,7 @@
     @if (sessions.length > 0) {
     <div class="sessions-grid">
         @for (session of sessions; track session.id; let i = $index) {
-        <article class="session-card" [class]="getStatusClass(session.status)">
+        <article class="session-card" [class]="getStatusClass(session.status)" [class.is-cancelling]="activeCancelSessionId === session.id">
             <div class="card-glow-bar"></div>
 
             <div class="card-header">
@@ -140,16 +140,59 @@
                 </div>
             </div>
 
+            <!-- INLINE CANCEL SESSION FORM (Appears right on the card where you stand) -->
+            @if (activeCancelSessionId === session.id) {
+            <div class="inline-cancel-box">
+                <div class="inline-cancel-header">
+                    <span class="inline-cancel-title">{{ 'DRILLS.SESSION_LIST.SESSION_CANCELLATION' | translate }}</span>
+                    <button type="button" class="inline-close-btn" (click)="closeCancelModal()">×</button>
+                </div>
+                <div class="form-group" style="margin-bottom: 8px;">
+                    <label class="form-label" style="font-size: 11px; color: #ff4757;">{{ 'DRILLS.SESSION_LIST.REASON_FOR_CANCELLATION_REQUIRED' | translate }}</label>
+                    <textarea 
+                        class="form-input" 
+                        rows="3" 
+                        placeholder="Explain why this training session is being cancelled..."
+                        [(ngModel)]="cancelSessionData.reason" 
+                        name="cancelReason" 
+                        required>
+                    </textarea>
+                    @if (cancelError) {
+                    <span class="field-error" style="color: #ff4757; margin-top: 4px; display: block; font-size: 12px;">
+                        {{ cancelError }}
+                    </span>
+                    }
+                </div>
+                <div class="inline-cancel-actions">
+                    <app-button variant="slate" type="button" (click)="closeCancelModal()">{{ 'DRILLS.SESSION_LIST.DISMISS' | translate }}</app-button>
+                    <app-button variant="coral" type="button" [loading]="isCancelling" (click)="submitCancelSession()">{{ 'DRILLS.SESSION_LIST.CONFIRM_CANCELLATION' | translate }}</app-button>
+                </div>
+            </div>
+            } @else if (activeDeleteSessionId === session.id) {
+            <div class="inline-cancel-box">
+                <div class="inline-cancel-header">
+                    <span class="inline-cancel-title" style="color: #ff4757;">{{ 'DRILLS.SESSION_LIST.DELETE_SESSION_TITLE' | translate }}</span>
+                    <button type="button" class="inline-close-btn" (click)="closeDeleteConfirm()">×</button>
+                </div>
+                <p style="font-size: 13px; color: #8b909a; margin: 0 0 12px 0;">
+                    {{ 'DRILLS.SESSION_LIST.DELETE_SESSION_MESSAGE' | translate:{ team: session.teamName || 'this team' } }}
+                </p>
+                <div class="inline-cancel-actions">
+                    <app-button variant="slate" type="button" (click)="closeDeleteConfirm()">{{ 'COMMON.CANCEL' | translate }}</app-button>
+                    <app-button variant="coral" type="button" (click)="confirmDeleteSession(session)">{{ 'DRILLS.SESSION_LIST.DELETE_SESSION' | translate }}</app-button>
+                </div>
+            </div>
+            } @else {
             <div class="card-actions">
                 @if (session.status === SessionStatus.Completed) {
                 <button class="btn-full btn-secondary" (click)="viewSessionDetails(session.id)">{{ 'DRILLS.SESSION_LIST.VIEW_REPORT' | translate }}</button>
                 } @else if (session.status === SessionStatus.Cancelled) {
-                <div style="display: flex; flex-direction: column; gap: 8px;">
+                <div style="display: flex; flex-direction: column; gap: 8px; width: 100%;">
                     <button class="btn-full btn-secondary" style="border-color: #ff4757; color: #ff4757;"
                         (click)="viewSessionDetails(session.id)">{{ 'DRILLS.SESSION_DETAILS.VIEW_CANCELLATION_REASON' | translate }}</button>
                     @if (canManageDrills) {
                     <button class="btn-full btn-secondary" style="border-color: #6b7280; color: #6b7280; font-size: 0.78rem;"
-                        (click)="deleteSession(session)">{{ 'DRILLS.SESSION_LIST.DELETE_SESSION' | translate }}</button>
+                        (click)="openDeleteConfirm(session, $event)">{{ 'DRILLS.SESSION_LIST.DELETE_SESSION' | translate }}</button>
                     }
                 </div>
                 } @else {
@@ -159,10 +202,11 @@
                 <button class="btn-full btn-primary" (click)="viewSessionDetails(session.id)">{{ 'DRILLS.SESSION_LIST.VIEW_SESSION' | translate }}</button>
                 @if (canManageDrills) {
                 <button class="btn-full btn-secondary" style="margin-top: 8px; color: #ff4757; border-color: #ff4757;"
-                    (click)="openCancelModal(session)">{{ 'DRILLS.SESSION_LIST.CANCEL_SESSION' | translate }}</button>
+                    (click)="openCancelModal(session, $event)">{{ 'DRILLS.SESSION_LIST.CANCEL_SESSION' | translate }}</button>
                 }
                 }
             </div>
+            }
         </article>
         }
     </div>
@@ -244,61 +288,20 @@
     </form>
 </div>
 
-<!-- CANCEL SESSION MODAL -->
-@if (isCancelModalOpen) {
-<div class="form-overlay open" (click)="closeCancelModal()"></div>
 
-<div class="form-panel open">
-    <div class="panel-header">
-        <div>
-            <h4 class="panel-eyebrow" style="color: #ff4757;">{{ 'DRILLS.SESSION_LIST.SESSION_CANCELLATION' | translate }}</h4>
-            <h2 class="panel-title">{{ 'COMMON.CANCEL' | translate }} {{ cancelSessionData.teamName }}</h2>
-        </div>
-        <button class="panel-close flex-center" (click)="closeCancelModal()" title="Close">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="18" y1="6" x2="6" y2="18"/>
-                <line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-        </button>
-    </div>
-
-    <form (ngSubmit)="submitCancelSession()" class="panel-form">
-        <div class="form-group">
-            <label class="form-label">{{ 'DRILLS.SESSION_LIST.REASON_FOR_CANCELLATION_REQUIRED' | translate }}</label>
-            <textarea 
-                class="form-input" 
-                rows="4" 
-                placeholder="Explain why this training session is being cancelled..."
-                [(ngModel)]="cancelSessionData.reason" 
-                name="cancelReason" 
-                required>
-            </textarea>
-            @if (cancelError) {
-            <span class="field-error" style="color: #ff4757; margin-top: 6px; display: block; font-size: 13px;">
-                {{ cancelError }}
-            </span>
-            }
-        </div>
-
-        <div class="panel-actions mt-4">
-            <app-button variant="slate" type="button" (click)="closeCancelModal()">{{ 'DRILLS.SESSION_LIST.DISMISS' | translate }}</app-button>
-            <app-button variant="coral" type="submit" [loading]="isCancelling">{{ 'DRILLS.SESSION_LIST.CONFIRM_CANCELLATION' | translate }}</app-button>
-        </div>
-    </form>
-</div>
-}
 
 <!-- CONFIRM MODAL -->
 @if (confirmModal.isOpen) {
-<div class="confirm-overlay" (click)="closeConfirm()"></div>
-<div class="confirm-modal">
-    <div class="confirm-content">
-        <h3 class="confirm-title">{{ confirmModal.title | translate }}</h3>
-        <p class="confirm-message">{{ confirmModal.message | translate:confirmModal.messageParams }}</p>
-    </div>
-    <div class="confirm-actions">
-        <app-button variant="slate" (click)="closeConfirm()">{{ 'COMMON.CANCEL' | translate }}</app-button>
-        <app-button variant="coral" (click)="executeConfirm()">{{ confirmModal.confirmText | translate }}</app-button>
+<div class="confirm-overlay" (click)="closeConfirm()">
+    <div class="confirm-modal" (click)="$event.stopPropagation()">
+        <div class="confirm-content">
+            <h3 class="confirm-title">{{ confirmModal.title | translate }}</h3>
+            <p class="confirm-message">{{ confirmModal.message | translate:confirmModal.messageParams }}</p>
+        </div>
+        <div class="confirm-actions">
+            <app-button variant="slate" (click)="closeConfirm()">{{ 'COMMON.CANCEL' | translate }}</app-button>
+            <app-button variant="coral" (click)="executeConfirm()">{{ confirmModal.confirmText | translate }}</app-button>
+        </div>
     </div>
 </div>
 }

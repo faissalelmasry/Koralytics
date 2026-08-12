@@ -584,6 +584,7 @@
 
 .chat-text-input {
   flex: 1;
+  min-width: 0;
   background: transparent;
   border: none;
   outline: none;
@@ -599,6 +600,8 @@
 .send-btn {
   width: 44px;
   height: 44px;
+  min-width: 44px;
+  flex-shrink: 0;
   border-radius: 10px;
   border: none;
   background: #c8ff4d;
@@ -662,5 +665,25 @@
 
   .welcome-headline {
     font-size: 26px;
+  }
+
+  .chat-input-wrapper {
+    padding: 12px;
+  }
+
+  .chat-input-bar {
+    padding: 4px 4px 4px 10px;
+    gap: 4px;
+  }
+
+  .chat-text-input {
+    font-size: 13px;
+  }
+
+  .send-btn {
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    border-radius: 8px;
   }
 }

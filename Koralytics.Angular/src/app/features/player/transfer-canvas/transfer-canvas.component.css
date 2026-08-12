@@ -157,7 +157,9 @@
   padding: 6px 12px;
   border-radius: 8px;
   backdrop-filter: blur(8px);
-  z-index: 2;
+  z-index: 1;
+  pointer-events: none;
+  user-select: none;
 }
 
 .badge-icon {
@@ -232,9 +234,6 @@
 
 .player-card-popup {
   position: absolute;
-  bottom: 26px;
-  left: 50%;
-  transform: translateX(-50%);
   background: rgba(18, 22, 31, 0.94);
   border: 1px solid var(--color-blue);
   backdrop-filter: blur(10px);
@@ -243,6 +242,31 @@
   white-space: nowrap;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
   text-align: center;
+  z-index: 15;
+  transition: all 0.2s ease;
+}
+
+/* Position popup below node when in top quadrant so top corner badges (ELITE, MATCH HERO) are never covered */
+.player-card-popup.popup-below {
+  top: 26px;
+  bottom: auto;
+}
+
+/* Position popup above node when in bottom quadrant so bottom corner badges (DEVELOPING, PRACTICE HERO) are never covered */
+.player-card-popup.popup-above {
+  bottom: 26px;
+  top: auto;
+}
+
+/* Shift popup horizontal origin based on left/right quadrant to prevent canvas edge overflow */
+.player-card-popup.popup-right-quad {
+  left: 50%;
+  transform: translateX(-75%);
+}
+
+.player-card-popup.popup-left-quad {
+  left: 50%;
+  transform: translateX(-25%);
 }
 
 .p-name {

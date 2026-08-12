@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, HostListener, ElementRef, OnInit, forwardRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, HostListener, HostBinding, ElementRef, OnInit, forwardRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
@@ -25,6 +25,11 @@ export class CustomDateTimePicker implements OnInit, ControlValueAccessor {
   @Output() valueChange = new EventEmitter<string>();
 
   isOpen: boolean = false;
+
+  @HostBinding('class.is-open')
+  get isOpenHostClass(): boolean {
+    return this.isOpen;
+  }
   panelTop: number = 0;
   panelLeft: number = 0;
   panelWidth: number = 0;

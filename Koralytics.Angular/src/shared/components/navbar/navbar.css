@@ -222,6 +222,7 @@ nav.desktop-nav a:hover::after, nav.desktop-nav a.active::after { transform: sca
 .sidebar-container.open { transform: translateX(0); }
 
 .sidebar-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 48px; }
+.sidebar-header-actions { display: flex; align-items: center; gap: 12px; }
 .sidebar-logo { max-height: 40px; width: auto; }
 
 .close-btn {

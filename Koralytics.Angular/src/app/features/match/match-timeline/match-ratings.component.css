@@ -19,6 +19,9 @@
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
   color: var(--text-main);
   font-family: 'Plus Jakarta Sans', sans-serif;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .fade-in-content {
@@ -120,6 +123,8 @@
   transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
   position: relative;
   overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .player-rating-card::before {
@@ -370,8 +375,113 @@
 }
 
 @media (max-width: 640px) {
+  .match-ratings-container {
+    padding: 12px 8px;
+    border-radius: 12px;
+  }
+
+  .ratings-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 1.5rem;
+  }
+
+  .ratings-header .header-action {
+    width: 100%;
+  }
+
+  .ratings-header .header-action app-button {
+    width: 100%;
+    display: block;
+  }
+
+  .player-rating-card {
+    padding: 12px 10px;
+    border-radius: 12px;
+  }
+
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding-bottom: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .player-info-wrap {
+    width: 100%;
+    gap: 10px;
+  }
+
+  .header-actions {
+    width: 100%;
+    display: flex;
+    gap: 8px;
+  }
+
+  .skip-btn, .motm-btn {
+    flex: 1 1 0%;
+    min-width: 0;
+    justify-content: center;
+    text-align: center;
+    padding: 8px 6px;
+    font-size: 11px;
+  }
+
+  .minutes-note-row {
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .mins-group, .note-group {
+    width: 100%;
+  }
+
   .categories-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .category-counter-box {
+    padding: 6px 4px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .cat-label {
+    font-size: 9.5px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    width: 100% !important;
+    text-align: center !important;
+  }
+
+  .category-counter-box app-number-input {
+    width: 100% !important;
+  }
+
+  .category-counter-box app-number-input ::ng-deep .input-control-wrapper {
+    height: 40px !important;
+    padding: 0 28px 0 8px !important;
+    border-radius: 8px !important;
+  }
+
+  .category-counter-box app-number-input ::ng-deep .stepper-controls {
+    width: 22px !important;
+    right: 2px !important;
+    top: 2px !important;
+    bottom: 2px !important;
+  }
+
+  .category-counter-box app-number-input ::ng-deep .custom-number-field {
+    font-size: 13px !important;
+    padding-top: 0 !important;
+    text-align: center !important;
   }
 }
 
@@ -536,24 +646,42 @@
   align-items: center;
   position: relative;
   z-index: 10;
+  gap: 0.75rem;
+  width: 100%;
 }
 
 .player-info-wrap {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .player-details {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.full-name-label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-main);
+  letter-spacing: 0.3px;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .mins-played-label {
   font-size: 0.75rem;
   color: #94a3b8;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .motm-badge {
@@ -577,6 +705,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+  margin-left: auto;
 }
 
 .average-score-circle {
@@ -584,12 +714,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 64px;
-  height: 64px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
   background: rgba(15, 23, 42, 0.8);
   border: 1px solid #334155;
   box-shadow: inset 0 4px 15px rgba(0,0,0,0.8);
+  flex-shrink: 0;
 }
 
 .average-score-value {
@@ -764,7 +895,44 @@
 }
 
 /* ---- Small screen fixes (iPhone SE, ≤480px) ---- */
+@media (max-width: 640px) {
+  .glass-card {
+    padding: 1.15rem 0.9rem;
+  }
+}
+
 @media (max-width: 480px) {
+  .glass-card {
+    padding: 1rem 0.8rem;
+  }
+
+  .card-top-section {
+    gap: 0.5rem;
+  }
+
+  .player-info-wrap {
+    gap: 0.5rem;
+  }
+
+  .full-name-label {
+    font-size: 0.9rem;
+  }
+
+  .average-score-circle {
+    width: 50px;
+    height: 50px;
+  }
+
+  .average-score-value {
+    font-size: 1.2rem;
+  }
+
+  .average-score-label {
+    font-size: 8px;
+    padding: 2px 6px;
+    margin-top: 4px;
+  }
+
   /* Stack player info and action buttons vertically */
   .card-header {
     flex-direction: column;

@@ -406,4 +406,11 @@ a.academy-sub.academy-link:hover {
     justify-content: center;
     margin-top: 8px;
   }
+
+  .start-match-box app-button ::ng-deep .custom-btn {
+    padding: 8px 16px !important;
+    font-size: 11px !important;
+    border-radius: 10px !important;
+    height: auto !important;
+  }
 }

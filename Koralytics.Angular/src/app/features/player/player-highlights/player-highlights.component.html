@@ -179,8 +179,15 @@
               {{ h.uploadedAt | date:'mediumDate' }}
             </span>
           </div>
-
           <div class="video-card-actions">
+            <button type="button" class="card-action-btn expand-btn" (click)="openTheater(h)" title="Expand video">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path>
+              </svg>
+              <span>Expand</span>
+            </button>
+
             @if (isOwnProfile) {
             <button type="button" class="card-action-btn pin-btn" [class.active]="h.isPinned" (click)="togglePin(h)"
               [title]="h.isPinned ? 'Unpin video' : 'Pin'">
@@ -235,3 +242,21 @@
   </div>
   }
 </div>
+
+<!-- =============== 4. THEATER MODE OVERLAY MODAL =============== -->
+@if (activeTheaterHighlight(); as selected) {
+<div class="theater-overlay" (click)="closeTheater()">
+  <div class="theater-modal" (click)="$event.stopPropagation()">
+    <div class="theater-header">
+      <div class="theater-title">
+        <h3>{{ selected.title || 'Highlight Preview' }}</h3>
+        <span class="theater-date">{{ selected.uploadedAt | date:'mediumDate' }}</span>
+      </div>
+      <button type="button" class="theater-close-btn" (click)="closeTheater()" title="Close theater">✕</button>
+    </div>
+    <div class="theater-video-box">
+      <video [src]="selected.videoUrl" controls autoplay preload="auto"></video>
+    </div>
+  </div>
+</div>
+}

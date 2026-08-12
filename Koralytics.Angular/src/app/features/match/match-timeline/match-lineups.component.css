@@ -14,30 +14,45 @@
   background: rgba(18, 22, 31, 0.95);
   border: 1px solid var(--card-border);
   border-radius: 14px;
-  padding: 18px;
+  padding: 16px 14px;
   margin-bottom: 20px;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
   position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .logger-header-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
   margin-bottom: 14px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .tactical-tag {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 800;
   color: var(--color-green);
-  letter-spacing: 1.5px;
+  letter-spacing: 1px;
   text-transform: uppercase;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.header-actions app-button ::ng-deep .custom-btn {
+  padding: 6px 14px !important;
+  font-size: 11px !important;
+  border-radius: 10px !important;
+  height: auto !important;
 }
 
 .tactical-tag::before {
@@ -206,11 +221,80 @@
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.action-grid app-button {
+  width: 100%;
+  min-width: 0;
+  display: block;
+  box-sizing: border-box;
+}
+
+.action-grid app-button ::ng-deep .custom-btn {
+  width: 100% !important;
+  padding: 10px 6px !important;
+  font-size: 11px !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: hidden !important;
+}
+
+.action-grid app-button ::ng-deep .btn-text {
+  width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  gap: 4px !important;
 }
 
 @media (max-width: 640px) {
+  .live-logger-bar {
+    padding: 12px 8px;
+  }
+
+  .logger-header-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .tactical-tag {
+    font-size: 0.75rem;
+    white-space: normal;
+    word-break: break-word;
+    letter-spacing: 0.5px;
+    width: 100%;
+  }
+
+  .header-actions {
+    width: 100%;
+  }
+
+  .header-actions app-button {
+    width: 100%;
+    display: block;
+  }
+
+  .header-actions app-button ::ng-deep .custom-btn {
+    width: 100% !important;
+    padding: 8px 10px !important;
+    font-size: 11px !important;
+    justify-content: center !important;
+  }
+
   .action-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .action-grid app-button ::ng-deep .custom-btn {
+    padding: 8px 4px !important;
+    font-size: 10px !important;
   }
 }
 
@@ -242,6 +326,8 @@
 
 .lineups-wrapper {
   position: relative;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .subtab-btn {
@@ -268,6 +354,8 @@
   transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
   opacity: 1;
   transform: scale(1);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .pitch-view-container.hidden {
@@ -282,7 +370,9 @@
 
 .full-pitch {
   width: 100%;
-  height: 600px;
+  max-width: 100%;
+  box-sizing: border-box;
+  height: 560px;
   background: radial-gradient(circle at 50% 50%, #122115 0%, #050d08 100%);
   border: 2px solid rgba(250, 204, 21, 0.3);
   border-radius: 24px;
@@ -291,7 +381,7 @@
   display: flex;
   flex-direction: column;
   justify-content: space-around;
-  padding: 15px 10px;
+  padding: 12px 6px;
   box-shadow: inset 0 0 60px #000, 0 10px 30px rgba(0, 0, 0, 0.8);
 }
 

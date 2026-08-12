@@ -15,19 +15,19 @@
   --diff-advanced-bg: rgba(255, 77, 48, 0.09);
   --diff-advanced-border: rgba(255, 77, 48, 0.28);
 
-  --diff-intermediate-color: #22c55e;
-  /* Green */
-  --diff-intermediate-glow: rgba(34, 197, 94, 0.22);
-  --diff-intermediate-glow-bar: rgba(34, 197, 94, 0.7);
-  --diff-intermediate-bg: rgba(34, 197, 94, 0.09);
-  --diff-intermediate-border: rgba(34, 197, 94, 0.28);
-
-  --diff-beginner-color: #f0b429;
+  --diff-intermediate-color: #facc15;
   /* Yellow */
-  --diff-beginner-glow: rgba(240, 180, 41, 0.2);
-  --diff-beginner-glow-bar: rgba(240, 180, 41, 0.7);
-  --diff-beginner-bg: rgba(240, 180, 41, 0.07);
-  --diff-beginner-border: rgba(240, 180, 41, 0.22);
+  --diff-intermediate-glow: rgba(250, 204, 21, 0.25);
+  --diff-intermediate-glow-bar: rgba(250, 204, 21, 0.7);
+  --diff-intermediate-bg: rgba(250, 204, 21, 0.09);
+  --diff-intermediate-border: rgba(250, 204, 21, 0.28);
+
+  --diff-beginner-color: #10b981;
+  /* Green */
+  --diff-beginner-glow: rgba(16, 185, 129, 0.25);
+  --diff-beginner-glow-bar: rgba(16, 185, 129, 0.7);
+  --diff-beginner-bg: rgba(16, 185, 129, 0.09);
+  --diff-beginner-border: rgba(16, 185, 129, 0.28);
 
   /* ── Design System ── */
   --bg-card: rgba(14, 17, 23, 0.75);
@@ -556,9 +556,10 @@
 .form-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.55);
-  backdrop-filter: blur(4px);
-  z-index: 200;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 99998;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.35s ease;
@@ -573,25 +574,51 @@
   position: fixed;
   top: 0;
   right: 0;
+  bottom: 0;
   height: 100vh;
+  height: 100dvh;
   width: 100%;
   max-width: 480px;
-  background: var(--bg-panel);
+  background: #0d1017 !important;
   border-left: 1px solid var(--border-card);
-  z-index: 201;
+  z-index: 99999;
   display: flex;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   flex-direction: column;
   padding: 36px 32px;
   gap: 0;
+  box-sizing: border-box;
   overflow-y: auto;
 
-  right: -100%;
-  transition: right 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transform: translateX(100%);
+  visibility: hidden;
+  pointer-events: none;
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0.4s ease;
 }
 
 .form-panel.open {
-  right: 0;
+  transform: translateX(0) !important;
+  visibility: visible !important;
+  pointer-events: all !important;
+}
+
+@media (max-width: 640px) {
+  .form-panel {
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 24px 18px 40px !important;
+    background: #0d1017 !important;
+  }
+
+  .form-panel.open {
+    transform: translateX(0) !important;
+    visibility: visible !important;
+    pointer-events: all !important;
+  }
 }
 
 .panel-header {

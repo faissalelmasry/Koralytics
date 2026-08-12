@@ -29,6 +29,7 @@ export class TransferCanvasComponent implements OnInit, OnChanges {
   displayClassificationKey = 'PLAYER.PLAYER';
   nodeLeft = '50%';
   nodeTop = '50%';
+  isTopQuadrant = true;
   nodeColor = '#6b7280';
   classificationGlow = 'rgba(107,114,128,0.3)';
   drillIndex = 0;
@@ -64,6 +65,7 @@ export class TransferCanvasComponent implements OnInit, OnChanges {
     const pos = this.positionMap[this.transferClassification] || this.positionMap[this.displayClassification];
     this.nodeLeft = pos ? `${pos.left}%` : '50%';
     this.nodeTop = pos ? `${pos.top}%` : '50%';
+    this.isTopQuadrant = pos ? (pos.top <= 45) : true;
 
     switch (this.transferClassification) {
       case 'Elite':

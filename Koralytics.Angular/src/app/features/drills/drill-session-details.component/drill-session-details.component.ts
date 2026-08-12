@@ -94,12 +94,21 @@ export class DrillSessionDetailsComponent implements OnInit {
   toastType: 'success' | 'error' = 'success';
 
   // --- Confirm Modal State ---
-  confirmModal = {
+  confirmModal: {
+    isOpen: boolean;
+    title: string;
+    message: string;
+    messageParams: any;
+    confirmText: string;
+    variant?: 'coral' | 'cyan' | 'accent' | 'slate' | 'amber' | 'gold';
+    action: () => void;
+  } = {
     isOpen: false,
     title: '',
     message: '',
     messageParams: {},
     confirmText: '',
+    variant: 'coral',
     action: () => { }
   };
 
@@ -266,6 +275,7 @@ export class DrillSessionDetailsComponent implements OnInit {
   openAddDrillModal(): void {
     this.isAddDrillModalOpen = true;
     this.selectedTemplateId = null;
+    this.cdr.detectChanges();
 
     const filter = { pageNumber: 1, pageSize: 50 };
     this.subscriptions.add(
@@ -320,6 +330,7 @@ export class DrillSessionDetailsComponent implements OnInit {
       message: 'DRILLS.SESSION_DETAILS.REMOVE_CONFIRM_MSG',
       messageParams: { name: drillName },
       confirmText: 'DRILLS.SESSION_DETAILS.REMOVE_BTN',
+      variant: 'coral',
       action: () => {
         this.subscriptions.add(
           this.sessionService.removeDrillFromSession(this.sessionId, drillId).subscribe({
@@ -393,6 +404,7 @@ export class DrillSessionDetailsComponent implements OnInit {
   openResultsModal(drill: any): void {
     this.activeDrillForResults = drill;
     this.isResultsModalOpen = true;
+    this.cdr.detectChanges();
 
     const presentPlayers = (this.sessionData?.attendance || []).filter((p: PlayerAttendance) => p.isPresent);
 
@@ -496,6 +508,7 @@ export class DrillSessionDetailsComponent implements OnInit {
       message: 'DRILLS.SESSION_DETAILS.COMPLETE_CONFIRM_MSG',
       messageParams: {},
       confirmText: 'DRILLS.SESSION_DETAILS.COMPLETE_BTN',
+      variant: 'cyan',
       action: () => {
         const absentPlayerIds = this.sessionData?.attendance
           ?.filter(p => !p.isPresent)

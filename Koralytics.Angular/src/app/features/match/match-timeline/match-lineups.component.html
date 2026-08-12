@@ -9,14 +9,14 @@
     </div>
     <div class="header-actions">
       @if (!isShootoutMode) {
-      <app-button [variant]="isDraw ? 'cyan' : 'slate'" [disabled]="!isDraw && !hasShootoutEvents"
+      <app-button [variant]="isDraw ? 'cyan' : 'slate'" size="sm" [disabled]="!isDraw && !hasShootoutEvents"
         (click)="enterShootoutMode()">
         <span class="btn-inner-content">
           <span>{{ 'MATCH.LINEUPS.BTN_PEN_SHOOTOUTS' | translate }}</span>
         </span>
       </app-button>
       } @else {
-      <app-button variant="slate" [disabled]="(homePenaltyScore > 0 || awayPenaltyScore > 0)"
+      <app-button variant="slate" size="sm" [disabled]="(homePenaltyScore > 0 || awayPenaltyScore > 0)"
         (click)="exitShootoutMode()">
         <span class="btn-inner-content">
           <span>{{ 'MATCH.LINEUPS.BTN_EXIT_SHOOTOUT' | translate }}</span>

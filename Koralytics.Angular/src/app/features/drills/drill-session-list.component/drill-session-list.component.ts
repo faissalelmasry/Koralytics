@@ -295,12 +295,17 @@ export class DrillSessionListComponent implements OnInit, OnDestroy {
   }
 
   // --- Cancel Modal States ---
+  activeCancelSessionId: number | null = null;
+  activeDeleteSessionId: number | null = null;
   isCancelModalOpen = false;
   isCancelling = false;
   cancelSessionData: { id: number; teamName: string; reason: string } = { id: 0, teamName: '', reason: '' };
   cancelError = '';
 
-  openCancelModal(session: any): void {
+  openCancelModal(session: any, event?: Event): void {
+    if (event) event.stopPropagation();
+    this.activeCancelSessionId = session.id;
+    this.activeDeleteSessionId = null;
     this.cancelSessionData = {
       id: session.id,
       teamName: session.teamName || `Team #${session.teamId}`,
@@ -312,8 +317,36 @@ export class DrillSessionListComponent implements OnInit, OnDestroy {
   }
 
   closeCancelModal(): void {
+    this.activeCancelSessionId = null;
     this.isCancelModalOpen = false;
     this.cancelError = '';
+    this.cdr.detectChanges();
+  }
+
+  openDeleteConfirm(session: any, event?: Event): void {
+    if (event) event.stopPropagation();
+    this.activeDeleteSessionId = session.id;
+    this.activeCancelSessionId = null;
+    this.cdr.detectChanges();
+  }
+
+  closeDeleteConfirm(): void {
+    this.activeDeleteSessionId = null;
+    this.cdr.detectChanges();
+  }
+
+  confirmDeleteSession(session: any): void {
+    this.sessionService.deleteSession(session.id).subscribe({
+      next: () => {
+        this.showToast(this.translate.instant('DRILLS.SESSION_LIST.DELETE_SESSION_SUCCESS') || 'Session deleted.', 'success');
+        this.closeDeleteConfirm();
+        this.fetchSessions();
+      },
+      error: (err) => {
+        this.showToast(err.error?.message || this.translate.instant('DRILLS.SESSION_LIST.DELETE_SESSION_FAIL') || 'Could not delete session.', 'error');
+        this.closeDeleteConfirm();
+      }
+    });
   }
 
   submitCancelSession(): void {
@@ -339,7 +372,7 @@ export class DrillSessionListComponent implements OnInit, OnDestroy {
     this.sessionService.updateSession(this.cancelSessionData.id, payload).subscribe({
       next: () => {
         this.isCancelling = false;
-        this.isCancelModalOpen = false;
+        this.closeCancelModal();
         this.showToast(this.translate.instant('DRILLS.SESSION_LIST.CANCEL_SUCCESS') || 'Session cancelled successfully.', 'success');
         this.fetchSessions();
       },

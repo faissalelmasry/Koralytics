@@ -203,12 +203,13 @@
 
 :host {
   position: relative;
+  display: block;
 }
 
 .card-events-kpi {
   position: absolute;
-  top: -12px;
-  right: -8px;
+  top: -2px;
+  right: -2px;
   display: flex;
   flex-direction: column;
   gap: 4px;

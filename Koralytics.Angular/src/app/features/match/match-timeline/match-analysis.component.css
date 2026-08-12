@@ -484,6 +484,18 @@
   text-align: left;
 }
 
+.match-team.team-winner {
+  color: var(--neon-green) !important;
+  font-weight: 800;
+  text-shadow: 0 0 10px rgba(130, 247, 104, 0.4);
+}
+
+.match-team.team-loser {
+  color: var(--neon-red) !important;
+  font-weight: 800;
+  text-shadow: 0 0 10px rgba(244, 63, 94, 0.4);
+}
+
 .match-team.team-a-winner {
   color: var(--neon-green) !important;
   font-weight: 800;

@@ -192,6 +192,8 @@
     "CAT_PHYSICAL": "Physical",
     "CAT_GOALKEEPING": "Goalkeeping",
     "CAT_REGULAR": "Regular",
+    "CAT_UNKNOWN": "Unknown",
+    "CAT_CAT_UNKNOWN": "Unknown",
     "MATCH_TOURNAMENT": "Tournament",
     "MATCH_FRIENDLY": "Friendly",
     "MATCH_SESSION": "Session",

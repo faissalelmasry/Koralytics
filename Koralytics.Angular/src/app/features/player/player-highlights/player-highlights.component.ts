@@ -97,6 +97,19 @@ export class PlayerHighlightsComponent implements OnInit {
   uploadError = signal('');
   imageError = false;
 
+  // Theater View State
+  activeTheaterHighlight = signal<PlayerHighlightDto | null>(null);
+
+  openTheater(h: PlayerHighlightDto): void {
+    this.activeTheaterHighlight.set(h);
+    this.cdr.markForCheck();
+  }
+
+  closeTheater(): void {
+    this.activeTheaterHighlight.set(null);
+    this.cdr.markForCheck();
+  }
+
   // Memoized Header Fields
   fullName = 'Player Highlights';
   initials = 'PH';

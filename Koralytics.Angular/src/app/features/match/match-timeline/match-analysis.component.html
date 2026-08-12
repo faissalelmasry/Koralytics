@@ -157,7 +157,7 @@
                 <span>{{ formatDate(m.matchDate) }}</span>
               </div>
               
-              <div class="match-team home" [class.team-a-winner]="m.result === 'W'">
+              <div class="match-team home" [class.team-winner]="m.result === 'W'" [class.team-loser]="m.result === 'L'">
                 {{ analysisData.teamName }}
               </div>
               
@@ -174,7 +174,7 @@
                 </div>
               </div>
               
-              <div class="match-team away" [class.team-b-winner]="m.result === 'L'">
+              <div class="match-team away">
                 {{ m.opponentName }}
               </div>
             </div>

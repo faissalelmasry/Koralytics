@@ -82,7 +82,7 @@
     </div>
     @if (canStartMatch && areBothLineupsSubmitted) {
     <div class="start-match-box">
-      <app-button variant="accent" [disabled]="isStartingMatch" (click)="onStartMatchClick()">
+      <app-button variant="accent" size="sm" [disabled]="isStartingMatch" (click)="onStartMatchClick()">
         <span class="btn-inner-content">
           <svg class="tool-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
             stroke-linecap="round" stroke-linejoin="round">
@@ -95,7 +95,7 @@
     }
     @if (canLogEvents) {
     <div class="start-match-box">
-      <app-button variant="coral" [disabled]="isEndingMatch" (click)="onEndMatchClick()">
+      <app-button variant="coral" size="sm" [disabled]="isEndingMatch" (click)="onEndMatchClick()">
         <span class="btn-inner-content">
           <svg class="tool-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
             stroke-linecap="round" stroke-linejoin="round">

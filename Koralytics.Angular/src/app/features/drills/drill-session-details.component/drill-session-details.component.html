@@ -96,7 +96,7 @@
             <div class="drills-header flex-between">
                 <h2 class="panel-title">{{ 'DRILLS.SESSION_DETAILS.SESSION_DRILLS' | translate }}</h2>
                 @if (!isReadOnly) {
-                <div style="display: flex; gap: 10px; align-items: center;">
+                <div class="drills-header-actions">
                     <app-button variant="accent" (click)="openAddDrillModal()">{{ 'DRILLS.SESSION_DETAILS.ADD_DRILL' | translate }}</app-button>
                     <app-button variant="accent" (click)="createMatchSession()">{{ 'DRILLS.SESSION_DETAILS.CREATE_MATCH' | translate }}</app-button>
                 </div>
@@ -114,7 +114,7 @@
                         <h3>{{ drill.templateName | translate }}</h3>
                         <span class="category-badge">{{ (drill.categoryName ? ('DRILLS.DYNAMIC.CAT_' + drill.categoryName.toUpperCase() | translate) : 'General') }}</span>
                     </div>
-                    <div class="drill-action" style="display: flex; gap: 8px;">
+                    <div class="drill-action">
                         <app-button variant="slate" (click)="openResultsModal(drill)">
                             {{ isReadOnly ? ('DRILLS.SESSION_DETAILS.VIEW_RESULTS' | translate) : ('DRILLS.SESSION_DETAILS.ENTER_RESULTS' | translate) }}
                         </app-button>
@@ -166,15 +166,15 @@
 
 <!-- ENTER / VIEW RESULTS MODAL -->
 @if (isResultsModalOpen && activeDrillForResults) {
-<div class="modal-backdrop">
-    <div class="modal-content results-modal-content">
-        <div class="flex-between">
+<div class="modal-backdrop" (click)="closeResultsModal()">
+    <div class="modal-content results-modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header flex-between">
             <div>
-                <h2>{{ 'DRILLS.SESSION_DETAILS.SCORECARD' | translate }}: {{ activeDrillForResults.templateName | translate }}</h2>
-                <p class="helper-text">{{ 'DRILLS.TEMPLATE_LIST.MODE' | translate }}: {{ ($any(activeDrillForResults.mode) == 0 || activeDrillForResults.mode ===
+                <h2 class="modal-title">{{ 'DRILLS.SESSION_DETAILS.SCORECARD' | translate }}: {{ activeDrillForResults.templateName | translate }}</h2>
+                <p class="helper-text" style="margin: 4px 0 0 0;">{{ 'DRILLS.TEMPLATE_LIST.MODE' | translate }}: {{ ($any(activeDrillForResults.mode) == 0 || activeDrillForResults.mode ===
                     'Manual') ? ('DRILLS.SESSION_DETAILS.MANUAL_SCORE' | translate) : ('DRILLS.SESSION_DETAILS.SUCCESS_MISSED' | translate) }}</p>
             </div>
-            <button class="btn-secondary flex-center" (click)="closeResultsModal()" title="Close Scorecard">
+            <button class="modal-close-icon flex-center" (click)="closeResultsModal()" title="Close Scorecard">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <line x1="18" y1="6" x2="6" y2="18"/>
                     <line x1="6" y1="6" x2="18" y2="18"/>
@@ -184,14 +184,14 @@
 
         <div class="results-table-container mt-3">
             @if (playerScoreEntries.length > 0) {
-            <div class="results-header-row">
+            <div class="results-header-row desktop-only-header">
                 <span>{{ 'DRILLS.SESSION_DETAILS.PLAYER' | translate }}</span>
                 <span>{{ 'DRILLS.SESSION_DETAILS.SCORE_INPUT' | translate }}</span>
                 <span>{{ 'DRILLS.SESSION_DETAILS.COACH_NOTES' | translate }}</span>
             </div>
             @for (entry of playerScoreEntries; track entry.playerId) {
             <div class="results-row">
-                <!-- 🟢 Clickable Player Info in Scorecard to navigate to Progression Curve -->
+                <!-- 🟢 Clickable Player Info in Scorecard -->
                 <div class="player-info-cell" style="cursor: pointer;"
                     (click)="navigateToPlayerProgression(entry.playerId)" title="View Player Drill Progression">
                     <span class="player-name">
@@ -207,8 +207,8 @@
 
                 <div class="score-input-cell">
                     @if (activeDrillForResults.mode === 'Manual') {
-                    <div class="score-preset-group" style="display: flex; gap: 8px; align-items: flex-end;">
-                        <div style="flex: 1; min-width: 90px;">
+                    <div class="score-preset-group">
+                        <div class="score-num-field">
                             <app-number-input
                                 label="{{ 'DRILLS.SESSION_DETAILS.SCORE_0_10' | translate }}"
                                 [step]="0.5"
@@ -219,7 +219,7 @@
                                 [disabled]="isReadOnly">
                             </app-number-input>
                         </div>
-                        <div style="flex: 1.3; min-width: 125px;">
+                        <div class="rating-select-field">
                             <app-select
                                 label="{{ 'DRILLS.SESSION_DETAILS.QUICK_RATING' | translate }}"
                                 [placeholder]="'COMMON.SELECT' | translate"
@@ -231,7 +231,7 @@
                         </div>
                     </div>
                     } @else {
-                    <div class="flex-group" style="display: flex; gap: 8px;">
+                    <div class="flex-group score-done-missed-group">
                         <app-number-input
                             label="{{ 'DRILLS.SESSION_DETAILS.DONE' | translate }}"
                             [step]="1"
@@ -284,15 +284,16 @@
 
 <!-- CONFIRM MODAL -->
 @if (confirmModal.isOpen) {
-<div class="confirm-overlay" (click)="closeConfirm()"></div>
-<div class="confirm-modal">
-    <div class="confirm-content">
-        <h3 class="confirm-title">{{ confirmModal.title | translate }}</h3>
-        <p class="confirm-message">{{ confirmModal.message | translate:confirmModal.messageParams }}</p>
-    </div>
-    <div class="confirm-actions">
-        <app-button variant="slate" (click)="closeConfirm()">{{ 'COMMON.CANCEL' | translate }}</app-button>
-        <app-button variant="coral" (click)="executeConfirm()">{{ confirmModal.confirmText | translate }}</app-button>
+<div class="modal-backdrop" (click)="closeConfirm()">
+    <div class="modal-content confirm-modal" [class.is-cyan]="confirmModal.variant === 'cyan'" (click)="$event.stopPropagation()">
+        <div class="confirm-content">
+            <h3 class="confirm-title" [style.color]="confirmModal.variant === 'cyan' ? '#00f0ff' : '#ff4757'">{{ confirmModal.title | translate }}</h3>
+            <p class="confirm-message">{{ confirmModal.message | translate:confirmModal.messageParams }}</p>
+        </div>
+        <div class="modal-actions mt-3 flex-between">
+            <app-button variant="slate" (click)="closeConfirm()">{{ 'COMMON.CANCEL' | translate }}</app-button>
+            <app-button [variant]="confirmModal.variant || 'coral'" (click)="executeConfirm()">{{ confirmModal.confirmText | translate }}</app-button>
+        </div>
     </div>
 </div>
 }

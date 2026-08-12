@@ -83,11 +83,18 @@ export class CustomDatePicker implements OnInit, ControlValueAccessor {
   toggleCalendar() {
     if (!this.disabled) {
       this.isOpen = !this.isOpen;
-      if (this.isOpen && this.value) {
-        const d = new Date(this.value);
-        if (!isNaN(d.getTime())) {
-          this.viewDate = d;
+      if (this.isOpen) {
+        if (this.value) {
+          const d = new Date(this.value);
+          if (!isNaN(d.getTime())) {
+            this.viewDate = d;
+          }
         }
+        setTimeout(() => {
+          try {
+            this.elementRef.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          } catch (e) {}
+        }, 50);
       }
       this.renderCalendar();
       this.onTouch();

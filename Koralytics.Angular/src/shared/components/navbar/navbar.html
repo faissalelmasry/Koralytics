@@ -110,7 +110,10 @@
 <aside class="sidebar-container" [class.open]="isSidebarOpen">
   <div class="sidebar-header">
     <img src="images/logo/app-icon/logo-icon-dark.png" alt="Koralytics Icon" class="sidebar-logo">
-    <button class="close-btn" (click)="toggleSidebar(false)">×</button>
+    <div class="sidebar-header-actions">
+      <app-language-switcher></app-language-switcher>
+      <button class="close-btn" (click)="toggleSidebar(false)">×</button>
+    </div>
   </div>
 
   <div class="sidebar-content">
