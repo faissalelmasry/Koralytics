@@ -503,16 +503,10 @@
                   <div class="feature-index">01</div>
                   <div class="player-monogram">{{ getInitials(award.playerName) }}</div>
                   <div class="feature-copy">
-                    <div class="marquee-parent">
-                      <span class="feature-label" appMarqueeIfOverflow [marqueeText]="getAwardLabel(award.awardType)">{{ getAwardLabel(award.awardType) }}</span>
-                    </div>
-                    <div class="marquee-parent">
-                      <h3 appMarqueeIfOverflow [marqueeText]="award.playerName">{{ award.playerName }}</h3>
-                    </div>
+                    <span class="feature-label">{{ getAwardLabel(award.awardType) }}</span>
+                    <h3>{{ award.playerName }}</h3>
                     <p>{{ getAwardDescription(award.awardType) }}</p>
-                    <div class="marquee-parent">
-                      <span class="feature-team" appMarqueeIfOverflow [marqueeText]="award.teamName || 'Tournament participant'">{{ award.teamName || 'Tournament participant' }}</span>
-                    </div>
+                    <span class="feature-team">{{ award.teamName || 'Tournament participant' }}</span>
                   </div>
                   <div class="feature-trophy" aria-hidden="true">
                     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -538,15 +532,13 @@
                       <div class="award-identity">
                         <span class="award-number">0{{ index + 2 }}</span>
                         <span class="award-code">{{ getAwardCode(award.awardType) }}</span>
-                        <div class="marquee-parent">
-                          <strong appMarqueeIfOverflow [marqueeText]="getAwardLabel(award.awardType)">{{ getAwardLabel(award.awardType) }}</strong>
-                        </div>
+                        <strong>{{ getAwardLabel(award.awardType) }}</strong>
                       </div>
                       <div class="recipient">
                         <span class="recipient-avatar">{{ getInitials(award.playerName) }}</span>
-                        <div class="recipient-info marquee-parent">
-                          <strong appMarqueeIfOverflow [marqueeText]="award.playerName">{{ award.playerName }}</strong>
-                          <span appMarqueeIfOverflow [marqueeText]="award.teamName || 'Tournament participant'">{{ award.teamName || 'Tournament participant' }}</span>
+                        <div class="recipient-info">
+                          <strong>{{ award.playerName }}</strong>
+                          <span>{{ award.teamName || 'Tournament participant' }}</span>
                         </div>
                       </div>
                       <p>{{ getAwardDescription(award.awardType) }}</p>

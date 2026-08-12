@@ -1927,46 +1927,18 @@
     width: 100%;
     box-sizing: border-box;
   }
-/* AUTO-MARQUEE FOR OVERFLOWING HALL OF FAME TEXTS */
-.marquee-parent {
-  overflow: hidden !important;
-  min-width: 0;
-  width: 100%;
-  box-sizing: border-box;
-}
-
+/* Hall of Fame text — static ellipsis truncation (no auto-scroll) */
 .award-identity strong,
 .recipient strong,
 .recipient span,
 .feature-label,
 .feature-copy h3,
 .feature-team {
-  text-overflow: clip !important;
-  overflow: visible !important;
-  white-space: nowrap !important;
-}
-
-.award-identity strong.is-scrolling,
-.recipient strong.is-scrolling,
-.recipient span.is-scrolling,
-.feature-label.is-scrolling,
-.feature-copy h3.is-scrolling,
-.feature-team.is-scrolling {
-  display: inline-block !important;
-  white-space: nowrap !important;
-  animation: hallOfFameMarquee 5s ease-in-out 0.5s infinite !important;
-}
-
-@keyframes hallOfFameMarquee {
-  0%, 15% {
-    transform: translateX(0);
-  }
-  50%, 65% {
-    transform: translateX(var(--marquee-scroll, -20px));
-  }
-  85%, 100% {
-    transform: translateX(0);
-  }
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+  max-width: 100%;
 }
 
 @media (max-width: 768px) {
