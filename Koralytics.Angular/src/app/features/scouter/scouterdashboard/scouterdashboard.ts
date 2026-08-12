@@ -28,6 +28,7 @@ import { ScrollRevealDirective } from '@shared/directives/scroll-reveal.directiv
 import { NavbarComponent } from '@shared/components/navbar/navbar';
 import { Footer } from '@shared/components/footer/footer';
 import { ToastContainerComponent } from '@shared/components/toast/toast';
+import { TranslatePipe } from '@ngx-translate/core';
 
 Chart.register(BarController, BarElement, LinearScale, CategoryScale, Tooltip);
 
@@ -68,7 +69,8 @@ interface DashboardInsight {
     ScrollRevealDirective,
     NavbarComponent,
     Footer,
-    ToastContainerComponent
+    ToastContainerComponent,
+    TranslatePipe
   ],
   templateUrl: './scouterdashboard.html',
   styleUrls: ['./scouterdashboard.css'],

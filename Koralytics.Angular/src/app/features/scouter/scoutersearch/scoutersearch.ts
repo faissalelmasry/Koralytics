@@ -20,25 +20,21 @@ import { NavbarComponent } from '../../../../shared/components/navbar/navbar';
 import { Footer } from '../../../../shared/components/footer/footer';
 import { ScrollRevealDirective } from '../../../../shared/directives/scroll-reveal.directive';
 import { PlayerCardComponent } from '../../player/player-card/player-card';
+import { TranslatePipe } from '@ngx-translate/core';
 
 const POSITION_OPTIONS = ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LM', 'RM', 'LW', 'RW', 'ST'];
 const FOOT_OPTIONS = ['Left', 'Right', 'Both'];
 
 const POSITION_COORDS: Record<string, { top: string; left: string }> = {
   GK: { top: '50%', left: '8%' },
-
   LB: { top: '18%', left: '25%' },
   CB: { top: '50%', left: '25%' },
   RB: { top: '82%', left: '25%' },
-
   CDM: { top: '50%', left: '40%' },
-
   LM: { top: '18%', left: '55%' },
   CM: { top: '50%', left: '55%' },
   RM: { top: '82%', left: '55%' },
-
   CAM: { top: '50%', left: '70%' },
-
   LW: { top: '22%', left: '82%' },
   ST: { top: '50%', left: '88%' },
   RW: { top: '78%', left: '82%' },
@@ -98,7 +94,8 @@ function emptyFilters(): FilterState {
     NavbarComponent,
     Footer,
     ScrollRevealDirective,
-    PlayerCardComponent
+    PlayerCardComponent,
+    TranslatePipe
   ],
   templateUrl: './scoutersearch.html',
   styleUrls: ['./scoutersearch.css']
@@ -124,12 +121,7 @@ export class ScouterSearchComponent implements OnInit {
   }
 
   public filters: FilterState = emptyFilters();
-
-  public academySearchQuery = '';
-  public academySearchResults: { id: number; name: string }[] = [];
-  public showAcademyDropdown = false;
-  public selectedAcademyName = '';
-  private searchTimer: ReturnType<typeof setTimeout> | null = null;
+  public allAcademies: { id: number; name: string }[] = [];
 
   public nlQuery: string = '';
   public chatMessages = signal<ChatMessage[]>([]);
@@ -170,66 +162,12 @@ export class ScouterSearchComponent implements OnInit {
     }
 
     if (f.academyId !== null) {
-      const label = this.selectedAcademyName ? `Academy: ${this.selectedAcademyName}` : `Academy #${f.academyId}`;
-      tags.push({ label, clear: () => { this.clearAcademy(); this.search(); } });
+      const selected = this.allAcademies.find(a => a.id === f.academyId);
+      const label = selected ? `Academy: ${selected.name}` : `Academy #${f.academyId}`;
+      tags.push({ label, clear: () => { this.filters.academyId = null; this.search(); } });
     }
 
     return tags;
-  }
-
-  public onAcademySearch(value: string): void {
-    this.academySearchQuery = value;
-    if (this.searchTimer) clearTimeout(this.searchTimer);
-
-    if (!value.trim()) {
-      this.academySearchResults = [];
-      this.showAcademyDropdown = false;
-      this.filters.academyId = null;
-      this.selectedAcademyName = '';
-      return;
-    }
-
-    this.searchTimer = setTimeout(() => {
-      this.academyService.searchAcademies(value.trim()).subscribe({
-        next: (res: any) => {
-          const results = res?.data ?? res ?? [];
-          this.academySearchResults = results.map((a: any) => ({
-            id: a.id ?? a.Id,
-            name: a.name ?? a.Name
-          }));
-          this.showAcademyDropdown = this.academySearchResults.length > 0;
-        },
-        error: () => {
-          this.academySearchResults = [];
-          this.showAcademyDropdown = false;
-        }
-      });
-    }, 300);
-  }
-
-  public selectAcademy(academy: { id: number; name: string }): void {
-    this.filters.academyId = academy.id;
-    this.selectedAcademyName = academy.name;
-    this.academySearchQuery = academy.name;
-    this.showAcademyDropdown = false;
-  }
-
-  public clearAcademy(): void {
-    this.filters.academyId = null;
-    this.selectedAcademyName = '';
-    this.academySearchQuery = '';
-    this.academySearchResults = [];
-    this.showAcademyDropdown = false;
-  }
-
-  public onBlurAcademySearch(): void {
-    setTimeout(() => { this.showAcademyDropdown = false; }, 200);
-  }
-
-  public onFocusAcademySearch(): void {
-    if (this.academySearchResults.length > 0 && !this.filters.academyId) {
-      this.showAcademyDropdown = true;
-    }
   }
 
   private readonly pageSize = 12;
@@ -250,6 +188,33 @@ export class ScouterSearchComponent implements OnInit {
         this.currentScouterId = decoded.userId;
       }
     }
+    this.loadAllAcademies();
+  }
+private loadAllAcademies(): void {
+    this.academyService.getAcademies(1, 100).subscribe({
+      next: (res: any) => {
+        let items: any[] = [];
+        
+        
+        if (Array.isArray(res?.data?.academies)) {
+          items = res.data.academies;
+        } else if (Array.isArray(res?.data?.items)) {
+          items = res.data.items;
+        } else if (Array.isArray(res?.data)) {
+          items = res.data;
+        } else if (Array.isArray(res)) {
+          items = res;
+        }
+
+        this.allAcademies = items.map((a: any) => ({
+          id: a.id ?? a.Id,
+          name: a.name ?? a.Name
+        }));
+      },
+      error: (err) => {
+        console.error('Failed to load academies for dropdown', err);
+      }
+    });
   }
 
   public togglePosition(position: string): void {
@@ -269,7 +234,6 @@ export class ScouterSearchComponent implements OnInit {
 
   public resetFilters(): void {
     this.filters = emptyFilters();
-    this.clearAcademy();
     this.results.set([]);
     this.totalCount.set(0);
     this.hasSearched.set(false);
@@ -379,7 +343,7 @@ export class ScouterSearchComponent implements OnInit {
         },
         error: (err: HttpErrorResponse) => {
           console.error('AI ChatBot query failed', err);
-          const fallbackMsg = 'عذراً، حدث خطأ أثناء التواصل مع المساعد الذكي. يرجى المحاولة مرة أخرى لاحقاً.';
+          const fallbackMsg = 'Error communicating with AI. Please try again later.';
           const botMsg: ChatMessage = {
             id: (Date.now() + 1).toString(),
             sender: 'assistant',

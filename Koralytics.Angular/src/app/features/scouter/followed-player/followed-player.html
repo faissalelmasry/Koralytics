@@ -2,46 +2,40 @@
 
 <div class="followed-players-page">
 
-  <!-- Toolbar -->
   <div class="page-toolbar" scrollReveal direction="bottom" [delay]="0">
     <div class="toolbar-title-group">
-      <h1 class="page-title">Followed Players</h1>
-      <p class="page-subtitle">{{ totalCount() }} player{{ totalCount() === 1 ? '' : 's' }} followed</p>
+      <h1 class="page-title">{{ 'FOLLOWED_PLAYERS.TITLE' | translate }}</h1>
+      <p class="page-subtitle">{{ (totalCount() === 1 ? 'FOLLOWED_PLAYERS.SUBTITLE_SINGLE' : 'FOLLOWED_PLAYERS.SUBTITLE_PLURAL') | translate: { count: totalCount() } }}</p>
     </div>
     <div class="toolbar-search">
       <app-search-bar
-        [placeholderText]="'Search players...'"
+        placeholderText="{{ 'FOLLOWED_PLAYERS.SEARCH_PLACEHOLDER' | translate }}"
         (searchChange)="onSearch($event)">
       </app-search-bar>
     </div>
   </div>
 
-  <!-- Loading -->
   @if (isLoading()) {
     <div class="status-state">
       <app-loading-spinner size="lg"></app-loading-spinner>
-      <p>Loading your watchlist…</p>
+      <p>{{ 'FOLLOWED_PLAYERS.LOADING' | translate }}</p>
     </div>
   }
 
-  <!-- Empty -->
   @if (!isLoading() && players().length === 0) {
     <div class="empty-wrapper">
       <app-empty-state
-        title="No players found"
-        description="You aren't following any players yet, or no matches found for your search.">
+        title="{{ 'FOLLOWED_PLAYERS.EMPTY_TITLE' | translate }}"
+        description="{{ 'FOLLOWED_PLAYERS.EMPTY_DESC' | translate }}">
       </app-empty-state>
     </div>
   }
 
-  <!-- Grid -->
   @if (!isLoading() && players().length > 0) {
     <div class="followed-grid" scrollReveal direction="bottom" [delay]="60">
       @for (player of players(); track player.playerId) {
         <div class="followed-item">
 
-          <!-- NOTE on $any(player): PlayerCardDto/PlayerCardModel line up
-               field-for-field today, but $any() silences type checking. -->
           <div class="card-wrap">
             <app-player-card
               [player]="$any(player)"
@@ -50,7 +44,7 @@
               [cardWidth]="220"
               [cardHeight]="350">
             </app-player-card>
-            <span class="flip-hint">Tap card for details</span>
+            <span class="flip-hint">{{ 'FOLLOWED_PLAYERS.CARD_HINT' | translate }}</span>
           </div>
 
           <div class="card-actions">
@@ -58,7 +52,7 @@
               variant="accent"
               (click)="viewProfile(player.playerId)"
               class="action-btn">
-              Profile
+              {{ 'FOLLOWED_PLAYERS.BTN_PROFILE' | translate }}
             </app-button>
 
             <app-button
@@ -66,7 +60,7 @@
               [disabled]="isUnfollowing() === player.playerId"
               (click)="unfollow(player.playerId)"
               class="action-btn">
-              {{ isUnfollowing() === player.playerId ? 'Unfollowing...' : 'Unfollow' }}
+              {{ isUnfollowing() === player.playerId ? ('FOLLOWED_PLAYERS.BTN_UNFOLLOWING' | translate) : ('FOLLOWED_PLAYERS.BTN_UNFOLLOW' | translate) }}
             </app-button>
           </div>
 

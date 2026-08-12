@@ -1,0 +1,54 @@
+{
+  "NOTIFICATIONS": {
+    "TAG_ACTIVITY_CENTER": "مركز النشاط",
+    "PAGE_TITLE": "الإشعارات",
+    "PAGE_SUBTITLE": "أحدث الأنشطة، الرسائل، والتنبيهات الهامة",
+    "BTN_MARK_ALL_READ": "تحديد الكل كمقروء",
+    "LOADING": "جاري تحميل الإشعارات...",
+    "EMPTY_TITLE": "لا توجد إشعارات حتى الآن",
+    "EMPTY_DESC": "ستظهر أحدث التحديثات، الرسائل، والتنبيهات هنا بمجرد وصولها.",
+    "BTN_REFRESH": "تحديث",
+    "KPI": {
+      "TOTAL": "الإجمالي",
+      "TOTAL_SUB": "كل الأنشطة المسجلة",
+      "UNREAD": "غير مقروء",
+      "UNREAD_SUB": "في انتظار مراجعتك",
+      "READ": "مقروء",
+      "READ_SUB": "تم الاطلاع عليها"
+    },
+    "FILTERS": {
+      "ALL": "الكل",
+      "UNREAD": "غير مقروء"
+    },
+    "FILTER_EMPTY": {
+      "TITLE": "لا يوجد شيء غير مقروء",
+      "DESC": "لقد اطلعت على كل شيء بنجاح."
+    },
+    "SYSTEM_ALERT": "تنبيه النظام",
+    "ARIA_MARK_READ": "تحديد كمقروء"
+  },
+  "ACADEMY_ANNOUNCEMENTS": {
+    "PAGE_TITLE": "إعلانات الأكاديمية",
+    "TAG_BROADCAST_CENTER": "مركز البث",
+    "PAGE_SUBTITLE": "أرسل التحديثات إلى فرقك، الفئات العمرية، أو أدوار محددة",
+    "PANEL_HEADER_NEW": "إعلان جديد",
+    "FORM": {
+      "LBL_TITLE": "العنوان",
+      "LBL_BODY": "نص الرسالة",
+      "PH_BODY": "اكتب رسالة الإعلان...",
+      "LBL_SEND_TO": "إرسال إلى",
+      "LBL_TEAM": "الفريق",
+      "LBL_AGE_GROUP": "الفئة العمرية",
+      "LBL_ROLE": "الدور",
+      "BTN_SEND": "إرسال الإعلان"
+    }
+  },
+  "ANNOUNCEMENT_HISTORY": {
+    "HEADER_TITLE": "الإعلانات المرسلة",
+    "TOTAL_COUNT": "الإجمالي {{count}}",
+    "EMPTY_TITLE": "لا توجد إعلانات حتى الآن",
+    "EMPTY_DESC": "الرسائل التي ترسلها لأكاديميتك ستظهر هنا.",
+    "SENT_BY": "أُرسلت بواسطة {{name}}",
+    "ACADEMY_STAFF": "إدارة الأكاديمية"
+  }
+}

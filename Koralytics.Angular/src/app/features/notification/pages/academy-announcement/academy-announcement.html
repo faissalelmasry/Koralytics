@@ -2,7 +2,6 @@
 
 <div class="aa-page">
 
-  <!-- =============== HERO BANNER =============== -->
   <div class="hero-banner" scrollReveal direction="bottom" [delay]="0">
     <div class="aa-identity">
       <div class="aa-icon-circle">
@@ -12,38 +11,37 @@
         </svg>
       </div>
       <div>
-        <h1>Academy Announcements</h1>
+        <h1>{{ 'ACADEMY_ANNOUNCEMENTS.PAGE_TITLE' | translate }}</h1>
         <div class="meta-pills">
-          <span class="pill gold">Broadcast Center</span>
+          <span class="pill gold">{{ 'ACADEMY_ANNOUNCEMENTS.TAG_BROADCAST_CENTER' | translate }}</span>
         </div>
       </div>
     </div>
-    <p class="header-sub">Broadcast updates to your teams, age groups, or specific roles</p>
+    <p class="header-sub">{{ 'ACADEMY_ANNOUNCEMENTS.PAGE_SUBTITLE' | translate }}</p>
   </div>
 
-  <!-- =============== COMPOSE PANEL =============== -->
   <div class="aa-panel aa-compose-panel" scrollReveal direction="bottom" [delay]="100">
     <div class="panel-header">
-      <span>New Announcement</span>
+      <span>{{ 'ACADEMY_ANNOUNCEMENTS.PANEL_HEADER_NEW' | translate }}</span>
     </div>
 
     <form class="aa-form" [formGroup]="announcementForm" (ngSubmit)="onSendAnnouncement()">
 
       <app-text-input
-        label="title"
+        label="{{ 'ACADEMY_ANNOUNCEMENTS.FORM.LBL_TITLE' | translate }}"
         formControlName="title"
         [errorMessage]="titleError">
       </app-text-input>
 
       <div class="textarea-field-group" [class.has-error]="bodyError">
-        <label class="textarea-label" for="aa-body">message body</label>
+        <label class="textarea-label" for="aa-body">{{ 'ACADEMY_ANNOUNCEMENTS.FORM.LBL_BODY' | translate }}</label>
         <textarea
           id="aa-body"
           class="aa-textarea"
           rows="5"
           maxlength="1000"
           formControlName="body"
-          placeholder="write the announcement message...">
+          placeholder="{{ 'ACADEMY_ANNOUNCEMENTS.FORM.PH_BODY' | translate }}">
         </textarea>
         <div class="textarea-footer">
           <span class="error-text-msg" *ngIf="bodyError">{{ bodyError }}</span>
@@ -54,17 +52,15 @@
       <div class="aa-target-row">
 
         <app-select
-          label="send to"
+          label="{{ 'ACADEMY_ANNOUNCEMENTS.FORM.LBL_SEND_TO' | translate }}"
           [options]="targetTypeOptions()"
           [value]="selectedTargetType()"
           (valueChange)="onTargetTypeChange($event)">
         </app-select>
 
-        <!-- Team picker: real dropdown fed by AcademyAnnouncementService.getTeams(),
-             replacing the old raw numeric "team id" input. -->
         <app-select
           *ngIf="selectedTargetType() === AnnouncementTargetType.Team"
-          label="team"
+          label="{{ 'ACADEMY_ANNOUNCEMENTS.FORM.LBL_TEAM' | translate }}"
           [options]="teamOptions()"
           [value]="announcementForm.get('targetId')?.value"
           [errorMessage]="targetIdError"
@@ -72,10 +68,9 @@
           (valueChange)="onTargetIdChange($event)">
         </app-select>
 
-        <!-- Age group picker: same pattern, fed by getAgeGroups(). -->
         <app-select
           *ngIf="selectedTargetType() === AnnouncementTargetType.AgeGroup"
-          label="age group"
+          label="{{ 'ACADEMY_ANNOUNCEMENTS.FORM.LBL_AGE_GROUP' | translate }}"
           [options]="ageGroupOptions()"
           [value]="announcementForm.get('targetId')?.value"
           [errorMessage]="targetIdError"
@@ -85,7 +80,7 @@
 
         <app-select
           *ngIf="selectedTargetType() === AnnouncementTargetType.Role"
-          label="role"
+          label="{{ 'ACADEMY_ANNOUNCEMENTS.FORM.LBL_ROLE' | translate }}"
           [options]="roleOptions"
           [value]="announcementForm.get('role')?.value"
           [errorMessage]="roleError"
@@ -94,14 +89,10 @@
 
       </div>
 
-      <!-- Team/Age-group lookup failed to load -- surfaced separately from
-           the target row itself so a fetch failure doesn't just make the
-           dropdown silently look empty with no explanation. -->
       <div class="aa-banner aa-banner-error" *ngIf="targetOptionsError()">
         {{ targetOptionsError() }}
       </div>
 
-      <!-- Feedback Banners -->
       <div class="aa-banner aa-banner-error" *ngIf="errorMessage()">
         {{ errorMessage() }}
       </div>
@@ -111,14 +102,13 @@
 
       <div class="aa-form-actions">
         <app-button type="submit" variant="accent" [loading]="isSubmitting()">
-          send announcement
+          {{ 'ACADEMY_ANNOUNCEMENTS.FORM.BTN_SEND' | translate }}
         </app-button>
       </div>
 
     </form>
   </div>
 
-  <!-- Sent Announcements History (Child Component) -->
   <div scrollReveal direction="bottom" [delay]="200">
     <app-announcement-history
       [announcements]="announcements()"

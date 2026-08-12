@@ -2,30 +2,29 @@
 
 <div class="search-page">
 
-  <!-- =============== COMPACT HEADER =============== -->
   <header class="page-header" scrollReveal direction="bottom" [delay]="0">
     <div class="page-header-title">
-      <h1>Player Finder</h1>
+      <h1>{{ 'PLAYER_FINDER.HEADER.TITLE' | translate }}</h1>
       <span class="page-header-status">
         <span class="status-dot" aria-hidden="true"></span>
-        {{ isLoading() ? 'Scanning…' : (hasSearched() ? totalCount() + ' found' : 'Ready') }}
+        {{ isLoading() ? ('PLAYER_FINDER.HEADER.STATUS_SCANNING' | translate) : (hasSearched() ? ('PLAYER_FINDER.HEADER.STATUS_FOUND' | translate: { count: totalCount() }) : ('PLAYER_FINDER.HEADER.STATUS_READY' | translate)) }}
       </span>
     </div>
     <div class="page-header-stats">
-      <button type="button" class="stat-chip ai-chat-launcher" (click)="navigateToAiChat()" title="Open Dedicated Scouting AI Chatbot Page">
+      <button type="button" class="stat-chip ai-chat-launcher" (click)="navigateToAiChat()" title="{{ 'PLAYER_FINDER.HEADER.AI_CHAT_TITLE' | translate }}">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/>
         </svg>
-        <strong>Scouting AI Chat</strong>
+        <strong>{{ 'PLAYER_FINDER.HEADER.AI_CHAT_BTN' | translate }}</strong>
       </button>
       <span class="stat-chip">
-        <strong>{{ hasSearched() ? totalCount() : '—' }}</strong> Prospects
+        <strong>{{ hasSearched() ? totalCount() : '—' }}</strong> {{ 'PLAYER_FINDER.HEADER.STATS_PROSPECTS' | translate }}
       </span>
       <span class="stat-chip">
-        <strong>{{ getActiveFilterTags().length }}</strong> Filters
+        <strong>{{ getActiveFilterTags().length }}</strong> {{ 'PLAYER_FINDER.HEADER.STATS_FILTERS' | translate }}
       </span>
       <span class="stat-chip">
-        <strong>{{ hasSearched() ? pageNumber() + '/' + totalPages() : '—' }}</strong> Page
+        <strong>{{ hasSearched() ? pageNumber() + '/' + totalPages() : '—' }}</strong> {{ 'PLAYER_FINDER.HEADER.STATS_PAGE' | translate }}
       </span>
     </div>
   </header>
@@ -44,40 +43,37 @@
 
   <div class="search-layout">
 
-    <!-- ============ SIDEBAR: Filters ============ -->
     <aside class="filter-sidebar" scrollReveal direction="bottom" [delay]="60">
 
       <div class="sidebar-scroll">
 
-        <!-- AI Scouting Assistant Launcher Banner -->
         <div class="nl-search-block ai-launcher-card" (click)="navigateToAiChat()" style="cursor: pointer;">
           <div class="nl-glow" aria-hidden="true"></div>
           
           <div class="nl-search-label">
             <span class="nl-title">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>
-              Scouting AI Assistant
+              {{ 'PLAYER_FINDER.SIDEBAR.AI_LAUNCHER_TITLE' | translate }}
             </span>
             <span class="ai-badge active">
               <span class="ai-live-dot"></span>
-              Full AI Page
+              {{ 'PLAYER_FINDER.SIDEBAR.AI_LAUNCHER_BADGE' | translate }}
             </span>
           </div>
 
-          <p class="nl-hint">Ask AI for player analysis, custom scouting queries, and intelligent recommendations in a full workspace.</p>
+          <p class="nl-hint">{{ 'PLAYER_FINDER.SIDEBAR.AI_LAUNCHER_DESC' | translate }}</p>
 
           <button type="button" class="open-ai-page-btn" (click)="navigateToAiChat(); $event.stopPropagation()">
-            <span>Open Dedicated AI Chat</span>
+            <span>{{ 'PLAYER_FINDER.SIDEBAR.AI_LAUNCHER_BTN' | translate }}</span>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12h14M13 6l6 6-6 6"/></svg>
           </button>
         </div>
 
-        <!-- Tactical position picker -->
         <section class="filter-section">
           <div class="section-head">
             <label class="filter-label">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/></svg>
-              Tactical Position
+              {{ 'PLAYER_FINDER.SIDEBAR.POSITIONS.TITLE' | translate }}
             </label>
             @if (filters.positions.length > 0) {
               <span class="count-badge">{{ filters.positions.length }}</span>
@@ -111,63 +107,60 @@
           </div>
 
           <div class="pitch-legend" aria-hidden="true">
-            <span class="legend-item"><i style="background:#4fd8ff"></i>Keeper</span>
-            <span class="legend-item"><i style="background:#5b8cff"></i>Defence</span>
-            <span class="legend-item"><i style="background:#b58cff"></i>Midfield</span>
-            <span class="legend-item"><i style="background:#ff7a5c"></i>Attack</span>
+            <span class="legend-item"><i style="background:#4fd8ff"></i>{{ 'PLAYER_FINDER.SIDEBAR.POSITIONS.KEEPER' | translate }}</span>
+            <span class="legend-item"><i style="background:#5b8cff"></i>{{ 'PLAYER_FINDER.SIDEBAR.POSITIONS.DEFENCE' | translate }}</span>
+            <span class="legend-item"><i style="background:#b58cff"></i>{{ 'PLAYER_FINDER.SIDEBAR.POSITIONS.MIDFIELD' | translate }}</span>
+            <span class="legend-item"><i style="background:#ff7a5c"></i>{{ 'PLAYER_FINDER.SIDEBAR.POSITIONS.ATTACK' | translate }}</span>
           </div>
         </section>
 
         <div class="sidebar-divider"></div>
 
-        <!-- Age -->
         <section class="filter-section">
           <div class="section-head">
             <label class="filter-label" for="minAgeInput">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-              Age Range
+              {{ 'PLAYER_FINDER.SIDEBAR.AGE.TITLE' | translate }}
             </label>
           </div>
           <div class="range-row">
             <div class="field">
-              <input id="minAgeInput" type="number" class="filter-input" placeholder="Min" min="5" max="45" [(ngModel)]="filters.minAge" (keydown.enter)="search()" />
-              <span class="field-hint">yrs</span>
+              <input id="minAgeInput" type="number" class="filter-input" placeholder="{{ 'PLAYER_FINDER.SIDEBAR.AGE.MIN' | translate }}" min="5" max="45" [(ngModel)]="filters.minAge" (keydown.enter)="search()" />
+              <span class="field-hint">{{ 'PLAYER_FINDER.SIDEBAR.AGE.YRS' | translate }}</span>
             </div>
             <span class="range-sep" aria-hidden="true"></span>
             <div class="field">
-              <input type="number" class="filter-input" placeholder="Max" min="5" max="45" aria-label="Maximum age" [(ngModel)]="filters.maxAge" (keydown.enter)="search()" />
-              <span class="field-hint">yrs</span>
+              <input type="number" class="filter-input" placeholder="{{ 'PLAYER_FINDER.SIDEBAR.AGE.MAX' | translate }}" min="5" max="45" aria-label="Maximum age" [(ngModel)]="filters.maxAge" (keydown.enter)="search()" />
+              <span class="field-hint">{{ 'PLAYER_FINDER.SIDEBAR.AGE.YRS' | translate }}</span>
             </div>
           </div>
         </section>
 
-        <!-- Rating -->
         <section class="filter-section">
           <div class="section-head">
             <label class="filter-label" for="minRatingInput">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.8 6.2 20.9l1.1-6.5L2.6 9.8l6.5-.9z"/></svg>
-              Overall Rating
+              {{ 'PLAYER_FINDER.SIDEBAR.RATING.TITLE' | translate }}
             </label>
           </div>
           <div class="range-row">
             <div class="field">
-              <input id="minRatingInput" type="number" class="filter-input" placeholder="Min" min="0" max="99" [(ngModel)]="filters.minRating" (keydown.enter)="search()" />
-              <span class="field-hint">ovr</span>
+              <input id="minRatingInput" type="number" class="filter-input" placeholder="{{ 'PLAYER_FINDER.SIDEBAR.AGE.MIN' | translate }}" min="0" max="99" [(ngModel)]="filters.minRating" (keydown.enter)="search()" />
+              <span class="field-hint">{{ 'PLAYER_FINDER.SIDEBAR.RATING.OVR' | translate }}</span>
             </div>
             <span class="range-sep" aria-hidden="true"></span>
             <div class="field">
-              <input type="number" class="filter-input" placeholder="Max" min="0" max="99" aria-label="Maximum rating" [(ngModel)]="filters.maxRating" (keydown.enter)="search()" />
-              <span class="field-hint">ovr</span>
+              <input type="number" class="filter-input" placeholder="{{ 'PLAYER_FINDER.SIDEBAR.AGE.MAX' | translate }}" min="0" max="99" aria-label="Maximum rating" [(ngModel)]="filters.maxRating" (keydown.enter)="search()" />
+              <span class="field-hint">{{ 'PLAYER_FINDER.SIDEBAR.RATING.OVR' | translate }}</span>
             </div>
           </div>
         </section>
 
-        <!-- Foot -->
         <section class="filter-section">
           <div class="section-head">
             <label class="filter-label">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 21c-1.7 0-3-1.4-3-3.1 0-1.6.6-2.6.6-4.4C4.6 9 6.5 3 11 3c3 0 4 2.4 4 5.4 0 2.6-.8 3.6-.8 5.6 0 2.3 1.3 3 1.3 4.6 0 1.4-1.2 2.4-2.7 2.4z"/></svg>
-              Preferred Foot
+              {{ 'PLAYER_FINDER.SIDEBAR.FOOT.TITLE' | translate }}
             </label>
           </div>
           <div class="chip-row" role="group" aria-label="Filter by preferred foot">
@@ -184,45 +177,26 @@
           </div>
         </section>
 
-        <!-- Academy -->
         <section class="filter-section">
           <div class="section-head">
-            <label class="filter-label" for="academySearchInput">
+            <label class="filter-label" for="academySelect">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V9l7-5 7 5v12M10 21v-6h4v6"/></svg>
-              Academy
+              {{ 'PLAYER_FINDER.SIDEBAR.ACADEMY.TITLE' | translate }}
             </label>
           </div>
-          <div class="autocomplete-wrapper">
-            <div class="field">
-              <input
-                id="academySearchInput"
-                type="text"
-                class="filter-input"
-                placeholder="Search academy..."
-                [value]="academySearchQuery"
-                (input)="onAcademySearch($any($event.target).value)"
-                (focus)="onFocusAcademySearch()"
-                (blur)="onBlurAcademySearch()"
-                (keydown.enter)="search()" />
-            </div>
-
-            @if (showAcademyDropdown && academySearchResults.length > 0) {
-              <div class="autocomplete-dropdown">
-                @for (academy of academySearchResults; track academy.id) {
-                  <div class="autocomplete-item" (click)="selectAcademy(academy)">
-                    <span>{{ academy.name }}</span>
-                    <span class="item-tag">Academy</span>
-                  </div>
-                }
-              </div>
-            }
-
-            @if (filters.academyId && selectedAcademyName) {
-              <div class="selected-academy-badge">
-                <span>{{ selectedAcademyName }}</span>
-                <button type="button" class="clear-badge" (click)="clearAcademy(); search()" title="Remove academy filter">&#10005;</button>
-              </div>
-            }
+          
+          <div class="field">
+            <select
+              id="academySelect"
+              class="filter-input"
+              style="appearance: auto; cursor: pointer;"
+              [(ngModel)]="filters.academyId"
+              (change)="search()">
+              <option [ngValue]="null">-- {{ 'PLAYER_FINDER.SIDEBAR.ACADEMY.SEARCH_PLACEHOLDER' | translate }} --</option>
+              @for (academy of allAcademies; track academy.id) {
+                <option [ngValue]="academy.id">{{ academy.name }}</option>
+              }
+            </select>
           </div>
         </section>
 
@@ -230,20 +204,19 @@
 
       <div class="sidebar-actions">
         <app-button variant="accent" [disabled]="isLoading()" (click)="search()">
-          {{ isLoading() ? 'Searching…' : 'Search Players' }}
+          {{ isLoading() ? ('PLAYER_FINDER.SIDEBAR.ACTIONS.SEARCHING_BTN' | translate) : ('PLAYER_FINDER.SIDEBAR.ACTIONS.SEARCH_BTN' | translate) }}
         </app-button>
-        <app-button variant="slate" (click)="resetFilters()">Reset Filters</app-button>
+        <app-button variant="slate" (click)="resetFilters()">{{ 'PLAYER_FINDER.SIDEBAR.ACTIONS.RESET_BTN' | translate }}</app-button>
       </div>
     </aside>
 
-    <!-- ============ MAIN: Results ============ -->
     <main class="results-pane">
 
       @if (isLoading()) {
         <div class="results-header">
           <div class="results-meta">
             <app-loading-spinner size="sm"></app-loading-spinner>
-            Searching player database…
+            {{ 'PLAYER_FINDER.RESULTS.LOADING_MSG' | translate }}
           </div>
         </div>
         <div class="results-grid" aria-hidden="true">
@@ -263,9 +236,9 @@
           <div class="status-icon">
             <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3M8 8l6 6M14 8l-6 6"/></svg>
           </div>
-          <h3>No Players Found</h3>
-          <p>No players match your current filters. Try widening the age range, removing a position, or clearing all filters to start fresh.</p>
-          <button type="button" class="ghost-action" (click)="resetFilters()">Clear all filters</button>
+          <h3>{{ 'PLAYER_FINDER.RESULTS.EMPTY_TITLE' | translate }}</h3>
+          <p>{{ 'PLAYER_FINDER.RESULTS.EMPTY_DESC' | translate }}</p>
+          <button type="button" class="ghost-action" (click)="resetFilters()">{{ 'PLAYER_FINDER.RESULTS.CLEAR_ALL_BTN' | translate }}</button>
         </div>
       }
       @else if (!hasSearched()) {
@@ -273,9 +246,9 @@
           <div class="status-icon">
             <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M6 12h12M10 18h4"/></svg>
           </div>
-          <h3>Set Your Filters</h3>
-          <p>Choose a position on the pitch, set an age bracket, or enter a rating range — then hit <strong>Search Players</strong> to see matching prospects.</p>
-          <button type="button" class="ghost-action" (click)="search()">Browse all players</button>
+          <h3>{{ 'PLAYER_FINDER.RESULTS.INITIAL_TITLE' | translate }}</h3>
+          <p>{{ 'PLAYER_FINDER.RESULTS.INITIAL_DESC' | translate }}</p>
+          <button type="button" class="ghost-action" (click)="search()">{{ 'PLAYER_FINDER.RESULTS.BROWSE_ALL_BTN' | translate }}</button>
         </div>
       }
       @else if (results().length > 0) {
@@ -284,22 +257,22 @@
           <div class="results-header-top">
             <div class="results-meta">
               <span class="live-dot" aria-hidden="true"></span>
-              <strong>{{ totalCount() }}</strong> Player{{ totalCount() === 1 ? '' : 's' }} Found
+              <strong>{{ (totalCount() === 1 ? 'PLAYER_FINDER.RESULTS.FOUND_COUNT_SINGLE' : 'PLAYER_FINDER.RESULTS.FOUND_COUNT_PLURAL') | translate: { count: totalCount() } }}</strong>
             </div>
-            <div class="results-page-meta">Page {{ pageNumber() }} of {{ totalPages() }}</div>
+            <div class="results-page-meta">{{ 'PLAYER_FINDER.RESULTS.PAGE_INFO' | translate: { current: pageNumber(), total: totalPages() } }}</div>
           </div>
 
           @if (getActiveFilterTags().length > 0) {
             <div class="filter-tag-row">
               @for (tag of getActiveFilterTags(); track tag.label) {
-                <button type="button" class="filter-tag" (click)="tag.clear()" [attr.aria-label]="'Remove filter ' + tag.label">
+                <button type="button" class="filter-tag" (click)="tag.clear()" aria-label="{{ 'PLAYER_FINDER.RESULTS.REMOVE_TAG' | translate: { label: tag.label } }}">
                   {{ tag.label }}
                   <span class="filter-tag-x" aria-hidden="true">
                     <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
                   </span>
                 </button>
               }
-              <button type="button" class="filter-tag-clear-all" (click)="resetFilters()">Clear all</button>
+              <button type="button" class="filter-tag-clear-all" (click)="resetFilters()">{{ 'PLAYER_FINDER.RESULTS.CLEAR_TAGS' | translate }}</button>
             </div>
           }
         </div>
@@ -313,9 +286,9 @@
               </div>
 
              <div class="result-actions">
-  <button type="button" class="card-action-btn primary" (click)="viewProfile(player.playerId)">Profile</button>
-  <button type="button" class="card-action-btn cyan" (click)="followPlayer(player.playerId)">Follow</button>
-  <button type="button" class="card-action-btn slate" (click)="addToShortlist(player.playerId)">List</button>
+  <button type="button" class="card-action-btn primary" (click)="viewProfile(player.playerId)">{{ 'PLAYER_FINDER.RESULTS.CARD_BTN_PROFILE' | translate }}</button>
+  <button type="button" class="card-action-btn cyan" (click)="followPlayer(player.playerId)">{{ 'PLAYER_FINDER.RESULTS.CARD_BTN_FOLLOW' | translate }}</button>
+  <button type="button" class="card-action-btn slate" (click)="addToShortlist(player.playerId)">{{ 'PLAYER_FINDER.RESULTS.CARD_BTN_LIST' | translate }}</button>
 </div>
             </div>
           }

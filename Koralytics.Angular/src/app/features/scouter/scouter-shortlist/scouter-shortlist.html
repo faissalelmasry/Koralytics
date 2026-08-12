@@ -2,46 +2,40 @@
 
 <div class="shortlist-page">
 
-  <!-- Toolbar -->
   <div class="page-toolbar" scrollReveal direction="bottom" [delay]="0">
     <div class="toolbar-title-group">
-      <h1 class="page-title">My Shortlist</h1>
-      <p class="page-subtitle">{{ totalCount() }} player{{ totalCount() === 1 ? '' : 's' }} shortlisted</p>
+      <h1 class="page-title">{{ 'SHORTLIST.TITLE' | translate }}</h1>
+      <p class="page-subtitle">{{ (totalCount() === 1 ? 'SHORTLIST.SUBTITLE_SINGLE' : 'SHORTLIST.SUBTITLE_PLURAL') | translate: { count: totalCount() } }}</p>
     </div>
     <div class="toolbar-search">
       <app-search-bar
-        [placeholderText]="'Search shortlist...'"
+        placeholderText="{{ 'SHORTLIST.SEARCH_PLACEHOLDER' | translate }}"
         (searchChange)="onSearch($event)">
       </app-search-bar>
     </div>
   </div>
 
-  <!-- Loading -->
   @if (isLoading()) {
     <div class="status-state">
       <app-loading-spinner size="lg"></app-loading-spinner>
-      <p>Loading your shortlist…</p>
+      <p>{{ 'SHORTLIST.LOADING' | translate }}</p>
     </div>
   }
 
-  <!-- Empty -->
   @if (!isLoading() && players().length === 0) {
     <div class="empty-wrapper">
       <app-empty-state
-        title="No shortlisted players"
-        description="You haven't shortlisted any players yet, or no matches found for your search.">
+        title="{{ 'SHORTLIST.EMPTY_TITLE' | translate }}"
+        description="{{ 'SHORTLIST.EMPTY_DESC' | translate }}">
       </app-empty-state>
     </div>
   }
 
-  <!-- Grid -->
   @if (!isLoading() && players().length > 0) {
     <div class="shortlist-grid" scrollReveal direction="bottom" [delay]="60">
       @for (player of players(); track player.playerId) {
         <div class="shortlist-item">
 
-          <!-- NOTE on $any(player): PlayerCardDto/PlayerCardModel line up
-               field-for-field today, but $any() silences type checking. -->
           <div class="card-wrap">
             <app-player-card
               [player]="$any(player)"
@@ -50,7 +44,7 @@
               [cardWidth]="220"
               [cardHeight]="350">
             </app-player-card>
-            <span class="flip-hint">Tap card for details</span>
+            <span class="flip-hint">{{ 'SHORTLIST.CARD_HINT' | translate }}</span>
           </div>
 
           <div class="card-actions">
@@ -58,7 +52,7 @@
               variant="accent"
               (click)="viewProfile(player.playerId)"
               class="action-btn">
-              Profile
+              {{ 'SHORTLIST.BTN_PROFILE' | translate }}
             </app-button>
 
             <app-button
@@ -66,7 +60,7 @@
               [disabled]="isRemoving() === player.playerId"
               (click)="removeFromShortlist(player.playerId)"
               class="action-btn">
-              {{ isRemoving() === player.playerId ? 'Removing...' : 'Remove' }}
+              {{ isRemoving() === player.playerId ? ('SHORTLIST.BTN_REMOVING' | translate) : ('SHORTLIST.BTN_REMOVE' | translate) }}
             </app-button>
           </div>
 

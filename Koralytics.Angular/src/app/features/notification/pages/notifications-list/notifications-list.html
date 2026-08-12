@@ -3,19 +3,17 @@
 <div class="notifications-page">
   <div class="page-container">
 
-    <!-- TACTICAL TAG -->
     <div class="tactical-header-row" scrollReveal direction="bottom" [delay]="0">
       <div class="tactical-tag">
         <span class="pulse-dot"></span>
-        Activity Center
+        {{ 'NOTIFICATIONS.TAG_ACTIVITY_CENTER' | translate }}
       </div>
     </div>
 
-    <!-- PAGE HEADER -->
     <header class="header-row" scrollReveal direction="bottom" [delay]="50">
       <div class="header-left">
-        <h1 class="page-title">Notifications</h1>
-        <p class="page-subtitle">Recent activity, messages, and important alerts</p>
+        <h1 class="page-title">{{ 'NOTIFICATIONS.PAGE_TITLE' | translate }}</h1>
+        <p class="page-subtitle">{{ 'NOTIFICATIONS.PAGE_SUBTITLE' | translate }}</p>
       </div>
 
       @if (unreadCount() > 0) {
@@ -24,54 +22,50 @@
             <path d="M18 6 7 17l-5-5"></path>
             <path d="m22 10-7.5 7.5L13 16"></path>
           </svg>
-          <span>Mark All as Read</span>
+          <span>{{ 'NOTIFICATIONS.BTN_MARK_ALL_READ' | translate }}</span>
         </button>
       }
     </header>
 
-    <!-- LOADING STATE -->
     @if (isLoading()) {
       <div class="loading-state">
         <app-loading-spinner size="lg"></app-loading-spinner>
-        <p>Loading notifications...</p>
+        <p>{{ 'NOTIFICATIONS.LOADING' | translate }}</p>
       </div>
     }
 
-    <!-- TRUE EMPTY STATE: no notifications at all -->
     @else if (allNotifications().length === 0) {
       <div class="empty-state-wrapper">
         <app-empty-state
-          title="No notifications yet"
-          description="You'll see your latest updates, messages, and alerts here as they come in.">
+          title="{{ 'NOTIFICATIONS.EMPTY_TITLE' | translate }}"
+          description="{{ 'NOTIFICATIONS.EMPTY_DESC' | translate }}">
         </app-empty-state>
         <app-button variant="slate" [loading]="isLoading()" (click)="loadMyNotifications()">
-          Refresh
+          {{ 'NOTIFICATIONS.BTN_REFRESH' | translate }}
         </app-button>
       </div>
     }
 
     @else {
 
-      <!-- KPI GRID -->
       <div class="kpi-grid" scrollReveal direction="bottom" [delay]="100">
         <div class="kpi-card">
-          <div class="kpi-header">Total</div>
+          <div class="kpi-header">{{ 'NOTIFICATIONS.KPI.TOTAL' | translate }}</div>
           <div class="kpi-value">{{ allNotifications().length }}</div>
-          <div class="kpi-sub">All Recorded Activity</div>
+          <div class="kpi-sub">{{ 'NOTIFICATIONS.KPI.TOTAL_SUB' | translate }}</div>
         </div>
         <div class="kpi-card highlight warning">
-          <div class="kpi-header">Unread</div>
+          <div class="kpi-header">{{ 'NOTIFICATIONS.KPI.UNREAD' | translate }}</div>
           <div class="kpi-value">{{ unreadCount() }}</div>
-          <div class="kpi-sub">Awaiting Your Review</div>
+          <div class="kpi-sub">{{ 'NOTIFICATIONS.KPI.UNREAD_SUB' | translate }}</div>
         </div>
         <div class="kpi-card highlight success">
-          <div class="kpi-header">Read</div>
+          <div class="kpi-header">{{ 'NOTIFICATIONS.KPI.READ' | translate }}</div>
           <div class="kpi-value">{{ allNotifications().length - unreadCount() }}</div>
-          <div class="kpi-sub">Already Acknowledged</div>
+          <div class="kpi-sub">{{ 'NOTIFICATIONS.KPI.READ_SUB' | translate }}</div>
         </div>
       </div>
 
-      <!-- FILTER PANEL -->
       <div class="filter-panel-card" scrollReveal direction="bottom" [delay]="150">
         <div class="nav-tabs" role="tablist" aria-label="Filter notifications">
           <button
@@ -81,7 +75,7 @@
             [class.active]="!showUnreadOnly()"
             [attr.aria-selected]="!showUnreadOnly()"
             (click)="showUnreadOnly() && toggleUnreadFilter()">
-            All <span class="tab-count">{{ allNotifications().length }}</span>
+            {{ 'NOTIFICATIONS.FILTERS.ALL' | translate }} <span class="tab-count">{{ allNotifications().length }}</span>
           </button>
           <button
             type="button"
@@ -90,12 +84,11 @@
             [class.active]="showUnreadOnly()"
             [attr.aria-selected]="showUnreadOnly()"
             (click)="!showUnreadOnly() && toggleUnreadFilter()">
-            Unread <span class="tab-count">{{ unreadCount() }}</span>
+            {{ 'NOTIFICATIONS.FILTERS.UNREAD' | translate }} <span class="tab-count">{{ unreadCount() }}</span>
           </button>
         </div>
       </div>
 
-      <!-- FILTERED-EMPTY STATE: unread filter on, nothing matches -->
       @if (notifications().length === 0) {
         <div class="empty-state-wrapper compact">
           <div class="empty-icon success">
@@ -103,13 +96,12 @@
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
           </div>
-          <h3 class="empty-title">Nothing unread</h3>
-          <p class="empty-sub">You've caught up on everything.</p>
+          <h3 class="empty-title">{{ 'NOTIFICATIONS.FILTER_EMPTY.TITLE' | translate }}</h3>
+          <p class="empty-sub">{{ 'NOTIFICATIONS.FILTER_EMPTY.DESC' | translate }}</p>
         </div>
       }
       @else {
 
-        <!-- DAY-GROUPED NOTIFICATION LIST -->
         <div class="notification-groups">
           @for (group of groupedNotifications(); track group.label; let gi = $index) {
             <div class="notif-group" scrollReveal direction="bottom" [delay]="200 + gi * 60">
@@ -143,7 +135,7 @@
 
                     <div class="row-body">
                       <div class="row-top-line">
-                        <span class="row-title">{{ notif.title || 'System Alert' }}</span>
+                        <span class="row-title">{{ notif.title || ('NOTIFICATIONS.SYSTEM_ALERT' | translate) }}</span>
                         <span class="row-time" [title]="notif.sentAt | date: 'MMM d, y, h:mm a'">{{ formatRelativeTime(notif.sentAt) }}</span>
                       </div>
                       <p class="row-desc">{{ notif.content }}</p>
@@ -151,7 +143,7 @@
 
                     <div class="row-action">
                       @if (!notif.isRead) {
-                        <button type="button" class="mark-read-btn" (click)="markAsRead(notif.id)" aria-label="Mark as read" title="Mark as read">
+                        <button type="button" class="mark-read-btn" (click)="markAsRead(notif.id)" aria-label="{{ 'NOTIFICATIONS.ARIA_MARK_READ' | translate }}" title="{{ 'NOTIFICATIONS.ARIA_MARK_READ' | translate }}">
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                         </button>
                       }
@@ -163,7 +155,6 @@
           }
         </div>
 
-        <!-- PAGINATION -->
         <div class="pagination-wrapper" scrollReveal direction="bottom" [delay]="300">
           <app-pagination
             [totalItems]="totalCount()"

@@ -11,6 +11,7 @@ import { LoadingSpinnerComponent } from '../../../../../shared/components/loadin
 import { EmptyStateComponent } from '../../../../../shared/components/empty-state/empty-state';
 import { StatusChipComponent } from '../../../../../shared/components/status-chip/status-chip';
 import { Pagination } from '../../../../../shared/components/pagination/pagination';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-announcement-history',
@@ -21,6 +22,7 @@ import { Pagination } from '../../../../../shared/components/pagination/paginati
     EmptyStateComponent,
     LoadingSpinnerComponent,
     Pagination,
+    TranslatePipe
   ],
   templateUrl: './announcement-history.html',
   styleUrl: './announcement-history.css',

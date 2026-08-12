@@ -1,0 +1,219 @@
+{
+  "SCOUTER_DASHBOARD": {
+    "HEADER": {
+      "EYEBROW": "Scout Workspace",
+      "TITLE_OWN": "Scouter Dashboard",
+      "TITLE_OTHER": "{{name}}'s Scouter Profile",
+      "TITLE_FALLBACK": "Scouter Profile",
+      "SUBTITLE_OWN": "Your complete overview of tracked talents, saved shortlists, and latest evaluations.",
+      "SUBTITLE_OTHER": "Scouter verification status and profile overview."
+    },
+    "ERRORS": {
+      "CANNOT_VIEW_OTHER": "Scouters can't view other scouters' profiles.",
+      "FAILED_LOAD_OTHER": "Failed to load this scouter profile.",
+      "FAILED_LOAD_OWN": "Failed to load your scouter profile.",
+      "FAILED_LOAD_LISTS": "Failed to load your scouting lists."
+    },
+    "HERO": {
+      "STATUS_VERIFIED": "Verified Scouter",
+      "STATUS_PENDING": "Verification Pending",
+      "NOTE_OWN_PENDING": "Your account isn't verified yet -- verification is handled by a system admin and unlocks full scouting network visibility.",
+      "NOTE_OTHER_PENDING": "This scouter's account is still pending verification by a system admin."
+    },
+    "KPI": {
+      "FOLLOWING": "Following",
+      "FOLLOWING_SUB": "players tracked",
+      "SHORTLISTED": "Shortlisted",
+      "SHORTLISTED_SUB": "prospects saved",
+      "AVG_RATING": "Avg. Shortlist Rating",
+      "AVG_RATING_SUB": "overall rating",
+      "ELITE": "Elite Prospects",
+      "ELITE_SUB": "85+ OVR in shortlist"
+    },
+    "EMPTY_STATE": {
+      "TITLE": "Your scouting network is empty",
+      "DESC": "Search for players to follow or shortlist -- your dashboard insights will build up as you do.",
+      "BTN_SEARCH": "Search Players"
+    },
+    "INSIGHTS": {
+      "TITLE": "Personalized Highlights",
+      "VIEWER_VERIFIED": "{{name}} is a verified scouter with full access to the Koralytics scouting network.",
+      "VIEWER_VERIFIED_DATE": "Verified on {{date}}.",
+      "VIEWER_PENDING": "{{name}}'s account is still pending verification by a system admin.",
+      "VIEWER_ID": "Scouter ID #{{id}} -- part of the Koralytics scouting network.",
+      "VIEWER_FOLLOWING": "{{name}} is currently following {{count}} player(s).",
+      "OWN_TOP_PROSPECT": "{{playerName}} is your highest-rated shortlisted prospect at {{rating}} OVR.",
+      "OWN_ELITE_COUNT": "{{count}} elite-tier prospect(s) ({{threshold}}+ OVR) currently in your shortlist.",
+      "OWN_POS_CONCENTRATION": "{{pct}}% of your shortlist plays {{position}} -- your recent scouting has leaned heavily toward this position.",
+      "OWN_NO_GK": "No goalkeepers in your shortlist yet -- worth checking whether that's intentional or a coverage gap."
+    },
+    "ANALYTICS": {
+      "POS_CHART_TITLE": "Shortlist by Position",
+      "CHART_LABEL": "Shortlisted players",
+      "TIERS_TITLE": "Talent Quality Distribution",
+      "TIER_ELITE": "Elite ({{threshold}}+)",
+      "TIER_STRONG": "Strong ({{min}}-{{max}})",
+      "TIER_DEVELOPING": "Developing"
+    },
+    "PREVIEW": {
+      "SHORTLIST_TITLE": "Recently Shortlisted",
+      "FOLLOWED_TITLE": "Players You Follow",
+      "BTN_VIEW_ALL": "View All ({{count}})"
+    }
+  },
+  "PLAYER_FINDER": {
+    "HEADER": {
+      "TITLE": "Player Finder",
+      "STATUS_SCANNING": "Scanning…",
+      "STATUS_FOUND": "{{count}} found",
+      "STATUS_READY": "Ready",
+      "AI_CHAT_BTN": "Scouting AI Chat",
+      "AI_CHAT_TITLE": "Open Dedicated Scouting AI Chatbot Page",
+      "STATS_PROSPECTS": "Prospects",
+      "STATS_FILTERS": "Filters",
+      "STATS_PAGE": "Page"
+    },
+    "SIDEBAR": {
+      "AI_LAUNCHER_TITLE": "Scouting AI Assistant",
+      "AI_LAUNCHER_BADGE": "Full AI Page",
+      "AI_LAUNCHER_DESC": "Ask AI for player analysis, custom scouting queries, and intelligent recommendations in a full workspace.",
+      "AI_LAUNCHER_BTN": "Open Dedicated AI Chat",
+      "POSITIONS": {
+        "TITLE": "Tactical Position",
+        "KEEPER": "Keeper",
+        "DEFENCE": "Defence",
+        "MIDFIELD": "Midfield",
+        "ATTACK": "Attack"
+      },
+      "AGE": {
+        "TITLE": "Age Range",
+        "MIN": "Min",
+        "MAX": "Max",
+        "YRS": "yrs"
+      },
+      "RATING": {
+        "TITLE": "Overall Rating",
+        "OVR": "ovr"
+      },
+      "FOOT": {
+        "TITLE": "Preferred Foot"
+      },
+      "ACADEMY": {
+        "TITLE": "Academy",
+        "SEARCH_PLACEHOLDER": "Search academy...",
+        "TAG": "Academy",
+        "REMOVE_FILTER": "Remove academy filter"
+      },
+      "ACTIONS": {
+        "SEARCH_BTN": "Search Players",
+        "SEARCHING_BTN": "Searching…",
+        "RESET_BTN": "Reset Filters"
+      }
+    },
+    "RESULTS": {
+      "LOADING_MSG": "Searching player database…",
+      "EMPTY_TITLE": "No Players Found",
+      "EMPTY_DESC": "No players match your current filters. Try widening the age range, removing a position, or clearing all filters to start fresh.",
+      "CLEAR_ALL_BTN": "Clear all filters",
+      "INITIAL_TITLE": "Set Your Filters",
+      "INITIAL_DESC": "Choose a position on the pitch, set an age bracket, or enter a rating range — then hit Search Players to see matching prospects.",
+      "BROWSE_ALL_BTN": "Browse all players",
+      "FOUND_COUNT_SINGLE": "{{count}} Player Found",
+      "FOUND_COUNT_PLURAL": "{{count}} Players Found",
+      "PAGE_INFO": "Page {{current}} of {{total}}",
+      "REMOVE_TAG": "Remove filter {{label}}",
+      "CLEAR_TAGS": "Clear all",
+      "CARD_BTN_PROFILE": "Profile",
+      "CARD_BTN_FOLLOW": "Follow",
+      "CARD_BTN_LIST": "List"
+    }
+  },
+  "SHORTLIST": {
+    "TITLE": "My Shortlist",
+    "SUBTITLE_SINGLE": "{{count}} player shortlisted",
+    "SUBTITLE_PLURAL": "{{count}} players shortlisted",
+    "SEARCH_PLACEHOLDER": "Search shortlist...",
+    "LOADING": "Loading your shortlist…",
+    "EMPTY_TITLE": "No shortlisted players",
+    "EMPTY_DESC": "You haven't shortlisted any players yet, or no matches found for your search.",
+    "CARD_HINT": "Tap card for details",
+    "BTN_PROFILE": "Profile",
+    "BTN_REMOVE": "Remove",
+    "BTN_REMOVING": "Removing..."
+  },
+  "FOLLOWED_PLAYERS": {
+    "TITLE": "Followed Players",
+    "SUBTITLE_SINGLE": "{{count}} player followed",
+    "SUBTITLE_PLURAL": "{{count}} players followed",
+    "SEARCH_PLACEHOLDER": "Search players...",
+    "LOADING": "Loading your watchlist…",
+    "EMPTY_TITLE": "No players found",
+    "EMPTY_DESC": "You aren't following any players yet, or no matches found for your search.",
+    "CARD_HINT": "Tap card for details",
+    "BTN_PROFILE": "Profile",
+    "BTN_UNFOLLOW": "Unfollow",
+    "BTN_UNFOLLOWING": "Unfollowing..."
+  },
+  "ADMIN_SCOUTERS": {
+    "HEADER": {
+      "EYEBROW": "SYSTEM ADMINISTRATION",
+      "TITLE": "Scouter Verification",
+      "SUBTITLE": "Review pending scouter accounts and manage verified access across the platform."
+    },
+    "STATS": {
+      "PENDING": "Pending Verification",
+      "VERIFIED": "Verified Scouters"
+    },
+    "FILTERS": {
+      "SEARCH_PLACEHOLDER": "search scouter name...",
+      "TAB_PENDING": "Pending Verification",
+      "TAB_VERIFIED": "Verified Scouters"
+    },
+    "TABLE": {
+      "LOADING": "Loading scouters...",
+      "EMPTY_PENDING_TITLE": "No Scouters Pending Verification",
+      "EMPTY_PENDING_DESC": "All caught up -- there are no scouter accounts currently waiting for review.",
+      "EMPTY_VERIFIED_TITLE": "No Verified Scouters Yet",
+      "EMPTY_VERIFIED_DESC": "No scouters have been verified yet. Approved accounts will appear here.",
+      "COL_SCOUTER": "Scouter",
+      "COL_ID": "ID",
+      "COL_STATUS": "Status",
+      "COL_VERIFIED_AT": "Verified At",
+      "COL_ACTIONS": "Actions",
+      "STATUS_VERIFIED": "VERIFIED",
+      "STATUS_PENDING": "PENDING",
+      "BTN_VERIFY": "Verify"
+    },
+    "DIALOG": {
+      "TITLE": "Verify Scouter",
+      "BTN_CONFIRM": "Yes, Verify",
+      "BTN_CANCEL": "Cancel"
+    }
+  },
+  "AI_CHAT": {
+    "HEADER": {
+      "TITLE": "Scouting AI Assistant",
+      "SUBTITLE": "Natural Language Scouting & Intelligent Player Analytics",
+      "BTN_FINDER": "Player Finder",
+      "BTN_FINDER_TITLE": "Switch to Player Finder Grid",
+      "BTN_NEW_CHAT": "New Chat",
+      "BTN_NEW_CHAT_TITLE": "Start a new chat session",
+      "STATUS_READY": "AI Engine Ready"
+    },
+    "WELCOME": {
+      "TITLE": "How can I assist your scouting today?",
+      "DESC": "Ask complex queries, filter by technical profiles, footedness, overall ratings, age brackets, or ask for tactical recommendations.",
+      "SUGGESTED_TITLE": "Suggested Scouting Queries:"
+    },
+    "FEED": {
+      "AUTHOR_AI": "Koralytics Scouting AI",
+      "AUTHOR_USER": "Scouter",
+      "STATUS_ANALYZING": "Analyzing Data",
+      "LOADING_TEXT": "Analyzing player metrics & database…"
+    },
+    "INPUT": {
+      "PLACEHOLDER": "Ask Scouting AI (e.g. Find left-footed wingers with rating > 80)…",
+      "SEND_ARIA": "Send message to Scouting AI"
+    }
+  }
+}

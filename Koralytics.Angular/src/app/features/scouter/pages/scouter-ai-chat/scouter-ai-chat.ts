@@ -14,6 +14,7 @@ import { NavbarComponent } from '../../../../../shared/components/navbar/navbar'
 import { Footer } from '../../../../../shared/components/footer/footer';
 import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
 import { LoadingSpinnerComponent } from '../../../../../shared/components/loading-spinner/loading-spinner';
+import { TranslatePipe } from '@ngx-translate/core';
 
 export interface ChatMessage {
   id: string;
@@ -32,7 +33,8 @@ export interface ChatMessage {
     NavbarComponent,
     Footer,
     ScrollRevealDirective,
-    LoadingSpinnerComponent
+    LoadingSpinnerComponent,
+    TranslatePipe
   ],
   templateUrl: './scouter-ai-chat.html',
   styleUrls: ['./scouter-ai-chat.css']

@@ -16,6 +16,7 @@ import { ScouterService } from '@core/services/Scouter/scouter.service';
 import { Footer } from '@shared/components/footer/footer';
 import { NavbarComponent } from '@shared/components/navbar/navbar';
 import { ScrollRevealDirective } from '@shared/directives/scroll-reveal.directive';
+import { TranslatePipe } from '@ngx-translate/core';
 
 type ScouterViewMode = 'pending' | 'verified';
 
@@ -34,6 +35,7 @@ type ScouterViewMode = 'pending' | 'verified';
     Footer,
     NavbarComponent,
     ScrollRevealDirective,
+    TranslatePipe
   ],
   templateUrl: './scouter-verification.html',
   styleUrls: ['./scouter-verification.css'],

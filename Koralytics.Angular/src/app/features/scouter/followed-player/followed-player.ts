@@ -20,6 +20,7 @@ import { NavbarComponent } from '../../../../shared/components/navbar/navbar';
 import { Footer } from '../../../../shared/components/footer/footer';
 import { ScrollRevealDirective } from '../../../../shared/directives/scroll-reveal.directive';
 import { PlayerCardComponent } from '../../player/player-card/player-card';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-followed-players',
@@ -35,7 +36,8 @@ import { PlayerCardComponent } from '../../player/player-card/player-card';
     NavbarComponent,
     Footer,
     ScrollRevealDirective,
-    PlayerCardComponent
+    PlayerCardComponent,
+    TranslatePipe
   ],
   templateUrl: './followed-player.html',
   styleUrls: ['./followed-player.css']

@@ -1,0 +1,54 @@
+{
+  "NOTIFICATIONS": {
+    "TAG_ACTIVITY_CENTER": "Activity Center",
+    "PAGE_TITLE": "Notifications",
+    "PAGE_SUBTITLE": "Recent activity, messages, and important alerts",
+    "BTN_MARK_ALL_READ": "Mark All as Read",
+    "LOADING": "Loading notifications...",
+    "EMPTY_TITLE": "No notifications yet",
+    "EMPTY_DESC": "You'll see your latest updates, messages, and alerts here as they come in.",
+    "BTN_REFRESH": "Refresh",
+    "KPI": {
+      "TOTAL": "Total",
+      "TOTAL_SUB": "All Recorded Activity",
+      "UNREAD": "Unread",
+      "UNREAD_SUB": "Awaiting Your Review",
+      "READ": "Read",
+      "READ_SUB": "Already Acknowledged"
+    },
+    "FILTERS": {
+      "ALL": "All",
+      "UNREAD": "Unread"
+    },
+    "FILTER_EMPTY": {
+      "TITLE": "Nothing unread",
+      "DESC": "You've caught up on everything."
+    },
+    "SYSTEM_ALERT": "System Alert",
+    "ARIA_MARK_READ": "Mark as read"
+  },
+  "ACADEMY_ANNOUNCEMENTS": {
+    "PAGE_TITLE": "Academy Announcements",
+    "TAG_BROADCAST_CENTER": "Broadcast Center",
+    "PAGE_SUBTITLE": "Broadcast updates to your teams, age groups, or specific roles",
+    "PANEL_HEADER_NEW": "New Announcement",
+    "FORM": {
+      "LBL_TITLE": "title",
+      "LBL_BODY": "message body",
+      "PH_BODY": "write the announcement message...",
+      "LBL_SEND_TO": "send to",
+      "LBL_TEAM": "team",
+      "LBL_AGE_GROUP": "age group",
+      "LBL_ROLE": "role",
+      "BTN_SEND": "send announcement"
+    }
+  },
+  "ANNOUNCEMENT_HISTORY": {
+    "HEADER_TITLE": "sent announcements",
+    "TOTAL_COUNT": "{{count}} total",
+    "EMPTY_TITLE": "no announcements yet",
+    "EMPTY_DESC": "messages you send to your academy will show up here.",
+    "SENT_BY": "sent by {{name}}",
+    "ACADEMY_STAFF": "Academy Staff"
+  }
+}

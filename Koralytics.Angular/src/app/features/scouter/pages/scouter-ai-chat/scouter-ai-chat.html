@@ -2,7 +2,6 @@
 
 <div class="ai-chat-page">
 
-  <!-- ================= PAGE HEADER ================= -->
   <header class="chat-header" scrollReveal direction="bottom" [delay]="0">
     <div class="header-main">
       <div class="brand-title-wrap">
@@ -11,40 +10,38 @@
           <span class="live-pulse-dot"></span>
         </div>
         <div>
-          <h1 class="header-title">Scouting AI Assistant</h1>
-          <p class="header-subtitle">Natural Language Scouting & Intelligent Player Analytics</p>
+          <h1 class="header-title">{{ 'AI_CHAT.HEADER.TITLE' | translate }}</h1>
+          <p class="header-subtitle">{{ 'AI_CHAT.HEADER.SUBTITLE' | translate }}</p>
         </div>
       </div>
 
       <div class="header-actions">
-        <button type="button" class="nav-search-btn" (click)="navigateToSearch()" title="Switch to Player Finder Grid">
+        <button type="button" class="nav-search-btn" (click)="navigateToSearch()" title="{{ 'AI_CHAT.HEADER.BTN_FINDER_TITLE' | translate }}">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
           </svg>
-          <span>Player Finder</span>
+          <span>{{ 'AI_CHAT.HEADER.BTN_FINDER' | translate }}</span>
         </button>
 
         @if (chatMessages().length > 0) {
-          <button type="button" class="clear-chat-btn" (click)="onNewChat()" title="Start a new chat session">
+          <button type="button" class="clear-chat-btn" (click)="onNewChat()" title="{{ 'AI_CHAT.HEADER.BTN_NEW_CHAT_TITLE' | translate }}">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
               <path d="M12 5v14M5 12h14"/>
             </svg>
-            <span>New Chat</span>
+            <span>{{ 'AI_CHAT.HEADER.BTN_NEW_CHAT' | translate }}</span>
           </button>
         }
 
         <div class="status-badge">
           <span class="badge-dot"></span>
-          <span>AI Engine Ready</span>
+          <span>{{ 'AI_CHAT.HEADER.STATUS_READY' | translate }}</span>
         </div>
       </div>
     </div>
   </header>
 
-  <!-- ================= CHAT CONTAINER ================= -->
   <main class="chat-main-container" scrollReveal direction="bottom" [delay]="60">
 
-    <!-- EMPTY STATE / WELCOME SCREEN -->
     @if (chatMessages().length === 0 && !isAiLoading()) {
       <div class="chat-welcome-state" scrollReveal direction="bottom" [delay]="100">
         <div class="welcome-hero-card">
@@ -54,13 +51,13 @@
             <img src="images/logo/app-icon/logo-icon-dark.png" alt="Koralytics AI" class="hero-logo-img" />
           </div>
 
-          <h2 class="welcome-headline">How can I assist your scouting today?</h2>
+          <h2 class="welcome-headline">{{ 'AI_CHAT.WELCOME.TITLE' | translate }}</h2>
           <p class="welcome-subtext">
-            Ask complex queries, filter by technical profiles, footedness, overall ratings, age brackets, or ask for tactical recommendations.
+            {{ 'AI_CHAT.WELCOME.DESC' | translate }}
           </p>
 
           <div class="prompts-grid">
-            <span class="prompts-title">Suggested Scouting Queries:</span>
+            <span class="prompts-title">{{ 'AI_CHAT.WELCOME.SUGGESTED_TITLE' | translate }}</span>
             <div class="prompts-chips">
               @for (prompt of suggestedPrompts; track prompt) {
                 <button type="button" class="prompt-chip-btn" (click)="useSuggestedPrompt(prompt)">
@@ -76,14 +73,12 @@
       </div>
     }
 
-    <!-- CHAT MESSAGES FEED -->
     @if (chatMessages().length > 0 || isAiLoading()) {
       <div class="chat-feed-scroll" id="scouterAiChatFeed">
         
         @for (msg of chatMessages(); track msg.id) {
           <div class="chat-message-row" [class.is-user]="msg.sender === 'user'" [class.is-assistant]="msg.sender === 'assistant'">
             
-            <!-- AVATAR -->
             <div class="msg-avatar">
               @if (msg.sender === 'assistant') {
                 <div class="brand-avatar-box">
@@ -98,10 +93,9 @@
               }
             </div>
 
-            <!-- MESSAGE BUBBLE -->
             <div class="msg-bubble-wrap">
               <div class="msg-meta-bar">
-                <span class="msg-author">{{ msg.sender === 'assistant' ? 'Koralytics Scouting AI' : 'Scouter' }}</span>
+                <span class="msg-author">{{ msg.sender === 'assistant' ? ('AI_CHAT.FEED.AUTHOR_AI' | translate) : ('AI_CHAT.FEED.AUTHOR_USER' | translate) }}</span>
                 <span class="msg-time">{{ msg.timestamp | date:'shortTime' }}</span>
               </div>
               <div class="msg-content" [innerHTML]="formatMessageText(msg.text)"></div>
@@ -110,7 +104,6 @@
           </div>
         }
 
-        <!-- BRAND ENHANCED LOADING STATE -->
         @if (isAiLoading()) {
           <div class="chat-message-row is-assistant is-loading-row">
             <div class="msg-avatar">
@@ -121,14 +114,14 @@
 
             <div class="msg-bubble-wrap">
               <div class="msg-meta-bar">
-                <span class="msg-author">Koralytics Scouting AI</span>
-                <span class="msg-status-tag">Analyzing Data</span>
+                <span class="msg-author">{{ 'AI_CHAT.FEED.AUTHOR_AI' | translate }}</span>
+                <span class="msg-status-tag">{{ 'AI_CHAT.FEED.STATUS_ANALYZING' | translate }}</span>
               </div>
               
               <div class="msg-content ai-loading-content">
                 <div class="brand-loader-inline">
                   <app-loading-spinner size="sm"></app-loading-spinner>
-                  <span class="loading-text">Analyzing player metrics & database…</span>
+                  <span class="loading-text">{{ 'AI_CHAT.FEED.LOADING_TEXT' | translate }}</span>
                 </div>
               </div>
             </div>
@@ -138,7 +131,6 @@
       </div>
     }
 
-    <!-- ================= INPUT CONTROL BAR ================= -->
     <div class="chat-input-wrapper">
       <div class="chat-input-bar">
         <div class="input-icon-left" aria-hidden="true">
@@ -150,7 +142,7 @@
         <input
           type="text"
           class="chat-text-input"
-          placeholder="Ask Scouting AI (e.g. Find left-footed wingers with rating > 80)…"
+          placeholder="{{ 'AI_CHAT.INPUT.PLACEHOLDER' | translate }}"
           [ngModel]="nlQuery()"
           (ngModelChange)="nlQuery.set($event)"
           [disabled]="isAiLoading()"
@@ -162,7 +154,7 @@
           class="send-btn"
           [disabled]="isAiLoading() || !nlQuery().trim()"
           (click)="onSendQuery()"
-          aria-label="Send message to Scouting AI">
+          aria-label="{{ 'AI_CHAT.INPUT.SEND_ARIA' | translate }}">
           @if (isAiLoading()) {
             <span class="send-spinner"></span>
           } @else {

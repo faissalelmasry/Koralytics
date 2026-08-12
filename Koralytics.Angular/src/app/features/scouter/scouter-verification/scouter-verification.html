@@ -1,32 +1,29 @@
 <app-navbar></app-navbar>
 <div class="admin-scouters-page">
 
-  <!-- PAGE HEADER -->
   <header class="page-header">
     <div class="header-left">
       <div class="header-eyebrow">
         <span class="eyebrow-dot"></span>
-        <span class="eyebrow-text">SYSTEM ADMINISTRATION</span>
+        <span class="eyebrow-text">{{ 'ADMIN_SCOUTERS.HEADER.EYEBROW' | translate }}</span>
       </div>
-      <h1 class="header-title">Scouter Verification</h1>
-      <p class="header-subtitle">Review pending scouter accounts and manage verified access across the platform.</p>
+      <h1 class="header-title">{{ 'ADMIN_SCOUTERS.HEADER.TITLE' | translate }}</h1>
+      <p class="header-subtitle">{{ 'ADMIN_SCOUTERS.HEADER.SUBTITLE' | translate }}</p>
     </div>
   </header>
 
-  <!-- METRICS / STATS STRIP -->
   <section class="stats-strip">
     <div class="stat-item">
       <span class="stat-value warning">{{ pendingCount() }}</span>
-      <span class="stat-label">Pending Verification</span>
+      <span class="stat-label">{{ 'ADMIN_SCOUTERS.STATS.PENDING' | translate }}</span>
     </div>
     <div class="stat-divider"></div>
     <div class="stat-item">
       <span class="stat-value success">{{ verifiedCount() }}</span>
-      <span class="stat-label">Verified Scouters</span>
+      <span class="stat-label">{{ 'ADMIN_SCOUTERS.STATS.VERIFIED' | translate }}</span>
     </div>
   </section>
 
-  <!-- FEEDBACK BANNERS -->
   @if (successMessage()) {
   <div class="alert-banner success-banner">
     <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -50,10 +47,9 @@
   </div>
   }
 
-  <!-- CONTROL BAR: SEARCH + VIEW TOGGLE -->
   <section class="filter-bar">
     <div class="filter-search">
-      <app-search-bar placeholderText="search scouter name..." (searchChange)="onSearch($event)">
+      <app-search-bar placeholderText="{{ 'ADMIN_SCOUTERS.FILTERS.SEARCH_PLACEHOLDER' | translate }}" (searchChange)="onSearch($event)">
       </app-search-bar>
     </div>
 
@@ -63,7 +59,7 @@
         class="view-toggle-btn"
         [class.active]="viewMode() === 'pending'"
         (click)="switchView('pending')">
-        Pending Verification
+        {{ 'ADMIN_SCOUTERS.FILTERS.TAB_PENDING' | translate }}
         @if (pendingCount() > 0) {
         <span class="toggle-count">{{ pendingCount() }}</span>
         }
@@ -73,38 +69,34 @@
         class="view-toggle-btn"
         [class.active]="viewMode() === 'verified'"
         (click)="switchView('verified')">
-        Verified Scouters
+        {{ 'ADMIN_SCOUTERS.FILTERS.TAB_VERIFIED' | translate }}
       </button>
     </div>
   </section>
 
-  <!-- LOADING / EMPTY / TABLE -->
   @if (isLoading()) {
   <div class="loading-wrapper">
     <app-loading-spinner size="lg"></app-loading-spinner>
-    <p class="loading-text">Loading scouters...</p>
+    <p class="loading-text">{{ 'ADMIN_SCOUTERS.TABLE.LOADING' | translate }}</p>
   </div>
   } @else if (filteredList().length === 0) {
   <div class="empty-wrapper">
     <app-empty-state
-      [title]="viewMode() === 'pending' ? 'No Scouters Pending Verification' : 'No Verified Scouters Yet'"
-      [description]="viewMode() === 'pending'
-        ? 'All caught up -- there are no scouter accounts currently waiting for review.'
-        : 'No scouters have been verified yet. Approved accounts will appear here.'">
+      title="{{ viewMode() === 'pending' ? ('ADMIN_SCOUTERS.TABLE.EMPTY_PENDING_TITLE' | translate) : ('ADMIN_SCOUTERS.TABLE.EMPTY_VERIFIED_TITLE' | translate) }}"
+      description="{{ viewMode() === 'pending' ? ('ADMIN_SCOUTERS.TABLE.EMPTY_PENDING_DESC' | translate) : ('ADMIN_SCOUTERS.TABLE.EMPTY_VERIFIED_DESC' | translate) }}">
     </app-empty-state>
   </div>
   } @else {
 
-  <!-- SCOUTERS TABLE -->
   <div class="table-card">
     <table class="data-table">
       <thead>
         <tr>
-          <th>Scouter</th>
-          <th>ID</th>
-          <th>Status</th>
-          <th>Verified At</th>
-          <th>Actions</th>
+          <th>{{ 'ADMIN_SCOUTERS.TABLE.COL_SCOUTER' | translate }}</th>
+          <th>{{ 'ADMIN_SCOUTERS.TABLE.COL_ID' | translate }}</th>
+          <th>{{ 'ADMIN_SCOUTERS.TABLE.COL_STATUS' | translate }}</th>
+          <th>{{ 'ADMIN_SCOUTERS.TABLE.COL_VERIFIED_AT' | translate }}</th>
+          <th>{{ 'ADMIN_SCOUTERS.TABLE.COL_ACTIONS' | translate }}</th>
         </tr>
       </thead>
       <tbody>
@@ -112,14 +104,14 @@
         <tr>
           <td>
             <div class="scouter-name-cell">
-              <div class="scouter-avatar">{{ getInitials(`${scouter.firstName} ${scouter.lastName}`) }}</div>
+              <div class="scouter-avatar">{{ getInitials(scouter.firstName + ' ' + scouter.lastName) }}</div>
               <strong class="player-name-cell">{{ scouter.firstName }} {{ scouter.lastName }}</strong>
             </div>
           </td>
           <td><span class="id-tag">#{{ scouter.id }}</span></td>
           <td>
             <app-status-chip
-              [label]="scouter.isVerified ? 'VERIFIED' : 'PENDING'"
+              label="{{ scouter.isVerified ? ('ADMIN_SCOUTERS.TABLE.STATUS_VERIFIED' | translate) : ('ADMIN_SCOUTERS.TABLE.STATUS_PENDING' | translate) }}"
               [type]="scouter.isVerified ? 'success' : 'warning'">
             </app-status-chip>
           </td>
@@ -135,7 +127,7 @@
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px;">
                 <polyline points="20 6 9 17 4 12"></polyline>
               </svg>
-              Verify
+              {{ 'ADMIN_SCOUTERS.TABLE.BTN_VERIFY' | translate }}
             </app-button>
             } @else {
             <span class="text-slate">—</span>
@@ -155,14 +147,13 @@
   </app-pagination>
   }
 
-  <!-- VERIFY CONFIRM DIALOG -->
   <app-confirm-dialog
     [isOpen]="isConfirmDialogOpen"
-    title="Verify Scouter"
+    title="{{ 'ADMIN_SCOUTERS.DIALOG.TITLE' | translate }}"
     [message]="confirmDialogMessage"
     level="info"
-    confirmText="Yes, Verify"
-    cancelText="Cancel"
+    confirmText="{{ 'ADMIN_SCOUTERS.DIALOG.BTN_CONFIRM' | translate }}"
+    cancelText="{{ 'ADMIN_SCOUTERS.DIALOG.BTN_CANCEL' | translate }}"
     [requiresConfirmation]="false"
     (confirm)="confirmVerify()"
     (cancel)="closeVerifyConfirm()">

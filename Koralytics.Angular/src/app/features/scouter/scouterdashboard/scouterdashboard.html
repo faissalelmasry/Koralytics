@@ -7,11 +7,24 @@
     <div>
       <div class="header-eyebrow">
         <span class="eyebrow-dot"></span>
-        <span class="eyebrow-text">Scout Workspace</span>
+        <span class="eyebrow-text">{{ 'SCOUTER_DASHBOARD.HEADER.EYEBROW' | translate }}</span>
       </div>
-      <h1 class="header-title">{{ pageTitle() }}</h1>
-      <p class="header-subtitle">{{ pageSubtitle() }}</p>
+      
+      <h1 class="header-title">
+        @if (isOwnProfile()) {
+          {{ 'SCOUTER_DASHBOARD.HEADER.TITLE_OWN' | translate }}
+        } @else if (scouterFullName()) {
+          {{ 'SCOUTER_DASHBOARD.HEADER.TITLE_OTHER' | translate: { name: scouterFullName() } }}
+        } @else {
+          {{ 'SCOUTER_DASHBOARD.HEADER.TITLE_FALLBACK' | translate }}
+        }
+      </h1>
+      
+      <p class="header-subtitle">
+        {{ isOwnProfile() ? ('SCOUTER_DASHBOARD.HEADER.SUBTITLE_OWN' | translate) : ('SCOUTER_DASHBOARD.HEADER.SUBTITLE_OTHER' | translate) }}
+      </p>
     </div>
+    
     @if (isOwnProfile()) {
     <div class="header-actions">
      
@@ -36,7 +49,6 @@
   }
   @else {
 
-    <!-- PROFILE / VERIFICATION HERO -->
     @if (profile(); as p) {
       <section class="scout-hero-card mt-4">
         <div class="hero-glow-bg"></div>
@@ -53,7 +65,7 @@
         <div class="hero-details">
           <div class="hero-top-row flex-between">
             <app-status-chip
-              [label]="p.isVerified ? 'Verified Scouter' : 'Verification Pending'"
+              [label]="p.isVerified ? ('SCOUTER_DASHBOARD.HERO.STATUS_VERIFIED' | translate) : ('SCOUTER_DASHBOARD.HERO.STATUS_PENDING' | translate)"
               [type]="p.isVerified ? 'success' : 'warning'"
               [pulse]="!p.isVerified">
             </app-status-chip>
@@ -61,17 +73,15 @@
           <h2 class="scout-name">{{ scouterFullName() }}</h2>
           @if (!p.isVerified) {
             @if (isOwnProfile()) {
-              <p class="hero-note">Your account isn't verified yet -- verification is handled by a system admin and unlocks full scouting network visibility.</p>
+              <p class="hero-note">{{ 'SCOUTER_DASHBOARD.HERO.NOTE_OWN_PENDING' | translate }}</p>
             } @else {
-              <p class="hero-note">This scouter's account is still pending verification by a system admin.</p>
+              <p class="hero-note">{{ 'SCOUTER_DASHBOARD.HERO.NOTE_OTHER_PENDING' | translate }}</p>
             }
           }
         </div>
       </section>
     }
     
-
-    <!-- SCOUTER INSIGHTS (for any role visiting another scouter's dashboard) -->
     @if (!isOwnProfile() && viewerInsights().length > 0) {
       <section class="insights-panel mt-4">
         <div class="panel-header-row">
@@ -79,7 +89,7 @@
             <path d="M12 2a7 7 0 0 0-4 12.7V17a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-2.3A7 7 0 0 0 12 2Z"></path>
             <line x1="9" y1="21" x2="15" y2="21"></line>
           </svg>
-          <h3>Personalized Highlights</h3>
+          <h3>{{ 'SCOUTER_DASHBOARD.INSIGHTS.TITLE' | translate }}</h3>
         </div>
         <div class="insights-list">
           @for (insight of viewerInsights(); track insight.text) {
@@ -100,43 +110,37 @@
       </section>
     }
 
-    <!-- Everything below is the scouter's own private data (KPI counts,
-         shortlist/followed lists, insights, charts) -- only shown when the
-         signed-in user IS this scouter, not when another role is viewing
-         this scouter's profile via the scouterId route param. -->
     @if (isOwnProfile()) {
 
-    <!-- KPI STRIP -->
     <section class="kpi-grid mt-4">
       <div class="kpi-card">
-        <span class="kpi-label">Following</span>
+        <span class="kpi-label">{{ 'SCOUTER_DASHBOARD.KPI.FOLLOWING' | translate }}</span>
         <span class="kpi-value">{{ followedTotal() }}</span>
-        <span class="kpi-sub">players tracked</span>
+        <span class="kpi-sub">{{ 'SCOUTER_DASHBOARD.KPI.FOLLOWING_SUB' | translate }}</span>
       </div>
       <div class="kpi-card">
-        <span class="kpi-label">Shortlisted</span>
+        <span class="kpi-label">{{ 'SCOUTER_DASHBOARD.KPI.SHORTLISTED' | translate }}</span>
         <span class="kpi-value">{{ shortlistTotal() }}</span>
-        <span class="kpi-sub">prospects saved</span>
+        <span class="kpi-sub">{{ 'SCOUTER_DASHBOARD.KPI.SHORTLISTED_SUB' | translate }}</span>
       </div>
       <div class="kpi-card">
-        <span class="kpi-label">Avg. Shortlist Rating</span>
+        <span class="kpi-label">{{ 'SCOUTER_DASHBOARD.KPI.AVG_RATING' | translate }}</span>
         <span class="kpi-value">{{ avgShortlistRating() || '--' }}</span>
-        <span class="kpi-sub">overall rating</span>
+        <span class="kpi-sub">{{ 'SCOUTER_DASHBOARD.KPI.AVG_RATING_SUB' | translate }}</span>
       </div>
       <div class="kpi-card kpi-highlight">
-        <span class="kpi-label">Elite Prospects</span>
+        <span class="kpi-label">{{ 'SCOUTER_DASHBOARD.KPI.ELITE' | translate }}</span>
         <span class="kpi-value">{{ eliteProspectCount() }}</span>
-        <span class="kpi-sub">85+ OVR in shortlist</span>
+        <span class="kpi-sub">{{ 'SCOUTER_DASHBOARD.KPI.ELITE_SUB' | translate }}</span>
       </div>
     </section>
 
-    <!-- EMPTY STATE: no scouting activity at all yet -->
     @if (followedTotal() === 0 && shortlistTotal() === 0) {
       <div class="empty-wrapper mt-4">
         <app-empty-state
-          title="Your scouting network is empty"
-          description="Search for players to follow or shortlist -- your dashboard insights will build up as you do."
-          actionText="Search Players"
+          title="{{ 'SCOUTER_DASHBOARD.EMPTY_STATE.TITLE' | translate }}"
+          description="{{ 'SCOUTER_DASHBOARD.EMPTY_STATE.DESC' | translate }}"
+          actionText="{{ 'SCOUTER_DASHBOARD.EMPTY_STATE.BTN_SEARCH' | translate }}"
           (actionClick)="goToSearch()"
           >
         </app-empty-state>
@@ -144,7 +148,6 @@
     }
     @else {
 
-      <!-- SMART INSIGHTS -->
       @if (insights().length > 0) {
         <section class="insights-panel mt-4">
           <div class="panel-header-row">
@@ -152,7 +155,7 @@
               <path d="M12 2a7 7 0 0 0-4 12.7V17a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-2.3A7 7 0 0 0 12 2Z"></path>
               <line x1="9" y1="21" x2="15" y2="21"></line>
             </svg>
-            <h3>Personalized Highlights</h3>
+            <h3>{{ 'SCOUTER_DASHBOARD.INSIGHTS.TITLE' | translate }}</h3>
           </div>
           <div class="insights-list">
             @for (insight of insights(); track insight.text) {
@@ -173,12 +176,11 @@
         </section>
       }
 
-      <!-- ANALYTICS ROW: position chart + rating tiers -->
       @if (shortlistSample().length > 0) {
         <section class="analytics-grid mt-4">
           <div class="analytics-panel">
             <div class="panel-header-row">
-              <h3>Shortlist by Position</h3>
+              <h3>{{ 'SCOUTER_DASHBOARD.ANALYTICS.POS_CHART_TITLE' | translate }}</h3>
             </div>
             <div class="chart-wrap">
               <canvas #positionChartCanvas></canvas>
@@ -187,7 +189,7 @@
 
           <div class="analytics-panel">
             <div class="panel-header-row">
-              <h3>Talent Quality Distribution</h3>
+              <h3>{{ 'SCOUTER_DASHBOARD.ANALYTICS.TIERS_TITLE' | translate }}</h3>
             </div>
             <div class="tier-bars">
               @for (tier of ratingTiers(); track tier.label) {
@@ -206,12 +208,11 @@
         </section>
       }
 
-      <!-- PREVIEW: SHORTLIST -->
       @if (shortlistSample().length > 0) {
         <section class="preview-section mt-4">
           <div class="preview-header flex-between">
-            <h3>Recently Shortlisted</h3>
-            <button class="btn-view-all" (click)="goToShortlist()">View All ({{ shortlistTotal() }})</button>
+            <h3>{{ 'SCOUTER_DASHBOARD.PREVIEW.SHORTLIST_TITLE' | translate }}</h3>
+            <button class="btn-view-all" (click)="goToShortlist()">{{ 'SCOUTER_DASHBOARD.PREVIEW.BTN_VIEW_ALL' | translate: { count: shortlistTotal() } }}</button>
           </div>
           <div class="player-mini-grid">
             @for (player of previewShortlist(); track player.playerId) {
@@ -234,12 +235,11 @@
         </section>
       }
 
-      <!-- PREVIEW: FOLLOWED -->
       @if (followedSample().length > 0) {
         <section class="preview-section mt-4">
           <div class="preview-header flex-between">
-            <h3>Players You Follow</h3>
-            <button class="btn-view-all" (click)="goToFollowedPlayers()">View All ({{ followedTotal() }})</button>
+            <h3>{{ 'SCOUTER_DASHBOARD.PREVIEW.FOLLOWED_TITLE' | translate }}</h3>
+            <button class="btn-view-all" (click)="goToFollowedPlayers()">{{ 'SCOUTER_DASHBOARD.PREVIEW.BTN_VIEW_ALL' | translate: { count: followedTotal() } }}</button>
           </div>
           <div class="player-mini-grid">
             @for (player of previewFollowed(); track player.playerId) {

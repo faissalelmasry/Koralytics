@@ -21,6 +21,7 @@ import { CustomButtonComponent } from '../../../../../shared/components/custom-b
 import { LoadingSpinnerComponent } from '../../../../../shared/components/loading-spinner/loading-spinner';
 import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
 import { EmptyStateComponent } from '../../../../../shared/components/empty-state/empty-state';
+import { TranslatePipe } from '@ngx-translate/core';
 
 interface NotificationVisual {
   icon: 'megaphone' | 'trophy' | 'bell' | 'clock' | 'eye';
@@ -51,7 +52,8 @@ const DEFAULT_VISUAL: NotificationVisual = { icon: 'bell', color: '#8b909a' };
     CustomButtonComponent,
     LoadingSpinnerComponent,
     ScrollRevealDirective,
-    EmptyStateComponent
+    EmptyStateComponent,
+    TranslatePipe
   ],
   templateUrl: './notifications-list.html',
   styleUrl: './notifications-list.css',

@@ -1,9 +1,9 @@
 <div class="aa-history-section">
   <div class="aa-history-header">
-    <h4>sent announcements</h4>
+    <h4>{{ 'ANNOUNCEMENT_HISTORY.HEADER_TITLE' | translate }}</h4>
     <app-status-chip
       *ngIf="!isLoading && announcements.length > 0"
-      [label]="announcements.length + ' total'"
+      [label]="('ANNOUNCEMENT_HISTORY.TOTAL_COUNT' | translate: { count: announcements.length })"
       type="info">
     </app-status-chip>
   </div>
@@ -14,8 +14,8 @@
 
   <app-empty-state
     *ngIf="!isLoading && announcements.length === 0"
-    title="no announcements yet"
-    description="messages you send to your academy will show up here.">
+    title="{{ 'ANNOUNCEMENT_HISTORY.EMPTY_TITLE' | translate }}"
+    description="{{ 'ANNOUNCEMENT_HISTORY.EMPTY_DESC' | translate }}">
   </app-empty-state>
 
   <div class="aa-announcement-list" *ngIf="!isLoading && announcements.length > 0">
@@ -35,13 +35,12 @@
       <p class="announcement-body">{{ announcement.body }}</p>
 
       <div class="announcement-meta">
-        <span class="meta-sender">sent by {{ announcement.sentByFullName || 'Academy Staff' }}</span>
+        <span class="meta-sender">{{ 'ANNOUNCEMENT_HISTORY.SENT_BY' | translate: { name: announcement.sentByFullName || ('ANNOUNCEMENT_HISTORY.ACADEMY_STAFF' | translate) } }}</span>
         <span class="meta-dot">•</span>
         <span class="meta-date">{{ announcement.createdAt | date: 'MMM d, y, h:mm a' }}</span>
       </div>
     </div>
 
-    <!-- Shared Pagination Component -->
     <app-pagination
       [totalItems]="announcements.length"
       [pageSize]="pageSize"

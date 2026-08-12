@@ -20,6 +20,7 @@ import { TokenStorageService } from '../../../../core/services/auth/token-storag
 import { NavbarComponent } from '../../../../shared/components/navbar/navbar';
 import { Footer } from '../../../../shared/components/footer/footer';
 import { ScrollRevealDirective } from '../../../../shared/directives/scroll-reveal.directive';
+import { TranslatePipe } from '@ngx-translate/core';
 
 
 @Component({
@@ -37,7 +38,8 @@ import { ScrollRevealDirective } from '../../../../shared/directives/scroll-reve
     PlayerCardComponent,
     NavbarComponent,
     Footer,
-    ScrollRevealDirective
+    ScrollRevealDirective,
+      TranslatePipe
   ],
   templateUrl: './scouter-shortlist.html',
   styleUrls: ['./scouter-shortlist.css']

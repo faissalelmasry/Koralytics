@@ -27,6 +27,7 @@ import { NavbarComponent } from '../../../../../shared/components/navbar/navbar'
 import { Footer } from '../../../../../shared/components/footer/footer';
 import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
 import { TokenStorageService } from '@core/services/auth/token-storage.service';
+import { TranslatePipe } from '@ngx-translate/core';
 
 export enum AnnouncementTargetType {
   All = 1,
@@ -54,6 +55,7 @@ export const ANNOUNCEMENT_SUPPORTED_ROLES = [
     NavbarComponent,
     Footer,
     ScrollRevealDirective,
+    TranslatePipe
   ],
   templateUrl: './academy-announcement.html',
   styleUrl: './academy-announcement.css',
