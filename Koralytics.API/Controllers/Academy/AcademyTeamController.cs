@@ -31,6 +31,15 @@ namespace Koralytics.API.Controllers.Academies
             return OkResponse(result, "Age group created successfully.");
         }
 
+        [HttpDelete("{academyId}/age-groups/{ageGroupId}")]
+        [Authorize(Roles = "AcademyAdmin")]
+        public async Task<IActionResult> DeleteAgeGroup(int academyId, int ageGroupId)
+        {
+            var userId = GetCurrentUserId();
+            await _academyTeamService.DeleteAgeGroupAsync(academyId, ageGroupId, userId);
+            return NoContentResponse("Age group deleted successfully.");
+        }
+
         [HttpGet("age-groups")]
         [Authorize(Roles = "SystemAdmin")]
         public async Task<IActionResult> GetGlobalAgeGroups([FromQuery] string[] names)

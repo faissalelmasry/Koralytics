@@ -189,6 +189,10 @@ export class AcademyService {
     return this.http.post<ApiResponse<AgeGroupResponseDto>>(`${this.apiUrl}/${academyId}/age-groups`, dto);
   }
 
+  deleteAgeGroup(academyId: number, ageGroupId: number): Observable<ApiResponse<void>> {
+    return this.http.delete<ApiResponse<void>>(`${this.apiUrl}/${academyId}/age-groups/${ageGroupId}`);
+  }
+
   getTeams(academyId: number): Observable<ApiResponse<TeamResponseDto[]>> {
     return this.http.get<ApiResponse<TeamResponseDto[]>>(`${this.apiUrl}/${academyId}/teams`);
   }

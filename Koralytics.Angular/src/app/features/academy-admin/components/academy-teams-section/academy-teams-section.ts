@@ -3,9 +3,9 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AcademyService } from '../../../../../core/services/academy/academy.service';
 import { ToastService } from '../../../../../core/services/Toast/toast';
-import { 
-  AgeGroupResponseDto, 
-  TeamResponseDto, 
+import {
+  AgeGroupResponseDto,
+  TeamResponseDto,
   AcademyLocationResponseDto,
   CreateTeamDto
 } from '../../../../../core/interfaces/academy.models';
@@ -17,38 +17,46 @@ import { Pagination } from '../../../../../shared/components/pagination/paginati
 import { CustomSelect, SelectOption } from '../../../../../shared/components/custom-select/custom-select';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LocalizedDatePipe } from '../../../../../shared/pipes/localized-date.pipe';
+import { ConfirmDialogComponent } from '../../../../../shared/components/confirm-dialog/confirm-dialog';
 
 @Component({
   selector: 'app-academy-teams-section',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, CustomInputComponent, CustomButtonComponent, DataTable, Pagination, CustomSelect, TranslatePipe, LocalizedDatePipe],
+  imports: [CommonModule, ReactiveFormsModule, CustomInputComponent, CustomButtonComponent, DataTable, Pagination, CustomSelect, TranslatePipe, LocalizedDatePipe, ConfirmDialogComponent],
   templateUrl: './academy-teams-section.html',
   styleUrls: ['./academy-teams-section.css']
 })
 export class AcademyTeamsSectionComponent implements OnInit, OnChanges {
   @Input() academyId!: number;
-  
+
   private academyService = inject(AcademyService);
   private toast = inject(ToastService);
   private fb = inject(FormBuilder);
   private translate = inject(TranslateService);
-  
+
   // Data State
   ageGroups: AgeGroupResponseDto[] = [];
   teams: TeamResponseDto[] = [];
   locations: AcademyLocationResponseDto[] = [];
-  
+
   ageGroupOptions: SelectOption[] = [];
   locationOptions: SelectOption[] = [];
-  
+
   availableCoaches: SelectOption[] = [];
   availablePlayers: SelectOption[] = [];
-  
+
   // UI State
   isLoading = true;
   isAddingAgeGroup = false;
   isAddingTeam = false;
   activeTab: 'teams' | 'ageGroups' = 'teams';
+
+  // Confirm Dialog State
+  isConfirmDialogOpen = false;
+  confirmDialogTitle = '';
+  confirmDialogMessage = '';
+  confirmDialogMessageParams: any = {};
+  targetIdForConfirm: number | null = null;
 
   selectedCoachToAssign: { [teamId: number]: any } = {};
   selectedPlayerToAssign: { [teamId: number]: any } = {};
@@ -61,12 +69,45 @@ export class AcademyTeamsSectionComponent implements OnInit, OnChanges {
   pageNumberAgeGroups = 1;
   pageSizeAgeGroups = 10;
   totalAgeGroupsCount = 0;
-  
+
+  predefinedAgeGroups = [
+    { name: 'U5', minAge: 5, maxAge: 6 },
+    { name: 'U7', minAge: 5, maxAge: 7 },
+    { name: 'U9', minAge: 7, maxAge: 9 },
+    { name: 'U11', minAge: 9, maxAge: 11 },
+    { name: 'U13', minAge: 11, maxAge: 13 },
+    { name: 'U15', minAge: 13, maxAge: 15 },
+    { name: 'U17', minAge: 15, maxAge: 17 },
+    { name: 'U19', minAge: 17, maxAge: 19 },
+    { name: 'U21', minAge: 19, maxAge: 21 },
+    { name: 'First Team', minAge: 21, maxAge: 50 }
+  ];
+
+  get predefinedAgeGroupOptions(): SelectOption[] {
+    const existingNames = new Set(this.ageGroups.map(g => g.name));
+    return this.predefinedAgeGroups
+      .filter(g => !existingNames.has(g.name))
+      .map(g => ({ value: g.name, label: g.name }));
+  }
+
+  onPredefinedAgeGroupChange(name: any) {
+    const selected = this.predefinedAgeGroups.find(g => g.name === name);
+    if (selected) {
+      this.ageGroupForm.patchValue({
+        name: selected.name,
+        minAge: selected.minAge,
+        maxAge: selected.maxAge
+      });
+    } else {
+      this.ageGroupForm.patchValue({ name: '', minAge: 5, maxAge: 18 });
+    }
+  }
+
   // Forms
   ageGroupForm = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(50)]],
-    minAge: [3, [Validators.required, Validators.min(3), Validators.max(30)]],
-    maxAge: [18, [Validators.required, Validators.min(3), Validators.max(30)]]
+    minAge: [5, [Validators.required, Validators.min(5), Validators.max(50)]],
+    maxAge: [18, [Validators.required, Validators.min(5), Validators.max(50)]]
   });
 
   teamForm = this.fb.group({
@@ -114,7 +155,7 @@ export class AcademyTeamsSectionComponent implements OnInit, OnChanges {
         this.locations = res.data;
         this.locationOptions = this.locations.map(l => ({ value: l.id, label: l.name }));
         if (this.locations.length > 0 && !this.teamForm.value.locationId) {
-           this.teamForm.patchValue({ locationId: this.locations[0].id });
+          this.teamForm.patchValue({ locationId: this.locations[0].id });
         }
       }
     });
@@ -136,7 +177,7 @@ export class AcademyTeamsSectionComponent implements OnInit, OnChanges {
         this.ageGroupOptions = this.ageGroups.map(ag => ({ value: ag.id, label: ag.name }));
         this.totalAgeGroupsCount = this.ageGroups.length;
         if (this.ageGroups.length > 0 && !this.teamForm.value.ageGroupId) {
-           this.teamForm.patchValue({ ageGroupId: this.ageGroups[0].id });
+          this.teamForm.patchValue({ ageGroupId: this.ageGroups[0].id });
         }
       }
     });
@@ -145,10 +186,10 @@ export class AcademyTeamsSectionComponent implements OnInit, OnChanges {
       next: (res) => {
         if (res.isSuccess && res.data) {
           this.teams = res.data.map((m: any) => ({
-             ...m,
-             playersCount: m.players?.length || 0,
-             hideAnalyze: false,
-             hideDelete: false
+            ...m,
+            playersCount: m.players?.length || 0,
+            hideAnalyze: false,
+            hideDelete: false
           }));
           this.totalTeamsCount = this.teams.length;
         }
@@ -178,7 +219,7 @@ export class AcademyTeamsSectionComponent implements OnInit, OnChanges {
       this.ageGroupForm.markAllAsTouched();
       return;
     }
-    
+
     this.isAddingAgeGroup = true;
     const dto = this.ageGroupForm.getRawValue();
 
@@ -187,7 +228,7 @@ export class AcademyTeamsSectionComponent implements OnInit, OnChanges {
         this.isAddingAgeGroup = false;
         if (res.isSuccess) {
           this.toast.show(this.translate.instant('ACADEMY_ADMIN.MESSAGES.AGE_GROUP_CREATED'), 'success');
-          this.ageGroupForm.reset({ name: '', minAge: 3, maxAge: 18 });
+          this.ageGroupForm.reset({ name: '', minAge: 5, maxAge: 18 });
           this.loadData();
         } else {
           this.toast.show(res.message || this.translate.instant('ACADEMY_ADMIN.MESSAGES.CREATE_AGE_GROUP_ERROR'), 'error');
@@ -201,11 +242,45 @@ export class AcademyTeamsSectionComponent implements OnInit, OnChanges {
   }
 
   onAgeGroupAction(event: { row: any, action: string }) {
-     if (event.action === 'view') {
-       this.toast.show(`Viewing age group ${event.row.name}`, 'success');
-     } else if (event.action === 'delete') {
-       this.toast.show(`Delete age group ${event.row.name} not implemented`, 'error');
-     }
+    if (event.action === 'view') {
+      this.toast.show(`Viewing age group ${event.row.name}`, 'success');
+    } else if (event.action === 'delete') {
+      this.targetIdForConfirm = event.row.id;
+      this.confirmDialogTitle = this.translate.instant('ACADEMY_ADMIN.TEAMS_SECTION.DELETE_AGE_GROUP_TITLE') || 'Delete Age Group';
+      this.confirmDialogMessage = 'ACADEMY_ADMIN.TEAMS_SECTION.DELETE_AGE_GROUP_MSG';
+      this.confirmDialogMessageParams = { name: event.row.name };
+      this.isConfirmDialogOpen = true;
+    }
+  }
+
+  onConfirmDialogExecute() {
+    if (!this.targetIdForConfirm) {
+      this.isConfirmDialogOpen = false;
+      return;
+    }
+
+    const ageGroupId = this.targetIdForConfirm;
+    this.isConfirmDialogOpen = false;
+    this.targetIdForConfirm = null;
+
+    this.academyService.deleteAgeGroup(this.academyId, ageGroupId).subscribe({
+      next: (res) => {
+        if (res && res.isSuccess === false) {
+          this.toast.show(res.message || this.translate.instant('ACADEMY_ADMIN.MESSAGES.DELETE_AGE_GROUP_ERROR'), 'error');
+        } else {
+          this.toast.show(this.translate.instant('ACADEMY_ADMIN.MESSAGES.AGE_GROUP_DELETED') || 'Deleted successfully.', 'success');
+          this.loadData(false);
+        }
+      },
+      error: (err) => {
+        if (err.status === 409) {
+          this.toast.show(this.translate.instant('ACADEMY_ADMIN.MESSAGES.AGE_GROUP_HAS_TEAMS'), 'error');
+        } else {
+          const msg = err.error?.detail || err.error?.message || err.message || this.translate.instant('ACADEMY_ADMIN.MESSAGES.DELETE_AGE_GROUP_ERROR');
+          this.toast.show(msg, 'error');
+        }
+      }
+    });
   }
 
   get paginatedTeams() {

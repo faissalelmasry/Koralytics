@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../../../../core/services/auth/auth.service';
 import { AcademyService } from '../../../../../core/services/academy/academy.service';
 import { ProfileService } from '../../../../../core/services/profile/profile.service';
@@ -64,6 +64,7 @@ export class AcademyAdminDashboardComponent implements OnInit {
   private toast = inject(ToastService);
   private fb = inject(FormBuilder);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private cdr = inject(ChangeDetectorRef);
   private tournamentService = inject(TournamentService);
   private translate = inject(TranslateService);
@@ -119,6 +120,12 @@ export class AcademyAdminDashboardComponent implements OnInit {
   myPendingAdminRequests: any[] = [];
 
   ngOnInit() {
+    this.route.queryParams.subscribe(params => {
+      if (params['tab']) {
+        this.activeTab = params['tab'];
+      }
+    });
+
     this.profileService.getMyProfile().subscribe({
       next: (res) => {
         if (res.isSuccess && res.data?.profileImageUrl) {
@@ -133,6 +140,11 @@ export class AcademyAdminDashboardComponent implements OnInit {
 
   setTab(tab: string) {
     this.activeTab = tab;
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { tab },
+      queryParamsHandling: 'merge',
+    });
   }
 
   checkAcademyStatus() {
