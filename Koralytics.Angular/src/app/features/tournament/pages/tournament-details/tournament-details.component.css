@@ -1930,7 +1930,7 @@
 /* Hall of Fame text — static ellipsis truncation (no auto-scroll) */
 .award-identity strong,
 .recipient strong,
-.recipient span,
+.recipient-info span,
 .feature-label,
 .feature-copy h3,
 .feature-team {
