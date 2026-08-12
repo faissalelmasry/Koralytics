@@ -184,9 +184,32 @@ namespace Koralytics.Application.Services.Scouter.ScouterSearchService
 
             try
             {
-                var baseUrl = _configuration["Langflow:BaseUrl"] ?? "http://localhost:7860/";
-                var flowId = _configuration["Langflow:ScouterFlowId"] ?? "8174dfb9-ed41-44af-8e6f-f93040a33f15";
-                var apiKey = _configuration["Langflow:ScouterApiKey"] ?? "sk-xolbieoNFGE495pN0a0GCBqLM318zmTS0sq3enjaPbw";
+                var baseUrl = _configuration["Langflow:BaseUrl"];
+                var flowId = _configuration["Langflow:ScouterFlowId"];
+                var apiKey = _configuration["Langflow:ScouterApiKey"];
+
+                if (string.IsNullOrWhiteSpace(baseUrl))
+                {
+                    _logger.LogError("Langflow:BaseUrl is missing from configuration.");
+                    throw new InvalidOperationException("Langflow:BaseUrl is not configured.");
+                }
+
+                if (string.IsNullOrWhiteSpace(flowId))
+                {
+                    _logger.LogError("Langflow:ScouterFlowId is missing from configuration.");
+                    throw new InvalidOperationException("Langflow:ScouterFlowId is not configured.");
+                }
+
+                if (string.IsNullOrWhiteSpace(apiKey))
+                {
+                    _logger.LogError("Langflow:ScouterApiKey is missing from configuration.");
+                    throw new InvalidOperationException("Langflow:ScouterApiKey is not configured.");
+                }
+
+                _logger.LogInformation(
+                    "Langflow configuration loaded successfully. BaseUrl: {BaseUrl}, FlowId: {FlowId}",
+                    baseUrl,
+                    flowId);
 
                 _logger.LogInformation("Sending request to Scouter Langflow AI ChatBot (FlowId: {FlowId})...", flowId);
 
