@@ -164,16 +164,33 @@ app-pagination :focus-visible {
 
 @media (max-width: 600px) {
   .shortlist-page {
-    padding: 110px 16px 32px;
+    padding: 100px 16px 32px;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .shortlist-grid {
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 20px 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    box-sizing: border-box;
+    gap: 24px;
   }
 
   .shortlist-item {
-    width: 180px;
+    width: 220px;
+    max-width: 100%;
+    margin: 0 auto;
+    align-self: center;
+  }
+
+  .card-wrap {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
 }
 

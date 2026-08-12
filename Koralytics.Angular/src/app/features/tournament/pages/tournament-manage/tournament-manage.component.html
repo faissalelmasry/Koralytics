@@ -1,10 +1,12 @@
 <div class="tournament-manage-page">
   <div class="top-bar" scrollReveal direction="bottom">
+    @if (isEditMode) {
     <button class="back-btn" (click)="goBack()" type="button" title="Back">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M19 12H5M12 19l-7-7 7-7"/>
       </svg>
     </button>
+    }
     <div class="title-block">
       <span class="eyebrow">{{ isEditMode ? 'Tournament Control Center' : 'Tournament Setup' }}</span>
       <h1>{{ pageTitle }}</h1>

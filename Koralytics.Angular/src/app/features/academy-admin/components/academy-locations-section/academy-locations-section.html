@@ -9,23 +9,23 @@
   <div class="search-panel">
     <h4>{{ 'ACADEMY_ADMIN.LOCATIONS_SECTION.ADD_NEW_LOCATION' | translate }}</h4>
     <form [formGroup]="locationForm" (ngSubmit)="onCreateLocation()" class="search-form"
-      style="display: flex; gap: 16px; align-items: flex-end; margin-top: 16px; flex-wrap: wrap;">
-      <div style="flex: 2; min-width: 200px;">
+      style="display: flex; flex-direction: column; gap: 14px; margin-top: 16px; width: 100%; box-sizing: border-box;">
+      <div style="width: 100%;">
         <app-text-input formControlName="name" placeholder="{{ 'ACADEMY_ADMIN.LOCATIONS_SECTION.PH_LOCATION_NAME' | translate }}" type="text" label="{{ 'ACADEMY_ADMIN.LOCATIONS_SECTION.LBL_LOCATION_NAME' | translate }}">
         </app-text-input>
       </div>
 
-      <div style="flex: 2; min-width: 200px;">
+      <div style="width: 100%;">
         <app-text-input formControlName="address" placeholder="{{ 'ACADEMY_ADMIN.LOCATIONS_SECTION.PH_ADDRESS' | translate }}" type="text" label="{{ 'ACADEMY_ADMIN.LOCATIONS_SECTION.LBL_ADDRESS' | translate }}">
         </app-text-input>
       </div>
 
-      <div style="flex: 1; min-width: 150px;">
+      <div style="width: 100%;">
         <app-text-input formControlName="city" placeholder="{{ 'ACADEMY_ADMIN.LOCATIONS_SECTION.PH_CITY' | translate }}" type="text" label="{{ 'ACADEMY_ADMIN.LOCATIONS_SECTION.LBL_CITY' | translate }}">
         </app-text-input>
       </div>
 
-      <div class="form-actions">
+      <div class="form-actions" style="margin-top: 4px;">
         <app-button type="submit" variant="accent" [disabled]="locationForm.invalid || isAddingLocation">
           {{ isAddingLocation ? ('ACADEMY_ADMIN.LOCATIONS_SECTION.BTN_ADDING' | translate) : ('ACADEMY_ADMIN.LOCATIONS_SECTION.BTN_ADD_LOCATION' | translate) }}
         </app-button>

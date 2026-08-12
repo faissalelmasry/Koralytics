@@ -18,6 +18,8 @@ import { FormsModule } from '@angular/forms';
 import { NotificationService } from '@core/services/SignalR/notificationservice';
 import { AuthService } from '../../../../../core/services/auth/auth.service';
 
+import { MarqueeIfOverflowDirective } from '../../../match/match-timeline/marquee-if-overflow.directive';
+
 @Component({
   selector: 'app-tournament-details',
   standalone: true,
@@ -29,7 +31,8 @@ import { AuthService } from '../../../../../core/services/auth/auth.service';
     StatusChipComponent,
     SearchBarComponent,
     LoadingSpinnerComponent,
-    ScrollRevealDirective
+    ScrollRevealDirective,
+    MarqueeIfOverflowDirective
   ],
   templateUrl: './tournament-details.component.html',
   styleUrls: [

@@ -255,8 +255,18 @@
     z-index: 1;
 }
 
+.hero-top-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    width: 100%;
+    box-sizing: border-box;
+}
+
 .team-badge {
-    align-self: flex-start;
+    align-self: center;
     background: rgba(0, 242, 254, 0.12);
     color: #00f2fe;
     border: 1px solid rgba(0, 242, 254, 0.25);
@@ -266,6 +276,8 @@
     border-radius: 20px;
     text-transform: uppercase;
     letter-spacing: 0.8px;
+    max-width: 100%;
+    word-break: break-word;
 }
 
 .child-name {
@@ -589,6 +601,8 @@
     font-weight: 500;
     cursor: pointer;
     transition: all 0.25s ease;
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 
 .btn-unlink svg {
@@ -1020,25 +1034,34 @@
 }
 
 @media (max-width: 768px) {
-    .parent-dashboard-page {
+    .parent-portal-page {
         padding: 95px 16px 40px;
+        width: 100%;
+        box-sizing: border-box;
     }
 
-    .dashboard-header {
+    .page-header {
         flex-direction: column;
         align-items: flex-start;
         gap: 16px;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .header-actions {
         width: 100%;
+        display: flex;
         flex-direction: column;
+        gap: 10px;
+        box-sizing: border-box;
     }
 
+    .btn-link-player,
     .btn-link-child,
     .btn-manage-sub {
         width: 100%;
         justify-content: center;
+        box-sizing: border-box;
     }
 
     .modules-grid {
@@ -1050,16 +1073,27 @@
         flex-direction: column;
         align-items: flex-start;
         padding: 24px 20px;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .child-name {
         font-size: 22px;
+        word-break: break-word;
     }
 }
 
 @media (max-width: 480px) {
-    .parent-dashboard-page {
+    .parent-portal-page {
         padding: 85px 12px 30px;
+    }
+
+    .btn-link-player {
+        padding: 10px 16px;
+        font-size: 0.85rem;
+        width: 100%;
+        justify-content: center;
+        box-sizing: border-box;
     }
 
     .welcome-title {

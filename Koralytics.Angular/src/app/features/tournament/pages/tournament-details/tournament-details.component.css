@@ -1236,12 +1236,36 @@
     display: none;
   }
 
-  .standings-table {
-    min-width: 560px;
-  }
-
   .group-table-card {
     overflow-x: auto;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .standings-table {
+    min-width: 350px;
+    width: 100%;
+  }
+
+  .standings-table th,
+  .standings-table td {
+    padding: 10px 6px;
+    font-size: 0.8rem;
+  }
+
+  .standings-table th:first-child,
+  .standings-table td:first-child {
+    padding-left: 10px;
+    min-width: 125px;
+    text-align: left;
+  }
+
+  .standings-table th:nth-child(2),
+  .standings-table td:nth-child(2) {
+    min-width: 32px;
+    font-weight: 700;
   }
 
   .academy-invite-card,
@@ -1647,6 +1671,8 @@
 
   .ai-preview-grid {
     grid-template-columns: 1fr;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .report-stats-row {
@@ -1658,6 +1684,34 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 10px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .ai-badge,
+  .ai-powered-label {
+    max-width: 100%;
+    word-break: break-word;
+    box-sizing: border-box;
+  }
+
+  .ai-card {
+    padding: 16px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    word-break: break-word;
+  }
+
+  .ai-stat-row {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .ai-chip {
+    max-width: 100%;
+    white-space: normal;
+    text-align: center;
   }
 }
 
@@ -1847,6 +1901,94 @@
   background: rgba(231, 76, 60, 0.12);
   color: #e74c3c;
   border: 1px solid rgba(231, 76, 60, 0.3);
+}
+
+/* RESPONSIVE KNOCKOUT STAGE BRACKET (MOBILE & TABLET) */
+@media (max-width: 768px) {
+  .bracket-container {
+    gap: 16px;
+    padding: 8px 0 18px;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .bracket-column {
+    flex: 0 0 100%;
+    min-width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    scroll-snap-align: start;
+  }
+
+  .match-box {
+    width: 100%;
+    box-sizing: border-box;
+  }
+/* AUTO-MARQUEE FOR OVERFLOWING HALL OF FAME TEXTS */
+.marquee-parent {
+  overflow: hidden !important;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.award-identity strong,
+.recipient strong,
+.recipient span,
+.feature-label,
+.feature-copy h3,
+.feature-team {
+  text-overflow: clip !important;
+  overflow: visible !important;
+  white-space: nowrap !important;
+}
+
+.award-identity strong.is-scrolling,
+.recipient strong.is-scrolling,
+.recipient span.is-scrolling,
+.feature-label.is-scrolling,
+.feature-copy h3.is-scrolling,
+.feature-team.is-scrolling {
+  display: inline-block !important;
+  white-space: nowrap !important;
+  animation: hallOfFameMarquee 5s ease-in-out 0.5s infinite !important;
+}
+
+@keyframes hallOfFameMarquee {
+  0%, 15% {
+    transform: translateX(0);
+  }
+  50%, 65% {
+    transform: translateX(var(--marquee-scroll, -20px));
+  }
+  85%, 100% {
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .register-heading {
+    display: none;
+  }
+
+  .honours-row {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 14px;
+    height: auto;
+  }
+
+  .award-identity,
+  .recipient {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
 }
 
 

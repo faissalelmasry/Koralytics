@@ -512,26 +512,136 @@
 }
 
 /* ==========================================
-   Responsive
+   Responsive & Overflow Fixes
    ========================================== */
+.scout-portal-page,
+.page-header,
+.scout-hero-card,
+.insights-panel,
+.analytics-panel,
+.preview-section,
+.kpi-card,
+.player-mini-card {
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+.chart-wrap {
+  position: relative;
+  height: 220px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.chart-wrap canvas {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.player-mini-card {
+  min-width: 0;
+}
+
+.mini-info {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.mini-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+
 @media (max-width: 900px) {
+  :host {
+    padding: 95px 16px 40px;
+  }
+
+  .scout-portal-page {
+    padding: 0;
+    width: 100%;
+  }
+
   .header-actions {
     margin-top: 16px;
+    width: 100%;
   }
+
   .page-header {
     flex-direction: column;
     align-items: flex-start;
+    padding: 16px;
+    width: 100%;
   }
+
   .analytics-grid {
     grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .analytics-panel {
+    padding: 18px 16px;
+    width: 100%;
   }
 }
 
 @media (max-width: 600px) {
+  .scout-hero-card {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 18px 16px;
+    gap: 14px;
+    width: 100%;
+  }
+
+  .hero-details {
+    width: 100%;
+  }
+
+  .scout-name {
+    word-break: break-word;
+  }
+
+  .insights-panel,
+  .preview-section {
+    padding: 16px;
+    width: 100%;
+  }
+
+  .preview-header {
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .preview-header h3 {
+    word-break: break-word;
+  }
+
   .kpi-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    width: 100%;
   }
+
+  .kpi-card {
+    padding: 10px 12px;
+    width: 100%;
+    min-width: 0;
+  }
+
   .player-mini-grid {
     grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .player-mini-card {
+    width: 100%;
+    box-sizing: border-box;
   }
 }

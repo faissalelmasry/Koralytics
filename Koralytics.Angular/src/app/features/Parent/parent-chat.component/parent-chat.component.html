@@ -1,19 +1,51 @@
 <app-navbar></app-navbar>
 
-<app-feature-lock feature="AIInsights" featureName="Parent Support AI Assistant" [forceLocked]="isLocked()">
-<div class="pc-page">
+<app-feature-lock feature="AIInsights" [featureName]="'PARENT.CHAT.TOPBAR_LABEL' | translate" [forceLocked]="isLocked()">
+<div class="ai-chat-page">
 
-  <!-- SLIM TOP BAR -->
-  <div class="pc-topbar">
-    <span class="pc-live-dot"></span>
-    <span class="pc-topbar-label">{{ 'PARENT.CHAT.TOPBAR_LABEL' | translate }}</span>
-    <span class="pc-topbar-sep">/</span>
-    <span class="pc-topbar-current">{{ 'PARENT.CHAT.TOPBAR_CURRENT' | translate }}</span>
-  </div>
+  <!-- ================= PAGE HEADER ================= -->
+  <header class="chat-header" scrollReveal direction="bottom" [delay]="0">
+    <div class="header-main">
+      <div class="brand-title-wrap">
+        <div class="brand-icon-halo">
+          <img src="images/logo/app-icon/logo-icon-dark.png" alt="Koralytics AI Icon" class="brand-header-icon" />
+          <span class="live-pulse-dot"></span>
+        </div>
+        <div>
+          <h1 class="header-title">Parent Support AI Assistant</h1>
+          <p class="header-subtitle">Personalized AI Insights & Family Telemetry Guidance</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button type="button" class="nav-search-btn" (click)="navigateToDashboard()" title="Back to Guardian Dashboard">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+          <span>Dashboard</span>
+        </button>
+
+        @if (chatMessages().length > 0) {
+          <button type="button" class="clear-chat-btn" (click)="onNewChat()" title="Start a new chat session">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+            <span>New Chat</span>
+          </button>
+        }
+
+        <div class="status-badge">
+          <span class="badge-dot"></span>
+          <span>AI Engine Ready</span>
+        </div>
+      </div>
+    </div>
+  </header>
 
   <!-- ERROR BANNER -->
   @if (errorMessage()) {
-    <div class="pc-error-banner">
+    <div class="error-banner-row">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
         <circle cx="12" cy="12" r="10"></circle>
         <line x1="12" y1="8" x2="12" y2="12"></line>
@@ -23,150 +55,148 @@
     </div>
   }
 
-  <!-- EMPTY / START STATE -->
-  @if (!hasStartedConversation()) {
-    <div class="pc-empty-state">
-      <div class="pc-empty-icon">
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-        </svg>
-      </div>
-      <h1 class="pc-empty-title">{{ 'PARENT.CHAT.EMPTY_TITLE' | translate }}</h1>
-      <p class="pc-empty-subtitle">{{ 'PARENT.CHAT.EMPTY_SUBTITLE' | translate }}</p>
+  <!-- ================= CHAT CONTAINER ================= -->
+  <main class="chat-main-container" scrollReveal direction="bottom" [delay]="60">
 
-      <div class="pc-prompt-grid">
-        @for (item of suggestedPrompts; track item.label) {
-          <button type="button" class="pc-prompt-card" (click)="useSuggestedPrompt(item.prompt)">
-            <span class="pc-prompt-icon">
-              @switch (item.icon) {
-                @case ('trend') {
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
-                    <polyline points="17 6 23 6 23 12"></polyline>
+    <!-- EMPTY STATE / WELCOME SCREEN -->
+    @if (chatMessages().length === 0 && !isAiLoading()) {
+      <div class="chat-welcome-state" scrollReveal direction="bottom" [delay]="100">
+        <div class="welcome-hero-card">
+          <div class="logo-spinner-ring">
+            <div class="ring ring-outer"></div>
+            <div class="ring ring-inner"></div>
+            <img src="images/logo/app-icon/logo-icon-dark.png" alt="Koralytics AI" class="hero-logo-img" />
+          </div>
+
+          <h2 class="welcome-headline">How can I assist your child's football development today?</h2>
+          <p class="welcome-subtext">
+            Ask about performance trends, training suggestions, match analysis, position suitability, or football rules.
+          </p>
+
+          <div class="prompts-grid">
+            <span class="prompts-title">Suggested Parent Queries:</span>
+            <div class="prompts-chips">
+              @for (prompt of suggestedPrompts; track prompt) {
+                <button type="button" class="prompt-chip-btn" (click)="useSuggestedPrompt(prompt)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/>
                   </svg>
-                }
-                @case ('target') {
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="9"></circle>
-                    <circle cx="12" cy="12" r="5"></circle>
-                    <circle cx="12" cy="12" r="1"></circle>
-                  </svg>
-                }
-                @case ('book') {
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-                  </svg>
-                }
-                @case ('shield') {
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                  </svg>
-                }
-              }
-            </span>
-            <span class="pc-prompt-label">{{ item.label }}</span>
-          </button>
-        }
-      </div>
-    </div>
-  }
-  @else {
-
-    <!-- TRANSCRIPT -->
-    <div class="pc-transcript" #chatScrollContainer>
-      <div class="pc-transcript-inner">
-
-        @for (msg of messages(); track $index) {
-          <div class="pc-row" [class.pc-row-user]="msg.role === 'user'">
-            <div class="pc-row-avatar" [class.pc-avatar-ai]="msg.role === 'assistant'" [class.pc-avatar-user]="msg.role === 'user'">
-              @if (msg.role === 'assistant') {
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="11" width="18" height="10" rx="2"></rect>
-                  <circle cx="12" cy="5" r="2"></circle>
-                  <path d="M12 7v4"></path>
-                  <line x1="8" y1="16" x2="8.01" y2="16"></line>
-                  <line x1="16" y1="16" x2="16.01" y2="16"></line>
-                </svg>
-              } @else {
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="12" cy="7" r="4"></circle>
-                </svg>
-              }
-            </div>
-
-            <div class="pc-row-body">
-              <div class="pc-row-role">{{ msg.role === 'assistant' ? ('PARENT.CHAT.ROLE_ASSISTANT' | translate) : ('PARENT.CHAT.ROLE_YOU' | translate) }}</div>
-              <div class="pc-row-text" dir="auto">{{ msg.text }}</div>
-
-              @if (msg.meta) {
-                <div class="pc-row-meta">
-                  <span class="pc-meta-chip">
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <polyline points="12 6 12 12 16 14"></polyline>
-                    </svg>
-                    {{ msg.meta.responseTime }}s
-                  </span>
-                  @if (msg.meta.usedSQL) {
-                    <app-status-chip [label]="'PARENT.CHAT.META_DATA' | translate" type="success"></app-status-chip>
-                  }
-                  @if (msg.meta.usedRAG) {
-                    <app-status-chip [label]="'PARENT.CHAT.META_KNOWLEDGE' | translate" type="info"></app-status-chip>
-                  }
-                </div>
+                  <span>{{ prompt }}</span>
+                </button>
               }
             </div>
           </div>
+        </div>
+      </div>
+    }
+
+    <!-- CHAT MESSAGES FEED -->
+    @if (chatMessages().length > 0 || isAiLoading()) {
+      <div class="chat-feed-scroll" id="parentAiChatFeed" #chatScrollContainer>
+        
+        @for (msg of chatMessages(); track msg.id) {
+          <div class="chat-message-row" [class.is-user]="msg.sender === 'user'" [class.is-assistant]="msg.sender === 'assistant'">
+            
+            <!-- AVATAR -->
+            <div class="msg-avatar">
+              @if (msg.sender === 'assistant') {
+                <div class="brand-avatar-box">
+                  <img src="images/logo/app-icon/logo-icon-dark.png" alt="Koralytics AI Logo" />
+                </div>
+              } @else {
+                <div class="user-avatar-box">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                  </svg>
+                </div>
+              }
+            </div>
+
+            <!-- MESSAGE BUBBLE -->
+            <div class="msg-bubble-wrap">
+              <div class="msg-meta-bar">
+                <span class="msg-author">{{ msg.sender === 'assistant' ? 'Koralytics Parent AI' : 'Parent' }}</span>
+                <span class="msg-time">{{ msg.timestamp | date:'shortTime' }}</span>
+                @if (msg.meta?.usedSQL) {
+                  <span class="meta-tag tag-success">Live Stats</span>
+                }
+                @if (msg.meta?.usedRAG) {
+                  <span class="meta-tag tag-info">AI Knowledge</span>
+                }
+              </div>
+              <div class="msg-content" [innerHTML]="formatMessageText(msg.text)"></div>
+            </div>
+
+          </div>
         }
 
-        @if (isLoading()) {
-          <div class="pc-row">
-            <div class="pc-row-avatar pc-avatar-ai">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="11" width="18" height="10" rx="2"></rect>
-                <circle cx="12" cy="5" r="2"></circle>
-                <path d="M12 7v4"></path>
-              </svg>
+        <!-- BRAND ENHANCED LOADING STATE -->
+        @if (isAiLoading()) {
+          <div class="chat-message-row is-assistant is-loading-row">
+            <div class="msg-avatar">
+              <div class="brand-avatar-box pulsing">
+                <img src="images/logo/app-icon/logo-icon-dark.png" alt="Koralytics AI Logo" />
+              </div>
             </div>
-            <div class="pc-row-body">
-              <div class="pc-row-role">{{ 'PARENT.CHAT.ROLE_ASSISTANT' | translate }}</div>
-              <div class="pc-typing">
-                <span></span><span></span><span></span>
+
+            <div class="msg-bubble-wrap">
+              <div class="msg-meta-bar">
+                <span class="msg-author">Koralytics Parent AI</span>
+                <span class="msg-status-tag">Analyzing Data</span>
+              </div>
+              
+              <div class="msg-content ai-loading-content">
+                <div class="brand-loader-inline">
+                  <app-loading-spinner size="sm"></app-loading-spinner>
+                  <span class="loading-text">Analyzing family telemetry & performance data…</span>
+                </div>
               </div>
             </div>
           </div>
         }
 
       </div>
-    </div>
-  }
+    }
 
-  <!-- COMPOSER -->
-  <div class="pc-composer">
-    <div class="pc-composer-shell">
-      <textarea
-        #chatTextarea
-        class="pc-textarea"
-        rows="1"
-        [placeholder]="'PARENT.CHAT.COMPOSER_PLACEHOLDER' | translate"
-        [ngModel]="currentInput()"
-        (ngModelChange)="currentInput.set($event)"
-        (keydown)="onKeyDown($event)">
-      </textarea>
-      <app-button variant="cyan" (click)="sendMessage()" [loading]="isLoading()" class="pc-send-btn">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px; vertical-align: -2px;">
-          <line x1="22" y1="2" x2="11" y2="13"></line>
-          <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-        </svg>
-        {{ 'PARENT.CHAT.SEND' | translate }}
-      </app-button>
+    <!-- ================= INPUT CONTROL BAR ================= -->
+    <div class="chat-input-wrapper">
+      <div class="chat-input-bar">
+        <div class="input-icon-left" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/>
+          </svg>
+        </div>
+
+        <input
+          type="text"
+          class="chat-text-input"
+          placeholder="Ask Parent Support AI (e.g. How to improve passing accuracy at home?)…"
+          [ngModel]="nlQuery()"
+          (ngModelChange)="nlQuery.set($event)"
+          [disabled]="isAiLoading()"
+          (keydown.enter)="onSendQuery()"
+        />
+
+        <button
+          type="button"
+          class="send-btn"
+          [disabled]="isAiLoading() || !nlQuery().trim()"
+          (click)="onSendQuery()"
+          aria-label="Send message to Parent AI">
+          @if (isAiLoading()) {
+            <span class="send-spinner"></span>
+          } @else {
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m5 12h14M13 6l6 6-6 6"/>
+            </svg>
+          }
+        </button>
+      </div>
     </div>
-    <p class="pc-composer-hint">{{ 'PARENT.CHAT.COMPOSER_HINT' | translate }}</p>
-  </div>
+
+  </main>
 
 </div>
 </app-feature-lock>
 
-<app-footer></app-footer>
+<app-footer scrollReveal direction="bottom" [delay]="120"></app-footer>

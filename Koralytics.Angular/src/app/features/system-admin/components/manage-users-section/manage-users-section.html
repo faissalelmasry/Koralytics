@@ -175,7 +175,7 @@
         </div>
         <div>
           <h4>{{ 'SYSTEM_ADMIN.MANAGE_USERS.MODAL_ROLES_TITLE' | translate }}</h4>
-          <p class="modal-subtitle">{{ 'SYSTEM_ADMIN.MANAGE_USERS.MODAL_ROLES_SUBTITLE' | translate }} <strong style="color: #00e5ff;">{{ selectedUserForRoles.fullName || selectedUserForRoles.email }}</strong></p>
+          <p class="modal-subtitle">{{ 'SYSTEM_ADMIN.MANAGE_USERS.MODAL_ROLES_SUBTITLE' | translate }} <strong style="color: #00e5ff; word-break: break-all; overflow-wrap: anywhere;">{{ selectedUserForRoles.fullName || selectedUserForRoles.email }}</strong></p>
         </div>
       </div>
       <button class="btn-close-cyber" (click)="closeEditRolesModal()" title="Close Modal">&times;</button>

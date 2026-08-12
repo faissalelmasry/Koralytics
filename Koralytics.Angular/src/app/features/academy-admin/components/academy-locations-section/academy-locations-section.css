@@ -60,14 +60,17 @@
 
 .search-form {
   display: flex;
-  gap: 16px;
-  align-items: flex-end;
+  flex-direction: column;
+  gap: 14px;
   margin-bottom: 20px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.search-form app-text-input {
-  flex: 1;
-  max-width: 400px;
+.search-form app-text-input,
+.search-form app-select {
+  width: 100%;
+  max-width: 100%;
 }
 
 h4 {

@@ -451,11 +451,6 @@
               <h2>Participating Teams</h2>
               <p>Academies and squads registered for this tournament.</p>
             </div>
-            @if (isSystemAdmin) {
-              <button class="section-action-btn" type="button" (click)="goToSquadRegistration()">
-                Register Squad
-              </button>
-            }
           </div>
 
           <div class="teams-grid">
@@ -508,10 +503,16 @@
                   <div class="feature-index">01</div>
                   <div class="player-monogram">{{ getInitials(award.playerName) }}</div>
                   <div class="feature-copy">
-                    <span class="feature-label">{{ getAwardLabel(award.awardType) }}</span>
-                    <h3>{{ award.playerName }}</h3>
+                    <div class="marquee-parent">
+                      <span class="feature-label" appMarqueeIfOverflow [marqueeText]="getAwardLabel(award.awardType)">{{ getAwardLabel(award.awardType) }}</span>
+                    </div>
+                    <div class="marquee-parent">
+                      <h3 appMarqueeIfOverflow [marqueeText]="award.playerName">{{ award.playerName }}</h3>
+                    </div>
                     <p>{{ getAwardDescription(award.awardType) }}</p>
-                    <span class="feature-team">{{ award.teamName || 'Tournament participant' }}</span>
+                    <div class="marquee-parent">
+                      <span class="feature-team" appMarqueeIfOverflow [marqueeText]="award.teamName || 'Tournament participant'">{{ award.teamName || 'Tournament participant' }}</span>
+                    </div>
                   </div>
                   <div class="feature-trophy" aria-hidden="true">
                     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -537,13 +538,15 @@
                       <div class="award-identity">
                         <span class="award-number">0{{ index + 2 }}</span>
                         <span class="award-code">{{ getAwardCode(award.awardType) }}</span>
-                        <strong>{{ getAwardLabel(award.awardType) }}</strong>
+                        <div class="marquee-parent">
+                          <strong appMarqueeIfOverflow [marqueeText]="getAwardLabel(award.awardType)">{{ getAwardLabel(award.awardType) }}</strong>
+                        </div>
                       </div>
                       <div class="recipient">
                         <span class="recipient-avatar">{{ getInitials(award.playerName) }}</span>
-                        <div>
-                          <strong>{{ award.playerName }}</strong>
-                          <span>{{ award.teamName || 'Tournament participant' }}</span>
+                        <div class="recipient-info marquee-parent">
+                          <strong appMarqueeIfOverflow [marqueeText]="award.playerName">{{ award.playerName }}</strong>
+                          <span appMarqueeIfOverflow [marqueeText]="award.teamName || 'Tournament participant'">{{ award.teamName || 'Tournament participant' }}</span>
                         </div>
                       </div>
                       <p>{{ getAwardDescription(award.awardType) }}</p>
@@ -674,101 +677,6 @@
               </div>
             }
           </div>
-              <div class="ai-badge preview">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-                Pre-Tournament Preview
-              </div>
-              <span class="ai-powered-label">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-                AI-Powered Analysis
-              </span>
-            </div>
-
-            @if (tournament.status === 'Draft' || tournament.status === 'Registration') {
-              <div class="ai-preview-grid">
-                <div class="ai-card glass">
-                  <div class="ai-card-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                  </div>
-                  <h4>Team Strength Index</h4>
-                  <p>Analysis will be available once teams are registered and seeded.</p>
-                  <div class="ai-stat-row">
-                    <span class="ai-stat-label">Registered Teams</span>
-                    <span class="ai-stat-value">{{ participatingTeamCount }}</span>
-                  </div>
-                  <div class="ai-stat-row">
-                    <span class="ai-stat-label">Groups Formed</span>
-                    <span class="ai-stat-value">{{ groupCount }}</span>
-                  </div>
-                </div>
-
-                <div class="ai-card glass">
-                  <div class="ai-card-icon accent">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                  </div>
-                  <h4>Key Matchup Predictions</h4>
-                  <p>Potential group-stage clashes and knockout-round projections.</p>
-                  <div class="ai-placeholder-shimmer">
-                    <div class="shimmer-line w80"></div>
-                    <div class="shimmer-line w60"></div>
-                    <div class="shimmer-line w70"></div>
-                  </div>
-                  <span class="ai-chip pending">Awaiting draw generation</span>
-                </div>
-
-                <div class="ai-card glass">
-                  <div class="ai-card-icon success">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-                  </div>
-                  <h4>Form & Performance Outlook</h4>
-                  <p>Historical win rates, player form, and head-to-head records.</p>
-                  <div class="ai-placeholder-shimmer">
-                    <div class="shimmer-line w70"></div>
-                    <div class="shimmer-line w90"></div>
-                    <div class="shimmer-line w50"></div>
-                  </div>
-                  <span class="ai-chip pending">Processing historical data</span>
-                </div>
-              </div>
-            } @else {
-              <div class="ai-preview-grid">
-                <div class="ai-card glass live">
-                  <div class="ai-card-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                  </div>
-                  <h4>Team Strength Index</h4>
-                  <div class="ai-stat-row">
-                    <span class="ai-stat-label">Active Teams</span>
-                    <span class="ai-stat-value highlight">{{ participatingTeamCount }}</span>
-                  </div>
-                  <div class="ai-stat-row">
-                    <span class="ai-stat-label">Total Fixtures</span>
-                    <span class="ai-stat-value">{{ fixtureCount }}</span>
-                  </div>
-                  <div class="ai-stat-row">
-                    <span class="ai-stat-label">Groups / Rounds</span>
-                    <span class="ai-stat-value">{{ groupCount }} / {{ rounds.length }}</span>
-                  </div>
-                </div>
-
-                <div class="ai-card glass live">
-                  <div class="ai-card-icon accent">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                  </div>
-                  <h4>Competitive Balance</h4>
-                  <p class="ai-insight-text">The tournament shows strong competitive parity — no single team dominates the standings. Close matchups are expected in knockout rounds.</p>
-                  <span class="ai-chip success">Analysis complete</span>
-                </div>
-
-                <div class="ai-card glass live">
-                  <div class="ai-card-icon success">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-                  </div>
-                  <h4>Performance Outlook</h4>
-                  <p class="ai-insight-text">Based on current form, expect high-intensity matches in the upcoming rounds with several upsets predicted.</p>
-                </div>
-              </div>
-            }
 
           <div class="section-divider"></div>
 
@@ -794,8 +702,8 @@
                         <span class="kb-pill-dot"></span>
                         AI TACTICAL INTELLIGENCE
                       </div>
-                      <div style="display:flex; align-items:center; gap:12px;">
-                        <button class="simulate-btn" (click)="regenerateReport()" [disabled]="isRegenerating" style="padding: 6px 14px; font-size: 0.8rem;">
+                      <div class="kb-header-top-actions">
+                        <button class="simulate-btn" (click)="regenerateReport()" [disabled]="isRegenerating">
                           <span *ngIf="isRegenerating" class="btn-spinner"></span>
                           <span style="display: inline-flex; align-items: center; gap: 6px;">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
@@ -1051,10 +959,11 @@
                 <span class="ai-chip pending">Awaiting Completion</span>
               </div>
             }
+          </div>
         </div>
       }
-    </div>
-  }
+      </div>
+    }
 
     <!-- ================================================================
          MATCH STATS MODAL â€” Premium Redesign
@@ -1245,3 +1154,4 @@
         </div>
       </div>
     }
+</div>

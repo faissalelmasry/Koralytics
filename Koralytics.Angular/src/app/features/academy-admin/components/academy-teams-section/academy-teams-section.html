@@ -23,25 +23,25 @@
     <div class="search-panel">
       <h4>{{ 'ACADEMY_ADMIN.TEAMS_SECTION.CREATE_TEAM' | translate }}</h4>
       <form [formGroup]="teamForm" (ngSubmit)="onCreateTeam()" class="search-form"
-        style="display: flex; gap: 16px; align-items: flex-end; margin-top: 16px; flex-wrap: wrap;">
-        <div style="flex: 2; min-width: 200px;">
+        style="display: flex; flex-direction: column; gap: 14px; margin-top: 16px; width: 100%; box-sizing: border-box;">
+        <div style="width: 100%;">
           <app-text-input label="{{ 'ACADEMY_ADMIN.TEAMS_SECTION.LBL_TEAM_NAME' | translate }}" type="text" placeholder="{{ 'ACADEMY_ADMIN.TEAMS_SECTION.PH_TEAM_NAME' | translate }}" formControlName="name">
           </app-text-input>
         </div>
 
-        <div style="flex: 1; min-width: 200px;">
+        <div style="width: 100%;">
           <app-select label="{{ 'ACADEMY_ADMIN.TEAMS_SECTION.LBL_AGE_GROUP' | translate }}" placeholder="{{ 'ACADEMY_ADMIN.TEAMS_SECTION.PH_AGE_GROUP' | translate }}" [options]="ageGroupOptions"
             [value]="teamForm.value.ageGroupId" (valueChange)="teamForm.patchValue({ ageGroupId: $event })">
           </app-select>
         </div>
 
-        <div style="flex: 1; min-width: 200px;">
+        <div style="width: 100%;">
           <app-select label="{{ 'ACADEMY_ADMIN.TEAMS_SECTION.LBL_LOCATION' | translate }}" placeholder="{{ 'ACADEMY_ADMIN.TEAMS_SECTION.PH_LOCATION' | translate }}" [options]="locationOptions"
             [value]="teamForm.value.locationId" (valueChange)="teamForm.patchValue({ locationId: $event })">
           </app-select>
         </div>
 
-        <div class="form-actions">
+        <div class="form-actions" style="margin-top: 4px;">
           <app-button type="submit" variant="accent"
             [disabled]="teamForm.invalid || isAddingTeam || locations.length === 0 || ageGroups.length === 0">
             {{ isAddingTeam ? ('ACADEMY_ADMIN.TEAMS_SECTION.BTN_CREATING' | translate) : ('ACADEMY_ADMIN.TEAMS_SECTION.BTN_CREATE_TEAM' | translate) }}
@@ -143,23 +143,23 @@
     <div class="search-panel">
       <h4>{{ 'ACADEMY_ADMIN.TEAMS_SECTION.CREATE_AGE_GROUP' | translate }}</h4>
       <form [formGroup]="ageGroupForm" (ngSubmit)="onCreateAgeGroup()" class="search-form"
-        style="display: flex; gap: 16px; align-items: flex-end; margin-top: 16px; flex-wrap: wrap;">
-        <div style="flex: 2; min-width: 200px;">
+        style="display: flex; flex-direction: column; gap: 14px; margin-top: 16px; width: 100%; box-sizing: border-box;">
+        <div style="width: 100%;">
           <app-text-input formControlName="name" placeholder="{{ 'ACADEMY_ADMIN.TEAMS_SECTION.PH_GROUP_NAME' | translate }}" type="text" label="{{ 'ACADEMY_ADMIN.TEAMS_SECTION.LBL_GROUP_NAME' | translate }}">
           </app-text-input>
         </div>
 
-        <div style="flex: 1; min-width: 120px;">
+        <div style="width: 100%;">
           <app-text-input formControlName="minAge" type="number" label="{{ 'ACADEMY_ADMIN.TEAMS_SECTION.LBL_MIN_AGE' | translate }}">
           </app-text-input>
         </div>
 
-        <div style="flex: 1; min-width: 120px;">
+        <div style="width: 100%;">
           <app-text-input formControlName="maxAge" type="number" label="{{ 'ACADEMY_ADMIN.TEAMS_SECTION.LBL_MAX_AGE' | translate }}">
           </app-text-input>
         </div>
 
-        <div class="form-actions">
+        <div class="form-actions" style="margin-top: 4px;">
           <app-button type="submit" variant="accent" [disabled]="ageGroupForm.invalid || isAddingAgeGroup">
             {{ isAddingAgeGroup ? ('ACADEMY_ADMIN.TEAMS_SECTION.BTN_ADDING' | translate) : ('ACADEMY_ADMIN.TEAMS_SECTION.BTN_ADD_AGE_GROUP' | translate) }}
           </app-button>

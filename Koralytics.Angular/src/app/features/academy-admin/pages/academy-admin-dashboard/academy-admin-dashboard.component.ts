@@ -11,6 +11,7 @@ import { CustomInputComponent } from '../../../../../shared/components/custom-in
 import { CustomButtonComponent } from '../../../../../shared/components/custom-button/custom-button';
 import { AcademyMembersComponent } from '../../components/academy-members/academy-members.component';
 import { NavbarComponent } from '../../../../../shared/components/navbar/navbar';
+import { Footer } from '../../../../../shared/components/footer/footer';
 import { LoadingSpinnerComponent } from '../../../../../shared/components/loading-spinner/loading-spinner';
 
 import { AcademyBadgesSectionComponent } from '../../components/academy-badges-section/academy-badges-section';
@@ -39,6 +40,7 @@ import { LocalizedDatePipe } from '../../../../../shared/pipes/localized-date.pi
     CustomButtonComponent,
     AcademyMembersComponent,
     NavbarComponent,
+    Footer,
     AcademyBadgesSectionComponent,
     AcademyAdminsSectionComponent,
     AcademyCoachesSectionComponent,

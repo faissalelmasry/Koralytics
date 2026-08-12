@@ -24,6 +24,12 @@
     <!-- Highlights Link (Desktop) -->
     <a routerLink="/player/highlights" routerLinkActive="active" *ngIf="isPlayer">{{ 'NAVBAR.HIGHLIGHTS' | translate }}</a>
 
+    <!-- Parent Links (Desktop) -->
+    <ng-container *ngIf="isParent">
+      <a routerLink="/parent/chat" routerLinkActive="active">{{ 'NAVBAR.AI_BOT' | translate }}</a>
+      <a routerLink="/parent/subscriptions" routerLinkActive="active">{{ 'NAVBAR.SUBSCRIPTIONS' | translate }}</a>
+    </ng-container>
+
     <!-- Coach Links (Desktop) -->
     <ng-container *ngIf="isCoach">
       <a routerLink="/coach/squad" routerLinkActive="active">{{ 'NAVBAR.SQUAD' | translate }}</a>
@@ -145,6 +151,15 @@
         <span class="section-label">{{ 'NAVBAR.MEDIA' | translate }}</span>
         <a routerLink="/player/highlights" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.HIGHLIGHTS' | translate }}</a>
       </div>
+
+      <!-- Parent Section (Sidebar) -->
+      <ng-container *ngIf="isParent">
+        <div class="sidebar-section-title"
+          style="color: #00f2fe; margin-top: 16px; padding-left: 12px; font-family: 'Bebas Neue'; letter-spacing: 1px;">
+          {{ 'NAVBAR.PARENT_HUB' | translate }}</div>
+        <a routerLink="/parent/chat" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.AI_BOT' | translate }}</a>
+        <a routerLink="/parent/subscriptions" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.SUBSCRIPTIONS' | translate }}</a>
+      </ng-container>
 
       <!-- Coach Links (Sidebar Hub) -->
       <ng-container *ngIf="isCoach">
