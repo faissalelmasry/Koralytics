@@ -184,8 +184,8 @@ namespace Koralytics.Application.Services.Scouter.ScouterSearchService
 
             try
             {
-                var baseUrl = "https://koralytics-langflow.happymeadow-f8cd49ac.centralus.azurecontainerapps.io/";
-                var flowId = "bb77f971-eb7c-4e75-95fc-43064223a281";
+                var baseUrl = _configuration["Langflow:BaseUrl"];
+                var flowId = _configuration["Langflow:ScouterFlowId"];
                 var apiKey = _configuration["Langflow:ScouterApiKey"];
 
                 if (string.IsNullOrWhiteSpace(baseUrl))
