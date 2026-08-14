@@ -46,7 +46,7 @@ namespace Infrastructure.Services.Match
             string matchJsonString = JsonSerializer.Serialize(combinedDetails);
 
             var flowId = _configuration["Langflow:FlowId"];
-            var promptNodeId = _configuration["Langflow:PromptNodeId"] ?? "Prompt Template-8hQ9i";
+            var promptNodeId = _configuration["Langflow:PromptNodeId"];
 
             var requestPayload = new
             {
