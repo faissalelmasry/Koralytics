@@ -1480,8 +1480,8 @@ namespace Koralytics.Application.Services.Academy.AcademyService
 
             try
             {
-                var baseUrl = _configuration["Langflow:BaseUrl"] ?? "http://localhost:7860/";
-                var endpoint = _configuration["Langflow:AcademySearchEndpoint"] ?? "api/v1/run/AcademySearch?stream=false";
+                var baseUrl = _configuration["Langflow:BaseUrl"];
+                var endpoint = _configuration["Langflow:AcademySearchEndpoint"];
                 var apiKey = _configuration["Langflow:AcademyApiKey"];
 
                 _logger.LogInformation("Sending request to Academy Langflow AI ChatBot (AcademyId: {AcademyId})...", academyId);
