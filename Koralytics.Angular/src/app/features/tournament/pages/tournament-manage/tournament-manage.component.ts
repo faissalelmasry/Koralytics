@@ -16,6 +16,8 @@ import { CustomToggle } from '../../../../../shared/components/custom-toggle/cus
 import { StatusChipComponent } from '../../../../../shared/components/status-chip/status-chip';
 import { LoadingSpinnerComponent } from '../../../../../shared/components/loading-spinner/loading-spinner';
 import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { LocalizedDatePipe } from '../../../../../shared/pipes/localized-date.pipe';
 import { NotificationService } from '@core/services/SignalR/notificationservice';
 
 type ManagementAction = 'status' | 'invite' | 'seeding' | 'draw' | 'advance' | 'complete';
@@ -31,7 +33,9 @@ type ManagementAction = 'status' | 'invite' | 'seeding' | 'draw' | 'advance' | '
     CustomToggle,
     StatusChipComponent,
     LoadingSpinnerComponent,
-    ScrollRevealDirective
+    ScrollRevealDirective,
+    TranslatePipe,
+    LocalizedDatePipe
   ],
   templateUrl: './tournament-manage.component.html',
   styleUrls: ['./tournament-manage.component.css'],
@@ -47,6 +51,7 @@ export class TournamentManageComponent implements OnInit {
   private authService = inject(AuthService);
   private cdr = inject(ChangeDetectorRef);
   private notificationService = inject(NotificationService);
+  private translate = inject(TranslateService);
 
   tournamentForm!: FormGroup;
   tournamentId: number | null = null;
@@ -67,25 +72,31 @@ export class TournamentManageComponent implements OnInit {
   errorMessage = '';
   successMessage = '';
 
-  formatOptions = [
-    { value: MatchFormat.FiveSide, label: '5 vs 5' },
-    { value: MatchFormat.SevenSide, label: '7 vs 7' },
-    { value: MatchFormat.ElevenSide, label: '11 vs 11' }
-  ];
+  get formatOptions() {
+    return [
+      { value: MatchFormat.FiveSide, label: this.translate.instant('TOURNAMENT.FORMAT.FIVE_SIDE') },
+      { value: MatchFormat.SevenSide, label: this.translate.instant('TOURNAMENT.FORMAT.SEVEN_SIDE') },
+      { value: MatchFormat.ElevenSide, label: this.translate.instant('TOURNAMENT.FORMAT.ELEVEN_SIDE') }
+    ];
+  }
 
-  structureOptions = [
-    { value: TournamentStructure.Knockout, label: 'Knockout Stage Only' },
-    { value: TournamentStructure.GroupAndKnockout, label: 'Groups + Knockout' },
-    { value: TournamentStructure.League, label: 'League Format' }
-  ];
+  get structureOptions() {
+    return [
+      { value: TournamentStructure.Knockout, label: this.translate.instant('TOURNAMENT.STRUCTURE.KNOCKOUT') },
+      { value: TournamentStructure.GroupAndKnockout, label: this.translate.instant('TOURNAMENT.STRUCTURE.GROUP_AND_KNOCKOUT') },
+      { value: TournamentStructure.League, label: this.translate.instant('TOURNAMENT.STRUCTURE.LEAGUE') }
+    ];
+  }
 
-  statusOptions = [
-    { value: TournamentStatus.Draft, label: 'Draft' },
-    { value: TournamentStatus.Registration, label: 'Registration' },
-    { value: TournamentStatus.InProgress, label: 'In Progress' },
-    { value: TournamentStatus.Completed, label: 'Completed' },
-    { value: TournamentStatus.Cancelled, label: 'Cancelled' }
-  ];
+  get statusOptions() {
+    return [
+      { value: TournamentStatus.Draft, label: this.translate.instant('TOURNAMENT.STATUS.DRAFT') },
+      { value: TournamentStatus.Registration, label: this.translate.instant('TOURNAMENT.STATUS.REGISTRATION') },
+      { value: TournamentStatus.InProgress, label: this.translate.instant('TOURNAMENT.STATUS.IN_PROGRESS') },
+      { value: TournamentStatus.Completed, label: this.translate.instant('TOURNAMENT.STATUS.COMPLETED') },
+      { value: TournamentStatus.Cancelled, label: this.translate.instant('TOURNAMENT.STATUS.CANCELLED') }
+    ];
+  }
 
   ageGroupOptions: { value: number; label: string }[] = [];
 
@@ -200,13 +211,15 @@ export class TournamentManageComponent implements OnInit {
   }
 
   get pageTitle(): string {
-    return this.isEditMode ? 'Tournament Control Center' : 'Initialize Tournament';
+    return this.isEditMode 
+      ? this.translate.instant('TOURNAMENT.MANAGE.TITLE_EDIT') 
+      : this.translate.instant('TOURNAMENT.MANAGE.TITLE_CREATE');
   }
 
   get pageDescription(): string {
     return this.isEditMode
-      ? 'Run invitations, seeding, draw generation, progression, and status operations.'
-      : 'Configure the foundational rules, structure, and dates for your new championship.';
+      ? this.translate.instant('TOURNAMENT.MANAGE.DESC_EDIT')
+      : this.translate.instant('TOURNAMENT.MANAGE.DESC_CREATE');
   }
 
   get latestRound(): any | null {

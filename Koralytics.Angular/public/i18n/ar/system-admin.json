@@ -97,7 +97,22 @@
       "STATUS_INACTIVE_DESC": "تعطيل حساب الأكاديمية وإخفائه من الدليل العام.",
       "BTN_CANCEL": "إلغاء",
       "BTN_SAVING": "جاري التحديث...",
-      "BTN_SAVE": "حفظ التغييرات"
+      "BTN_SAVE": "حفظ التغييرات",
+      "MODAL_TIER_TAG": "إدارة الباقة",
+      "MODAL_TIER_TITLE": "تغيير باقة الاشتراك",
+      "MODAL_TIER_SUBTITLE": "تحديث باقة الاشتراك لـ",
+      "CURRENT_TIER": "الباقة الحالية:",
+      "STARTED": "البداية:",
+      "EXPIRES": "الانتهاء:",
+      "TIER_STARTER": "مبتدئ",
+      "TIER_STARTER_DESC": "موقع واحد، 50 لاعب، حد أقصى 7 قوالب",
+      "TIER_PRO": "محترف",
+      "TIER_PRO_DESC": "3 مواقع، 200 لاعب، تحليلات متقدمة",
+      "TIER_ELITE": "النخبة",
+      "TIER_ELITE_DESC": "غير محدود، تحليلات كاملة، رؤى الذكاء الاصطناعي",
+      "TIER_CANCELLED": "إلغاء الاشتراك",
+      "TIER_CANCELLED_DESC": "قفل وصول الأكاديمية فوراً وتحديد كغير مدفوع",
+      "TIER_FREE": "فترة تجريبية"
     },
     "ACADEMY_DETAILS": {
       "TAG": "دليل فحص الأكاديمية",

@@ -270,7 +270,7 @@
 <div class="modal-backdrop-cyber" *ngIf="showTierModal" (click)="closeTierModal()">
   <div class="cyber-modal-card status-modal fade-in" (click)="$event.stopPropagation()">
     <div class="tactical-tag">
-      <span>TIER MANAGEMENT</span>
+      <span>{{ 'SYSTEM_ADMIN.ACTIVE_ACADEMIES.MODAL_TIER_TAG' | translate }}</span>
     </div>
 
     <div class="modal-header-cyber">
@@ -282,14 +282,14 @@
           </svg>
         </div>
         <div>
-          <h4>Change Subscription Tier</h4>
+          <h4>{{ 'SYSTEM_ADMIN.ACTIVE_ACADEMIES.MODAL_TIER_TITLE' | translate }}</h4>
           <p class="modal-subtitle">
-            Update subscription tier for <strong style="color: #00e5ff;">{{ selectedAcademyForTier?.name }}</strong>
+            {{ 'SYSTEM_ADMIN.ACTIVE_ACADEMIES.MODAL_TIER_SUBTITLE' | translate }} <strong style="color: #00e5ff;">{{ selectedAcademyForTier?.name }}</strong>
           </p>
           <div style="font-size: 0.78rem; color: #94a3b8; margin-top: 4px; display: flex; gap: 12px; flex-wrap: wrap;">
-            <span>Current Tier: <strong style="color: #f8fafc;">{{ getTierLabel(selectedAcademyForTier?.tier) }}</strong></span>
-            <span *ngIf="selectedAcademyForTier?.subscriptionStartsAt">Started: <strong style="color: #f8fafc;">{{ selectedAcademyForTier?.subscriptionStartsAt | localizedDate:'mediumDate' }}</strong></span>
-            <span *ngIf="selectedAcademyForTier?.subscriptionExpiresAt">Expires: <strong style="color: #f8fafc;">{{ selectedAcademyForTier?.subscriptionExpiresAt | localizedDate:'mediumDate' }}</strong></span>
+            <span>{{ 'SYSTEM_ADMIN.ACTIVE_ACADEMIES.CURRENT_TIER' | translate }} <strong style="color: #f8fafc;">{{ 'SYSTEM_ADMIN.ACTIVE_ACADEMIES.TIER_' + (getTierLabel(selectedAcademyForTier?.tier) | uppercase) | translate }}</strong></span>
+            <span *ngIf="selectedAcademyForTier?.subscriptionStartsAt">{{ 'SYSTEM_ADMIN.ACTIVE_ACADEMIES.STARTED' | translate }} <strong style="color: #f8fafc;">{{ selectedAcademyForTier?.subscriptionStartsAt | localizedDate:'mediumDate' }}</strong></span>
+            <span *ngIf="selectedAcademyForTier?.subscriptionExpiresAt">{{ 'SYSTEM_ADMIN.ACTIVE_ACADEMIES.EXPIRES' | translate }} <strong style="color: #f8fafc;">{{ selectedAcademyForTier?.subscriptionExpiresAt | localizedDate:'mediumDate' }}</strong></span>
           </div>
         </div>
       </div>
@@ -310,8 +310,8 @@
             </svg>
           </div>
           <div class="status-card-content">
-            <h6>Starter</h6>
-            <p>1 Location, 50 Players, Max 7 Templates</p>
+            <h6>{{ 'SYSTEM_ADMIN.ACTIVE_ACADEMIES.TIER_STARTER' | translate }}</h6>
+            <p>{{ 'SYSTEM_ADMIN.ACTIVE_ACADEMIES.TIER_STARTER_DESC' | translate }}</p>
           </div>
         </div>
 
@@ -327,8 +327,8 @@
             </svg>
           </div>
           <div class="status-card-content">
-            <h6>Pro</h6>
-            <p>3 Locations, 200 Players, Advanced Analytics</p>
+            <h6>{{ 'SYSTEM_ADMIN.ACTIVE_ACADEMIES.TIER_PRO' | translate }}</h6>
+            <p>{{ 'SYSTEM_ADMIN.ACTIVE_ACADEMIES.TIER_PRO_DESC' | translate }}</p>
           </div>
         </div>
 
@@ -344,8 +344,8 @@
             </svg>
           </div>
           <div class="status-card-content">
-            <h6>Elite</h6>
-            <p>Unlimited, Full Analytics, AI Insights</p>
+            <h6>{{ 'SYSTEM_ADMIN.ACTIVE_ACADEMIES.TIER_ELITE' | translate }}</h6>
+            <p>{{ 'SYSTEM_ADMIN.ACTIVE_ACADEMIES.TIER_ELITE_DESC' | translate }}</p>
           </div>
         </div>
 
@@ -364,8 +364,8 @@
             </svg>
           </div>
           <div class="status-card-content">
-            <h6 style="color: #ef4444;">Cancel Subscription</h6>
-            <p>Lock academy access immediately & mark as Unpaid</p>
+            <h6 style="color: #ef4444;">{{ 'SYSTEM_ADMIN.ACTIVE_ACADEMIES.TIER_CANCELLED' | translate }}</h6>
+            <p>{{ 'SYSTEM_ADMIN.ACTIVE_ACADEMIES.TIER_CANCELLED_DESC' | translate }}</p>
           </div>
         </div>
       </div>

@@ -73,11 +73,13 @@ export class AcademyTournamentsComponent implements OnInit {
   currentPage = 1;
   pageSize = 6;
 
-  statusOptions = [
-    { value: '', label: 'All Status' },
-    { value: 'Invited', label: 'Invited' },
-    { value: 'Accepted', label: 'Accepted' }
-  ];
+  get statusOptions() {
+    return [
+      { value: '', label: this.translate.instant('TOURNAMENT.ACADEMY_TOURNAMENTS.STATUS_ALL') },
+      { value: 'Invited', label: this.translate.instant('TOURNAMENT.ACADEMY_TOURNAMENTS.STATUS_INVITED') },
+      { value: 'Accepted', label: this.translate.instant('TOURNAMENT.ACADEMY_TOURNAMENTS.STATUS_ACCEPTED') }
+    ];
+  }
 
   ngOnInit() {
     const user = this.tokenStorage.getUser();
@@ -226,7 +228,7 @@ export class AcademyTournamentsComponent implements OnInit {
       },
       error: () => {
         this.isLoadingModalTeams = false;
-        this.modalError = 'Unable to load academy teams. Please try again.';
+        this.modalError = this.translate.instant('TOURNAMENT.ACADEMY_TOURNAMENTS.ERROR_LOAD_TEAMS');
         this.cdr.markForCheck();
       }
     });
@@ -255,15 +257,16 @@ export class AcademyTournamentsComponent implements OnInit {
         invite.teamName = newTeamName;
 
         this.acceptingIds.delete(invite.tournamentTeamId);
-        this.toast.show(`Invitation accepted with ${newTeamName}!`, 'success');
+        this.toast.show(this.translate.instant('TOURNAMENT.ACADEMY_TOURNAMENTS.TOAST_ACCEPTED', { teamName: newTeamName }), 'success');
         this.closeTeamModal();
         this.applyFilters();
         this.cdr.markForCheck();
       },
       error: (err: any) => {
         this.acceptingIds.delete(invite.tournamentTeamId);
-        const errMsg = err?.error?.message || err?.error || 'Unable to accept invitation. Please try again.';
-        this.modalError = typeof errMsg === 'string' ? errMsg : 'Unable to accept invitation.';
+        const fallbackErr = this.translate.instant('TOURNAMENT.ACADEMY_TOURNAMENTS.ERROR_ACCEPT');
+        const errMsg = err?.error?.message || err?.error || fallbackErr;
+        this.modalError = typeof errMsg === 'string' ? errMsg : fallbackErr;
         this.toast.show(this.modalError, 'error');
         this.cdr.markForCheck();
       }

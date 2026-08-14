@@ -97,7 +97,22 @@
       "STATUS_INACTIVE_DESC": "Deactivate this academy account and hide its public directory listing.",
       "BTN_CANCEL": "CANCEL",
       "BTN_SAVING": "UPDATING STATUS...",
-      "BTN_SAVE": "SAVE CHANGES"
+      "BTN_SAVE": "SAVE CHANGES",
+      "MODAL_TIER_TAG": "TIER MANAGEMENT",
+      "MODAL_TIER_TITLE": "Change Subscription Tier",
+      "MODAL_TIER_SUBTITLE": "Update subscription tier for",
+      "CURRENT_TIER": "Current Tier:",
+      "STARTED": "Started:",
+      "EXPIRES": "Expires:",
+      "TIER_STARTER": "Starter",
+      "TIER_STARTER_DESC": "1 Location, 50 Players, Max 7 Templates",
+      "TIER_PRO": "Pro",
+      "TIER_PRO_DESC": "3 Locations, 200 Players, Advanced Analytics",
+      "TIER_ELITE": "Elite",
+      "TIER_ELITE_DESC": "Unlimited, Full Analytics, AI Insights",
+      "TIER_CANCELLED": "Cancel Subscription",
+      "TIER_CANCELLED_DESC": "Lock academy access immediately & mark as Unpaid",
+      "TIER_FREE": "Free Trial"
     },
     "ACADEMY_DETAILS": {
       "TAG": "Academy Inspection Directory",
