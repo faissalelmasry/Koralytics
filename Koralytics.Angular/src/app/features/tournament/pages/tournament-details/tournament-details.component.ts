@@ -17,8 +17,9 @@ import { catchError } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 import { NotificationService } from '@core/services/SignalR/notificationservice';
 import { AuthService } from '../../../../../core/services/auth/auth.service';
-
 import { MarqueeIfOverflowDirective } from '../../../match/match-timeline/marquee-if-overflow.directive';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { LocalizedDatePipe } from '../../../../../shared/pipes/localized-date.pipe';
 
 @Component({
   selector: 'app-tournament-details',
@@ -32,7 +33,9 @@ import { MarqueeIfOverflowDirective } from '../../../match/match-timeline/marque
     SearchBarComponent,
     LoadingSpinnerComponent,
     ScrollRevealDirective,
-    MarqueeIfOverflowDirective
+    MarqueeIfOverflowDirective,
+    TranslatePipe,
+    LocalizedDatePipe
   ],
   templateUrl: './tournament-details.component.html',
   styleUrls: [
@@ -53,6 +56,7 @@ export class TournamentDetailsComponent implements OnInit, OnDestroy {
   private announcementSub?: Subscription;
   private notificationService = inject(NotificationService);
   private authService = inject(AuthService);
+  private translate = inject(TranslateService);
 
   isSystemAdmin = false;
   tournamentId!: number;
@@ -117,14 +121,16 @@ export class TournamentDetailsComponent implements OnInit, OnDestroy {
 
   // Tabs state
   activeTab: 'overview' | 'bracket' | 'fixtures' | 'teams' | 'hallOfFame' | 'aiInsights' = 'overview';
-  tabs = [
-    { id: 'overview', label: 'Overview & Standings', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
-    { id: 'bracket', label: 'Knockout Stage', icon: 'M13 10V3L4 14h7v7l9-11h-7z' },
-    { id: 'fixtures', label: 'Fixtures & Results', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2' },
-    { id: 'teams', label: 'Participating Teams', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z' },
-    { id: 'hallOfFame', label: 'Hall of Fame', icon: 'M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4zM5 6H3a2 2 0 0 0 0 4h2M19 6h2a2 2 0 0 1 0 4h-2' },
-    { id: 'aiInsights', label: 'AI Intelligence', icon: 'M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8zM12 6a6 6 0 1 0 6 6 6 6 0 0 0-6-6z' }
-  ];
+  get tabs() {
+    return [
+      { id: 'overview', label: this.translate.instant('TOURNAMENT.DETAILS.TABS.OVERVIEW'), icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
+      { id: 'bracket', label: this.translate.instant('TOURNAMENT.DETAILS.TABS.BRACKET'), icon: 'M13 10V3L4 14h7v7l9-11h-7z' },
+      { id: 'fixtures', label: this.translate.instant('TOURNAMENT.DETAILS.TABS.FIXTURES'), icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2' },
+      { id: 'teams', label: this.translate.instant('TOURNAMENT.DETAILS.TABS.TEAMS'), icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z' },
+      { id: 'hallOfFame', label: this.translate.instant('TOURNAMENT.DETAILS.TABS.HALL_OF_FAME'), icon: 'M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4zM5 6H3a2 2 0 0 0 0 4h2M19 6h2a2 2 0 0 1 0 4h-2' },
+      { id: 'aiInsights', label: this.translate.instant('TOURNAMENT.DETAILS.TABS.AI_INSIGHTS'), icon: 'M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8zM12 6a6 6 0 1 0 6 6 6 6 0 0 0-6-6z' }
+    ];
+  }
 
   get groupCount(): number {
     return this.groups.length;
@@ -504,50 +510,52 @@ export class TournamentDetailsComponent implements OnInit, OnDestroy {
 
   getFormatLabel(format: MatchFormat): string {
     switch (format) {
-      case MatchFormat.FiveSide: return '5 vs 5';
-      case MatchFormat.SevenSide: return '7 vs 7';
-      case MatchFormat.ElevenSide: return '11 vs 11';
+      case MatchFormat.FiveSide: return this.translate.instant('TOURNAMENT.FORMAT.FIVE_SIDE');
+      case MatchFormat.SevenSide: return this.translate.instant('TOURNAMENT.FORMAT.SEVEN_SIDE');
+      case MatchFormat.ElevenSide: return this.translate.instant('TOURNAMENT.FORMAT.ELEVEN_SIDE');
       default: return format || '';
     }
   }
 
   getStructureLabel(structure: TournamentStructure): string {
     switch (structure) {
-      case TournamentStructure.GroupAndKnockout: return 'Group & Knockout';
+      case TournamentStructure.GroupAndKnockout: return this.translate.instant('TOURNAMENT.STRUCTURE.GROUP_AND_KNOCKOUT');
+      case TournamentStructure.Knockout: return this.translate.instant('TOURNAMENT.STRUCTURE.KNOCKOUT');
+      case TournamentStructure.League: return this.translate.instant('TOURNAMENT.STRUCTURE.LEAGUE');
       default: return structure || '';
     }
   }
 
   getAwardLabel(awardType: string): string {
     switch (awardType) {
-      case 'TopScorer': return 'Top Scorer';
-      case 'MostAssists': return 'Most Assists';
-      case 'MostMOTM': return 'Most Player of the Match';
-      case 'BestGoalkeeper': return 'Best Goalkeeper';
-      case 'BestPlayer': return 'Player of the Tournament';
+      case 'TopScorer': return this.translate.instant('TOURNAMENT.AWARD.TOP_SCORER');
+      case 'MostAssists': return this.translate.instant('TOURNAMENT.AWARD.MOST_ASSISTS');
+      case 'MostMOTM': return this.translate.instant('TOURNAMENT.AWARD.MOST_MOTM');
+      case 'BestGoalkeeper': return this.translate.instant('TOURNAMENT.AWARD.BEST_GOALKEEPER');
+      case 'BestPlayer': return this.translate.instant('TOURNAMENT.AWARD.BEST_PLAYER');
       default: return awardType;
     }
   }
 
   getAwardDescription(awardType: string): string {
     switch (awardType) {
-      case 'TopScorer': return 'Highest goal contribution across tournament matches.';
-      case 'MostAssists': return 'Most creative provider across the competition.';
-      case 'MostMOTM': return 'Most match-winning individual performances.';
-      case 'BestGoalkeeper': return 'Top goalkeeper by rating and minutes played.';
-      case 'BestPlayer': return 'Best overall tournament performance.';
+      case 'TopScorer': return this.translate.instant('TOURNAMENT.AWARD.TOP_SCORER_DESC');
+      case 'MostAssists': return this.translate.instant('TOURNAMENT.AWARD.MOST_ASSISTS_DESC');
+      case 'MostMOTM': return this.translate.instant('TOURNAMENT.AWARD.MOST_MOTM_DESC');
+      case 'BestGoalkeeper': return this.translate.instant('TOURNAMENT.AWARD.BEST_GOALKEEPER_DESC');
+      case 'BestPlayer': return this.translate.instant('TOURNAMENT.AWARD.BEST_PLAYER_DESC');
       default: return 'Tournament award winner.';
     }
   }
 
   getAwardCode(awardType: string): string {
     switch (awardType) {
-      case 'TopScorer': return 'GS';
-      case 'MostAssists': return 'AS';
-      case 'MostMOTM': return 'MP';
-      case 'BestGoalkeeper': return 'GK';
-      case 'BestPlayer': return 'PT';
-      default: return 'AW';
+      case 'TopScorer': return this.translate.instant('TOURNAMENT.AWARD.CODE_GS');
+      case 'MostAssists': return this.translate.instant('TOURNAMENT.AWARD.CODE_AS');
+      case 'MostMOTM': return this.translate.instant('TOURNAMENT.AWARD.CODE_MP');
+      case 'BestGoalkeeper': return this.translate.instant('TOURNAMENT.AWARD.CODE_GK');
+      case 'BestPlayer': return this.translate.instant('TOURNAMENT.AWARD.CODE_PT');
+      default: return this.translate.instant('TOURNAMENT.AWARD.CODE_AW');
     }
   }
 

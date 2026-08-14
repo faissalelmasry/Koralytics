@@ -13,6 +13,8 @@ import { StatusChipComponent } from '../../../../../shared/components/status-chi
 import { Pagination } from '../../../../../shared/components/pagination/pagination';
 import { LoadingSpinnerComponent } from '../../../../../shared/components/loading-spinner/loading-spinner';
 import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { LocalizedDatePipe } from '../../../../../shared/pipes/localized-date.pipe';
 
 import { AuthService } from '../../../../../core/services/auth/auth.service';
 
@@ -30,7 +32,9 @@ import { AuthService } from '../../../../../core/services/auth/auth.service';
     StatusChipComponent,
     Pagination,
     LoadingSpinnerComponent,
-    ScrollRevealDirective
+    ScrollRevealDirective,
+    TranslatePipe,
+    LocalizedDatePipe
   ],
   templateUrl: './tournament-list.component.html',
   styleUrls: ['./tournament-list.component.css'],
@@ -41,6 +45,7 @@ export class TournamentListComponent implements OnInit {
   private authService = inject(AuthService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
+  private translate = inject(TranslateService);
 
   isSystemAdmin = false;
   tournaments: Tournament[] = [];
@@ -58,27 +63,33 @@ export class TournamentListComponent implements OnInit {
   currentPage = 1;
   pageSize = 6;
 
-  formatOptions = [
-    { value: '', label: 'all formats' },
-    { value: 'FiveSide', label: '5 vs 5' },
-    { value: 'SevenSide', label: '7 vs 7' },
-    { value: 'ElevenSide', label: '11 vs 11' }
-  ];
+  get formatOptions() {
+    return [
+      { value: '', label: this.translate.instant('TOURNAMENT.LIST.FILTERS.ALL_FORMATS') },
+      { value: 'FiveSide', label: this.translate.instant('TOURNAMENT.FORMAT.FIVE_SIDE') },
+      { value: 'SevenSide', label: this.translate.instant('TOURNAMENT.FORMAT.SEVEN_SIDE') },
+      { value: 'ElevenSide', label: this.translate.instant('TOURNAMENT.FORMAT.ELEVEN_SIDE') }
+    ];
+  }
 
-  structureOptions = [
-    { value: '', label: 'all structures' },
-    { value: 'Knockout', label: 'Knockout' },
-    { value: 'GroupAndKnockout', label: 'Group & Knockout' },
-    { value: 'League', label: 'League' }
-  ];
+  get structureOptions() {
+    return [
+      { value: '', label: this.translate.instant('TOURNAMENT.LIST.FILTERS.ALL_STATUSES') }, // Can reuse or need specific 'all structures' if we had one
+      { value: 'Knockout', label: this.translate.instant('TOURNAMENT.STRUCTURE.KNOCKOUT') },
+      { value: 'GroupAndKnockout', label: this.translate.instant('TOURNAMENT.STRUCTURE.GROUP_AND_KNOCKOUT') },
+      { value: 'League', label: this.translate.instant('TOURNAMENT.STRUCTURE.LEAGUE') }
+    ];
+  }
 
-  statusOptions = [
-    { value: '', label: 'all status' },
-    { value: 'Draft', label: 'Draft' },
-    { value: 'Registration', label: 'Registration' },
-    { value: 'InProgress', label: 'In Progress' },
-    { value: 'Completed', label: 'Completed' }
-  ];
+  get statusOptions() {
+    return [
+      { value: '', label: this.translate.instant('TOURNAMENT.LIST.FILTERS.ALL_STATUSES') },
+      { value: 'Draft', label: this.translate.instant('TOURNAMENT.STATUS.DRAFT') },
+      { value: 'Registration', label: this.translate.instant('TOURNAMENT.STATUS.REGISTRATION') },
+      { value: 'InProgress', label: this.translate.instant('TOURNAMENT.STATUS.IN_PROGRESS') },
+      { value: 'Completed', label: this.translate.instant('TOURNAMENT.STATUS.COMPLETED') }
+    ];
+  }
 
   ngOnInit() {
     this.authService.currentUser$.subscribe(user => {
@@ -201,16 +212,18 @@ export class TournamentListComponent implements OnInit {
 
   getFormatLabel(format: MatchFormat): string {
     switch (format) {
-      case MatchFormat.FiveSide: return '5 vs 5';
-      case MatchFormat.SevenSide: return '7 vs 7';
-      case MatchFormat.ElevenSide: return '11 vs 11';
+      case MatchFormat.FiveSide: return this.translate.instant('TOURNAMENT.FORMAT.FIVE_SIDE');
+      case MatchFormat.SevenSide: return this.translate.instant('TOURNAMENT.FORMAT.SEVEN_SIDE');
+      case MatchFormat.ElevenSide: return this.translate.instant('TOURNAMENT.FORMAT.ELEVEN_SIDE');
       default: return format;
     }
   }
 
   getStructureLabel(structure: TournamentStructure): string {
     switch (structure) {
-      case TournamentStructure.GroupAndKnockout: return 'Group & Knockout';
+      case TournamentStructure.GroupAndKnockout: return this.translate.instant('TOURNAMENT.STRUCTURE.GROUP_AND_KNOCKOUT');
+      case TournamentStructure.Knockout: return this.translate.instant('TOURNAMENT.STRUCTURE.KNOCKOUT');
+      case TournamentStructure.League: return this.translate.instant('TOURNAMENT.STRUCTURE.LEAGUE');
       default: return structure;
     }
   }

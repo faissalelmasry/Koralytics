@@ -3,27 +3,27 @@
 <div class="academy-tournaments-page">
   <header class="workspace-header" scrollReveal direction="bottom">
     <div>
-      <span class="eyebrow">Academy Hub</span>
-      <h1>My Tournaments</h1>
-      <p>View and manage your academy's tournament invitations, accept new ones, and register squads.</p>
+      <span class="eyebrow">{{ 'TOURNAMENT.ACADEMY_TOURNAMENTS.EYEBROW' | translate }}</span>
+      <h1>{{ 'TOURNAMENT.ACADEMY_TOURNAMENTS.TITLE' | translate }}</h1>
+      <p>{{ 'TOURNAMENT.ACADEMY_TOURNAMENTS.SUBTITLE' | translate }}</p>
     </div>
   </header>
 
   <section class="kpi-strip" scrollReveal direction="bottom" [delay]="80">
     <div class="kpi-card">
-      <span>Tournaments</span>
+      <span>{{ 'TOURNAMENT.ACADEMY_TOURNAMENTS.KPI_TOURNAMENTS' | translate }}</span>
       <strong>{{ uniqueTournamentCount }}</strong>
     </div>
     <div class="kpi-card">
-      <span>Total Teams</span>
+      <span>{{ 'TOURNAMENT.ACADEMY_TOURNAMENTS.KPI_TOTAL_TEAMS' | translate }}</span>
       <strong>{{ totalCount }}</strong>
     </div>
     <div class="kpi-card">
-      <span>Pending</span>
+      <span>{{ 'TOURNAMENT.ACADEMY_TOURNAMENTS.KPI_PENDING' | translate }}</span>
       <strong>{{ invitedCount }}</strong>
     </div>
     <div class="kpi-card">
-      <span>Accepted</span>
+      <span>{{ 'TOURNAMENT.ACADEMY_TOURNAMENTS.KPI_ACCEPTED' | translate }}</span>
       <strong>{{ acceptedCount }}</strong>
     </div>
   </section>
@@ -31,7 +31,7 @@
   <section class="toolbar" scrollReveal direction="bottom" [delay]="120">
     <div class="search-box">
       <app-search-bar
-        placeholderText="Search tournaments or teams"
+        [placeholderText]="'TOURNAMENT.ACADEMY_TOURNAMENTS.SEARCH_PLACEHOLDER' | translate"
         (searchChange)="onSearchChange($event)">
       </app-search-bar>
     </div>
@@ -49,10 +49,10 @@
   </section>
 
   <div class="results-line" scrollReveal direction="bottom" [delay]="140">
-    <span><strong>{{ filteredInvitations.length }}</strong> entries found</span>
+    <span><strong>{{ filteredInvitations.length }}</strong> {{ 'TOURNAMENT.ACADEMY_TOURNAMENTS.ENTRIES_FOUND' | translate }}</span>
     @if (hasActiveFilters()) {
       <button class="clear-filters-btn" type="button" (click)="clearFilters()">
-        Clear filters
+        {{ 'TOURNAMENT.ACADEMY_TOURNAMENTS.CLEAR_FILTERS' | translate }}
       </button>
     }
   </div>
@@ -68,10 +68,10 @@
   @if (!isLoading && paginatedInvitations.length > 0) {
     <section class="table-surface" scrollReveal direction="bottom" [delay]="160">
       <div class="table-header">
-        <span>Tournament</span>
-        <span>Team</span>
-        <span>Status</span>
-        <span>Actions</span>
+        <span>{{ 'TOURNAMENT.ACADEMY_TOURNAMENTS.TABLE_TOURNAMENT' | translate }}</span>
+        <span>{{ 'TOURNAMENT.ACADEMY_TOURNAMENTS.TABLE_TEAM' | translate }}</span>
+        <span>{{ 'TOURNAMENT.ACADEMY_TOURNAMENTS.TABLE_STATUS' | translate }}</span>
+        <span>{{ 'TOURNAMENT.ACADEMY_TOURNAMENTS.TABLE_ACTIONS' | translate }}</span>
       </div>
 
       @for (item of paginatedInvitations; track item.tournamentTeamId) {
@@ -85,7 +85,7 @@
           </span>
 
           <span>
-            <app-status-chip [label]="item.status" [type]="getChipType(item.status)"></app-status-chip>
+            <app-status-chip [label]="'TOURNAMENT.TEAM_STATUS.' + (item.status | uppercase) | translate" [type]="getChipType(item.status)"></app-status-chip>
           </span>
 
           <span class="actions-cell" (click)="$event.stopPropagation()">
@@ -100,7 +100,7 @@
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
-                  Accept
+                  {{ 'TOURNAMENT.ACADEMY_TOURNAMENTS.BTN_ACCEPT' | translate }}
                 }
               </button>
             }
@@ -114,7 +114,7 @@
                   <line x1="19" y1="8" x2="19" y2="14"></line>
                   <line x1="22" y1="11" x2="16" y2="11"></line>
                 </svg>
-                Register Squad
+                {{ 'TOURNAMENT.ACADEMY_TOURNAMENTS.BTN_REGISTER_SQUAD' | translate }}
               </button>
             }
           </span>
@@ -141,8 +141,8 @@
   @if (!isLoading && !academyId) {
     <div class="empty-state-wrap" scrollReveal direction="bottom" [delay]="150">
       <app-empty-state
-        title="No Academy Found"
-        description="You don't have an academy associated with your account yet.">
+        [title]="'TOURNAMENT.ACADEMY_TOURNAMENTS.NO_ACADEMY' | translate"
+        [description]="'TOURNAMENT.ACADEMY_TOURNAMENTS.NO_ACADEMY_DESC' | translate">
       </app-empty-state>
     </div>
   }
@@ -150,9 +150,9 @@
   @if (!isLoading && academyId && paginatedInvitations.length === 0) {
     <div class="empty-state-wrap" scrollReveal direction="bottom" [delay]="150">
       <app-empty-state
-        title="No tournaments found"
-        [description]="hasActiveFilters() ? 'No tournaments match your current filters.' : 'Your academy has not been invited to any tournaments yet.'"
-        [actionText]="hasActiveFilters() ? 'Reset filters' : ''"
+        [title]="'TOURNAMENT.ACADEMY_TOURNAMENTS.NO_TOURNAMENTS' | translate"
+        [description]="hasActiveFilters() ? ('TOURNAMENT.ACADEMY_TOURNAMENTS.NO_TOURNAMENTS_FILTER_DESC' | translate) : ('TOURNAMENT.ACADEMY_TOURNAMENTS.NO_TOURNAMENTS_DESC' | translate)"
+        [actionText]="hasActiveFilters() ? ('TOURNAMENT.ACADEMY_TOURNAMENTS.RESET_FILTERS' | translate) : ''"
         (actionClick)="clearFilters(); loadInvitations()">
       </app-empty-state>
     </div>
@@ -164,9 +164,9 @@
       <div class="modal-card" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <div>
-            <span class="modal-eyebrow">Accept Invitation</span>
-            <h2>Select Participating Team</h2>
-            <p>Choose which squad from your academy will enter <strong>{{ selectedInvite?.tournamentName }}</strong>. Once accepted, the team assignment is locked.</p>
+            <span class="modal-eyebrow">{{ 'TOURNAMENT.ACADEMY_TOURNAMENTS.MODAL_EYEBROW' | translate }}</span>
+            <h2>{{ 'TOURNAMENT.ACADEMY_TOURNAMENTS.MODAL_TITLE' | translate }}</h2>
+            <p>{{ 'TOURNAMENT.ACADEMY_TOURNAMENTS.MODAL_DESC' | translate }} <strong>{{ selectedInvite?.tournamentName }}</strong>. {{ 'TOURNAMENT.ACADEMY_TOURNAMENTS.MODAL_DESC_SUFFIX' | translate }}</p>
           </div>
           <button class="close-btn" type="button" (click)="closeTeamModal()" aria-label="Close">
             &times;
@@ -176,14 +176,14 @@
         <div class="modal-body">
           @if (isLoadingModalTeams) {
             <div class="modal-loading">
-              <span class="spinner"></span> Loading eligible teams...
+              <span class="spinner"></span> {{ 'TOURNAMENT.ACADEMY_TOURNAMENTS.MODAL_LOADING' | translate }}
             </div>
           } @else if (modalError) {
             <div class="modal-error-banner">{{ modalError }}</div>
           } @else {
             @if (modalTeams.length === 0) {
               <div class="no-teams-notice">
-                No eligible teams found for this tournament's age group in your academy.
+                {{ 'TOURNAMENT.ACADEMY_TOURNAMENTS.MODAL_NO_TEAMS' | translate }}
               </div>
             } @else {
               <div class="teams-radio-list">
@@ -201,7 +201,7 @@
                     <div class="team-option-info">
                       <strong>{{ team.name }}</strong>
                       <span class="team-option-meta">
-                        {{ team.ageGroupName || 'Age Group' }} &bull; {{ team.locationName || 'Main Facility' }}
+                        {{ team.ageGroupName || ('TOURNAMENT.ACADEMY_TOURNAMENTS.AGE_GROUP' | translate) }} &bull; {{ team.locationName || ('TOURNAMENT.ACADEMY_TOURNAMENTS.MAIN_FACILITY' | translate) }}
                       </span>
                     </div>
                     @if (selectedTeamId === team.id) {
@@ -215,16 +215,16 @@
         </div>
 
         <div class="modal-footer">
-          <button class="modal-btn secondary" type="button" (click)="closeTeamModal()">Cancel</button>
+          <button class="modal-btn secondary" type="button" (click)="closeTeamModal()">{{ 'TOURNAMENT.ACADEMY_TOURNAMENTS.BTN_CANCEL' | translate }}</button>
           <button 
             class="modal-btn primary" 
             type="button" 
             (click)="confirmAcceptInvitation()"
             [disabled]="isLoadingModalTeams || !selectedTeamId || isAccepting(selectedInvite?.tournamentTeamId)">
             @if (isAccepting(selectedInvite?.tournamentTeamId)) {
-              <span class="spinner"></span> Accepting...
+              <span class="spinner"></span> {{ 'TOURNAMENT.ACADEMY_TOURNAMENTS.BTN_ACCEPTING' | translate }}
             } @else {
-              Confirm & Accept Invitation
+              {{ 'TOURNAMENT.ACADEMY_TOURNAMENTS.BTN_CONFIRM' | translate }}
             }
           </button>
         </div>

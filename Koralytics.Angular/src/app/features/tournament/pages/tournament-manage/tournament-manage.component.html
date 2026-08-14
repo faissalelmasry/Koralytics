@@ -8,7 +8,7 @@
     </button>
     }
     <div class="title-block">
-      <span class="eyebrow">{{ isEditMode ? 'Tournament Control Center' : 'Tournament Setup' }}</span>
+      <span class="eyebrow">{{ pageTitle }}</span>
       <h1>{{ pageTitle }}</h1>
       <p>{{ pageDescription }}</p>
     </div>
@@ -23,22 +23,22 @@
           <div class="rail-step active">
             <span>1</span>
             <div>
-              <strong>Competition profile</strong>
-              <p>Name, age group, and format.</p>
+              <strong>{{ 'TOURNAMENT.MANAGE.STEPS.BASIC_INFO' | translate }}</strong>
+              <p>{{ 'TOURNAMENT.MANAGE.FORM.BASIC_INFO.DESC' | translate }}</p>
             </div>
           </div>
           <div class="rail-step">
             <span>2</span>
             <div>
-              <strong>Structure rules</strong>
-              <p>Groups, knockout, or league.</p>
+              <strong>{{ 'TOURNAMENT.MANAGE.STEPS.FORMAT_RULES' | translate }}</strong>
+              <p>{{ 'TOURNAMENT.MANAGE.FORM.FORMAT_RULES.DESC' | translate }}</p>
             </div>
           </div>
           <div class="rail-step">
             <span>3</span>
             <div>
-              <strong>Scheduling window</strong>
-              <p>Operational start and end dates.</p>
+              <strong>{{ 'TOURNAMENT.MANAGE.FORM.BASIC_INFO.START_DATE' | translate }}</strong>
+              <p>{{ 'TOURNAMENT.MANAGE.FORM.BASIC_INFO.END_DATE' | translate }}</p>
             </div>
           </div>
         </div>
@@ -54,22 +54,22 @@
         <section class="surface" scrollReveal direction="bottom" [delay]="150">
           <div class="section-heading">
             <div>
-              <h2>Competition Profile</h2>
-              <p>These fields identify the tournament across invitations, squads, fixtures, and reports.</p>
+              <h2>{{ 'TOURNAMENT.MANAGE.FORM.BASIC_INFO.TITLE' | translate }}</h2>
+              <p>{{ 'TOURNAMENT.MANAGE.FORM.BASIC_INFO.DESC' | translate }}</p>
             </div>
-            <span class="required-note">Required</span>
+            <span class="required-note">*</span>
           </div>
 
           <div class="two-column">
             <app-text-input
-              label="Tournament Name"
-              placeholder="e.g. Summer Youth Cup 2026"
+              [label]="'TOURNAMENT.MANAGE.FORM.BASIC_INFO.NAME' | translate"
+              [placeholder]="'TOURNAMENT.MANAGE.FORM.BASIC_INFO.NAME_PLACEHOLDER' | translate"
               formControlName="name"
               [errorMessage]="hasError('name')">
             </app-text-input>
 
             <app-select
-              label="Age Group"
+              [label]="'TOURNAMENT.MANAGE.FORM.BASIC_INFO.AGE_GROUP' | translate"
               [options]="ageGroupOptions"
               [value]="getControlValue('ageGroupId')"
               (valueChange)="setControlValue('ageGroupId', $event)"
@@ -86,14 +86,14 @@
         <section class="surface" scrollReveal direction="bottom" [delay]="200">
           <div class="section-heading">
             <div>
-              <h2>Format & Rules</h2>
-              <p>Choose the squad format and the competition path before inviting academies.</p>
+              <h2>{{ 'TOURNAMENT.MANAGE.FORM.FORMAT_RULES.TITLE' | translate }}</h2>
+              <p>{{ 'TOURNAMENT.MANAGE.FORM.FORMAT_RULES.DESC' | translate }}</p>
             </div>
           </div>
 
           <div class="two-column">
             <app-select
-              label="Match Format"
+              [label]="'TOURNAMENT.MANAGE.FORM.FORMAT_RULES.MATCH_FORMAT' | translate"
               [options]="formatOptions"
               [value]="getControlValue('format')"
               (valueChange)="setControlValue('format', $event)"
@@ -101,7 +101,7 @@
             </app-select>
 
             <app-select
-              label="Tournament Structure"
+              [label]="'TOURNAMENT.MANAGE.FORM.FORMAT_RULES.STRUCTURE' | translate"
               [options]="structureOptions"
               [value]="getControlValue('structure')"
               (valueChange)="setControlValue('structure', $event)"
@@ -111,8 +111,8 @@
 
           <div class="rule-row">
             <div>
-              <strong>Two-legged knockout matches</strong>
-              <p>Use home and away legs during knockout rounds.</p>
+              <strong>{{ 'TOURNAMENT.MANAGE.FORM.FORMAT_RULES.TWO_LEGS' | translate }}</strong>
+              <p>{{ 'TOURNAMENT.MANAGE.FORM.FORMAT_RULES.TWO_LEGS_DESC' | translate }}</p>
             </div>
             <app-toggle
               label=""
@@ -125,8 +125,7 @@
         <section class="surface" scrollReveal direction="bottom" [delay]="225">
           <div class="section-heading">
             <div>
-              <h2>Entry Fee</h2>
-              <p>Set a participation fee for this tournament. Leave at 0 for a free-to-enter competition.</p>
+              <h2>{{ 'TOURNAMENT.MANAGE.FORM.FORMAT_RULES.ENTRY_FEE' | translate }}</h2>
             </div>
           </div>
 
@@ -167,8 +166,7 @@
         <section class="surface" scrollReveal direction="bottom" [delay]="250">
           <div class="section-heading">
             <div>
-              <h2>Schedule</h2>
-              <p>The tournament dates are used for planning, status tracking, and match operations.</p>
+              <h2>{{ 'TOURNAMENT.MANAGE.FORM.BASIC_INFO.START_DATE' | translate }}</h2>
             </div>
           </div>
 
@@ -188,9 +186,9 @@
         </section>
 
         <div class="sticky-actions" scrollReveal direction="bottom" [delay]="300">
-          <button class="ghost-btn" type="button" (click)="goBack()">Discard</button>
+          <button class="ghost-btn" type="button" (click)="goBack()">{{ 'TOURNAMENT.DETAILS.BTN_BACK' | translate }}</button>
           <button class="primary-btn" type="submit" [disabled]="isSubmitting">
-            {{ isSubmitting ? 'Creating...' : 'Create Tournament' }}
+            {{ isSubmitting ? ('TOURNAMENT.MANAGE.ACTIONS.SAVING' | translate) : ('TOURNAMENT.MANAGE.ACTIONS.CREATE' | translate) }}
           </button>
         </div>
       </main>
@@ -205,12 +203,12 @@
       <div class="management-shell">
         <section class="overview-surface" scrollReveal direction="bottom" [delay]="150">
           <div class="overview-main">
-            <span class="eyebrow">Control center</span>
+            <span class="eyebrow">{{ 'TOURNAMENT.MANAGE.TITLE_EDIT' | translate }}</span>
             <h2>{{ tournament?.name || 'Tournament' }}</h2>
             <div class="summary-meta">
-              <span>{{ tournament?.format || 'Format pending' }}</span>
-              <span>{{ tournament?.structure || 'Structure pending' }}</span>
-              <span>{{ tournament?.startDate | date:'mediumDate' }} - {{ tournament?.endDate | date:'mediumDate' }}</span>
+              <span>{{ tournament?.format ? ('TOURNAMENT.FORMAT.' + (tournament!.format | uppercase) | translate) : 'Format pending' }}</span>
+              <span>{{ tournament?.structure ? ('TOURNAMENT.STRUCTURE.' + (tournament!.structure | uppercase) | translate) : 'Structure pending' }}</span>
+              <span>{{ tournament?.startDate | localizedDate:'mediumDate' }} - {{ tournament?.endDate | localizedDate:'mediumDate' }}</span>
               <span *ngIf="tournament?.entryFee && tournament!.entryFee > 0" class="fee-badge paid-badge">
                 EGP {{ tournament!.entryFee | number:'1.2-2' }}
               </span>
@@ -220,7 +218,7 @@
             </div>
           </div>
           @if (tournament?.status) {
-            <app-status-chip [label]="tournament!.status" type="info"></app-status-chip>
+            <app-status-chip [label]="'TOURNAMENT.STATUS.' + tournament!.status | uppercase | translate" type="info"></app-status-chip>
           }
         </section>
 
@@ -246,13 +244,13 @@
             </div>
             <div class="status-control-row">
               <app-select
-                label="Tournament Status"
+                [label]="'TOURNAMENT.MANAGE.STATUS_PANELS.IN_PROG_TITLE' | translate"
                 [options]="statusOptions"
                 [value]="selectedStatus"
                 (valueChange)="setSelectedStatus($event)">
               </app-select>
               <button class="primary-btn compact" type="button" (click)="updateStatus()" [disabled]="actionDisabled">
-                {{ activeAction === 'status' ? 'Updating...' : 'Update' }}
+                {{ activeAction === 'status' ? ('TOURNAMENT.MANAGE.ACTIONS.SAVING' | translate) : ('TOURNAMENT.MANAGE.ACTIONS.SAVE' | translate) }}
               </button>
             </div>
           </section>
@@ -260,16 +258,16 @@
           <section class="surface" scrollReveal direction="bottom" [delay]="210">
             <div class="section-heading">
               <div>
-                <h2>Academy Invitations</h2>
-                <p>Add eligible academies to the tournament registration pool.</p>
+                <h2>{{ 'TOURNAMENT.MANAGE.PARTICIPANTS.TITLE' | translate }}</h2>
+                <p>{{ 'TOURNAMENT.MANAGE.PARTICIPANTS.DESC' | translate }}</p>
               </div>
               @if (invitedAcademyIds.size > 0) {
-                <span class="count-pill invited-pill">{{ invitedAcademyIds.size }} invited</span>
+                <span class="count-pill invited-pill">{{ invitedAcademyIds.size }} {{ 'TOURNAMENT.MANAGE.PARTICIPANTS.INVITED' | translate }}</span>
               }
             </div>
             <div class="status-control-row">
               <app-select
-                label="Academy"
+                [label]="'TOURNAMENT.MANAGE.PARTICIPANTS.TITLE' | translate"
                 [options]="availableAcademies"
                 [value]="selectedAcademyId"
                 (valueChange)="setSelectedAcademy($event)">
@@ -280,12 +278,12 @@
                 (click)="inviteSelectedAcademy()"
                 [disabled]="actionDisabled || !selectedAcademyId || (selectedAcademyId && isAcademyInvited(selectedAcademyId))">
                 @if (activeAction === 'invite') {
-                  Inviting...
+                  {{ 'TOURNAMENT.MANAGE.PARTICIPANTS.INVITED' | translate }}...
                 } @else if (selectedAcademyId && isAcademyInvited(selectedAcademyId)) {
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                  Already Invited
+                  {{ 'TOURNAMENT.MANAGE.PARTICIPANTS.INVITED' | translate }}
                 } @else {
-                  Invite
+                  {{ 'TOURNAMENT.MANAGE.PARTICIPANTS.INVITE' | translate }}
                 }
               </button>
             </div>
@@ -337,8 +335,7 @@
           <section class="surface participants-panel" scrollReveal direction="bottom" [delay]="270">
             <div class="section-heading">
               <div>
-                <h2>Participants</h2>
-                <p>Teams currently connected to this tournament.</p>
+                <h2>{{ 'TOURNAMENT.MANAGE.PARTICIPANTS.REGISTERED_TEAMS' | translate }}</h2>
               </div>
               <span class="count-pill">{{ teams.length }}</span>
             </div>
@@ -347,11 +344,11 @@
               @for (team of teams; track team.tournamentTeamId) {
                 <div class="participant-row">
                   <span>{{ team.teamName || 'Team' }}</span>
-                  <strong>{{ team.status || 'Pending' }}</strong>
+                  <strong>{{ 'TOURNAMENT.TEAM_STATUS.' + (team.status | uppercase) | translate }}</strong>
                 </div>
               }
               @if (teams.length === 0) {
-                <div class="empty-mini">No participating teams yet.</div>
+                <div class="empty-mini">{{ 'TOURNAMENT.MANAGE.PARTICIPANTS.NO_TEAMS' | translate }}</div>
               }
             </div>
           </section>

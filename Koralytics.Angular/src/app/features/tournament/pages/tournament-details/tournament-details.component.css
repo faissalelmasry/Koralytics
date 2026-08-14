@@ -1927,6 +1927,7 @@
     width: 100%;
     box-sizing: border-box;
   }
+}
 /* Hall of Fame text — static ellipsis truncation (no auto-scroll) */
 .award-identity strong,
 .recipient strong,

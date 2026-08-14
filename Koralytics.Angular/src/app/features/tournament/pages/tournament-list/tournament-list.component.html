@@ -1,9 +1,9 @@
 <div class="tournament-list-page">
   <header class="workspace-header" scrollReveal direction="bottom">
     <div>
-      <span class="eyebrow">Competition Hub</span>
-      <h1>Tournaments</h1>
-      <p>Create, monitor, and manage academy competitions from one operational workspace.</p>
+      <span class="eyebrow">{{ 'TOURNAMENT.LIST.SUBTITLE' | translate }}</span>
+      <h1>{{ 'TOURNAMENT.LIST.TITLE' | translate }}</h1>
+      <p>{{ 'TOURNAMENT.LIST.SUBTITLE' | translate }}</p>
     </div>
     @if (isSystemAdmin) {
       <app-button variant="accent" routerLink="/tournament/create">
@@ -12,7 +12,7 @@
             <line x1="12" y1="5" x2="12" y2="19"></line>
             <line x1="5" y1="12" x2="19" y2="12"></line>
           </svg>
-          New Tournament
+          {{ 'TOURNAMENT.LIST.BTN_CREATE' | translate }}
         </span>
       </app-button>
     }
@@ -20,19 +20,19 @@
 
   <section class="kpi-strip" scrollReveal direction="bottom" [delay]="80">
     <div class="kpi-card">
-      <span>Total</span>
+      <span>{{ 'TOURNAMENT.LIST.KPI_ACTIVE' | translate }}</span>
       <strong>{{ totalCount }}</strong>
     </div>
     <div class="kpi-card">
-      <span>In Progress</span>
+      <span>{{ 'TOURNAMENT.LIST.KPI_ACTIVE' | translate }}</span>
       <strong>{{ activeCount }}</strong>
     </div>
     <div class="kpi-card">
-      <span>Registration</span>
+      <span>{{ 'TOURNAMENT.LIST.KPI_REGISTERING' | translate }}</span>
       <strong>{{ registrationCount }}</strong>
     </div>
     <div class="kpi-card">
-      <span>Completed</span>
+      <span>{{ 'TOURNAMENT.LIST.KPI_COMPLETED' | translate }}</span>
       <strong>{{ completedCount }}</strong>
     </div>
   </section>
@@ -40,28 +40,28 @@
   <section class="toolbar" scrollReveal direction="bottom" [delay]="120">
     <div class="search-box">
       <app-search-bar
-        placeholderText="Search tournaments or age groups"
+        [placeholderText]="'TOURNAMENT.LIST.FILTERS.SEARCH' | translate"
         (searchChange)="onSearchChange($event)">
       </app-search-bar>
     </div>
 
     <div class="select-filters">
       <app-select
-        label="Format"
+        [label]="'TOURNAMENT.LIST.TABLE.FORMAT' | translate"
         [options]="formatOptions"
         [value]="selectedFormat"
         (valueChange)="onFormatChange($event)">
       </app-select>
 
       <app-select
-        label="Structure"
+        [label]="'TOURNAMENT.LIST.TABLE.STRUCTURE' | translate"
         [options]="structureOptions"
         [value]="selectedStructure"
         (valueChange)="onStructureChange($event)">
       </app-select>
 
       <app-select
-        label="Status"
+        [label]="'TOURNAMENT.LIST.FILTERS.STATUS' | translate"
         [options]="statusOptions"
         [value]="selectedStatus"
         (valueChange)="onStatusChange($event)">
@@ -70,10 +70,10 @@
   </section>
 
   <div class="results-line" scrollReveal direction="bottom" [delay]="140">
-    <span><strong>{{ filteredTournaments.length }}</strong> tournaments found</span>
+    <span>{{ 'TOURNAMENT.LIST.SHOWING_RESULTS' | translate: { count: filteredTournaments.length } }}</span>
     @if (hasActiveFilters()) {
       <button class="clear-filters-btn" type="button" (click)="clearFilters()">
-        Clear filters
+        {{ 'TOURNAMENT.LIST.EMPTY.BTN_CLEAR' | translate }}
       </button>
     }
   </div>
@@ -85,12 +85,12 @@
   @if (!isLoading && paginatedTournaments.length > 0) {
     <section class="table-surface" scrollReveal direction="bottom" [delay]="160">
       <div class="table-header">
-        <span>Tournament</span>
-        <span>Format</span>
-        <span>Structure</span>
-        <span>Entry Fee</span>
-        <span>Dates</span>
-        <span>Status</span>
+        <span>{{ 'TOURNAMENT.LIST.TABLE.NAME' | translate }}</span>
+        <span>{{ 'TOURNAMENT.LIST.TABLE.FORMAT' | translate }}</span>
+        <span>{{ 'TOURNAMENT.LIST.TABLE.STRUCTURE' | translate }}</span>
+        <span>{{ 'TOURNAMENT.MANAGE.FORM.FORMAT_RULES.ENTRY_FEE' | translate }}</span>
+        <span>{{ 'TOURNAMENT.LIST.TABLE.DATE' | translate }}</span>
+        <span>{{ 'TOURNAMENT.LIST.TABLE.STATUS' | translate }}</span>
         <span></span>
       </div>
 
@@ -109,9 +109,9 @@
               <span class="fee-badge free">FREE</span>
             }
           </span>
-          <span>{{ item.startDate | date:'MMM d' }} - {{ item.endDate | date:'MMM d, y' }}</span>
+          <span>{{ item.startDate | localizedDate:'MMM d' }} - {{ item.endDate | localizedDate:'MMM d, y' }}</span>
           <span>
-            <app-status-chip [label]="item.status" [type]="getChipType(item.status)"></app-status-chip>
+            <app-status-chip [label]="'TOURNAMENT.STATUS.' + item.status | uppercase | translate" [type]="getChipType(item.status)"></app-status-chip>
           </span>
           <span class="open-cell">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -135,9 +135,9 @@
   @if (!isLoading && paginatedTournaments.length === 0) {
     <div class="empty-state-wrap" scrollReveal direction="bottom" [delay]="150">
       <app-empty-state
-        title="No tournaments found"
-        description="No tournaments match your current filters."
-        actionText="Reset filters"
+        [title]="'TOURNAMENT.LIST.EMPTY.TITLE' | translate"
+        [description]="'TOURNAMENT.LIST.EMPTY.DESC' | translate"
+        [actionText]="'TOURNAMENT.LIST.EMPTY.BTN_CLEAR' | translate"
         (actionClick)="clearFilters(); loadTournaments()">
       </app-empty-state>
     </div>

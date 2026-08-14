@@ -1,0 +1,354 @@
+{
+  "TOURNAMENT": {
+    "FORMAT": {
+      "FIVE_SIDE": "5 vs 5",
+      "SEVEN_SIDE": "7 vs 7",
+      "ELEVEN_SIDE": "11 vs 11"
+    },
+    "STRUCTURE": {
+      "KNOCKOUT": "Knockout Stage",
+      "GROUP_AND_KNOCKOUT": "Group & Knockout",
+      "LEAGUE": "League"
+    },
+    "STATUS": {
+      "DRAFT": "Draft",
+      "REGISTRATION": "Registration",
+      "IN_PROGRESS": "In Progress",
+      "COMPLETED": "Completed",
+      "CANCELLED": "Cancelled"
+    },
+    "TEAM_STATUS": {
+      "INVITED": "Invited",
+      "ACCEPTED": "Accepted",
+      "REJECTED": "Rejected",
+      "INVITING": "Inviting..."
+    },
+    "AWARD": {
+      "TOP_SCORER": "Top Scorer",
+      "TOP_SCORER_DESC": "Highest goal contribution across tournament matches.",
+      "MOST_ASSISTS": "Most Assists",
+      "MOST_ASSISTS_DESC": "Most creative provider across the competition.",
+      "MOST_MOTM": "Most Player of the Match",
+      "MOST_MOTM_DESC": "Most match-winning individual performances.",
+      "BEST_GOALKEEPER": "Best Goalkeeper",
+      "BEST_GOALKEEPER_DESC": "Top goalkeeper by rating and minutes played.",
+      "BEST_PLAYER": "Player of the Tournament",
+      "BEST_PLAYER_DESC": "Best overall tournament performance.",
+      "CODE_GS": "GS",
+      "CODE_AS": "AS",
+      "CODE_MP": "MP",
+      "CODE_GK": "GK",
+      "CODE_PT": "PT",
+      "CODE_AW": "AW"
+    },
+    "LIST": {
+      "TITLE": "Tournament Directory",
+      "SUBTITLE": "Manage, monitor, and configure all platform tournaments",
+      "KPI_ACTIVE": "Active Tournaments",
+      "KPI_REGISTERING": "Open for Registration",
+      "KPI_COMPLETED": "Completed Events",
+      "BTN_CREATE": "Create Tournament",
+      "FILTERS": {
+        "SEARCH": "Search tournaments...",
+        "STATUS": "Status",
+        "ALL_STATUSES": "All Statuses",
+        "ALL_FORMATS": "All Formats"
+      },
+      "TABLE": {
+        "NAME": "Tournament Name",
+        "FORMAT": "Format",
+        "STRUCTURE": "Structure",
+        "DATE": "Start Date",
+        "STATUS": "Status",
+        "ACTIONS": "Actions"
+      },
+      "ACTIONS": {
+        "VIEW": "View",
+        "MANAGE": "Manage"
+      },
+      "EMPTY": {
+        "TITLE": "No Tournaments Found",
+        "DESC": "Try adjusting your search or filters, or create a new tournament.",
+        "BTN_CLEAR": "Clear Filters"
+      },
+      "SHOWING_RESULTS": "Showing {{count}} tournaments"
+    },
+    "MANAGE": {
+      "TITLE_CREATE": "Create New Tournament",
+      "DESC_CREATE": "Set up a new tournament with rules, formats, and structure.",
+      "TITLE_EDIT": "Manage Tournament",
+      "DESC_EDIT": "Update tournament details, rules, and manage participating teams.",
+      "BTN_BACK": "Back to Directory",
+      "BTN_VIEW_PUBLIC": "View Public Page",
+      "ERROR_LOAD": "Failed to load tournament details.",
+      "ERROR_CREATE": "Failed to create tournament. Please try again.",
+      "ERROR_UPDATE": "Failed to update tournament. Please try again.",
+      "ERROR_STATUS_UPDATE": "Failed to update tournament status.",
+      "SUCCESS_CREATE": "Tournament created successfully!",
+      "SUCCESS_UPDATE": "Tournament updated successfully!",
+      "SUCCESS_STATUS_UPDATE": "Tournament status updated to {{status}}",
+      "STEPS": {
+        "BASIC_INFO": "Basic Info",
+        "FORMAT_RULES": "Format & Rules",
+        "PARTICIPANTS": "Participants"
+      },
+      "FORM": {
+        "BASIC_INFO": {
+          "TITLE": "Basic Information",
+          "DESC": "General details and schedule.",
+          "NAME": "Tournament Name",
+          "NAME_PLACEHOLDER": "e.g., Summer Youth Cup 2026",
+          "AGE_GROUP": "Age Group",
+          "AGE_GROUP_PLACEHOLDER": "-- Select Age Group --",
+          "START_DATE": "Start Date",
+          "END_DATE": "End Date"
+        },
+        "FORMAT_RULES": {
+          "TITLE": "Format & Rules",
+          "DESC": "Configure how the tournament will be played.",
+          "MATCH_FORMAT": "Match Format",
+          "STRUCTURE": "Tournament Structure",
+          "ENTRY_FEE": "Entry Fee (EGP)",
+          "TWO_LEGS": "Two-Legged Ties",
+          "TWO_LEGS_DESC": "Knockout stages will feature home and away legs."
+        },
+        "VALIDATION": {
+          "REQUIRED": "This field is required",
+          "MIN_LENGTH": "Must be at least {{length}} characters",
+          "MAX_LENGTH": "Cannot exceed {{length}} characters",
+          "MIN_VALUE": "Value must be at least {{min}}",
+          "DATE_ORDER": "End date must be after start date",
+          "INVALID_FORM": "Please fix the errors in the form before saving."
+        }
+      },
+      "PARTICIPANTS": {
+        "TITLE": "Participant Management",
+        "DESC": "Invite academies or manage currently registered teams.",
+        "ACADEMY_SEARCH": "Search academies by name, city...",
+        "INVITE": "Invite",
+        "INVITED": "Invited",
+        "ACCEPTED": "Accepted",
+        "REJECTED": "Rejected",
+        "EMPTY": "No academies found matching your search.",
+        "REGISTERED_TEAMS": "Registered Teams",
+        "NO_TEAMS": "No teams have registered yet.",
+        "TEAM_ACCEPTED_DESC": "Will participate in the tournament",
+        "TEAM_INVITED_DESC": "Awaiting academy response",
+        "BTN_INVITE_MORE": "Invite More"
+      },
+      "ACTIONS": {
+        "CREATE": "Create Tournament",
+        "SAVE": "Save Changes",
+        "SAVING": "Saving...",
+        "OPEN_REGISTRATION": "Open Registration",
+        "OPENING_REGISTRATION": "Opening...",
+        "START_TOURNAMENT": "Start Tournament",
+        "STARTING": "Starting...",
+        "END_TOURNAMENT": "Complete Tournament",
+        "ENDING": "Completing..."
+      },
+      "STATUS_PANELS": {
+        "DRAFT_TITLE": "Registration Closed",
+        "DRAFT_DESC": "The tournament is currently in draft mode. Open registration to allow academies to join.",
+        "REG_TITLE": "Registration Open",
+        "REG_DESC": "Academies can currently view and join this tournament.",
+        "IN_PROG_TITLE": "Tournament In Progress",
+        "IN_PROG_DESC": "The tournament is actively being played.",
+        "COMPLETED_TITLE": "Tournament Completed",
+        "COMPLETED_DESC": "This tournament has concluded. Results are final."
+      }
+    },
+    "DETAILS": {
+      "BTN_BACK": "Back",
+      "BTN_MANAGE": "Manage Tournament",
+      "BTN_OPEN_REGISTRATION": "Open Registration",
+      "BTN_REGISTER_SQUAD": "Register Squad",
+      "ERROR_LOAD": "Unable to load tournament details. Please refresh or try again later.",
+      "TABS": {
+        "OVERVIEW": "Overview & Standings",
+        "BRACKET": "Knockout Stage",
+        "FIXTURES": "Fixtures & Results",
+        "TEAMS": "Participating Teams",
+        "HALL_OF_FAME": "Hall of Fame",
+        "AI_INSIGHTS": "AI Intelligence"
+      },
+      "HERO": {
+        "TOTAL_PRIZE": "Total Prize Pool",
+        "TEAMS": "Teams",
+        "GROUPS": "Groups",
+        "MATCHES": "Matches"
+      },
+      "OVERVIEW": {
+        "NO_GROUPS": "No groups have been generated for this tournament yet.",
+        "STANDINGS_TITLE": "Group Standings",
+        "BTN_EXPORT_CSV": "Export CSV",
+        "TABLE": {
+          "POS": "Pos",
+          "CLUB": "Club",
+          "P": "P",
+          "W": "W",
+          "D": "D",
+          "L": "L",
+          "GD": "GD",
+          "PTS": "Pts"
+        }
+      },
+      "FIXTURES": {
+        "FILTER_ALL": "All Matches",
+        "FILTER_SCHEDULED": "Scheduled",
+        "FILTER_COMPLETED": "Completed",
+        "BTN_EXPORT_CSV": "Export CSV",
+        "BTN_PRINT": "Print Schedule",
+        "NO_FIXTURES": "No fixtures have been scheduled yet.",
+        "NO_MATCHING_FIXTURES": "No fixtures match the selected filter.",
+        "BTN_EDIT_SCORE": "Edit Score",
+        "BTN_ADD_STATS": "Match Stats",
+        "BTN_SAVE": "Save",
+        "BTN_CANCEL": "Cancel"
+      },
+      "BRACKET": {
+        "TITLE": "Knockout Bracket",
+        "BTN_GENERATE": "Generate Knockout Bracket",
+        "GENERATE_HINT": "Automatically generate the bracket from completed group standings.",
+        "NO_ROUNDS": "The knockout stage has not been drawn yet."
+      },
+      "TEAMS": {
+        "NO_TEAMS": "No teams are currently participating.",
+        "MANAGER": "Manager:"
+      },
+      "HALL_OF_FAME": {
+        "NO_AWARDS": "Awards will be distributed once the tournament is completed.",
+        "AWARDS_LOCKED": "Awards Locked",
+        "CLUB": "Club",
+        "PRIMARY_AWARD": "Primary Award",
+        "SUPPORTING_AWARDS": "Supporting Awards"
+      },
+      "AI_REPORT": {
+        "GENERATING": "Analyzing tournament...",
+        "GENERATING_DESC": "Koralytics AI engine is analyzing tournament results and academy awards. You will be notified automatically when the report is complete.",
+        "LOCKED": "AI Report Locked",
+        "LOCKED_DESC": "The comprehensive AI technical report will be automatically generated once all matches are completed.",
+        "AWAITING": "Awaiting Completion",
+        "FAILED": "Report Generation Failed",
+        "FAILED_DESC": "AI report generation failed. Please click below to try regenerating the report.",
+        "BTN_RETRY": "Retry Report Generation",
+        "BTN_RETRYING": "Regenerating...",
+        "BTN_REFRESH": "Refresh Report",
+        "BTN_PRINT": "Print Report",
+        "TITLE": "AI Technical Analysis Report",
+        "TAB_SUMMARY": "Executive Summary",
+        "TAB_TACTICS": "Tactics & Analysis",
+        "TAB_RECOMMENDATIONS": "Recommendations",
+        "NO_REPORT": "No report data available.",
+        "TOP_SCORING_CLUB": "Best Attack",
+        "MOST_CONCEDED_CLUB": "Weakest Defense",
+        "LEAST_SCORED_CLUB": "Weakest Attack",
+        "SCORED_GOALS": "Scored {{goals}} goals",
+        "CONCEDED_GOALS": "Conceded {{goals}} goals",
+        "SCORED_GOALS_ONLY": "Scored only {{goals}} goals",
+        "TOP_SCORING_CLUB_DESC": "Club with most goals",
+        "MOST_CONCEDED_CLUB_DESC": "Club with most goals conceded",
+        "LEAST_SCORED_CLUB_DESC": "Club with least goals scored",
+        "FALLBACK_TITLE": "Comprehensive Technical Analysis Report"
+      },
+      "STATS_MODAL": {
+        "TITLE": "Match Stats Entry",
+        "SAVING": "Saving...",
+        "SAVED": "Stats Saved!",
+        "SAVED_DESC": "Match statistics recorded and player cards updated.",
+        "LOADING_PLAYERS": "Loading squad rosters...",
+        "GOALS_TITLE": "Goals",
+        "BTN_ADD_GOAL": "Add Goal",
+        "NO_GOALS": "No goals recorded yet. Click Add Goal to start.",
+        "SCORER": "Goal Scorer",
+        "ASSIST": "Assist",
+        "OPTIONAL": "(optional)",
+        "REQUIRED": "*",
+        "SELECT_SCORER": "Select scorer...",
+        "NO_ASSIST": "No assist",
+        "MOTM_TITLE": "Man of the Match",
+        "NO_PLAYERS": "No players loaded. Squad rosters may be unavailable for these teams.",
+        "NONE": "None",
+        "BTN_CANCEL": "Cancel",
+        "BTN_SAVE": "Save Stats",
+        "HOME": "Home",
+        "AWAY": "Away",
+        "REMOVE": "Remove"
+      }
+    },
+    "SQUAD_REGISTRATION": {
+      "TITLE": "Tournament Squad Registration",
+      "SUBTITLE": "Select and configure your match-day squad for",
+      "BTN_BACK": "Back to Tournament",
+      "SELECT_TEAM": "Select Your Team",
+      "SELECT_TEAM_DESC": "Choose which of your academy teams will be participating in this tournament.",
+      "SELECTED_TEAM": "Selected Team",
+      "SQUAD_SELECTION": "Squad Selection",
+      "SQUAD_SELECTION_DESC": "Select players from your team's roster to register for the tournament.",
+      "POSITIONS": {
+        "ALL": "All",
+        "ATT": "Attackers",
+        "MID": "Midfielders",
+        "DEF": "Defenders",
+        "GK": "Goalkeepers"
+      },
+      "PLAYER_CARD": {
+        "OVERALL": "OVR"
+      },
+      "SELECTED_SQUAD": "Selected Squad",
+      "REQUIRED_PLAYERS": "Required: {{min}} - {{max}} players",
+      "BTN_SUBMIT": "Submit Registration",
+      "SUBMITTING": "Submitting...",
+      "SUCCESS": "Squad registered successfully!",
+      "ERROR_MIN_PLAYERS": "You must select at least {{min}} players to register for this tournament format.",
+      "ERROR_MAX_PLAYERS": "You cannot select more than {{max}} players for this tournament format.",
+      "ERROR_TEAM": "Please select a team first.",
+      "ERROR_SUBMIT": "Failed to register squad. Please try again.",
+      "HINT_VALID": "Squad size is valid for this format.",
+      "HINT_MIN": "Select {{count}} more players to meet the minimum requirement.",
+      "HINT_MAX": "Remove {{count}} players to meet the maximum limit.",
+      "NO_PLAYERS": "No players available for the selected position."
+    },
+    "ACADEMY_TOURNAMENTS": {
+      "EYEBROW": "Academy Hub",
+      "TITLE": "My Tournaments",
+      "SUBTITLE": "View and manage your academy's tournament invitations, accept new ones, and register squads.",
+      "KPI_TOURNAMENTS": "Tournaments",
+      "KPI_TOTAL_TEAMS": "Total Teams",
+      "KPI_PENDING": "Pending",
+      "KPI_ACCEPTED": "Accepted",
+      "SEARCH_PLACEHOLDER": "Search tournaments or teams",
+      "STATUS_ALL": "All Statuses",
+      "STATUS_INVITED": "Invited",
+      "STATUS_ACCEPTED": "Accepted",
+      "ENTRIES_FOUND": "entries found",
+      "CLEAR_FILTERS": "Clear filters",
+      "TABLE_TOURNAMENT": "Tournament",
+      "TABLE_TEAM": "Team",
+      "TABLE_STATUS": "Status",
+      "TABLE_ACTIONS": "Actions",
+      "BTN_ACCEPT": "Accept",
+      "BTN_REGISTER_SQUAD": "Register Squad",
+      "NO_ACADEMY": "No Academy Found",
+      "NO_ACADEMY_DESC": "You don't have an academy associated with your account yet.",
+      "NO_TOURNAMENTS": "No tournaments found",
+      "NO_TOURNAMENTS_FILTER_DESC": "No tournaments match your current filters.",
+      "NO_TOURNAMENTS_DESC": "Your academy has not been invited to any tournaments yet.",
+      "RESET_FILTERS": "Reset filters",
+      "MODAL_EYEBROW": "Accept Invitation",
+      "MODAL_TITLE": "Select Participating Team",
+      "MODAL_DESC": "Choose which squad from your academy will enter",
+      "MODAL_DESC_SUFFIX": "Once accepted, the team assignment is locked.",
+      "MODAL_LOADING": "Loading eligible teams...",
+      "MODAL_NO_TEAMS": "No eligible teams found for this tournament's age group in your academy.",
+      "BTN_CANCEL": "Cancel",
+      "BTN_CONFIRM": "Confirm & Accept Invitation",
+      "BTN_ACCEPTING": "Accepting...",
+      "AGE_GROUP": "Age Group",
+      "MAIN_FACILITY": "Main Facility",
+      "TOAST_ACCEPTED": "Invitation accepted with {{teamName}}!",
+      "ERROR_LOAD_TEAMS": "Unable to load academy teams. Please try again.",
+      "ERROR_ACCEPT": "Unable to accept invitation. Please try again."
+    }
+  }
+}

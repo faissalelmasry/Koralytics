@@ -111,10 +111,10 @@ export class PlayerHighlightsComponent implements OnInit {
   }
 
   // Memoized Header Fields
-  fullName = 'Player Highlights';
+  fullName = this.translateService.instant('PLAYER.HIGHLIGHT_PAGE.TITLE');
   initials = 'PH';
   academyName = 'Koralytics';
-  statusLabel = 'Available';
+  statusLabel = this.translateService.instant('PLAYER.STATUS_AVAILABLE');
   statusClass = 'status-available';
   profileImageUrl: string | null = null;
 
@@ -137,7 +137,7 @@ export class PlayerHighlightsComponent implements OnInit {
       this.loadPlayerProfile(this.playerId);
       this.loadHighlights();
     } else {
-      this.error.set('Authentication or Player ID required.');
+      this.error.set(this.translateService.instant('PLAYER.HIGHLIGHT_PAGE.ERROR_AUTH'));
       this.cdr.markForCheck();
     }
   }
@@ -159,10 +159,10 @@ export class PlayerHighlightsComponent implements OnInit {
 
   private computeProfileDerivedState() {
     if (!this.profile) {
-      this.fullName = 'Player Highlights';
+      this.fullName = this.translateService.instant('PLAYER.HIGHLIGHT_PAGE.TITLE');
       this.initials = 'PH';
       this.academyName = 'Koralytics';
-      this.statusLabel = 'Available';
+      this.statusLabel = 'Available'; // we still use this string for status class logic, but template uses translate pipe
       this.statusClass = 'status-available';
       this.profileImageUrl = null;
       return;
@@ -276,10 +276,10 @@ export class PlayerHighlightsComponent implements OnInit {
     if (!this.playerId) return;
 
     const confirmed = await this.modalService.open({
-      title: 'Delete Highlight',
-      message: 'Are you sure you want to remove this highlight video from your profile?',
-      confirmText: 'Delete',
-      cancelText: 'Cancel',
+      title: this.translateService.instant('PLAYER.HIGHLIGHT_PAGE.MODAL_DELETE_TITLE'),
+      message: this.translateService.instant('PLAYER.HIGHLIGHT_PAGE.MODAL_DELETE_MSG'),
+      confirmText: this.translateService.instant('PLAYER.HIGHLIGHT_PAGE.MODAL_DELETE_CONFIRM'),
+      cancelText: this.translateService.instant('PLAYER.HIGHLIGHT_PAGE.MODAL_DELETE_CANCEL'),
       variant: 'danger'
     });
 

@@ -94,7 +94,8 @@ namespace Koralytics.Application.Services.Auth.Register
             });
 
             _logger.LogInformation("Player successfully registered. UserId: {userId}", player.Id);
-            await TrySendConfirmationEmailAsync(player.Id);
+            
+            _taskQueue.QueueBackgroundWorkItem(async (serviceProvider, ct) => { await TrySendConfirmationEmailAsync(player.Id); });
 
             EnqueuePlayerEmbeddingIndex(player.Id, player.FirstName, player.LastName, player.UserName);
 
@@ -116,7 +117,7 @@ namespace Koralytics.Application.Services.Auth.Register
             });
 
             _logger.LogInformation("Coach successfully registered. UserId: {userId}", coach.Id);
-            await TrySendConfirmationEmailAsync(coach.Id);
+            _taskQueue.QueueBackgroundWorkItem(async (serviceProvider, ct) => { await TrySendConfirmationEmailAsync(coach.Id); });
             return await GenerateAuthResultAsync(coach, AuthConstants.Roles.Coach, null);
         }
 
@@ -138,7 +139,7 @@ namespace Koralytics.Application.Services.Auth.Register
             });
 
             _logger.LogInformation("Scouter successfully registered. UserId: {userId}", scouter.Id);
-            await TrySendConfirmationEmailAsync(scouter.Id);
+            _taskQueue.QueueBackgroundWorkItem(async (serviceProvider, ct) => { await TrySendConfirmationEmailAsync(scouter.Id); });
             return await GenerateAuthResultAsync(scouter, AuthConstants.Roles.Scouter, null);
         }
 
@@ -167,7 +168,7 @@ namespace Koralytics.Application.Services.Auth.Register
             });
 
             _logger.LogInformation("Parent successfully registered. UserId: {userId}", parent.Id);
-            await TrySendConfirmationEmailAsync(parent.Id);
+            _taskQueue.QueueBackgroundWorkItem(async (serviceProvider, ct) => { await TrySendConfirmationEmailAsync(parent.Id); });
             return await GenerateAuthResultAsync(parent, AuthConstants.Roles.Parent, null);
         }
 
@@ -186,7 +187,7 @@ namespace Koralytics.Application.Services.Auth.Register
             });
 
             _logger.LogInformation("Academy admin successfully registered. UserId: {userId}", academyAdmin.Id);
-            await TrySendConfirmationEmailAsync(academyAdmin.Id);
+            _taskQueue.QueueBackgroundWorkItem(async (serviceProvider, ct) => { await TrySendConfirmationEmailAsync(academyAdmin.Id); });
             return await GenerateAuthResultAsync(academyAdmin, AuthConstants.Roles.AcademyAdmin, null);
         }
 
@@ -218,7 +219,7 @@ namespace Koralytics.Application.Services.Auth.Register
             });
 
             _logger.LogInformation("Coach and Academy admin successfully registered. UserId: {userId}", coach.Id);
-            await TrySendConfirmationEmailAsync(coach.Id);
+            _taskQueue.QueueBackgroundWorkItem(async (serviceProvider, ct) => { await TrySendConfirmationEmailAsync(coach.Id); });
             
             // Return AuthResultDto with both roles explicitly (or relying on GenerateAuthResultAsync might only put one role if I don't modify it).
             // Let's look at GenerateAuthResultAsync.

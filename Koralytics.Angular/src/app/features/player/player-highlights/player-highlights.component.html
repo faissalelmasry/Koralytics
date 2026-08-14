@@ -1,8 +1,8 @@
 <div class="profile-page">
   <!-- =============== PAGE HEADER (scouter-views style) =============== -->
-  <div class="tactical-tag" scrollReveal direction="bottom" [delay]="0">Talent Showcase Radar</div>
+  <div class="tactical-tag" scrollReveal direction="bottom" [delay]="0">{{ 'PLAYER.HIGHLIGHT_PAGE.RADAR_TAG' | translate }}</div>
   <div class="header-row" scrollReveal direction="bottom" [delay]="50">
-    <h2 class="section-title">Player Highlights</h2>
+    <h2 class="section-title">{{ 'PLAYER.HIGHLIGHT_PAGE.TITLE' | translate }}</h2>
   </div>
 
   @if (loading() && highlights().length === 0) {
@@ -15,7 +15,7 @@
   <div class="error-state">
     <div class="error-icon">!</div>
     <p>{{ error() }}</p>
-    <app-button variant="slate" (click)="loadHighlights()">Retry</app-button>
+    <app-button variant="slate" (click)="loadHighlights()">{{ 'PLAYER.HIGHLIGHT_PAGE.RETRY' | translate }}</app-button>
   </div>
   }
   @else {
@@ -44,7 +44,7 @@
                 <polygon points="23 7 16 12 23 17 23 7"></polygon>
                 <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
               </svg>
-              {{ totalItems() }} Highlight{{ totalItems() !== 1 ? 's' : '' }}
+              {{ totalItems() }} {{ totalItems() !== 1 ? ('PLAYER.HIGHLIGHT_PAGE.COUNT_HIGHLIGHTS' | translate) : ('PLAYER.HIGHLIGHT_PAGE.COUNT_HIGHLIGHT_SINGLE' | translate) }}
             </span>
             @if (pinnedCount() > 0) {
             <span class="pill pinned-badge-pill">
@@ -54,7 +54,7 @@
                   points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
                 </polygon>
               </svg>
-              {{ pinnedCount() }} Pinned
+              {{ pinnedCount() }} {{ 'PLAYER.HIGHLIGHT_PAGE.COUNT_PINNED' | translate }}
             </span>
             }
           </div>
@@ -70,20 +70,21 @@
           @if (profile?.age) {
           <div class="bio-item">
             <span class="bio-lbl">Age</span>
-            <span class="bio-val">{{ profile?.age }} Yrs</span>
+            <span class="bio-val">{{ profile?.age }} {{ 'PLAYER.YRS' | translate }}</span>
           </div>
           }
           @if (profile?.nationality) {
           <div class="bio-item">
-            <span class="bio-lbl">Nationality</span>
+            <span class="bio-lbl">{{ 'PLAYER.HIGHLIGHT_PAGE.NATIONALITY' | translate }}</span>
             <span class="bio-val">{{ profile?.nationality }}</span>
           </div>
           }
+
         </div>
         @if (playerId) {
         <div class="bio-item action-bio-item">
           <a [routerLink]="['/player/profile', playerId]" class="btn-profile-link">
-            View Profile →
+            {{ 'PLAYER.HIGHLIGHT_PAGE.VIEW_PROFILE' | translate }}
           </a>
         </div>
         }
@@ -95,20 +96,20 @@
     <div class="upload-panel-section" scrollReveal direction="bottom" [delay]="110">
       <div class="panel-header">
         <div class="hud-title">
-          Upload Video Highlight
-          <span class="hud-status status-matches">MP4 / MOV</span>
+          {{ 'PLAYER.HIGHLIGHT_PAGE.UPLOAD_TITLE' | translate }}
+          <span class="hud-status status-matches">{{ 'PLAYER.HIGHLIGHT_PAGE.UPLOAD_FORMATS' | translate }}</span>
         </div>
       </div>
 
       <div class="upload-form-wrapper">
         <div class="upload-form-row">
-          <app-text-input label="Highlight Title" placeholder="e.g. Stunning Free Kick against Al Ahly"
+          <app-text-input [label]="'PLAYER.HIGHLIGHT_PAGE.FIELD_TITLE_LABEL' | translate" [placeholder]="'PLAYER.HIGHLIGHT_PAGE.FIELD_TITLE_PLACEHOLDER' | translate"
             [(ngModel)]="highlightTitle">
           </app-text-input>
         </div>
 
         <div class="upload-form-row">
-          <label class="custom-field-label">Video File (Max 50MB)</label>
+          <label class="custom-field-label">{{ 'PLAYER.HIGHLIGHT_PAGE.FIELD_FILE_LABEL' | translate }}</label>
           <app-file-upload accept="video/mp4,video/quicktime,video/x-msvideo,video/x-matroska,video/webm"
             [maxFileSizeMb]="50" [isUploading]="uploading()" (fileSelected)="onFileSelected($event)">
           </app-file-upload>
@@ -123,7 +124,7 @@
               <polyline points="17 8 12 3 7 8"></polyline>
               <line x1="12" y1="3" x2="12" y2="15"></line>
             </svg>
-            Upload Highlight
+            {{ 'PLAYER.HIGHLIGHT_PAGE.BTN_UPLOAD' | translate }}
           </app-button>
         </div>
       </div>
@@ -142,14 +143,14 @@
       <div class="panel-header"
         style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
         <div class="hud-title">
-          Highlight Feed
-          <span class="hud-status status-matches">{{ totalItems() }} Total</span>
+          {{ 'PLAYER.HIGHLIGHT_PAGE.FEED_TITLE' | translate }}
+          <span class="hud-status status-matches">{{ totalItems() }} {{ 'PLAYER.HIGHLIGHT_PAGE.FEED_TOTAL' | translate }}</span>
         </div>
       </div>
 
       @if (highlights().length === 0) {
-      <app-empty-state title="No Highlights Uploaded Yet"
-        description="This player has not published any match or drill video highlights to their showcase radar.">
+      <app-empty-state [title]="'PLAYER.HIGHLIGHT_PAGE.EMPTY_TITLE' | translate"
+        [description]="'PLAYER.HIGHLIGHT_PAGE.EMPTY_DESC' | translate">
       </app-empty-state>
       } @else {
       <div class="video-grid">
@@ -165,13 +166,13 @@
                   points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
                 </polygon>
               </svg>
-              Pinned
+              {{ 'PLAYER.HIGHLIGHT_PAGE.PINNED_TAG' | translate }}
             </div>
             }
           </div>
 
           <div class="video-info">
-            <h4>{{ h.title || 'Untitled Highlight' }}</h4>
+            <h4>{{ h.title || ('PLAYER.HIGHLIGHT_PAGE.UNTITLED' | translate) }}</h4>
             <span class="upload-date">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px; margin-right: 4px;">
@@ -187,7 +188,7 @@
                 stroke-linecap="round" stroke-linejoin="round">
                 <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path>
               </svg>
-              <span>Expand</span>
+              <span>{{ 'PLAYER.HIGHLIGHT_PAGE.BTN_EXPAND' | translate }}</span>
             </button>
 
             @if (isOwnProfile) {
@@ -200,7 +201,7 @@
                   d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z">
                 </path>
               </svg>
-              <span>{{ h.isPinned ? 'Unpin' : 'Pin' }}</span>
+              <span>{{ h.isPinned ? ('PLAYER.HIGHLIGHT_PAGE.BTN_UNPIN' | translate) : ('PLAYER.HIGHLIGHT_PAGE.BTN_PIN' | translate) }}</span>
             </button>
             }
 
@@ -211,7 +212,7 @@
                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                 <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
               </svg>
-              <span>Share</span>
+              <span>{{ 'PLAYER.HIGHLIGHT_PAGE.BTN_SHARE' | translate }}</span>
             </button>
 
             @if (isOwnProfile) {
@@ -222,7 +223,7 @@
                 <polyline points="3 6 5 6 21 6"></polyline>
                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
               </svg>
-              <span>Delete</span>
+              <span>{{ 'PLAYER.HIGHLIGHT_PAGE.BTN_DELETE' | translate }}</span>
             </button>
             }
           </div>
@@ -251,7 +252,7 @@
   <div class="theater-modal" (click)="$event.stopPropagation()">
     <div class="theater-header">
       <div class="theater-title">
-        <h3>{{ selected.title || 'Highlight Preview' }}</h3>
+        <h3>{{ selected.title || ('PLAYER.HIGHLIGHT_PAGE.THEATER_TITLE_FALLBACK' | translate) }}</h3>
         <span class="theater-date">{{ selected.uploadedAt | date:'mediumDate' }}</span>
       </div>
       <button type="button" class="theater-close-btn" (click)="closeTheater()" title="Close theater">✕</button>
