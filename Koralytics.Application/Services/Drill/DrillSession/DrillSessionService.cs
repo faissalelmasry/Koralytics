@@ -17,9 +17,9 @@ namespace Koralytics.Application.Services.Drill.DrillSession
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly CardInvalidationList _invalidationList;
+        private readonly ICardInvalidationList _invalidationList;
 
-        public DrillSessionService(IUnitOfWork unitOfWork, IMapper mapper, CardInvalidationList invalidationList)
+        public DrillSessionService(IUnitOfWork unitOfWork, IMapper mapper, ICardInvalidationList invalidationList)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;

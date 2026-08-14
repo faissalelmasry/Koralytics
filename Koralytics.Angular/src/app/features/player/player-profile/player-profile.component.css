@@ -1732,6 +1732,10 @@ a.pill.academy-link:hover {
 /* ===================================================
    Confirm Dialog Tier Overrides
    =================================================== */
+::ng-deep app-confirm-dialog .dialog-overlay {
+  z-index: 99999 !important;
+}
+
 ::ng-deep app-confirm-dialog .confirm-dialog.level-info {
   border-left-color: var(--tier-neon);
 }

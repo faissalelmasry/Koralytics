@@ -34,6 +34,7 @@
     <ng-container *ngIf="isCoach">
       <a routerLink="/coach/squad" routerLinkActive="active">{{ 'NAVBAR.SQUAD' | translate }}</a>
       <a routerLink="/coach/matches" routerLinkActive="active">{{ 'NAVBAR.MATCHES' | translate }}</a>
+      <a routerLink="/drills/sessions" routerLinkActive="active">{{ 'NAVBAR.SESSIONS' | translate }}</a>
       <a routerLink="/drills" routerLinkActive="active">{{ 'NAVBAR.TEMPLATES' | translate }}</a>
       <a routerLink="/drills/analytics/coach-bias" routerLinkActive="active">{{ 'NAVBAR.BIAS' | translate }}</a>
       <a routerLink="/drills/analytics/weak-categories" routerLinkActive="active">{{ 'NAVBAR.WEAK_CATS' | translate }}</a>
@@ -168,6 +169,7 @@
           {{ 'NAVBAR.COACH_HUB' | translate }}</div>
         <a routerLink="/coach/squad" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.SQUAD_OVERVIEW' | translate }}</a>
         <a routerLink="/coach/matches" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.MATCHES' | translate }}</a>
+        <a routerLink="/drills/sessions" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.DRILL_SESSIONS' | translate }}</a>
         <a routerLink="/drills" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.DRILL_TEMPLATES' | translate }}</a>
         <a routerLink="/drills/analytics/coach-bias" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.COACH_BIAS' | translate }}</a>
         <a routerLink="/drills/analytics/weak-categories" routerLinkActive="active" (click)="toggleSidebar(false)">{{ 'NAVBAR.WEAK_CATEGORIES' | translate }}</a>
