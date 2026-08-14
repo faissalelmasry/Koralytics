@@ -49,20 +49,27 @@
   border-radius: 18px;
   padding: 20px 28px;
   box-shadow: 0 14px 36px rgba(0, 0, 0, 0.4);
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .header-main {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
+  gap: 16px;
   flex-wrap: wrap;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .brand-title-wrap {
   display: flex;
   align-items: center;
   gap: 16px;
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 .brand-icon-halo {
@@ -124,7 +131,10 @@
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  flex-wrap: wrap;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .nav-search-btn {
@@ -682,11 +692,44 @@
   }
 
   .chat-header {
-    padding: 16px 18px;
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .header-main {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .brand-title-wrap {
+    width: 100%;
   }
 
   .header-title {
-    font-size: 26px;
+    font-size: 24px;
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  .header-subtitle {
+    font-size: 12px;
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  .header-actions {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .nav-search-btn,
+  .clear-chat-btn,
+  .status-badge {
+    padding: 8px 12px;
+    font-size: 12px;
   }
 
   .chat-main-container {
@@ -720,5 +763,46 @@
     height: 38px;
     min-width: 38px;
     border-radius: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .chat-header {
+    padding: 12px 14px;
+    border-radius: 14px;
+  }
+
+  .brand-icon-halo {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+  }
+
+  .brand-header-icon {
+    width: 22px;
+    height: 22px;
+  }
+
+  .header-title {
+    font-size: 20px;
+  }
+
+  .header-actions {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+    gap: 6px;
+  }
+
+  .nav-search-btn,
+  .clear-chat-btn,
+  .status-badge {
+    flex: 1 1 auto;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: 7px 10px;
+    font-size: 11px;
+    gap: 4px;
+    text-align: center;
   }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using StackExchange.Redis;
 
 namespace Koralytics.Application.Services.Player.Helpers
 {
@@ -21,24 +22,98 @@ namespace Koralytics.Application.Services.Player.Helpers
 
     public class CardInvalidationList : ICardInvalidationList, IHostedService
     {
+        private const string RedisSetKey = "CardInvalidationList:Pending";
+        private const string RedisChannel = "CardInvalidationList:Events";
+
         private readonly ConcurrentDictionary<int, bool> _invalidated = new();
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly ILogger<CardInvalidationList> _logger;
+        private readonly IDatabase? _redisDb;
+        private readonly ISubscriber? _redisSubscriber;
 
-        public CardInvalidationList(IServiceScopeFactory scopeFactory,ILogger<CardInvalidationList> logger)
+        public CardInvalidationList(
+            IServiceScopeFactory scopeFactory,
+            ILogger<CardInvalidationList> logger,
+            IConnectionMultiplexer? redis = null)
         {
             _scopeFactory = scopeFactory;
             _logger = logger;
+
+            if (redis != null && redis.IsConnected)
+            {
+                try
+                {
+                    _redisDb = redis.GetDatabase();
+                    _redisSubscriber = redis.GetSubscriber();
+
+                    _redisSubscriber.Subscribe(RedisChannel, (channel, value) =>
+                    {
+                        if (int.TryParse(value, out int playerId))
+                        {
+                            _invalidated.TryAdd(playerId, true);
+                        }
+                    });
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to initialize Redis for CardInvalidationList. Falling back to local memory and DB.");
+                    _redisDb = null;
+                    _redisSubscriber = null;
+                }
+            }
         }
 
-        // Called by services — instant, no DB
+        // Called by services — instant memory + Redis set + Pub/Sub
         public void Invalidate(int playerId)
-            => _invalidated.TryAdd(playerId, true);
+        {
+            _invalidated.TryAdd(playerId, true);
+
+            if (_redisDb != null)
+            {
+                try
+                {
+                    _redisDb.SetAdd(RedisSetKey, playerId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Redis SetAdd failed for invalidating player {PlayerId}", playerId);
+                }
+            }
+
+            if (_redisSubscriber != null)
+            {
+                try
+                {
+                    _redisSubscriber.Publish(RedisChannel, playerId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Redis Publish failed for invalidating player {PlayerId}", playerId);
+                }
+            }
+        }
 
         public bool TryConsume(int playerId)
-            => _invalidated.TryRemove(playerId, out _);
+        {
+            bool localRemoved = _invalidated.TryRemove(playerId, out _);
+            bool redisRemoved = false;
 
-        // On startup — restore pending from DB
+            if (_redisDb != null)
+            {
+                try
+                {
+                    redisRemoved = _redisDb.SetRemove(RedisSetKey, playerId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Redis SetRemove failed for consuming player invalidation {PlayerId}", playerId);
+                }
+            }
+
+            return localRemoved || redisRemoved;
+        }
+
+        // On startup — restore pending from DB and Redis
         public async Task StartAsync(CancellationToken cancellationToken)
         {
             using var scope = _scopeFactory.CreateScope();
@@ -54,24 +129,74 @@ namespace Koralytics.Application.Services.Player.Helpers
             foreach (var playerId in pendingIds)
             {
                 _invalidated.TryAdd(playerId, true);
-                
             }
-            
+
+            int redisRestoredCount = 0;
+            if (_redisDb != null)
+            {
+                try
+                {
+                    var redisMembers = await _redisDb.SetMembersAsync(RedisSetKey);
+                    foreach (var member in redisMembers)
+                    {
+                        if (int.TryParse(member, out int playerId))
+                        {
+                            if (_invalidated.TryAdd(playerId, true))
+                            {
+                                redisRestoredCount++;
+                            }
+                        }
+                    }
+
+                    if (pendingIds.Count > 0)
+                    {
+                        var redisValues = pendingIds.Select(id => (RedisValue)id).ToArray();
+                        await _redisDb.SetAddAsync(RedisSetKey, redisValues);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to synchronize Redis pending invalidations on startup.");
+                }
+            }
 
             _logger.LogInformation(
-                $"CardInvalidationList restored {pendingIds.Count} pending players from DB");
+                "CardInvalidationList restored {DbCount} pending players from DB and {RedisCount} additional from Redis",
+                pendingIds.Count,
+                redisRestoredCount);
         }
 
-        // On shutdown — persist pending to DB in one batch
+        // On shutdown — persist pending from local memory + Redis to DB in one batch
         public async Task StopAsync(CancellationToken cancellationToken)
         {
-            if (!_invalidated.Any()) return;
+            var pendingIdsSet = new HashSet<int>(_invalidated.Keys);
+
+            if (_redisDb != null)
+            {
+                try
+                {
+                    var redisMembers = await _redisDb.SetMembersAsync(RedisSetKey);
+                    foreach (var member in redisMembers)
+                    {
+                        if (int.TryParse(member, out int playerId))
+                        {
+                            pendingIdsSet.Add(playerId);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to read Redis pending invalidations on shutdown.");
+                }
+            }
+
+            if (pendingIdsSet.Count == 0) return;
 
             using var scope = _scopeFactory.CreateScope();
             var unitOfWork = scope.ServiceProvider
                 .GetRequiredService<IUnitOfWork>();
 
-            var pendingIds = _invalidated.Keys.ToList();
+            var pendingIds = pendingIdsSet.ToList();
 
             var cards = await unitOfWork.Repository<PlayerCard>()
                 .GetQueryable()
