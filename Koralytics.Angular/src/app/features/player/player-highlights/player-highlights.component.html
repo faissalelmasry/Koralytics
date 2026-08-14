@@ -62,22 +62,24 @@
       </div>
 
       <div class="bio-quick-list">
-        <div class="bio-item">
-          <span class="bio-lbl">{{ 'PLAYER.STATUS' | translate }}</span>
-          <span class="bio-val" [class]="statusClass">{{ 'PLAYER.STATUS_' + (statusLabel | uppercase) | translate }}</span>
+        <div class="bio-stats-wrapper">
+          <div class="bio-item">
+            <span class="bio-lbl">{{ 'PLAYER.STATUS' | translate }}</span>
+            <span class="bio-val" [class]="statusClass">{{ 'PLAYER.STATUS_' + (statusLabel | uppercase) | translate }}</span>
+          </div>
+          @if (profile?.age) {
+          <div class="bio-item">
+            <span class="bio-lbl">Age</span>
+            <span class="bio-val">{{ profile?.age }} Yrs</span>
+          </div>
+          }
+          @if (profile?.nationality) {
+          <div class="bio-item">
+            <span class="bio-lbl">Nationality</span>
+            <span class="bio-val">{{ profile?.nationality }}</span>
+          </div>
+          }
         </div>
-        @if (profile?.age) {
-        <div class="bio-item">
-          <span class="bio-lbl">Age</span>
-          <span class="bio-val">{{ profile?.age }} Yrs</span>
-        </div>
-        }
-        @if (profile?.nationality) {
-        <div class="bio-item">
-          <span class="bio-lbl">Nationality</span>
-          <span class="bio-val">{{ profile?.nationality }}</span>
-        </div>
-        }
         @if (playerId) {
         <div class="bio-item action-bio-item">
           <a [routerLink]="['/player/profile', playerId]" class="btn-profile-link">
