@@ -281,6 +281,7 @@ export class PlayerCardComponent implements OnInit, AfterViewInit, OnChanges, On
 
     const offscreen = document.createElement('div');
     offscreen.style.cssText = 'position:fixed;left:-9999px;top:-9999px;pointer-events:none;';
+    let blobUrl: string | null = null;
 
     try {
       const htmlToImage = await import('html-to-image');
@@ -333,7 +334,6 @@ export class PlayerCardComponent implements OnInit, AfterViewInit, OnChanges, On
       //   2. fetch() as blob → object URL  (same condition, different path)
       //   3. Fall back to initials div (always works, no photo)
       const imgEl = clone.querySelector<HTMLImageElement>('img.photo-img');
-      let blobUrl: string | null = null;
 
       if (imgEl && this.player?.profileImageUrl) {
         const photoUrl = this.player.profileImageUrl;
