@@ -31,7 +31,7 @@
 
       <div class="photo-wrap">
         @if (player.profileImageUrl) {
-          <img [src]="player.profileImageUrl" [alt]="player.playerName" class="photo-img" />
+          <img [src]="player.profileImageUrl" crossorigin="anonymous" [alt]="player.playerName" class="photo-img" />
         } @else {
           <div class="photo">{{ getInitials(player.playerName) }}</div>
         }

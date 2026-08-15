@@ -548,8 +548,7 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
       // Generate the image as PNG
       const dataUrl = await htmlToImage.toPng(card, {
         quality: 1,
-        pixelRatio: 2,
-        backgroundColor: 'transparent'
+        pixelRatio: 2
       });
 
       // Restore DOM state
