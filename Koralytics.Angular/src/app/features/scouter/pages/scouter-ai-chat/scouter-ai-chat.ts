@@ -55,11 +55,11 @@ export class ScouterAiChatComponent implements OnInit {
   public isAiLoading = signal<boolean>(false);
 
   public suggestedPrompts: string[] = [
-    'Find left-footed wingers under 20 years old',
-    'Recommend top CMs with rating over 80 OVR',
-    'Search for promising strikers in Egyptian academies',
-    'Analyze defensive midfielders with high ratings',
-    'Compare top rated players in the system'
+    'Find left-footed wingers under 21 with passing over 75',
+    'Show top 5 promising strikers across Egyptian academies',
+    'Compare top 3 CMs by overall rating',
+    'Find 3 defenders with high physical and defending stats',
+    'List 3 players with weak foot rating of 4 or higher'
   ];
 
   ngOnInit(): void {

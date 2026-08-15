@@ -58,11 +58,11 @@ export class AcademyAiChatComponent implements OnInit {
   public isAiLoading = signal<boolean>(false);
 
   public suggestedPrompts: string[] = [
-    'What about his passing performance?',
-    'Show top performing players in our U20 squad',
-    'Analyze team stamina and readiness for next match',
-    'Summarize recent drill performance for midfielders',
-    'Which players need tactical improvement?'
+    'Which players in our squad have the lowest defending ratings?',
+    'Show top 5 performing players in our U19 squad this month',
+    'Summarize overall squad training attendance for this week',
+    'Which players missed more than 2 training sessions this month?',
+    'Analyze squad weak categories that need immediate drill focus'
   ];
 
   ngOnInit(): void {

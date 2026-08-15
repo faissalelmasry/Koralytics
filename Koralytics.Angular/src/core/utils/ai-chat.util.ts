@@ -14,6 +14,7 @@ export function cleanAiBotResponse(text: string): string {
 /**
  * Converts Markdown text (tables, headings, bullet/numbered lists, bold, italics, inline code)
  * into clean, beautifully styled HTML that matches Langflow AI design.
+ * Strips all '#' symbols from headings/text and filters out table alignment separator rows (| :--- |).
  */
 export function formatAiMarkdown(text: string): string {
   if (!text) return '';
@@ -82,11 +83,12 @@ export function formatAiMarkdown(text: string): string {
         .map(c => c.trim())
         .filter((_, idx, arr) => idx > 0 && idx < arr.length - 1 || arr.length === 1);
 
-      // Check if separator row (e.g. | :--- | :--- |)
-      const isSeparator = cells.length > 0 && cells.every(c => /^:?-+:?$/.test(c.replace(/\s+/g, '')));
+      // Check if separator line (e.g. | :--- | :--- | or | --- | --- |)
+      // A separator line is any line where ALL cells consist solely of '-', ':', and spaces
+      const isSeparator = cells.length > 0 && cells.every(c => /^[:\-\s]+$/.test(c) && c.includes('-'));
 
       if (isSeparator) {
-        continue; // Skip table header separator line
+        continue; // Skip table header separator line completely
       }
 
       if (!inTable) {
@@ -100,16 +102,17 @@ export function formatAiMarkdown(text: string): string {
       flushTable();
     }
 
-    // Check Headings
-    if (line.startsWith('#')) {
+    // Check Headings (e.g. # Heading, ### Heading, ###Heading)
+    if (/^#+/.test(line)) {
       flushList();
-      const match = line.match(/^(#{1,6})\s+(.*)$/);
-      if (match) {
-        const level = match[1].length;
-        const headingText = formatInlineMarkdown(match[2]);
+      const cleanHeadingLine = line.replace(/^#+\s*/, '').trim();
+      if (cleanHeadingLine) {
+        const hashCount = (line.match(/^#+/) || [''])[0].length;
+        const level = Math.min(Math.max(hashCount, 1), 6);
+        const headingText = formatInlineMarkdown(cleanHeadingLine);
         resultBlocks.push(`<h${level} class="ai-md-h${level}">${headingText}</h${level}>`);
-        continue;
       }
+      continue;
     }
 
     // Check Horizontal Rule
@@ -162,11 +165,13 @@ export function formatAiMarkdown(text: string): string {
 
 /**
  * Formats inline elements: **bold**, *italic*, `code`
+ * Removes any remaining '#' symbols so none appear in the UI.
  */
 function formatInlineMarkdown(text: string): string {
   if (!text) return '';
 
   let html = text
+    .replace(/#/g, '') // Completely erase any '#' symbols from display
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
@@ -182,4 +187,5 @@ function formatInlineMarkdown(text: string): string {
 
   return html;
 }
+
 

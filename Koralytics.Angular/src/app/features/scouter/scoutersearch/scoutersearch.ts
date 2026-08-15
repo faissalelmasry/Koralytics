@@ -127,9 +127,9 @@ export class ScouterSearchComponent implements OnInit {
   public chatMessages = signal<ChatMessage[]>([]);
   public isAiLoading = signal<boolean>(false);
   public suggestedPrompts: string[] = [
-    'Find left-footed wings under 20',
-    'Recommend top CM with rating > 80',
-    'Search for promising strikers'
+    'Find left-footed wingers under 21 with passing over 75',
+    'Show top 5 promising strikers across Egyptian academies',
+    'Find defenders with high physical and defending stats'
   ];
 
   public results = signal<PlayerCardDto[]>([]);
