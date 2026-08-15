@@ -206,3 +206,149 @@ th {
   }
 }
 
+/* ============================================
+   AI CHAT MARKDOWN & LANGFLOW CARD TABLES
+   ============================================ */
+.msg-content .ai-md-p {
+  margin: 0 0 14px 0;
+  line-height: 1.65;
+}
+
+.msg-content .ai-md-p:last-child {
+  margin-bottom: 0;
+}
+
+/* Headings */
+.msg-content .ai-md-h1,
+.msg-content .ai-md-h2,
+.msg-content .ai-md-h3,
+.msg-content .ai-md-h4 {
+  color: #ffffff;
+  font-weight: 700;
+  margin: 20px 0 10px 0;
+  line-height: 1.3;
+}
+
+.msg-content .ai-md-h1 { font-size: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 6px; }
+.msg-content .ai-md-h2 { font-size: 18px; }
+.msg-content .ai-md-h3 { font-size: 16px; color: #c8ff4d; }
+.msg-content .ai-md-h4 { font-size: 14.5px; }
+
+/* Horizontal Rule */
+.msg-content .ai-md-hr {
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  margin: 18px 0;
+}
+
+/* Lists */
+.msg-content .ai-md-ul,
+.msg-content .ai-md-ol {
+  margin: 12px 0 16px 0;
+  padding-left: 24px;
+}
+
+.msg-content .ai-md-li {
+  margin-bottom: 8px;
+  line-height: 1.6;
+  color: #e2e8f0;
+}
+
+.msg-content .ai-md-li::marker {
+  color: #c8ff4d;
+}
+
+/* Langflow Card Table Container */
+.msg-content .ai-table-wrapper {
+  margin: 18px 0;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #eaecf0;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Table element */
+.msg-content .ai-markdown-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 13.5px;
+  text-align: left;
+  color: #101828;
+}
+
+/* Table Header */
+.msg-content .ai-markdown-table thead th {
+  background-color: #ffffff;
+  color: #101828;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #eaecf0;
+  white-space: nowrap;
+}
+
+.msg-content .ai-markdown-table thead tr:first-child th:first-child {
+  border-top-left-radius: 12px;
+}
+
+.msg-content .ai-markdown-table thead tr:first-child th:last-child {
+  border-top-right-radius: 12px;
+}
+
+/* Table Body Rows */
+.msg-content .ai-markdown-table tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+.msg-content .ai-markdown-table tbody tr:hover {
+  background-color: #f9fafb;
+}
+
+.msg-content .ai-markdown-table tbody td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f2f4f7;
+  color: #344054;
+  font-size: 13.5px;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.msg-content .ai-markdown-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.msg-content .ai-markdown-table tbody tr:last-child td:first-child {
+  border-bottom-left-radius: 12px;
+}
+
+.msg-content .ai-markdown-table tbody tr:last-child td:last-child {
+  border-bottom-right-radius: 12px;
+}
+
+/* Code inline */
+.msg-content .ai-code-inline {
+  background: rgba(200, 255, 77, 0.12);
+  color: #c8ff4d;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Fira Code', 'Courier New', monospace;
+  font-size: 13px;
+}
+
+/* Bold highlight badge/span */
+.msg-content .ai-bold-highlight {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.is-assistant .msg-content .ai-bold-highlight {
+  color: #c8ff4d;
+}
+
+

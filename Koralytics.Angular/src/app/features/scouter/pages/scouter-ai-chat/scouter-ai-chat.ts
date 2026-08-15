@@ -9,7 +9,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ScouterService } from '../../../../../core/services/Scouter/scouter.service';
 import { ToastService } from '../../../../../core/services/Toast/toast';
 import { TokenStorageService } from '../../../../../core/services/auth/token-storage.service';
-import { cleanAiBotResponse } from '../../../../../core/utils/ai-chat.util';
+import { cleanAiBotResponse, formatAiMarkdown } from '../../../../../core/utils/ai-chat.util';
 import { NavbarComponent } from '../../../../../shared/components/navbar/navbar';
 import { Footer } from '../../../../../shared/components/footer/footer';
 import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
@@ -181,34 +181,7 @@ export class ScouterAiChatComponent implements OnInit {
 
   public formatMessageText(text: string): SafeHtml {
     if (!text) return '';
-
-    // Escape basic HTML tags to prevent security issues
-    let formatted = text
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
-
-    // Convert markdown **bold** to styled strong tag
-    formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong class="ai-bold-highlight">$1</strong>');
-
-    // Convert markdown *italic* to em tag
-    formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>');
-
-    // Split paragraphs on double newlines
-    const paragraphs = formatted.split(/\n\s*\n/);
-    if (paragraphs.length > 1) {
-      formatted = paragraphs
-        .map(p => {
-          const trimmed = p.trim();
-          if (!trimmed) return '';
-          const withBreaks = trimmed.replace(/\n/g, '<br>');
-          return `<div class="ai-msg-block">${withBreaks}</div>`;
-        })
-        .join('');
-    } else {
-      formatted = formatted.replace(/\n/g, '<br>');
-    }
-
+    const formatted = formatAiMarkdown(text);
     return this.sanitizer.bypassSecurityTrustHtml(formatted);
   }
 }

@@ -5,7 +5,7 @@ import { Router, RouterModule } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { extractErrorMessage } from '../../../../core/utils/http-error.util';
-import { cleanAiBotResponse } from '../../../../core/utils/ai-chat.util';
+import { cleanAiBotResponse, formatAiMarkdown } from '../../../../core/utils/ai-chat.util';
 
 import { NavbarComponent } from '../../../../shared/components/navbar/navbar';
 import { Footer } from '../../../../shared/components/footer/footer';
@@ -173,29 +173,7 @@ export class ParentChatComponent implements OnInit, AfterViewChecked {
 
   public formatMessageText(text: string): SafeHtml {
     if (!text) return '';
-
-    let formatted = text
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
-
-    formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong class="ai-bold-highlight">$1</strong>');
-    formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>');
-
-    const paragraphs = formatted.split(/\n\s*\n/);
-    if (paragraphs.length > 1) {
-      formatted = paragraphs
-        .map(p => {
-          const trimmed = p.trim();
-          if (!trimmed) return '';
-          const withBreaks = trimmed.replace(/\n/g, '<br>');
-          return `<div class="ai-msg-block">${withBreaks}</div>`;
-        })
-        .join('');
-    } else {
-      formatted = formatted.replace(/\n/g, '<br>');
-    }
-
+    const formatted = formatAiMarkdown(text);
     return this.sanitizer.bypassSecurityTrustHtml(formatted);
   }
 }

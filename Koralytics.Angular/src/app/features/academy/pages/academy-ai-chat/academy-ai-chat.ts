@@ -9,7 +9,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { AcademyService } from '../../../../../core/services/academy/academy.service';
 import { ToastService } from '../../../../../core/services/Toast/toast';
 import { TokenStorageService } from '../../../../../core/services/auth/token-storage.service';
-import { cleanAiBotResponse } from '../../../../../core/utils/ai-chat.util';
+import { cleanAiBotResponse, formatAiMarkdown } from '../../../../../core/utils/ai-chat.util';
 import { NavbarComponent } from '../../../../../shared/components/navbar/navbar';
 import { Footer } from '../../../../../shared/components/footer/footer';
 import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
@@ -181,28 +181,7 @@ export class AcademyAiChatComponent implements OnInit {
 
   public formatMessageText(text: string): SafeHtml {
     if (!text) return '';
-
-    let formatted = text
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
-
-    formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong class="ai-bold-highlight">$1</strong>');
-    formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>');
-
-    const paragraphs = formatted.split(/\n\s*\n/);
-    if (paragraphs.length > 1) {
-      formatted = paragraphs
-        .map(p => {
-          const trimmed = p.trim();
-          if (!trimmed) return '';
-          return `<p class="ai-paragraph">${trimmed.replace(/\n/g, '<br/>')}</p>`;
-        })
-        .join('');
-    } else {
-      formatted = formatted.replace(/\n/g, '<br/>');
-    }
-
+    const formatted = formatAiMarkdown(text);
     return this.sanitizer.bypassSecurityTrustHtml(formatted);
   }
 }
