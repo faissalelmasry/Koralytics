@@ -89,9 +89,7 @@ export class RegisterComponent {
     weightKg: [null as number | null, [Validators.min(20), Validators.max(150)]]
   });
 
-  parentForm = this.fb.group({
-    childPlayerId: [null as number | null]
-  });
+
 
   passwordMatchValidator(g: AbstractControl) {
     return g.get('password')?.value === g.get('confirmPassword')?.value
@@ -112,8 +110,8 @@ export class RegisterComponent {
         this.baseForm.markAllAsTouched();
         return;
       }
-      // Coach, Scouter, Admin, and CoachAndAdmin don't have step 3 (Profile details)
-      if (['Coach', 'Scouter', 'AcademyAdmin', 'CoachAndAdmin'].includes(this.selectedRole!)) {
+      // Coach, Scouter, Admin, CoachAndAdmin, and Parent don't have step 3 (Profile details)
+      if (['Coach', 'Scouter', 'AcademyAdmin', 'CoachAndAdmin', 'Parent'].includes(this.selectedRole!)) {
         this.onSubmit();
         return;
       }
@@ -243,9 +241,5 @@ export class RegisterComponent {
     if (control?.touched && control?.invalid) return 'AUTH.ERRORS.REQUIRED';
     return '';
   }}
-  get parentError() { return (controlName: string) => {
-    const control = this.parentForm.get(controlName);
-    if (control?.touched && control?.invalid) return 'AUTH.ERRORS.CHILD_PLAYER_ID_REQUIRED';
-    return '';
-  }}
+
 }

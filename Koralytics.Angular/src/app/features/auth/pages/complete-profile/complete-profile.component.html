@@ -44,10 +44,7 @@
         <app-text-input [label]="'AUTH.REGISTER.WEIGHT' | translate" type="number" formControlName="weightKg"></app-text-input>
       </div>
 
-      <div *ngIf="selectedRole === 'Parent'" [formGroup]="parentForm" class="form-grid" style="margin-top: 16px;">
-        <app-text-input [label]="'AUTH.REGISTER.CHILD_PLAYER_ID' | translate" type="number" formControlName="childPlayerId" [errorMessage]="parentError('childPlayerId') | translate" class="full-width"></app-text-input>
-        <p class="help-text">{{ 'AUTH.REGISTER.CHILD_PLAYER_ID_HELP' | translate }}</p>
-      </div>
+
 
     </div>
 

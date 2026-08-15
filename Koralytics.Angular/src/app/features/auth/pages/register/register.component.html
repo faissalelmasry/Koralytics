@@ -55,10 +55,7 @@
         <app-text-input [label]="'AUTH.REGISTER.WEIGHT' | translate" type="number" placeholder="72" formControlName="weightKg"></app-text-input>
       </div>
 
-      <div *ngIf="selectedRole === 'Parent'" [formGroup]="parentForm" class="form-grid">
-        <app-text-input [label]="'AUTH.REGISTER.CHILD_PLAYER_ID' | translate" type="number" formControlName="childPlayerId" [errorMessage]="parentError('childPlayerId') | translate" class="full-width"></app-text-input>
-        <p class="help-text">{{ 'AUTH.REGISTER.CHILD_PLAYER_ID_HELP' | translate }}</p>
-      </div>
+
 
     </div>
 
@@ -75,7 +72,7 @@
     </app-button>
     
     <app-button 
-      *ngIf="currentStep < 2 && !(currentStep === 1 && ['Coach', 'Scouter', 'AcademyAdmin', 'CoachAndAdmin'].includes(selectedRole || ''))" 
+      *ngIf="currentStep < 2 && !(currentStep === 1 && ['Coach', 'Scouter', 'AcademyAdmin', 'CoachAndAdmin', 'Parent'].includes(selectedRole || ''))" 
       type="button" 
       variant="accent" 
       (click)="nextStep()"
@@ -85,7 +82,7 @@
     </app-button>
 
     <app-button 
-      *ngIf="currentStep === 2 || (currentStep === 1 && ['Coach', 'Scouter', 'AcademyAdmin', 'CoachAndAdmin'].includes(selectedRole || ''))" 
+      *ngIf="currentStep === 2 || (currentStep === 1 && ['Coach', 'Scouter', 'AcademyAdmin', 'CoachAndAdmin', 'Parent'].includes(selectedRole || ''))" 
       type="button" 
       variant="accent" 
       (click)="onSubmit()"

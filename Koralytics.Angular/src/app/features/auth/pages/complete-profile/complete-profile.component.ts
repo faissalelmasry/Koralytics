@@ -84,9 +84,7 @@ export class CompleteProfileComponent implements OnInit {
     weightKg: [null as number | null, [Validators.min(20), Validators.max(150)]]
   });
 
-  parentForm = this.fb.group({
-    childPlayerId: [0, [Validators.required, Validators.min(1)]]
-  });
+
 
   ngOnInit() {
     const state = window.history.state;
@@ -115,11 +113,6 @@ export class CompleteProfileComponent implements OnInit {
   nextStep() {
     if (this.currentStep === 0 && !this.selectedRole) {
       this.toast.show(this.translate.instant('AUTH.MESSAGES.ROLE_REQUIRED'), 'warning');
-      return;
-    }
-    // Coach, Scouter, Parent, and Admin don't have step 2 (Profile details)
-    if (['Coach', 'Scouter', 'Parent', 'AcademyAdmin'].includes(this.selectedRole!)) {
-      this.onSubmit();
       return;
     }
     this.currentStep++;
@@ -195,12 +188,11 @@ export class CompleteProfileComponent implements OnInit {
         break;
         
       case 'Parent':
-        const parentReq: CompleteProfileAsParent = {
-          userName: baseData.userName || '',
-          phoneNumber: baseData.phoneNumber || undefined,
-          childPlayerId: null
-        };
-        requestObservable = this.authService.completeProfileAsParent(parentReq);
+        requestObservable = this.authService.completeProfileAsParent({ 
+          userName: baseData.userName || '', 
+          phoneNumber: baseData.phoneNumber || undefined, 
+          childPlayerId: null 
+        });
         break;
         
       case 'AcademyAdmin':
@@ -249,9 +241,5 @@ export class CompleteProfileComponent implements OnInit {
     if (control?.touched && control?.invalid) return 'AUTH.ERRORS.REQUIRED';
     return '';
   }}
-  get parentError() { return (controlName: string) => {
-    const control = this.parentForm.get(controlName);
-    if (control?.touched && control?.invalid) return 'AUTH.ERRORS.CHILD_PLAYER_ID_REQUIRED';
-    return '';
-  }}
+
 }
