@@ -37,6 +37,7 @@ export class PlayerCardComponent implements OnInit, AfterViewInit, OnChanges, On
   error = '';
   animatedRating = 0;
   isFlipped = false;
+  isExporting = false;
   stars = [1, 2, 3, 4, 5];
 
   statsList: PlayerStatItem[] = [];
@@ -272,9 +273,14 @@ export class PlayerCardComponent implements OnInit, AfterViewInit, OnChanges, On
 
   async exportToPdf(event: Event) {
     event.stopPropagation();
-    if (!this.cardElement?.nativeElement) return;
+    if (!this.cardElement?.nativeElement || this.isExporting) return;
 
     const card = this.cardElement.nativeElement;
+    this.isExporting = true;
+    this.cdr.markForCheck();
+
+    const offscreen = document.createElement('div');
+    offscreen.style.cssText = 'position:fixed;left:-9999px;top:-9999px;pointer-events:none;';
 
     try {
       const htmlToImage = await import('html-to-image');
@@ -283,12 +289,12 @@ export class PlayerCardComponent implements OnInit, AfterViewInit, OnChanges, On
       // are preserved — cloning only the face loses those variables from the parent scope
       const clone = card.cloneNode(true) as HTMLElement;
 
-      // Flatten 3D so html-to-image can rasterize it (backface-visibility:hidden
-      // causes blank output in production/minified builds when inside preserve-3d)
-      clone.style.transform       = 'none';
-      clone.style.transformStyle  = 'flat';
-      clone.style.transition      = 'none';
-      clone.style.cursor          = 'default';
+      // Flatten 3D — backface-visibility:hidden inside preserve-3d causes blank output
+      // in production/minified builds with html-to-image
+      clone.style.transform      = 'none';
+      clone.style.transformStyle = 'flat';
+      clone.style.transition     = 'none';
+      clone.style.cursor         = 'default';
 
       const rect = card.getBoundingClientRect();
       clone.style.width  = `${rect.width}px`;
@@ -301,7 +307,7 @@ export class PlayerCardComponent implements OnInit, AfterViewInit, OnChanges, On
       if (this.isFlipped) {
         if (cloneFront) cloneFront.style.display = 'none';
         if (cloneBack) {
-          cloneBack.style.transform         = 'none';
+          cloneBack.style.transform = 'none';
           cloneBack.style.backfaceVisibility = 'visible';
           (cloneBack.style as any).webkitBackfaceVisibility = 'visible';
         }
@@ -313,14 +319,46 @@ export class PlayerCardComponent implements OnInit, AfterViewInit, OnChanges, On
         }
       }
 
-      // Freeze fill transitions so stat bars render at current width
+      // Freeze stat bar transitions so they render at current animated width
       clone.querySelectorAll<HTMLElement>('.fill').forEach(f => {
         f.style.transition = 'none';
       });
 
-      // Mount off-screen
-      const offscreen = document.createElement('div');
-      offscreen.style.cssText = 'position:fixed;left:-9999px;top:-9999px;pointer-events:none;';
+      // ── CORS FIX ──────────────────────────────────────────────────────────
+      // On production, the profile image is cross-origin (Azure Blob Storage).
+      // html-to-image draws it onto a <canvas>, which taints the canvas and
+      // throws a SecurityError — silently killing the whole export.
+      // Solution: pre-fetch the image as a blob URL so the canvas sees same-origin data.
+      const imgEl = clone.querySelector<HTMLImageElement>('img.photo-img');
+      let blobUrl: string | null = null;
+
+      if (imgEl && this.player?.profileImageUrl) {
+        try {
+          const res = await fetch(this.player.profileImageUrl, { mode: 'cors' });
+          if (!res.ok) throw new Error('fetch failed');
+          const blob = await res.blob();
+          blobUrl = URL.createObjectURL(blob);
+          imgEl.src = blobUrl;
+          // Wait for the new src to load in the clone
+          await new Promise<void>(resolve => {
+            imgEl.onload  = () => resolve();
+            imgEl.onerror = () => resolve(); // resolve anyway — will look fine
+          });
+        } catch {
+          // CORS fetch failed — fall back to initials div (avoids canvas taint)
+          const wrap = imgEl.parentElement;
+          if (wrap) {
+            imgEl.remove();
+            const initDiv = document.createElement('div');
+            initDiv.className = 'photo';
+            initDiv.textContent = this.getInitials(this.player.playerName);
+            initDiv.style.cssText = 'display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:36px;font-weight:700;';
+            wrap.appendChild(initDiv);
+          }
+        }
+      }
+      // ─────────────────────────────────────────────────────────────────────
+
       offscreen.appendChild(clone);
       document.body.appendChild(offscreen);
 
@@ -329,16 +367,21 @@ export class PlayerCardComponent implements OnInit, AfterViewInit, OnChanges, On
         pixelRatio: 2
       });
 
-      document.body.removeChild(offscreen);
-
       // Download
       const link = document.createElement('a');
       link.download = `${this.player?.playerName || 'Player'}-Card.png`;
       link.href = dataUrl;
+      document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
 
     } catch (e) {
       console.error('Error generating card PNG', e);
+    } finally {
+      if (offscreen.parentNode) document.body.removeChild(offscreen);
+      if ((this as any)._blobUrl) { URL.revokeObjectURL((this as any)._blobUrl); }
+      this.isExporting = false;
+      this.cdr.markForCheck();
     }
   }
 
