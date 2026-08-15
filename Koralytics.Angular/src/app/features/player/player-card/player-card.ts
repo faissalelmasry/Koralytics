@@ -273,77 +273,75 @@ export class PlayerCardComponent implements OnInit, AfterViewInit, OnChanges, On
   async exportToPdf(event: Event) {
     event.stopPropagation();
     if (!this.cardElement?.nativeElement) return;
-    
+
     const card = this.cardElement.nativeElement;
 
     try {
       const htmlToImage = await import('html-to-image');
 
-      // Temporarily remove 3D rotation to ensure flat rasterization,
-      // and hide the opposite face to prevent backface-visibility issues in SVG.
-      const oldTransform = card.style.transform;
-      card.style.transform = 'none';
-      
-      const frontFace = card.querySelector('.face.front') as HTMLElement;
-      const backFace = card.querySelector('.face.back') as HTMLElement;
-      
-      const oldFrontDisplay = frontFace ? frontFace.style.display : '';
-      const oldBackDisplay = backFace ? backFace.style.display : '';
+      // Clone the entire card3d so CSS custom properties (--tier-neon, gradients, etc.)
+      // are preserved — cloning only the face loses those variables from the parent scope
+      const clone = card.cloneNode(true) as HTMLElement;
+
+      // Flatten 3D so html-to-image can rasterize it (backface-visibility:hidden
+      // causes blank output in production/minified builds when inside preserve-3d)
+      clone.style.transform       = 'none';
+      clone.style.transformStyle  = 'flat';
+      clone.style.transition      = 'none';
+      clone.style.cursor          = 'default';
+
+      const rect = card.getBoundingClientRect();
+      clone.style.width  = `${rect.width}px`;
+      clone.style.height = `${rect.height}px`;
+
+      // Show only the visible face; hide the other
+      const cloneFront = clone.querySelector('.face.front') as HTMLElement | null;
+      const cloneBack  = clone.querySelector('.face.back')  as HTMLElement | null;
 
       if (this.isFlipped) {
-        if (frontFace) frontFace.style.display = 'none';
-        if (backFace) backFace.style.transform = 'none'; // Ensure back face is not mirrored
+        if (cloneFront) cloneFront.style.display = 'none';
+        if (cloneBack) {
+          cloneBack.style.transform         = 'none';
+          cloneBack.style.backfaceVisibility = 'visible';
+          (cloneBack.style as any).webkitBackfaceVisibility = 'visible';
+        }
       } else {
-        if (backFace) backFace.style.display = 'none';
+        if (cloneBack) cloneBack.style.display = 'none';
+        if (cloneFront) {
+          cloneFront.style.backfaceVisibility = 'visible';
+          (cloneFront.style as any).webkitBackfaceVisibility = 'visible';
+        }
       }
 
-      // Pre-fetch all external images as base64 to bypass canvas CORS taint in production.
-      // html-to-image inlines images it fetches, so we swap src to base64 before capture.
-      const allImgs = Array.from(card.querySelectorAll('img')) as HTMLImageElement[];
-      const originalSrcs = allImgs.map(img => img.src);
-      await Promise.all(allImgs.map(async (img) => {
-        try {
-          const res = await fetch(img.src, { cache: 'no-store' });
-          const blob = await res.blob();
-          const b64 = await new Promise<string>((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result as string);
-            reader.onerror = reject;
-            reader.readAsDataURL(blob);
-          });
-          img.src = b64;
-        } catch {
-          // If fetch fails, leave original src; html-to-image will skip the image
-        }
-      }));
+      // Freeze fill transitions so stat bars render at current width
+      clone.querySelectorAll<HTMLElement>('.fill').forEach(f => {
+        f.style.transition = 'none';
+      });
 
-      // Generate the image as PNG to preserve transparent corners
-      const dataUrl = await htmlToImage.toPng(card, {
+      // Mount off-screen
+      const offscreen = document.createElement('div');
+      offscreen.style.cssText = 'position:fixed;left:-9999px;top:-9999px;pointer-events:none;';
+      offscreen.appendChild(clone);
+      document.body.appendChild(offscreen);
+
+      const dataUrl = await htmlToImage.toPng(clone, {
         quality: 1,
         pixelRatio: 2
       });
 
-      // Restore original image srcs
-      allImgs.forEach((img, i) => { img.src = originalSrcs[i]; });
+      document.body.removeChild(offscreen);
 
-      // Restore DOM state
-      card.style.transform = oldTransform;
-      if (frontFace) frontFace.style.display = oldFrontDisplay;
-      if (backFace) {
-        backFace.style.display = oldBackDisplay;
-        backFace.style.transform = ''; // Restore back face mirroring
-      }
-
-      // Download as PNG instead of PDF to support full transparency
+      // Download
       const link = document.createElement('a');
       link.download = `${this.player?.playerName || 'Player'}-Card.png`;
       link.href = dataUrl;
       link.click();
 
     } catch (e) {
-      console.error('Error generating PNG', e);
+      console.error('Error generating card PNG', e);
     }
   }
+
 
   private decodeTokenPayload(token: string): { userId: number; roles: string[] } | null {
     try {

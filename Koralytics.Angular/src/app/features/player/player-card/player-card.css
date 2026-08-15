@@ -64,6 +64,12 @@
    3D Card structure
    =================================================== */
 
+.card-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
 .scene {
   perspective: 1400px;
   width: 100%;
@@ -376,13 +382,15 @@
   font-size: 10px;
 }
 
+
 /* ===================================================
    Export to PDF Button
    =================================================== */
+
 .export-pdf-btn {
   position: absolute;
-  top: -15px;
-  right: -15px;
+  top: -12px;
+  right: -12px;
   width: 36px;
   height: 36px;
   border-radius: 50%;
@@ -393,13 +401,13 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 10;
+  z-index: 20;
   box-shadow: 0 4px 10px rgba(0,0,0,0.5);
   transition: transform 0.2s, background 0.2s;
   opacity: 0;
 }
 
-.scene:hover .export-pdf-btn {
+.card-wrapper:hover .export-pdf-btn {
   opacity: 1;
 }
 
@@ -408,13 +416,15 @@
   background: #fff;
 }
 
-.card3d.compact ~ .export-pdf-btn {
+.card3d.compact ~ .export-pdf-btn,
+.scene:has(.card3d.compact) ~ .export-pdf-btn {
   top: 5px;
   right: 5px;
   width: 28px;
   height: 28px;
 }
-.card3d.compact ~ .export-pdf-btn svg {
+.card3d.compact ~ .export-pdf-btn svg,
+.scene:has(.card3d.compact) ~ .export-pdf-btn svg {
   width: 12px;
   height: 12px;
 }

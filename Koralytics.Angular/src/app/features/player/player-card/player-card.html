@@ -9,94 +9,96 @@
   </div>
 }
 @else if (player) {
-<div class="scene">
-   <div #cardElement 
-        class="card3d" 
-        [class.tier-base]="tierClass === 'tier-base'"
-        [class.tier-gold]="tierClass === 'tier-gold'"
-        [class.tier-elite]="tierClass === 'tier-elite'"
-        [class.flipped]="isFlipped"
-        [class.compact]="compact"
-        (click)="toggleFlip()">
+<div class="card-wrapper">
+  <div class="scene">
+     <div #cardElement 
+          class="card3d" 
+          [class.tier-base]="tierClass === 'tier-base'"
+          [class.tier-gold]="tierClass === 'tier-gold'"
+          [class.tier-elite]="tierClass === 'tier-elite'"
+          [class.flipped]="isFlipped"
+          [class.compact]="compact"
+          (click)="toggleFlip()">
 
-    <!-- FRONT FACE -->
-    <div class="face front">
-      <div class="top-row">
-        <div class="rating-block">
-          <div class="rating">{{ animatedRating }}</div>
-          <div class="position">{{ player.position }}</div>
-        </div>
-        <div class="crest app-logo"></div>
-      </div>
-
-      <div class="photo-wrap">
-        @if (player.profileImageUrl) {
-          <img [src]="player.profileImageUrl" [alt]="player.playerName" class="photo-img" />
-        } @else {
-          <div class="photo">{{ getInitials(player.playerName) }}</div>
-        }
-      </div>
-
-      <span
-        class="name-band"
-        appMarqueeIfOverflow
-        [marqueeText]="player.playerName"
-      >{{ player.playerName | uppercase }}</span>
-
-      @if (isGK) {
-        <div class="gk-stat-block">
-          <div class="gk-label">{{ 'PLAYER.GOALKEEPING' | translate | uppercase }}</div>
-          <div class="stat-top">
-            <span class="num">0</span>
-            <span class="label">GKP</span>
+      <!-- FRONT FACE -->
+      <div class="face front">
+        <div class="top-row">
+          <div class="rating-block">
+            <div class="rating">{{ animatedRating }}</div>
+            <div class="position">{{ player.position }}</div>
           </div>
-          <div class="stat-bar gk-stat-bar">
-            <span class="fill"></span>
-          </div>
+          <div class="crest app-logo"></div>
         </div>
-      } 
-      @else {
-        <div class="stats-grid">
-          @for (stat of statsList; track stat.label) {
-            <div class="stat">
-              <div class="stat-top">
-                <span class="num">0</span>
-                <span class="label">{{ stat.label }}</span>
-              </div>
-              <div class="stat-bar">
-                <span class="fill"></span>
-              </div>
+
+        <div class="photo-wrap">
+          @if (player.profileImageUrl) {
+            <img [src]="player.profileImageUrl" [alt]="player.playerName" class="photo-img" />
+          } @else {
+            <div class="photo">{{ getInitials(player.playerName) }}</div>
+          }
+        </div>
+
+        <span
+          class="name-band"
+          appMarqueeIfOverflow
+          [marqueeText]="player.playerName"
+        >{{ player.playerName | uppercase }}</span>
+
+        @if (isGK) {
+          <div class="gk-stat-block">
+            <div class="gk-label">{{ 'PLAYER.GOALKEEPING' | translate | uppercase }}</div>
+            <div class="stat-top">
+              <span class="num">0</span>
+              <span class="label">GKP</span>
             </div>
-          }
-        </div>
-      }
+            <div class="stat-bar gk-stat-bar">
+              <span class="fill"></span>
+            </div>
+          </div>
+        } 
+        @else {
+          <div class="stats-grid">
+            @for (stat of statsList; track stat.label) {
+              <div class="stat">
+                <div class="stat-top">
+                  <span class="num">0</span>
+                  <span class="label">{{ stat.label }}</span>
+                </div>
+                <div class="stat-bar">
+                  <span class="fill"></span>
+                </div>
+              </div>
+            }
+          </div>
+        }
 
-      <div class="bottom-row">
-        <div class="foot-stars" [attr.aria-label]="'Weak foot rating ' + player.weakFootRating + ' out of 5'">
-          @for (star of stars; track star) {
-            <i [class.on]="star <= player.weakFootRating">&#9733;</i>
-          }
+        <div class="bottom-row">
+          <div class="foot-stars" [attr.aria-label]="'Weak foot rating ' + player.weakFootRating + ' out of 5'">
+            @for (star of stars; track star) {
+              <i [class.on]="star <= player.weakFootRating">&#9733;</i>
+            }
+          </div>
+          <span>{{ 'PROFILE.FOOT_' + (player.preferredFoot | uppercase) | translate }}</span>
         </div>
-        <span>{{ 'PROFILE.FOOT_' + (player.preferredFoot | uppercase) | translate }}</span>
       </div>
-    </div>
 
-    <div class="face back">
-      <h3>{{ player.playerName }}</h3>
-      <p class="sub">{{ player.position }} · {{ 'PLAYER.OVERALL_RATING' | translate }} <span>{{ player.overallRating | number:'1.0-0' }}</span></p>
-      
-      <div class="info-row"><span>{{ 'PLAYER.CLASSIFICATION' | translate }}</span><span>{{ player.transferClassification }}</span></div>
-      @if (player.archetypePlayerName) {
-        <div class="info-row"><span>{{ 'PLAYER.PLAY_STYLE' | translate }}</span><span>{{ player.archetypePlayerName }}</span></div>
-      }
-      @else {
-        <div class="info-row"><span>{{ 'PLAYER.PLAY_STYLE' | translate }}</span><span>{{ 'PLAYER.UNDER_EVALUATION' | translate }}</span></div>
-      }
-      <div class="info-row"><span>{{ 'PLAYER.WEAK_FOOT' | translate }}</span><span>{{ player.weakFootRating }} / 5</span></div>
-      <div class="info-row"><span>{{ 'PLAYER.PREFERRED_FOOT' | translate }}</span><span>{{ 'PROFILE.FOOT_' + (player.preferredFoot | uppercase) | translate }}</span></div>
-      
-    </div>
+      <div class="face back">
+        <h3>{{ player.playerName }}</h3>
+        <p class="sub">{{ player.position }} · {{ 'PLAYER.OVERALL_RATING' | translate }} <span>{{ player.overallRating | number:'1.0-0' }}</span></p>
+        
+        <div class="info-row"><span>{{ 'PLAYER.CLASSIFICATION' | translate }}</span><span>{{ player.transferClassification }}</span></div>
+        @if (player.archetypePlayerName) {
+          <div class="info-row"><span>{{ 'PLAYER.PLAY_STYLE' | translate }}</span><span>{{ player.archetypePlayerName }}</span></div>
+        }
+        @else {
+          <div class="info-row"><span>{{ 'PLAYER.PLAY_STYLE' | translate }}</span><span>{{ 'PLAYER.UNDER_EVALUATION' | translate }}</span></div>
+        }
+        <div class="info-row"><span>{{ 'PLAYER.WEAK_FOOT' | translate }}</span><span>{{ player.weakFootRating }} / 5</span></div>
+        <div class="info-row"><span>{{ 'PLAYER.PREFERRED_FOOT' | translate }}</span><span>{{ 'PROFILE.FOOT_' + (player.preferredFoot | uppercase) | translate }}</span></div>
+        
+      </div>
 
+    </div>
   </div>
 
   @if (isCurrentUserPlayer) {

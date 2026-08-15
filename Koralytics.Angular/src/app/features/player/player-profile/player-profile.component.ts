@@ -545,33 +545,12 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
         if (frontFace) frontFace.style.display = 'none';
       }
 
-      // Pre-fetch all external images as base64 to bypass canvas CORS taint in production.
-      const allImgs = Array.from(card.querySelectorAll('img')) as HTMLImageElement[];
-      const originalSrcs = allImgs.map(img => img.src);
-      await Promise.all(allImgs.map(async (img) => {
-        try {
-          const res = await fetch(img.src, { cache: 'no-store' });
-          const blob = await res.blob();
-          const b64 = await new Promise<string>((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result as string);
-            reader.onerror = reject;
-            reader.readAsDataURL(blob);
-          });
-          img.src = b64;
-        } catch {
-          // If fetch fails, leave original src
-        }
-      }));
-
       // Generate the image as PNG
       const dataUrl = await htmlToImage.toPng(card, {
         quality: 1,
-        pixelRatio: 2
+        pixelRatio: 2,
+        backgroundColor: 'transparent'
       });
-
-      // Restore original image srcs
-      allImgs.forEach((img, i) => { img.src = originalSrcs[i]; });
 
       // Restore DOM state
       card.style.transform = oldTransform;
