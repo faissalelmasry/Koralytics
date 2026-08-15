@@ -325,27 +325,60 @@ export class PlayerCardComponent implements OnInit, AfterViewInit, OnChanges, On
       });
 
       // ── CORS FIX ──────────────────────────────────────────────────────────
-      // On production, the profile image is cross-origin (Azure Blob Storage).
-      // html-to-image draws it onto a <canvas>, which taints the canvas and
-      // throws a SecurityError — silently killing the whole export.
-      // Solution: pre-fetch the image as a blob URL so the canvas sees same-origin data.
+      // Azure Blob Storage images are cross-origin. html-to-image draws them
+      // onto a <canvas> which gets tainted → SecurityError → blank export.
+      // We try three strategies in order:
+      //   1. Draw via new Image(crossOrigin=anonymous) → canvas.toDataURL()
+      //      (works if Azure Blob has CORS configured / Access-Control-Allow-Origin)
+      //   2. fetch() as blob → object URL  (same condition, different path)
+      //   3. Fall back to initials div (always works, no photo)
       const imgEl = clone.querySelector<HTMLImageElement>('img.photo-img');
       let blobUrl: string | null = null;
 
       if (imgEl && this.player?.profileImageUrl) {
+        const photoUrl = this.player.profileImageUrl;
+        let converted = false;
+
+        // Strategy 1: crossOrigin canvas
         try {
-          const res = await fetch(this.player.profileImageUrl, { mode: 'cors' });
-          if (!res.ok) throw new Error('fetch failed');
-          const blob = await res.blob();
-          blobUrl = URL.createObjectURL(blob);
-          imgEl.src = blobUrl;
-          // Wait for the new src to load in the clone
-          await new Promise<void>(resolve => {
-            imgEl.onload  = () => resolve();
-            imgEl.onerror = () => resolve(); // resolve anyway — will look fine
+          const crossImg = new Image();
+          crossImg.crossOrigin = 'anonymous';
+          const loaded = await new Promise<boolean>(resolve => {
+            crossImg.onload  = () => resolve(true);
+            crossImg.onerror = () => resolve(false);
+            crossImg.src = photoUrl + (photoUrl.includes('?') ? '&' : '?') + '_cb=' + Date.now();
           });
-        } catch {
-          // CORS fetch failed — fall back to initials div (avoids canvas taint)
+
+          if (loaded) {
+            const tmpCanvas = document.createElement('canvas');
+            tmpCanvas.width  = crossImg.naturalWidth;
+            tmpCanvas.height = crossImg.naturalHeight;
+            const ctx = tmpCanvas.getContext('2d')!;
+            ctx.drawImage(crossImg, 0, 0);
+            const dataUrlImg = tmpCanvas.toDataURL('image/png'); // throws if tainted
+            imgEl.src = dataUrlImg;
+            converted = true;
+          }
+        } catch { /* tainted or load failed — try next strategy */ }
+
+        // Strategy 2: fetch → blob URL
+        if (!converted) {
+          try {
+            const res = await fetch(photoUrl, { mode: 'cors', credentials: 'omit' });
+            if (!res.ok) throw new Error('fetch failed');
+            const blob = await res.blob();
+            blobUrl = URL.createObjectURL(blob);
+            imgEl.src = blobUrl;
+            await new Promise<void>(resolve => {
+              imgEl.onload  = () => resolve();
+              imgEl.onerror = () => resolve();
+            });
+            converted = true;
+          } catch { /* CORS not configured on storage — fall through */ }
+        }
+
+        // Strategy 3: initials fallback (avoids canvas taint entirely)
+        if (!converted) {
           const wrap = imgEl.parentElement;
           if (wrap) {
             imgEl.remove();
@@ -358,6 +391,7 @@ export class PlayerCardComponent implements OnInit, AfterViewInit, OnChanges, On
         }
       }
       // ─────────────────────────────────────────────────────────────────────
+
 
       offscreen.appendChild(clone);
       document.body.appendChild(offscreen);
@@ -379,11 +413,12 @@ export class PlayerCardComponent implements OnInit, AfterViewInit, OnChanges, On
       console.error('Error generating card PNG', e);
     } finally {
       if (offscreen.parentNode) document.body.removeChild(offscreen);
-      if ((this as any)._blobUrl) { URL.revokeObjectURL((this as any)._blobUrl); }
+      if (blobUrl) URL.revokeObjectURL(blobUrl);
       this.isExporting = false;
       this.cdr.markForCheck();
     }
   }
+
 
 
   private decodeTokenPayload(token: string): { userId: number; roles: string[] } | null {
