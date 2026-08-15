@@ -1750,3 +1750,35 @@ a.pill.academy-link:hover {
   cursor: not-allowed;
   box-shadow: none !important;
 }
+
+/* ===================================================
+   Archetype Export Button
+   =================================================== */
+.export-archetype-btn {
+  position: absolute;
+  top: -20px;
+  right: -20px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--tier-neon, #c8ff4d);
+  color: #111;
+  border: 1px solid rgba(255,255,255,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 100;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.7), inset 0 0 10px rgba(255,255,255,0.2);
+  transition: transform 0.2s, background 0.2s;
+}
+
+.export-archetype-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.export-archetype-btn:hover {
+  transform: scale(1.1);
+  background: #fff;
+}

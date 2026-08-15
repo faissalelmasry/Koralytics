@@ -88,6 +88,7 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
   loggedInUserId: number | null = null;
 
   // ── Archetype overlay ───────────────────────────────────────
+  @ViewChild('archetypeCardElement') archetypeCardElement?: ElementRef<HTMLElement>;
   showArchetypeOverlay = false;
   isCardFlipped = false;
   isRevealingArchetype = false;
@@ -517,6 +518,57 @@ export class PlayerProfileComponent implements OnInit, AfterViewInit, OnDestroy 
     this.isRevealingArchetype = false;
     this.revealError = '';
     this.cdr.markForCheck();
+  }
+
+  async exportArchetypeToPdf(event: Event) {
+    event.stopPropagation();
+    if (!this.archetypeCardElement?.nativeElement) return;
+    
+    const card = this.archetypeCardElement.nativeElement;
+
+    try {
+      const htmlToImage = await import('html-to-image');
+
+      // Temporarily remove 3D rotation to ensure flat rasterization
+      const oldTransform = card.style.transform;
+      card.style.transform = 'none';
+      
+      const frontFace = card.querySelector('.card-face-front') as HTMLElement;
+      const backFace = card.querySelector('.card-face-back') as HTMLElement;
+      
+      const oldFrontDisplay = frontFace ? frontFace.style.display : '';
+      const oldBackDisplay = backFace ? backFace.style.display : '';
+
+      if (this.isCardFlipped) {
+        if (backFace) backFace.style.display = 'none';
+      } else {
+        if (frontFace) frontFace.style.display = 'none';
+      }
+
+      // Generate the image as PNG
+      const dataUrl = await htmlToImage.toPng(card, {
+        quality: 1,
+        pixelRatio: 2,
+        backgroundColor: 'transparent'
+      });
+
+      // Restore DOM state
+      card.style.transform = oldTransform;
+      if (frontFace) frontFace.style.display = oldFrontDisplay;
+      if (backFace) {
+        backFace.style.display = oldBackDisplay;
+      }
+
+      // Download as PNG
+      const link = document.createElement('a');
+      const playerName = this.profile?.firstName ? `${this.profile.firstName}-Archetype` : 'Player-Archetype';
+      link.download = `${playerName}.png`;
+      link.href = dataUrl;
+      link.click();
+
+    } catch (e) {
+      console.error('Error generating Archetype PNG', e);
+    }
   }
 
   fetchPlayerCard() {
