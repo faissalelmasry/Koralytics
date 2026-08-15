@@ -375,3 +375,46 @@
   padding-top: 8px;
   font-size: 10px;
 }
+
+/* ===================================================
+   Export to PDF Button
+   =================================================== */
+.export-pdf-btn {
+  position: absolute;
+  top: -15px;
+  right: -15px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--tier-neon, #c8ff4d);
+  color: #111;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+  transition: transform 0.2s, background 0.2s;
+  opacity: 0;
+}
+
+.scene:hover .export-pdf-btn {
+  opacity: 1;
+}
+
+.export-pdf-btn:hover {
+  transform: scale(1.1);
+  background: #fff;
+}
+
+.card3d.compact ~ .export-pdf-btn {
+  top: 5px;
+  right: 5px;
+  width: 28px;
+  height: 28px;
+}
+.card3d.compact ~ .export-pdf-btn svg {
+  width: 12px;
+  height: 12px;
+}

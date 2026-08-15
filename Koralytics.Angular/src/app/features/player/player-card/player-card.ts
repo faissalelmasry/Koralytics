@@ -43,22 +43,26 @@ export class PlayerCardComponent implements OnInit, AfterViewInit, OnChanges, On
   tierClass = 'tier-base';
   displayClassification = '';
   isGK = false;
+  isCurrentUserPlayer = false;
 
   private unbindMouseListeners?: () => void;
 
   ngOnInit() {
     this.computeDerivedState();
 
-    if (this.player || !this.autoLoad) return;
-
     const token = this.tokenStorage.getAccessToken();
-    if (!token) return;
+    if (token) {
+      const decoded = this.decodeTokenPayload(token);
+      if (decoded && decoded.roles.includes('Player')) {
+        this.isCurrentUserPlayer = true;
+      }
+    }
 
-    const decoded = this.decodeTokenPayload(token);
+    if (this.player || !this.autoLoad || !this.isCurrentUserPlayer) return;
+
+    const decoded = this.decodeTokenPayload(token!);
     if (!decoded) return;
-
-    const { userId, roles } = decoded;
-    if (!roles.includes('Player')) return;
+    const { userId } = decoded;
 
     this.isLoading = true;
     this.cdr.markForCheck();
@@ -264,6 +268,59 @@ export class PlayerCardComponent implements OnInit, AfterViewInit, OnChanges, On
       };
       requestAnimationFrame(tick);
     });
+  }
+
+  async exportToPdf(event: Event) {
+    event.stopPropagation();
+    if (!this.cardElement?.nativeElement) return;
+    
+    const card = this.cardElement.nativeElement;
+
+    try {
+      const htmlToImage = await import('html-to-image');
+      const { jsPDF } = await import('jspdf');
+
+      // Temporarily remove 3D rotation to ensure flat rasterization,
+      // and hide the opposite face to prevent backface-visibility issues in SVG.
+      const oldTransform = card.style.transform;
+      card.style.transform = 'none';
+      
+      const frontFace = card.querySelector('.face.front') as HTMLElement;
+      const backFace = card.querySelector('.face.back') as HTMLElement;
+      
+      const oldFrontDisplay = frontFace ? frontFace.style.display : '';
+      const oldBackDisplay = backFace ? backFace.style.display : '';
+
+      if (this.isFlipped) {
+        if (frontFace) frontFace.style.display = 'none';
+        if (backFace) backFace.style.transform = 'none'; // Ensure back face is not mirrored
+      } else {
+        if (backFace) backFace.style.display = 'none';
+      }
+
+      // Generate the image as PNG to preserve transparent corners
+      const dataUrl = await htmlToImage.toPng(card, {
+        quality: 1,
+        pixelRatio: 2
+      });
+
+      // Restore DOM state
+      card.style.transform = oldTransform;
+      if (frontFace) frontFace.style.display = oldFrontDisplay;
+      if (backFace) {
+        backFace.style.display = oldBackDisplay;
+        backFace.style.transform = ''; // Restore back face mirroring
+      }
+
+      // Download as PNG instead of PDF to support full transparency
+      const link = document.createElement('a');
+      link.download = `${this.player?.playerName || 'Player'}-Card.png`;
+      link.href = dataUrl;
+      link.click();
+
+    } catch (e) {
+      console.error('Error generating PDF', e);
+    }
   }
 
   private decodeTokenPayload(token: string): { userId: number; roles: string[] } | null {
