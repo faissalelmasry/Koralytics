@@ -278,7 +278,6 @@ export class PlayerCardComponent implements OnInit, AfterViewInit, OnChanges, On
 
     try {
       const htmlToImage = await import('html-to-image');
-      const { jsPDF } = await import('jspdf');
 
       // Temporarily remove 3D rotation to ensure flat rasterization,
       // and hide the opposite face to prevent backface-visibility issues in SVG.
@@ -298,11 +297,34 @@ export class PlayerCardComponent implements OnInit, AfterViewInit, OnChanges, On
         if (backFace) backFace.style.display = 'none';
       }
 
+      // Pre-fetch all external images as base64 to bypass canvas CORS taint in production.
+      // html-to-image inlines images it fetches, so we swap src to base64 before capture.
+      const allImgs = Array.from(card.querySelectorAll('img')) as HTMLImageElement[];
+      const originalSrcs = allImgs.map(img => img.src);
+      await Promise.all(allImgs.map(async (img) => {
+        try {
+          const res = await fetch(img.src, { cache: 'no-store' });
+          const blob = await res.blob();
+          const b64 = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+          img.src = b64;
+        } catch {
+          // If fetch fails, leave original src; html-to-image will skip the image
+        }
+      }));
+
       // Generate the image as PNG to preserve transparent corners
       const dataUrl = await htmlToImage.toPng(card, {
         quality: 1,
         pixelRatio: 2
       });
+
+      // Restore original image srcs
+      allImgs.forEach((img, i) => { img.src = originalSrcs[i]; });
 
       // Restore DOM state
       card.style.transform = oldTransform;
@@ -319,7 +341,7 @@ export class PlayerCardComponent implements OnInit, AfterViewInit, OnChanges, On
       link.click();
 
     } catch (e) {
-      console.error('Error generating PDF', e);
+      console.error('Error generating PNG', e);
     }
   }
 
