@@ -1481,8 +1481,8 @@ namespace Koralytics.Application.Services.Academy.AcademyService
             try
             {
                 var baseUrl = _configuration["Langflow:BaseUrl"];
-                var endpoint = _configuration["Langflow:AcademySearchEndpoint"];
-                var apiKey = _configuration["Langflow:AcademyApiKey"];
+                var endpoint = _configuration["Langflow:AcademySearchEndpoint"] ?? "api/v1/run/AcademySearch";
+                var apiKey = _configuration["Langflow:AcademyApiKey"] ?? _configuration["Langflow:ParentApiKey"];
 
                 _logger.LogInformation("Sending request to Academy Langflow AI ChatBot (AcademyId: {AcademyId})...", academyId);
 
@@ -1490,13 +1490,13 @@ namespace Koralytics.Application.Services.Academy.AcademyService
                     ? request.SessionId
                     : Guid.NewGuid().ToString();
 
+                var resolverComponentId = _configuration["Langflow:AcademyEntityResolverComponentId"]
+                    ?? "KoralyticsEntityResolver-muPdf";
+
                 var tweaks = new Dictionary<string, object>
                 {
                     {
-                        "Prompt Template-ZVQqp", new { academy_id = academyId.ToString() }
-                    },
-                    {
-                        "KoralyticsEntityResolver-tVPUl", new { academy_id = academyId }
+                        resolverComponentId, new { academy_id = academyId }
                     }
                 };
 
@@ -1511,7 +1511,7 @@ namespace Koralytics.Application.Services.Academy.AcademyService
 
                 var fullUrl = endpoint.StartsWith("http", StringComparison.OrdinalIgnoreCase)
                     ? endpoint
-                    : $"{baseUrl.TrimEnd('/')}/{(endpoint.StartsWith('/') ? endpoint.Substring(1) : endpoint)}";
+                    : $"{baseUrl?.TrimEnd('/')}/{(endpoint.StartsWith('/') ? endpoint.Substring(1) : endpoint)}";
 
                 var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, fullUrl)
                 {
@@ -1539,13 +1539,7 @@ namespace Koralytics.Application.Services.Academy.AcademyService
                 var responseBody = await response.Content.ReadAsStringAsync();
                 using var jsonDoc = JsonDocument.Parse(responseBody);
 
-                string botReply = jsonDoc.RootElement
-                    .GetProperty("outputs")[0]
-                    .GetProperty("outputs")[0]
-                    .GetProperty("results")
-                    .GetProperty("message")
-                    .GetProperty("text")
-                    .GetString() ?? string.Empty;
+                string? botReply = ExtractAcademyAnswerText(jsonDoc);
 
                 _logger.LogInformation("Academy Langflow AI ChatBot response generated successfully.");
 
@@ -1557,6 +1551,54 @@ namespace Koralytics.Application.Services.Academy.AcademyService
             {
                 _logger.LogError(ex, "An error occurred while calling Academy AI ChatBot.");
                 return "عذراً، حدث خطأ أثناء التواصل مع المساعد الذكي. يرجى المحاولة مرة أخرى لاحقاً.";
+            }
+        }
+
+        private static string? ExtractAcademyAnswerText(JsonDocument jsonDoc)
+        {
+            try
+            {
+                if (jsonDoc.RootElement.TryGetProperty("outputs", out var outputs) && outputs.ValueKind == JsonValueKind.Array && outputs.GetArrayLength() > 0)
+                {
+                    var firstOutput = outputs[0];
+                    if (firstOutput.TryGetProperty("outputs", out var innerOutputs) && innerOutputs.ValueKind == JsonValueKind.Array && innerOutputs.GetArrayLength() > 0)
+                    {
+                        var inner = innerOutputs[0];
+                        if (inner.TryGetProperty("results", out var results) && results.ValueKind == JsonValueKind.Object)
+                        {
+                            if (results.TryGetProperty("message", out var message))
+                            {
+                                if (message.ValueKind == JsonValueKind.Object && message.TryGetProperty("text", out var textProp))
+                                {
+                                    return textProp.GetString();
+                                }
+                                if (message.ValueKind == JsonValueKind.String)
+                                {
+                                    return message.GetString();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // Fallthrough
+            }
+
+            try
+            {
+                return jsonDoc.RootElement
+                    .GetProperty("outputs")[0]
+                    .GetProperty("outputs")[0]
+                    .GetProperty("results")
+                    .GetProperty("message")
+                    .GetProperty("text")
+                    .GetString();
+            }
+            catch
+            {
+                return null;
             }
         }
 
