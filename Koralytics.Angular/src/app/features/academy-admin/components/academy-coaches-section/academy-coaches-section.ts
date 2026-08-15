@@ -134,7 +134,10 @@ export class AcademyCoachesSectionComponent implements OnInit, OnChanges {
       },
       error: (err) => {
         this.isSending = false;
-        this.toast.show(err.error?.detail || err.error?.message || this.translate.instant('ACADEMY_ADMIN.MESSAGES.SEND_REQUEST_ERROR'), 'error');
+        // 🟢 FIX: Also check upgradeMessage from 403 PlanLimitExceededDto response.
+        // Old code only checked err.error?.detail and err.error?.message, both null on plan-limit 403s.
+        const msg = err.error?.upgradeMessage || err.error?.detail || err.error?.message || this.translate.instant('ACADEMY_ADMIN.MESSAGES.SEND_REQUEST_ERROR');
+        this.toast.show(msg, 'error');
       }
     });
   }

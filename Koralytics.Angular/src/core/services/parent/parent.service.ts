@@ -73,8 +73,7 @@ export class ParentService {
      * Sends a join request from the parent to a child player.
      */
     sendChildRequest(playerId: number): Observable<any> {
-        const params = new HttpParams().set('playerId', playerId.toString());
-        return this.http.post<any>(`${this.apiUrl}/child-requests`, null, { params });
+        return this.http.post<any>(`${this.apiUrl}/children/${playerId}/requests`, null);
     }
 
     /**

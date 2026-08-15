@@ -35,10 +35,16 @@ namespace Koralytics.Application.Services.Subscription
         public async Task<TenantSubscription?> GetActiveSubscriptionAsync(
             int academyId, CancellationToken ct = default)
         {
+            // 🟢 FIX: Order by ExpiresAt descending so we always get the latest/most recent
+            // subscription row. Without this, an old expired row could be returned first,
+            // causing tier resolution to fall back to Starter and incorrectly blocking
+            // Pro/Elite users from adding coaches, locations, etc.
             return await _uow
                 .Repository<TenantSubscription>()
                 .GetQueryableAsNoTracking()
-                .FirstOrDefaultAsync(s => s.AcademyId == academyId, ct);
+                .Where(s => s.AcademyId == academyId)
+                .OrderByDescending(s => s.ExpiresAt)
+                .FirstOrDefaultAsync(ct);
         }
 
         /// <inheritdoc />

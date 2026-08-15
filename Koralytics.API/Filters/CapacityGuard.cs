@@ -58,12 +58,22 @@ namespace Koralytics.API.Filters
             string featureName,
             SubscriptionTier currentTier)
         {
-            // If unlimited, or under the limit, let them pass
+            // If unlimited (Elite tier), or under the limit, let them pass
             if (maxLimit == int.MaxValue || currentCount < maxLimit)
                 return null;
 
             string currentPlanName = currentTier.ToString();
-            string nextPlanName = currentTier == SubscriptionTier.Starter ? "Pro" : "Elite";
+
+            // 🟢 FIX: Explicit tier-to-next-tier mapping instead of a vague else branch.
+            // Old code: currentTier == Starter ? "Pro" : "Elite"
+            // Problem: if somehow Elite hits this (theoretically impossible since MaxSeats=int.MaxValue
+            // but defensively wrong), it would say "Upgrade to Elite" while already on Elite.
+            string nextPlanName = currentTier switch
+            {
+                SubscriptionTier.Starter => "Pro",
+                SubscriptionTier.Pro     => "Elite",
+                _                        => "Elite" // Already at top — should never reach here
+            };
 
             // Adjust the verb for better grammar in the UI message
             string actionVerb = featureName == "Staff Seats" ? "invite" : featureName == "Custom Drill Templates" ? "create" : "add";
