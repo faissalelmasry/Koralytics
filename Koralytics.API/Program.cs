@@ -242,6 +242,8 @@ namespace Koralytics.API
                 builder.Configuration.GetSection(EmailSettings.SectionName));
             builder.Services.Configure<GroqOptions>(
                 builder.Configuration.GetSection(GroqOptions.SectionName));
+            builder.Services.Configure<ItiChatOptions>(
+                builder.Configuration.GetSection(ItiChatOptions.SectionName));
             builder.Services.Configure<CohereOptions>(
                 builder.Configuration.GetSection("Cohere"));
             builder.Services.AddHttpClient<ICohereEmbeddingClient, CohereEmbeddingClient>();

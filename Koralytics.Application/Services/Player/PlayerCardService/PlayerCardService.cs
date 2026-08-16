@@ -25,7 +25,7 @@ namespace Koralytics.Application.Services.Player.PlayerCardService
         private readonly IMapper _mapper;
         private readonly ICardInvalidationList _invalidationList;
         private readonly HttpClient _httpClient;
-        private readonly GroqOptions _groqOptions;
+        private readonly ItiChatOptions _itiChatOptions;
 
         public PlayerCardService(
             IUnitOfWork unitOfWork,
@@ -33,23 +33,23 @@ namespace Koralytics.Application.Services.Player.PlayerCardService
             IMapper mapper,
             ICardInvalidationList invalidationList,
             HttpClient httpClient,
-            IOptions<GroqOptions> groqOptions)
+            IOptions<ItiChatOptions> itiChatOptions)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
             _mapper = mapper;
             _invalidationList = invalidationList;
             _httpClient = httpClient;
-            _groqOptions = groqOptions.Value;
+            _itiChatOptions = itiChatOptions.Value;
 
-            if (_httpClient.BaseAddress is null && !string.IsNullOrWhiteSpace(_groqOptions.BaseUrl))
+            if (_httpClient.BaseAddress is null && !string.IsNullOrWhiteSpace(_itiChatOptions.BaseUrl))
             {
-                _httpClient.BaseAddress = new Uri(_groqOptions.BaseUrl);
+                _httpClient.BaseAddress = new Uri(_itiChatOptions.BaseUrl);
             }
 
-            if (!_httpClient.DefaultRequestHeaders.Contains("Authorization") && !string.IsNullOrWhiteSpace(_groqOptions.ApiKey))
+            if (!_httpClient.DefaultRequestHeaders.Contains("Authorization") && !string.IsNullOrWhiteSpace(_itiChatOptions.ApiKey))
             {
-                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _groqOptions.ApiKey);
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _itiChatOptions.ApiKey);
             }
         }
 
@@ -284,8 +284,8 @@ namespace Koralytics.Application.Services.Player.PlayerCardService
             var isGoalkeeper = string.Equals(cardDto.Position, "GK", StringComparison.OrdinalIgnoreCase);
 
             string categoryStatsText = isGoalkeeper
-                ? $"Goalkeeping: {cardDto.GoalkeepingRating ?? 0}"
-                : $"Passing: {cardDto.PassingRating ?? 0}, Shooting: {cardDto.ShootingRating ?? 0}, Dribbling: {cardDto.DribblingRating ?? 0}, Defending: {cardDto.DefendingRating ?? 0}, Speed/Pace: {cardDto.PaceRating ?? 0}, Physical: {cardDto.PhysicalRating ?? 0}";
+                ? $"Goalkeeping: {cardDto.GoalkeepingRating ?? 0:F1}"
+                : $"Pace/Speed: {cardDto.PaceRating ?? 0:F1}, Dribbling: {cardDto.DribblingRating ?? 0:F1}, Shooting: {cardDto.ShootingRating ?? 0:F1}, Passing: {cardDto.PassingRating ?? 0:F1}, Defending: {cardDto.DefendingRating ?? 0:F1}, Physicality: {cardDto.PhysicalRating ?? 0:F1}";
 
             var isElite = cardDto.OverallRating >= 80;
             var exactRating = (int)Math.Round(cardDto.OverallRating);
@@ -294,49 +294,63 @@ namespace Koralytics.Application.Services.Player.PlayerCardService
             var maxRating = isElite ? exactRating : Math.Min(99, (int)Math.Ceiling(cardDto.OverallRating + 4));
 
             var ratingConstraintText = isElite
-                ? $"EXACT EA SPORTS FC 26 RATING REQUIRED: MUST BE EXACTLY {exactRating} OVERALL (NO RATING THRESHOLD OR RANGE ALLOWED)."
-                : $"EA SPORTS FC 26 RATING BRACKET: STRICTLY BETWEEN {minRating} AND {maxRating}.";
+                ? $"EXACT CARD RATING: MUST BE EXACTLY {exactRating} OVERALL (ELITE SUPERSTAR LEVEL)."
+                : $"EGYPTIAN PRO PLAYER RATING BRACKET: STRICTLY BETWEEN {minRating} AND {maxRating} OVERALL.";
 
             var prompt = $@"
-You are an expert EA Sports FC 26 (FC 26) database analyst and top-tier football tactical scout specializing in official EA Sports FC 26 player ratings and rosters.
-Analyze the following player's profile and stat distribution:
+You are an expert EA Sports FC 26 (FC 26 / FIFA) player database analyst and chief tactical scout.
+Select the most accurate real-world player archetype by analyzing official EA FC 26 player cards and conducting a HOLISTIC MULTI-ATTRIBUTE EVALUATION of the following player card:
+
+=== PLAYER CARD EVALUATION PROFILE ===
 - Player Name: {cardDto.PlayerName}
-- REQUIRED PRIMARY POSITION: {cardDto.Position} (MANDATORY EXACT POSITION MATCH)
-- Player Overall Rating: {cardDto.OverallRating:F1}
-- RATING CONSTRAINT: {ratingConstraintText}
+- PRIMARY POSITION: {cardDto.Position} (MANDATORY EXACT POSITION MATCH)
+- Overall Card Rating: {cardDto.OverallRating:F1} ({ratingConstraintText})
 - Preferred Foot: {cardDto.PreferredFoot}
-- Weak Foot Rating: {cardDto.WeakFootRating}/5
-- Category Ratings: {categoryStatsText}
+- Weak Foot Rating: {cardDto.WeakFootRating} out of 5 stars
+- Category Ratings Breakdown: {categoryStatsText}
+{(string.IsNullOrWhiteSpace(cardDto.PlayStyleTag) ? "" : $"- Playstyle Tag: {cardDto.PlayStyleTag}\n")}
 
-MANDATORY EA SPORTS FC 26 (FC 26) RULES:
+=== CRITICAL EVALUATION RULES ===
 
-1. RATING CONSTRAINT:
-{(isElite ? $@"   - RATING >= 80 (EXACT RATING MATCH MANDATORY): The player's rating is {cardDto.OverallRating:F1} (rounded to {exactRating}). You MUST select a real-world international player archetype in EA Sports FC 26 playing in the Top 5 European Leagues or Roshn Saudi League whose official EA FC 26 overall rating is EXACTLY {exactRating}!
-   - DO NOT select a player rated {exactRating - 1}, {exactRating + 1}, or any other rating. The archetype's official EA FC 26 rating MUST BE EXACTLY {exactRating}." : $@"   - RATING < 80 (RATING BRACKET {minRating} TO {maxRating}): Select a real-world Egyptian professional player in EA Sports FC 26 whose FC 26 overall rating is strictly between {minRating} and {maxRating} and plays as {cardDto.Position}.
-   - In your description (archetypeText), state the player's current club (e.g., FC Nantes, Al Ahly, Zamalek, Pyramids, Al Jazira, etc.). If no Egyptian player matches this position in the {minRating}-{maxRating} rating window, select a player from the Top 5 European Leagues or Roshn Saudi League within {minRating}-{maxRating}.")}
+RULE #1: ABSOLUTE STRICT POSITION MATCHING (ZERO TOLERANCE FOR POSITION MISMATCH):
+   - The matched real-world player archetype MUST play natively in the EXACT SAME PRIMARY POSITION in EA FC 26 as the player ({cardDto.Position}).
+   - ST / CF -> Striker / Center-Forward ONLY (NEVER return a winger, midfielder, or defender).
+   - RW / LW / RM / LM -> Winger / Wide Attacker ONLY (NEVER return a striker, central midfielder, or defender).
+   - CM / CAM / CDM -> Central Midfielder / Playmaker / Holding Midfielder ONLY (NEVER return a winger or defender).
+   - CB -> Center-Back ONLY.
+   - LB / RB / LWB / RWB -> Fullback / Wing-Back ONLY.
+   - GK -> Goalkeeper ONLY.
+   - POSITION MISMATCH IS AN ABSOLUTE FAILURE. IF THE PLAYER IS A {cardDto.Position}, THE ARCHETYPE MUST BE A REAL-WORLD {cardDto.Position}.
 
-2. EXACT POSITION MATCH (ZERO POSITION MISMATCH):
-   - The matched real-world player archetype MUST play in the EXACT SAME PRIMARY POSITION in EA FC 26 as the player ({cardDto.Position}).
-   - CB -> Centre-Back | ST/CF -> Striker | RW/LW/RM/LM -> Winger | CM/CAM/CDM -> Central Midfielder | GK -> Goalkeeper.
+RULE #2: HOLISTIC FIFA/FC 26 CARD STATS & ATTRIBUTES MATCHING:
+   - Match dominant category ratings ({categoryStatsText}). If Pace & Dribbling are highest -> pick a fast dribbler; if Passing is highest -> pick a playmaker; if Defending/Physicality is highest -> pick a defensive wall.
+   - Match preferred foot ({cardDto.PreferredFoot}) and account for inverted vs traditional roles (e.g. Left-footed RW = inverted cut-inside winger).
+   - Match weak foot rating ({cardDto.WeakFootRating}/5). A 4/5 or 5/5 weak foot requires an ambidextrous/dual-footed player.
 
-3. PREFERRED FOOT & STAT HARMONY:
-   - Match preferred foot ({cardDto.PreferredFoot}) and similar stat breakdown ({categoryStatsText}).
+RULE #3: MANDATORY PLAYER TIER & EGYPTIAN/ARAB RESTRICTIONS:
+{(isElite ? $@"   - RATING >= 80 (WORLD-CLASS INTERNATIONAL SUPERSTAR): The player rating is {cardDto.OverallRating:F1} (>= 80). IT IS STRICTLY AND ABSOLUTELY FORBIDDEN TO RETURN LOCAL EGYPTIAN OR ARAB LEAGUE PLAYERS. You MUST select an international world-class superstar archetype playing in the Top 5 European Leagues or Roshn Saudi League (e.g. Kevin De Bruyne, Kylian Mbappé, Erling Haaland, Jude Bellingham, Vinícius Jr., Rodri, Pedri, Virgil van Dijk, Courtois, etc.), OR global elite Egyptian superstars ONLY (Mohamed Salah or Omar Marmoush). NO OTHER EGYPTIAN OR ARAB PLAYERS ARE ALLOWED FOR RATING >= 80. Official EA FC 26 rating MUST BE EXACTLY {exactRating}." : $@"   - RATING < 80 (MANDATORY EGYPTIAN PROFESSIONAL PLAYER): The overall rating is {cardDto.OverallRating:F1} (under 80). You MUST MANDATORILY select a real-world EGYPTIAN professional player archetype playing in position {cardDto.Position} in the Egyptian Premier League (Al Ahly, Zamalek, Pyramids, Future, etc.) or Egyptian international expats (e.g., Mostafa Mohamed, Mahmoud Trezeguet, Ibrahim Adel, Emam Ashour, Zizo, Mohamed Abdelmonem, Mohamed El Shenawy, Hossam Abdelmaguid, Mohamed Shehata, Marwan Attia, Osama Faisal, etc.). DO NOT select non-Egyptian European players when rating is under 80.")}
 
-4. OUTPUT FORMAT: Return ONLY a valid JSON object with two string properties: ""archetypePlayerName"" and ""archetypeText"".
-   - ""archetypePlayerName"": Full name of the matched EA FC 26 player archetype.
-   - ""archetypeText"": A detailed, highly complimentary 2-sentence description stating: (1) The main real-world clubs the archetype player has played for during his career (e.g. Al Ahly, Zamalek, FC Nantes, Ajax, Manchester United, Real Madrid, Liverpool, etc.), (2) The exact positions he has played in throughout his career, and (3) An encouraging tactical breakdown highlighting how this player's preferred foot, primary position, and stat ratings make him remarkably close in style to this archetype.
+RULE #4: RESPONSE TEXT RULES (ZERO MENTIONS OF EA SPORTS FC / FC 26 / FIFA / VIDEO GAMES):
+   - In the output description property (""archetypeText""), DO NOT EVER write words like 'EA Sports FC', 'FC 26', 'EA FC', 'FIFA', 'video game', 'card rating', or 'database'.
+   - Write purely as a real-world professional football scout writing a professional scouting report comparing real-world playstyle, preferred foot, weak foot, top attributes, position, career clubs, and tactical role.
+
+=== OUTPUT FORMAT ===
+Return ONLY a valid JSON object with two string properties: ""archetypePlayerName"" and ""archetypeText"".
+- ""archetypePlayerName"": Full official name of the matched real-world player archetype.
+- ""archetypeText"": A detailed, 2-sentence professional tactical comparison explaining how this player's preferred foot ({cardDto.PreferredFoot}), weak foot ({cardDto.WeakFootRating}/5), top category stats ({categoryStatsText}), and primary position ({cardDto.Position}) perfectly mirror the archetype player's real-world career, main clubs, and on-pitch playstyle. (ZERO MENTIONS OF FIFA / FC 26 / EA FC IN THIS TEXT).
 ".Trim();
+
+            var systemPrompt = "You are an expert EA Sports FC 26 (FC 26 / FIFA) player database analyst and professional football scout. Use official EA FC 26 player cards, ratings, rosters, and attributes internally for matching. ALWAYS output strictly valid JSON. NEVER mention 'EA Sports FC', 'FC 26', 'EA FC', 'FIFA', 'video game', or 'ratings database' in the output text ('archetypeText').";
 
             var requestBody = new
             {
-                model = string.IsNullOrWhiteSpace(_groqOptions.ModelName) ? "llama-3.3-70b-versatile" : _groqOptions.ModelName,
+                model_id = string.IsNullOrWhiteSpace(_itiChatOptions.ModelId) ? "openai.gpt-oss-120b-1:0" : _itiChatOptions.ModelId,
                 messages = new[]
                 {
-                    new { role = "system", content = "You are a professional football scouting AI specializing in EA Sports FC 26 (FC 26) player database. Always output strictly valid JSON." },
                     new { role = "user", content = prompt }
                 },
-                temperature = 0.3,
-                response_format = new { type = "json_object" }
+                system_prompt = systemPrompt,
+                max_tokens = _itiChatOptions.MaxTokens > 0 ? _itiChatOptions.MaxTokens : 1024
             };
 
             string archetypePlayerName = string.Empty;
@@ -344,20 +358,19 @@ MANDATORY EA SPORTS FC 26 (FC 26) RULES:
 
             try
             {
-                var response = await _httpClient.PostAsJsonAsync("chat/completions", requestBody);
+                var requestUrl = string.IsNullOrWhiteSpace(_httpClient.BaseAddress?.ToString())
+                    ? (string.IsNullOrWhiteSpace(_itiChatOptions.BaseUrl) ? "http://apiaccess.iti.net.eg/api/v1/student/chat" : _itiChatOptions.BaseUrl)
+                    : "";
+
+                var response = await _httpClient.PostAsJsonAsync(requestUrl, requestBody);
                 response.EnsureSuccessStatusCode();
 
                 var jsonString = await response.Content.ReadAsStringAsync();
                 using var doc = JsonDocument.Parse(jsonString);
 
-                var choices = doc.RootElement.GetProperty("choices");
-                if (choices.GetArrayLength() > 0)
+                if (doc.RootElement.TryGetProperty("output_text", out var outputProp))
                 {
-                    var content = choices[0]
-                        .GetProperty("message")
-                        .GetProperty("content")
-                        .GetString();
-
+                    var content = outputProp.GetString();
                     if (!string.IsNullOrWhiteSpace(content))
                     {
                         var cleanJson = content.Trim();
@@ -380,7 +393,21 @@ MANDATORY EA SPORTS FC 26 (FC 26) RULES:
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while querying Groq API for player archetype (PlayerId: {PlayerId})", playerId);
+                _logger.LogError(ex, "Error occurred while querying ITI Bedrock Gateway API for player archetype (PlayerId: {PlayerId})", playerId);
+            }
+
+            // Post-processing Safety Cleaning: Strip any accidental FIFA / FC 26 / EA Sports FC mentions from archetypeText
+            if (!string.IsNullOrWhiteSpace(archetypeText))
+            {
+                archetypeText = archetypeText
+                    .Replace("EA Sports FC 26", "Professional Football", StringComparison.OrdinalIgnoreCase)
+                    .Replace("EA Sports FC", "Professional Football", StringComparison.OrdinalIgnoreCase)
+                    .Replace("EA FC 26", "Professional Football", StringComparison.OrdinalIgnoreCase)
+                    .Replace("EA FC", "Professional Football", StringComparison.OrdinalIgnoreCase)
+                    .Replace("FC 26", "Professional Football", StringComparison.OrdinalIgnoreCase)
+                    .Replace("FC26", "Professional Football", StringComparison.OrdinalIgnoreCase)
+                    .Replace("FIFA 26", "Professional Football", StringComparison.OrdinalIgnoreCase)
+                    .Replace("FIFA", "Professional Football", StringComparison.OrdinalIgnoreCase);
             }
 
             // Post-processing Safety Validation: Reject 75+ rated superstars if player rating is < 72
@@ -708,19 +735,19 @@ MANDATORY EA SPORTS FC 26 (FC 26) RULES:
 
             if (rating >= 75)
             {
-                if (isGk) return ("Mohamed El Shenawy (Al Ahly)", "Experienced goalkeeper with solid reflexes and reliable leadership.");
-                if (isCb) return ("Mohamed Abdelmonem (OGC Nice)", "Modern centre-back with excellent ball progression and tackling prowess.");
-                if (isWinger) return ("Ahmed Sayed Zizo (Zamalek)", "Versatile winger known for pinpoint crossing, work rate, and set-piece mastery.");
-                if (isStriker) return ("Mostafa Mohamed (FC Nantes)", "Strong physical striker with lethal aerial threat and clinical finishing.");
-                return ("Emam Ashour (Al Ahly)", "Dynamic box-to-box midfielder with high work rate and powerful long-range shooting.");
+                if (isGk) return ("Mohamed El Shenawy ", "Experienced goalkeeper with solid reflexes and reliable leadership.");
+                if (isCb) return ("Mohamed Abdelmonem", "Modern centre-back with excellent ball progression and tackling prowess.");
+                if (isWinger) return ("Ahmed Sayed Zizo", "Versatile winger known for pinpoint crossing, work rate, and set-piece mastery.");
+                if (isStriker) return ("Mostafa Mohamed", "Strong physical striker with lethal aerial threat and clinical finishing.");
+                return ("Emam Ashour", "Dynamic box-to-box midfielder with high work rate and powerful long-range shooting.");
             }
 
             // Low-rated prospect fallback (Rating < 75 e.g. 60-70)
-            if (isGk) return ("Hamza Alaa (Al Ahly)", "Promising young Egyptian goalkeeper with agile reflexes.");
-            if (isCb) return ("Hossam Abdelmaguid (Zamalek)", "Tall Egyptian centre-back prospect with strong physical presence.");
-            if (isWinger) return ("Ibrahim Adel (Pyramids FC)", "Agile Egyptian winger prospect with quick feet and dribbling flair.");
-            if (isStriker) return ("Osama Faisal (Bank El Ahly)", "Hardworking young Egyptian striker profile with good mobility.");
-            return ("Mohamed Shehata (Zamalek)", "Energetic young Egyptian midfielder with active pressing and ball recovery.");
+            if (isGk) return ("Hamza Alaa", "Promising young Egyptian goalkeeper with agile reflexes.");
+            if (isCb) return ("Hossam Abdelmaguid", "Tall Egyptian centre-back prospect with strong physical presence.");
+            if (isWinger) return ("Ibrahim Adel", "Agile Egyptian winger prospect with quick feet and dribbling flair.");
+            if (isStriker) return ("Osama Faisal", "Hardworking young Egyptian striker profile with good mobility.");
+            return ("Mohamed Shehata", "Energetic young Egyptian midfielder with active pressing and ball recovery.");
         }
     }
 }
