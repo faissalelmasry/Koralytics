@@ -1186,6 +1186,32 @@
   object-fit: contain;
 }
 
+/* Fallback link — shown when YouTube blocks embedding (Error 153) */
+.video-yt-fallback {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.45);
+  text-decoration: none;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  letter-spacing: 0.3px;
+  transition: color 0.2s, background 0.2s;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 2;
+}
+
+.video-yt-fallback:hover {
+  color: var(--accent-lime, #c8ff4d);
+  background: rgba(200, 255, 77, 0.05);
+}
+
 .video-modal-footer {
   display: flex;
   align-items: center;
